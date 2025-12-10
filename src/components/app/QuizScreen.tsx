@@ -16,6 +16,9 @@ export function QuizScreen({ question, onAnswer, progress }: QuizScreenProps) {
         <CardHeader className="p-8 md:p-12">
           <Progress value={progress} className="w-full mb-8 h-2" />
           <CardTitle className="font-headline text-2xl md:text-3xl text-accent font-bold">{question.text}</CardTitle>
+          {question.insight && (
+            <p className="text-muted-foreground mt-2 italic">{question.insight}</p>
+          )}
         </CardHeader>
         <CardContent className="px-8 pb-8 md:px-12 md:pb-12">
           <div className="grid grid-cols-1 md:grid-cols-1 gap-4 mt-4">

@@ -16,6 +16,7 @@ export type QuestionOption = {
 
 export type Question = {
     text: string;
+    insight?: string;
     options: QuestionOption[];
 };
 
@@ -71,74 +72,69 @@ export const drinkDatabase: Drink[] = [
 
 export const questions: Question[] = [
     {
-        text: "What\'s your ideal vacation?",
+        text: "How do you take your morning coffee (or tea)?",
+        insight: "This helps us gauge your tolerance for bitterness and preference for richness.",
         options: [
-            { text: "A tropical beach getaway.", dx: -5, dy: 3, tags: [] },
-            { text: "Exploring a bustling city\'s food scene.", dx: 2, dy: -2, tags: [] },
-            { text: "A cozy cabin in the mountains.", dx: 3, dy: -4, tags: ['likesSmoke'] },
-            { text: "A relaxing trip to a vineyard.", dx: 1, dy: 2, tags: [] }
+            { text: "Black. Like my soul.", dx: 3, dy: 0, tags: [] },
+            { text: "Lots of cream and sugar.", dx: -3, dy: -2, tags: [] },
+            { text: "Oat milk latte.", dx: -1, dy: -2, tags: [] },
+            { text: "Green tea or lemon water.", dx: 1, dy: 3, tags: [] }
         ]
     },
     {
-        text: "Pick a scent.",
+        text: "It's dessert time. What are you grabbing?",
+        insight: "Testing your sweet tooth vs. savory cravings.",
         options: [
-            { text: "Freshly cut grass.", dx: 2, dy: 4, tags: [] },
-            { text: "Old books and leather.", dx: 4, dy: -3, tags: [] },
-            { text: "A crackling campfire.", dx: 2, dy: -2, tags: ['likesSmoke'] },
-            { text: "A bakery in the morning.", dx: -4, dy: -2, tags: [] }
+            { text: "Lemon Sorbet.", dx: -1, dy: 4, tags: [] },
+            { text: "Dark Chocolate Mousse.", dx: 2, dy: -4, tags: [] },
+            { text: "Cheesecake.", dx: -2, dy: -3, tags: [] },
+            { text: "Cheese board.", dx: 4, dy: -1, tags: [] }
         ]
     },
     {
-        text: "You\'re at a party. Where are you?",
+        text: "How do you feel about sour/tart flavors?",
+        insight: "Acidity is a key component in cocktails, brightening up the drink.",
         options: [
-            { text: "On the dance floor.", dx: -2, dy: 3, tags: [] },
-            { text: "In a quiet corner, having a deep conversation.", dx: 3, dy: -3, tags: [] },
-            { text: "By the snacks, trying a bit of everything.", dx: -1, dy: -1, tags: [] },
-            { text: "Outside, enjoying the fresh air.", dx: 1, dy: 2, tags: [] }
+            { text: "Love it! Give me all the lemons and limes.", dx: 0, dy: 5, tags: [] },
+            { text: "It's okay in moderation.", dx: 0, dy: 1, tags: [] },
+            { text: "No thanks, gives me heartburn.", dx: 0, dy: -3, tags: [] }
         ]
     },
     {
-        text: "Choose a super power.",
+        text: "What texture do you prefer in a drink?",
+        insight: "Mouthfeel changes the perception of flavor.",
         options: [
-            { text: "Ability to talk to animals.", dx: -1, dy: 1, tags: [] },
-            { text: "Super strength and endurance.", dx: 2, dy: -3, tags: [] },
-            { text: "Teleportation.", dx: 1, dy: 3, tags: [] },
-            { text: "Reading minds.", dx: 4, dy: -1, tags: [] }
+            { text: "Bubbly and effervescent.", dx: 0, dy: 4, tags: [] },
+            { text: "Silky and smooth.", dx: 0, dy: -2, tags: [] },
+            { text: "Thick and creamy.", dx: 0, dy: -4, tags: [] },
+            { text: "Ice cold and crisp.", dx: 0, dy: 3, tags: [] }
         ]
     },
     {
-        text: "How do you approach a new project?",
+        text: "Let's talk bitterness (IPA, Radicchio, Tonic Water).",
+        insight: "Bitterness adds complexity and depth.",
         options: [
-            { text: "Dive right in and figure it out as I go.", dx: 0, dy: 2, tags: [] },
-            { text: "Plan every detail before I start.", dx: 2, dy: -1, tags: [] },
-            { text: "Collaborate with others to brainstorm ideas.", dx: -2, dy: 1, tags: [] },
-            { text: "I trust my gut feeling.", dx: 0, dy: 0, tags: [] }
+            { text: "Love the bite.", dx: 5, dy: 0, tags: ['likesBitter'] },
+            { text: "I can handle a little.", dx: 1, dy: 0, tags: [] },
+            { text: "Absolutely not.", dx: -4, dy: 0, tags: ['noBitter'] }
         ]
     },
     {
-        text: "What kind of art do you prefer?",
+        text: "Campfire vibes?",
+        insight: "Smoky flavors can be polarizing.",
         options: [
-            { text: "Bright, colorful pop art.", dx: -4, dy: 2, tags: [] },
-            { text: "Classic, detailed renaissance paintings.", dx: 3, dy: -2, tags: [] },
-            { text: "Abstract sculptures.", dx: 5, dy: 0, tags: ['likesBitter'] },
-            { text: "Black and white photography.", dx: 1, dy: -1, tags: [] }
+            { text: "Love the smell of a campfire.", dx: 2, dy: -2, tags: ['likesSmoke'] },
+            { text: "Keep it clean and fresh.", dx: 0, dy: 2, tags: ['noSmoke'] }
         ]
     },
     {
-        text: "It\'s movie night. What are you watching?",
+        text: "What's the vibe for tonight?",
+        insight: "Setting the mood is half the battle.",
         options: [
-            { text: "A light-hearted romantic comedy.", dx: -3, dy: 1, tags: [] },
-            { text: "A complex, thought-provoking thriller.", dx: 4, dy: -2, tags: [] },
-            { text: "An action-packed adventure.", dx: 1, dy: 0, tags: [] },
-            { text: "A visually stunning nature documentary.", dx: 0, dy: 3, tags: [] }
-        ]
-    },
-    {
-        text: "A friend offers you a piece of dark chocolate.",
-        options: [
-            { text: "The darker the better!", dx: 4, dy: -2, tags: ['likesBitter'] },
-            { text: "Only if it has something sweet with it.", dx: -2, dy: 0, tags: [] },
-            { text: "No thanks, it\'s too bitter for me.", dx: -5, dy: 1, tags: ['noBitter'] }
+            { text: "Party time! Something fun and fruity.", dx: -3, dy: 2, tags: [] },
+            { text: "Sophisticated and sipping slowly.", dx: 3, dy: -3, tags: [] },
+            { text: "Relaxing on the patio.", dx: 1, dy: 3, tags: [] },
+            { text: "Cozy by the fire.", dx: 1, dy: -4, tags: [] }
         ]
     }
 ];
