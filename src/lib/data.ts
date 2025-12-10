@@ -71,71 +71,74 @@ export const drinkDatabase: Drink[] = [
 
 export const questions: Question[] = [
     {
-        text: "It's 7:00 AM. How are you taking your coffee?",
+        text: "What\'s your ideal vacation?",
         options: [
-            { text: "Black. I like the roast.", dx: 3, dy: -1, tags: [] },
-            { text: "Cream and Sugar (or a Latte).", dx: -3, dy: -2, tags: [] },
-            { text: "I drink tea / sparkling water.", dx: 0, dy: 3, tags: [] },
-            { text: "I don't drink coffee.", dx: 0, dy: 0, tags: [] }
+            { text: "A tropical beach getaway.", dx: -5, dy: 3, tags: [] },
+            { text: "Exploring a bustling city\'s food scene.", dx: 2, dy: -2, tags: [] },
+            { text: "A cozy cabin in the mountains.", dx: 3, dy: -4, tags: ['likesSmoke'] },
+            { text: "A relaxing trip to a vineyard.", dx: 1, dy: 2, tags: [] }
         ]
     },
     {
-        text: "Pick a movie snack:",
+        text: "Pick a scent.",
         options: [
-            { text: "Buttery popcorn", dx: 1, dy: -1, tags: [] },
-            { text: "Sour gummy worms", dx: -3, dy: 1, tags: [] },
-            { text: "Milk chocolate raisins", dx: -4, dy: -2, tags: [] },
-            { text: "A pickle", dx: 4, dy: 2, tags: [] }
+            { text: "Freshly cut grass.", dx: 2, dy: 4, tags: [] },
+            { text: "Old books and leather.", dx: 4, dy: -3, tags: [] },
+            { text: "A crackling campfire.", dx: 2, dy: -2, tags: ['likesSmoke'] },
+            { text: "A bakery in the morning.", dx: -4, dy: -2, tags: [] }
         ]
     },
     {
-        text: "You're at a bonfire. The wind shifts and you inhale some woodsmoke.",
+        text: "You\'re at a party. Where are you?",
         options: [
-            { text: "I love that smell. Nostalgic.", dx: 2, dy: -2, tags: ['likesSmoke'] },
-            { text: "Coughing fit. I hate it.", dx: 0, dy: 0, tags: ['noSmoke'] },
-            { text: "Indifferent. It is what it is.", dx: 0, dy: 0, tags: [] }
+            { text: "On the dance floor.", dx: -2, dy: 3, tags: [] },
+            { text: "In a quiet corner, having a deep conversation.", dx: 3, dy: -3, tags: [] },
+            { text: "By the snacks, trying a bit of everything.", dx: -1, dy: -1, tags: [] },
+            { text: "Outside, enjoying the fresh air.", dx: 1, dy: 2, tags: [] }
         ]
     },
     {
-        text: "Dessert time. Pick one:",
+        text: "Choose a super power.",
         options: [
-            { text: "Lemon Sorbet.", dx: -2, dy: 4, tags: [] },
-            { text: "Dark Chocolate Mousse (80% Cocoa).", dx: 4, dy: -4, tags: [] },
-            { text: "Cheesecake with Strawberries.", dx: -4, dy: -2, tags: [] },
-            { text: "A cheese plate.", dx: 3, dy: -3, tags: [] }
+            { text: "Ability to talk to animals.", dx: -1, dy: 1, tags: [] },
+            { text: "Super strength and endurance.", dx: 2, dy: -3, tags: [] },
+            { text: "Teleportation.", dx: 1, dy: 3, tags: [] },
+            { text: "Reading minds.", dx: 4, dy: -1, tags: [] }
         ]
     },
     {
-        text: "Pick a texture for your ideal beverage:",
+        text: "How do you approach a new project?",
         options: [
-            { text: "Ice cold, bubbly, fizzy.", dx: 0, dy: 5, tags: [] },
-            { text: "Velvety, smooth, coats the mouth.", dx: 0, dy: -5, tags: [] },
-            { text: "Like water / juice. Unobtrusive.", dx: 0, dy: 1, tags: [] }
+            { text: "Dive right in and figure it out as I go.", dx: 0, dy: 2, tags: [] },
+            { text: "Plan every detail before I start.", dx: 2, dy: -1, tags: [] },
+            { text: "Collaborate with others to brainstorm ideas.", dx: -2, dy: 1, tags: [] },
+            { text: "I trust my gut feeling.", dx: 0, dy: 0, tags: [] }
         ]
     },
     {
-        text: "How do you feel about bitterness (like in grapefruit, dark greens, or tonic water)?",
+        text: "What kind of art do you prefer?",
         options: [
-            { text: "Love the bite. It's complex.", dx: 4, dy: 0, tags: ['likesBitter'] },
-            { text: "It needs to be balanced with sugar.", dx: -2, dy: 0, tags: [] },
-            { text: "Cannot stand it.", dx: -4, dy: 0, tags: ['noBitter'] }
+            { text: "Bright, colorful pop art.", dx: -4, dy: 2, tags: [] },
+            { text: "Classic, detailed renaissance paintings.", dx: 3, dy: -2, tags: [] },
+            { text: "Abstract sculptures.", dx: 5, dy: 0, tags: ['likesBitter'] },
+            { text: "Black and white photography.", dx: 1, dy: -1, tags: [] }
         ]
     },
     {
-        text: "You're picking a salad dressing.",
+        text: "It\'s movie night. What are you watching?",
         options: [
-            { text: "Sweet & tangy Poppyseed Vinaigrette.", dx: -3, dy: 1, tags: [] },
-            { text: "Rich & creamy Ranch or Caesar.", dx: -1, dy: -3, tags: [] },
-            { text: "Simple oil & vinegar.", dx: 2, dy: 2, tags: [] }
+            { text: "A light-hearted romantic comedy.", dx: -3, dy: 1, tags: [] },
+            { text: "A complex, thought-provoking thriller.", dx: 4, dy: -2, tags: [] },
+            { text: "An action-packed adventure.", dx: 1, dy: 0, tags: [] },
+            { text: "A visually stunning nature documentary.", dx: 0, dy: 3, tags: [] }
         ]
     },
     {
-        text: "Ideally, your drink should taste like...",
+        text: "A friend offers you a piece of dark chocolate.",
         options: [
-            { text: "A fruit basket.", dx: -5, dy: 0, tags: [] },
-            { text: "Herbs, spices, and earth.", dx: 5, dy: 0, tags: [] },
-            { text: "Grain and yeast (like bread).", dx: 2, dy: -1, tags: [] },
-            { text: "Something I can't easily describe.", dx: 1, dy: 0, tags: [] }
+            { text: "The darker the better!", dx: 4, dy: -2, tags: ['likesBitter'] },
+            { text: "Only if it has something sweet with it.", dx: -2, dy: 0, tags: [] },
+            { text: "No thanks, it\'s too bitter for me.", dx: -5, dy: 1, tags: ['noBitter'] }
         ]
     }
 ];
