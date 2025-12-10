@@ -4,6 +4,16 @@ import type { User } from '@/app/page';
 import { drinkDatabase, type Drink } from '@/lib/data';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  GlassFull,
+  Glass,
+  Bottle,
+  ToolsKitchen2,
+  Barbell,
+  Milk,
+  Mug,
+  Coffee,
+} from 'tabler-icons-react';
 
 interface FinalResultsScreenProps {
   user: User;
@@ -26,6 +36,17 @@ const getPersonalityType = (discScore: Record<string, number>): string => {
     default: return 'The Maverick';
   }
 }
+
+const iconMap = [
+  GlassFull,
+  Glass,
+  Bottle,
+  ToolsKitchen2,
+  Barbell,
+  Milk,
+  Mug,
+  Coffee,
+];
 
 export function FinalResultsScreen({ user, discScore, onReset }: FinalResultsScreenProps) {
 
@@ -90,13 +111,17 @@ export function FinalResultsScreen({ user, discScore, onReset }: FinalResultsScr
         </CardHeader>
         <CardContent>
           <ul className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {top8.map((drink, index) => (
-              <li key={drink.name} className="border-2 border-dashed border-border p-4 rounded-lg text-center bg-background">
-                <p className="font-bold text-lg text-accent">#{index + 1}</p>
-                <p className="font-bold text-primary/90 text-xl">{drink.name}</p>
-                <p className="text-xs text-muted-foreground uppercase tracking-wider">{drink.type}</p>
-              </li>
-            ))}
+            {top8.map((drink, index) => {
+              const Icon = iconMap[index];
+              return (
+                <li key={drink.name} className="border-2 border-dashed border-border p-4 rounded-lg text-center bg-background flex flex-col items-center justify-center">
+                  <p className="font-bold text-lg text-accent">#{index + 1}</p>
+                  <Icon size={48} className="text-primary my-2" />
+                  <p className="font-bold text-primary/90 text-xl">{drink.name}</p>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider">{drink.type}</p>
+                </li>
+              );
+            })}
           </ul>
         </CardContent>
       </Card>
