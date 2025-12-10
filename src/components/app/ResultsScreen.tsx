@@ -18,6 +18,10 @@ const quadrantDetails = {
   br: { id: "list-br", title: "The Bold & Complex", filter: (d: Drink) => d.x > 0 && d.y <= 0 },
 }
 
+const calculateDistance = (user: User, drink: Drink) => {
+    return Math.sqrt(Math.pow(user.x - drink.x, 2) + Math.pow(user.y - drink.y, 2));
+};
+
 export function ResultsScreen({ user, onReset }: ResultsScreenProps) {
   const leftPercent = ((user.x + 10) / 20) * 100;
   const topPercent = ((10 - user.y) / 20) * 100;
@@ -28,20 +32,25 @@ export function ResultsScreen({ user, onReset }: ResultsScreenProps) {
 
   const whyText = `Your answers placed you at coordinates [${user.x}, ${user.y}]. ${user.x > 0 ? "You gravitate towards savory, botanical, or bitter notes rather than overt sugar. " : "You prefer approachable sweetness and fruit-forward profiles over bitterness. "}${user.y > 0 ? "Texture-wise, you value effervescence and acidity." : "Texture-wise, you enjoy weight on the palate and lingering finishes."}`;
 
-  const availableDrinks = useMemo(() => drinkDatabase.filter(d => {
-    if(user.filters.includes('noSmoke') && d.smoke) return false;
-    if(user.filters.includes('noBitter') && d.bitter) return false;
-    return true;
-  }), [user.filters]);
-
   const quadrants = useMemo(() => {
-    return {
+    const availableDrinks = drinkDatabase.filter(d => {
+        if(user.filters.includes('noSmoke') && d.smoke) return false;
+        if(user.filters.includes('noBitter') && d.bitter) return false;
+        return true;
+    }).map(drink => ({
+        ...drink,
+        distance: calculateDistance(user, drink),
+    })).sort((a, b) => a.distance - b.distance);
+
+    const drinksInQuadrants = {
       tl: availableDrinks.filter(quadrantDetails.tl.filter).slice(0, 4),
       tr: availableDrinks.filter(quadrantDetails.tr.filter).slice(0, 4),
       bl: availableDrinks.filter(quadrantDetails.bl.filter).slice(0, 4),
       br: availableDrinks.filter(quadrantDetails.br.filter).slice(0, 4),
     }
-  }, [availableDrinks]);
+    
+    return drinksInQuadrants;
+  }, [user]);
 
   return (
     <div className="animate-in fade-in duration-500 space-y-8">
