@@ -1,6 +1,7 @@
 'use client';
 
-import { useFormState, useFormStatus } from 'react-dom';
+import { useActionState } from 'react';
+import { useFormStatus } from 'react-dom';
 import { findCocktailRecipes } from '@/app/actions';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
@@ -24,7 +25,7 @@ function SubmitButton() {
 }
 
 export function Chatbot() {
-  const [state, formAction] = useFormState(findCocktailRecipes, initialState);
+  const [state, formAction] = useActionState(findCocktailRecipes, initialState);
 
   return (
     <Card className="shadow-xl border-2 border-primary/5 bg-card">
