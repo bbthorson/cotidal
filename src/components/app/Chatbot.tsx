@@ -4,6 +4,7 @@ import { useActionState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { findCocktailRecipes } from '@/app/actions';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -40,12 +41,16 @@ export function Chatbot() {
       </CardHeader>
       <CardContent>
         <form action={formAction} className="space-y-4">
-          <Textarea
-            name="ingredientsDescription"
-            placeholder="e.g., 'I have some gin, lemons, sugar, and club soda... what can I make?'"
-            className="min-h-[100px] text-base"
-            required
-          />
+          <div className="space-y-2">
+            <Label htmlFor="ingredients-input">Your Ingredients</Label>
+            <Textarea
+              id="ingredients-input"
+              name="ingredientsDescription"
+              placeholder="e.g., 'I have some gin, lemons, sugar, and club soda... what can I make?'"
+              className="min-h-[100px] text-base"
+              required
+            />
+          </div>
           <div className="flex justify-end">
             <SubmitButton />
           </div>
