@@ -2,6 +2,7 @@ import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
   /* config options here */
+  serverExternalPackages: ['express'],
   typescript: {
     ignoreBuildErrors: true,
   },
@@ -28,11 +29,6 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/**',
       },
-    ],
-  },
-  devServer: {
-    allowedDevOrigins: [
-      'https://6000-firebase-studio-1765397775637.cluster-omu5xfjeevhmgwf75twfksi4vc.cloudworkstations.dev',
     ],
   },
 };

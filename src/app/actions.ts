@@ -16,14 +16,15 @@ export async function findCocktailRecipes(prevState: any, formData: FormData) {
   if (!validatedFields.success) {
     return {
       error: validatedFields.error.flatten().fieldErrors.ingredientsDescription?.[0] || 'Invalid input.',
+      data: '',
     };
   }
 
   try {
     const result = await ingredientBasedCocktailSearch(validatedFields.data);
-    return { data: result.recipes };
+    return { data: result.recipes, error: '' };
   } catch (error) {
     console.error('AI Error:', error);
-    return { error: 'An error occurred while searching for recipes. Please try again.' };
+    return { error: 'An error occurred while searching for recipes. Please try again.', data: '' };
   }
 }

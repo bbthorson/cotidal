@@ -1,3 +1,5 @@
+export type VibeTag = 'bold' | 'classic' | 'visual' | 'social' | 'comfort' | 'complex' | 'sweet';
+
 export type Drink = {
     name: string;
     type: "Cocktail" | "Wine" | "Beer" | "Spirit";
@@ -5,6 +7,7 @@ export type Drink = {
     y: number;
     smoke: boolean;
     bitter: boolean;
+    tags: VibeTag[];
 };
 
 export type QuestionOption = {
@@ -22,52 +25,52 @@ export type Question = {
 
 export const drinkDatabase: Drink[] = [
     // --- TOP LEFT (Lush & Lively: Crisp + Sweet) ---
-    { name: "Aperol Spritz", type: "Cocktail", x: -4, y: 8, smoke: false, bitter: true },
-    { name: "German Riesling (Kabinett)", type: "Wine", x: -7, y: 9, smoke: false, bitter: false },
-    { name: "Mai Tai", type: "Cocktail", x: -6, y: 4, smoke: false, bitter: false },
-    { name: "Hefeweizen", type: "Beer", x: -3, y: 6, smoke: false, bitter: false },
-    { name: "French 75", type: "Cocktail", x: -2, y: 8, smoke: false, bitter: false },
-    { name: "Moscato d'Asti", type: "Wine", x: -9, y: 7, smoke: false, bitter: false },
-    { name: "Mojito", type: "Cocktail", x: -5, y: 9, smoke: false, bitter: false },
-    { name: "Piña Colada", type: "Cocktail", x: -8, y: 5, smoke: false, bitter: false },
-    { name: "Gewürztraminer", type: "Wine", x: -6, y: 6, smoke: false, bitter: false },
-    { name: "Belgian Witbier", type: "Beer", x: -4, y: 7, smoke: false, bitter: false },
+    { name: "Aperol Spritz", type: "Cocktail", x: -4, y: 8, smoke: false, bitter: true, tags: ['visual', 'social'] },
+    { name: "German Riesling (Kabinett)", type: "Wine", x: -7, y: 9, smoke: false, bitter: false, tags: ['classic', 'social'] },
+    { name: "Mai Tai", type: "Cocktail", x: -6, y: 4, smoke: false, bitter: false, tags: ['visual', 'social', 'bold'] },
+    { name: "Hefeweizen", type: "Beer", x: -3, y: 6, smoke: false, bitter: false, tags: ['social', 'classic'] },
+    { name: "French 75", type: "Cocktail", x: -2, y: 8, smoke: false, bitter: false, tags: ['classic', 'social', 'visual'] },
+    { name: "Moscato d'Asti", type: "Wine", x: -9, y: 7, smoke: false, bitter: false, tags: ['social', 'comfort'] },
+    { name: "Mojito", type: "Cocktail", x: -5, y: 9, smoke: false, bitter: false, tags: ['social', 'visual'] },
+    { name: "Piña Colada", type: "Cocktail", x: -8, y: 5, smoke: false, bitter: false, tags: ['comfort', 'visual', 'social'] },
+    { name: "Gewürztraminer", type: "Wine", x: -6, y: 6, smoke: false, bitter: false, tags: ['complex', 'visual'] },
+    { name: "Belgian Witbier", type: "Beer", x: -4, y: 7, smoke: false, bitter: false, tags: ['classic', 'social'] },
 
     // --- TOP RIGHT (Crisp & Clean: Crisp + Savory/Dry) ---
-    { name: "Gin & Tonic", type: "Cocktail", x: 7, y: 9, smoke: false, bitter: true },
-    { name: "Sancerre (Sauvignon Blanc)", type: "Wine", x: 6, y: 9, smoke: false, bitter: false },
-    { name: "Pilsner Urquell", type: "Beer", x: 5, y: 8, smoke: false, bitter: true },
-    { name: "Classic Martini (Dry)", type: "Cocktail", x: 9, y: 6, smoke: false, bitter: false },
-    { name: "Brut Champagne", type: "Wine", x: 5, y: 10, smoke: false, bitter: false },
-    { name: "Margarita (on the rocks, salt rim)", type: "Cocktail", x: 2, y: 7, smoke: false, bitter: false },
-    { name: "Albariño", type: "Wine", x: 4, y: 9, smoke: false, bitter: false },
-    { name: "Gose", type: "Beer", x: 3, y: 8, smoke: false, bitter: false },
-    { name: "Vodka Soda with Lime", type: "Cocktail", x: 8, y: 10, smoke: false, bitter: false },
-    { name: "Dry Vermouth (on the rocks)", type: "Wine", x: 9, y: 7, smoke: false, bitter: true },
+    { name: "Gin & Tonic", type: "Cocktail", x: 7, y: 9, smoke: false, bitter: true, tags: ['classic', 'social'] },
+    { name: "Sancerre (Sauvignon Blanc)", type: "Wine", x: 6, y: 9, smoke: false, bitter: false, tags: ['classic', 'social'] },
+    { name: "Pilsner Urquell", type: "Beer", x: 5, y: 8, smoke: false, bitter: true, tags: ['classic', 'social'] },
+    { name: "Classic Martini (Dry)", type: "Cocktail", x: 9, y: 6, smoke: false, bitter: false, tags: ['classic', 'bold'] },
+    { name: "Brut Champagne", type: "Wine", x: 5, y: 10, smoke: false, bitter: false, tags: ['classic', 'social', 'visual'] },
+    { name: "Margarita (on the rocks, salt rim)", type: "Cocktail", x: 2, y: 7, smoke: false, bitter: false, tags: ['social', 'classic'] },
+    { name: "Albariño", type: "Wine", x: 4, y: 9, smoke: false, bitter: false, tags: ['social', 'visual'] },
+    { name: "Gose", type: "Beer", x: 3, y: 8, smoke: false, bitter: false, tags: ['complex', 'visual'] },
+    { name: "Vodka Soda with Lime", type: "Cocktail", x: 8, y: 10, smoke: false, bitter: false, tags: ['social'] },
+    { name: "Dry Vermouth (on the rocks)", type: "Wine", x: 9, y: 7, smoke: false, bitter: true, tags: ['classic', 'complex'] },
 
     // --- BOTTOM LEFT (Decadent & Deep: Rich + Sweet) ---
-    { name: "Espresso Martini", type: "Cocktail", x: -3, y: -6, smoke: false, bitter: true },
-    { name: "Milk Stout", type: "Beer", x: -4, y: -5, smoke: false, bitter: false },
-    { name: "Port (Tawny)", type: "Wine", x: -7, y: -7, smoke: false, bitter: false },
-    { name: "White Russian", type: "Cocktail", x: -8, y: -8, smoke: false, bitter: false },
-    { name: "Pedro Ximénez Sherry", type: "Wine", x: -10, y: -6, smoke: false, bitter: false },
-    { name: "Rum & Coke", type: "Cocktail", x: -9, y: -2, smoke: false, bitter: false },
-    { name: "Belgian Dubbel", type: "Beer", x: -5, y: -3, smoke: false, bitter: false },
-    { name: "Amaretto Sour", type: "Cocktail", x: -6, y: -4, smoke: false, bitter: false },
-    { name: "Late-Harvest Riesling", type: "Wine", x: -8, y: -5, smoke: false, bitter: false },
-    { name: "Doppelbock", type: "Beer", x: -6, y: -7, smoke: false, bitter: false },
+    { name: "Espresso Martini", type: "Cocktail", x: -3, y: -6, smoke: false, bitter: true, tags: ['visual', 'social', 'bold'] },
+    { name: "Milk Stout", type: "Beer", x: -4, y: -5, smoke: false, bitter: false, tags: ['comfort', 'bold'] },
+    { name: "Port (Tawny)", type: "Wine", x: -7, y: -7, smoke: false, bitter: false, tags: ['comfort', 'classic'] },
+    { name: "White Russian", type: "Cocktail", x: -8, y: -8, smoke: false, bitter: false, tags: ['comfort', 'sweet'] },
+    { name: "Pedro Ximénez Sherry", type: "Wine", x: -10, y: -6, smoke: false, bitter: false, tags: ['complex', 'comfort'] },
+    { name: "Rum & Coke", type: "Cocktail", x: -9, y: -2, smoke: false, bitter: false, tags: ['comfort', 'social'] },
+    { name: "Belgian Dubbel", type: "Beer", x: -5, y: -3, smoke: false, bitter: false, tags: ['complex', 'comfort'] },
+    { name: "Amaretto Sour", type: "Cocktail", x: -6, y: -4, smoke: false, bitter: false, tags: ['visual', 'social'] },
+    { name: "Late-Harvest Riesling", type: "Wine", x: -8, y: -5, smoke: false, bitter: false, tags: ['comfort', 'complex'] },
+    { name: "Doppelbock", type: "Beer", x: -6, y: -7, smoke: false, bitter: false, tags: ['bold', 'comfort'] },
 
     // --- BOTTOM RIGHT (Bold & Complex: Rich + Savory/Bitter/Smoky) ---
-    { name: "Negroni", type: "Cocktail", x: 8, y: -4, smoke: false, bitter: true },
-    { name: "Barolo (Nebbiolo)", type: "Wine", x: 8, y: -6, smoke: false, bitter: true },
-    { name: "Islay Scotch (Neat)", type: "Spirit", x: 9, y: -5, smoke: true, bitter: false },
-    { name: "Smoked Porter", type: "Beer", x: 5, y: -7, smoke: true, bitter: true },
-    { name: "Manhattan", type: "Cocktail", x: 4, y: -5, smoke: false, bitter: true },
-    { name: "Cabernet Sauvignon (Napa)", type: "Wine", x: 5, y: -6, smoke: false, bitter: true },
-    { name: "Oaxacan Old Fashioned", type: "Cocktail", x: 6, y: -5, smoke: true, bitter: true },
-    { name: "West Coast IPA", type: "Beer", x: 7, y: 2, smoke: false, bitter: true },
-    { name: "Fernet-Branca", type: "Spirit", x: 10, y: -3, smoke: false, bitter: true },
-    { name: "Syrah (Northern Rhône)", type: "Wine", x: 7, y: -7, smoke: false, bitter: true }
+    { name: "Negroni", type: "Cocktail", x: 8, y: -4, smoke: false, bitter: true, tags: ['bold', 'classic', 'complex'] },
+    { name: "Barolo (Nebbiolo)", type: "Wine", x: 8, y: -6, smoke: false, bitter: true, tags: ['bold', 'complex', 'classic'] },
+    { name: "Islay Scotch (Neat)", type: "Spirit", x: 9, y: -5, smoke: true, bitter: false, tags: ['bold', 'complex'] },
+    { name: "Smoked Porter", type: "Beer", x: 5, y: -7, smoke: true, bitter: true, tags: ['bold', 'complex', 'comfort'] },
+    { name: "Manhattan", type: "Cocktail", x: 4, y: -5, smoke: false, bitter: true, tags: ['classic', 'bold'] },
+    { name: "Cabernet Sauvignon (Napa)", type: "Wine", x: 5, y: -6, smoke: false, bitter: true, tags: ['classic', 'bold'] },
+    { name: "Oaxacan Old Fashioned", type: "Cocktail", x: 6, y: -5, smoke: true, bitter: true, tags: ['complex', 'bold', 'visual'] },
+    { name: "West Coast IPA", type: "Beer", x: 7, y: 2, smoke: false, bitter: true, tags: ['bold', 'classic'] },
+    { name: "Fernet-Branca", type: "Spirit", x: 10, y: -3, smoke: false, bitter: true, tags: ['bold', 'complex'] },
+    { name: "Syrah (Northern Rhône)", type: "Wine", x: 7, y: -7, smoke: false, bitter: true, tags: ['complex', 'bold'] }
 ];
 
 export const questions: Question[] = [

@@ -4,7 +4,6 @@ import { WelcomeScreen } from '@/components/app/WelcomeScreen';
 import { QuizScreen } from '@/components/app/QuizScreen';
 import { ResultsScreen } from '@/components/app/ResultsScreen';
 import { DiscoveryQuiz } from '@/components/app/DiscoveryQuiz';
-import { FinalResultsScreen } from '@/components/app/FinalResultsScreen';
 import { questions, type QuestionOption } from '@/lib/data';
 
 export type User = {
@@ -17,12 +16,12 @@ export default function Home() {
   const [screen, setScreen] = useState<'welcome' | 'quiz' | 'results' | 'discoveryQuiz' | 'finalResults'>('welcome');
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [user, setUser] = useState<User>({ x: 0, y: 0, filters: [] });
-  const [discScore, setDiscScore] = useState<Record<string, number> | null>(null);
+  const [vibeTags, setVibeTags] = useState<Record<string, number> | null>(null);
 
   const handleStartQuiz = () => {
     setCurrentQuestionIndex(0);
     setUser({ x: 0, y: 0, filters: [] });
-    setDiscScore(null);
+    setVibeTags(null);
     setScreen('quiz');
   };
 
@@ -57,7 +56,7 @@ export default function Home() {
   };
 
   const handleDiscoveryQuizComplete = (score: Record<string, number>) => {
-    setDiscScore(score);
+    setVibeTags(score);
     setScreen('finalResults');
   };
   
@@ -91,7 +90,7 @@ export default function Home() {
         )}
         {screen === 'results' && <ResultsScreen user={finalUser} onReset={handleReset} onRefineTaste={handleRefineTaste} />}
         {screen === 'discoveryQuiz' && <DiscoveryQuiz onComplete={handleDiscoveryQuizComplete} />}
-        {screen === 'finalResults' && discScore && <FinalResultsScreen user={finalUser} discScore={discScore} onReset={handleReset} />}
+        {screen === 'finalResults' && vibeTags && <ResultsScreen user={finalUser} vibeTags={vibeTags} onReset={handleReset} onRefineTaste={() => {}} />}
       </main>
     </div>
   );

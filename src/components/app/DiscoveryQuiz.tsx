@@ -1,35 +1,32 @@
 'use client';
 import { useState } from 'react';
-import { discoveryQuestions, type DiscoveryQuestion } from '@/lib/discovery-questions';
+import { discoveryQuestions } from '@/lib/discovery-questions';
+import type { VibeTag } from '@/lib/data';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 
 interface DiscoveryQuizProps {
-  onComplete: (score: Record<string, number>) => void;
+  onComplete: (vibeScore: Record<string, number>) => void;
 }
 
 export function DiscoveryQuiz({ onComplete }: DiscoveryQuizProps) {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [answers, setAnswers] = useState<Record<string, 'd' | 'i' | 's' | 'c'>>({});
+  const [tagFrequency, setTagFrequency] = useState<Record<string, number>>({});
 
-  const handleAnswer = (questionId: string, value: 'd' | 'i' | 's' | 'c') => {
-    const newAnswers = { ...answers, [questionId]: value };
-    setAnswers(newAnswers);
+  const handleAnswer = (tags: VibeTag[]) => {
+    const newTagFrequency = { ...tagFrequency };
+
+    tags.forEach(tag => {
+        newTagFrequency[tag] = (newTagFrequency[tag] || 0) + 1;
+    });
+
+    setTagFrequency(newTagFrequency);
 
     if (currentQuestionIndex < discoveryQuestions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
     } else {
-      const score = {
-        d: 0,
-        i: 0,
-        s: 0,
-        c: 0,
-      };
-      Object.values(newAnswers).forEach(val => {
-        score[val]++;
-      });
-      onComplete(score);
+      onComplete(newTagFrequency);
     }
   };
 
@@ -40,7 +37,7 @@ export function DiscoveryQuiz({ onComplete }: DiscoveryQuizProps) {
     <div className="w-full max-w-2xl mx-auto p-4">
       <Card className="shadow-2xl border-2 border-primary/10">
         <CardHeader className="text-center">
-          <CardTitle className="font-headline text-3xl font-bold text-primary">Discover Your Top 8</CardTitle>
+          <CardTitle className="font-headline text-3xl font-bold text-primary">Discover Your Vibe</CardTitle>
           <Progress value={progress} className="w-full mt-4" />
         </CardHeader>
         <CardContent className="text-center space-y-6">
@@ -49,7 +46,7 @@ export function DiscoveryQuiz({ onComplete }: DiscoveryQuizProps) {
             {currentQuestion.options.map((option, index) => (
               <Button
                 key={index}
-                onClick={() => handleAnswer(currentQuestion.id, option.value)}
+                onClick={() => handleAnswer(option.vibeTags)}
                 variant="outline"
                 className="h-auto py-4 text-lg whitespace-normal"
               >
