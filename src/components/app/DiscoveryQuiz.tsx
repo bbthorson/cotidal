@@ -45,7 +45,7 @@ export function DiscoveryQuiz({ onComplete }: DiscoveryQuizProps) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {currentQuestion.options.map((option, index) => (
               <Button
-                key={index}
+                key={`${currentQuestion.id}-${index}`}
                 onClick={() => handleAnswer(option.vibeTags)}
                 variant="outline"
                 className="h-auto py-4 text-lg whitespace-normal"
