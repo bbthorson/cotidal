@@ -5,13 +5,11 @@ import { drinkDatabase, type Drink } from '@/lib/data';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Chatbot } from './Chatbot';
-import { RefineTaste } from './RefineTaste';
 
 interface ResultsScreenProps {
   user: User;
   vibeTags?: Record<string, number>;
   onReset: () => void;
-  onRefineTaste: () => void;
 }
 
 const quadrantDetails = {
@@ -41,7 +39,7 @@ const calculateScore = (distance: number, drink: Drink, vibeTags: Record<string,
 };
 
 
-export function ResultsScreen({ user, vibeTags, onReset, onRefineTaste }: ResultsScreenProps) {
+export function ResultsScreen({ user, vibeTags, onReset }: ResultsScreenProps) {
   const leftPercent = ((user.x + 10) / 20) * 100;
   const topPercent = ((10 - user.y) / 20) * 100;
 
@@ -193,10 +191,6 @@ export function ResultsScreen({ user, vibeTags, onReset, onRefineTaste }: Result
       </div>
       )}
       
-      {!vibeTags && (
-         <RefineTaste onStart={onRefineTaste} />
-      )}
-
       <Chatbot />
       
       <div className="text-center mt-8">

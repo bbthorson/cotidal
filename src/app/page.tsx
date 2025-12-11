@@ -1,10 +1,8 @@
 'use client';
 import { useState, useMemo } from 'react';
 import { WelcomeScreen } from '@/components/app/WelcomeScreen';
-import { QuizScreen } from '@/components/app/QuizScreen';
 import { ResultsScreen } from '@/components/app/ResultsScreen';
-import { DiscoveryQuiz } from '@/components/app/DiscoveryQuiz';
-import { questions, type QuestionOption } from '@/lib/data';
+import { DiscoveryQuiz, type UserProfile, type RecommendedDrink } from '@/components/app/DiscoveryQuiz';
 
 export type User = {
   x: number;
@@ -13,55 +11,33 @@ export type User = {
 };
 
 export default function Home() {
-  const [screen, setScreen] = useState<'welcome' | 'quiz' | 'results' | 'discoveryQuiz' | 'finalResults'>('welcome');
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [screen, setScreen] = useState<'welcome' | 'discoveryQuiz' | 'finalResults'>('welcome');
   const [user, setUser] = useState<User>({ x: 0, y: 0, filters: [] });
   const [vibeTags, setVibeTags] = useState<Record<string, number> | null>(null);
 
   const handleStartQuiz = () => {
-    setCurrentQuestionIndex(0);
     setUser({ x: 0, y: 0, filters: [] });
     setVibeTags(null);
-    setScreen('quiz');
-  };
-
-  const handleAnswer = (option: QuestionOption) => {
-    setUser(prevUser => {
-      const newFilters = [...prevUser.filters];
-      const weight = (currentQuestionIndex === 1 || currentQuestionIndex === 7) ? 1.5 : 1;
-
-      if (option.tags.includes('noSmoke') && !newFilters.includes('noSmoke')) {
-        newFilters.push('noSmoke');
-      }
-      if (option.tags.includes('noBitter') && !newFilters.includes('noBitter')) {
-        newFilters.push('noBitter');
-      }
-
-      return {
-        x: prevUser.x + option.dx * weight,
-        y: prevUser.y + option.dy * weight,
-        filters: newFilters,
-      };
-    });
-
-    if (currentQuestionIndex < questions.length - 1) {
-      setCurrentQuestionIndex(prev => prev + 1);
-    } else {
-      setScreen('results');
-    }
-  };
-
-  const handleRefineTaste = () => {
     setScreen('discoveryQuiz');
   };
 
-  const handleDiscoveryQuizComplete = (score: Record<string, number>) => {
-    setVibeTags(score);
+  const handleDiscoveryQuizComplete = (profile: UserProfile, recommendations: RecommendedDrink[]) => {
+    // Map profile to User type
+    const filters: string[] = [];
+    if (profile.dislikesSmoke) filters.push('noSmoke');
+    if (profile.dislikesBitter) filters.push('noBitter');
+
+    setUser({
+        x: profile.x,
+        y: profile.y,
+        filters
+    });
+    setVibeTags(profile.vibeTags);
     setScreen('finalResults');
   };
   
   const finalUser = useMemo(() => {
-    if (screen === 'results' || screen === 'finalResults') {
+    if (screen === 'finalResults') {
         return {
             ...user,
             x: Math.max(-10, Math.min(10, user.x)),
@@ -75,22 +51,12 @@ export default function Home() {
     setScreen('welcome');
   };
 
-  const progress = (currentQuestionIndex / questions.length) * 100;
-
   return (
     <div className="flex min-h-dvh items-center justify-center p-4">
       <main className="container max-w-5xl w-full transition-opacity duration-500 ease-in-out">
         {screen === 'welcome' && <WelcomeScreen onStartQuiz={handleStartQuiz} />}
-        {screen === 'quiz' && (
-          <QuizScreen
-            question={questions[currentQuestionIndex]}
-            onAnswer={handleAnswer}
-            progress={progress}
-          />
-        )}
-        {screen === 'results' && <ResultsScreen user={finalUser} onReset={handleReset} onRefineTaste={handleRefineTaste} />}
         {screen === 'discoveryQuiz' && <DiscoveryQuiz onComplete={handleDiscoveryQuizComplete} />}
-        {screen === 'finalResults' && vibeTags && <ResultsScreen user={finalUser} vibeTags={vibeTags} onReset={handleReset} onRefineTaste={() => {}} />}
+        {screen === 'finalResults' && vibeTags && <ResultsScreen user={finalUser} vibeTags={vibeTags} onReset={handleReset} />}
       </main>
     </div>
   );
