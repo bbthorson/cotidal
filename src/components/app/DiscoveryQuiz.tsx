@@ -200,16 +200,16 @@ export function DiscoveryQuiz({ onComplete }: DiscoveryQuizProps) {
                     <button
                       key={`${(currentQuestion as any).id}-${index}`}
                       onClick={() => handleVibeAnswer(option)}
-                      className="relative group overflow-hidden rounded-xl aspect-square border-2 border-transparent hover:border-primary transition-all text-left"
+                      className="relative group overflow-hidden rounded-xl aspect-square border-2 border-transparent hover:border-primary focus-visible:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 transition-all text-left"
                     >
                       {/* The Image */}
                       <img
                         src={option.imageSrc || "https://placehold.co/400x400?text=Vibe"}
-                        alt={option.text}
-                        className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-500"
+                        alt=""
+                        className="object-cover w-full h-full group-hover:scale-110 group-focus-visible:scale-110 transition-transform duration-500"
                       />
                       {/* The Label overlay */}
-                      <div className="absolute inset-0 bg-black/40 flex items-center justify-center p-2 group-hover:bg-black/50 transition-colors">
+                      <div className="absolute inset-0 bg-black/40 flex items-center justify-center p-2 group-hover:bg-black/50 group-focus-visible:bg-black/50 transition-colors">
                         <span className="text-white font-headline text-xl font-bold text-center drop-shadow-md">
                             {option.text}
                         </span>
