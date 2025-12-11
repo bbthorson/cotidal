@@ -14,7 +14,7 @@ export function QuizScreen({ question, onAnswer, progress }: QuizScreenProps) {
     <div className="animate-in fade-in duration-500">
       <Card className="w-full max-w-3xl mx-auto shadow-xl border-2 border-primary/5 bg-card">
         <CardHeader className="p-8 md:p-12">
-          <Progress value={progress} className="w-full mb-8 h-2" />
+          <Progress value={progress} className="w-full mb-8 h-2" aria-label="Quiz progress" />
           <CardTitle className="font-headline text-2xl md:text-3xl text-accent font-bold">{question.text}</CardTitle>
           {question.insight && (
             <p className="text-muted-foreground mt-2 italic">{question.insight}</p>

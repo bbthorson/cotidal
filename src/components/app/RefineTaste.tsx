@@ -16,8 +16,8 @@ export function RefineTaste({ onStart }: RefineTasteProps) {
       </CardHeader>
       <CardContent className="space-y-4">
         <p className="text-muted-foreground text-lg">
-          You've got your general flavor profile. Now, let's dig a little deeper.
-          Answer a few more questions to discover your personalized "Top 8" drink recommendations.
+          You&apos;ve got your general flavor profile. Now, let&apos;s dig a little deeper.
+          Answer a few more questions to discover your personalized &quot;Top 8&quot; drink recommendations.
         </p>
         <Button onClick={onStart} size="lg" className="uppercase tracking-wider font-bold">
           Refine Your Taste
