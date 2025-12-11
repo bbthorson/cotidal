@@ -1,53 +1,53 @@
-import type { VibeTag } from './data';
+import { VibeTag } from './data';
 
-export type DiscoveryQuestion = {
+export interface DiscoveryQuestion {
   id: string;
   text: string;
   options: {
     text: string;
     vibeTags: VibeTag[];
   }[];
-};
+}
 
 export const discoveryQuestions: DiscoveryQuestion[] = [
   {
     id: 'q1',
-    text: 'You walk into a crowded party. Your immediate reaction is:',
+    text: 'If your soul had a texture, what would it be?',
     options: [
-      { text: 'Find the DJ and request a banger.', vibeTags: ['visual', 'social'] }, // i
-      { text: 'Scan the room for the most important person.', vibeTags: ['bold', 'classic'] }, // d
-      { text: 'Look for the dog/cat.', vibeTags: ['comfort'] }, // s
-      { text: 'Critique the interior design and acoustics.', vibeTags: ['complex'] }, // c
+      { text: 'Polished Marble & Steel', vibeTags: ['classic', 'bold'] },
+      { text: 'Worn Leather & Old Books', vibeTags: ['complex', 'comfort'] },
+      { text: 'Crushed Velvet & Silk', vibeTags: ['comfort', 'sweet'] },
+      { text: 'Neon Light & Glitter', vibeTags: ['visual', 'social'] },
     ],
   },
   {
     id: 'q2',
-    text: 'The IKEA furniture instructions are wrong. You:',
+    text: 'Choose the setting for your perfect night.',
     options: [
-      { text: 'Throw them away and build it my way.', vibeTags: ['bold', 'classic'] }, // d
-      { text: 'Call a friend to help (and bring wine).', vibeTags: ['visual', 'social'] }, // i
-      { text: 'Patiently try to make it work anyway.', vibeTags: ['comfort'] }, // s
-      { text: 'Write a strongly worded email to IKEA.', vibeTags: ['complex'] }, // c
+      { text: 'A rooftop in Tokyo, surrounded by lights.', vibeTags: ['visual', 'bold'] },
+      { text: 'A secret basement speakeasy, dimly lit.', vibeTags: ['classic', 'complex'] },
+      { text: 'A bustling dinner party, loud with laughter.', vibeTags: ['social', 'sweet'] },
+      { text: 'A cabin in the woods, just a fire.', vibeTags: ['comfort'] },
     ],
   },
   {
     id: 'q3',
-    text: 'Someone steals your parking spot. You:',
+    text: 'Which geometric shape speaks to you?',
     options: [
-      { text: 'Honk and stare them down.', vibeTags: ['bold', 'classic'] }, // d
-      { text: 'Make a joke about it to your passenger.', vibeTags: ['visual', 'social'] }, // i
-      { text: 'Sigh and find another spot.', vibeTags: ['comfort'] }, // s
-      { text: 'Calculate if their car fits the legal dimensions.', vibeTags: ['complex'] }, // c
+      { text: 'The Triangle (Sharp, Directional)', vibeTags: ['bold', 'classic'] },
+      { text: 'The Circle (Continuous, Smooth)', vibeTags: ['social', 'comfort'] },
+      { text: 'The Hexagon (Structural, Complex)', vibeTags: ['complex', 'classic'] },
+      { text: 'The Star (Explosive, Radiant)', vibeTags: ['visual', 'social'] },
     ],
   },
   {
     id: 'q4',
-    text: 'Zombie apocalypse! What\'s your role?',
+    text: 'Pick a color palette.',
     options: [
-      { text: 'The Leader (obviously).', vibeTags: ['bold', 'classic'] }, // d
-      { text: 'The Morale Booster / Bard.', vibeTags: ['visual', 'social'] }, // i
-      { text: 'The Medic / Cook.', vibeTags: ['comfort'] }, // s
-      { text: 'The Strategist / Map Reader.', vibeTags: ['complex'] }, // c
+      { text: 'Vantablack & Deep Purple', vibeTags: ['bold', 'complex'] },
+      { text: 'Champagne Gold & White', vibeTags: ['classic', 'visual'] },
+      { text: 'Moss Green & Earth', vibeTags: ['comfort', 'complex'] },
+      { text: 'Electric Blue & Hot Pink', vibeTags: ['social', 'visual'] },
     ],
   },
 ];

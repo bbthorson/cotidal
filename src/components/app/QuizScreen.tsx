@@ -24,7 +24,7 @@ export function QuizScreen({ question, onAnswer, progress }: QuizScreenProps) {
           <div className="grid grid-cols-1 md:grid-cols-1 gap-4 mt-4">
             {question.options.map((option, index) => (
               <Button
-                key={index}
+                key={`${question.text}-${index}`}
                 variant="outline"
                 className="h-auto whitespace-normal text-left justify-start p-5 text-base border-accent/50 text-accent-foreground/80 bg-accent/80 hover:bg-accent hover:text-accent-foreground focus-visible:ring-accent-foreground shadow-sm hover:shadow-md transition-all duration-200"
                 onClick={() => onAnswer(option)}
