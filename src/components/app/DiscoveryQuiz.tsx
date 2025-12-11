@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { questions as sensoryQuestions, drinkDatabase, Drink } from '@/lib/data';
 import { discoveryQuestions } from '@/lib/discovery-questions';
-import type { QuestionOption } from '@/lib/data';
+import type { QuestionOption, Question } from '@/lib/data';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -68,10 +68,31 @@ export function DiscoveryQuiz({ onComplete }: DiscoveryQuizProps) {
     // 2. Feedback Logic
     if (option.feedback) {
       toast({ description: option.feedback });
+    } else if (option.flags?.dislikesSmoke === false) {
+       toast({
+           title: "Bold choice.",
+           description: "We're unlocking the Mezcal and Scotch cabinet for you.",
+           duration: 3000,
+       });
+    } else if (Math.abs(option.dx) > 2) {
+       if (option.dx > 2) {
+           toast({
+               title: "Noted.",
+               description: "Dialing back the sugar. Keeping it dry.",
+               duration: 2000,
+           });
+       } else {
+           toast({
+               title: "Sweet tooth detected.",
+               description: "We'll find something lush for you.",
+               duration: 2000,
+           });
+       }
     }
 
+
     // 3. Advance Logic (with delay if feedback)
-    const delay = option.feedback ? 1500 : 0;
+    const delay = option.feedback || (option.flags?.dislikesSmoke === false) || (Math.abs(option.dx) > 2) ? 1000 : 300;
     setTimeout(() => {
         if (currentQuestionIndex < sensoryQuestions.length - 1) {
             setCurrentQuestionIndex(currentQuestionIndex + 1);
@@ -106,11 +127,6 @@ export function DiscoveryQuiz({ onComplete }: DiscoveryQuizProps) {
     // 1. Filter (Hard constraints)
     let candidates = drinkDatabase.filter(drink => {
         if (finalProfile.dislikesSmoke && drink.hasSmoke) return false;
-        // if (finalProfile.dislikesBitter && drink.isBitter) return false; // Wait, prompt said: "Constraint: dislikesBitter" but didn't explicitly say "Remove any drink where drink.isBitter is true IF profile.dislikesBitter is true" like it did for smoke. It just said "Step 1 (Hard Filter): Remove any drink where drink.hasSmoke is true IF profile.dislikesSmoke is true."
-        // However, it's implied by "Constraints: Add boolean flags...". Let's assume bitter is also a hard filter if dislikesBitter is true.
-        // Re-reading prompt: "Step 1 (Hard Filter): Remove any drink where drink.hasSmoke is true IF profile.dislikesSmoke is true." It ONLY mentions smoke there.
-        // But in Task 1: "Constraints: Add boolean flags to Drink: hasSmoke and isBitter."
-        // I will apply bitter filter too, logic dictates it operates similarly.
         if (finalProfile.dislikesBitter && drink.isBitter) return false;
         return true;
     });
@@ -124,7 +140,6 @@ export function DiscoveryQuiz({ onComplete }: DiscoveryQuizProps) {
     });
 
     // Sort by distance ascending to find "Quadrant Match" (closest neighbors)
-    // Prompt says: "Step 3 (Vibe Sort): Re-order the top 5 candidates based on how many vibeTags they share..."
     scoredCandidates.sort((a, b) => a.distance - b.distance);
 
     // Take top 5 closest
@@ -164,7 +179,7 @@ export function DiscoveryQuiz({ onComplete }: DiscoveryQuizProps) {
         </CardHeader>
         <CardContent className="text-center space-y-6">
           <p className="font-serif text-2xl">{currentQuestion.text}</p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className={`grid gap-4 ${stage === 'vibe' ? 'grid-cols-2' : 'grid-cols-1 md:grid-cols-2'}`}>
             {/*
                 We need to handle rendering slightly differently because `questions` (sensory) and `discoveryQuestions` (vibe)
                 have different structures. `questions` has `dx`, `dy`, `flags`. `discoveryQuestions` has `vibeTags`.
@@ -182,14 +197,24 @@ export function DiscoveryQuiz({ onComplete }: DiscoveryQuizProps) {
                   ))
             ) : (
                 (currentQuestion as any).options.map((option: any, index: number) => (
-                    <Button
-                      key={`${currentQuestion.id}-${index}`} // discoveryQuestions use id
+                    <button
+                      key={`${(currentQuestion as any).id}-${index}`}
                       onClick={() => handleVibeAnswer(option)}
-                      variant="outline"
-                      className="h-auto py-4 text-lg whitespace-normal"
+                      className="relative group overflow-hidden rounded-xl aspect-square border-2 border-transparent hover:border-primary transition-all text-left"
                     >
-                      {option.text}
-                    </Button>
+                      {/* The Image */}
+                      <img
+                        src={option.imageSrc || "https://placehold.co/400x400?text=Vibe"}
+                        alt={option.text}
+                        className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-500"
+                      />
+                      {/* The Label overlay */}
+                      <div className="absolute inset-0 bg-black/40 flex items-center justify-center p-2 group-hover:bg-black/50 transition-colors">
+                        <span className="text-white font-headline text-xl font-bold text-center drop-shadow-md">
+                            {option.text}
+                        </span>
+                      </div>
+                    </button>
                   ))
             )}
           </div>

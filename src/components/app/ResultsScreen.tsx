@@ -1,10 +1,11 @@
 'use client';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import type { User } from '@/app/page';
 import { drinkDatabase, type Drink } from '@/lib/data';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Chatbot } from './Chatbot';
+import { explainDrinkMatch } from '@/app/actions/explain-drink';
 
 interface ResultsScreenProps {
   user: User;
@@ -40,6 +41,9 @@ const calculateScore = (distance: number, drink: Drink, vibeTags: Record<string,
 
 
 export function ResultsScreen({ user, vibeTags, onReset }: ResultsScreenProps) {
+  const [explanation, setExplanation] = useState<string | null>(null);
+  const [loadingExplanation, setLoadingExplanation] = useState(false);
+
   const leftPercent = ((user.x + 10) / 20) * 100;
   const topPercent = ((10 - user.y) / 20) * 100;
 
@@ -52,34 +56,22 @@ export function ResultsScreen({ user, vibeTags, onReset }: ResultsScreenProps) {
   const recommendations = useMemo(() => {
     // 1. Filter by hard constraints (smoke/bitter)
     let availableDrinks = drinkDatabase.filter(d => {
-        if(user.filters.includes('noSmoke') && d.smoke) return false;
-        if(user.filters.includes('noBitter') && d.bitter) return false;
+        if(user.filters.includes('noSmoke') && d.hasSmoke) return false;
+        if(user.filters.includes('noBitter') && d.isBitter) return false;
         return true;
     });
 
-    // 2. Identify Quadrant
-    // TL: x <= 0, y > 0
-    // TR: x > 0, y > 0
-    // BL: x <= 0, y <= 0
-    // BR: x > 0, y <= 0
-    let targetQuadrantDrinks: Drink[] = [];
-    if (user.x <= 0 && user.y > 0) {
-        targetQuadrantDrinks = availableDrinks.filter(d => d.x <= 0 && d.y > 0);
-    } else if (user.x > 0 && user.y > 0) {
-        targetQuadrantDrinks = availableDrinks.filter(d => d.x > 0 && d.y > 0);
-    } else if (user.x <= 0 && user.y <= 0) {
-        targetQuadrantDrinks = availableDrinks.filter(d => d.x <= 0 && d.y <= 0);
-    } else { // BR
-        targetQuadrantDrinks = availableDrinks.filter(d => d.x > 0 && d.y <= 0);
-    }
+    // 2. Identify Quadrant OR just search all if using vibeTags
+    // If vibeTags exist (Layer 2), we search all (as implied by prompt "Re-order top 5 candidates...").
+    // But let's stick to the Quadrant logic if we want to respect the "Flavor Profile" coordinates primarily.
+    // Actually, "The Crystal Coupe" logic (Task 2) was: 1. Hard Filter, 2. Distance (Rank), 3. Vibe Sort (Re-rank).
+    // This logic runs on ALL filtered drinks.
+    // However, the prompt for Task 1 implied Quadrants.
+    // The code I pasted previously (Task 2) did global distance sort.
+    // Let's use the global distance sort + vibe sort here for the results, as it's more accurate than quadrant locking.
 
-    // Fallback if quadrant is empty (expand search or just use all available)
-    if (targetQuadrantDrinks.length === 0) {
-        targetQuadrantDrinks = availableDrinks;
-    }
-
-    // 3. Calculate Scores and Sort
-    const scoredDrinks = targetQuadrantDrinks.map(drink => ({
+    // Calculate Scores and Sort
+    const scoredDrinks = availableDrinks.map(drink => ({
         ...drink,
         distance: calculateDistance(user, drink),
         score: calculateScore(calculateDistance(user, drink), drink, vibeTags),
@@ -91,27 +83,24 @@ export function ResultsScreen({ user, vibeTags, onReset }: ResultsScreenProps) {
   const heroDrink = recommendations[0];
   const runnersUp = recommendations.slice(1, 4);
 
-  // If no vibe tags, show the old quadrant view (Layer 1) or simplified view?
-  // The prompt says "Implement a two-layer recommendation system... Update UI Layout... Move away from symmetric 2x2 grid."
-  // It implies this new layout is for the result.
-  // However, initially (Layer 1), we might not have vibe tags.
-  // Let's assume we use the new layout always, but without vibe tags, it's just distance-based.
-
-  // Actually, if we are in "Layer 1" (no vibeTags), maybe we want to show the quadrants or just the top picks based on distance?
-  // The prompt "Step 3: Update Results Logic" implies this is the new way to show results.
-  // But wait, `RefineTaste` button triggers the "Discovery Quiz" (Layer 2).
-  // So initially we might want to show the quadrants, OR just show top recommendations based on Palate.
-  // The prompt says: "Move away from the symmetric 2x2 grid." This suggests a permanent UI change.
-
-  // I will check if `vibeTags` is present. If NOT, maybe I should still show the quadrants?
-  // The user prompt says "Update ResultsScreen... Update UI Layout... Move away from symmetric 2x2 grid".
-  // This sounds like a total replacement of the UI.
-  // I'll stick to the requested "Hero Card + Runners Up" layout for both states, but maybe with a "Refine" call to action if vibeTags are missing.
-
-  // Wait, if I replace the 2x2 grid, I lose the "Explore the matrix" feel.
-  // But the prompt is explicit: "Move away from the symmetric 2x2 grid."
-
-  // Let's implement the Hero + Runners Up.
+  const handleExplain = async () => {
+      if (!heroDrink) return;
+      setLoadingExplanation(true);
+      try {
+          const text = await explainDrinkMatch(heroDrink.name, {
+              x: user.x,
+              y: user.y,
+              dislikesSmoke: user.filters.includes('noSmoke'),
+              dislikesBitter: user.filters.includes('noBitter'),
+              // simple way to pass top vibe if possible, or just let AI infer from prompt text
+          });
+          setExplanation(text);
+      } catch (e) {
+          console.error(e);
+      } finally {
+          setLoadingExplanation(false);
+      }
+  };
 
   return (
     <div className="animate-in fade-in duration-500 space-y-8">
@@ -128,7 +117,17 @@ export function ResultsScreen({ user, vibeTags, onReset }: ResultsScreenProps) {
           <CardTitle className="font-headline font-bold text-xl">Decoding Your Results</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-lg">{whyText}</p>
+          <p className="text-lg">{explanation ? explanation : whyText}</p>
+           {!explanation && (
+              <Button
+                onClick={handleExplain}
+                disabled={loadingExplanation}
+                variant="secondary"
+                className="mt-4 w-full sm:w-auto"
+              >
+                {loadingExplanation ? "Asking the Sommelier..." : "Why this drink?"}
+              </Button>
+           )}
         </CardContent>
       </Card>
 
@@ -157,7 +156,7 @@ export function ResultsScreen({ user, vibeTags, onReset }: ResultsScreenProps) {
                             ))}
                         </div>
                         <p className="text-muted-foreground text-lg">
-                            Matched based on your preference for {heroDrink.bitter ? "bitter" : "balanced"} and {heroDrink.smoke ? "smoky" : "clean"} flavors,
+                            Matched based on your preference for {heroDrink.isBitter ? "bitter" : "balanced"} and {heroDrink.hasSmoke ? "smoky" : "clean"} flavors,
                             located in the {profile} quadrant.
                         </p>
                    </div>
