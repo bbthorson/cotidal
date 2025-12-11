@@ -1,21 +1,25 @@
-# Sure Shot
+# The Living Matrix (formerly Sure Shot)
 
-Sure Shot is a Next.js-based drink recommendation application designed to help users discover their perfect beverage match. It utilizes a unique coordinate-based system and personality quizzes to tailor recommendations, alongside AI-powered search capabilities.
+The Living Matrix is a "Palate Companion" application designed to evolve with the user. Unlike a traditional one-and-done quiz, it acts as a persistent utility for understanding and exploring one's own taste preferences across different contexts.
 
-## Features
+## Core Concepts
 
-### 1. Palette Quiz
-A coordinate-based recommendation engine that maps user preferences on two axes:
-- **X-Axis:** Sweet (Negative) to Bitter (Positive)
-- **Y-Axis:** Rich (Negative) to Crisp (Positive)
+### 1. The Palate Map
+At the heart of the experience is a 2D Matrix:
+- **X-Axis:** Rich (Left) to Crisp (Right) -- *Note: Code may map this differently, check `src/lib/data.ts`*
+- **Y-Axis:** Sweet (Bottom) to Savory (Top)
 
-Users answer a series of questions about their taste preferences (e.g., coffee, dessert, texture), and the app calculates their "flavor profile" coordinates to suggest drinks from a curated database including Cocktails, Wines, Beers, and Spirits.
+Users are plotted as a "Pulsing Dot" on this map. Their position is calculated via a "Sensory Calibration" quiz.
 
-### 2. Discovery Quiz
-A fun, personality-based quiz that categorizes users into archetypes (D, I, S, C) based on their reactions to social and hypothetical situations. This adds a layer of personalization to the experience.
+### 2. Context Awareness
+Your taste doesn't change, but your situation does. The app features a **Context Switcher** that adapts recommendations without moving your palate profile:
+- **My Usual:** The baseline recommendations based on pure flavor affinity.
+- **Business:** Filters for "Safe", "Prestige", and "Classic" drinks.
+- **Party:** Prioritizes "Social" and "Crushable" drinks.
+- **Holiday:** Highlights "Warm", "Comfort", and "Spiced" notes.
 
-### 3. AI-Powered Cocktail Search
-Integrated with **Google Genkit**, the app features an ingredient-based cocktail search agent. Users can input ingredients they have on hand, and the AI agent (simulating an expert mixologist) suggests recipes.
+### 3. AI Sommelier
+Integrated with **Google Genkit**, the app provides witty, context-aware explanations for why a specific drink matches the user's palate and the current vibe.
 
 ## Tech Stack
 
@@ -24,13 +28,13 @@ Integrated with **Google Genkit**, the app features an ingredient-based cocktail
 - **Styling:** [Tailwind CSS](https://tailwindcss.com/)
 - **UI Components:** [Radix UI](https://www.radix-ui.com/) & [Lucide React](https://lucide.dev/)
 - **AI Integration:** [Genkit](https://firebase.google.com/docs/genkit) (`@genkit-ai/google-genai`)
-- **Deployment/Hosting:** Firebase (configured via `apphosting.yaml`)
+- **Package Manager:** pnpm
 
 ## Getting Started
 
 ### Prerequisites
 - Node.js (v20 or later recommended)
-- npm
+- pnpm
 
 ### Installation
 
@@ -42,7 +46,7 @@ Integrated with **Google Genkit**, the app features an ingredient-based cocktail
 
 2. Install dependencies:
    ```bash
-   npm install
+   pnpm install
    ```
 
 ### Running the Application
@@ -50,7 +54,7 @@ Integrated with **Google Genkit**, the app features an ingredient-based cocktail
 To start the development server:
 
 ```bash
-npm run dev
+pnpm dev
 ```
 
 The app will be available at `http://localhost:9002`.
@@ -60,14 +64,14 @@ The app will be available at `http://localhost:9002`.
 To run the Genkit developer UI:
 
 ```bash
-npm run genkit:dev
+pnpm genkit:dev
 ```
 
 ## Project Structure
 
 - `src/app`: Next.js App Router pages and layouts.
-- `src/components`: UI components (Quizzes, Results Screens, etc.).
-- `src/lib`: Data definitions (`data.ts` for drinks, `discovery-questions.ts` for personality quiz).
+- `src/components/app`: Core application logic (DiscoveryQuiz, ResultsScreen).
+- `src/lib`: Data definitions (`data.ts` for drinks and questions).
 - `src/ai`: Genkit flows and configuration.
 
 ## License
