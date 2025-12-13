@@ -2,11 +2,11 @@
 
 This document serves as a guide for AI agents working on "The Living Matrix" codebase. It outlines the architectural philosophy, key data structures, and the vision for the product's evolution.
 
-## Product Vision: From Quiz to Companion
+## Product Vision: From Static Quiz to Triangulation Engine
 
-We have pivoted from a static "Discovery Quiz" to a persistent "Palate Companion".
-*   **Old Model:** User takes quiz -> Gets Result -> Leaves.
-*   **New Model:** User gets Profile -> Uses Map for different occasions -> Updates Profile over time.
+We have pivoted from a simple linear quiz to a **"Triangulation Engine"**.
+*   **Old Model:** Linear questions -> Score.
+*   **New Model:** 3-Stage Triangulation (Calibration -> Architecture -> Context) to pinpoint the user's biological, structural, and environmental preferences.
 
 ## Key Components
 
@@ -19,15 +19,17 @@ We have pivoted from a static "Discovery Quiz" to a persistent "Palate Companion
     *   **Context:** Temporary filters/boosts applied on top of the base map (e.g., "Business" context boosts "Prestige" tags).
 
 ### 2. Data Model (`src/lib/data.ts`)
+*   **`User`**: Now tracks `dislikesAnise` explicitly alongside `dislikesSmoke` and `dislikesBitter`.
 *   **`VibeTag`**: Controlled vocabulary for drink attributes.
-    *   *New Tags:* `messy`, `polarizing`, `prestige`, `warm`, `spice`, `crushable`.
 *   **`Drink`**: The static database of beverages.
-    *   *Important:* Coordinates (`x`, `y`) are fixed.
-    *   *Constraints:* `hasSmoke`, `isBitter` are boolean flags for hard filtering.
+    *   *New Field:* `hasAnise` (boolean).
+    *   *Constraints:* `hasSmoke`, `isBitter`, `hasAnise` are boolean flags for hard filtering.
 
-### 3. AI Integration (`src/ai/`)
+### 3. External Integrations
+*   **TheCocktailDB**: We now use `src/lib/cocktail-api.ts` to fetch real-time metadata (Images, Instructions) for the recommended drinks. This replaces static placeholders.
+
+### 4. AI Integration (`src/ai/`)
 *   **Sommelier:** Generates explanations for *why* a drink fits a user (`src/app/actions/explain-drink.ts`).
-*   **Future:** "Active Tasting Loop" - AI interviews the user after a drink to update their `x, y` coordinates.
 
 ## UX Principles
 *   **"Your Dot Stays Put":** When changing contexts (Business, Holiday), the user's profile dot *does not move*. The *map around them* changes (different drinks light up).

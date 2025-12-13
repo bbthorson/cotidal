@@ -20,11 +20,13 @@ export default function Home() {
         const filters: string[] = [];
         if (profile.dislikesSmoke) filters.push('noSmoke');
         if (profile.dislikesBitter) filters.push('noBitter');
+        if (profile.dislikesAnise) filters.push('noAnise');
 
         setUser({
             x: profile.x,
             y: profile.y,
-            filters
+            filters,
+            dislikesAnise: profile.dislikesAnise
         });
         setVibeTags(profile.vibeTags);
         setScreen('finalResults');
@@ -46,11 +48,13 @@ export default function Home() {
     const filters: string[] = [];
     if (profile.dislikesSmoke) filters.push('noSmoke');
     if (profile.dislikesBitter) filters.push('noBitter');
+    if (profile.dislikesAnise) filters.push('noAnise');
 
     setUser({
         x: profile.x,
         y: profile.y,
-        filters
+        filters,
+        dislikesAnise: profile.dislikesAnise
     });
     setVibeTags(profile.vibeTags);
     setScreen('finalResults');
