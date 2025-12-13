@@ -1,7 +1,8 @@
 'use client';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { drinkDatabase, type Drink, type VibeTag, type User, type ContextType } from '@/lib/data';
 import { calculateDistance, calculateContextScore } from '@/lib/scoring';
+import { fetchDrinkDetails, type CocktailDBResult } from '@/lib/cocktail-api';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Chatbot } from './Chatbot';
@@ -10,6 +11,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface ResultsScreenProps {
   user: User;
@@ -30,11 +32,16 @@ export function ResultsScreen({ user, vibeTags, onReset }: ResultsScreenProps) {
   const [loadingExplanation, setLoadingExplanation] = useState(false);
   const [hoveredDrink, setHoveredDrink] = useState<Drink | null>(null);
 
+  // State for fetched drink details (images, instructions)
+  const [drinkDetails, setDrinkDetails] = useState<Record<string, CocktailDBResult>>({});
+  const [loadingDetails, setLoadingDetails] = useState<boolean>(false);
+
   const recommendations = useMemo(() => {
-    // 1. Filter by hard constraints (smoke/bitter)
+    // 1. Filter by hard constraints (smoke/bitter/anise)
     let availableDrinks = drinkDatabase.filter(d => {
         if(user.filters.includes('noSmoke') && d.hasSmoke) return false;
         if(user.filters.includes('noBitter') && d.isBitter) return false;
+        if(user.filters.includes('noAnise') && d.hasAnise) return false;
         return true;
     });
 
@@ -68,6 +75,34 @@ export function ResultsScreen({ user, vibeTags, onReset }: ResultsScreenProps) {
 
   const topPicks = recommendations.slice(0, 3);
   const heroDrink = topPicks[0];
+
+  // Fetch drink details for top picks
+  useEffect(() => {
+      const fetchDetails = async () => {
+          setLoadingDetails(true);
+          const newDetails: Record<string, CocktailDBResult> = { ...drinkDetails };
+          let hasUpdates = false;
+
+          for (const drink of topPicks) {
+              if (!newDetails[drink.name]) {
+                  const data = await fetchDrinkDetails(drink.name);
+                  if (data) {
+                      newDetails[drink.name] = data;
+                      hasUpdates = true;
+                  }
+              }
+          }
+
+          if (hasUpdates) {
+              setDrinkDetails(newDetails);
+          }
+          setLoadingDetails(false);
+      };
+
+      if (topPicks.length > 0) {
+          fetchDetails();
+      }
+  }, [topPicks]); // Only refetch if top picks change (which depends on context/filters)
 
   const handleExplain = async () => {
       if (!heroDrink) return;
@@ -173,58 +208,89 @@ export function ResultsScreen({ user, vibeTags, onReset }: ResultsScreenProps) {
         </h2>
 
         <div className="grid grid-cols-1 gap-4">
-            {topPicks.map((drink, index) => (
-                <Card
-                    key={drink.name}
-                    className={cn(
-                        "transition-all duration-300 border-2 cursor-pointer",
-                        index === 0 ? "border-[#B7410E] bg-[#FDFBF7] shadow-mcm" : "border-transparent bg-card/50 hover:bg-card hover:border-primary/20",
-                        hoveredDrink?.name === drink.name && "ring-2 ring-primary"
-                    )}
-                    onMouseEnter={() => setHoveredDrink(drink)}
-                    onMouseLeave={() => setHoveredDrink(null)}
-                >
-                    <CardHeader className="py-3 flex flex-row items-center justify-between space-y-0">
-                        <div className="flex items-center gap-3">
-                            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary font-bold text-sm">
-                                {index + 1}
-                            </div>
-                            <div>
-                                <CardTitle className="text-lg font-bold text-primary">{drink.name}</CardTitle>
-                                <p className="text-xs text-muted-foreground">{drink.type}</p>
-                            </div>
-                        </div>
-                        <div className="flex gap-1">
-                            {drink.tags.slice(0, 2).map(tag => (
-                                <Badge key={tag} variant="outline" className="text-[10px] uppercase">{tag}</Badge>
-                            ))}
-                        </div>
-                    </CardHeader>
-                    {index === 0 && (
-                        <CardContent className="pt-0 pb-4">
-                             <p className="text-sm text-muted-foreground mb-3">
-                                {explanation || (
-                                    <span>
-                                        Perfectly balanced for your palate coordinates [{user.x}, {user.y}].
-                                        {context !== 'usual' && ` Selected specifically for the ${CONTEXTS[context].label} vibe.`}
-                                    </span>
+            {topPicks.map((drink, index) => {
+                const details = drinkDetails[drink.name];
+                return (
+                    <Card
+                        key={drink.name}
+                        className={cn(
+                            "transition-all duration-300 border-2 cursor-pointer overflow-hidden",
+                            index === 0 ? "border-[#B7410E] bg-[#FDFBF7] shadow-mcm" : "border-transparent bg-card/50 hover:bg-card hover:border-primary/20",
+                            hoveredDrink?.name === drink.name && "ring-2 ring-primary"
+                        )}
+                        onMouseEnter={() => setHoveredDrink(drink)}
+                        onMouseLeave={() => setHoveredDrink(null)}
+                    >
+                        <div className="flex flex-col sm:flex-row">
+                             {/* Image Section */}
+                             <div className={cn(
+                                 "relative shrink-0 overflow-hidden",
+                                 index === 0 ? "h-48 sm:h-auto sm:w-1/3" : "h-0 sm:h-auto sm:w-0" // Hide image for non-hero items initially to save space, or maybe show small? Let's just show hero image prominently.
+                             )}>
+                                 {index === 0 && (
+                                     details ? (
+                                         <img src={details.strDrinkThumb} alt={drink.name} className="w-full h-full object-cover" />
+                                     ) : (
+                                         <div className="w-full h-full bg-primary/10 flex items-center justify-center text-primary/30">
+                                             {loadingDetails ? <Skeleton className="w-full h-full" /> : "No Image"}
+                                         </div>
+                                     )
+                                 )}
+                             </div>
+
+                             <div className="flex-1 p-0">
+                                <CardHeader className="py-3 flex flex-row items-center justify-between space-y-0">
+                                    <div className="flex items-center gap-3">
+                                        <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary font-bold text-sm shrink-0">
+                                            {index + 1}
+                                        </div>
+                                        <div>
+                                            <CardTitle className="text-lg font-bold text-primary">{drink.name}</CardTitle>
+                                            <p className="text-xs text-muted-foreground">{drink.type}</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex gap-1 flex-wrap justify-end">
+                                        {drink.tags.slice(0, 2).map(tag => (
+                                            <Badge key={tag} variant="outline" className="text-[10px] uppercase">{tag}</Badge>
+                                        ))}
+                                    </div>
+                                </CardHeader>
+
+                                {index === 0 && (
+                                    <CardContent className="pt-0 pb-4 space-y-3">
+                                        {/* Recipe/Instructions from API if available */}
+                                        {details && (
+                                            <p className="text-xs text-muted-foreground line-clamp-2 italic">
+                                                "{details.strInstructions}"
+                                            </p>
+                                        )}
+
+                                         <p className="text-sm text-muted-foreground">
+                                            {explanation || (
+                                                <span>
+                                                    Perfectly balanced for your palate coordinates [{user.x}, {user.y}].
+                                                    {context !== 'usual' && ` Selected specifically for the ${CONTEXTS[context].label} vibe.`}
+                                                </span>
+                                            )}
+                                         </p>
+                                         {!explanation && (
+                                            <Button
+                                                onClick={handleExplain}
+                                                disabled={loadingExplanation}
+                                                variant="outline"
+                                                size="sm"
+                                                className="w-full border-primary/20 text-primary hover:bg-primary/5"
+                                            >
+                                                {loadingExplanation ? "Sommelier is thinking..." : "Why this drink?"}
+                                            </Button>
+                                         )}
+                                    </CardContent>
                                 )}
-                             </p>
-                             {!explanation && (
-                                <Button
-                                    onClick={handleExplain}
-                                    disabled={loadingExplanation}
-                                    variant="outline"
-                                    size="sm"
-                                    className="w-full border-primary/20 text-primary hover:bg-primary/5"
-                                >
-                                    {loadingExplanation ? "Sommelier is thinking..." : "Why this drink?"}
-                                </Button>
-                             )}
-                        </CardContent>
-                    )}
-                </Card>
-            ))}
+                            </div>
+                        </div>
+                    </Card>
+                );
+            })}
         </div>
       </div>
 
