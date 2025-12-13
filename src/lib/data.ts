@@ -1,5 +1,13 @@
 export type VibeTag = 'bold' | 'classic' | 'visual' | 'social' | 'comfort' | 'complex' | 'sweet' | 'messy' | 'polarizing' | 'prestige' | 'warm' | 'spice' | 'crushable';
 
+export type User = {
+  x: number;
+  y: number;
+  filters: string[];
+};
+
+export type ContextType = "usual" | "business" | "party" | "holiday";
+
 export type Drink = {
     name: string;
     type: "Cocktail" | "Wine" | "Beer" | "Spirit";

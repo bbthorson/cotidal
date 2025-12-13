@@ -3,12 +3,7 @@ import { useState, useMemo } from 'react';
 import { WelcomeScreen } from '@/components/app/WelcomeScreen';
 import { ResultsScreen } from '@/components/app/ResultsScreen';
 import { DiscoveryQuiz, type UserProfile, type RecommendedDrink } from '@/components/app/DiscoveryQuiz';
-
-export type User = {
-  x: number;
-  y: number;
-  filters: string[];
-};
+import type { User } from '@/lib/data';
 
 export default function Home() {
   const [screen, setScreen] = useState<'welcome' | 'discoveryQuiz' | 'finalResults'>('welcome');
