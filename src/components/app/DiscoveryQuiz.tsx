@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export interface UserProfile {
   x: number;
@@ -192,7 +193,7 @@ export function DiscoveryQuiz({ onComplete }: DiscoveryQuizProps) {
         <button
           key={`${question.id}-${index}`}
           onClick={() => handleVibeAnswer(option)}
-          className="relative group overflow-hidden rounded-xl aspect-square border-2 border-transparent hover:border-primary focus-visible:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 transition-all text-left"
+          className="relative group overflow-hidden rounded-xl aspect-square border-2 border-transparent hover:border-primary focus-visible:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 transition-all text-left hover:scale-105 active:scale-95"
         >
           {/* The Image */}
           <img
@@ -220,12 +221,23 @@ export function DiscoveryQuiz({ onComplete }: DiscoveryQuizProps) {
           </CardTitle>
           <Progress value={progress} className="w-full mt-4" />
         </CardHeader>
-        <CardContent className="text-center space-y-6">
-          <p className="font-serif text-2xl">{currentQuestionText}</p>
-          <div className={`grid gap-4 ${stage === 'vibe' ? 'grid-cols-2' : 'grid-cols-1 md:grid-cols-2'}`}>
-            {stage === 'sensory' && currentSensoryQuestion && renderSensoryOptions(currentSensoryQuestion)}
-            {stage === 'vibe' && currentVibeQuestion && renderVibeOptions(currentVibeQuestion)}
-          </div>
+        <CardContent className="text-center space-y-6 min-h-[400px]">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={`${stage}-${currentQuestionIndex}`}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.25, ease: "easeInOut" }}
+              className="space-y-6"
+            >
+              <p className="font-serif text-2xl">{currentQuestionText}</p>
+              <div className={`grid gap-4 ${stage === 'vibe' ? 'grid-cols-2' : 'grid-cols-1 md:grid-cols-2'}`}>
+                {stage === 'sensory' && currentSensoryQuestion && renderSensoryOptions(currentSensoryQuestion)}
+                {stage === 'vibe' && currentVibeQuestion && renderVibeOptions(currentVibeQuestion)}
+              </div>
+            </motion.div>
+          </AnimatePresence>
         </CardContent>
       </Card>
     </div>
