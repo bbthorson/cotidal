@@ -1,8 +1,8 @@
 'use client';
 import { useState } from 'react';
 import { questions as sensoryQuestions, drinkDatabase, Drink } from '@/lib/data';
-import { discoveryQuestions } from '@/lib/discovery-questions';
-import type { QuestionOption, Question } from '@/lib/data';
+import { discoveryQuestions, DiscoveryQuestion } from '@/lib/discovery-questions';
+import type { QuestionOption as SensoryOption, Question as SensoryQuestion } from '@/lib/data';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -25,6 +25,8 @@ interface DiscoveryQuizProps {
   onComplete: (profile: UserProfile, recommendations: RecommendedDrink[]) => void;
 }
 
+type VibeOption = DiscoveryQuestion['options'][number];
+
 export function DiscoveryQuiz({ onComplete }: DiscoveryQuizProps) {
   const { toast } = useToast();
 
@@ -42,17 +44,17 @@ export function DiscoveryQuiz({ onComplete }: DiscoveryQuizProps) {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
 
   // Helper to determine current questions set
-  const currentQuestions = stage === 'sensory' ? sensoryQuestions : discoveryQuestions;
-  const currentQuestion = currentQuestions[currentQuestionIndex];
+  // We avoid a union type here to keep things simple and typesafe based on stage
+  const currentSensoryQuestion = stage === 'sensory' ? sensoryQuestions[currentQuestionIndex] : null;
+  const currentVibeQuestion = stage === 'vibe' ? discoveryQuestions[currentQuestionIndex] : null;
+  const currentQuestionText = stage === 'sensory' ? currentSensoryQuestion?.text : currentVibeQuestion?.text;
 
   // Calculate progress
-  // Sensory stage is 0-50%, Vibe stage is 50-100%? Or just one long bar?
-  // Let's do one continuous progress bar for simplicity.
   const totalQuestions = sensoryQuestions.length + discoveryQuestions.length;
   const globalIndex = stage === 'sensory' ? currentQuestionIndex : sensoryQuestions.length + currentQuestionIndex;
   const progress = ((globalIndex + 1) / totalQuestions) * 100;
 
-  const handleSensoryAnswer = (option: QuestionOption) => {
+  const handleSensoryAnswer = (option: SensoryOption) => {
     // 1. Update Profile Logic
     const newProfile = { ...profile };
     newProfile.x = Math.max(-10, Math.min(10, newProfile.x + option.dx));
@@ -104,10 +106,9 @@ export function DiscoveryQuiz({ onComplete }: DiscoveryQuizProps) {
     }, delay);
   };
 
-  const handleVibeAnswer = (option: any) => { // Type 'any' because discoveryQuestions has slightly different option structure
+  const handleVibeAnswer = (option: VibeOption) => {
     const newProfile = { ...profile };
-    // Assuming option.vibeTags is string[]
-    const tags = option.vibeTags as string[];
+    const tags = option.vibeTags;
 
     tags.forEach(tag => {
         newProfile.vibeTags[tag] = (newProfile.vibeTags[tag] || 0) + 1;
@@ -156,7 +157,6 @@ export function DiscoveryQuiz({ onComplete }: DiscoveryQuizProps) {
         });
 
         // We need to re-order based on this matchScore.
-        // Note: The prompt says "Re-order... based on how many vibeTags they share".
         // It doesn't explicitly say combine distance and vibe, but implies Vibe determines the order OF the top 5.
         return { ...drink, score: matchScore };
     });
@@ -168,6 +168,46 @@ export function DiscoveryQuiz({ onComplete }: DiscoveryQuizProps) {
     onComplete(finalProfile, rankedCandidates);
   };
 
+  const renderSensoryOptions = (question: SensoryQuestion) => (
+    <>
+      {question.options.map((option, index) => (
+        <Button
+          key={`${question.text}-${index}`}
+          onClick={() => handleSensoryAnswer(option)}
+          variant="outline"
+          className="h-auto py-4 text-lg whitespace-normal"
+        >
+          {option.text}
+        </Button>
+      ))}
+    </>
+  );
+
+  const renderVibeOptions = (question: DiscoveryQuestion) => (
+    <>
+      {question.options.map((option, index) => (
+        <button
+          key={`${question.id}-${index}`}
+          onClick={() => handleVibeAnswer(option)}
+          className="relative group overflow-hidden rounded-xl aspect-square border-2 border-transparent hover:border-primary focus-visible:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 transition-all text-left"
+        >
+          {/* The Image */}
+          <img
+            src={option.imageSrc || "https://placehold.co/400x400?text=Vibe"}
+            alt=""
+            className="object-cover w-full h-full group-hover:scale-110 group-focus-visible:scale-110 transition-transform duration-500"
+          />
+          {/* The Label overlay */}
+          <div className="absolute inset-0 bg-black/40 flex items-center justify-center p-2 group-hover:bg-black/50 group-focus-visible:bg-black/50 transition-colors">
+            <span className="text-white font-headline text-xl font-bold text-center drop-shadow-md">
+                {option.text}
+            </span>
+          </div>
+        </button>
+      ))}
+    </>
+  );
+
   return (
     <div className="w-full max-w-2xl mx-auto p-4">
       <Card className="shadow-2xl border-2 border-primary/10">
@@ -178,45 +218,10 @@ export function DiscoveryQuiz({ onComplete }: DiscoveryQuizProps) {
           <Progress value={progress} className="w-full mt-4" />
         </CardHeader>
         <CardContent className="text-center space-y-6">
-          <p className="font-serif text-2xl">{currentQuestion.text}</p>
+          <p className="font-serif text-2xl">{currentQuestionText}</p>
           <div className={`grid gap-4 ${stage === 'vibe' ? 'grid-cols-2' : 'grid-cols-1 md:grid-cols-2'}`}>
-            {/*
-                We need to handle rendering slightly differently because `questions` (sensory) and `discoveryQuestions` (vibe)
-                have different structures. `questions` has `dx`, `dy`, `flags`. `discoveryQuestions` has `vibeTags`.
-            */}
-            {stage === 'sensory' ? (
-                 (currentQuestion as any).options.map((option: QuestionOption, index: number) => (
-                    <Button
-                      key={`${currentQuestion.text}-${index}`} // Using text-index as key
-                      onClick={() => handleSensoryAnswer(option)}
-                      variant="outline"
-                      className="h-auto py-4 text-lg whitespace-normal"
-                    >
-                      {option.text}
-                    </Button>
-                  ))
-            ) : (
-                (currentQuestion as any).options.map((option: any, index: number) => (
-                    <button
-                      key={`${(currentQuestion as any).id}-${index}`}
-                      onClick={() => handleVibeAnswer(option)}
-                      className="relative group overflow-hidden rounded-xl aspect-square border-2 border-transparent hover:border-primary focus-visible:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 transition-all text-left"
-                    >
-                      {/* The Image */}
-                      <img
-                        src={option.imageSrc || "https://placehold.co/400x400?text=Vibe"}
-                        alt=""
-                        className="object-cover w-full h-full group-hover:scale-110 group-focus-visible:scale-110 transition-transform duration-500"
-                      />
-                      {/* The Label overlay */}
-                      <div className="absolute inset-0 bg-black/40 flex items-center justify-center p-2 group-hover:bg-black/50 group-focus-visible:bg-black/50 transition-colors">
-                        <span className="text-white font-headline text-xl font-bold text-center drop-shadow-md">
-                            {option.text}
-                        </span>
-                      </div>
-                    </button>
-                  ))
-            )}
+            {stage === 'sensory' && currentSensoryQuestion && renderSensoryOptions(currentSensoryQuestion)}
+            {stage === 'vibe' && currentVibeQuestion && renderVibeOptions(currentVibeQuestion)}
           </div>
         </CardContent>
       </Card>
