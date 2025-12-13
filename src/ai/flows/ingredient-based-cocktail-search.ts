@@ -29,16 +29,38 @@ export async function ingredientBasedCocktailSearch(input: IngredientBasedCockta
 const getCocktailRecipes = ai.defineTool(
   {
     name: 'getCocktailRecipes',
-    description: 'Search a cocktail recipe API for recipes that use the given ingredients.',
+    description: 'Search for cocktail recipes that use a specific ingredient (e.g. Gin, Vodka, Lime).',
     inputSchema: z.object({
-      ingredients: z.string().describe('A description of the ingredients to search for.'),
+      ingredients: z.string().describe('A single main ingredient to search for (e.g. "Gin" or "Vodka").'),
     }),
     outputSchema: z.string(),
   },
   async (input) => {
-    // In a real application, this would call an external cocktail recipe API.
-    // For this example, we'll just return a placeholder response.
-    return `Placeholder: Recipes for cocktails with ${input.ingredients}`;
+    try {
+      // 1. Fetch from TheCocktailDB
+      const response = await fetch(
+        `https://www.thecocktaildb.com/api/json/v1/1/filter.php?i=${encodeURIComponent(input.ingredients)}`
+      );
+
+      if (!response.ok) {
+        return `Error fetching recipes: ${response.statusText}`;
+      }
+
+      const data = await response.json();
+
+      if (!data.drinks) {
+        return `No recipes found containing ${input.ingredients}.`;
+      }
+
+      // 2. Format the output (Take top 10 to save context window)
+      const drinks = data.drinks.slice(0, 10).map((d: any) => d.strDrink).join(', ');
+
+      return `Found these cocktails with ${input.ingredients}: ${drinks}.`;
+
+    } catch (error) {
+      console.error("CocktailDB API Error:", error);
+      return "An error occurred while connecting to the cocktail database.";
+    }
   }
 );
 
