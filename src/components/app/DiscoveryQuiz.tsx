@@ -164,6 +164,9 @@ export function DiscoveryQuiz({ onComplete }: DiscoveryQuizProps) {
     // Sort by Vibe Score descending
     rankedCandidates.sort((a, b) => b.score - a.score);
 
+    // Save to local storage
+    localStorage.setItem('user_profile', JSON.stringify(finalProfile));
+
     // Call onComplete
     onComplete(finalProfile, rankedCandidates);
   };
