@@ -1,5 +1,5 @@
 'use client';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { WelcomeScreen } from '@/components/app/WelcomeScreen';
 import { ResultsScreen } from '@/components/app/ResultsScreen';
 import { DiscoveryQuiz, type UserProfile, type RecommendedDrink } from '@/components/app/DiscoveryQuiz';
@@ -9,6 +9,31 @@ export default function Home() {
   const [screen, setScreen] = useState<'welcome' | 'discoveryQuiz' | 'finalResults'>('welcome');
   const [user, setUser] = useState<User>({ x: 0, y: 0, filters: [] });
   const [vibeTags, setVibeTags] = useState<Record<string, number> | null>(null);
+
+  useEffect(() => {
+    const savedProfile = localStorage.getItem('user_profile');
+    if (savedProfile) {
+      try {
+        const profile: UserProfile = JSON.parse(savedProfile);
+
+        // Map profile to User type (reusing logic)
+        const filters: string[] = [];
+        if (profile.dislikesSmoke) filters.push('noSmoke');
+        if (profile.dislikesBitter) filters.push('noBitter');
+
+        setUser({
+            x: profile.x,
+            y: profile.y,
+            filters
+        });
+        setVibeTags(profile.vibeTags);
+        setScreen('finalResults');
+      } catch (e) {
+        console.error("Failed to parse saved profile", e);
+        localStorage.removeItem('user_profile');
+      }
+    }
+  }, []);
 
   const handleStartQuiz = () => {
     setUser({ x: 0, y: 0, filters: [] });
@@ -43,6 +68,7 @@ export default function Home() {
   }, [user, screen]);
 
   const handleReset = () => {
+    localStorage.removeItem('user_profile');
     setScreen('welcome');
   };
 
