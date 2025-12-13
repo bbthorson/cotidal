@@ -18,21 +18,31 @@ export type Drink = {
     tags: VibeTag[];
 };
 
+// --- NEW QUESTION TYPES ---
+
+export type QuestionTier = 'palate_x' | 'palate_y' | 'vibe';
+
 export type QuestionOption = {
     text: string;
-    dx: number;
-    dy: number;
-    tags: string[];
-    feedback?: string;
-    flags?: {
-        dislikesSmoke?: boolean;
-        dislikesBitter?: boolean;
+    dx: number; // Sweet <-> Dry/Bitter (Tier 1)
+    dy: number; // Rich <-> Crisp/Sour (Tier 2)
+
+    // For Tier 3 & Filters
+    vibeTags?: VibeTag[];
+    imageSrc?: string;
+    filterFlag?: {
+        key: 'dislikesSmoke' | 'dislikesBitter';
+        value: boolean;
     };
-}
+
+    feedback?: string; // Immediate toast feedback
+};
 
 export type Question = {
+    id: string;
+    tier: QuestionTier;
     text: string;
-    insight?: string;
+    type: 'narrative' | 'boolean' | 'image-grid';
     options: QuestionOption[];
 };
 
@@ -87,60 +97,85 @@ export const drinkDatabase: Drink[] = [
 ];
 
 export const questions: Question[] = [
+    // --- TIER 1: The Sugar Axis (Determine X) ---
     {
-        text: "How do you take your morning coffee (or tea)?",
-        insight: "This helps us gauge your tolerance for bitterness and preference for richness.",
+        id: 'coffee',
+        tier: 'palate_x',
+        type: 'narrative',
+        text: "How sweet is your morning cup?",
         options: [
-            { text: "Black. Like my soul.", dx: 3, dy: 0, tags: [] },
-            { text: "Lots of cream and sugar.", dx: -3, dy: -2, tags: [] },
-            { text: "Oat milk latte.", dx: -1, dy: -2, tags: [] },
-            { text: "Green tea or lemon water.", dx: 1, dy: 3, tags: [] }
+            { text: "Black. Bitter. Strong.", dx: 5, dy: 0, feedback: "Starting bold." },
+            { text: "Just a splash of milk.", dx: 2, dy: 0 },
+            { text: "I need at least two sugars.", dx: -5, dy: 0, feedback: "We'll keep it approachable." }
         ]
     },
     {
-        text: "It's dessert time. What are you grabbing?",
-        insight: "Testing your sweet tooth vs. savory cravings.",
+        id: 'chocolate',
+        tier: 'palate_x',
+        type: 'narrative',
+        text: "Pick a chocolate bar.",
         options: [
-            { text: "Lemon Sorbet.", dx: -1, dy: 4, tags: [] },
-            { text: "Dark Chocolate Mousse.", dx: 2, dy: -4, tags: [] },
-            { text: "Cheesecake.", dx: -2, dy: -3, tags: [] },
-            { text: "Cheese board.", dx: 4, dy: -1, tags: [] }
+            { text: "Milk Chocolate (Creamy & Sweet)", dx: -3, dy: 0 },
+            { text: "Sea Salt & Caramel (Salty & Sweet)", dx: 0, dy: 0 },
+            { text: "85% Dark Cacao (Bitter & Dry)", dx: 4, dy: 0 }
+        ]
+    },
+
+    // --- TIER 2: The Texture/Acid Axis (Determine Y) ---
+    {
+        id: 'weather',
+        tier: 'palate_y',
+        type: 'narrative',
+        text: "It's the perfect weather outside. What are you feeling?",
+        options: [
+            { text: "A heatwave. I need ice.", dx: 0, dy: 5, feedback: "Let's cool you down." },
+            { text: "A blizzard. I need a blanket.", dx: 0, dy: -5, feedback: "Warming you up." },
+            { text: "A mild spring evening.", dx: 0, dy: 0 }
         ]
     },
     {
-        text: "How do you feel about sour/tart flavors?",
-        insight: "Acidity is a key component in cocktails, brightening up the drink.",
+        id: 'texture',
+        tier: 'palate_y',
+        type: 'narrative',
+        text: "Choose a mouthfeel.",
         options: [
-            { text: "Love it! Give me all the lemons and limes.", dx: 0, dy: 5, tags: [], feedback: "Puckering up!" },
-            { text: "It's okay in moderation.", dx: 0, dy: 1, tags: [] },
-            { text: "No thanks, gives me heartburn.", dx: 0, dy: -3, tags: [] }
+            { text: "Sharp bubbles (Champagne/Soda)", dx: 0, dy: 4 },
+            { text: "Heavy and velvet (Cream/Syrup)", dx: 0, dy: -4 },
+            { text: "Silky and smooth (Stirred)", dx: 0, dy: -1 }
+        ]
+    },
+
+    // --- TIER 3: The Filters & Vibes (Nuance) ---
+    {
+        id: 'smoke',
+        tier: 'vibe',
+        type: 'boolean',
+        text: "Campfire smoke?",
+        options: [
+            { text: "Love it.", dx: 2, dy: 0, filterFlag: { key: 'dislikesSmoke', value: false }, feedback: "Unlocking the Mezcal cabinet." },
+            { text: "No thanks.", dx: 0, dy: 0, filterFlag: { key: 'dislikesSmoke', value: true } }
         ]
     },
     {
-        text: "What texture do you prefer in a drink?",
-        insight: "Mouthfeel changes the perception of flavor.",
+        id: 'bitter',
+        tier: 'vibe',
+        type: 'boolean',
+        text: "Bitterness (IPA, Tonic, Radicchio)?",
         options: [
-            { text: "Bubbly and effervescent.", dx: 0, dy: 4, tags: [] },
-            { text: "Silky and smooth.", dx: 0, dy: -2, tags: [] },
-            { text: "Thick and creamy.", dx: 0, dy: -4, tags: [] },
-            { text: "Ice cold and crisp.", dx: 0, dy: 3, tags: [], feedback: "Refreshing choice." }
+            { text: "I love the bite.", dx: 2, dy: 0, filterFlag: { key: 'dislikesBitter', value: false } },
+            { text: "Absolutely not.", dx: 0, dy: 0, filterFlag: { key: 'dislikesBitter', value: true } }
         ]
     },
     {
-        text: "Let's talk bitterness (IPA, Radicchio, Tonic Water).",
-        insight: "Bitterness adds complexity and depth.",
+        id: 'vibe_visual',
+        tier: 'vibe',
+        type: 'image-grid',
+        text: "If your soul had a texture, what would it be?",
         options: [
-            { text: "Love the bite.", dx: 5, dy: 0, tags: [], flags: { dislikesBitter: false } },
-            { text: "I can handle a little.", dx: 1, dy: 0, tags: [], flags: { dislikesBitter: false } },
-            { text: "Absolutely not.", dx: -4, dy: 0, tags: [], flags: { dislikesBitter: true } }
-        ]
-    },
-    {
-        text: "Campfire vibes?",
-        insight: "Smoky flavors can be polarizing.",
-        options: [
-            { text: "Love the smell of a campfire.", dx: 2, dy: -2, tags: [], flags: { dislikesSmoke: false }, feedback: "Noted. Unlocking the Mezcal cabinet." },
-            { text: "Keep it clean and fresh.", dx: 0, dy: 2, tags: [], flags: { dislikesSmoke: true } }
+           { text: 'Polished Marble & Steel', dx: 0, dy: 0, vibeTags: ['classic', 'bold'], imageSrc: 'https://images.unsplash.com/photo-1518640467707-6811f4a6ab73?auto=format&fit=crop&q=80&w=400' },
+           { text: 'Worn Leather & Old Books', dx: 0, dy: 0, vibeTags: ['complex', 'comfort'], imageSrc: 'https://images.unsplash.com/photo-1544216717-3f1132231a96?auto=format&fit=crop&q=80&w=400' },
+           { text: 'Crushed Velvet & Silk', dx: 0, dy: 0, vibeTags: ['comfort', 'sweet'], imageSrc: 'https://images.unsplash.com/photo-1571596489392-12f5a6dc6d3c?auto=format&fit=crop&q=80&w=400' },
+           { text: 'Neon Light & Glitter', dx: 0, dy: 0, vibeTags: ['visual', 'social'], imageSrc: 'https://images.unsplash.com/photo-1563089145-599997674d42?auto=format&fit=crop&q=80&w=400' },
         ]
     }
 ];
