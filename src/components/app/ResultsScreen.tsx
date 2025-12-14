@@ -171,15 +171,19 @@ export function ResultsScreen({ user, vibeTags, onReset }: ResultsScreenProps) {
                 return (
                     <Tooltip key={drink.name}>
                         <TooltipTrigger asChild>
-                            <div
+                            <button
+                                type="button"
+                                aria-label={`View details for ${drink.name}`}
                                 className={cn(
-                                    "absolute w-3 h-3 rounded-full transition-all duration-300 cursor-pointer transform -translate-x-1/2 -translate-y-1/2",
+                                    "absolute w-3 h-3 rounded-full transition-all duration-300 cursor-pointer transform -translate-x-1/2 -translate-y-1/2 p-0 border-none",
                                     isTopPick ? "bg-primary w-4 h-4 z-20 shadow-lg" : "bg-primary/30 hover:bg-primary/60 z-10",
-                                    hoveredDrink?.name === drink.name && "scale-150 bg-primary ring-2 ring-white"
+                                    hoveredDrink?.name === drink.name && "scale-150 bg-primary ring-2 ring-white focus-visible:ring-4 focus-visible:ring-primary/50"
                                 )}
                                 style={{ left: `${toPct(drink.x)}%`, bottom: `${toPct(drink.y)}%` }} // Data Y is positive up, CSS bottom aligns with that
                                 onMouseEnter={() => setHoveredDrink(drink)}
                                 onMouseLeave={() => setHoveredDrink(null)}
+                                onFocus={() => setHoveredDrink(drink)}
+                                onBlur={() => setHoveredDrink(null)}
                             />
                         </TooltipTrigger>
                         <TooltipContent>
@@ -193,6 +197,8 @@ export function ResultsScreen({ user, vibeTags, onReset }: ResultsScreenProps) {
 
         {/* User Dot */}
         <div
+            role="img"
+            aria-label="Your palate profile location"
             className="absolute w-6 h-6 bg-[#B7410E] rounded-full border-2 border-white shadow-xl z-30 transform -translate-x-1/2 -translate-y-1/2 animate-pulse"
             style={{ left: `${toPct(user.x)}%`, bottom: `${toPct(user.y)}%` }}
         >
@@ -261,7 +267,7 @@ export function ResultsScreen({ user, vibeTags, onReset }: ResultsScreenProps) {
                                         {/* Recipe/Instructions from API if available */}
                                         {details && (
                                             <p className="text-xs text-muted-foreground line-clamp-2 italic">
-                                                "{details.strInstructions}"
+                                                &quot;{details.strInstructions}&quot;
                                             </p>
                                         )}
 
