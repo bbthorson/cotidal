@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { questions, drinkDatabase, Drink, QuestionTier, QuestionOption, Question } from '@/lib/data';
+import { questions, drinkDatabase, Drink, QuestionTier, QuestionOption } from '@/lib/data';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -25,6 +25,11 @@ interface DiscoveryQuizProps {
   onComplete: (profile: UserProfile, recommendations: RecommendedDrink[]) => void;
 }
 
+// Filter questions by tier outside the component to avoid re-filtering on every render
+const calibrationQuestions = questions.filter(q => q.tier === 'calibration');
+const architectureQuestions = questions.filter(q => q.tier === 'architecture');
+const contextQuestions = questions.filter(q => q.tier === 'context');
+
 export function DiscoveryQuiz({ onComplete }: DiscoveryQuizProps) {
   const { toast } = useToast();
 
@@ -41,11 +46,6 @@ export function DiscoveryQuiz({ onComplete }: DiscoveryQuizProps) {
   // State for quiz progress
   const [currentTier, setCurrentTier] = useState<QuestionTier>('calibration');
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-
-  // Filter questions by tier
-  const calibrationQuestions = questions.filter(q => q.tier === 'calibration');
-  const architectureQuestions = questions.filter(q => q.tier === 'architecture');
-  const contextQuestions = questions.filter(q => q.tier === 'context');
 
   const getCurrentQuestions = () => {
       switch(currentTier) {
@@ -164,21 +164,6 @@ export function DiscoveryQuiz({ onComplete }: DiscoveryQuizProps) {
       }
   };
 
-  const renderOptions = (question: Question) => (
-    <>
-      {question.options.map((option, index) => (
-        <Button
-          key={`${question.id}-${index}`}
-          onClick={() => handleAnswer(option)}
-          variant="outline"
-          className="h-auto py-4 text-lg whitespace-normal min-h-[60px]"
-        >
-          {option.text}
-        </Button>
-      ))}
-    </>
-  );
-
   return (
     <div className="w-full max-w-2xl mx-auto p-4">
       <Card className="shadow-2xl border-2 border-primary/10">
@@ -200,7 +185,16 @@ export function DiscoveryQuiz({ onComplete }: DiscoveryQuizProps) {
             >
               <p className="font-serif text-2xl">{currentQuestion.text}</p>
               <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
-                {renderOptions(currentQuestion)}
+                {currentQuestion.options.map((option, index) => (
+                  <Button
+                    key={`${currentQuestion.id}-${index}`}
+                    onClick={() => handleAnswer(option)}
+                    variant="outline"
+                    className="h-auto py-4 text-lg whitespace-normal min-h-[60px]"
+                  >
+                    {option.text}
+                  </Button>
+                ))}
               </div>
             </motion.div>
           </AnimatePresence>
