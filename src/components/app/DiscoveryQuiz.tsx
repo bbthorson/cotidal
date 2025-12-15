@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { motion, AnimatePresence } from 'framer-motion';
+import { cn } from '@/lib/utils';
 
 export interface UserProfile {
   x: number;
@@ -42,6 +43,10 @@ export function DiscoveryQuiz({ onComplete }: DiscoveryQuizProps) {
   const [currentTier, setCurrentTier] = useState<QuestionTier>('calibration');
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
 
+  // State for interaction handling
+  const [isNavigating, setIsNavigating] = useState(false);
+  const [selectedOptionIndex, setSelectedOptionIndex] = useState<number | null>(null);
+
   // Filter questions by tier
   const calibrationQuestions = questions.filter(q => q.tier === 'calibration');
   const architectureQuestions = questions.filter(q => q.tier === 'architecture');
@@ -63,7 +68,12 @@ export function DiscoveryQuiz({ onComplete }: DiscoveryQuizProps) {
   const globalIndex = questions.findIndex(q => q.id === currentQuestion?.id);
   const progress = ((globalIndex + 1) / totalQuestions) * 100;
 
-  const handleAnswer = (option: QuestionOption) => {
+  const handleAnswer = (option: QuestionOption, index: number) => {
+    if (isNavigating) return;
+
+    setIsNavigating(true);
+    setSelectedOptionIndex(index);
+
     // 1. Update Profile Logic
     const newProfile = { ...profile };
     newProfile.x = Math.max(-10, Math.min(10, newProfile.x + option.dx));
@@ -91,6 +101,9 @@ export function DiscoveryQuiz({ onComplete }: DiscoveryQuizProps) {
     // 3. Advance Logic
     const delay = option.feedback ? 800 : 200;
     setTimeout(() => {
+        setIsNavigating(false);
+        setSelectedOptionIndex(null);
+
         if (currentQuestionIndex < currentQuestions.length - 1) {
             setCurrentQuestionIndex(currentQuestionIndex + 1);
         } else {
@@ -166,16 +179,23 @@ export function DiscoveryQuiz({ onComplete }: DiscoveryQuizProps) {
 
   const renderOptions = (question: Question) => (
     <>
-      {question.options.map((option, index) => (
-        <Button
-          key={`${question.id}-${index}`}
-          onClick={() => handleAnswer(option)}
-          variant="outline"
-          className="h-auto py-4 text-lg whitespace-normal min-h-[60px]"
-        >
-          {option.text}
-        </Button>
-      ))}
+      {question.options.map((option, index) => {
+        const isSelected = isNavigating && selectedOptionIndex === index;
+        return (
+          <Button
+            key={`${question.id}-${index}`}
+            onClick={() => handleAnswer(option, index)}
+            disabled={isNavigating}
+            variant={isSelected ? "default" : "outline"}
+            className={cn(
+              "h-auto py-4 text-lg whitespace-normal min-h-[60px]",
+              isSelected && "disabled:opacity-100 opacity-100 ring-2 ring-offset-2 ring-primary"
+            )}
+          >
+            {option.text}
+          </Button>
+        );
+      })}
     </>
   );
 
