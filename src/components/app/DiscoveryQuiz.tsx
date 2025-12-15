@@ -25,6 +25,26 @@ interface DiscoveryQuizProps {
   onComplete: (profile: UserProfile, recommendations: RecommendedDrink[]) => void;
 }
 
+// Filter questions by tier (Static optimization)
+// Moving these outside the component prevents re-filtering on every render
+const calibrationQuestions = questions.filter(q => q.tier === 'calibration');
+const architectureQuestions = questions.filter(q => q.tier === 'architecture');
+const contextQuestions = questions.filter(q => q.tier === 'context');
+
+// Map tier to questions for O(1) access
+const questionsByTier: Record<QuestionTier, Question[]> = {
+  calibration: calibrationQuestions,
+  architecture: architectureQuestions,
+  context: contextQuestions
+};
+
+// Pre-calculate start indices for O(1) progress calculation
+const tierStartIndices: Record<QuestionTier, number> = {
+  calibration: 0,
+  architecture: calibrationQuestions.length,
+  context: calibrationQuestions.length + architectureQuestions.length
+};
+
 export function DiscoveryQuiz({ onComplete }: DiscoveryQuizProps) {
   const { toast } = useToast();
 
@@ -42,25 +62,14 @@ export function DiscoveryQuiz({ onComplete }: DiscoveryQuizProps) {
   const [currentTier, setCurrentTier] = useState<QuestionTier>('calibration');
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
 
-  // Filter questions by tier
-  const calibrationQuestions = questions.filter(q => q.tier === 'calibration');
-  const architectureQuestions = questions.filter(q => q.tier === 'architecture');
-  const contextQuestions = questions.filter(q => q.tier === 'context');
-
-  const getCurrentQuestions = () => {
-      switch(currentTier) {
-          case 'calibration': return calibrationQuestions;
-          case 'architecture': return architectureQuestions;
-          case 'context': return contextQuestions;
-      }
-  };
-
-  const currentQuestions = getCurrentQuestions();
+  // Get current questions directly from static map
+  const currentQuestions = questionsByTier[currentTier];
   const currentQuestion = currentQuestions[currentQuestionIndex];
 
-  // Calculate progress
+  // Calculate progress (O(1) optimization)
   const totalQuestions = questions.length;
-  const globalIndex = questions.findIndex(q => q.id === currentQuestion?.id);
+  // Use pre-calculated offset instead of findIndex
+  const globalIndex = tierStartIndices[currentTier] + currentQuestionIndex;
   const progress = ((globalIndex + 1) / totalQuestions) * 100;
 
   const handleAnswer = (option: QuestionOption) => {
