@@ -2,8 +2,27 @@
 
 import { generateText } from 'ai';
 import { google } from '@ai-sdk/google';
+import { drinkDatabase } from '@/lib/data';
 
-export async function explainDrinkMatch(drinkName: string, userProfile: any) {
+// Define a type for the simplified profile used in the prompt
+interface ExplainProfile {
+    x: number;
+    y: number;
+    dislikesSmoke: boolean;
+    dislikesBitter: boolean;
+}
+
+export async function explainDrinkMatch(drinkName: string, userProfile: ExplainProfile) {
+  // 🛡️ Security: Validate input to prevent Prompt Injection
+  // We whitelist 'drinkName' against our known database.
+  const isValidDrink = drinkDatabase.some(d => d.name === drinkName);
+
+  if (!isValidDrink) {
+      // Log the attempt for security auditing (internal log)
+      console.warn(`[Security] Invalid drink name requested: "${drinkName}". Potential injection attempt blocked.`);
+      return "I can only provide recommendations for drinks in our curated menu.";
+  }
+
   const prompt = `
     You are a master mixologist.
     The user matched with a "${drinkName}".
@@ -24,8 +43,10 @@ export async function explainDrinkMatch(drinkName: string, userProfile: any) {
     });
     return text;
   } catch (error) {
-    console.error("AI Generation Error:", error);
-    // Fallback if AI fails (e.g., missing API key)
+    // 🛡️ Security: Don't leak stack traces or internal error details
+    console.error("AI Generation failed for valid request.");
+
+    // Fallback logic
     return `Because you prefer ${userProfile.x > 0 ? 'Savory' : 'Sweet'} and ${userProfile.y > 0 ? 'Crisp' : 'Rich'} notes, the ${drinkName} is an excellent choice for your palate.`;
   }
 }
