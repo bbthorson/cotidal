@@ -2,8 +2,18 @@
 
 import { generateText } from 'ai';
 import { google } from '@ai-sdk/google';
+import { drinkDatabase } from '@/lib/data';
 
 export async function explainDrinkMatch(drinkName: string, userProfile: any) {
+  // SECURITY: Whitelist check to prevent prompt injection.
+  const isValidDrink = drinkDatabase.some(d => d.name === drinkName);
+
+  if (!isValidDrink) {
+    console.warn(`Security: Blocked potential prompt injection with drinkName: "${drinkName}"`);
+    // Return a safe fallback immediately without calling the AI.
+    return `Because you prefer ${userProfile.x > 0 ? 'Savory' : 'Sweet'} and ${userProfile.y > 0 ? 'Crisp' : 'Rich'} notes, this drink is an excellent choice for your palate.`;
+  }
+
   const prompt = `
     You are a master mixologist.
     The user matched with a "${drinkName}".
