@@ -102,6 +102,7 @@ export function ResultsScreen({ user, vibeTags, onReset }: ResultsScreenProps) {
       if (topPicks.length > 0) {
           fetchDetails();
       }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [topPicks]); // Only refetch if top picks change (which depends on context/filters)
 
   const handleExplain = async () => {
@@ -234,6 +235,7 @@ export function ResultsScreen({ user, vibeTags, onReset }: ResultsScreenProps) {
                              )}>
                                  {index === 0 && (
                                      details ? (
+                                         // eslint-disable-next-line @next/next/no-img-element
                                          <img src={details.strDrinkThumb} alt={drink.name} className="w-full h-full object-cover" />
                                      ) : (
                                          <div className="w-full h-full bg-primary/10 flex items-center justify-center text-primary/30">
