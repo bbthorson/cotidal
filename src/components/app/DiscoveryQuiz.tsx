@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Loader2 } from 'lucide-react';
 
 export interface UserProfile {
   x: number;
@@ -47,6 +48,10 @@ export function DiscoveryQuiz({ onComplete }: DiscoveryQuizProps) {
   const [currentTier, setCurrentTier] = useState<QuestionTier>('calibration');
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
 
+  // State for navigation feedback
+  const [isNavigating, setIsNavigating] = useState(false);
+  const [selectedOptionIndex, setSelectedOptionIndex] = useState<number | null>(null);
+
   const getCurrentQuestions = () => {
       switch(currentTier) {
           case 'calibration': return calibrationQuestions;
@@ -63,7 +68,10 @@ export function DiscoveryQuiz({ onComplete }: DiscoveryQuizProps) {
   const globalIndex = questions.findIndex(q => q.id === currentQuestion?.id);
   const progress = ((globalIndex + 1) / totalQuestions) * 100;
 
-  const handleAnswer = (option: QuestionOption) => {
+  const handleAnswer = (option: QuestionOption, index: number) => {
+    setIsNavigating(true);
+    setSelectedOptionIndex(index);
+
     // 1. Update Profile Logic
     const newProfile = { ...profile };
     newProfile.x = Math.max(-10, Math.min(10, newProfile.x + option.dx));
@@ -89,20 +97,27 @@ export function DiscoveryQuiz({ onComplete }: DiscoveryQuizProps) {
     }
 
     // 3. Advance Logic
-    const delay = option.feedback ? 800 : 200;
+    const delay = option.feedback ? 800 : 400; // Minimum 400ms delay to show feedback
     setTimeout(() => {
         if (currentQuestionIndex < currentQuestions.length - 1) {
             setCurrentQuestionIndex(currentQuestionIndex + 1);
+            setIsNavigating(false);
+            setSelectedOptionIndex(null);
         } else {
             // Move to next Tier or Finish
             if (currentTier === 'calibration') {
                 setCurrentTier('architecture');
                 setCurrentQuestionIndex(0);
+                setIsNavigating(false);
+                setSelectedOptionIndex(null);
             } else if (currentTier === 'architecture') {
                 setCurrentTier('context');
                 setCurrentQuestionIndex(0);
+                setIsNavigating(false);
+                setSelectedOptionIndex(null);
             } else {
                 finishQuiz(newProfile);
+                // Note: Component unmounts here, so we don't reset navigation state
             }
         }
     }, delay);
@@ -188,11 +203,13 @@ export function DiscoveryQuiz({ onComplete }: DiscoveryQuizProps) {
                 {currentQuestion.options.map((option, index) => (
                   <Button
                     key={`${currentQuestion.id}-${index}`}
-                    onClick={() => handleAnswer(option)}
-                    variant="outline"
+                    onClick={() => handleAnswer(option, index)}
+                    disabled={isNavigating}
+                    variant={isNavigating && selectedOptionIndex === index ? "default" : "outline"}
                     className="h-auto py-4 text-lg whitespace-normal min-h-[60px]"
                   >
                     {option.text}
+                    {isNavigating && selectedOptionIndex === index && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
                   </Button>
                 ))}
               </div>
