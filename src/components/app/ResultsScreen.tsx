@@ -79,30 +79,56 @@ export function ResultsScreen({ user, vibeTags, onReset }: ResultsScreenProps) {
 
   // Fetch drink details for top picks
   useEffect(() => {
+      let isMounted = true;
+
       const fetchDetails = async () => {
           setLoadingDetails(true);
-          const newDetails: Record<string, CocktailDBResult> = { ...drinkDetails };
-          let hasUpdates = false;
 
-          for (const drink of topPicks) {
-              if (!newDetails[drink.name]) {
-                  const data = await fetchDrinkDetails(drink.name);
-                  if (data) {
-                      newDetails[drink.name] = data;
-                      hasUpdates = true;
-                  }
+          // Identify which drinks need fetching
+          // Note: using drinkDetails from closure is fine as we rely on functional update for the set
+          const drinksToFetch = topPicks.filter(drink => !drinkDetails[drink.name]);
+
+          if (drinksToFetch.length === 0) {
+              if (isMounted) setLoadingDetails(false);
+              return;
+          }
+
+          try {
+              // ⚡ Bolt Optimization: Parallelize requests using Promise.all
+              const results = await Promise.all(
+                  drinksToFetch.map(async (drink) => {
+                      const data = await fetchDrinkDetails(drink.name);
+                      return { name: drink.name, data };
+                  })
+              );
+
+              if (isMounted) {
+                  setDrinkDetails(prev => {
+                      const next = { ...prev };
+                      let hasUpdates = false;
+                      results.forEach(({ name, data }) => {
+                          if (data) {
+                              next[name] = data;
+                              hasUpdates = true;
+                          }
+                      });
+                      return hasUpdates ? next : prev;
+                  });
               }
+          } catch (error) {
+              console.error("Failed to fetch drink details", error);
+          } finally {
+              if (isMounted) setLoadingDetails(false);
           }
-
-          if (hasUpdates) {
-              setDrinkDetails(newDetails);
-          }
-          setLoadingDetails(false);
       };
 
       if (topPicks.length > 0) {
           fetchDetails();
       }
+
+      return () => {
+          isMounted = false;
+      };
       // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [topPicks]); // Only refetch if top picks change (which depends on context/filters)
 
