@@ -73,7 +73,8 @@ export function ResultsScreen({ user, vibeTags, onReset }: ResultsScreenProps) {
     return scoredDrinks;
   }, [user, vibeTags, context]);
 
-  const topPicks = recommendations.slice(0, 3);
+  // Memoize topPicks to prevent unnecessary re-fetching of details when other state (like hoveredDrink) changes.
+  const topPicks = useMemo(() => recommendations.slice(0, 3), [recommendations]);
   const heroDrink = topPicks[0];
 
   // Fetch drink details for top picks
