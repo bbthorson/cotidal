@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { questions, drinkDatabase, Drink, QuestionTier, QuestionOption } from '@/lib/data';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -33,6 +33,7 @@ const contextQuestions = questions.filter(q => q.tier === 'context');
 
 export function DiscoveryQuiz({ onComplete }: DiscoveryQuizProps) {
   const { toast } = useToast();
+  const questionRef = useRef<HTMLHeadingElement>(null);
 
   // State for user profile
   const [profile, setProfile] = useState<UserProfile>({
@@ -197,8 +198,15 @@ export function DiscoveryQuiz({ onComplete }: DiscoveryQuizProps) {
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.25, ease: "easeInOut" }}
               className="space-y-6"
+              onAnimationComplete={() => questionRef.current?.focus()}
             >
-              <p className="font-serif text-2xl">{currentQuestion.text}</p>
+              <h2
+                ref={questionRef}
+                tabIndex={-1}
+                className="font-serif text-2xl outline-none"
+              >
+                {currentQuestion.text}
+              </h2>
               <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
                 {currentQuestion.options.map((option, index) => (
                   <Button

@@ -7,9 +7,9 @@
    - Network:      http://192.168.0.2:9002
 
  ✓ Starting...
- ✓ Ready in 1477ms
+ ✓ Ready in 1482ms
  ○ Compiling / ...
- ✓ Compiled / in 12.9s
+ ✓ Compiled / in 13.4s
  ⚠ ./node_modules/.pnpm/@opentelemetry+instrumentation@0.52.1_@opentelemetry+api@1.9.0/node_modules/@opentelemetry/instrumentation/build/esm/platform/node
 Package import-in-the-middle can't be external
 The request import-in-the-middle matches serverExternalPackages (or the default list).
@@ -26,4 +26,4 @@ Packages that should be external need to be installed in the project directory, 
 Try to install it into the project directory by running npm install require-in-the-middle from the project directory.
 
 
- GET / 200 in 15179ms
+ GET / 200 in 15804ms
