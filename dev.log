@@ -7,9 +7,9 @@
    - Network:      http://192.168.0.2:9002
 
  ✓ Starting...
- ✓ Ready in 1477ms
+ ✓ Ready in 1479ms
  ○ Compiling / ...
- ✓ Compiled / in 12.9s
+ ✓ Compiled / in 17.2s
  ⚠ ./node_modules/.pnpm/@opentelemetry+instrumentation@0.52.1_@opentelemetry+api@1.9.0/node_modules/@opentelemetry/instrumentation/build/esm/platform/node
 Package import-in-the-middle can't be external
 The request import-in-the-middle matches serverExternalPackages (or the default list).
@@ -26,4 +26,32 @@ Packages that should be external need to be installed in the project directory, 
 Try to install it into the project directory by running npm install require-in-the-middle from the project directory.
 
 
- GET / 200 in 15179ms
+ GET / 200 in 19710ms
+ ⚠ ./node_modules/.pnpm/@opentelemetry+instrumentation@0.52.1_@opentelemetry+api@1.9.0/node_modules/@opentelemetry/instrumentation/build/esm/platform/node
+Package import-in-the-middle can't be external
+The request import-in-the-middle matches serverExternalPackages (or the default list).
+The request could not be resolved by Node.js from the project directory.
+Packages that should be external need to be installed in the project directory, so they can be resolved from the output files.
+Try to install it into the project directory by running npm install import-in-the-middle from the project directory.
+
+
+ ⚠ ./node_modules/.pnpm/@opentelemetry+instrumentation@0.52.1_@opentelemetry+api@1.9.0/node_modules/@opentelemetry/instrumentation/build/esm/platform/node
+Package require-in-the-middle can't be external
+The request require-in-the-middle matches serverExternalPackages (or the default list).
+The request could not be resolved by Node.js from the project directory.
+Packages that should be external need to be installed in the project directory, so they can be resolved from the output files.
+Try to install it into the project directory by running npm install require-in-the-middle from the project directory.
+
+
+AI Generation Error: Error [AI_LoadAPIKeyError]: Google Generative AI API key is missing. Pass it using the 'apiKey' parameter or the GOOGLE_GENERATIVE_AI_API_KEY environment variable.
+    at async explainDrinkMatch (src/app/actions/explain-drink.ts:53:22)
+  51 |
+  52 |   try {
+> 53 |     const { text } = await generateText({
+     |                      ^
+  54 |       model: google('gemini-1.5-flash'), // Using a widely available model, can be updated.
+  55 |       prompt: prompt,
+  56 |     }); {
+  cause: undefined
+}
+ POST / 200 in 1486ms

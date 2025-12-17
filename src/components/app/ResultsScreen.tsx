@@ -115,6 +115,8 @@ export function ResultsScreen({ user, vibeTags, onReset }: ResultsScreenProps) {
               y: user.y,
               dislikesSmoke: user.filters.includes('noSmoke'),
               dislikesBitter: user.filters.includes('noBitter'),
+              dislikesAnise: user.filters.includes('noAnise'),
+              vibeTags: vibeTags || {}
           });
           setExplanation(text);
       } catch (e) {
