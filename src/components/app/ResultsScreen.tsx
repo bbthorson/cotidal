@@ -1,6 +1,6 @@
 'use client';
 import { useMemo, useState, useEffect } from 'react';
-import { drinkDatabase, type Drink, type VibeTag, type User, type ContextType } from '@/lib/data';
+import { drinkDatabase, type Drink, type User, type ContextType } from '@/lib/data';
 import { calculateDistance, calculateContextScore } from '@/lib/scoring';
 import { fetchDrinkDetails, type CocktailDBResult } from '@/lib/cocktail-api';
 import { Button } from '@/components/ui/button';
@@ -9,9 +9,10 @@ import { Chatbot } from './Chatbot';
 import { explainDrinkMatch } from '@/app/actions/explain-drink';
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { Skeleton } from '@/components/ui/skeleton';
+import { MapPin } from './MapPin';
 
 interface ResultsScreenProps {
   user: User;
@@ -171,29 +172,15 @@ export function ResultsScreen({ user, vibeTags, onReset }: ResultsScreenProps) {
             {recommendations.slice(0, 15).map((drink, i) => { // Show top 15 matches to avoid clutter
                 const isTopPick = i < 3;
                 return (
-                    <Tooltip key={drink.name}>
-                        <TooltipTrigger asChild>
-                            <button
-                                type="button"
-                                aria-label={`Select ${drink.name}, ${drink.type}`}
-                                className={cn(
-                                    "absolute w-3 h-3 rounded-full transition-all duration-300 cursor-pointer transform -translate-x-1/2 -translate-y-1/2 p-0 border-none",
-                                    isTopPick ? "bg-primary w-4 h-4 z-20 shadow-lg" : "bg-primary/30 hover:bg-primary/60 z-10",
-                                    hoveredDrink?.name === drink.name && "scale-150 bg-primary ring-2 ring-white",
-                                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary"
-                                )}
-                                style={{ left: `${toPct(drink.x)}%`, bottom: `${toPct(drink.y)}%` }} // Data Y is positive up, CSS bottom aligns with that
-                                onMouseEnter={() => setHoveredDrink(drink)}
-                                onMouseLeave={() => setHoveredDrink(null)}
-                                onFocus={() => setHoveredDrink(drink)}
-                                onBlur={() => setHoveredDrink(null)}
-                            />
-                        </TooltipTrigger>
-                        <TooltipContent>
-                            <p className="font-bold">{drink.name}</p>
-                            <p className="text-xs text-muted-foreground">{drink.type}</p>
-                        </TooltipContent>
-                    </Tooltip>
+                    <MapPin
+                        key={drink.name}
+                        drink={drink}
+                        isTopPick={isTopPick}
+                        isHovered={hoveredDrink?.name === drink.name}
+                        onHover={setHoveredDrink}
+                        xPct={toPct(drink.x)}
+                        yPct={toPct(drink.y)}
+                    />
                 );
             })}
         </TooltipProvider>
