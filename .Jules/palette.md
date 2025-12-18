@@ -11,3 +11,7 @@
 ## 2025-12-17 - [SPA Focus Management]
 **Learning:** In Single Page Applications, replacing content (like quiz questions) without reloading the page often leaves keyboard focus lost on the `body`.
 **Action:** When swapping major content blocks, programmatically move focus to the new content's heading (using `tabIndex={-1}`) to ensure screen readers announce it and keyboard navigation resumes from a logical place. Use `onAnimationComplete` for animated transitions.
+
+## 2025-05-22 - [Map Self-Location Accessibility]
+**Learning:** In visual maps, screen reader users can navigate data points (pins) but lack context of *their own* position if the "You Are Here" marker is purely visual.
+**Action:** Implement the "You Are Here" marker as a focusable element (e.g., button) with an ARIA label describing its semantic position (e.g., "Quadrant: Lush & Lively") to ground the user in the data space.
