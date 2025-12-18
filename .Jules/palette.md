@@ -7,3 +7,7 @@
 ## 2025-12-16 - [Immediate Interaction Feedback]
 **Learning:** Transition delays (e.g., waiting for next question) without visual feedback confuse users and encourage "rage clicking".
 **Action:** Always pair artificial delays (like `setTimeout` for pacing) with an immediate "locked" state (disabled buttons) and a visual indicator (spinner/color change) to confirm the input was received.
+
+## 2025-12-17 - [SPA Focus Management]
+**Learning:** In Single Page Applications, replacing content (like quiz questions) without reloading the page often leaves keyboard focus lost on the `body`.
+**Action:** When swapping major content blocks, programmatically move focus to the new content's heading (using `tabIndex={-1}`) to ensure screen readers announce it and keyboard navigation resumes from a logical place. Use `onAnimationComplete` for animated transitions.
