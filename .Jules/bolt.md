@@ -1,3 +1,3 @@
-## 2025-02-19 - Effect Dependency Stabilization
-**Learning:** Passing derived objects (like sliced arrays) directly into useEffect dependency arrays causes the effect to run on every render, even if the underlying data hasn't changed. This causes unnecessary re-renders when other state (like hover state) changes.
-**Action:** Always memoize derived objects (using useMemo) before adding them to dependency arrays to ensure referential stability.
+## 2025-02-24 - Parallelize Async Operations
+**Learning:** Found a "waterfall" pattern in `ResultsScreen` where drink details were fetched sequentially inside a `for` loop within `useEffect`. This unnecessarily delays the UI update for subsequent items.
+**Action:** Always use `Promise.all` (or similar concurrency tools) when fetching multiple independent resources, rather than awaiting them sequentially in a loop.
