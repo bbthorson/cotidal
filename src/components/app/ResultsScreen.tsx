@@ -9,7 +9,7 @@ import { Chatbot } from './Chatbot';
 import { explainDrinkMatch } from '@/app/actions/explain-drink';
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { Skeleton } from '@/components/ui/skeleton';
 import { MapPin } from './MapPin';
@@ -128,6 +128,14 @@ export function ResultsScreen({ user, vibeTags, onReset }: ResultsScreenProps) {
   // Convert coordinates to CSS percentages (Range -10 to 10 mapped to 0% to 100%)
   const toPct = (val: number) => ((val + 10) / 20) * 100;
 
+  const getQuadrantName = (x: number, y: number) => {
+    if (y >= 0) {
+      return x >= 0 ? "Crisp & Clean" : "Lush & Lively";
+    } else {
+      return x >= 0 ? "Bold & Complex" : "Decadent & Deep";
+    }
+  };
+
   return (
     <div className="animate-in fade-in duration-500 space-y-6">
 
@@ -167,7 +175,7 @@ export function ResultsScreen({ user, vibeTags, onReset }: ResultsScreenProps) {
         <div className="absolute bottom-2 left-1/2 -translate-x-1/2 text-[10px] font-bold text-primary/30">COMPLEX / SAVORY</div>
         <div className="absolute top-2 left-1/2 -translate-x-1/2 text-[10px] font-bold text-primary/30">SWEET / FRUITY</div>
 
-        {/* Render Drinks as Pins */}
+        {/* Render Drinks as Pins & User Dot */}
         <TooltipProvider>
             {recommendations.slice(0, 15).map((drink, i) => { // Show top 15 matches to avoid clutter
                 const isTopPick = i < 3;
@@ -183,15 +191,25 @@ export function ResultsScreen({ user, vibeTags, onReset }: ResultsScreenProps) {
                     />
                 );
             })}
-        </TooltipProvider>
 
-        {/* User Dot */}
-        <div
-            className="absolute w-6 h-6 bg-[#B7410E] rounded-full border-2 border-white shadow-xl z-30 transform -translate-x-1/2 -translate-y-1/2 animate-pulse"
-            style={{ left: `${toPct(user.x)}%`, bottom: `${toPct(user.y)}%` }}
-        >
-             <div className="absolute inset-0 rounded-full bg-[#B7410E] animate-ping opacity-20"></div>
-        </div>
+            {/* User Dot */}
+            <Tooltip>
+                <TooltipTrigger asChild>
+                    <button
+                        type="button"
+                        aria-label={`Your Palate Profile: ${getQuadrantName(user.x, user.y)}`}
+                        className="absolute w-6 h-6 bg-[#B7410E] rounded-full border-2 border-white shadow-xl z-30 transform -translate-x-1/2 -translate-y-1/2 animate-pulse cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#B7410E]"
+                        style={{ left: `${toPct(user.x)}%`, bottom: `${toPct(user.y)}%` }}
+                    >
+                        <div className="absolute inset-0 rounded-full bg-[#B7410E] animate-ping opacity-20 pointer-events-none"></div>
+                    </button>
+                </TooltipTrigger>
+                <TooltipContent>
+                    <p className="font-bold">You are here</p>
+                    <p className="text-xs text-muted-foreground">{getQuadrantName(user.x, user.y)}</p>
+                </TooltipContent>
+            </Tooltip>
+        </TooltipProvider>
 
       </Card>
 
