@@ -15,3 +15,7 @@
 ## 2025-05-22 - [Map Self-Location Accessibility]
 **Learning:** In visual maps, screen reader users can navigate data points (pins) but lack context of *their own* position if the "You Are Here" marker is purely visual.
 **Action:** Implement the "You Are Here" marker as a focusable element (e.g., button) with an ARIA label describing its semantic position (e.g., "Quadrant: Lush & Lively") to ground the user in the data space.
+
+## 2025-05-23 - [Synchronized List-Map Focus]
+**Learning:** When a list of items corresponds to markers on a map/chart, keyboard users miss the connection if navigating the list doesn't highlight the map markers.
+**Action:** Ensure list items corresponding to map markers are focusable (`tabIndex={0}`) and bind `onFocus` to the same state setter as `onMouseEnter`, providing equivalent visual feedback for keyboard navigation.
