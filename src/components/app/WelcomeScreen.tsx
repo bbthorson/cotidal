@@ -1,16 +1,31 @@
+'use client';
+
+import { useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader } from '@/components/ui/card';
 
 interface WelcomeScreenProps {
   onStartQuiz: () => void;
 }
 
 export function WelcomeScreen({ onStartQuiz }: WelcomeScreenProps) {
+  const headingRef = useRef<HTMLHeadingElement>(null);
+
+  useEffect(() => {
+    headingRef.current?.focus();
+  }, []);
+
   return (
     <div className="animate-in fade-in duration-500">
       <Card className="text-center max-w-2xl mx-auto shadow-xl border-2 border-primary/5 bg-card">
         <CardHeader className="p-8 md:p-12">
-          <CardTitle className="font-headline text-4xl md:text-5xl font-bold text-primary">The Crystal Coupe</CardTitle>
+          <h1
+            ref={headingRef}
+            tabIndex={-1}
+            className="font-headline text-4xl md:text-5xl font-bold text-primary leading-none tracking-tight outline-none"
+          >
+            The Crystal Coupe
+          </h1>
           <CardDescription className="text-muted-foreground pt-2 text-lg">Intuiting your desires.</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col items-center gap-6 px-8 pb-8 md:px-12 md:pb-12">

@@ -1,4 +1,3 @@
-'use server';
 /**
  * @fileOverview A cocktail recipe search AI agent.
  *

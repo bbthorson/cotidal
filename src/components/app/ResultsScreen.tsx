@@ -1,5 +1,5 @@
 'use client';
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState, useEffect, useRef } from 'react';
 import { drinkDatabase, type Drink, type User, type ContextType } from '@/lib/data';
 import { calculateDistance, calculateContextScore } from '@/lib/scoring';
 import { fetchDrinkDetails, type CocktailDBResult } from '@/lib/cocktail-api';
@@ -28,6 +28,7 @@ const CONTEXTS: Record<ContextType, { label: string; icon: string; description: 
 };
 
 export function ResultsScreen({ user, vibeTags, onReset }: ResultsScreenProps) {
+  const headingRef = useRef<HTMLHeadingElement>(null);
   const [context, setContext] = useState<ContextType>("usual");
   const [explanation, setExplanation] = useState<string | null>(null);
   const [loadingExplanation, setLoadingExplanation] = useState(false);
@@ -36,6 +37,10 @@ export function ResultsScreen({ user, vibeTags, onReset }: ResultsScreenProps) {
   // State for fetched drink details (images, instructions)
   const [drinkDetails, setDrinkDetails] = useState<Record<string, CocktailDBResult>>({});
   const [loadingDetails, setLoadingDetails] = useState<boolean>(false);
+
+  useEffect(() => {
+    headingRef.current?.focus();
+  }, []);
 
   const recommendations = useMemo(() => {
     // 1. Filter by hard constraints (smoke/bitter/anise)
@@ -161,7 +166,13 @@ export function ResultsScreen({ user, vibeTags, onReset }: ResultsScreenProps) {
 
       {/* Header */}
       <div className="text-center space-y-2">
-          <h1 className="font-headline text-3xl font-bold text-primary">The Palate Map</h1>
+          <h1
+            ref={headingRef}
+            tabIndex={-1}
+            className="font-headline text-3xl font-bold text-primary outline-none"
+          >
+            The Palate Map
+          </h1>
           <p className="text-muted-foreground">Your personal flavor universe.</p>
       </div>
 
