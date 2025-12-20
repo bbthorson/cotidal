@@ -80,30 +80,50 @@ export function ResultsScreen({ user, vibeTags, onReset }: ResultsScreenProps) {
 
   // Fetch drink details for top picks
   useEffect(() => {
+      let isMounted = true;
+
       const fetchDetails = async () => {
           setLoadingDetails(true);
-          const newDetails: Record<string, CocktailDBResult> = { ...drinkDetails };
-          let hasUpdates = false;
 
-          for (const drink of topPicks) {
-              if (!newDetails[drink.name]) {
+          // Identify missing details to fetch
+          const drinksToFetch = topPicks.filter(drink => !drinkDetails[drink.name]);
+
+          if (drinksToFetch.length === 0) {
+              if (isMounted) setLoadingDetails(false);
+              return;
+          }
+
+          // Fetch in parallel to avoid waterfalls
+          const results = await Promise.all(
+              drinksToFetch.map(async (drink) => {
                   const data = await fetchDrinkDetails(drink.name);
-                  if (data) {
-                      newDetails[drink.name] = data;
-                      hasUpdates = true;
-                  }
-              }
-          }
+                  return { name: drink.name, data };
+              })
+          );
 
-          if (hasUpdates) {
-              setDrinkDetails(newDetails);
+          if (isMounted) {
+              setDrinkDetails(prev => {
+                  const next = { ...prev };
+                  let hasUpdates = false;
+                  results.forEach(({ name, data }) => {
+                      if (data) {
+                          next[name] = data;
+                          hasUpdates = true;
+                      }
+                  });
+                  return hasUpdates ? next : prev;
+              });
+              setLoadingDetails(false);
           }
-          setLoadingDetails(false);
       };
 
       if (topPicks.length > 0) {
           fetchDetails();
       }
+
+      return () => {
+          isMounted = false;
+      };
       // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [topPicks]); // Only refetch if top picks change (which depends on context/filters)
 
