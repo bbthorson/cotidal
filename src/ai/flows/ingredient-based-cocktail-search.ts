@@ -10,9 +10,10 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
-const IngredientBasedCocktailSearchInputSchema = z.object({
+export const IngredientBasedCocktailSearchInputSchema = z.object({
   ingredientsDescription: z
     .string()
+    .max(500)
     .describe("A description of the ingredients the user has available."),
 });
 export type IngredientBasedCocktailSearchInput = z.infer<typeof IngredientBasedCocktailSearchInputSchema>;
@@ -31,7 +32,7 @@ const getCocktailRecipes = ai.defineTool(
     name: 'getCocktailRecipes',
     description: 'Search for cocktail recipes that use a specific ingredient (e.g. Gin, Vodka, Lime).',
     inputSchema: z.object({
-      ingredients: z.string().describe('A single main ingredient to search for (e.g. "Gin" or "Vodka").'),
+      ingredients: z.string().max(100).describe('A single main ingredient to search for (e.g. "Gin" or "Vodka").'),
     }),
     outputSchema: z.string(),
   },
