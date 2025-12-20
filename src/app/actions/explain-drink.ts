@@ -12,7 +12,7 @@ const UserProfileSchema = z.object({
   dislikesBitter: z.boolean(),
 });
 
-export async function explainDrinkMatch(drinkName: string, userProfile: any) {
+export async function explainDrinkMatch(drinkName: string, userProfile: unknown) {
   // SECURITY: Validate userProfile structure to prevent injection/crashes
   const profileResult = UserProfileSchema.safeParse(userProfile);
 
