@@ -239,19 +239,24 @@ export function ResultsScreen({ user, vibeTags, onReset }: ResultsScreenProps) {
             {context === 'usual' ? 'Your Top Matches' : `Best for ${CONTEXTS[context].label}`}
         </h2>
 
-        <div className="grid grid-cols-1 gap-4">
+        <div className="grid grid-cols-1 gap-4" role="list">
             {topPicks.map((drink, index) => {
                 const details = drinkDetails[drink.name];
                 return (
                     <Card
                         key={drink.name}
+                        role="listitem"
+                        tabIndex={0}
+                        aria-label={`View details for ${drink.name}`}
                         className={cn(
-                            "transition-all duration-300 border-2 cursor-pointer overflow-hidden",
+                            "transition-all duration-300 border-2 cursor-pointer overflow-hidden focus-visible:outline-none",
                             index === 0 ? "border-[#B7410E] bg-[#FDFBF7] shadow-mcm" : "border-transparent bg-card/50 hover:bg-card hover:border-primary/20",
                             hoveredDrink?.name === drink.name && "ring-2 ring-primary"
                         )}
                         onMouseEnter={() => setHoveredDrink(drink)}
                         onMouseLeave={() => setHoveredDrink(null)}
+                        onFocus={() => setHoveredDrink(drink)}
+                        onBlur={() => setHoveredDrink(null)}
                     >
                         <div className="flex flex-col sm:flex-row">
                              {/* Image Section */}
@@ -278,7 +283,7 @@ export function ResultsScreen({ user, vibeTags, onReset }: ResultsScreenProps) {
                                             {index + 1}
                                         </div>
                                         <div>
-                                            <CardTitle className="text-lg font-bold text-primary">{drink.name}</CardTitle>
+                                            <h3 className="text-lg font-bold text-primary leading-none tracking-tight">{drink.name}</h3>
                                             <p className="text-xs text-muted-foreground">{drink.type}</p>
                                         </div>
                                     </div>
