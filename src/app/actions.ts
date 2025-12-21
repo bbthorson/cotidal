@@ -8,7 +8,7 @@ const formSchema = z.object({
   ingredientsDescription: z
     .string()
     .min(10, "Please provide a more detailed description of your ingredients.")
-    .max(1000, "Description is too long (max 1000 characters)."),
+    .max(500, "Description is too long (max 500 characters)."),
 });
 
 export async function findCocktailRecipes(prevState: any, formData: FormData) {
