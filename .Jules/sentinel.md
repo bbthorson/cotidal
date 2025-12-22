@@ -1,5 +1,10 @@
 # Sentinel's Journal
 
+## 2025-12-21 - Aligning Input Limits Across Layers
+**Vulnerability:** Inconsistent input validation limits between the public Server Action `findCocktailRecipes` (1000 chars) and the internal AI flow `ingredientBasedCocktailSearch` (500 chars).
+**Learning:** Defense in depth requires consistent validation. If the public gateway allows more data than the internal service handles, it creates a "Validation Gap" where requests fail deeply in the stack (wasting resources) rather than being rejected immediately.
+**Prevention:** Reduced the Zod limit in `src/app/actions.ts` to 500 characters to match the internal constraint, ensuring early rejection of invalid payloads.
+
 ## 2025-12-14 - Adding Security Headers & Strengthening Build Process
 **Vulnerability:** Missing HTTP Security Headers (X-Content-Type-Options, etc.) and build process ignoring lint/type errors.
 **Learning:** The project was configured to ignore TypeScript and ESLint errors during build (`ignoreBuildErrors: true`, `ignoreDuringBuilds: true`). This is a bad practice as it allows broken or insecure code to deploy. Also, standard security headers were missing.
