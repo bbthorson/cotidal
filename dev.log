@@ -7,9 +7,9 @@
    - Network:      http://192.168.0.2:9002
 
  ✓ Starting...
- ✓ Ready in 2.2s
+ ✓ Ready in 1939ms
  ○ Compiling / ...
- ✓ Compiled / in 13s
+ ✓ Compiled / in 14.2s
  ⚠ ./node_modules/.pnpm/@opentelemetry+instrumentation@0.52.1_@opentelemetry+api@1.9.0/node_modules/@opentelemetry/instrumentation/build/esm/platform/node
 Package import-in-the-middle can't be external
 The request import-in-the-middle matches serverExternalPackages (or the default list).
@@ -26,23 +26,4 @@ Packages that should be external need to be installed in the project directory, 
 Try to install it into the project directory by running npm install require-in-the-middle from the project directory.
 
 
- ⨯ Error: A "use server" file can only export async functions, found object.
-Read more: https://nextjs.org/docs/messages/invalid-use-server-value
-    at __TURBOPACK__module__evaluation__ (.next/server/chunks/ssr/[root-of-the-server]__d285d9ff._.js:1238:445)
-    at __TURBOPACK__module__evaluation__ (src/app/actions.ts:4:1)
-    at __TURBOPACK__module__evaluation__ (.next-internal/server/app/page/actions.js (server actions loader):2:1)
-    at __TURBOPACK__module__evaluation__ (.next/server/chunks/ssr/[root-of-the-server]__d285d9ff._.js:1310:489)
-    at Object.<anonymous> (.next/server/app/page.js:39:3)
-  2 | 'use server';
-  3 |
-> 4 | import { ingredientBasedCocktailSearch, type IngredientBasedCocktailSearchInput } from '@/ai/flows/ingredient-based-cocktail-search';
-    | ^
-  5 | import { z } from 'zod';
-  6 |
-  7 | const formSchema = z.object({ {
-  page: '/'
-}
- ○ Compiling /_error ...
- ✓ Compiled /_error in 3.2s
- GET / 500 in 18258ms
- ✓ Compiled in 191ms
+ GET / 200 in 16569ms

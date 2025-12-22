@@ -23,3 +23,7 @@
 ## 2025-05-24 - [Conversational Inline Feedback]
 **Learning:** Using global Toast notifications for immediate, context-specific feedback (like quiz answers) breaks the visual flow and forces eye movement away from the interaction point.
 **Action:** For conversational interfaces (quizzes, wizards), place feedback directly within or adjacent to the active element (button) to maintain focus and create a "dialogue" feel.
+
+## 2025-05-25 - [Component Semantics vs Names]
+**Learning:** The `CardTitle` component renders a `div` by default, not a semantic heading (h1-h6), leading to documents with poor outline structure despite using "Title" components.
+**Action:** Always verify the underlying HTML tag of UI components. Use standard HTML headings (h1, h2) for semantic structure, applying the component's styling classes manually if necessary, rather than relying on the component name to imply semantics.
