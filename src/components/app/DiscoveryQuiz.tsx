@@ -30,6 +30,13 @@ const calibrationQuestions = questions.filter(q => q.tier === 'calibration');
 const architectureQuestions = questions.filter(q => q.tier === 'architecture');
 const contextQuestions = questions.filter(q => q.tier === 'context');
 
+// Pre-calculate tier offsets for O(1) progress calculation
+const TIER_OFFSETS = {
+  calibration: 0,
+  architecture: calibrationQuestions.length,
+  context: calibrationQuestions.length + architectureQuestions.length,
+};
+
 export function DiscoveryQuiz({ onComplete }: DiscoveryQuizProps) {
   const questionRef = useRef<HTMLHeadingElement>(null);
 
@@ -62,9 +69,9 @@ export function DiscoveryQuiz({ onComplete }: DiscoveryQuizProps) {
   const currentQuestions = getCurrentQuestions();
   const currentQuestion = currentQuestions[currentQuestionIndex];
 
-  // Calculate progress
+  // Calculate progress in O(1) without array scanning
   const totalQuestions = questions.length;
-  const globalIndex = questions.findIndex(q => q.id === currentQuestion?.id);
+  const globalIndex = TIER_OFFSETS[currentTier] + currentQuestionIndex;
   const progress = ((globalIndex + 1) / totalQuestions) * 100;
 
   const handleAnswer = (option: QuestionOption, index: number) => {
