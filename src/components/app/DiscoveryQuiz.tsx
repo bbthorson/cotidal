@@ -4,7 +4,6 @@ import { questions, drinkDatabase, Drink, QuestionTier, QuestionOption } from '@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { useToast } from '@/hooks/use-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Loader2 } from 'lucide-react';
 
@@ -32,7 +31,6 @@ const architectureQuestions = questions.filter(q => q.tier === 'architecture');
 const contextQuestions = questions.filter(q => q.tier === 'context');
 
 export function DiscoveryQuiz({ onComplete }: DiscoveryQuizProps) {
-  const { toast } = useToast();
   const questionRef = useRef<HTMLHeadingElement>(null);
 
   // State for user profile
@@ -70,6 +68,7 @@ export function DiscoveryQuiz({ onComplete }: DiscoveryQuizProps) {
   const progress = ((globalIndex + 1) / totalQuestions) * 100;
 
   const handleAnswer = (option: QuestionOption, index: number) => {
+    if (isNavigating) return;
     setIsNavigating(true);
     setSelectedOptionIndex(index);
 
@@ -93,9 +92,7 @@ export function DiscoveryQuiz({ onComplete }: DiscoveryQuizProps) {
     setProfile(newProfile);
 
     // 2. Feedback Logic
-    if (option.feedback) {
-      toast({ description: option.feedback });
-    }
+    // Inline feedback is handled in the render method now for better UX.
 
     // 3. Advance Logic
     const delay = option.feedback ? 800 : 400; // Minimum 400ms delay to show feedback
@@ -208,18 +205,33 @@ export function DiscoveryQuiz({ onComplete }: DiscoveryQuizProps) {
                 {currentQuestion.text}
               </h2>
               <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
-                {currentQuestion.options.map((option, index) => (
-                  <Button
-                    key={`${currentQuestion.id}-${index}`}
-                    onClick={() => handleAnswer(option, index)}
-                    disabled={isNavigating}
-                    variant={isNavigating && selectedOptionIndex === index ? "default" : "outline"}
-                    className="h-auto py-4 text-lg whitespace-normal min-h-[60px]"
-                  >
-                    {option.text}
-                    {isNavigating && selectedOptionIndex === index && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
-                  </Button>
-                ))}
+                {currentQuestion.options.map((option, index) => {
+                  const isSelected = isNavigating && selectedOptionIndex === index;
+                  return (
+                    <Button
+                      key={`${currentQuestion.id}-${index}`}
+                      onClick={() => handleAnswer(option, index)}
+                      disabled={isNavigating && !isSelected}
+                      variant={isSelected ? "default" : "outline"}
+                      className="h-auto py-4 text-lg whitespace-normal min-h-[60px] flex-col gap-1 transition-all duration-300"
+                    >
+                      <div className="flex items-center gap-2">
+                        {option.text}
+                        {isSelected && !option.feedback && <Loader2 className="h-4 w-4 animate-spin" />}
+                      </div>
+
+                      {isSelected && option.feedback && (
+                        <motion.span
+                          initial={{ opacity: 0, height: 0, scale: 0.95 }}
+                          animate={{ opacity: 1, height: 'auto', scale: 1 }}
+                          className="text-sm font-medium text-primary-foreground/90 italic"
+                        >
+                          {option.feedback}
+                        </motion.span>
+                      )}
+                    </Button>
+                  );
+                })}
               </div>
             </motion.div>
           </AnimatePresence>

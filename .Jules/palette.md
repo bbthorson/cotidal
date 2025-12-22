@@ -19,3 +19,7 @@
 ## 2025-05-23 - [Synchronized List-Map Focus]
 **Learning:** When a list of items corresponds to markers on a map/chart, keyboard users miss the connection if navigating the list doesn't highlight the map markers.
 **Action:** Ensure list items corresponding to map markers are focusable (`tabIndex={0}`) and bind `onFocus` to the same state setter as `onMouseEnter`, providing equivalent visual feedback for keyboard navigation.
+
+## 2025-05-24 - [Conversational Inline Feedback]
+**Learning:** Using global Toast notifications for immediate, context-specific feedback (like quiz answers) breaks the visual flow and forces eye movement away from the interaction point.
+**Action:** For conversational interfaces (quizzes, wizards), place feedback directly within or adjacent to the active element (button) to maintain focus and create a "dialogue" feel.
