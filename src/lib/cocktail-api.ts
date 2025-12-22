@@ -5,22 +5,34 @@ export interface CocktailDBResult {
     strInstructions: string;
 }
 
-export async function fetchDrinkDetails(drinkName: string): Promise<CocktailDBResult | null> {
-    try {
-        const response = await fetch(`https://www.thecocktaildb.com/api/json/v1/1/search.php?s=${encodeURIComponent(drinkName)}`);
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
-        }
-        const data = await response.json();
+// In-memory cache to prevent redundant network requests and improve performance.
+const drinkCache = new Map<string, Promise<CocktailDBResult | null>>();
 
-        if (data.drinks && data.drinks.length > 0) {
-            // We'll take the first result that matches loosely or just the first one.
-            // Since we search by name, the first one is usually the best match.
-            return data.drinks[0] as CocktailDBResult;
-        }
-        return null;
-    } catch (error) {
-        console.error(`Failed to fetch details for ${drinkName}:`, error);
-        return null;
+export function fetchDrinkDetails(drinkName: string): Promise<CocktailDBResult | null> {
+    if (drinkCache.has(drinkName)) {
+        return drinkCache.get(drinkName)!;
     }
+
+    const promise = (async () => {
+        try {
+            const response = await fetch(`https://www.thecocktaildb.com/api/json/v1/1/search.php?s=${encodeURIComponent(drinkName)}`);
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            const data = await response.json();
+
+            if (data.drinks && data.drinks.length > 0) {
+                // We'll take the first result that matches loosely or just the first one.
+                // Since we search by name, the first one is usually the best match.
+                return data.drinks[0] as CocktailDBResult;
+            }
+            return null;
+        } catch (error) {
+            console.error(`Failed to fetch details for ${drinkName}:`, error);
+            return null;
+        }
+    })();
+
+    drinkCache.set(drinkName, promise);
+    return promise;
 }
