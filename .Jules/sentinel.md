@@ -19,3 +19,8 @@
 **Vulnerability:** The `ingredientBasedCocktailSearch` flow (a public Server Action) accepted unbounded string input for `ingredientsDescription`.
 **Learning:** Zod's `z.string()` defaults to no length limit. On public AI endpoints, this allows attackers to send massive payloads (megabytes of text), causing Denial of Service or exhausting AI token budgets.
 **Prevention:** Added `.max(500)` to the Zod schema for the search input and `.max(100)` for the internal tool input. Always enforcing length limits on string inputs for public endpoints is mandatory.
+
+## 2025-05-25 - Rate Limiting AI Server Actions
+**Vulnerability:** Publicly accessible Server Actions (`findCocktailRecipes`, `explainDrinkMatch`) triggering expensive AI operations lacked rate limiting, exposing the application to Denial of Service (DoS) and excessive cost from API abuse.
+**Learning:** While robust global rate limiting requires shared state (e.g., Redis), a per-instance in-memory rate limiter provides a critical "Defense in Depth" layer. It prevents simple flooding attacks on a single container without introducing complex infrastructure dependencies.
+**Prevention:** Implemented a `checkRateLimit` utility using `next/headers` to track IP-based usage in memory and applied it to all AI-driven Server Actions.
