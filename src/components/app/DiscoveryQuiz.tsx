@@ -2,7 +2,7 @@
 import { useState, useRef } from 'react';
 import { questions, drinkDatabase, Drink, QuestionTier, QuestionOption } from '@/lib/data';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Loader2 } from 'lucide-react';
@@ -188,10 +188,15 @@ export function DiscoveryQuiz({ onComplete }: DiscoveryQuizProps) {
     <div className="w-full max-w-2xl mx-auto p-4">
       <Card className="shadow-2xl border-2 border-primary/10">
         <CardHeader className="text-center">
-          <CardTitle className="font-headline text-3xl font-bold text-primary">
+          <h1 className="font-headline text-3xl font-bold text-primary">
             {getTierTitle()}
-          </CardTitle>
-          <Progress value={progress} className="w-full mt-4" />
+          </h1>
+          <Progress
+            value={progress}
+            className="w-full mt-4"
+            aria-label="Quiz progress"
+            aria-valuetext={`Question ${globalIndex + 1} of ${totalQuestions}`}
+          />
         </CardHeader>
         <CardContent className="text-center space-y-6 min-h-[400px]">
           <AnimatePresence mode="wait">
