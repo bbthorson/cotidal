@@ -7,10 +7,24 @@ export interface CocktailDBResult {
 
 // In-memory cache to prevent redundant network requests and improve performance.
 const drinkCache = new Map<string, Promise<CocktailDBResult | null>>();
+const MAX_CACHE_SIZE = 100;
+
+// Export for testing purposes
+export function _getCacheSize() {
+    return drinkCache.size;
+}
 
 export function fetchDrinkDetails(drinkName: string): Promise<CocktailDBResult | null> {
     if (drinkCache.has(drinkName)) {
         return drinkCache.get(drinkName)!;
+    }
+
+    // Security Enhancement: Prevent Unbounded Cache Growth (DoS)
+    if (drinkCache.size >= MAX_CACHE_SIZE) {
+        const firstKey = drinkCache.keys().next().value;
+        if (firstKey) {
+            drinkCache.delete(firstKey);
+        }
     }
 
     const promise = (async () => {
