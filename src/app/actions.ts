@@ -3,6 +3,7 @@
 
 import { ingredientBasedCocktailSearch, type IngredientBasedCocktailSearchInput } from '@/ai/flows/ingredient-based-cocktail-search';
 import { z } from 'zod';
+import { checkRateLimit } from '@/lib/rate-limit';
 
 const formSchema = z.object({
   ingredientsDescription: z
@@ -12,6 +13,11 @@ const formSchema = z.object({
 });
 
 export async function findCocktailRecipes(prevState: any, formData: FormData) {
+  const isAllowed = await checkRateLimit();
+  if (!isAllowed) {
+    return { error: 'Too many requests. Please try again later.', data: '' };
+  }
+
   const validatedFields = formSchema.safeParse({
     ingredientsDescription: formData.get('ingredientsDescription'),
   });
