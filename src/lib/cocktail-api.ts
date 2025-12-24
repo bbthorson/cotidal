@@ -8,6 +8,7 @@ export interface CocktailDBResult {
 // In-memory cache to prevent redundant network requests and improve performance.
 const drinkCache = new Map<string, Promise<CocktailDBResult | null>>();
 const MAX_CACHE_SIZE = 100;
+const API_TIMEOUT_MS = 5000;
 
 // Export for testing purposes
 export function _getCacheSize() {
@@ -29,7 +30,15 @@ export function fetchDrinkDetails(drinkName: string): Promise<CocktailDBResult |
 
     const promise = (async () => {
         try {
-            const response = await fetch(`https://www.thecocktaildb.com/api/json/v1/1/search.php?s=${encodeURIComponent(drinkName)}`);
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT_MS);
+
+            const response = await fetch(`https://www.thecocktaildb.com/api/json/v1/1/search.php?s=${encodeURIComponent(drinkName)}`, {
+                signal: controller.signal,
+            });
+
+            clearTimeout(timeoutId);
+
             if (!response.ok) {
                 throw new Error('Network response was not ok');
             }
@@ -42,7 +51,11 @@ export function fetchDrinkDetails(drinkName: string): Promise<CocktailDBResult |
             }
             return null;
         } catch (error) {
-            console.error(`Failed to fetch details for ${drinkName}:`, error);
+            if ((error as Error).name === 'AbortError') {
+                console.error(`Timeout fetching details for ${drinkName}`);
+            } else {
+                console.error(`Failed to fetch details for ${drinkName}:`, error);
+            }
             return null;
         }
     })();
