@@ -1,18 +1,16 @@
 'use client';
-import { useMemo, useState, useEffect, useRef } from 'react';
+import { useMemo, useState, useEffect, useRef, useCallback } from 'react';
 import { drinkDatabase, type Drink, type User, type ContextType } from '@/lib/data';
 import { calculateDistance, calculateContextScore } from '@/lib/scoring';
 import { fetchDrinkDetails, type CocktailDBResult } from '@/lib/cocktail-api';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Chatbot } from './Chatbot';
 import { explainDrinkMatch } from '@/app/actions/explain-drink';
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { cn } from "@/lib/utils";
-import { Skeleton } from '@/components/ui/skeleton';
 import { MapPin } from './MapPin';
+import { DrinkCard } from './DrinkCard';
 
 interface ResultsScreenProps {
   user: User;
@@ -142,7 +140,9 @@ export function ResultsScreen({ user, vibeTags, onReset }: ResultsScreenProps) {
       // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [topPicks]); // Only refetch if top picks change (which depends on context/filters)
 
-  const handleExplain = async () => {
+  // Optimization: useCallback prevents recreating this function on every render,
+  // allowing DrinkCard(index=0) to skip re-rendering when hovering other cards.
+  const handleExplain = useCallback(async () => {
       if (!heroDrink) return;
       setLoadingExplanation(true);
       try {
@@ -158,7 +158,7 @@ export function ResultsScreen({ user, vibeTags, onReset }: ResultsScreenProps) {
       } finally {
           setLoadingExplanation(false);
       }
-  };
+  }, [heroDrink, user.x, user.y, user.filters]);
 
   const getQuadrantName = (x: number, y: number) => {
     if (y >= 0) {
@@ -261,90 +261,21 @@ export function ResultsScreen({ user, vibeTags, onReset }: ResultsScreenProps) {
             {topPicks.map((drink, index) => {
                 const details = drinkDetails[drink.name];
                 return (
-                    <Card
+                    <DrinkCard
                         key={drink.name}
-                        role="listitem"
-                        tabIndex={0}
-                        aria-label={`View details for ${drink.name}`}
-                        className={cn(
-                            "transition-all duration-300 border-2 cursor-pointer overflow-hidden focus-visible:outline-none",
-                            index === 0 ? "border-[#B7410E] bg-[#FDFBF7] shadow-mcm" : "border-transparent bg-card/50 hover:bg-card hover:border-primary/20",
-                            hoveredDrink?.name === drink.name && "ring-2 ring-primary"
-                        )}
-                        onMouseEnter={() => setHoveredDrink(drink)}
-                        onMouseLeave={() => setHoveredDrink(null)}
-                        onFocus={() => setHoveredDrink(drink)}
-                        onBlur={() => setHoveredDrink(null)}
-                    >
-                        <div className="flex flex-col sm:flex-row">
-                             {/* Image Section */}
-                             <div className={cn(
-                                 "relative shrink-0 overflow-hidden",
-                                 index === 0 ? "h-48 sm:h-auto sm:w-1/3" : "h-0 sm:h-auto sm:w-0" // Hide image for non-hero items initially to save space, or maybe show small? Let's just show hero image prominently.
-                             )}>
-                                 {index === 0 && (
-                                     details ? (
-                                         // eslint-disable-next-line @next/next/no-img-element
-                                         <img src={details.strDrinkThumb} alt={drink.name} className="w-full h-full object-cover" />
-                                     ) : (
-                                         <div className="w-full h-full bg-primary/10 flex items-center justify-center text-primary/30">
-                                             {loadingDetails ? <Skeleton className="w-full h-full" /> : "No Image"}
-                                         </div>
-                                     )
-                                 )}
-                             </div>
-
-                             <div className="flex-1 p-0">
-                                <CardHeader className="py-3 flex flex-row items-center justify-between space-y-0">
-                                    <div className="flex items-center gap-3">
-                                        <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary font-bold text-sm shrink-0">
-                                            {index + 1}
-                                        </div>
-                                        <div>
-                                            <h3 className="text-lg font-bold text-primary leading-none tracking-tight">{drink.name}</h3>
-                                            <p className="text-xs text-muted-foreground">{drink.type}</p>
-                                        </div>
-                                    </div>
-                                    <div className="flex gap-1 flex-wrap justify-end">
-                                        {drink.tags.slice(0, 2).map(tag => (
-                                            <Badge key={tag} variant="outline" className="text-[10px] uppercase">{tag}</Badge>
-                                        ))}
-                                    </div>
-                                </CardHeader>
-
-                                {index === 0 && (
-                                    <CardContent className="pt-0 pb-4 space-y-3">
-                                        {/* Recipe/Instructions from API if available */}
-                                        {details && (
-                                            <p className="text-xs text-muted-foreground line-clamp-2 italic">
-                                                &quot;{details.strInstructions}&quot;
-                                            </p>
-                                        )}
-
-                                         <p className="text-sm text-muted-foreground">
-                                            {explanation || (
-                                                <span>
-                                                    Perfectly balanced for your palate coordinates [{user.x}, {user.y}].
-                                                    {context !== 'usual' && ` Selected specifically for the ${CONTEXTS[context].label} vibe.`}
-                                                </span>
-                                            )}
-                                         </p>
-                                         {!explanation && (
-                                            <Button
-                                                onClick={handleExplain}
-                                                disabled={loadingExplanation}
-                                                variant="outline"
-                                                size="sm"
-                                                className="w-full border-primary/20 text-primary hover:bg-primary/5"
-                                            >
-                                                {loadingExplanation ? "Sommelier is thinking..." : "Why this drink?"}
-                                            </Button>
-                                         )}
-                                    </CardContent>
-                                )}
-                            </div>
-                        </div>
-                    </Card>
+                        drink={drink}
+                        index={index}
+                        isHovered={hoveredDrink?.name === drink.name}
+                        onHover={setHoveredDrink}
+                        details={details}
+                        explanation={explanation}
+                        loadingExplanation={loadingExplanation}
+                        onExplain={index === 0 ? handleExplain : undefined}
+                        context={context}
+                        userX={user.x}
+                        userY={user.y}
+                        contextLabel={CONTEXTS[context].label}
+                    />
                 );
             })}
         </div>
