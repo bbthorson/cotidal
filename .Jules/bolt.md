@@ -1,3 +1,3 @@
-## 2025-02-24 - Parallelize Async Operations
-**Learning:** Found a "waterfall" pattern in `ResultsScreen` where drink details were fetched sequentially inside a `for` loop within `useEffect`. This unnecessarily delays the UI update for subsequent items.
-**Action:** Always use `Promise.all` (or similar concurrency tools) when fetching multiple independent resources, rather than awaiting them sequentially in a loop.
+## 2025-02-24 - Reduce React Allocation Overhead
+**Learning:** In complex visual components like `ResultsScreen`, frequently triggering interactions (like hovering over pins) causes re-renders. Allocating new objects or functions (like `toPct` or `sliced` arrays) inside the render loop forces children to re-render even if they are memoized, because the props (functions/arrays) are technically new references.
+**Action:** Move helper functions (e.g. `toPct`) outside the component if they don't depend on props/state. Memoize derived arrays (e.g. `recommendations.slice(0, 15)`) that are passed to mapped children to ensure stable references and prevent unnecessary re-renders of the entire list.

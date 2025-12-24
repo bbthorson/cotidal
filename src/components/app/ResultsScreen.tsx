@@ -4,7 +4,7 @@ import { drinkDatabase, type Drink, type User, type ContextType } from '@/lib/da
 import { calculateDistance, calculateContextScore } from '@/lib/scoring';
 import { fetchDrinkDetails, type CocktailDBResult } from '@/lib/cocktail-api';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Chatbot } from './Chatbot';
 import { explainDrinkMatch } from '@/app/actions/explain-drink';
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -26,6 +26,13 @@ const CONTEXTS: Record<ContextType, { label: string; icon: string; description: 
     party: { label: "Party", icon: "🎉", description: "Fun, social, and easy-drinking." },
     holiday: { label: "Holiday", icon: "🎄", description: "Cozy, warm, and comforting." },
 };
+
+// Optimization: Pre-calculate CONTEXT entries to avoid re-creating the array on every render
+const CONTEXT_OPTIONS = Object.entries(CONTEXTS) as [string, { label: string; icon: string; description: string }][];
+
+// Optimization: Move toPct outside the component to prevent function recreation on every render
+// Convert coordinates to CSS percentages (Range -10 to 10 mapped to 0% to 100%)
+const toPct = (val: number) => ((val + 10) / 20) * 100;
 
 export function ResultsScreen({ user, vibeTags, onReset }: ResultsScreenProps) {
   const headingRef = useRef<HTMLHeadingElement>(null);
@@ -78,6 +85,9 @@ export function ResultsScreen({ user, vibeTags, onReset }: ResultsScreenProps) {
 
     return scoredDrinks;
   }, [user, vibeTags, context]);
+
+  // Optimization: Memoize visible drinks to prevent array reallocation during hover events (which cause re-renders)
+  const visibleDrinks = useMemo(() => recommendations.slice(0, 15), [recommendations]);
 
   // Memoize topPicks to prevent unnecessary re-fetching of details when other state (like hoveredDrink) changes.
   const topPicks = useMemo(() => recommendations.slice(0, 3), [recommendations]);
@@ -150,9 +160,6 @@ export function ResultsScreen({ user, vibeTags, onReset }: ResultsScreenProps) {
       }
   };
 
-  // Convert coordinates to CSS percentages (Range -10 to 10 mapped to 0% to 100%)
-  const toPct = (val: number) => ((val + 10) / 20) * 100;
-
   const getQuadrantName = (x: number, y: number) => {
     if (y >= 0) {
       return x >= 0 ? "Crisp & Clean" : "Lush & Lively";
@@ -180,7 +187,7 @@ export function ResultsScreen({ user, vibeTags, onReset }: ResultsScreenProps) {
       <div className="flex justify-center">
           <Tabs value={context} onValueChange={(v) => { setContext(v as ContextType); setExplanation(null); }} className="w-full max-w-md">
             <TabsList className="grid grid-cols-4 bg-primary/5">
-                {Object.entries(CONTEXTS).map(([key, { label, icon }]) => (
+                {CONTEXT_OPTIONS.map(([key, { label, icon }]) => (
                     <TabsTrigger key={key} value={key} className="text-xs sm:text-sm">
                         <span className="mr-1">{icon}</span>
                         <span className="hidden sm:inline">{label}</span>
@@ -208,7 +215,7 @@ export function ResultsScreen({ user, vibeTags, onReset }: ResultsScreenProps) {
 
         {/* Render Drinks as Pins & User Dot */}
         <TooltipProvider>
-            {recommendations.slice(0, 15).map((drink, i) => { // Show top 15 matches to avoid clutter
+            {visibleDrinks.map((drink, i) => { // Use memoized visibleDrinks
                 const isTopPick = i < 3;
                 return (
                     <MapPin
