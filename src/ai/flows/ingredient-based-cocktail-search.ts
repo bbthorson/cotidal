@@ -9,6 +9,8 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
+const API_TIMEOUT_MS = 5000;
+
 export const IngredientBasedCocktailSearchInputSchema = z.object({
   ingredientsDescription: z
     .string()
@@ -38,9 +40,15 @@ const getCocktailRecipes = ai.defineTool(
   async (input) => {
     try {
       // 1. Fetch from TheCocktailDB
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT_MS);
+
       const response = await fetch(
-        `https://www.thecocktaildb.com/api/json/v1/1/filter.php?i=${encodeURIComponent(input.ingredients)}`
+        `https://www.thecocktaildb.com/api/json/v1/1/filter.php?i=${encodeURIComponent(input.ingredients)}`,
+        { signal: controller.signal }
       );
+
+      clearTimeout(timeoutId);
 
       if (!response.ok) {
         return `Error fetching recipes: ${response.statusText}`;
@@ -58,6 +66,10 @@ const getCocktailRecipes = ai.defineTool(
       return `Found these cocktails with ${input.ingredients}: ${drinks}.`;
 
     } catch (error) {
+      if ((error as Error).name === 'AbortError') {
+        console.error(`Timeout fetching recipes for ${input.ingredients}`);
+        return "The cocktail database is currently unresponsive. Please try again later.";
+      }
       console.error("CocktailDB API Error:", error);
       return "An error occurred while connecting to the cocktail database.";
     }

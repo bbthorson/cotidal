@@ -24,3 +24,8 @@
 **Vulnerability:** Publicly accessible Server Actions (`findCocktailRecipes`, `explainDrinkMatch`) triggering expensive AI operations lacked rate limiting, exposing the application to Denial of Service (DoS) and excessive cost from API abuse.
 **Learning:** While robust global rate limiting requires shared state (e.g., Redis), a per-instance in-memory rate limiter provides a critical "Defense in Depth" layer. It prevents simple flooding attacks on a single container without introducing complex infrastructure dependencies.
 **Prevention:** Implemented a `checkRateLimit` utility using `next/headers` to track IP-based usage in memory and applied it to all AI-driven Server Actions.
+
+## 2025-05-26 - Timeout Enforcement on External API Calls
+**Vulnerability:** External `fetch` calls to TheCocktailDB in `cocktail-api.ts` and `ingredient-based-cocktail-search.ts` lacked timeouts.
+**Learning:** Node.js `fetch` (and polyfills) typically have no default timeout. If the upstream service hangs or becomes unresponsive, the serverless function can hang until its hard limit, consuming concurrent execution slots and potentially causing a Denial of Service (DoS) for the entire application.
+**Prevention:** Implemented a strict 5000ms timeout using `AbortController` for all external API requests. This ensures resources are freed quickly even if the third-party service fails.
