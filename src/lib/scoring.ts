@@ -1,9 +1,14 @@
 import type { User, Drink, ContextType } from '@/lib/data';
 
-export const calculateDistance = (user: User, drink: Drink) => {
+interface Point {
+    x: number;
+    y: number;
+}
+
+export const calculateDistance = (p1: Point, p2: Point) => {
     // Optimization: (x*x) is faster than Math.pow(x, 2)
-    const dx = user.x - drink.x;
-    const dy = user.y - drink.y;
+    const dx = p1.x - p2.x;
+    const dy = p1.y - p2.y;
     return Math.sqrt(dx * dx + dy * dy);
 };
 

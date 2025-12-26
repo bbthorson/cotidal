@@ -1,6 +1,7 @@
 'use client';
 import { useState, useRef } from 'react';
 import { questions, drinkDatabase, Drink, QuestionTier, QuestionOption } from '@/lib/data';
+import { calculateDistance } from '@/lib/scoring';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -139,7 +140,7 @@ export function DiscoveryQuiz({ onComplete }: DiscoveryQuizProps) {
 
     // 2. Rank (Distance)
     const scoredCandidates = candidates.map(drink => {
-        const dist = Math.sqrt(Math.pow(drink.x - finalProfile.x, 2) + Math.pow(drink.y - finalProfile.y, 2));
+        const dist = calculateDistance(finalProfile, drink);
         return { ...drink, distance: dist, score: 0 };
     });
 
