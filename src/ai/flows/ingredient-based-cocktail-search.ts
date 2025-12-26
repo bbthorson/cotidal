@@ -14,7 +14,10 @@ const API_TIMEOUT_MS = 5000;
 export const IngredientBasedCocktailSearchInputSchema = z.object({
   ingredientsDescription: z
     .string()
+    .min(10, "Please provide a more detailed description of your ingredients.")
     .max(500)
+    // Security: Disallow characters often used in injection attacks or code
+    .regex(/^[^<>{}\\]+$/, "Please use plain text only (no special characters like <, >, {, }, \\).")
     .describe("A description of the ingredients the user has available."),
 });
 export type IngredientBasedCocktailSearchInput = z.infer<typeof IngredientBasedCocktailSearchInputSchema>;
