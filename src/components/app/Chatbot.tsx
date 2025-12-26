@@ -8,7 +8,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Bot, Loader2 } from 'lucide-react';
+import { Bot, Loader2, Sparkles } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 const initialState = {
   data: '',
@@ -26,7 +27,8 @@ function SubmitButton() {
 }
 
 export function Chatbot() {
-  const [state, formAction] = useActionState(findCocktailRecipes, initialState);
+  // Enhanced to capture isPending state from useActionState
+  const [state, formAction, isPending] = useActionState(findCocktailRecipes, initialState);
   const [inputLength, setInputLength] = useState(0);
 
   return (
@@ -65,19 +67,39 @@ export function Chatbot() {
         </form>
 
         {state.error && (
-          <Alert variant="destructive" className="mt-4">
+          <Alert variant="destructive" className="mt-4 animate-in fade-in slide-in-from-top-2">
             <AlertTitle>Error</AlertTitle>
             <AlertDescription>{state.error}</AlertDescription>
           </Alert>
         )}
 
-        {state.data && (
-           <Card className="mt-6 bg-muted/50">
+        {isPending && (
+            <Card className="mt-6 bg-muted/30 border-dashed animate-in fade-in duration-500">
+                <CardContent className="flex flex-col items-center justify-center p-8 space-y-4 text-center">
+                    <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                    >
+                        <Sparkles className="h-8 w-8 text-primary/50" />
+                    </motion.div>
+                    <div className="space-y-1">
+                        <p className="font-headline font-bold text-lg text-primary">Mixing up some ideas...</p>
+                        <p className="text-sm text-muted-foreground">Consulting the cocktail matrix.</p>
+                    </div>
+                </CardContent>
+            </Card>
+        )}
+
+        {!isPending && state.data && (
+           <Card className="mt-6 bg-muted/50 animate-in fade-in slide-in-from-bottom-4 duration-500">
              <CardHeader>
-                <h3 className="text-xl font-headline font-bold text-accent">AI Recommendations</h3>
+                <h3 className="text-xl font-headline font-bold text-accent flex items-center gap-2">
+                    <Sparkles className="h-5 w-5" />
+                    AI Recommendations
+                </h3>
              </CardHeader>
              <CardContent>
-                <p className="whitespace-pre-wrap font-mono text-sm">{state.data}</p>
+                <p className="whitespace-pre-wrap font-mono text-sm leading-relaxed">{state.data}</p>
              </CardContent>
            </Card>
         )}
