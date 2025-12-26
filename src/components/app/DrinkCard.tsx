@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
+import { Loader2 } from 'lucide-react';
 
 interface DrinkCardProps {
   drink: Drink;
@@ -112,6 +113,7 @@ export const DrinkCard = memo(function DrinkCard({
                   size="sm"
                   className="w-full border-primary/20 text-primary hover:bg-primary/5"
                 >
+                  {loadingExplanation ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                   {loadingExplanation ? "Sommelier is thinking..." : "Why this drink?"}
                 </Button>
               )}
