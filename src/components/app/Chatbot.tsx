@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState, useState } from 'react';
+import { useActionState, useState, useId } from 'react';
 import { useFormStatus } from 'react-dom';
 import { findCocktailRecipes } from '@/app/actions';
 import { Card, CardContent, CardDescription, CardHeader } from '@/components/ui/card';
@@ -9,6 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Bot, Loader2 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 const initialState = {
   data: '',
@@ -29,22 +30,39 @@ function SubmitButton() {
 // This prevents the entire Chatbot card (and potentially parent components) from re-rendering on every keystroke.
 function ChatInput() {
   const [inputLength, setInputLength] = useState(0);
+  const maxLength = 500;
+  const isNearLimit = inputLength > maxLength * 0.9;
+  const isAtLimit = inputLength >= maxLength;
+
+  // Use unique IDs to ensure component reusability and accessibility compliance
+  const id = useId();
+  const counterId = `${id}-counter`;
+  const inputId = `${id}-input`;
 
   return (
     <div className="space-y-2">
       <div className="flex justify-between">
-          <Label htmlFor="ingredients-input">Your Ingredients</Label>
-          <span className="text-xs text-muted-foreground">
-            {inputLength}/500
+          <Label htmlFor={inputId}>Your Ingredients</Label>
+          <span
+            id={counterId}
+            className={cn(
+              "text-xs transition-colors duration-200 font-medium",
+              isAtLimit ? "text-destructive" : isNearLimit ? "text-orange-500" : "text-muted-foreground"
+            )}
+            aria-live={isNearLimit ? "polite" : "off"}
+          >
+            <span className="sr-only">Characters used: </span>
+            {inputLength}/{maxLength}
           </span>
       </div>
       <Textarea
-        id="ingredients-input"
+        id={inputId}
         name="ingredientsDescription"
         placeholder="e.g., 'I have some gin, lemons, sugar, and club soda... what can I make?'"
         className="min-h-[100px] text-base"
         required
-        maxLength={500}
+        maxLength={maxLength}
+        aria-describedby={counterId}
         onChange={(e) => setInputLength(e.target.value.length)}
       />
     </div>
