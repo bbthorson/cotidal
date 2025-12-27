@@ -1,15 +1,16 @@
 'use client';
 import { useMemo, useState, useEffect, useRef, useCallback } from 'react';
 import { drinkDatabase, type Drink, type User, type ContextType } from '@/lib/data';
-import { calculateDistance, calculateContextScore } from '@/lib/scoring';
+import { calculateDistance, calculateContextScore, getQuadrantName, toPct } from '@/lib/scoring';
 import { fetchDrinkDetails, type CocktailDBResult } from '@/lib/cocktail-api';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Chatbot } from './Chatbot';
 import { explainDrinkMatch } from '@/app/actions/explain-drink';
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { MapPin } from './MapPin';
+import { UserPin } from './UserPin';
 import { DrinkCard } from './DrinkCard';
 
 interface ResultsScreenProps {
@@ -27,10 +28,6 @@ const CONTEXTS: Record<ContextType, { label: string; icon: string; description: 
 
 // Optimization: Pre-calculate CONTEXT entries to avoid re-creating the array on every render
 const CONTEXT_OPTIONS = Object.entries(CONTEXTS) as [string, { label: string; icon: string; description: string }][];
-
-// Optimization: Move toPct outside the component to prevent function recreation on every render
-// Convert coordinates to CSS percentages (Range -10 to 10 mapped to 0% to 100%)
-const toPct = (val: number) => ((val + 10) / 20) * 100;
 
 export function ResultsScreen({ user, vibeTags, onReset }: ResultsScreenProps) {
   const headingRef = useRef<HTMLHeadingElement>(null);
@@ -160,14 +157,6 @@ export function ResultsScreen({ user, vibeTags, onReset }: ResultsScreenProps) {
       }
   }, [heroDrink, user.x, user.y, user.filters]);
 
-  const getQuadrantName = (x: number, y: number) => {
-    if (y >= 0) {
-      return x >= 0 ? "Crisp & Clean" : "Lush & Lively";
-    } else {
-      return x >= 0 ? "Bold & Complex" : "Decadent & Deep";
-    }
-  };
-
   return (
     <div className="animate-in fade-in duration-500 space-y-6">
 
@@ -230,23 +219,13 @@ export function ResultsScreen({ user, vibeTags, onReset }: ResultsScreenProps) {
                 );
             })}
 
-            {/* User Dot */}
-            <Tooltip>
-                <TooltipTrigger asChild>
-                    <button
-                        type="button"
-                        aria-label={`Your Palate Profile: ${getQuadrantName(user.x, user.y)}`}
-                        className="absolute w-6 h-6 bg-[#B7410E] rounded-full border-2 border-white shadow-xl z-30 transform -translate-x-1/2 -translate-y-1/2 animate-pulse cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#B7410E]"
-                        style={{ left: `${toPct(user.x)}%`, bottom: `${toPct(user.y)}%` }}
-                    >
-                        <div className="absolute inset-0 rounded-full bg-[#B7410E] animate-ping opacity-20 pointer-events-none"></div>
-                    </button>
-                </TooltipTrigger>
-                <TooltipContent>
-                    <p className="font-bold">You are here</p>
-                    <p className="text-xs text-muted-foreground">{getQuadrantName(user.x, user.y)}</p>
-                </TooltipContent>
-            </Tooltip>
+            {/* Optimization: Extracted User Dot to memoized component to prevent re-render on hover */}
+            <UserPin
+                x={user.x}
+                y={user.y}
+                xPct={toPct(user.x)}
+                yPct={toPct(user.y)}
+            />
         </TooltipProvider>
 
       </Card>

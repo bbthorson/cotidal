@@ -41,3 +41,16 @@ export const calculateContextScore = (drink: Drink, context: ContextType) => {
     }
     return score;
 };
+
+// Helper function moved from component to prevent recreation on every render
+export const getQuadrantName = (x: number, y: number) => {
+    if (y >= 0) {
+      return x >= 0 ? "Crisp & Clean" : "Lush & Lively";
+    } else {
+      return x >= 0 ? "Bold & Complex" : "Decadent & Deep";
+    }
+};
+
+// Convert coordinates to CSS percentages (Range -10 to 10 mapped to 0% to 100%)
+// Moved here to be reusable across components (ResultsScreen, UserPin, MapPin)
+export const toPct = (val: number) => ((val + 10) / 20) * 100;
