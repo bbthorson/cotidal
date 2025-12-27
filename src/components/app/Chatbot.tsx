@@ -25,9 +25,34 @@ function SubmitButton() {
   );
 }
 
+// Optimization: Extract Input component to isolate re-renders caused by character counting.
+// This prevents the entire Chatbot card (and potentially parent components) from re-rendering on every keystroke.
+function ChatInput() {
+  const [inputLength, setInputLength] = useState(0);
+
+  return (
+    <div className="space-y-2">
+      <div className="flex justify-between">
+          <Label htmlFor="ingredients-input">Your Ingredients</Label>
+          <span className="text-xs text-muted-foreground">
+            {inputLength}/500
+          </span>
+      </div>
+      <Textarea
+        id="ingredients-input"
+        name="ingredientsDescription"
+        placeholder="e.g., 'I have some gin, lemons, sugar, and club soda... what can I make?'"
+        className="min-h-[100px] text-base"
+        required
+        maxLength={500}
+        onChange={(e) => setInputLength(e.target.value.length)}
+      />
+    </div>
+  );
+}
+
 export function Chatbot() {
   const [state, formAction] = useActionState(findCocktailRecipes, initialState);
-  const [inputLength, setInputLength] = useState(0);
 
   return (
     <Card className="shadow-xl border-2 border-primary/5 bg-card">
@@ -42,23 +67,7 @@ export function Chatbot() {
       </CardHeader>
       <CardContent>
         <form action={formAction} className="space-y-4">
-          <div className="space-y-2">
-            <div className="flex justify-between">
-                <Label htmlFor="ingredients-input">Your Ingredients</Label>
-                <span className="text-xs text-muted-foreground">
-                  {inputLength}/500
-                </span>
-            </div>
-            <Textarea
-              id="ingredients-input"
-              name="ingredientsDescription"
-              placeholder="e.g., 'I have some gin, lemons, sugar, and club soda... what can I make?'"
-              className="min-h-[100px] text-base"
-              required
-              maxLength={500}
-              onChange={(e) => setInputLength(e.target.value.length)}
-            />
-          </div>
+          <ChatInput />
           <div className="flex justify-end">
             <SubmitButton />
           </div>
