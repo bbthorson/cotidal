@@ -160,12 +160,11 @@ export function ResultsScreen({ user, vibeTags, onReset }: ResultsScreenProps) {
   return (
     <div className="animate-in fade-in duration-500 space-y-6">
 
-      {/* Header */}
       <div className="text-center space-y-2">
           <h1
             ref={headingRef}
             tabIndex={-1}
-            className="font-headline text-4xl font-bold text-primary outline-none"
+            className="font-headline text-3xl sm:text-4xl font-bold text-primary outline-none"
           >
             The Palate Revelation
           </h1>

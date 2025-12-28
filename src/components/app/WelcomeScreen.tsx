@@ -22,7 +22,7 @@ export function WelcomeScreen({ onStartQuiz }: WelcomeScreenProps) {
           <h1
             ref={headingRef}
             tabIndex={-1}
-            className="font-headline text-5xl md:text-6xl font-bold text-primary leading-tight tracking-tight outline-none"
+            className="font-headline text-4xl sm:text-5xl md:text-6xl font-bold text-primary leading-tight tracking-tight outline-none"
           >
             The Crystal Coupe
           </h1>

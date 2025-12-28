@@ -190,7 +190,7 @@ export function DiscoveryQuiz({ onComplete }: DiscoveryQuizProps) {
     <div className="w-full max-w-4xl mx-auto p-4">
       <Card className="shadow-2xl glass-dark border-primary/20 min-h-[500px] flex flex-col">
         <CardHeader className="text-center pt-8">
-          <h1 className="font-headline text-4xl font-bold text-primary tracking-tight">
+          <h1 className="font-headline text-2xl sm:text-3xl md:text-4xl font-bold text-primary tracking-tight">
             {getTierTitle()}
           </h1>
           <div className="max-w-md mx-auto w-full mt-6">
