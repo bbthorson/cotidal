@@ -14,8 +14,8 @@
 ## Phase 2: The Threshold (Tier 1 Quiz)
 - [x] Task: Define Quiz Data Structure ab433f9
     - [x] Subtask: Create/Update `src/lib/discovery-questions.ts` with new binary "Threshold" questions.
-- [ ] Task: Create Threshold Question Component
-    - [ ] Subtask: Build a reusable `BinaryQuestionCard.tsx` with new styling.
+- [x] Task: Create Threshold Question Component bfb0805
+    - [x] Subtask: Build a reusable `BinaryQuestionCard.tsx` with new styling.
 - [ ] Task: Implement Quiz Logic
     - [ ] Subtask: Write unit tests for mapping binary answers to matrix quadrants.
     - [ ] Subtask: Implement the state logic to track progress.
