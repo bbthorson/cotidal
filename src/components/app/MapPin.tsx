@@ -27,10 +27,10 @@ export const MapPin = memo(function MapPin({
                 type="button"
                 aria-label={`Select ${drink.name}, ${drink.type}`}
                 className={cn(
-                    // Positioning and Layout (Hit Area)
-                    "absolute w-8 h-8 rounded-full transform -translate-x-1/2 -translate-y-1/2 p-0 border-none flex items-center justify-center group",
+                    // Positioning and Layout (Hit Area) - 44px standard for mobile
+                    "absolute w-11 h-11 rounded-full transform -translate-x-1/2 -translate-y-1/2 p-0 border-none flex items-center justify-center group",
                     // Interaction
-                    "cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary",
+                    "cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary transition-transform",
                     // Z-Index
                     isTopPick ? "z-20" : "z-10"
                 )}

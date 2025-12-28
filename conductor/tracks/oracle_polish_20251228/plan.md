@@ -7,7 +7,7 @@
 - [x] Task: Conductor - User Manual Verification 'The Oracle's Voice' (Protocol in workflow.md) 8f2c4ee
 
 ## Phase 2: Mobile Sanctum (UI Optimization)
-- [ ] Task: Responsive Map Overhaul
+- [~] Task: Responsive Map Overhaul
     - [ ] Subtask: Update `ResultsScreen.tsx` to ensure the map remains a perfect square and centers correctly on mobile.
     - [ ] Subtask: Optimize pin sizes and visibility for small screens.
 - [ ] Task: Touch-Target Optimization

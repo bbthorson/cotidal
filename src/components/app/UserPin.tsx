@@ -16,10 +16,12 @@ export const UserPin = memo(function UserPin({ x, y, xPct, yPct }: UserPinProps)
             <button
                 type="button"
                 aria-label={`Your Palate Profile: ${getQuadrantName(x, y)}`}
-                className="absolute w-6 h-6 bg-[#B7410E] rounded-full border-2 border-white shadow-xl z-30 transform -translate-x-1/2 -translate-y-1/2 animate-pulse cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#B7410E]"
+                className="absolute w-11 h-11 flex items-center justify-center z-30 transform -translate-x-1/2 -translate-y-1/2 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#B7410E]"
                 style={{ left: `${xPct}%`, bottom: `${yPct}%` }}
             >
-                <div className="absolute inset-0 rounded-full bg-[#B7410E] animate-ping opacity-20 pointer-events-none"></div>
+                <div className="w-6 h-6 bg-[#B7410E] rounded-full border-2 border-white shadow-xl animate-pulse flex items-center justify-center relative">
+                    <div className="absolute inset-0 rounded-full bg-[#B7410E] animate-ping opacity-20 pointer-events-none"></div>
+                </div>
             </button>
         </TooltipTrigger>
         <TooltipContent>
