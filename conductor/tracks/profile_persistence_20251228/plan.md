@@ -1,9 +1,9 @@
 # Track Plan: User Profile Persistence (Firebase)
 
 ## Phase 1: Firebase Infrastructure
-- [~] Task: Initialize Firebase Client
-    - [ ] Subtask: Create `src/lib/firebase.ts` to initialize App, Auth, and Firestore.
-    - [ ] Subtask: Configure environment variables for Firebase credentials.
+- [x] Task: Initialize Firebase Client c851d2a
+    - [x] Subtask: Create `src/lib/firebase.ts` to initialize App, Auth, and Firestore.
+    - [x] Subtask: Configure environment variables for Firebase credentials.
 - [ ] Task: Implement Anonymous Authentication
     - [ ] Subtask: Create a hook `useAuth` to handle anonymous sign-in on app load.
     - [ ] Subtask: Verify authentication state in the main application layout.
