@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Loader2 } from 'lucide-react';
+import { BinaryQuestionCard } from './BinaryQuestionCard';
 
 export interface UserProfile {
   x: number;
@@ -186,66 +187,84 @@ export function DiscoveryQuiz({ onComplete }: DiscoveryQuizProps) {
   };
 
   return (
-    <div className="w-full max-w-2xl mx-auto p-4">
-      <Card className="shadow-2xl border-2 border-primary/10">
-        <CardHeader className="text-center">
-          <h1 className="font-headline text-3xl font-bold text-primary">
+    <div className="w-full max-w-4xl mx-auto p-4">
+      <Card className="shadow-2xl glass-dark border-primary/20 min-h-[500px] flex flex-col">
+        <CardHeader className="text-center pt-8">
+          <h1 className="font-headline text-4xl font-bold text-primary tracking-tight">
             {getTierTitle()}
           </h1>
-          <Progress
-            value={progress}
-            className="w-full mt-4"
-            aria-label="Quiz progress"
-            aria-valuetext={`Question ${globalIndex + 1} of ${totalQuestions}`}
-          />
+          <div className="max-w-md mx-auto w-full mt-6">
+            <Progress
+              value={progress}
+              className="h-1.5 bg-primary/10"
+              aria-label="Quiz progress"
+              aria-valuetext={`Question ${globalIndex + 1} of ${totalQuestions}`}
+            />
+          </div>
         </CardHeader>
-        <CardContent className="text-center space-y-6 min-h-[400px]">
+        <CardContent className="flex-1 flex flex-col justify-center px-6 pb-12">
           <AnimatePresence mode="wait">
             <motion.div
               key={currentQuestion.id}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.25, ease: "easeInOut" }}
-              className="space-y-6"
+              initial={{ opacity: 0, scale: 0.98 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 1.02 }}
+              transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
+              className="w-full"
               onAnimationComplete={() => questionRef.current?.focus()}
             >
-              <h2
-                ref={questionRef}
-                tabIndex={-1}
-                className="font-serif text-2xl outline-none"
-              >
-                {currentQuestion.text}
-              </h2>
-              <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
-                {currentQuestion.options.map((option, index) => {
-                  const isSelected = isNavigating && selectedOptionIndex === index;
-                  return (
-                    <Button
-                      key={`${currentQuestion.id}-${index}`}
-                      onClick={() => handleAnswer(option, index)}
-                      disabled={isNavigating && !isSelected}
-                      variant={isSelected ? "default" : "outline"}
-                      className="h-auto py-4 text-lg whitespace-normal min-h-[60px] flex-col gap-1 transition-all duration-300"
-                    >
-                      <div className="flex items-center gap-2">
-                        {option.text}
-                        {isSelected && !option.feedback && <Loader2 className="h-4 w-4 animate-spin" />}
-                      </div>
-
-                      {isSelected && option.feedback && (
-                        <motion.span
-                          initial={{ opacity: 0, height: 0, scale: 0.95 }}
-                          animate={{ opacity: 1, height: 'auto', scale: 1 }}
-                          className="text-sm font-medium text-primary-foreground/90 italic"
+              {currentQuestion.options.length === 2 ? (
+                <BinaryQuestionCard
+                  questionText={currentQuestion.text}
+                  options={currentQuestion.options}
+                  onAnswer={handleAnswer}
+                  isNavigating={isNavigating}
+                  selectedOptionIndex={selectedOptionIndex}
+                />
+              ) : (
+                <div className="space-y-8 py-4">
+                  <h2
+                    ref={questionRef}
+                    tabIndex={-1}
+                    className="font-headline text-3xl md:text-4xl text-primary text-center leading-tight outline-none"
+                  >
+                    {currentQuestion.text}
+                  </h2>
+                  <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+                    {currentQuestion.options.map((option, index) => {
+                      const isSelected = isNavigating && selectedOptionIndex === index;
+                      return (
+                        <Button
+                          key={`${currentQuestion.id}-${index}`}
+                          onClick={() => handleAnswer(option, index)}
+                          disabled={isNavigating && !isSelected}
+                          variant={isSelected ? "default" : "outline"}
+                          className={`
+                            h-auto py-6 text-xl font-serif whitespace-normal min-h-[100px] 
+                            flex flex-col gap-2 transition-all duration-500 rounded-xl
+                            ${isSelected ? 'shadow-lg ring-2 ring-primary' : 'glass-dark border-primary/10 hover:bg-white/5'}
+                          `}
                         >
-                          {option.feedback}
-                        </motion.span>
-                      )}
-                    </Button>
-                  );
-                })}
-              </div>
+                          <div className="flex items-center gap-2">
+                            {option.text}
+                            {isSelected && !option.feedback && <Loader2 className="h-5 w-5 animate-spin" />}
+                          </div>
+
+                          {isSelected && option.feedback && (
+                            <motion.span
+                              initial={{ opacity: 0, height: 0 }}
+                              animate={{ opacity: 1, height: 'auto' }}
+                              className="text-sm font-medium text-primary-foreground/90 italic bg-primary/20 px-2 py-1 rounded"
+                            >
+                              {option.feedback}
+                            </motion.span>
+                          )}
+                        </Button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </motion.div>
           </AnimatePresence>
         </CardContent>
