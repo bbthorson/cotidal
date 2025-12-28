@@ -10,6 +10,6 @@
 - [x] Task: AI Archetyping Flow 600b165
     - [x] Subtask: Create `src/app/actions/archetype-drink.ts` using Genkit to categorize any drink.
     - [x] Subtask: Write unit tests to verify the AI's mapping accuracy against 5 known classics.
-- [~] Task: Dynamic Injection
-    - [ ] Subtask: (Optional/Research) Experiment with pulling random drinks from CocktailDB and archetyping them to fill the map.
+- [x] Task: Dynamic Injection 249041a
+    - [x] Subtask: (Optional/Research) Experiment with pulling random drinks from CocktailDB and archetyping them to fill the map.
 - [ ] Task: Conductor - User Manual Verification 'The Eye of the Oracle' (Protocol in workflow.md)
