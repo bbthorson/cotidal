@@ -1,6 +1,6 @@
 # Track Plan: Threshold Calibration & Mystic Rebrand
 
-## Phase 1: Visual Foundation & Rebrand
+## Phase 1: Visual Foundation & Rebrand [checkpoint: 962976d]
 - [x] Task: Update Tailwind Config with Botanical Palette ba19a1c
     - [x] Subtask: Define colors (Sage, Terracotta, Obsidian) in `tailwind.config.ts`.
     - [x] Subtask: Add glassmorphism utility classes if not present.
@@ -9,7 +9,7 @@
 - [x] Task: Update Landing Page Hero ba19a1c
     - [x] Subtask: Rewrite copy to "The Crystal Coupe" and "Reveal Your Palate."
     - [x] Subtask: Apply new glassmorphism styles to the main container.
-- [ ] Task: Conductor - User Manual Verification 'Visual Foundation & Rebrand' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Visual Foundation & Rebrand' (Protocol in workflow.md) 962976d
 
 ## Phase 2: The Threshold (Tier 1 Quiz)
 - [ ] Task: Define Quiz Data Structure
