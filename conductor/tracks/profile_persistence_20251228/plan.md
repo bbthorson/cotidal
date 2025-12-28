@@ -10,8 +10,8 @@
 - [x] Task: Conductor - User Manual Verification 'Firebase Infrastructure' (Protocol in workflow.md) e094af6
 
 ## Phase 2: Firestore Integration
-- [~] Task: Profile Service
-    - [ ] Subtask: Create a utility service to save and fetch user profiles from Firestore.
+- [x] Task: Profile Service 18d3b47
+    - [x] Subtask: Create a utility service to save and fetch user profiles from Firestore.
 - [ ] Task: Integrate Syncing in App
     - [ ] Subtask: Update `DiscoveryQuiz.tsx` to save results to Firestore on completion.
     - [ ] Subtask: Update landing page logic to fetch existing profiles from Firestore if available.
