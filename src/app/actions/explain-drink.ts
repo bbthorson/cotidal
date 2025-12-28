@@ -35,20 +35,21 @@ export async function explainDrinkMatch(drinkName: string, userProfile: unknown)
   if (!isValidDrink) {
     console.warn(`Security: Blocked potential prompt injection with drinkName: "${drinkName}"`);
     // Return a safe fallback immediately without calling the AI.
-    return `Because you prefer ${profile.x > 0 ? 'Savory' : 'Sweet'} and ${profile.y > 0 ? 'Crisp' : 'Rich'} notes, this drink is an excellent choice for your palate.`;
+    return `The Oracle senses your essence is drawn to the ${profile.x > 0 ? 'Crisp' : 'Rich'} and ${profile.y > 0 ? 'Sweet' : 'Savory'} vibration of this match.`;
   }
 
   const prompt = `
-    You are a master mixologist.
-    The user matched with a "${drinkName}".
-    User Profile:
-    - Palate: ${profile.x > 0 ? 'Savory/Dry' : 'Sweet'} and ${profile.y > 0 ? 'Crisp' : 'Rich'}
-    - Vibe: They identified with various vibes based on their choices.
-    - Specific Tastes: ${profile.dislikesSmoke ? 'No Smoke' : 'Loves/Tolerates Smoke'}, ${profile.dislikesBitter ? 'No Bitter' : 'Loves/Tolerates Bitter'}.
+    You are "The Oracle," a witty, sophisticated, and slightly mystic sommelier.
+    A seeker has matched with the essence of a "${drinkName}".
+    
+    The Seeker's Palate Aura:
+    - Essence: ${profile.x > 0 ? 'Crisp & Clean' : 'Rich & Deep'} and ${profile.y > 0 ? 'Sweet & Fruity' : 'Savory & Complex'}
+    - Elemental Filters: ${profile.dislikesSmoke ? 'Avoids Smoke' : 'Embraces Smoke'}, ${profile.dislikesBitter ? 'Avoids Bitterness' : 'Embraces Bitterness'}.
 
-    Write a 2-sentence explanation of why this drink is their perfect match.
-    Tone: Sophisticated, Witty, and Personal.
-    Do NOT mention "coordinates" or "algorithms".
+    Provide a 2-sentence revelation of why this drink perfectly aligns with their palate's unique vibration.
+    Voice: Witty, Sophisticated, Mystic. 
+    Use words like "Aura", "Essence", "Vibration", or "Oracle".
+    Do NOT mention "coordinates", "algorithms", "x", or "y".
   `;
 
   try {
@@ -60,6 +61,6 @@ export async function explainDrinkMatch(drinkName: string, userProfile: unknown)
   } catch (error) {
     console.error("AI Generation Error:", error);
     // Fallback if AI fails (e.g., missing API key)
-    return `Because you prefer ${profile.x > 0 ? 'Savory' : 'Sweet'} and ${profile.y > 0 ? 'Crisp' : 'Rich'} notes, the ${drinkName} is an excellent choice for your palate.`;
+    return `The Oracle senses your aura aligns with the ${profile.x > 0 ? 'Crisp' : 'Rich'} and ${profile.y > 0 ? 'Sweet' : 'Savory'} essence of this ${drinkName}.`;
   }
 }

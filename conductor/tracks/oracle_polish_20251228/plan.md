@@ -1,7 +1,7 @@
 # Track Plan: The Oracle's Touch: AI Personality & Mobile Polish
 
 ## Phase 1: The Oracle's Voice (AI Enhancement)
-- [ ] Task: Update AI Sommelier Prompt
+- [~] Task: Update AI Sommelier Prompt
     - [ ] Subtask: Refine the system prompt in `src/app/actions/explain-drink.ts` to use the "Oracle" persona.
     - [ ] Subtask: Test the output with varied user profiles to ensure witty and thematic responses.
 - [ ] Task: Conductor - User Manual Verification 'The Oracle's Voice' (Protocol in workflow.md)

@@ -111,10 +111,10 @@ export const DrinkCard = memo(function DrinkCard({
                   disabled={loadingExplanation}
                   variant="outline"
                   size="sm"
-                  className="w-full border-primary/20 text-primary hover:bg-primary/5"
+                  className="w-full border-primary/20 text-primary hover:bg-primary/5 tracking-widest uppercase text-[10px] font-bold"
                 >
                   {loadingExplanation ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                  {loadingExplanation ? "Sommelier is thinking..." : "Why this drink?"}
+                  {loadingExplanation ? "The Oracle is intuiting..." : "Oracle's Vision"}
                 </Button>
               )}
             </CardContent>
