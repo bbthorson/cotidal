@@ -194,12 +194,17 @@ export function DiscoveryQuiz({ onComplete }: DiscoveryQuizProps) {
             {getTierTitle()}
           </h1>
           <div className="max-w-md mx-auto w-full mt-6">
-            <Progress
-              value={progress}
-              className="h-1.5 bg-primary/10"
-              aria-label="Quiz progress"
-              aria-valuetext={`Question ${globalIndex + 1} of ${totalQuestions}`}
-            />
+            <motion.div
+              animate={isNavigating ? { scale: [1, 1.02, 1] } : {}}
+              transition={{ duration: 0.4 }}
+            >
+              <Progress
+                value={progress}
+                className="h-1.5 bg-primary/10"
+                aria-label="Quiz progress"
+                aria-valuetext={`Question ${globalIndex + 1} of ${totalQuestions}`}
+              />
+            </motion.div>
           </div>
         </CardHeader>
         <CardContent className="flex-1 flex flex-col justify-center px-6 pb-12">
@@ -240,21 +245,21 @@ export function DiscoveryQuiz({ onComplete }: DiscoveryQuizProps) {
                           disabled={isNavigating && !isSelected}
                           variant={isSelected ? "default" : "outline"}
                           className={`
-                            h-auto py-6 text-xl font-serif whitespace-normal min-h-[100px] 
-                            flex flex-col gap-2 transition-all duration-500 rounded-xl
-                            ${isSelected ? 'shadow-lg ring-2 ring-primary' : 'glass-dark border-primary/10 hover:bg-white/5'}
+                            h-auto py-8 text-xl font-serif whitespace-normal min-h-[120px] 
+                            flex flex-col gap-3 transition-all duration-500 rounded-2xl
+                            ${isSelected ? 'shadow-2xl shadow-primary/20 ring-2 ring-primary scale-[1.02]' : 'glass-dark border-primary/10 hover:bg-white/5 hover:scale-[1.01]'}
                           `}
                         >
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 text-center">
                             {option.text}
                             {isSelected && !option.feedback && <Loader2 className="h-5 w-5 animate-spin" />}
                           </div>
 
                           {isSelected && option.feedback && (
                             <motion.span
-                              initial={{ opacity: 0, height: 0 }}
-                              animate={{ opacity: 1, height: 'auto' }}
-                              className="text-sm font-medium text-primary-foreground/90 italic bg-primary/20 px-2 py-1 rounded"
+                              initial={{ opacity: 0, y: 5 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              className="text-sm font-medium text-primary-foreground/90 italic bg-primary/20 px-3 py-1 rounded-lg"
                             >
                               {option.feedback}
                             </motion.span>
