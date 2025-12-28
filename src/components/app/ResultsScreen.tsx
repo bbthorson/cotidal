@@ -165,11 +165,11 @@ export function ResultsScreen({ user, vibeTags, onReset }: ResultsScreenProps) {
           <h1
             ref={headingRef}
             tabIndex={-1}
-            className="font-headline text-3xl font-bold text-primary outline-none"
+            className="font-headline text-4xl font-bold text-primary outline-none"
           >
-            The Palate Map
+            The Palate Revelation
           </h1>
-          <p className="text-muted-foreground">Your personal flavor universe.</p>
+          <p className="text-muted-foreground italic font-serif text-lg">Your personal flavor universe, unveiled.</p>
       </div>
 
       {/* Context Switcher */}
@@ -263,8 +263,8 @@ export function ResultsScreen({ user, vibeTags, onReset }: ResultsScreenProps) {
       <Chatbot />
 
       <div className="text-center pt-8 border-t border-primary/10">
-        <Button onClick={onReset} variant="ghost" size="sm" className="text-muted-foreground hover:text-primary">
-          Recalibrate Palate (Reset)
+        <Button onClick={onReset} variant="ghost" size="sm" className="text-muted-foreground hover:text-primary tracking-widest uppercase text-xs">
+          Return to the Oracle (Reset)
         </Button>
       </div>
     </div>

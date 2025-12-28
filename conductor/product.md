@@ -1,6 +1,6 @@
 # Initial Concept
 
-The Living Matrix is a Palate Companion application designed to help adventurous drinkers who don't know where to start by triangulating their taste preferences into a Palate Matrix and providing AI-powered recommendations.
+The Crystal Coupe is a Palate Companion application designed to help adventurous drinkers who don't know where to start by triangulating their taste preferences into a Palate Matrix and providing AI-powered recommendations.
 
 # The Crystal Coupe (Palate Companion)
 

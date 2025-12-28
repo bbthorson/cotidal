@@ -16,7 +16,7 @@
     - [x] Subtask: Create/Update `src/lib/discovery-questions.ts` with new binary "Threshold" questions.
 - [x] Task: Create Threshold Question Component bfb0805
     - [x] Subtask: Build a reusable `BinaryQuestionCard.tsx` with new styling.
-- [ ] Task: Implement Quiz Logic
+- [~] Task: Implement Quiz Logic
     - [ ] Subtask: Write unit tests for mapping binary answers to matrix quadrants.
     - [ ] Subtask: Implement the state logic to track progress.
 - [ ] Task: Conductor - User Manual Verification 'The Threshold (Tier 1 Quiz)' (Protocol in workflow.md)
