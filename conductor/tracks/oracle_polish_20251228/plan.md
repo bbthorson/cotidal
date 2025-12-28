@@ -12,6 +12,6 @@
     - [x] Subtask: Optimize pin sizes and visibility for small screens.
 - [x] Task: Touch-Target Optimization b7db198
     - [x] Subtask: Increase button hit area in `MapPin.tsx` and `UserPin.tsx` without breaking the visual scale.
-- [ ] Task: Mobile Layout Polish
-    - [ ] Subtask: Ensure the quiz transitions and landing page hero are mobile-perfect.
+- [x] Task: Mobile Layout Polish 9f6406b
+    - [x] Subtask: Ensure the quiz transitions and landing page hero are mobile-perfect.
 - [ ] Task: Conductor - User Manual Verification 'Mobile Sanctum' (Protocol in workflow.md)
