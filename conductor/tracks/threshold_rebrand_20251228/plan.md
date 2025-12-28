@@ -11,7 +11,7 @@
     - [x] Subtask: Apply new glassmorphism styles to the main container.
 - [x] Task: Conductor - User Manual Verification 'Visual Foundation & Rebrand' (Protocol in workflow.md) 962976d
 
-## Phase 2: The Threshold (Tier 1 Quiz)
+## Phase 2: The Threshold (Tier 1 Quiz) [checkpoint: e964b6a]
 - [x] Task: Define Quiz Data Structure ab433f9
     - [x] Subtask: Create/Update `src/lib/discovery-questions.ts` with new binary "Threshold" questions.
 - [x] Task: Create Threshold Question Component bfb0805
@@ -19,4 +19,4 @@
 - [x] Task: Implement Quiz Logic f5fd1af
     - [x] Subtask: Write unit tests for mapping binary answers to matrix quadrants.
     - [x] Subtask: Implement the state logic to track progress.
-- [ ] Task: Conductor - User Manual Verification 'The Threshold (Tier 1 Quiz)' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'The Threshold (Tier 1 Quiz)' (Protocol in workflow.md) e964b6a
