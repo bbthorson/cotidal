@@ -12,8 +12,8 @@
 - [x] Task: Conductor - User Manual Verification 'Visual Foundation & Rebrand' (Protocol in workflow.md) 962976d
 
 ## Phase 2: The Threshold (Tier 1 Quiz)
-- [ ] Task: Define Quiz Data Structure
-    - [ ] Subtask: Create/Update `src/lib/discovery-questions.ts` with new binary "Threshold" questions.
+- [x] Task: Define Quiz Data Structure ab433f9
+    - [x] Subtask: Create/Update `src/lib/discovery-questions.ts` with new binary "Threshold" questions.
 - [ ] Task: Create Threshold Question Component
     - [ ] Subtask: Build a reusable `BinaryQuestionCard.tsx` with new styling.
 - [ ] Task: Implement Quiz Logic
