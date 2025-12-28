@@ -4,9 +4,9 @@
 - [x] Task: Define Tier 2 & 3 Questions f9bc7af
     - [x] Subtask: Update `src/lib/discovery-questions.ts` with the remaining questions from the Product Guidelines (Fizzy/Still, Glassware, Smoke, Pacing).
     - [x] Subtask: Ensure accurate `dx`, `dy`, and `vibeTag` mappings for each option.
-- [ ] Task: Enhanced Scoring Logic
-    - [ ] Subtask: Update `src/components/app/DiscoveryQuiz.tsx` to ensure `vibeTags` are correctly accumulated in the state.
-    - [ ] Subtask: Write a unit test verifying that selecting specific options results in the expected profile state (e.g., "Fizzy" adds 'crushable' tag).
+- [x] Task: Enhanced Scoring Logic cd7724f
+    - [x] Subtask: Update `src/components/app/DiscoveryQuiz.tsx` to ensure `vibeTags` are correctly accumulated in the state.
+    - [x] Subtask: Write a unit test verifying that selecting specific options results in the expected profile state (e.g., "Fizzy" adds 'crushable' tag).
 - [ ] Task: Conductor - User Manual Verification 'Data & Logic Definition' (Protocol in workflow.md)
 
 ## Phase 2: UI & Interaction
