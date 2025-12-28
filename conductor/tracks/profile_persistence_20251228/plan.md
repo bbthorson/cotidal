@@ -12,7 +12,7 @@
 ## Phase 2: Firestore Integration
 - [x] Task: Profile Service 18d3b47
     - [x] Subtask: Create a utility service to save and fetch user profiles from Firestore.
-- [ ] Task: Integrate Syncing in App
+- [~] Task: Integrate Syncing in App
     - [ ] Subtask: Update `DiscoveryQuiz.tsx` to save results to Firestore on completion.
     - [ ] Subtask: Update landing page logic to fetch existing profiles from Firestore if available.
 - [ ] Task: Conductor - User Manual Verification 'Firestore Integration' (Protocol in workflow.md)

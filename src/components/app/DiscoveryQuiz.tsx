@@ -8,6 +8,8 @@ import { Progress } from '@/components/ui/progress';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Loader2 } from 'lucide-react';
 import { BinaryQuestionCard } from './BinaryQuestionCard';
+import { auth } from '@/lib/firebase';
+import { saveUserProfile } from '@/lib/profile-service';
 
 export interface UserProfile {
   x: number;
@@ -173,6 +175,13 @@ export function DiscoveryQuiz({ onComplete }: DiscoveryQuizProps) {
 
     // Save to local storage
     localStorage.setItem('user_profile', JSON.stringify(finalProfile));
+
+    // Save to Firestore if authenticated
+    if (auth.currentUser) {
+      saveUserProfile(auth.currentUser.uid, finalProfile).catch(e => {
+        console.error("Failed to sync profile to Firestore", e);
+      });
+    }
 
     // Call onComplete
     onComplete(finalProfile, rankedCandidates);
