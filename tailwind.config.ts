@@ -15,6 +15,9 @@ export default {
         code: ['monospace'],
       },
       colors: {
+        sage: '#8A9A5B',
+        terracotta: '#E2725B',
+        obsidian: '#0B0B0B',
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',
         card: {

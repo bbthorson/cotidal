@@ -1,6 +1,6 @@
-# Agent Context: The Living Matrix
+# Agent Context: The Crystal Coupe
 
-This document serves as a guide for AI agents working on "The Living Matrix" codebase. It outlines the architectural philosophy, key data structures, and the vision for the product's evolution.
+This document serves as a guide for AI agents working on "The Crystal Coupe" codebase. It outlines the architectural philosophy, key data structures, and the vision for the product's evolution.
 
 ## Product Vision: From Static Quiz to Triangulation Engine
 
@@ -33,7 +33,7 @@ We have pivoted from a simple linear quiz to a **"Triangulation Engine"**.
 
 ## UX Principles
 *   **"Your Dot Stays Put":** When changing contexts (Business, Holiday), the user's profile dot *does not move*. The *map around them* changes (different drinks light up).
-*   **Mid-Century Modern:** The aesthetic is "Palm Springs 1960s". Use `shadow-mcm`, `#B7410E` (Rust), and Cream backgrounds.
+*   **Botanical & Mystic:** The aesthetic is "Mystic Pharmacy". Use glassmorphism, Botanical greens (Sage), Terracotta accents, and Obsidian backgrounds.
 
 ## Future Roadmap (for next Agent)
 1.  **Persistence:** Save the User's `x, y` to a database (Firebase/Postgres).

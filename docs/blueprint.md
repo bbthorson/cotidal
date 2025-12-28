@@ -1,4 +1,4 @@
-# **App Name**: Sure Shot
+# **App Name**: The Crystal Coupe
 
 ## Core Features:
 

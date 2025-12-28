@@ -1,7 +1,7 @@
 # Track Plan: Threshold Calibration & Mystic Rebrand
 
 ## Phase 1: Visual Foundation & Rebrand
-- [ ] Task: Update Tailwind Config with Botanical Palette
+- [~] Task: Update Tailwind Config with Botanical Palette
     - [ ] Subtask: Define colors (Sage, Terracotta, Obsidian) in `tailwind.config.ts`.
     - [ ] Subtask: Add glassmorphism utility classes if not present.
 - [ ] Task: Global Style Updates

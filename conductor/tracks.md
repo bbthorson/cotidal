@@ -4,5 +4,5 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-## [ ] Track: Threshold Calibration & Mystic Rebrand
+## [~] Track: Threshold Calibration & Mystic Rebrand
 *Link: [./conductor/tracks/threshold_rebrand_20251228/](./conductor/tracks/threshold_rebrand_20251228/)*

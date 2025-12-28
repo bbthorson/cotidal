@@ -1,6 +1,6 @@
-# The Living Matrix (formerly Sure Shot)
+# The Crystal Coupe (formerly Sure Shot)
 
-The Living Matrix is a "Palate Companion" application designed to evolve with the user. Unlike a traditional one-and-done quiz, it acts as a persistent utility for understanding and exploring one's own taste preferences across different contexts.
+The Crystal Coupe is a "Palate Companion" application designed to evolve with the user. Unlike a traditional one-and-done quiz, it acts as a persistent utility for understanding and exploring one's own taste preferences across different contexts.
 
 ## Core Concepts
 
