@@ -4,9 +4,9 @@
 - [x] Task: Initialize Firebase Client c851d2a
     - [x] Subtask: Create `src/lib/firebase.ts` to initialize App, Auth, and Firestore.
     - [x] Subtask: Configure environment variables for Firebase credentials.
-- [~] Task: Implement Anonymous Authentication
-    - [ ] Subtask: Create a hook `useAuth` to handle anonymous sign-in on app load.
-    - [ ] Subtask: Verify authentication state in the main application layout.
+- [x] Task: Implement Anonymous Authentication 6ed8546
+    - [x] Subtask: Create a hook `useAuth` to handle anonymous sign-in on app load.
+    - [x] Subtask: Verify authentication state in the main application layout.
 - [ ] Task: Conductor - User Manual Verification 'Firebase Infrastructure' (Protocol in workflow.md)
 
 ## Phase 2: Firestore Integration
