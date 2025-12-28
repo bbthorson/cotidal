@@ -45,9 +45,9 @@ export const calculateContextScore = (drink: Drink, context: ContextType) => {
 // Helper function moved from component to prevent recreation on every render
 export const getQuadrantName = (x: number, y: number) => {
     if (y >= 0) {
-      return x >= 0 ? "Crisp & Clean" : "Lush & Lively";
+      return x >= 0 ? "Lush & Lively" : "Decadent & Deep";
     } else {
-      return x >= 0 ? "Bold & Complex" : "Decadent & Deep";
+      return x >= 0 ? "Crisp & Clean" : "Bold & Complex";
     }
 };
 

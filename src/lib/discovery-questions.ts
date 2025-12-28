@@ -28,14 +28,16 @@ export interface Question {
 
 export const questions: Question[] = [
     // --- TIER 1: CALIBRATION (Biological - Broad Quadrant) ---
+    // X: Rich (-10) to Crisp (10)
+    // Y: Savory (-10) to Sweet (10)
     {
         id: 'coffee',
         tier: 'calibration',
         type: 'narrative',
         text: "How do you take your coffee?",
         options: [
-            { text: "Black or Espresso.", dx: 5, dy: 0, feedback: "A preference for the pure and bold." },
-            { text: "With milk and sugar.", dx: -5, dy: 0, feedback: "Seeking comfort and sweetness." }
+            { text: "Black or Espresso.", dx: -5, dy: -2, feedback: "A preference for the pure and bold." },
+            { text: "With milk and sugar.", dx: -2, dy: 5, feedback: "Seeking comfort and sweetness." }
         ]
     },
     {
@@ -44,9 +46,9 @@ export const questions: Question[] = [
         type: 'narrative',
         text: "Pick a finish to a perfect meal.",
         options: [
-            { text: "Lemon Tart (Zest)", dx: 0, dy: 5, feedback: "Bright and acidic." },
-            { text: "Dark Chocolate (Cacao)", dx: 4, dy: -3, feedback: "Rich and dry." },
-            { text: "Crème Brûlée (Cream)", dx: -4, dy: -4, feedback: "Lush and sweet." }
+            { text: "Lemon Tart (Zest)", dx: 5, dy: 5, feedback: "Bright, acidic, and sweet." },
+            { text: "Dark Chocolate (Cacao)", dx: -3, dy: -3, feedback: "Rich and dry." },
+            { text: "Crème Brûlée (Cream)", dx: -5, dy: 8, feedback: "Lush, rich, and sweet." }
         ]
     },
     {
@@ -55,7 +57,7 @@ export const questions: Question[] = [
         type: 'boolean',
         text: "Do you enjoy the bite of Tonic water?",
         options: [
-            { text: "Love the bite.", dx: 2, dy: 0, filterFlag: { key: 'dislikesBitter', value: false }, feedback: "The bitterness is welcomed." },
+            { text: "Love the bite.", dx: 2, dy: -3, filterFlag: { key: 'dislikesBitter', value: false }, feedback: "The bitterness is welcomed." },
             { text: "Too bitter for me.", dx: 0, dy: 0, filterFlag: { key: 'dislikesBitter', value: true }, feedback: "Softening the edges." }
         ]
     },
@@ -67,8 +69,8 @@ export const questions: Question[] = [
         type: 'narrative',
         text: "Fizzy or Still?",
         options: [
-            { text: "Fizzy & Refreshing", dx: 0, dy: 3, vibeTags: ['crushable'], feedback: "Effervescence awaits." },
-            { text: "Still & Smooth", dx: 0, dy: -2, vibeTags: ['classic'], feedback: "Grounded and elegant." }
+            { text: "Fizzy & Refreshing", dx: 3, dy: 1, vibeTags: ['crushable'], feedback: "Effervescence awaits." },
+            { text: "Still & Smooth", dx: -2, dy: 0, vibeTags: ['classic'], feedback: "Grounded and elegant." }
         ]
     },
     {
@@ -77,8 +79,8 @@ export const questions: Question[] = [
         type: 'narrative',
         text: "What is your current climate vibe?",
         options: [
-            { text: "Heatwave (Need ice)", dx: 0, dy: 2, feedback: "Cooling the spirit." },
-            { text: "Blizzard (Need warmth)", dx: 0, dy: -3, vibeTags: ['warm'], feedback: "Igniting the hearth." }
+            { text: "Heatwave (Need ice)", dx: 2, dy: 0, feedback: "Cooling the spirit." },
+            { text: "Blizzard (Need warmth)", dx: -2, dy: -2, vibeTags: ['warm'], feedback: "Igniting the hearth." }
         ]
     },
     {
@@ -99,7 +101,7 @@ export const questions: Question[] = [
         type: 'boolean',
         text: "Does the smell of a campfire allure you?",
         options: [
-            { text: "Love it.", dx: 1, dy: 0, filterFlag: { key: 'dislikesSmoke', value: false }, vibeTags: ['complex', 'bold'], feedback: "Smoky notes revealed." },
+            { text: "Love it.", dx: -1, dy: -2, filterFlag: { key: 'dislikesSmoke', value: false }, vibeTags: ['complex', 'bold'], feedback: "Smoky notes revealed." },
             { text: "No thanks.", dx: 0, dy: 0, filterFlag: { key: 'dislikesSmoke', value: true }, feedback: "Keeping it clean." }
         ]
     },
@@ -109,8 +111,8 @@ export const questions: Question[] = [
         type: 'narrative',
         text: "Which essence calls to you more?",
         options: [
-            { text: "Black Licorice (Anise)", dx: 1, dy: -1, filterFlag: { key: 'dislikesAnise', value: false }, vibeTags: ['polarizing'], feedback: "The Oracle sees adventure." },
-            { text: "Spiced Orange (Citrus)", dx: -1, dy: 1, filterFlag: { key: 'dislikesAnise', value: true }, vibeTags: ['spice'], feedback: "Warmth and sunshine." }
+            { text: "Black Licorice (Anise)", dx: -1, dy: -2, filterFlag: { key: 'dislikesAnise', value: false }, vibeTags: ['polarizing'], feedback: "The Oracle sees adventure." },
+            { text: "Spiced Orange (Citrus)", dx: 1, dy: 2, filterFlag: { key: 'dislikesAnise', value: true }, vibeTags: ['spice'], feedback: "Warmth and sunshine." }
         ]
     },
     {
@@ -119,8 +121,8 @@ export const questions: Question[] = [
         type: 'narrative',
         text: "What is the pacing of your evening?",
         options: [
-            { text: "Sipping slowly.", dx: 1, dy: -1, vibeTags: ['complex', 'bold'], feedback: "Patience is a virtue." },
-            { text: "Social & Spirited.", dx: -1, dy: 1, vibeTags: ['social', 'crushable'], feedback: "Energy and flow." }
+            { text: "Sipping slowly.", dx: -1, dy: -1, vibeTags: ['complex', 'bold'], feedback: "Patience is a virtue." },
+            { text: "Social & Spirited.", dx: 1, dy: 1, vibeTags: ['social', 'crushable'], feedback: "Energy and flow." }
         ]
     }
 ];

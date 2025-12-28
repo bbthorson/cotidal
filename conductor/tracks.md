@@ -4,5 +4,5 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 --- 
 
-## [ ] Track: The Great Grimoire: Expanded Library & AI Archetyping
+## [~] Track: The Great Grimoire: Expanded Library & AI Archetyping
 *Link: [./conductor/tracks/great_grimoire_20251228/](./conductor/tracks/great_grimoire_20251228/)*

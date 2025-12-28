@@ -1,7 +1,7 @@
 # Track Plan: The Great Grimoire: Expanded Library & AI Archetyping
 
 ## Phase 1: Seeding the Matrix (Data Expansion)
-- [ ] Task: Expand Static Library
+- [~] Task: Expand Static Library
     - [ ] Subtask: Research and add 40+ additional drinks to `drinkDatabase` in `src/lib/data.ts`.
     - [ ] Subtask: Verify quadrant balance (ensure no 'empty' spots on the map).
 - [ ] Task: Conductor - User Manual Verification 'Seeding the Matrix' (Protocol in workflow.md)
