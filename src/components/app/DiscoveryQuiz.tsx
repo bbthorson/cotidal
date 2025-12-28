@@ -229,6 +229,7 @@ export function DiscoveryQuiz({ onComplete }: DiscoveryQuizProps) {
             >
               {currentQuestion.options.length === 2 ? (
                 <BinaryQuestionCard
+                  titleRef={questionRef}
                   questionText={currentQuestion.text}
                   options={currentQuestion.options}
                   onAnswer={handleAnswer}
