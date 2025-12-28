@@ -9,10 +9,10 @@
     - [x] Subtask: Verify authentication state in the main application layout.
 - [x] Task: Conductor - User Manual Verification 'Firebase Infrastructure' (Protocol in workflow.md) e094af6
 
-## Phase 2: Firestore Integration
+## Phase 2: Firestore Integration [checkpoint: 594aba7]
 - [x] Task: Profile Service 18d3b47
     - [x] Subtask: Create a utility service to save and fetch user profiles from Firestore.
 - [x] Task: Integrate Syncing in App c7537dc
     - [x] Subtask: Update `DiscoveryQuiz.tsx` to save results to Firestore on completion.
     - [x] Subtask: Update landing page logic to fetch existing profiles from Firestore if available.
-- [ ] Task: Conductor - User Manual Verification 'Firestore Integration' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Firestore Integration' (Protocol in workflow.md) 594aba7
