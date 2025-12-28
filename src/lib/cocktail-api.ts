@@ -15,6 +15,20 @@ export function _getCacheSize() {
     return drinkCache.size;
 }
 
+export async function fetchRandomDrink(): Promise<CocktailDBResult | null> {
+    try {
+        const response = await fetch(`https://www.thecocktaildb.com/api/json/v1/1/random.php`, {
+            cache: 'no-store'
+        });
+        if (!response.ok) throw new Error('Network response was not ok');
+        const data = await response.json();
+        return data.drinks?.[0] || null;
+    } catch (error) {
+        console.error("Failed to fetch random drink:", error);
+        return null;
+    }
+}
+
 export function fetchDrinkDetails(drinkName: string): Promise<CocktailDBResult | null> {
     if (drinkCache.has(drinkName)) {
         return drinkCache.get(drinkName)!;

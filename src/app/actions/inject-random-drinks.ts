@@ -1,0 +1,28 @@
+'use server';
+
+import { fetchRandomDrink } from '@/lib/cocktail-api';
+import { archetypeDrink } from './archetype-drink';
+import { Drink } from '@/lib/data';
+
+export async function getInjectedDrinks(count: number = 5): Promise<Drink[]> {
+  const drinks: Drink[] = [];
+  
+  for (let i = 0; i < count; i++) {
+    const rawDrink = await fetchRandomDrink();
+    if (rawDrink) {
+      const arch = await archetypeDrink(rawDrink.strDrink, rawDrink.strInstructions);
+      drinks.push({
+        name: rawDrink.strDrink,
+        type: "Cocktail", // Defaulting to Cocktail for random DB results
+        x: arch.x,
+        y: arch.y,
+        hasSmoke: arch.hasSmoke,
+        hasAnise: arch.hasAnise,
+        isBitter: arch.isBitter,
+        tags: arch.tags as any[],
+      });
+    }
+  }
+  
+  return drinks;
+}
