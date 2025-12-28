@@ -7,7 +7,7 @@
 - [x] Task: Conductor - User Manual Verification 'Seeding the Matrix' (Protocol in workflow.md) 9ac9151
 
 ## Phase 2: The Eye of the Oracle (AI Categorization)
-- [ ] Task: AI Archetyping Flow
+- [~] Task: AI Archetyping Flow
     - [ ] Subtask: Create `src/app/actions/archetype-drink.ts` using Genkit to categorize any drink.
     - [ ] Subtask: Write unit tests to verify the AI's mapping accuracy against 5 known classics.
 - [ ] Task: Dynamic Injection
