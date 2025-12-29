@@ -1,31 +1,57 @@
 'use client';
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { WelcomeScreen } from '@/components/app/WelcomeScreen';
 import { ResultsScreen } from '@/components/app/ResultsScreen';
-import { DiscoveryQuiz, type UserProfile, type RecommendedDrink } from '@/components/app/DiscoveryQuiz';
+import { DiscoveryQuiz, type UserProfile } from '@/components/app/DiscoveryQuiz';
 import type { User } from '@/lib/data';
 import { auth } from '@/lib/firebase';
 import { getUserProfile } from '@/lib/profile-service';
 import { onAuthStateChanged } from 'firebase/auth';
 
+// Read localStorage during hydration to avoid the set-state-in-effect rule
+function getInitialProfile(): UserProfile | null {
+  if (typeof window === 'undefined') return null;
+  const savedProfile = localStorage.getItem('user_profile');
+  if (savedProfile) {
+    try {
+      return JSON.parse(savedProfile) as UserProfile;
+    } catch {
+      return null;
+    }
+  }
+  return null;
+}
+
+function profileToUser(profile: UserProfile | null): User {
+  if (!profile) return { x: 0, y: 0, filters: [] };
+  const filters: string[] = [];
+  if (profile.dislikesSmoke) filters.push('noSmoke');
+  if (profile.dislikesBitter) filters.push('noBitter');
+  if (profile.dislikesAnise) filters.push('noAnise');
+  return {
+    x: profile.x,
+    y: profile.y,
+    filters,
+    dislikesAnise: profile.dislikesAnise
+  };
+}
+
 export default function Home() {
-  const [screen, setScreen] = useState<'welcome' | 'discoveryQuiz' | 'finalResults'>('welcome');
-  const [user, setUser] = useState<User>({ x: 0, y: 0, filters: [] });
-  const [vibeTags, setVibeTags] = useState<Record<string, number> | null>(null);
+  // Initialize from localStorage synchronously to avoid effect-based setState
+  const initialProfile = useMemo(() => getInitialProfile(), []);
+  const [screen, setScreen] = useState<'welcome' | 'discoveryQuiz' | 'finalResults'>(
+    initialProfile ? 'finalResults' : 'welcome'
+  );
+  const [user, setUser] = useState<User>(() => profileToUser(initialProfile));
+  const [vibeTags, setVibeTags] = useState<Record<string, number> | null>(initialProfile?.vibeTags ?? null);
+
+  const applyProfile = useCallback((profile: UserProfile) => {
+    setUser(profileToUser(profile));
+    setVibeTags(profile.vibeTags);
+  }, []);
 
   useEffect(() => {
-    // 1. Initial Local Check for immediate UI
-    const savedProfile = localStorage.getItem('user_profile');
-    if (savedProfile) {
-      try {
-        const profile: UserProfile = JSON.parse(savedProfile);
-        applyProfile(profile);
-      } catch (e) {
-        console.error("Failed to parse local profile", e);
-      }
-    }
-
-    // 2. Auth-based Sync (Source of Truth)
+    // Auth-based Sync (Source of Truth) - setState is in callback, not synchronously
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         const cloudProfile = await getUserProfile(firebaseUser.uid);
@@ -37,22 +63,7 @@ export default function Home() {
     });
 
     return () => unsubscribe();
-  }, []);
-
-  const applyProfile = (profile: UserProfile) => {
-    const filters: string[] = [];
-    if (profile.dislikesSmoke) filters.push('noSmoke');
-    if (profile.dislikesBitter) filters.push('noBitter');
-    if (profile.dislikesAnise) filters.push('noAnise');
-
-    setUser({
-        x: profile.x,
-        y: profile.y,
-        filters,
-        dislikesAnise: profile.dislikesAnise
-    });
-    setVibeTags(profile.vibeTags);
-  };
+  }, [applyProfile]);
 
   const handleStartQuiz = () => {
     setUser({ x: 0, y: 0, filters: [] });
@@ -60,18 +71,18 @@ export default function Home() {
     setScreen('discoveryQuiz');
   };
 
-  const handleDiscoveryQuizComplete = (profile: UserProfile, recommendations: RecommendedDrink[]) => {
+  const handleDiscoveryQuizComplete = (profile: UserProfile) => {
     applyProfile(profile);
     setScreen('finalResults');
   };
-  
+
   const finalUser = useMemo(() => {
     if (screen === 'finalResults') {
-        return {
-            ...user,
-            x: Math.max(-10, Math.min(10, user.x)),
-            y: Math.max(-10, Math.min(10, user.y)),
-        }
+      return {
+        ...user,
+        x: Math.max(-10, Math.min(10, user.x)),
+        y: Math.max(-10, Math.min(10, user.y)),
+      }
     }
     return user;
   }, [user, screen]);

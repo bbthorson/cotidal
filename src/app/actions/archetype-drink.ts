@@ -4,7 +4,6 @@ import { generateObject } from 'ai';
 import { google } from '@ai-sdk/google';
 import { z } from 'zod';
 import { checkRateLimit } from '@/lib/rate-limit';
-import { VibeTag } from '@/lib/data';
 
 const ArchetypeSchema = z.object({
   x: z.number().min(-10).max(10).describe('X-axis: Rich (-10) to Crisp (10)'),
@@ -41,19 +40,19 @@ export async function archetypeDrink(drinkName: string, description?: string) {
       schema: ArchetypeSchema,
       prompt: prompt,
     });
-    
+
     return object;
   } catch (error) {
     console.error("Archetyping Error:", error);
     // Fallback logic for common archetypes if AI fails
     return {
-        x: 0,
-        y: 0,
-        hasSmoke: false,
-        hasAnise: false,
-        isBitter: false,
-        tags: ['classic'],
-        oracleReasoning: "The Oracle's vision is clouded, but this essence remains classic."
+      x: 0,
+      y: 0,
+      hasSmoke: false,
+      hasAnise: false,
+      isBitter: false,
+      tags: ['classic'],
+      oracleReasoning: "The Oracle's vision is clouded, but this essence remains classic."
     };
   }
 }

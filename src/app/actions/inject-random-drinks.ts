@@ -2,11 +2,11 @@
 
 import { fetchRandomDrink } from '@/lib/cocktail-api';
 import { archetypeDrink } from './archetype-drink';
-import { Drink } from '@/lib/data';
+import { Drink, VibeTag } from '@/lib/data';
 
 export async function getInjectedDrinks(count: number = 5): Promise<Drink[]> {
   const drinks: Drink[] = [];
-  
+
   for (let i = 0; i < count; i++) {
     const rawDrink = await fetchRandomDrink();
     if (rawDrink) {
@@ -19,10 +19,10 @@ export async function getInjectedDrinks(count: number = 5): Promise<Drink[]> {
         hasSmoke: arch.hasSmoke,
         hasAnise: arch.hasAnise,
         isBitter: arch.isBitter,
-        tags: arch.tags as any[],
+        tags: arch.tags as VibeTag[],
       });
     }
   }
-  
+
   return drinks;
 }

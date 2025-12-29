@@ -63,11 +63,11 @@ export function DiscoveryQuiz({ onComplete }: DiscoveryQuizProps) {
   const [selectedOptionIndex, setSelectedOptionIndex] = useState<number | null>(null);
 
   const getCurrentQuestions = () => {
-      switch(currentTier) {
-          case 'calibration': return calibrationQuestions;
-          case 'architecture': return architectureQuestions;
-          case 'context': return contextQuestions;
-      }
+    switch (currentTier) {
+      case 'calibration': return calibrationQuestions;
+      case 'architecture': return architectureQuestions;
+      case 'context': return contextQuestions;
+    }
   };
 
   const currentQuestions = getCurrentQuestions();
@@ -95,9 +95,9 @@ export function DiscoveryQuiz({ onComplete }: DiscoveryQuizProps) {
     }
 
     if (option.vibeTags) {
-        option.vibeTags.forEach(tag => {
-            newProfile.vibeTags[tag] = (newProfile.vibeTags[tag] || 0) + 1;
-        });
+      option.vibeTags.forEach(tag => {
+        newProfile.vibeTags[tag] = (newProfile.vibeTags[tag] || 0) + 1;
+      });
     }
 
     setProfile(newProfile);
@@ -108,43 +108,43 @@ export function DiscoveryQuiz({ onComplete }: DiscoveryQuizProps) {
     // 3. Advance Logic
     const delay = option.feedback ? 800 : 400; // Minimum 400ms delay to show feedback
     setTimeout(() => {
-        if (currentQuestionIndex < currentQuestions.length - 1) {
-            setCurrentQuestionIndex(currentQuestionIndex + 1);
-            setIsNavigating(false);
-            setSelectedOptionIndex(null);
+      if (currentQuestionIndex < currentQuestions.length - 1) {
+        setCurrentQuestionIndex(currentQuestionIndex + 1);
+        setIsNavigating(false);
+        setSelectedOptionIndex(null);
+      } else {
+        // Move to next Tier or Finish
+        if (currentTier === 'calibration') {
+          setCurrentTier('architecture');
+          setCurrentQuestionIndex(0);
+          setIsNavigating(false);
+          setSelectedOptionIndex(null);
+        } else if (currentTier === 'architecture') {
+          setCurrentTier('context');
+          setCurrentQuestionIndex(0);
+          setIsNavigating(false);
+          setSelectedOptionIndex(null);
         } else {
-            // Move to next Tier or Finish
-            if (currentTier === 'calibration') {
-                setCurrentTier('architecture');
-                setCurrentQuestionIndex(0);
-                setIsNavigating(false);
-                setSelectedOptionIndex(null);
-            } else if (currentTier === 'architecture') {
-                setCurrentTier('context');
-                setCurrentQuestionIndex(0);
-                setIsNavigating(false);
-                setSelectedOptionIndex(null);
-            } else {
-                finishQuiz(newProfile);
-                // Note: Component unmounts here, so we don't reset navigation state
-            }
+          finishQuiz(newProfile);
+          // Note: Component unmounts here, so we don't reset navigation state
         }
+      }
     }, delay);
   };
 
   const finishQuiz = (finalProfile: UserProfile) => {
     // 1. Filter (Hard constraints)
-    let candidates = drinkDatabase.filter(drink => {
-        if (finalProfile.dislikesSmoke && drink.hasSmoke) return false;
-        if (finalProfile.dislikesBitter && drink.isBitter) return false;
-        if (finalProfile.dislikesAnise && drink.hasAnise) return false;
-        return true;
+    const candidates = drinkDatabase.filter(d => {
+      if (finalProfile.dislikesSmoke && d.hasSmoke) return false;
+      if (finalProfile.dislikesBitter && d.isBitter) return false;
+      if (finalProfile.dislikesAnise && d.hasAnise) return false;
+      return true;
     });
 
     // 2. Rank (Distance)
     const scoredCandidates = candidates.map(drink => {
-        const dist = calculateDistance(finalProfile, drink);
-        return { ...drink, distance: dist, score: 0 };
+      const dist = calculateDistance(finalProfile, drink);
+      return { ...drink, distance: dist, score: 0 };
     });
 
     // Sort by distance ascending (closest first)
@@ -155,19 +155,19 @@ export function DiscoveryQuiz({ onComplete }: DiscoveryQuizProps) {
 
     // 3. Vibe Sort (within the top candidates)
     const rankedCandidates = topCandidates.map(drink => {
-        let matchScore = 0;
-        drink.tags.forEach(tag => {
-            if (finalProfile.vibeTags[tag]) {
-                matchScore += finalProfile.vibeTags[tag];
-            }
-        });
+      let matchScore = 0;
+      drink.tags.forEach(tag => {
+        if (finalProfile.vibeTags[tag]) {
+          matchScore += finalProfile.vibeTags[tag];
+        }
+      });
 
-        // Final Score combines distance (inverse) and vibe match
-        // We want higher score = better match.
-        // Distance 0 should be high score.
-        const distanceScore = 10 - Math.min(10, drink.distance);
+      // Final Score combines distance (inverse) and vibe match
+      // We want higher score = better match.
+      // Distance 0 should be high score.
+      const distanceScore = 10 - Math.min(10, drink.distance);
 
-        return { ...drink, score: distanceScore + (matchScore * 0.5) };
+      return { ...drink, score: distanceScore + (matchScore * 0.5) };
     });
 
     // Sort by Final Score descending
@@ -188,11 +188,11 @@ export function DiscoveryQuiz({ onComplete }: DiscoveryQuizProps) {
   };
 
   const getTierTitle = () => {
-      switch(currentTier) {
-          case 'calibration': return 'Phase 1: Calibration';
-          case 'architecture': return 'Phase 2: Architecture';
-          case 'context': return 'Phase 3: Context';
-      }
+    switch (currentTier) {
+      case 'calibration': return 'Phase 1: Calibration';
+      case 'architecture': return 'Phase 2: Architecture';
+      case 'context': return 'Phase 3: Context';
+    }
   };
 
   return (

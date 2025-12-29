@@ -1,7 +1,7 @@
 
 'use server';
 
-import { ingredientBasedCocktailSearch, type IngredientBasedCocktailSearchInput } from '@/ai/flows/ingredient-based-cocktail-search';
+import { ingredientBasedCocktailSearch } from '@/ai/flows/ingredient-based-cocktail-search';
 import { z } from 'zod';
 import { checkRateLimit } from '@/lib/rate-limit';
 
@@ -12,7 +12,7 @@ const formSchema = z.object({
     .max(500, "Description is too long (max 500 characters)."),
 });
 
-export async function findCocktailRecipes(prevState: any, formData: FormData) {
+export async function findCocktailRecipes(prevState: { data: string; error: string } | null, formData: FormData) {
   const isAllowed = await checkRateLimit();
   if (!isAllowed) {
     return { error: 'Too many requests. Please try again later.', data: '' };

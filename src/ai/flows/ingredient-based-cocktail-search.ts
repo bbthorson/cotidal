@@ -6,8 +6,8 @@
  * - IngredientBasedCocktailSearchOutput - The return type for the ingredientBasedCocktailSearch function.
  */
 
-import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import { ai } from '@/ai/genkit';
+import { z } from 'genkit';
 
 const API_TIMEOUT_MS = 5000;
 
@@ -64,7 +64,7 @@ const getCocktailRecipes = ai.defineTool(
       }
 
       // 2. Format the output (Take top 10 to save context window)
-      const drinks = data.drinks.slice(0, 10).map((d: any) => d.strDrink).join(', ');
+      const drinks = data.drinks.slice(0, 10).map((d: { strDrink: string }) => d.strDrink).join(', ');
 
       return `Found these cocktails with ${input.ingredients}: ${drinks}.`;
 
@@ -81,8 +81,8 @@ const getCocktailRecipes = ai.defineTool(
 
 const prompt = ai.definePrompt({
   name: 'ingredientBasedCocktailSearchPrompt',
-  input: {schema: IngredientBasedCocktailSearchInputSchema},
-  output: {schema: IngredientBasedCocktailSearchOutputSchema},
+  input: { schema: IngredientBasedCocktailSearchInputSchema },
+  output: { schema: IngredientBasedCocktailSearchOutputSchema },
   tools: [getCocktailRecipes],
   prompt: `You are a cocktail expert. A user will provide you with a description of ingredients that they have on hand. Use the getCocktailRecipes tool to find recipes that use those ingredients. Return a list of cocktail recipes that can be made with the given ingredients.
 
@@ -96,7 +96,7 @@ const ingredientBasedCocktailSearchFlow = ai.defineFlow(
     outputSchema: IngredientBasedCocktailSearchOutputSchema,
   },
   async input => {
-    const {output} = await prompt(input);
+    const { output } = await prompt(input);
     return output!;
   }
 );
