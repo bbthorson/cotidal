@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { QuestionOption } from '@/lib/data';
 import { Loader2 } from 'lucide-react';
+import { RefObject } from 'react';
 
 interface BinaryQuestionCardProps {
   questionText: string;
@@ -10,6 +11,7 @@ interface BinaryQuestionCardProps {
   onAnswer: (option: QuestionOption, index: number) => void;
   isNavigating: boolean;
   selectedOptionIndex: number | null;
+  titleRef?: RefObject<HTMLHeadingElement | null>;
 }
 
 export function BinaryQuestionCard({
@@ -18,10 +20,15 @@ export function BinaryQuestionCard({
   onAnswer,
   isNavigating,
   selectedOptionIndex,
+  titleRef
 }: BinaryQuestionCardProps) {
   return (
     <div className="space-y-8 py-4">
-      <h2 className="font-headline text-3xl md:text-4xl text-primary text-center leading-tight">
+      <h2
+        ref={titleRef}
+        tabIndex={-1}
+        className="font-headline text-3xl md:text-4xl text-primary text-center leading-tight outline-none"
+      >
         {questionText}
       </h2>
       

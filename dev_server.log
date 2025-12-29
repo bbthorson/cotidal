@@ -2,86 +2,41 @@
 > nextn@0.1.0 dev /app
 > next dev --turbopack -p 9002
 
-   ▲ Next.js 15.5.7 (Turbopack)
-   - Local:        http://localhost:9002
-   - Network:      http://192.168.0.2:9002
+▲ Next.js 16.1.1 (Turbopack)
+- Local:         http://localhost:9002
+- Network:       http://192.168.0.2:9002
 
- ✓ Starting...
+✓ Starting...
 Attention: Next.js now collects completely anonymous telemetry regarding usage.
 This information is used to shape Next.js' roadmap and prioritize features.
 You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
 https://nextjs.org/telemetry
 
- ✓ Ready in 2.1s
- ○ Compiling / ...
- ✓ Compiled / in 16s
- ⚠ ./node_modules/.pnpm/@opentelemetry+instrumentation@0.52.1_@opentelemetry+api@1.9.0/node_modules/@opentelemetry/instrumentation/build/esm/platform/node
-Package import-in-the-middle can't be external
-The request import-in-the-middle matches serverExternalPackages (or the default list).
-The request could not be resolved by Node.js from the project directory.
-Packages that should be external need to be installed in the project directory, so they can be resolved from the output files.
-Try to install it into the project directory by running npm install import-in-the-middle from the project directory.
-
-
- ⚠ ./node_modules/.pnpm/@opentelemetry+instrumentation@0.52.1_@opentelemetry+api@1.9.0/node_modules/@opentelemetry/instrumentation/build/esm/platform/node
-Package require-in-the-middle can't be external
-The request require-in-the-middle matches serverExternalPackages (or the default list).
-The request could not be resolved by Node.js from the project directory.
-Packages that should be external need to be installed in the project directory, so they can be resolved from the output files.
-Try to install it into the project directory by running npm install require-in-the-middle from the project directory.
-
-
- GET / 200 in 18523ms
- ✓ Compiled in 239ms
- ✓ Compiled / in 68ms
- ⚠ ./node_modules/.pnpm/@opentelemetry+instrumentation@0.52.1_@opentelemetry+api@1.9.0/node_modules/@opentelemetry/instrumentation/build/esm/platform/node
-Package import-in-the-middle can't be external
-The request import-in-the-middle matches serverExternalPackages (or the default list).
-The request could not be resolved by Node.js from the project directory.
-Packages that should be external need to be installed in the project directory, so they can be resolved from the output files.
-Try to install it into the project directory by running npm install import-in-the-middle from the project directory.
-
-
- ⚠ ./node_modules/.pnpm/@opentelemetry+instrumentation@0.52.1_@opentelemetry+api@1.9.0/node_modules/@opentelemetry/instrumentation/build/esm/platform/node
-Package require-in-the-middle can't be external
-The request require-in-the-middle matches serverExternalPackages (or the default list).
-The request could not be resolved by Node.js from the project directory.
-Packages that should be external need to be installed in the project directory, so they can be resolved from the output files.
-Try to install it into the project directory by running npm install require-in-the-middle from the project directory.
-
-
- GET / 200 in 677ms
- ⚠ ./node_modules/.pnpm/@opentelemetry+instrumentation@0.52.1_@opentelemetry+api@1.9.0/node_modules/@opentelemetry/instrumentation/build/esm/platform/node
-Package import-in-the-middle can't be external
-The request import-in-the-middle matches serverExternalPackages (or the default list).
-The request could not be resolved by Node.js from the project directory.
-Packages that should be external need to be installed in the project directory, so they can be resolved from the output files.
-Try to install it into the project directory by running npm install import-in-the-middle from the project directory.
-
-
- ⚠ ./node_modules/.pnpm/@opentelemetry+instrumentation@0.52.1_@opentelemetry+api@1.9.0/node_modules/@opentelemetry/instrumentation/build/esm/platform/node
-Package require-in-the-middle can't be external
-The request require-in-the-middle matches serverExternalPackages (or the default list).
-The request could not be resolved by Node.js from the project directory.
-Packages that should be external need to be installed in the project directory, so they can be resolved from the output files.
-Try to install it into the project directory by running npm install require-in-the-middle from the project directory.
-
-
- GET / 200 in 671ms
- ⚠ ./node_modules/.pnpm/@opentelemetry+instrumentation@0.52.1_@opentelemetry+api@1.9.0/node_modules/@opentelemetry/instrumentation/build/esm/platform/node
-Package import-in-the-middle can't be external
-The request import-in-the-middle matches serverExternalPackages (or the default list).
-The request could not be resolved by Node.js from the project directory.
-Packages that should be external need to be installed in the project directory, so they can be resolved from the output files.
-Try to install it into the project directory by running npm install import-in-the-middle from the project directory.
-
-
- ⚠ ./node_modules/.pnpm/@opentelemetry+instrumentation@0.52.1_@opentelemetry+api@1.9.0/node_modules/@opentelemetry/instrumentation/build/esm/platform/node
-Package require-in-the-middle can't be external
-The request require-in-the-middle matches serverExternalPackages (or the default list).
-The request could not be resolved by Node.js from the project directory.
-Packages that should be external need to be installed in the project directory, so they can be resolved from the output files.
-Try to install it into the project directory by running npm install require-in-the-middle from the project directory.
-
-
- GET / 200 in 220ms
+✓ Ready in 2.8s
+○ Compiling / ...
+ GET / 200 in 16.6s (compile: 15.8s, render: 791ms)
+ GET / 200 in 90ms (compile: 21ms, render: 69ms)
+ GET / 200 in 60ms (compile: 15ms, render: 46ms)
+ GET / 200 in 46ms (compile: 11ms, render: 35ms)
+ GET / 200 in 81ms (compile: 26ms, render: 56ms)
+ GET / 200 in 62ms (compile: 18ms, render: 44ms)
+ GET / 200 in 59ms (compile: 17ms, render: 41ms)
+ GET / 200 in 86ms (compile: 16ms, render: 70ms)
+ GET / 200 in 66ms (compile: 19ms, render: 47ms)
+ GET / 200 in 80ms (compile: 15ms, render: 65ms)
+ GET / 200 in 63ms (compile: 21ms, render: 42ms)
+ GET / 200 in 52ms (compile: 16ms, render: 37ms)
+ GET / 200 in 100ms (compile: 40ms, render: 60ms)
+ GET / 200 in 59ms (compile: 19ms, render: 41ms)
+ GET / 200 in 58ms (compile: 17ms, render: 41ms)
+ GET / 200 in 49ms (compile: 14ms, render: 35ms)
+ GET / 200 in 67ms (compile: 16ms, render: 51ms)
+ GET / 200 in 62ms (compile: 22ms, render: 40ms)
+ GET / 200 in 50ms (compile: 16ms, render: 34ms)
+ GET / 200 in 51ms (compile: 15ms, render: 36ms)
+ GET / 200 in 59ms (compile: 18ms, render: 41ms)
+ GET / 200 in 50ms (compile: 16ms, render: 34ms)
+ GET / 200 in 54ms (compile: 15ms, render: 39ms)
+ GET / 200 in 86ms (compile: 24ms, render: 62ms)
+ GET / 200 in 75ms (compile: 22ms, render: 53ms)
+ GET / 200 in 69ms (compile: 28ms, render: 42ms)
