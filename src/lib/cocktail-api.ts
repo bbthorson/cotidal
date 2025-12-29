@@ -44,14 +44,10 @@ export function fetchDrinkDetails(drinkName: string): Promise<CocktailDBResult |
 
     const promise = (async () => {
         try {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT_MS);
-
+            // Optimization: Use native AbortSignal.timeout to avoid creating AbortController + setTimeout + closure overhead
             const response = await fetch(`https://www.thecocktaildb.com/api/json/v1/1/search.php?s=${encodeURIComponent(drinkName)}`, {
-                signal: controller.signal,
+                signal: AbortSignal.timeout(API_TIMEOUT_MS),
             });
-
-            clearTimeout(timeoutId);
 
             if (!response.ok) {
                 throw new Error('Network response was not ok');
@@ -65,7 +61,8 @@ export function fetchDrinkDetails(drinkName: string): Promise<CocktailDBResult |
             }
             return null;
         } catch (error) {
-            if ((error as Error).name === 'AbortError') {
+            const errName = (error as Error).name;
+            if (errName === 'AbortError' || errName === 'TimeoutError') {
                 console.error(`Timeout fetching details for ${drinkName}`);
             } else {
                 console.error(`Failed to fetch details for ${drinkName}:`, error);
