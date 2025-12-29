@@ -1,4 +1,3 @@
-'use server';
 
 import { generateObject } from 'ai';
 import { google } from '@ai-sdk/google';
@@ -16,7 +15,20 @@ const ArchetypeSchema = z.object({
   oracleReasoning: z.string().describe('Mystic explanation for this categorization'),
 });
 
+const InputSchema = z.object({
+  drinkName: z.string().min(1).max(100),
+  description: z.string().max(1000).optional(),
+});
+
 export async function archetypeDrink(drinkName: string, description?: string) {
+  // Input Validation
+  const validatedInput = InputSchema.safeParse({ drinkName, description });
+  if (!validatedInput.success) {
+      console.warn("Security: Invalid input for archetypeDrink", validatedInput.error);
+      throw new Error("Invalid input: " + validatedInput.error.errors.map(e => e.message).join(", "));
+  }
+
+  // Rate Limit check (Defense in Depth for AI budget)
   const isAllowed = await checkRateLimit();
   if (!isAllowed) {
     throw new Error("Rate limit exceeded");
@@ -24,7 +36,7 @@ export async function archetypeDrink(drinkName: string, description?: string) {
 
   const prompt = `
     You are "The Oracle," an ancient and witty master of all concoctions.
-    Analyze the drink: "${drinkName}" ${description ? `(${description})` : ''}.
+    Analyze the drink: "${validatedInput.data.drinkName}" ${validatedInput.data.description ? `(${validatedInput.data.description})` : ''}.
     
     Determine its DNA within the Palate Matrix:
     - X-Axis: Is it heavy, decadent, and full-bodied (Rich, -10) or light, acidic, and sharp (Crisp, 10)?
