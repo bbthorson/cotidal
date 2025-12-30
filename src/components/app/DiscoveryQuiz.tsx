@@ -234,6 +234,7 @@ export function DiscoveryQuiz({ onComplete }: DiscoveryQuizProps) {
                   onAnswer={handleAnswer}
                   isNavigating={isNavigating}
                   selectedOptionIndex={selectedOptionIndex}
+                  titleRef={questionRef}
                 />
               ) : (
                 <div className="space-y-8 py-4">
