@@ -44,7 +44,11 @@ export function ResultsScreen({ user, vibeTags, onReset }: ResultsScreenProps) {
         headingRef.current?.focus();
     }, []);
 
-    const recommendations = useMemo(() => {
+    // Optimization: Split scoring into two stages to prevent full recalculation on context switch.
+
+    // Stage 1: Filter & Base Score (Biological + Structural)
+    // Depends only on User Profile (User + Vibe Tags), not the UI Context tab.
+    const baseScoredDrinks = useMemo(() => {
         // 1. Filter by hard constraints (smoke/bitter/anise)
         const availableDrinks = drinkDatabase.filter(d => {
             if (user.filters.includes('noSmoke') && d.hasSmoke) return false;
@@ -53,8 +57,8 @@ export function ResultsScreen({ user, vibeTags, onReset }: ResultsScreenProps) {
             return true;
         });
 
-        // 2. Score and Sort based on Distance + Vibe Tags + Context
-        const scoredDrinks = availableDrinks.map(drink => {
+        // 2. Calculate Distance & Vibe Score
+        return availableDrinks.map(drink => {
             const distance = calculateDistance(user, drink);
 
             // Base Score (Distance + User Vibe Tags)
@@ -67,19 +71,29 @@ export function ResultsScreen({ user, vibeTags, onReset }: ResultsScreenProps) {
 
             const baseScore = (1 / (distance + 0.1)) + (vibeScore * 2);
 
-            // Context Score
+            return {
+                ...drink,
+                distance,
+                baseScore
+            };
+        });
+    }, [user, vibeTags]);
+
+    // Stage 2: Context Score & Sort
+    // Cheap operation that runs when switching tabs (Context).
+    // Depends on [baseScoredDrinks, context].
+    const recommendations = useMemo(() => {
+        return baseScoredDrinks.map(drink => {
             const contextScore = calculateContextScore(drink, context);
 
             return {
                 ...drink,
-                distance,
-                score: baseScore + contextScore,
+                score: drink.baseScore + contextScore,
                 isContextMatch: contextScore > 0 // Flag if it matches current context well
             };
         }).sort((a, b) => b.score - a.score);
 
-        return scoredDrinks;
-    }, [user, vibeTags, context]);
+    }, [baseScoredDrinks, context]);
 
     // Optimization: Memoize visible drinks to prevent array reallocation during hover events (which cause re-renders)
     const visibleDrinks = useMemo(() => recommendations.slice(0, 15), [recommendations]);
