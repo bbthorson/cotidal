@@ -27,3 +27,7 @@
 ## 2025-05-25 - [Component Semantics vs Names]
 **Learning:** The `CardTitle` component renders a `div` by default, not a semantic heading (h1-h6), leading to documents with poor outline structure despite using "Title" components.
 **Action:** Always verify the underlying HTML tag of UI components. Use standard HTML headings (h1, h2) for semantic structure, applying the component's styling classes manually if necessary, rather than relying on the component name to imply semantics.
+
+## 2025-12-18 - [Discovery Hints]
+**Learning:** Power-user features (like keyboard shortcuts) are often invisible. Users don't know they exist unless they are explicitly told or they accidentally discover them.
+**Action:** Add subtle, context-aware visual hints (e.g., a small "← Left" label on hover) to reveal invisible interactions without cluttering the UI for novice users. This bridges the gap between casual and power use.

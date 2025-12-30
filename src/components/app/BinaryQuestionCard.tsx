@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { QuestionOption } from '@/lib/data';
 import { Loader2 } from 'lucide-react';
-import { RefObject } from 'react';
+import { RefObject, useEffect } from 'react';
 
 interface BinaryQuestionCardProps {
   questionText: string;
@@ -22,6 +22,22 @@ export function BinaryQuestionCard({
   selectedOptionIndex,
   titleRef
 }: BinaryQuestionCardProps) {
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (isNavigating) return;
+
+      if (e.key === 'ArrowLeft') {
+        onAnswer(options[0], 0);
+      } else if (e.key === 'ArrowRight') {
+        onAnswer(options[1], 1);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isNavigating, onAnswer, options]);
+
   return (
     <div className="space-y-8 py-4">
       <h2
@@ -40,7 +56,7 @@ export function BinaryQuestionCard({
               key={index}
               whileHover={{ scale: isNavigating ? 1 : 1.02 }}
               whileTap={{ scale: isNavigating ? 1 : 0.98 }}
-              className="flex-1"
+              className="flex-1 relative group"
             >
               <Button
                 onClick={() => onAnswer(option, index)}
@@ -71,6 +87,20 @@ export function BinaryQuestionCard({
                   </motion.div>
                 )}
               </Button>
+
+              {/* Keyboard hint - "Palette" style subtle delight */}
+              {!isNavigating && (
+                <div
+                  className={`
+                    absolute bottom-2 left-1/2 -translate-x-1/2
+                    opacity-0 group-hover:opacity-100 transition-opacity duration-300
+                    text-xs font-mono text-muted-foreground bg-background/50 px-2 py-0.5 rounded
+                    pointer-events-none hidden md:block
+                  `}
+                >
+                  {index === 0 ? '← Left' : 'Right →'}
+                </div>
+              )}
             </motion.div>
           );
         })}
