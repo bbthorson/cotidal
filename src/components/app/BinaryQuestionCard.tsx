@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { QuestionOption } from '@/lib/data';
 import { Loader2 } from 'lucide-react';
-import { RefObject } from 'react';
+import { RefObject, useEffect } from 'react';
 
 interface BinaryQuestionCardProps {
   questionText: string;
@@ -22,6 +22,30 @@ export function BinaryQuestionCard({
   selectedOptionIndex,
   titleRef
 }: BinaryQuestionCardProps) {
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (isNavigating) return;
+
+      // Ignore if user is typing in an input/textarea
+      if (
+        document.activeElement instanceof HTMLInputElement ||
+        document.activeElement instanceof HTMLTextAreaElement
+      ) {
+        return;
+      }
+
+      if (e.key === 'ArrowLeft') {
+        onAnswer(options[0], 0);
+      } else if (e.key === 'ArrowRight') {
+        onAnswer(options[1], 1);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isNavigating, onAnswer, options]);
+
   return (
     <div className="space-y-8 py-4">
       <h2
@@ -49,12 +73,21 @@ export function BinaryQuestionCard({
                 className={`
                   w-full h-full min-h-[160px] p-8 text-xl font-serif whitespace-normal
                   flex flex-col gap-4 items-center justify-center text-center
-                  transition-all duration-500 rounded-2xl
+                  transition-all duration-500 rounded-2xl group relative
                   ${isSelected ? 'shadow-2xl shadow-primary/20 ring-2 ring-primary' : 'glass-dark border-primary/10 hover:bg-white/5'}
                 `}
               >
                 <span className="leading-relaxed">{option.text}</span>
                 
+                {/* Keyboard Hint */}
+                {!isNavigating && (
+                   <div className="absolute bottom-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300 hidden md:block">
+                     <span className="text-xs text-muted-foreground bg-muted/20 px-2 py-1 rounded border border-white/10">
+                       {index === 0 ? '← Left' : 'Right →'}
+                     </span>
+                   </div>
+                )}
+
                 {isSelected && (
                   <motion.div
                     initial={{ opacity: 0, y: 10 }}
