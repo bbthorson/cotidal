@@ -15,15 +15,27 @@ const ArchetypeSchema = z.object({
   oracleReasoning: z.string().describe('Mystic explanation for this categorization'),
 });
 
+// Security: Validate inputs to prevent DoS via token exhaustion or massive payloads
+const InputSchema = z.object({
+  drinkName: z.string().min(1).max(100),
+  description: z.string().max(1000).optional(),
+});
+
 export async function archetypeDrink(drinkName: string, description?: string) {
   const isAllowed = await checkRateLimit();
   if (!isAllowed) {
     throw new Error("Rate limit exceeded");
   }
 
+  // Security: Validate inputs before processing
+  const { drinkName: validName, description: validDescription } = InputSchema.parse({
+    drinkName,
+    description,
+  });
+
   const prompt = `
     You are "The Oracle," an ancient and witty master of all concoctions.
-    Analyze the drink: "${drinkName}" ${description ? `(${description})` : ''}.
+    Analyze the drink: "${validName}" ${validDescription ? `(${validDescription})` : ''}.
     
     Determine its DNA within the Palate Matrix:
     - X-Axis: Is it heavy, decadent, and full-bodied (Rich, -10) or light, acidic, and sharp (Crisp, 10)?
