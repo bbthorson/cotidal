@@ -49,11 +49,16 @@ export function ResultsScreen({ user, vibeTags, onReset }: ResultsScreenProps) {
     // Stage 1: Filter & Base Score (Biological + Structural)
     // Depends only on User Profile (User + Vibe Tags), not the UI Context tab.
     const baseScoredDrinks = useMemo(() => {
+        // Optimization: Extract filter checks to avoid repeated array lookups in loop
+        const dislikesSmoke = user.filters.includes('noSmoke');
+        const dislikesBitter = user.filters.includes('noBitter');
+        const dislikesAnise = user.filters.includes('noAnise');
+
         // 1. Filter by hard constraints (smoke/bitter/anise)
         const availableDrinks = drinkDatabase.filter(d => {
-            if (user.filters.includes('noSmoke') && d.hasSmoke) return false;
-            if (user.filters.includes('noBitter') && d.isBitter) return false;
-            if (user.filters.includes('noAnise') && d.hasAnise) return false;
+            if (dislikesSmoke && d.hasSmoke) return false;
+            if (dislikesBitter && d.isBitter) return false;
+            if (dislikesAnise && d.hasAnise) return false;
             return true;
         });
 
