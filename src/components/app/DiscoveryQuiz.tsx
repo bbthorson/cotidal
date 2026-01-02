@@ -216,7 +216,7 @@ export function DiscoveryQuiz({ onComplete }: DiscoveryQuizProps) {
             </motion.div>
           </div>
         </CardHeader>
-        <CardContent className="flex-1 flex flex-col justify-center px-6 pb-12">
+        <CardContent className="flex-1 flex flex-col justify-start px-6 pt-8 pb-12">
           <AnimatePresence mode="wait">
             <motion.div
               key={currentQuestion.id}
