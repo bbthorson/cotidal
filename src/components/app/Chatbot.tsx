@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState, useState, useId } from 'react';
+import { useActionState, useState, useId, memo } from 'react';
 import { useFormStatus } from 'react-dom';
 import { findCocktailRecipes } from '@/app/actions';
 import { Card, CardContent, CardDescription, CardHeader } from '@/components/ui/card';
@@ -70,7 +70,7 @@ function ChatInput() {
   );
 }
 
-export function Chatbot() {
+export const Chatbot = memo(function Chatbot() {
   const [state, formAction, isPending] = useActionState(findCocktailRecipes, initialState);
 
   return (
@@ -132,4 +132,4 @@ export function Chatbot() {
       </CardContent>
     </Card>
   );
-}
+});
