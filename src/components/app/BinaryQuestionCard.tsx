@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { QuestionOption } from '@/lib/data';
 import { Loader2, ArrowLeft, ArrowRight } from 'lucide-react';
-import { RefObject, useEffect } from 'react';
+import { RefObject, useEffect, useRef, memo } from 'react';
 
 interface BinaryQuestionCardProps {
   questionText: string;
@@ -14,7 +14,7 @@ interface BinaryQuestionCardProps {
   titleRef?: RefObject<HTMLHeadingElement | null>;
 }
 
-export function BinaryQuestionCard({
+export const BinaryQuestionCard = memo(function BinaryQuestionCard({
   questionText,
   options,
   onAnswer,
@@ -25,6 +25,14 @@ export function BinaryQuestionCard({
   // Guard: Only enable shortcuts for true binary (2 options) questions
   const isBinary = options.length === 2;
 
+  // Optimization: Use a ref to hold the latest callback to prevent
+  // the useEffect from re-binding the event listener on every render.
+  const onAnswerRef = useRef(onAnswer);
+
+  useEffect(() => {
+    onAnswerRef.current = onAnswer;
+  }, [onAnswer]);
+
   useEffect(() => {
     if (!isBinary) return;
 
@@ -34,15 +42,24 @@ export function BinaryQuestionCard({
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
 
       if (e.key === 'ArrowLeft') {
-        onAnswer(options[0], 0);
+        onAnswerRef.current(options[0], 0);
       } else if (e.key === 'ArrowRight') {
-        onAnswer(options[1], 1);
+        onAnswerRef.current(options[1], 1);
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isNavigating, onAnswer, options, isBinary]);
+    // Dependencies are now stable (options is the only array that might technically change identity,
+    // but in this app structure `isBinary` guards it).
+    // `isNavigating` is read from closure? No.
+    // Wait, `isNavigating` inside `handleKeyDown` is closed over.
+    // If `isNavigating` changes, `handleKeyDown` uses the OLD value if we don't include it in deps.
+
+    // We need `isNavigating` in deps, so the listener WILL re-bind when `isNavigating` changes.
+    // But it WON'T re-bind when `onAnswer` changes (which happens on every render of parent).
+    // Previously it was re-binding on EVERY render. Now only when `isNavigating` or `options` change.
+  }, [isNavigating, options, isBinary]);
 
   return (
     <div className="space-y-8 py-4">
@@ -112,4 +129,4 @@ export function BinaryQuestionCard({
       </div>
     </div>
   );
-}
+});
