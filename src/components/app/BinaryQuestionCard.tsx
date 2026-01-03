@@ -2,8 +2,8 @@
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { QuestionOption } from '@/lib/data';
-import { Loader2 } from 'lucide-react';
-import { RefObject } from 'react';
+import { Loader2, ArrowLeft, ArrowRight } from 'lucide-react';
+import { RefObject, useEffect } from 'react';
 
 interface BinaryQuestionCardProps {
   questionText: string;
@@ -22,6 +22,28 @@ export function BinaryQuestionCard({
   selectedOptionIndex,
   titleRef
 }: BinaryQuestionCardProps) {
+  // Guard: Only enable shortcuts for true binary (2 options) questions
+  const isBinary = options.length === 2;
+
+  useEffect(() => {
+    if (!isBinary) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (isNavigating) return;
+      // Ignore if focus is in an input
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+
+      if (e.key === 'ArrowLeft') {
+        onAnswer(options[0], 0);
+      } else if (e.key === 'ArrowRight') {
+        onAnswer(options[1], 1);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isNavigating, onAnswer, options, isBinary]);
+
   return (
     <div className="space-y-8 py-4">
       <h2
@@ -35,6 +57,10 @@ export function BinaryQuestionCard({
       <div className="flex flex-col md:flex-row gap-6 justify-center items-stretch max-w-2xl mx-auto">
         {options.map((option, index) => {
           const isSelected = isNavigating && selectedOptionIndex === index;
+          // Visual hints only for true binary questions
+          const showHints = isBinary;
+          const isLeft = index === 0;
+
           return (
             <motion.div
               key={index}
@@ -49,12 +75,21 @@ export function BinaryQuestionCard({
                 className={`
                   w-full h-full min-h-[160px] p-8 text-xl font-serif whitespace-normal
                   flex flex-col gap-4 items-center justify-center text-center
-                  transition-all duration-500 rounded-2xl
+                  transition-all duration-500 rounded-2xl group relative
                   ${isSelected ? 'shadow-2xl shadow-primary/20 ring-2 ring-primary' : 'glass-dark border-primary/10 hover:bg-white/5'}
                 `}
               >
                 <span className="leading-relaxed">{option.text}</span>
                 
+                {/* Keyboard Hint - Only for binary questions */}
+                {!isNavigating && showHints && (
+                   <span aria-hidden="true" className="hidden md:flex items-center gap-1 text-[10px] tracking-widest uppercase text-muted-foreground/70 group-hover:text-primary transition-colors absolute bottom-4">
+                     {isLeft ? <ArrowLeft className="w-3 h-3" /> : null}
+                     {isLeft ? 'Left' : 'Right'}
+                     {!isLeft ? <ArrowRight className="w-3 h-3" /> : null}
+                   </span>
+                )}
+
                 {isSelected && (
                   <motion.div
                     initial={{ opacity: 0, y: 10 }}
