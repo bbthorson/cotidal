@@ -7,11 +7,11 @@
 - Network:       http://192.168.0.2:9002
 
 ✓ Starting...
-✓ Ready in 1483ms
- GET / 200 in 3.2s (compile: 2.6s, render: 622ms)
- GET / 200 in 123ms (compile: 31ms, render: 92ms)
- GET / 200 in 72ms (compile: 22ms, render: 50ms)
- GET / 200 in 54ms (compile: 15ms, render: 39ms)
- GET / 200 in 62ms (compile: 19ms, render: 43ms)
- GET / 200 in 52ms (compile: 13ms, render: 38ms)
- GET / 200 in 176ms (compile: 18ms, render: 158ms)
+✓ Ready in 2.6s
+○ Compiling / ...
+ GET / 200 in 5.6s (compile: 4.6s, render: 999ms)
+ GET / 200 in 126ms (compile: 26ms, render: 100ms)
+ GET / 200 in 108ms (compile: 19ms, render: 88ms)
+ GET / 200 in 66ms (compile: 20ms, render: 47ms)
+ GET / 200 in 60ms (compile: 17ms, render: 43ms)
+ GET / 200 in 62ms (compile: 19ms, render: 44ms)
