@@ -27,3 +27,7 @@
 ## 2025-05-25 - [Component Semantics vs Names]
 **Learning:** The `CardTitle` component renders a `div` by default, not a semantic heading (h1-h6), leading to documents with poor outline structure despite using "Title" components.
 **Action:** Always verify the underlying HTML tag of UI components. Use standard HTML headings (h1, h2) for semantic structure, applying the component's styling classes manually if necessary, rather than relying on the component name to imply semantics.
+
+## 2025-05-26 - [Accessible Tab Lists]
+**Learning:** Container components like `TabsList` often lack semantic context for screen readers, leaving users guessing what the tabs control (e.g., "Business" vs. "Party" could be anything).
+**Action:** Always provide an explicit `aria-label` to `TabsList` components (e.g., `aria-label="Filter recommendations by context"`) to describe the purpose of the categorization.
