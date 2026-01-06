@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState, useState, useId, memo } from 'react';
+import { useActionState, useState, useId, memo, useRef, useEffect } from 'react';
 import { useFormStatus } from 'react-dom';
 import { findCocktailRecipes } from '@/app/actions';
 import { Card, CardContent, CardDescription, CardHeader } from '@/components/ui/card';
@@ -72,6 +72,15 @@ function ChatInput() {
 
 export const Chatbot = memo(function Chatbot() {
   const [state, formAction, isPending] = useActionState(findCocktailRecipes, initialState);
+  const resultHeadingRef = useRef<HTMLHeadingElement>(null);
+
+  useEffect(() => {
+    // Accessibility: Move focus to the results heading when content appears
+    // so screen readers announce it immediately instead of staying on the submit button.
+    if (!isPending && state.data && resultHeadingRef.current) {
+      resultHeadingRef.current.focus();
+    }
+  }, [state.data, isPending]);
 
   return (
     <Card className="shadow-xl border-2 border-primary/5 bg-card">
@@ -100,7 +109,11 @@ export const Chatbot = memo(function Chatbot() {
         )}
 
         {isPending && (
-          <Card className="mt-6 bg-muted/30 border-dashed animate-in fade-in duration-500">
+          <Card
+            className="mt-6 bg-muted/30 border-dashed animate-in fade-in duration-500"
+            role="status"
+            aria-live="polite"
+          >
             <CardContent className="flex flex-col items-center justify-center p-8 space-y-4 text-center">
               <motion.div
                 animate={{ rotate: 360 }}
@@ -119,7 +132,11 @@ export const Chatbot = memo(function Chatbot() {
         {!isPending && state.data && (
           <Card className="mt-6 bg-muted/50 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <CardHeader>
-              <h3 className="text-xl font-headline font-bold text-accent flex items-center gap-2">
+              <h3
+                ref={resultHeadingRef}
+                tabIndex={-1}
+                className="text-xl font-headline font-bold text-accent flex items-center gap-2 outline-none"
+              >
                 <Sparkles className="h-5 w-5" />
                 AI Recommendations
               </h3>
