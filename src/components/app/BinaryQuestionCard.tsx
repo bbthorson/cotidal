@@ -33,11 +33,21 @@ export const BinaryQuestionCard = memo(function BinaryQuestionCard({
     onAnswerRef.current = onAnswer;
   }, [onAnswer]);
 
+  // Optimization: Track isNavigating in a ref to use inside the event listener
+  // without adding it to the dependency array. This prevents "thrashing" (removing/adding)
+  // the global event listener every time the user answers (which toggles isNavigating).
+  const isNavigatingRef = useRef(isNavigating);
+  useEffect(() => {
+    isNavigatingRef.current = isNavigating;
+  }, [isNavigating]);
+
   useEffect(() => {
     if (!isBinary) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (isNavigating) return;
+      // Use the ref value to check navigation state inside the callback
+      if (isNavigatingRef.current) return;
+
       // Ignore if focus is in an input
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
 
@@ -50,16 +60,9 @@ export const BinaryQuestionCard = memo(function BinaryQuestionCard({
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-    // Dependencies are now stable (options is the only array that might technically change identity,
-    // but in this app structure `isBinary` guards it).
-    // `isNavigating` is read from closure? No.
-    // Wait, `isNavigating` inside `handleKeyDown` is closed over.
-    // If `isNavigating` changes, `handleKeyDown` uses the OLD value if we don't include it in deps.
-
-    // We need `isNavigating` in deps, so the listener WILL re-bind when `isNavigating` changes.
-    // But it WON'T re-bind when `onAnswer` changes (which happens on every render of parent).
-    // Previously it was re-binding on EVERY render. Now only when `isNavigating` or `options` change.
-  }, [isNavigating, options, isBinary]);
+    // Dependencies are now stable (options changes per question, isBinary is a derived constant per question)
+    // isNavigating is REMOVED from dependencies, preventing re-binds on answer state change.
+  }, [options, isBinary]);
 
   return (
     <div className="space-y-8 py-4">
