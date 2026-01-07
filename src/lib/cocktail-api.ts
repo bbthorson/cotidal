@@ -18,13 +18,19 @@ export function _getCacheSize() {
 export async function fetchRandomDrink(): Promise<CocktailDBResult | null> {
     try {
         const response = await fetch(`https://www.thecocktaildb.com/api/json/v1/1/random.php`, {
-            cache: 'no-store'
+            cache: 'no-store',
+            signal: AbortSignal.timeout(API_TIMEOUT_MS),
         });
         if (!response.ok) throw new Error('Network response was not ok');
         const data = await response.json();
         return data.drinks?.[0] || null;
     } catch (error) {
-        console.error("Failed to fetch random drink:", error);
+        const errName = (error as Error).name;
+        if (errName === 'AbortError' || errName === 'TimeoutError') {
+            console.error("Timeout fetching random drink");
+        } else {
+            console.error("Failed to fetch random drink:", error);
+        }
         return null;
     }
 }
