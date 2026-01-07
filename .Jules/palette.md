@@ -31,3 +31,7 @@
 ## 2025-05-26 - [Accessible Tab Lists]
 **Learning:** Container components like `TabsList` often lack semantic context for screen readers, leaving users guessing what the tabs control (e.g., "Business" vs. "Party" could be anything).
 **Action:** Always provide an explicit `aria-label` to `TabsList` components (e.g., `aria-label="Filter recommendations by context"`) to describe the purpose of the categorization.
+
+## 2025-12-18 - [Responsive Accessible Labels]
+**Learning:** When text labels are visually hidden on small screens (leaving only icons), the accessible name relies on the icon (often an emoji), which can be ambiguous or fail to match the desktop label.
+**Action:** Use `aria-label` on the interactive element (e.g., `TabsTrigger`) to force the accessible name to match the full text label (e.g., "My Usual") regardless of the current visual state.

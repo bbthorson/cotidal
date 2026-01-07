@@ -195,8 +195,8 @@ export function ResultsScreen({ user, vibeTags, onReset }: ResultsScreenProps) {
                 <Tabs value={context} onValueChange={(v) => { setContext(v as ContextType); setExplanation(null); }} className="w-full max-w-md">
                     <TabsList className="grid grid-cols-4 bg-primary/5" aria-label="Filter recommendations by context">
                         {CONTEXT_OPTIONS.map(([key, { label, icon }]) => (
-                            <TabsTrigger key={key} value={key} className="text-xs sm:text-sm">
-                                <span className="mr-1">{icon}</span>
+                            <TabsTrigger key={key} value={key} className="text-xs sm:text-sm" aria-label={label}>
+                                <span className="mr-1" aria-hidden="true">{icon}</span>
                                 <span className="hidden sm:inline">{label}</span>
                             </TabsTrigger>
                         ))}
