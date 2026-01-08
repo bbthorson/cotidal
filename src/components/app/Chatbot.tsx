@@ -100,11 +100,16 @@ export const Chatbot = memo(function Chatbot() {
         )}
 
         {isPending && (
-          <Card className="mt-6 bg-muted/30 border-dashed animate-in fade-in duration-500">
+          <Card
+            className="mt-6 bg-muted/30 border-dashed animate-in fade-in duration-500"
+            role="status"
+            aria-live="polite"
+          >
             <CardContent className="flex flex-col items-center justify-center p-8 space-y-4 text-center">
               <motion.div
                 animate={{ rotate: 360 }}
                 transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                aria-hidden="true"
               >
                 <Sparkles className="h-8 w-8 text-primary/50" />
               </motion.div>

@@ -35,3 +35,7 @@
 ## 2025-12-18 - [Responsive Accessible Labels]
 **Learning:** When text labels are visually hidden on small screens (leaving only icons), the accessible name relies on the icon (often an emoji), which can be ambiguous or fail to match the desktop label.
 **Action:** Use `aria-label` on the interactive element (e.g., `TabsTrigger`) to force the accessible name to match the full text label (e.g., "My Usual") regardless of the current visual state.
+
+## 2025-05-27 - [Async State Accessibility]
+**Learning:** Visual loading indicators (like spinners or skeleton screens) are invisible to screen readers, leaving users wondering if the application has stalled.
+**Action:** Always wrap async loading states in a container with `role="status"` and `aria-live="polite"` so screen readers announce the state change (e.g., "Mixing up some ideas...") without interrupting the user's current flow. Hide decorative spinning icons with `aria-hidden="true"`.
