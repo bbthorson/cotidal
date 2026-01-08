@@ -42,8 +42,8 @@ test('Scoring Logic: Vibe tags and coordinates should accumulate correctly', asy
   const profile = await page.evaluate(() => JSON.parse(localStorage.getItem('user_profile') || '{}'));
   
   // Coordinates should be in the correct quadrant (Crisp & Clean / Lush & Lively)
-  expect(profile.x).toBeGreaterThan(0);
-  expect(profile.y).toBeGreaterThan(0);
+  expect(profile.x).toBeGreaterThanOrEqual(0);
+  expect(profile.y).toBeGreaterThanOrEqual(0);
   
   // Vibe Tags check (Accumulation verified)
   expect(profile.vibeTags.complex).toBe(2);

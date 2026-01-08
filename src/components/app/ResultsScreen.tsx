@@ -112,15 +112,16 @@ export function ResultsScreen({ user, vibeTags, onReset }: ResultsScreenProps) {
         let isMounted = true;
 
         const fetchDetails = async () => {
-            setLoadingDetails(true);
-
             // Identify missing details to fetch
             const drinksToFetch = topPicks.filter(drink => !drinkDetails[drink.name]);
 
             if (drinksToFetch.length === 0) {
+                // Optimization: Avoid setting loading state if data is already cached
                 if (isMounted) setLoadingDetails(false);
                 return;
             }
+
+            setLoadingDetails(true);
 
             // Fetch in parallel to avoid waterfalls
             const results = await Promise.all(
