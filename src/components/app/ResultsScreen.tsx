@@ -12,6 +12,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { MapPin } from './MapPin';
 import { UserPin } from './UserPin';
 import { DrinkCard } from './DrinkCard';
+import { MapBackground } from './MapBackground';
 
 interface ResultsScreenProps {
     user: User;
@@ -207,19 +208,8 @@ export function ResultsScreen({ user, vibeTags, onReset }: ResultsScreenProps) {
 
             {/* The Visual Map */}
             <Card className="relative w-full aspect-square max-w-lg mx-auto bg-[#FDFBF7] shadow-inner border-2 border-primary/10 overflow-hidden">
-                {/* Grid Lines */}
-                <div className="absolute inset-0 grid grid-cols-2 grid-rows-2">
-                    <div className="border-r border-b border-primary/10 flex items-start justify-start p-2"><span className="text-[10px] text-muted-foreground uppercase tracking-widest opacity-50">Lush & Lively</span></div>
-                    <div className="border-b border-primary/10 flex items-start justify-end p-2"><span className="text-[10px] text-muted-foreground uppercase tracking-widest opacity-50">Crisp & Clean</span></div>
-                    <div className="border-r border-primary/10 flex items-end justify-start p-2"><span className="text-[10px] text-muted-foreground uppercase tracking-widest opacity-50">Decadent & Deep</span></div>
-                    <div className="flex items-end justify-end p-2"><span className="text-[10px] text-muted-foreground uppercase tracking-widest opacity-50">Bold & Complex</span></div>
-                </div>
-
-                {/* Axis Labels */}
-                <div className="absolute top-1/2 left-2 -translate-y-1/2 text-[10px] font-bold text-primary/30 -rotate-90">RICH</div>
-                <div className="absolute top-1/2 right-2 -translate-y-1/2 text-[10px] font-bold text-primary/30 rotate-90">CRISP</div>
-                <div className="absolute bottom-2 left-1/2 -translate-x-1/2 text-[10px] font-bold text-primary/30">COMPLEX / SAVORY</div>
-                <div className="absolute top-2 left-1/2 -translate-x-1/2 text-[10px] font-bold text-primary/30">SWEET / FRUITY</div>
+                {/* Optimization: Extracted static map background to memoized component to prevent re-rendering during hover events */}
+                <MapBackground />
 
                 {/* Render Drinks as Pins & User Dot */}
                 <TooltipProvider>
