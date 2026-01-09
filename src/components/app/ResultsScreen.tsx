@@ -272,7 +272,11 @@ export function ResultsScreen({ user, vibeTags, onReset }: ResultsScreenProps) {
             <Chatbot />
 
             <div className="text-center pt-8 border-t border-primary/10">
-                <Button onClick={onReset} variant="ghost" size="sm" className="text-muted-foreground hover:text-primary tracking-widest uppercase text-xs">
+                <Button
+                    onClick={onReset}
+                    variant="ghost"
+                    className="text-muted-foreground hover:text-primary tracking-widest uppercase text-xs h-auto min-h-[44px] px-8"
+                >
                     Return to the Oracle (Reset)
                 </Button>
             </div>

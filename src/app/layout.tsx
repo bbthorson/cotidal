@@ -29,6 +29,9 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning className={`${playfair.variable} ${ptSans.variable}`}>
       <body className="font-body antialiased">
+        <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-6 focus:py-3 focus:bg-background focus:text-foreground focus:border focus:border-primary/20 focus:shadow-xl focus:rounded-md font-bold transition-all">
+          Skip to content
+        </a>
         <FirebaseAuthProvider>
           {children}
         </FirebaseAuthProvider>

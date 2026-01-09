@@ -117,7 +117,11 @@ export const Chatbot = memo(function Chatbot() {
         )}
 
         {!isPending && state.data && (
-          <Card className="mt-6 bg-muted/50 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <Card
+            className="mt-6 bg-muted/50 animate-in fade-in slide-in-from-bottom-4 duration-500"
+            role="status"
+            aria-live="polite"
+          >
             <CardHeader>
               <h3 className="text-xl font-headline font-bold text-accent flex items-center gap-2">
                 <Sparkles className="h-5 w-5" />
