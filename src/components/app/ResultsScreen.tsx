@@ -256,8 +256,10 @@ export function ResultsScreen({ user, vibeTags, onReset }: ResultsScreenProps) {
                                 isHovered={hoveredDrink?.name === drink.name}
                                 onHover={setHoveredDrink}
                                 details={details}
-                                explanation={explanation}
-                                loadingExplanation={loadingExplanation}
+                                // Optimization: Only pass explanation to the first card to prevent other cards
+                                // (which don't display it) from re-rendering when the AI response updates.
+                                explanation={index === 0 ? explanation : undefined}
+                                loadingExplanation={index === 0 ? loadingExplanation : undefined}
                                 onExplain={index === 0 ? handleExplain : undefined}
                                 context={context}
                                 userX={user.x}
