@@ -8,7 +8,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Bot, Loader2, Sparkles } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Bot, Loader2, Sparkles, Copy, Check } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
@@ -24,6 +25,45 @@ function SubmitButton() {
       {pending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Bot className="mr-2 h-4 w-4" />}
       Find Recipes
     </Button>
+  );
+}
+
+function CopyButton({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
+  };
+
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleCopy}
+            className="h-8 w-8 hover:bg-primary/10 transition-all duration-200"
+            aria-label={copied ? "Copied to clipboard" : "Copy recommendations"}
+          >
+            {copied ? (
+              <Check className="h-4 w-4 text-green-600 scale-110" aria-hidden="true" />
+            ) : (
+              <Copy className="h-4 w-4 text-muted-foreground group-hover:text-primary" aria-hidden="true" />
+            )}
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p>{copied ? "Copied!" : "Copy to clipboard"}</p>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 }
 
@@ -122,11 +162,12 @@ export const Chatbot = memo(function Chatbot() {
             role="status"
             aria-live="polite"
           >
-            <CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <h3 className="text-xl font-headline font-bold text-accent flex items-center gap-2">
                 <Sparkles className="h-5 w-5" aria-hidden="true" />
                 AI Recommendations
               </h3>
+              <CopyButton text={state.data} />
             </CardHeader>
             <CardContent>
               <p className="whitespace-pre-wrap font-mono text-sm leading-relaxed">{state.data}</p>
