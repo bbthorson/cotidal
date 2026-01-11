@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 import { Loader2 } from 'lucide-react';
+import Image from 'next/image';
 
 interface DrinkCardProps {
   drink: Drink;
@@ -60,8 +61,17 @@ export const DrinkCard = memo(function DrinkCard({
         )}>
           {index === 0 && (
             details ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={details.strDrinkThumb} alt={drink.name} className="w-full h-full object-cover" />
+              // Optimization: Use Next.js Image for automatic optimization (WebP/AVIF),
+              // responsive sizing, and prevention of layout shifts.
+              // 'priority' is set for the first item to improve LCP.
+              <Image
+                src={details.strDrinkThumb}
+                alt={drink.name}
+                fill
+                sizes="(max-width: 640px) 100vw, 33vw"
+                className="object-cover"
+                priority
+              />
             ) : (
               <div className="w-full h-full bg-primary/10 flex items-center justify-center text-primary/30">
                 <Skeleton className="w-full h-full" />
