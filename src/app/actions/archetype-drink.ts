@@ -17,8 +17,8 @@ const ArchetypeSchema = z.object({
 
 // Security: Validate inputs to prevent DoS via token exhaustion or massive payloads
 const InputSchema = z.object({
-  drinkName: z.string().min(1).max(100),
-  description: z.string().max(1000).optional(),
+  drinkName: z.string().min(1).max(100).regex(/^[^<>{}\\]+$/, "Please use plain text only (no special characters like <, >, {, }, \\)."),
+  description: z.string().max(1000).regex(/^[^<>{}\\]*$/, "Please use plain text only (no special characters like <, >, {, }, \\).").optional(),
 });
 
 export async function archetypeDrink(drinkName: string, description?: string) {
