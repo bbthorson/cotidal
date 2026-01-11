@@ -29,3 +29,8 @@
 **Vulnerability:** External `fetch` calls to TheCocktailDB in `cocktail-api.ts` and `ingredient-based-cocktail-search.ts` lacked timeouts.
 **Learning:** Node.js `fetch` (and polyfills) typically have no default timeout. If the upstream service hangs or becomes unresponsive, the serverless function can hang until its hard limit, consuming concurrent execution slots and potentially causing a Denial of Service (DoS) for the entire application.
 **Prevention:** Implemented a strict 5000ms timeout using `AbortController` for all external API requests. This ensures resources are freed quickly even if the third-party service fails.
+
+## 2025-05-27 - Preventing Prompt Injection via System Instructions
+**Vulnerability:** The `archetypeDrink` Server Action mixed system instructions ("You are The Oracle...") with user input ("Analyze: ${drinkName}") in a single text prompt. This allowed potential Prompt Injection where malicious input could override the AI's persona or logic.
+**Learning:** Reliance on the model to "behave" when instructions and data are concatenated is fragile. Modern LLM APIs and SDKs (like Vercel AI SDK) support a distinct `system` parameter effectively creating a "sandbox" for the persona that user input cannot easily override.
+**Prevention:** Refactored `src/app/actions/archetype-drink.ts` to move the persona and rules into the `system` property, leaving the `prompt` property exclusively for the user-provided drink data.

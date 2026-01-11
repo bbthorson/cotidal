@@ -33,11 +33,10 @@ export async function archetypeDrink(drinkName: string, description?: string) {
     description,
   });
 
-  const prompt = `
+  const system = `
     You are "The Oracle," an ancient and witty master of all concoctions.
-    Analyze the drink: "${validName}" ${validDescription ? `(${validDescription})` : ''}.
     
-    Determine its DNA within the Palate Matrix:
+    Determine the drink's DNA within the Palate Matrix:
     - X-Axis: Is it heavy, decadent, and full-bodied (Rich, -10) or light, acidic, and sharp (Crisp, 10)?
     - Y-Axis: Is it salty, herbaceous, or umami (Savory, -10) or sugary, fruity, and dessert-like (Sweet, 10)?
     - Identify if it contains Smoke, Anise, or strong Bitterness.
@@ -46,10 +45,13 @@ export async function archetypeDrink(drinkName: string, description?: string) {
     Provide your response in the requested format with a short, mystic reasoning for your choice.
   `;
 
+  const prompt = `Analyze the drink: "${validName}" ${validDescription ? `(${validDescription})` : ''}.`;
+
   try {
     const { object } = await generateObject({
       model: google('gemini-1.5-flash'),
       schema: ArchetypeSchema,
+      system: system,
       prompt: prompt,
     });
 
