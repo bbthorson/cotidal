@@ -49,13 +49,13 @@ function CopyButton({ text }: { text: string }) {
             variant="ghost"
             size="icon"
             onClick={handleCopy}
-            className="h-8 w-8 hover:bg-primary/10 transition-all duration-200"
+            className="h-11 w-11 hover:bg-primary/10 transition-all duration-200"
             aria-label={copied ? "Copied to clipboard" : "Copy recommendations"}
           >
             {copied ? (
-              <Check className="h-4 w-4 text-green-600 scale-110" aria-hidden="true" />
+              <Check className="h-5 w-5 text-green-600 scale-110" aria-hidden="true" />
             ) : (
-              <Copy className="h-4 w-4 text-muted-foreground group-hover:text-primary" aria-hidden="true" />
+              <Copy className="h-5 w-5 text-muted-foreground group-hover:text-primary" aria-hidden="true" />
             )}
           </Button>
         </TooltipTrigger>
