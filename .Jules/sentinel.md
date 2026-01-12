@@ -29,3 +29,8 @@
 **Vulnerability:** External `fetch` calls to TheCocktailDB in `cocktail-api.ts` and `ingredient-based-cocktail-search.ts` lacked timeouts.
 **Learning:** Node.js `fetch` (and polyfills) typically have no default timeout. If the upstream service hangs or becomes unresponsive, the serverless function can hang until its hard limit, consuming concurrent execution slots and potentially causing a Denial of Service (DoS) for the entire application.
 **Prevention:** Implemented a strict 5000ms timeout using `AbortController` for all external API requests. This ensures resources are freed quickly even if the third-party service fails.
+
+## 2025-05-27 - Aligning CSP with Client-Side Infrastructure
+**Vulnerability:** The Content Security Policy (CSP) `connect-src` directive blocked requests to Firebase services (Auth, Firestore) and `img-src` blocked Google avatars.
+**Learning:** Security configurations like CSP must be explicitly aligned with the application's infrastructure map. A strict "default" CSP often breaks integrations that rely on client-side connections (like Firebase or Analytics) if not carefully audited against the actual `import` graph.
+**Prevention:** Updated `next.config.ts` to explicitly allow `identitytoolkit.googleapis.com`, `firestore.googleapis.com`, `securetoken.googleapis.com`, and `*.googleusercontent.com`. Future integrations must check CSP compliance during development.
