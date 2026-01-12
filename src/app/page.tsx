@@ -1,12 +1,26 @@
 'use client';
 import { useState, useMemo, useEffect, useCallback } from 'react';
+import dynamic from 'next/dynamic';
 import { WelcomeScreen } from '@/components/app/WelcomeScreen';
-import { ResultsScreen } from '@/components/app/ResultsScreen';
-import { DiscoveryQuiz, type UserProfile } from '@/components/app/DiscoveryQuiz';
+import type { UserProfile } from '@/components/app/DiscoveryQuiz';
 import type { User } from '@/lib/data';
 import { auth } from '@/lib/firebase';
 import { getUserProfile } from '@/lib/profile-service';
 import { onAuthStateChanged } from 'firebase/auth';
+import { Loader2 } from 'lucide-react';
+
+// Code Splitting: Lazy load heavy interactive components to reduce initial bundle size
+// DiscoveryQuiz contains animation libraries and large data logic
+const DiscoveryQuiz = dynamic(() => import('@/components/app/DiscoveryQuiz').then(mod => mod.DiscoveryQuiz), {
+  loading: () => <div className="flex min-h-[500px] w-full items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary/50" /></div>,
+  ssr: false // Client-side interactive flow
+});
+
+// ResultsScreen contains Map visualization, Chatbot, and drink details logic
+const ResultsScreen = dynamic(() => import('@/components/app/ResultsScreen').then(mod => mod.ResultsScreen), {
+  loading: () => <div className="flex min-h-[500px] w-full items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary/50" /></div>,
+  ssr: false // Client-side visualization
+});
 
 // Read localStorage during hydration to avoid the set-state-in-effect rule
 function getInitialProfile(): UserProfile | null {
