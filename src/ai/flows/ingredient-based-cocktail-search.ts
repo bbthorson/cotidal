@@ -43,15 +43,11 @@ const getCocktailRecipes = ai.defineTool(
   async (input) => {
     try {
       // 1. Fetch from TheCocktailDB
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT_MS);
-
+      // Security: Use AbortSignal.timeout to enforce a strict timeout and prevent DoS via hanging connections.
       const response = await fetch(
         `https://www.thecocktaildb.com/api/json/v1/1/filter.php?i=${encodeURIComponent(input.ingredients)}`,
-        { signal: controller.signal }
+        { signal: AbortSignal.timeout(API_TIMEOUT_MS) }
       );
-
-      clearTimeout(timeoutId);
 
       if (!response.ok) {
         return `Error fetching recipes: ${response.statusText}`;
@@ -69,7 +65,8 @@ const getCocktailRecipes = ai.defineTool(
       return `Found these cocktails with ${input.ingredients}: ${drinks}.`;
 
     } catch (error) {
-      if ((error as Error).name === 'AbortError') {
+      const errName = (error as Error).name;
+      if (errName === 'AbortError' || errName === 'TimeoutError') {
         console.error(`Timeout fetching recipes for ${input.ingredients}`);
         return "The cocktail database is currently unresponsive. Please try again later.";
       }
