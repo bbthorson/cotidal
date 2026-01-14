@@ -23,7 +23,7 @@ function SubmitButton() {
   return (
     <Button type="submit" disabled={pending} className="w-full md:w-auto uppercase tracking-wider font-bold">
       {pending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Bot className="mr-2 h-4 w-4" />}
-      Find Recipes
+      {pending ? "Consulting..." : "Find Recipes"}
     </Button>
   );
 }
