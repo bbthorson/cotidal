@@ -31,6 +31,11 @@
 **Prevention:** Implemented a strict 5000ms timeout using `AbortController` for all external API requests. This ensures resources are freed quickly even if the third-party service fails.
 
 ## 2025-05-27 - Preventing Prompt Injection via System Instructions
-**Vulnerability:** The `archetypeDrink` Server Action mixed system instructions ("You are The Oracle...") with user input ("Analyze: ${drinkName}") in a single text prompt. This allowed potential Prompt Injection where malicious input could override the AI's persona or logic.
+**Vulnerability:** The `archetypeDrink` Server Action mixed system instructions ("You are The Oracle...") with user input ("Analyze: ${drinkName}") in a single text prompt. This allowed potential Prompt Injection where malicious input could override the AI's persona or leak information.
 **Learning:** Reliance on the model to "behave" when instructions and data are concatenated is fragile. Modern LLM APIs and SDKs (like Vercel AI SDK) support a distinct `system` parameter effectively creating a "sandbox" for the persona that user input cannot easily override.
 **Prevention:** Refactored `src/app/actions/archetype-drink.ts` to move the persona and rules into the `system` property, leaving the `prompt` property exclusively for the user-provided drink data.
+
+## 2025-05-28 - Preventing Resource Leaks in Timeout Logic
+**Vulnerability:** The `ingredientBasedCocktailSearch` used a manual timeout pattern (`setTimeout` + `controller.abort()`) where `clearTimeout` was skipped if the awaited fetch threw an error, leading to potential memory leaks and zombie timers under load.
+**Learning:** Manual timeout management is error-prone. If `clearTimeout` is not guaranteed to run (e.g., inside a `finally` block or utilizing the newer `AbortSignal.timeout` API), timers accumulate until they fire, wasting CPU and memory.
+**Prevention:** Refactored `src/ai/flows/ingredient-based-cocktail-search.ts` to use `AbortSignal.timeout(ms)`, which is natively handled by the runtime to automatically clean up resources upon completion or timeout.
