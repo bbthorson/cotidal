@@ -13,6 +13,38 @@ const UserProfileSchema = z.object({
   dislikesBitter: z.boolean(),
 });
 
+// Performance: LRU Cache implementation
+// Keeps the most recently used explanations in memory to avoid redundant AI calls.
+class LRUCache<K, V> {
+  private map = new Map<K, V>();
+  constructor(private readonly limit: number) {}
+
+  get(key: K): V | undefined {
+    const value = this.map.get(key);
+    if (value !== undefined) {
+      // Refresh item by re-inserting it
+      this.map.delete(key);
+      this.map.set(key, value);
+    }
+    return value;
+  }
+
+  set(key: K, value: V): void {
+    if (this.map.has(key)) {
+      this.map.delete(key);
+    } else if (this.map.size >= this.limit) {
+      // Evict oldest (first inserted in Map)
+      const firstKey = this.map.keys().next().value;
+      if (firstKey !== undefined) this.map.delete(firstKey);
+    }
+    this.map.set(key, value);
+  }
+}
+
+// Global cache instance (persists in warm serverless containers)
+// Limit to 100 to prevent memory bloating
+const explanationCache = new LRUCache<string, string>(100);
+
 export async function explainDrinkMatch(drinkName: string, userProfile: unknown) {
   const isAllowed = await checkRateLimit();
   if (!isAllowed) {
@@ -28,6 +60,14 @@ export async function explainDrinkMatch(drinkName: string, userProfile: unknown)
   }
 
   const profile = profileResult.data;
+
+  // Performance: Check cache first
+  // Key includes all variables that affect the prompt: drink name + user profile stats
+  const cacheKey = `${drinkName}:${profile.x}:${profile.y}:${profile.dislikesSmoke}:${profile.dislikesBitter}`;
+  const cached = explanationCache.get(cacheKey);
+  if (cached) {
+    return cached;
+  }
 
   // SECURITY: Whitelist check to prevent prompt injection.
   const isValidDrink = drinkDatabase.some(d => d.name === drinkName);
@@ -57,10 +97,17 @@ export async function explainDrinkMatch(drinkName: string, userProfile: unknown)
       model: google('gemini-1.5-flash'), // Using a widely available model, can be updated.
       prompt: prompt,
     });
+
+    // Performance: Cache the successful result
+    explanationCache.set(cacheKey, text);
     return text;
   } catch (error) {
     console.error("AI Generation Error:", error);
     // Fallback if AI fails (e.g., missing API key)
-    return `The Oracle senses your aura aligns with the ${profile.x > 0 ? 'Crisp' : 'Rich'} and ${profile.y > 0 ? 'Sweet' : 'Savory'} essence of this ${drinkName}.`;
+    const fallback = `The Oracle senses your aura aligns with the ${profile.x > 0 ? 'Crisp' : 'Rich'} and ${profile.y > 0 ? 'Sweet' : 'Savory'} essence of this ${drinkName}.`;
+
+    // Performance: Cache the fallback too to prevent redundant error retries
+    explanationCache.set(cacheKey, fallback);
+    return fallback;
   }
 }
