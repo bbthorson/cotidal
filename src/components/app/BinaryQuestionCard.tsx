@@ -51,9 +51,11 @@ export const BinaryQuestionCard = memo(function BinaryQuestionCard({
       // Ignore if focus is in an input
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
 
-      if (e.key === 'ArrowLeft') {
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+        e.preventDefault();
         onAnswerRef.current(options[0], 0);
-      } else if (e.key === 'ArrowRight') {
+      } else if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+        e.preventDefault();
         onAnswerRef.current(options[1], 1);
       }
     };
@@ -91,6 +93,7 @@ export const BinaryQuestionCard = memo(function BinaryQuestionCard({
               <Button
                 onClick={() => onAnswer(option, index)}
                 disabled={isNavigating && !isSelected}
+                aria-keyshortcuts={isLeft ? "ArrowLeft ArrowUp" : "ArrowRight ArrowDown"}
                 variant={isSelected ? "default" : "outline"}
                 className={`
                   w-full h-full min-h-[160px] p-8 text-xl font-serif whitespace-normal

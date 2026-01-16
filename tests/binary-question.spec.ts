@@ -19,3 +19,28 @@ test('Binary Question Card: Should render two options and respond to click', asy
   // "A preference for the pure and bold." is the feedback for Black coffee.
   await expect(page.locator('text=A preference for the pure and bold.')).toBeVisible();
 });
+
+test('Binary Question Card: Keyboard Navigation & ARIA', async ({ page }) => {
+  await page.goto('/');
+  await page.click('text=Begin the Reading');
+  await expect(page.locator('h2')).toContainText('How do you take your coffee?');
+
+  // Check for aria-keyshortcuts
+  const buttonLeft = page.locator('button', { hasText: 'Black or Espresso' });
+  await expect(buttonLeft).toHaveAttribute('aria-keyshortcuts', 'ArrowLeft ArrowUp');
+
+  const buttonRight = page.locator('button', { hasText: 'With milk' });
+  await expect(buttonRight).toHaveAttribute('aria-keyshortcuts', 'ArrowRight ArrowDown');
+
+  // Navigate with Up
+  await page.keyboard.press('ArrowUp');
+  await expect(page.locator('text=A preference for the pure and bold.')).toBeVisible();
+
+  // Reload and try Down
+  await page.reload();
+  await page.click('text=Begin the Reading');
+  await expect(page.locator('h2')).toContainText('How do you take your coffee?');
+
+  await page.keyboard.press('ArrowDown');
+  await expect(page.locator('text=Seeking comfort and sweetness.')).toBeVisible();
+});
