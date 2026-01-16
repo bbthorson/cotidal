@@ -13,6 +13,15 @@ const UserProfileSchema = z.object({
   dislikesBitter: z.boolean(),
 });
 
+// Optimization: Cache AI responses to reduce latency and API costs.
+// Keyed by drink name + simple profile (quadrant + filters)
+const explanationCache = new Map<string, string>();
+const MAX_CACHE_SIZE = 100;
+
+export function _getCacheSize() {
+  return explanationCache.size;
+}
+
 export async function explainDrinkMatch(drinkName: string, userProfile: unknown) {
   const isAllowed = await checkRateLimit();
   if (!isAllowed) {
@@ -38,6 +47,16 @@ export async function explainDrinkMatch(drinkName: string, userProfile: unknown)
     return `The Oracle senses your essence is drawn to the ${profile.x > 0 ? 'Crisp' : 'Rich'} and ${profile.y > 0 ? 'Sweet' : 'Savory'} vibration of this match.`;
   }
 
+  // Optimization: Check cache before hitting AI
+  // The prompt only depends on signs of x/y and booleans, so we bucket the key.
+  const quadrant = `${profile.x > 0 ? 'R' : 'L'}${profile.y > 0 ? 'T' : 'B'}`;
+  const filters = `${profile.dislikesSmoke ? 'S' : ''}${profile.dislikesBitter ? 'B' : ''}`;
+  const cacheKey = `${drinkName}|${quadrant}|${filters}`;
+
+  if (explanationCache.has(cacheKey)) {
+    return explanationCache.get(cacheKey)!;
+  }
+
   const prompt = `
     You are "The Oracle," a witty, sophisticated, and slightly mystic sommelier.
     A seeker has matched with the essence of a "${drinkName}".
@@ -57,10 +76,27 @@ export async function explainDrinkMatch(drinkName: string, userProfile: unknown)
       model: google('gemini-1.5-flash'), // Using a widely available model, can be updated.
       prompt: prompt,
     });
+
+    // Update cache (LRU logic: delete if full)
+    if (explanationCache.size >= MAX_CACHE_SIZE) {
+        const firstKey = explanationCache.keys().next().value;
+        if (firstKey) explanationCache.delete(firstKey);
+    }
+    explanationCache.set(cacheKey, text);
+
     return text;
   } catch (error) {
     console.error("AI Generation Error:", error);
     // Fallback if AI fails (e.g., missing API key)
-    return `The Oracle senses your aura aligns with the ${profile.x > 0 ? 'Crisp' : 'Rich'} and ${profile.y > 0 ? 'Sweet' : 'Savory'} essence of this ${drinkName}.`;
+    const fallback = `The Oracle senses your aura aligns with the ${profile.x > 0 ? 'Crisp' : 'Rich'} and ${profile.y > 0 ? 'Sweet' : 'Savory'} essence of this ${drinkName}.`;
+
+    // Even cache the fallback to prevent repeated error logs/retries for the same context
+    if (explanationCache.size >= MAX_CACHE_SIZE) {
+        const firstKey = explanationCache.keys().next().value;
+        if (firstKey) explanationCache.delete(firstKey);
+    }
+    explanationCache.set(cacheKey, fallback);
+
+    return fallback;
   }
 }
