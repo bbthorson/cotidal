@@ -31,7 +31,11 @@ export async function findCocktailRecipes(prevState: { data: string; error: stri
   }
 
   try {
-    const result = await ingredientBasedCocktailSearch(validatedFields.data);
+    // Security: Sanitize input to remove newlines (prevent prompt injection) before passing to AI
+    const sanitizedInput = {
+      ingredientsDescription: validatedFields.data.ingredientsDescription.replace(/[\r\n]+/g, ' '),
+    };
+    const result = await ingredientBasedCocktailSearch(sanitizedInput);
     return { data: result.recipes, error: '' };
   } catch (error) {
     console.error('AI Error:', error);

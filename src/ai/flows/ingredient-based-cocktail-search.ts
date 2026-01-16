@@ -17,7 +17,8 @@ export const IngredientBasedCocktailSearchInputSchema = z.object({
     .min(10, "Please provide a more detailed description of your ingredients.")
     .max(500)
     // Security: Disallow characters often used in injection attacks or code
-    .regex(/^[^<>{}\\]+$/, "Please use plain text only (no special characters like <, >, {, }, \\).")
+    // Updated to disallow newlines to prevent prompt injection
+    .regex(/^[^<>{}\\\r\n]+$/, "Please use plain text only (no special characters like <, >, {, }, \\ or newlines).")
     .describe("A description of the ingredients the user has available."),
 });
 export type IngredientBasedCocktailSearchInput = z.infer<typeof IngredientBasedCocktailSearchInputSchema>;
