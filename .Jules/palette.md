@@ -35,3 +35,7 @@
 ## 2025-12-18 - [Responsive Accessible Labels]
 **Learning:** When text labels are visually hidden on small screens (leaving only icons), the accessible name relies on the icon (often an emoji), which can be ambiguous or fail to match the desktop label.
 **Action:** Use `aria-label` on the interactive element (e.g., `TabsTrigger`) to force the accessible name to match the full text label (e.g., "My Usual") regardless of the current visual state.
+
+## 2025-12-19 - [Accessible Keyboard Shortcuts]
+**Learning:** Visual keyboard hints (like "Left / Right" icons) fail for users on vertical/mobile layouts where the mapping is unintuitive (Left != Top).
+**Action:** When adding keyboard shortcuts to UI elements, always use the `aria-keyshortcuts` attribute on the focusable element (e.g., `aria-keyshortcuts="ArrowUp"`) so screen readers announce the availability regardless of visual layout or hidden hints.
