@@ -22,6 +22,11 @@ const ResultsScreen = dynamic(() => import('@/components/app/ResultsScreen').the
   ssr: false // Client-side visualization
 });
 
+// Performance Optimization: Preload the DiscoveryQuiz chunk when user hovers over the start button
+const preloadDiscoveryQuiz = () => {
+  import('@/components/app/DiscoveryQuiz');
+};
+
 // Read localStorage during hydration to avoid the set-state-in-effect rule
 function getInitialProfile(): UserProfile | null {
   if (typeof window === 'undefined') return null;
@@ -109,7 +114,7 @@ export default function Home() {
   return (
     <div className="flex min-h-dvh items-center justify-center p-4">
       <main id="main-content" className="container max-w-5xl w-full transition-opacity duration-500 ease-in-out" tabIndex={-1}>
-        {screen === 'welcome' && <WelcomeScreen onStartQuiz={handleStartQuiz} />}
+        {screen === 'welcome' && <WelcomeScreen onStartQuiz={handleStartQuiz} onPreload={preloadDiscoveryQuiz} />}
         {screen === 'discoveryQuiz' && <DiscoveryQuiz onComplete={handleDiscoveryQuizComplete} />}
         {screen === 'finalResults' && vibeTags && <ResultsScreen user={finalUser} vibeTags={vibeTags} onReset={handleReset} />}
       </main>

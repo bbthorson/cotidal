@@ -6,9 +6,10 @@ import { Card, CardContent, CardDescription, CardHeader } from '@/components/ui/
 
 interface WelcomeScreenProps {
   onStartQuiz: () => void;
+  onPreload?: () => void;
 }
 
-export function WelcomeScreen({ onStartQuiz }: WelcomeScreenProps) {
+export function WelcomeScreen({ onStartQuiz, onPreload }: WelcomeScreenProps) {
   const headingRef = useRef<HTMLHeadingElement>(null);
 
   useEffect(() => {
@@ -33,7 +34,13 @@ export function WelcomeScreen({ onStartQuiz }: WelcomeScreenProps) {
           <p className="max-w-prose text-lg text-foreground/90 leading-relaxed">
             Step into the light of the oracle. A curated algorithm designed to map the essence of your unique taste. Through a series of revelations, we will unveil your personal drink matrix across cocktails, wines, and spirits.
           </p>
-          <Button onClick={onStartQuiz} size="lg" className="uppercase tracking-widest font-bold shadow-lg hover:shadow-primary/20 transition-all mt-4 bg-primary text-primary-foreground hover:scale-105">
+          <Button
+            onClick={onStartQuiz}
+            onMouseEnter={onPreload}
+            onFocus={onPreload}
+            size="lg"
+            className="uppercase tracking-widest font-bold shadow-lg hover:shadow-primary/20 transition-all mt-4 bg-primary text-primary-foreground hover:scale-105"
+          >
             Begin the Reading
           </Button>
         </CardContent>
