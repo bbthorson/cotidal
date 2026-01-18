@@ -30,8 +30,14 @@ export async function findCocktailRecipes(prevState: { data: string; error: stri
     };
   }
 
+  // Security: Sanitize input to remove newlines (prevent prompt injection)
+  const sanitizedData = {
+    ...validatedFields.data,
+    ingredientsDescription: validatedFields.data.ingredientsDescription.replace(/[\r\n]+/g, ' ').trim(),
+  };
+
   try {
-    const result = await ingredientBasedCocktailSearch(validatedFields.data);
+    const result = await ingredientBasedCocktailSearch(sanitizedData);
     return { data: result.recipes, error: '' };
   } catch (error) {
     console.error('AI Error:', error);

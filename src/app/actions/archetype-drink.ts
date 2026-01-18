@@ -17,7 +17,8 @@ const ArchetypeSchema = z.object({
 
 // Security: Validate inputs to prevent DoS via token exhaustion or massive payloads
 const InputSchema = z.object({
-  drinkName: z.string().min(1).max(100).regex(/^[^<>{}\\]+$/, "Please use plain text only (no special characters like <, >, {, }, \\)."),
+  // Security: Block newlines in drinkName to prevent prompt injection
+  drinkName: z.string().min(1).max(100).regex(/^[^<>{}\\\r\n]+$/, "Please use plain text only (no special characters or newlines)."),
   description: z.string().max(1000).regex(/^[^<>{}\\]*$/, "Please use plain text only (no special characters like <, >, {, }, \\).").optional(),
 });
 
@@ -28,10 +29,13 @@ export async function archetypeDrink(drinkName: string, description?: string) {
   }
 
   // Security: Validate inputs before processing
-  const { drinkName: validName, description: validDescription } = InputSchema.parse({
+  const { drinkName: validName, description: rawDescription } = InputSchema.parse({
     drinkName,
     description,
   });
+
+  // Security: Sanitize description to remove newlines (prevent prompt injection)
+  const validDescription = rawDescription?.replace(/[\r\n]+/g, ' ').trim();
 
   const system = `
     You are "The Oracle," an ancient and witty master of all concoctions.

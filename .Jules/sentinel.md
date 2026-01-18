@@ -34,3 +34,8 @@
 **Vulnerability:** The `archetypeDrink` Server Action mixed system instructions ("You are The Oracle...") with user input ("Analyze: ${drinkName}") in a single text prompt. This allowed potential Prompt Injection where malicious input could override the AI's persona or logic.
 **Learning:** Reliance on the model to "behave" when instructions and data are concatenated is fragile. Modern LLM APIs and SDKs (like Vercel AI SDK) support a distinct `system` parameter effectively creating a "sandbox" for the persona that user input cannot easily override.
 **Prevention:** Refactored `src/app/actions/archetype-drink.ts` to move the persona and rules into the `system` property, leaving the `prompt` property exclusively for the user-provided drink data.
+
+## 2025-05-29 - Preventing Prompt Injection via Control Characters
+**Vulnerability:** Simple regex validation (`^[^<>{}\\]+$`) allowed control characters like newlines (`\n`, `\r`) in AI inputs (`drinkName`, `description`). This creates a vector for "Prompt Injection" where attackers can inject "System:" commands by breaking out of the prompt template line structure. Also identified that CSP `connect-src` was missing Firebase domains, potentially breaking auth.
+**Learning:** Standard alphanumeric regex often misses invisible control characters which are semantically significant to LLMs. Validating against injection requires explicitly blocking or sanitizing whitespace/control characters in fields expected to be "plain text labels".
+**Prevention:** Updated `src/app/actions/archetype-drink.ts` to explicitly block `\r\n` in `drinkName` regex and sanitize `description` (replace newlines with spaces). Also updated `next.config.ts` to allow Firebase domains in CSP.
