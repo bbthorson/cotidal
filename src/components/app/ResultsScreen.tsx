@@ -1,11 +1,12 @@
 'use client';
 import { useMemo, useState, useEffect, useRef, useCallback } from 'react';
+import dynamic from 'next/dynamic';
 import { drinkDatabase, type Drink, type User, type ContextType } from '@/lib/data';
 import { calculateDistance, calculateContextScore, toPct } from '@/lib/scoring';
 import { fetchDrinkDetails, type CocktailDBResult } from '@/lib/cocktail-api';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Chatbot } from './Chatbot';
+import { Skeleton } from '@/components/ui/skeleton';
 import { explainDrinkMatch } from '@/app/actions/explain-drink';
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -13,6 +14,25 @@ import { MapPin } from './MapPin';
 import { UserPin } from './UserPin';
 import { DrinkCard } from './DrinkCard';
 import { MapBackground } from './MapBackground';
+
+// Lazy load Chatbot as it's below the fold and heavy
+const Chatbot = dynamic(() => import('./Chatbot').then(mod => mod.Chatbot), {
+    loading: () => (
+        <Card className="shadow-xl border-2 border-primary/5 bg-card">
+            <div className="p-6 space-y-4">
+                <div className="space-y-2">
+                    <Skeleton className="h-8 w-48" />
+                    <Skeleton className="h-4 w-full" />
+                </div>
+                <Skeleton className="h-[120px] w-full" />
+                <div className="flex justify-end">
+                    <Skeleton className="h-10 w-32" />
+                </div>
+            </div>
+        </Card>
+    ),
+    ssr: false
+});
 
 interface ResultsScreenProps {
     user: User;
