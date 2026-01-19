@@ -35,3 +35,7 @@
 ## 2025-12-18 - [Responsive Accessible Labels]
 **Learning:** When text labels are visually hidden on small screens (leaving only icons), the accessible name relies on the icon (often an emoji), which can be ambiguous or fail to match the desktop label.
 **Action:** Use `aria-label` on the interactive element (e.g., `TabsTrigger`) to force the accessible name to match the full text label (e.g., "My Usual") regardless of the current visual state.
+
+## 2025-05-27 - [Redundant Keyboard Shortcuts]
+**Learning:** For binary choices presented side-by-side, users on mobile keyboards or using vertical navigation modes expect Up/Down to map to the options, not just Left/Right.
+**Action:** Map `ArrowUp` to the first option (Left) and `ArrowDown` to the second option (Right) in binary choice components, and expose this via `aria-keyshortcuts` and visual hints.
