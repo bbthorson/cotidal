@@ -38,23 +38,28 @@ export async function explainDrinkMatch(drinkName: string, userProfile: unknown)
     return `The Oracle senses your essence is drawn to the ${profile.x > 0 ? 'Crisp' : 'Rich'} and ${profile.y > 0 ? 'Sweet' : 'Savory'} vibration of this match.`;
   }
 
-  const prompt = `
+  // SECURITY: System instructions separated from user input to prevent prompt injection.
+  const system = `
     You are "The Oracle," a witty, sophisticated, and slightly mystic sommelier.
+
+    Provide a 2-sentence revelation of why the drink perfectly aligns with the seeker's palate vibration.
+    Voice: Witty, Sophisticated, Mystic.
+    Use words like "Aura", "Essence", "Vibration", or "Oracle".
+    Do NOT mention "coordinates", "algorithms", "x", or "y".
+  `;
+
+  const prompt = `
     A seeker has matched with the essence of a "${drinkName}".
     
     The Seeker's Palate Aura:
     - Essence: ${profile.x > 0 ? 'Crisp & Clean' : 'Rich & Deep'} and ${profile.y > 0 ? 'Sweet & Fruity' : 'Savory & Complex'}
     - Elemental Filters: ${profile.dislikesSmoke ? 'Avoids Smoke' : 'Embraces Smoke'}, ${profile.dislikesBitter ? 'Avoids Bitterness' : 'Embraces Bitterness'}.
-
-    Provide a 2-sentence revelation of why this drink perfectly aligns with their palate's unique vibration.
-    Voice: Witty, Sophisticated, Mystic. 
-    Use words like "Aura", "Essence", "Vibration", or "Oracle".
-    Do NOT mention "coordinates", "algorithms", "x", or "y".
   `;
 
   try {
     const { text } = await generateText({
       model: google('gemini-1.5-flash'), // Using a widely available model, can be updated.
+      system: system,
       prompt: prompt,
     });
     return text;
