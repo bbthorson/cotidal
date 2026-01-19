@@ -1,0 +1,3 @@
+## 2024-02-21 - Caching AI Server Actions
+**Learning:** Server Actions invoking external AI APIs (like `explainDrinkMatch`) are major latency bottlenecks (1-2s+). In Next.js App Router, in-memory caching (Map) within the server module persists across requests in the same lambda instance, offering a highly effective, zero-dependency optimization for idempotent AI queries.
+**Action:** Always wrap expensive, idempotent AI calls in an in-memory LRU cache (or similar) to serve repeated requests instantly. Ensure cache logic is extracted to a utility file (e.g. `src/lib/drink-explanation.ts`) to avoid exporting test helpers from `'use server'` files, which causes build issues.
