@@ -34,3 +34,8 @@
 **Vulnerability:** The `archetypeDrink` Server Action mixed system instructions ("You are The Oracle...") with user input ("Analyze: ${drinkName}") in a single text prompt. This allowed potential Prompt Injection where malicious input could override the AI's persona or logic.
 **Learning:** Reliance on the model to "behave" when instructions and data are concatenated is fragile. Modern LLM APIs and SDKs (like Vercel AI SDK) support a distinct `system` parameter effectively creating a "sandbox" for the persona that user input cannot easily override.
 **Prevention:** Refactored `src/app/actions/archetype-drink.ts` to move the persona and rules into the `system` property, leaving the `prompt` property exclusively for the user-provided drink data.
+
+## 2025-05-29 - Hardening Content Security Policy (CSP) for Firebase
+**Vulnerability:** The `Content-Security-Policy` header was overly restrictive for the application's functionality (blocking Firebase Firestore) while missing standard hardening directives (e.g., `object-src`).
+**Learning:** A strict CSP is essential, but it must align with the app's architecture. Blocking `connect-src` for `*.googleapis.com` caused the client-side Firebase SDK to fail silently or throw errors in production, breaking user profile persistence. Also, missing `object-src 'none'` leaves a gap for legacy plugin attacks.
+**Prevention:** Updated `next.config.ts` to explicitly allow `https://*.googleapis.com` and `https://*.firebaseio.com` in `connect-src`, and added `object-src 'none'`, `base-uri 'self'`, and `frame-ancestors 'none'` to the CSP directives.
