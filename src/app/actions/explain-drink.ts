@@ -1,10 +1,8 @@
 'use server';
 
-import { generateText } from 'ai';
-import { google } from '@ai-sdk/google';
-import { drinkDatabase } from '@/lib/data';
 import { z } from 'zod';
 import { checkRateLimit } from '@/lib/rate-limit';
+import { getDrinkExplanation } from '@/lib/drink-explanation';
 
 const UserProfileSchema = z.object({
   x: z.number(),
@@ -27,40 +25,6 @@ export async function explainDrinkMatch(drinkName: string, userProfile: unknown)
       return "This drink is an excellent choice for your palate.";
   }
 
-  const profile = profileResult.data;
-
-  // SECURITY: Whitelist check to prevent prompt injection.
-  const isValidDrink = drinkDatabase.some(d => d.name === drinkName);
-
-  if (!isValidDrink) {
-    console.warn(`Security: Blocked potential prompt injection with drinkName: "${drinkName}"`);
-    // Return a safe fallback immediately without calling the AI.
-    return `The Oracle senses your essence is drawn to the ${profile.x > 0 ? 'Crisp' : 'Rich'} and ${profile.y > 0 ? 'Sweet' : 'Savory'} vibration of this match.`;
-  }
-
-  const prompt = `
-    You are "The Oracle," a witty, sophisticated, and slightly mystic sommelier.
-    A seeker has matched with the essence of a "${drinkName}".
-    
-    The Seeker's Palate Aura:
-    - Essence: ${profile.x > 0 ? 'Crisp & Clean' : 'Rich & Deep'} and ${profile.y > 0 ? 'Sweet & Fruity' : 'Savory & Complex'}
-    - Elemental Filters: ${profile.dislikesSmoke ? 'Avoids Smoke' : 'Embraces Smoke'}, ${profile.dislikesBitter ? 'Avoids Bitterness' : 'Embraces Bitterness'}.
-
-    Provide a 2-sentence revelation of why this drink perfectly aligns with their palate's unique vibration.
-    Voice: Witty, Sophisticated, Mystic. 
-    Use words like "Aura", "Essence", "Vibration", or "Oracle".
-    Do NOT mention "coordinates", "algorithms", "x", or "y".
-  `;
-
-  try {
-    const { text } = await generateText({
-      model: google('gemini-1.5-flash'), // Using a widely available model, can be updated.
-      prompt: prompt,
-    });
-    return text;
-  } catch (error) {
-    console.error("AI Generation Error:", error);
-    // Fallback if AI fails (e.g., missing API key)
-    return `The Oracle senses your aura aligns with the ${profile.x > 0 ? 'Crisp' : 'Rich'} and ${profile.y > 0 ? 'Sweet' : 'Savory'} essence of this ${drinkName}.`;
-  }
+  // Delegate business logic and caching to lib function
+  return await getDrinkExplanation(drinkName, profileResult.data);
 }
