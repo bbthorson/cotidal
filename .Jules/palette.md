@@ -35,3 +35,7 @@
 ## 2025-12-18 - [Responsive Accessible Labels]
 **Learning:** When text labels are visually hidden on small screens (leaving only icons), the accessible name relies on the icon (often an emoji), which can be ambiguous or fail to match the desktop label.
 **Action:** Use `aria-label` on the interactive element (e.g., `TabsTrigger`) to force the accessible name to match the full text label (e.g., "My Usual") regardless of the current visual state.
+
+## 2025-12-19 - [Discoverable Keyboard Shortcuts]
+**Learning:** Adding keyboard shortcuts (like arrow keys) without exposing them programmatically leaves screen reader users unaware of the efficiency tools available.
+**Action:** When implementing custom keyboard shortcuts, always pair them with the `aria-keyshortcuts` attribute on the interactive element to explicitly announce the available keys to assistive technology.

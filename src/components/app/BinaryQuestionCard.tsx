@@ -51,9 +51,9 @@ export const BinaryQuestionCard = memo(function BinaryQuestionCard({
       // Ignore if focus is in an input
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
 
-      if (e.key === 'ArrowLeft') {
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
         onAnswerRef.current(options[0], 0);
-      } else if (e.key === 'ArrowRight') {
+      } else if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
         onAnswerRef.current(options[1], 1);
       }
     };
@@ -92,6 +92,7 @@ export const BinaryQuestionCard = memo(function BinaryQuestionCard({
                 onClick={() => onAnswer(option, index)}
                 disabled={isNavigating && !isSelected}
                 variant={isSelected ? "default" : "outline"}
+                aria-keyshortcuts={isLeft ? "ArrowLeft ArrowUp" : "ArrowRight ArrowDown"}
                 className={`
                   w-full h-full min-h-[160px] p-8 text-xl font-serif whitespace-normal
                   flex flex-col gap-4 items-center justify-center text-center
@@ -105,7 +106,7 @@ export const BinaryQuestionCard = memo(function BinaryQuestionCard({
                 {!isNavigating && showHints && (
                    <span aria-hidden="true" className="hidden md:flex items-center gap-1 text-[10px] tracking-widest uppercase text-muted-foreground/70 group-hover:text-primary transition-colors absolute bottom-4">
                      {isLeft ? <ArrowLeft className="w-3 h-3" /> : null}
-                     {isLeft ? 'Left' : 'Right'}
+                     {isLeft ? 'Left / Up' : 'Right / Down'}
                      {!isLeft ? <ArrowRight className="w-3 h-3" /> : null}
                    </span>
                 )}
