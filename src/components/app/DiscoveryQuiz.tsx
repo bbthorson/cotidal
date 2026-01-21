@@ -1,6 +1,7 @@
 'use client';
 import { useState, useRef } from 'react';
 import { questions, drinkDatabase, Drink, QuestionTier, QuestionOption } from '@/lib/data';
+import { fetchDrinkDetails } from '@/lib/cocktail-api';
 import { calculateDistance } from '@/lib/scoring';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -172,6 +173,12 @@ export function DiscoveryQuiz({ onComplete }: DiscoveryQuizProps) {
 
     // Sort by Final Score descending
     rankedCandidates.sort((a, b) => b.score - a.score);
+
+    // Optimization: Prefetch details for top 3 recommendations to avoid waterfall in ResultsScreen.
+    // This starts the network requests while the view transition is happening.
+    rankedCandidates.slice(0, 3).forEach(drink => {
+      fetchDrinkDetails(drink.name);
+    });
 
     // Save to local storage
     localStorage.setItem('user_profile', JSON.stringify(finalProfile));
