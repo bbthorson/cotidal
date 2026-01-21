@@ -16,8 +16,8 @@ const ArchetypeSchema = z.object({
 });
 
 // Security: Validate inputs to prevent DoS via token exhaustion or massive payloads
-const InputSchema = z.object({
-  drinkName: z.string().min(1).max(100).regex(/^[^<>{}\\]+$/, "Please use plain text only (no special characters like <, >, {, }, \\)."),
+export const InputSchema = z.object({
+  drinkName: z.string().min(1).max(100).regex(/^[^<>{}\\\r\n]+$/, "Please use plain text only (no special characters like <, >, {, }, \\ or newlines)."),
   description: z.string().max(1000).regex(/^[^<>{}\\]*$/, "Please use plain text only (no special characters like <, >, {, }, \\).").optional(),
 });
 
@@ -33,6 +33,11 @@ export async function archetypeDrink(drinkName: string, description?: string) {
     description,
   });
 
+  // Security: Sanitize description to prevent prompt injection via newlines
+  const sanitizedDescription = validDescription
+    ? validDescription.replace(/[\r\n]+/g, ' ').trim()
+    : undefined;
+
   const system = `
     You are "The Oracle," an ancient and witty master of all concoctions.
     
@@ -45,7 +50,7 @@ export async function archetypeDrink(drinkName: string, description?: string) {
     Provide your response in the requested format with a short, mystic reasoning for your choice.
   `;
 
-  const prompt = `Analyze the drink: "${validName}" ${validDescription ? `(${validDescription})` : ''}.`;
+  const prompt = `Analyze the drink: "${validName}" ${sanitizedDescription ? `(${sanitizedDescription})` : ''}.`;
 
   try {
     const { object } = await generateObject({

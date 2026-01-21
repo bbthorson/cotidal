@@ -34,3 +34,8 @@
 **Vulnerability:** The `archetypeDrink` Server Action mixed system instructions ("You are The Oracle...") with user input ("Analyze: ${drinkName}") in a single text prompt. This allowed potential Prompt Injection where malicious input could override the AI's persona or logic.
 **Learning:** Reliance on the model to "behave" when instructions and data are concatenated is fragile. Modern LLM APIs and SDKs (like Vercel AI SDK) support a distinct `system` parameter effectively creating a "sandbox" for the persona that user input cannot easily override.
 **Prevention:** Refactored `src/app/actions/archetype-drink.ts` to move the persona and rules into the `system` property, leaving the `prompt` property exclusively for the user-provided drink data.
+
+## 2025-05-28 - Aligning Code with Security Memory & Newline Injection
+**Vulnerability:** A discrepancy existed between the security memory (which claimed newlines were disallowed in `drinkName`) and the actual implementation (which allowed them via `regex(/^[^<>{}\\]+$/)`). This exposed a potential Prompt Injection vector where attackers could use newlines to separate instructions.
+**Learning:** Memory is context, not code. Always verify that security claims in documentation/memory match the actual regex or logic. `[^...]` matches newlines unless explicitly excluded.
+**Prevention:** Updated `InputSchema` to explicitly disallow newlines (`\r\n`) in `drinkName` and added strict sanitization (replacing newlines with spaces) for the `description` field before prompt construction.
