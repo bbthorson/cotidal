@@ -35,3 +35,7 @@
 ## 2025-12-18 - [Responsive Accessible Labels]
 **Learning:** When text labels are visually hidden on small screens (leaving only icons), the accessible name relies on the icon (often an emoji), which can be ambiguous or fail to match the desktop label.
 **Action:** Use `aria-label` on the interactive element (e.g., `TabsTrigger`) to force the accessible name to match the full text label (e.g., "My Usual") regardless of the current visual state.
+
+## 2025-12-19 - [Discoverable Keyboard Shortcuts]
+**Learning:** Custom JavaScript keyboard listeners (like `window.addEventListener`) are invisible to screen readers, leaving users unaware of available shortcuts.
+**Action:** Always pair custom keyboard listeners with the `aria-keyshortcuts` attribute on the primary interactive element (e.g., `<button aria-keyshortcuts="ArrowLeft">`) to announce the availability of these shortcuts.

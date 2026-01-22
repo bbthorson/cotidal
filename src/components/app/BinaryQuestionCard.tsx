@@ -92,6 +92,7 @@ export const BinaryQuestionCard = memo(function BinaryQuestionCard({
                 onClick={() => onAnswer(option, index)}
                 disabled={isNavigating && !isSelected}
                 variant={isSelected ? "default" : "outline"}
+                aria-keyshortcuts={isBinary ? (index === 0 ? "ArrowLeft" : "ArrowRight") : undefined}
                 className={`
                   w-full h-full min-h-[160px] p-8 text-xl font-serif whitespace-normal
                   flex flex-col gap-4 items-center justify-center text-center
