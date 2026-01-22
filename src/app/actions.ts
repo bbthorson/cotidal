@@ -10,7 +10,8 @@ const formSchema = z.object({
     .string()
     .min(10, "Please provide a more detailed description of your ingredients.")
     .max(500, "Description is too long (max 500 characters).")
-    .regex(/^[^<>{}\\]+$/, "Please use plain text only (no special characters like <, >, {, }, \\)."),
+    // Security: Explicitly ban newlines to prevent prompt injection, even if sanitization fails.
+    .regex(/^[^<>{}\\\r\n]+$/, "Please use plain text only (no newlines or special characters like <, >, {, }, \\)."),
 });
 
 export async function findCocktailRecipes(prevState: { data: string; error: string } | null, formData: FormData) {
@@ -19,8 +20,14 @@ export async function findCocktailRecipes(prevState: { data: string; error: stri
     return { error: 'Too many requests. Please try again later.', data: '' };
   }
 
+  // Security: Sanitize input by replacing newlines with spaces to prevent prompt injection.
+  const rawInput = formData.get('ingredientsDescription');
+  const sanitizedInput = typeof rawInput === 'string'
+    ? rawInput.replace(/[\r\n]+/g, ' ').trim()
+    : rawInput;
+
   const validatedFields = formSchema.safeParse({
-    ingredientsDescription: formData.get('ingredientsDescription'),
+    ingredientsDescription: sanitizedInput,
   });
 
   if (!validatedFields.success) {
