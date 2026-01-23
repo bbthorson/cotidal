@@ -31,6 +31,42 @@ export async function ingredientBasedCocktailSearch(input: IngredientBasedCockta
   return ingredientBasedCocktailSearchFlow(input);
 }
 
+// Export for testing
+export async function _fetchCocktailRecipesForTest(input: { ingredients: string }) {
+  try {
+    // 1. Fetch from TheCocktailDB
+    const response = await fetch(
+      `https://www.thecocktaildb.com/api/json/v1/1/filter.php?i=${encodeURIComponent(input.ingredients)}`,
+      { signal: AbortSignal.timeout(API_TIMEOUT_MS) }
+    );
+
+    if (!response.ok) {
+      return `Error fetching recipes: ${response.statusText}`;
+    }
+
+    const data = await response.json();
+
+    if (!data.drinks) {
+      return `No recipes found containing ${input.ingredients}.`;
+    }
+
+    // 2. Format the output (Take top 10 to save context window)
+    const drinks = data.drinks.slice(0, 10).map((d: { strDrink: string }) => d.strDrink).join(', ');
+
+    return `Found these cocktails with ${input.ingredients}: ${drinks}.`;
+
+  } catch (error) {
+    const errName = (error as Error).name;
+    // Handle both AbortError (manual) and TimeoutError (AbortSignal.timeout)
+    if (errName === 'AbortError' || errName === 'TimeoutError') {
+      console.error(`Timeout fetching recipes for ${input.ingredients}`);
+      return "The cocktail database is currently unresponsive. Please try again later.";
+    }
+    console.error("CocktailDB API Error:", error);
+    return "An error occurred while connecting to the cocktail database.";
+  }
+}
+
 const getCocktailRecipes = ai.defineTool(
   {
     name: 'getCocktailRecipes',
@@ -40,43 +76,7 @@ const getCocktailRecipes = ai.defineTool(
     }),
     outputSchema: z.string(),
   },
-  async (input) => {
-    try {
-      // 1. Fetch from TheCocktailDB
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT_MS);
-
-      const response = await fetch(
-        `https://www.thecocktaildb.com/api/json/v1/1/filter.php?i=${encodeURIComponent(input.ingredients)}`,
-        { signal: controller.signal }
-      );
-
-      clearTimeout(timeoutId);
-
-      if (!response.ok) {
-        return `Error fetching recipes: ${response.statusText}`;
-      }
-
-      const data = await response.json();
-
-      if (!data.drinks) {
-        return `No recipes found containing ${input.ingredients}.`;
-      }
-
-      // 2. Format the output (Take top 10 to save context window)
-      const drinks = data.drinks.slice(0, 10).map((d: { strDrink: string }) => d.strDrink).join(', ');
-
-      return `Found these cocktails with ${input.ingredients}: ${drinks}.`;
-
-    } catch (error) {
-      if ((error as Error).name === 'AbortError') {
-        console.error(`Timeout fetching recipes for ${input.ingredients}`);
-        return "The cocktail database is currently unresponsive. Please try again later.";
-      }
-      console.error("CocktailDB API Error:", error);
-      return "An error occurred while connecting to the cocktail database.";
-    }
-  }
+  _fetchCocktailRecipesForTest
 );
 
 const prompt = ai.definePrompt({
