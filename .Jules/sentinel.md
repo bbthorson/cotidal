@@ -34,3 +34,8 @@
 **Vulnerability:** The `archetypeDrink` Server Action mixed system instructions ("You are The Oracle...") with user input ("Analyze: ${drinkName}") in a single text prompt. This allowed potential Prompt Injection where malicious input could override the AI's persona or logic.
 **Learning:** Reliance on the model to "behave" when instructions and data are concatenated is fragile. Modern LLM APIs and SDKs (like Vercel AI SDK) support a distinct `system` parameter effectively creating a "sandbox" for the persona that user input cannot easily override.
 **Prevention:** Refactored `src/app/actions/archetype-drink.ts` to move the persona and rules into the `system` property, leaving the `prompt` property exclusively for the user-provided drink data.
+
+## 2025-05-28 - CSP Drift & Clickjacking Protection
+**Vulnerability:** The Content Security Policy (CSP) in `next.config.ts` was overly restrictive, blocking necessary Firebase domains (`googleapis.com`, `firebaseio.com`), and lacked `frame-ancestors` protection.
+**Learning:** Security configurations like CSP must evolve with the application's dependencies. A "secure" policy that breaks functionality (blocking Auth) often leads to developers disabling it entirely. Also, `X-Frame-Options` is insufficient; `frame-ancestors` is required for modern Clickjacking protection.
+**Prevention:** Updated `next.config.ts` to explicitly allow Firebase/Google domains while enforcing `frame-ancestors 'none'`.

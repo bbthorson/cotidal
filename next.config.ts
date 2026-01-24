@@ -65,7 +65,7 @@ const nextConfig: NextConfig = {
           },
           {
             key: 'Content-Security-Policy',
-            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data: https://placehold.co https://images.unsplash.com https://picsum.photos https://www.thecocktaildb.com; connect-src 'self' https://www.thecocktaildb.com; font-src 'self';"
+            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data: https://placehold.co https://images.unsplash.com https://picsum.photos https://www.thecocktaildb.com https://*.googleusercontent.com; connect-src 'self' https://www.thecocktaildb.com https://*.googleapis.com https://*.firebaseio.com https://identitytoolkit.googleapis.com; font-src 'self'; frame-ancestors 'none';"
           }
         ],
       },
