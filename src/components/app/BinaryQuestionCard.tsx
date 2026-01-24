@@ -90,6 +90,7 @@ export const BinaryQuestionCard = memo(function BinaryQuestionCard({
             >
               <Button
                 onClick={() => onAnswer(option, index)}
+                aria-keyshortcuts={showHints ? (isLeft ? "ArrowLeft" : "ArrowRight") : undefined}
                 disabled={isNavigating && !isSelected}
                 variant={isSelected ? "default" : "outline"}
                 className={`

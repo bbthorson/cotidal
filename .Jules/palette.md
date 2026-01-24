@@ -35,3 +35,7 @@
 ## 2025-12-18 - [Responsive Accessible Labels]
 **Learning:** When text labels are visually hidden on small screens (leaving only icons), the accessible name relies on the icon (often an emoji), which can be ambiguous or fail to match the desktop label.
 **Action:** Use `aria-label` on the interactive element (e.g., `TabsTrigger`) to force the accessible name to match the full text label (e.g., "My Usual") regardless of the current visual state.
+
+## 2025-12-19 - [Global Keyboard Shortcuts & Scrolling]
+**Learning:** Adding global shortcuts like `ArrowUp`/`ArrowDown` via `window` listeners requires `e.preventDefault()`, which dangerously hijacks native scrolling. This is especially harmful on mobile or when content overflows.
+**Action:** Avoid mapping navigation actions to native scroll keys (Up/Down) globally. Stick to non-scrolling keys (Left/Right) or ensure the listener is scoped to a focusable container (not `window`) that the user has explicitly entered.
