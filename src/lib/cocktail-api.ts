@@ -37,11 +37,17 @@ export async function fetchRandomDrink(): Promise<CocktailDBResult | null> {
 
 export function fetchDrinkDetails(drinkName: string): Promise<CocktailDBResult | null> {
     if (drinkCache.has(drinkName)) {
-        return drinkCache.get(drinkName)!;
+        // Optimization: Implement LRU (Least Recently Used) policy
+        // Move the accessed item to the end of the Map so it's considered "most recently used".
+        const promise = drinkCache.get(drinkName)!;
+        drinkCache.delete(drinkName);
+        drinkCache.set(drinkName, promise);
+        return promise;
     }
 
     // Security Enhancement: Prevent Unbounded Cache Growth (DoS)
     if (drinkCache.size >= MAX_CACHE_SIZE) {
+        // Evict the least recently used item (the first one in insertion order)
         const firstKey = drinkCache.keys().next().value;
         if (firstKey) {
             drinkCache.delete(firstKey);
