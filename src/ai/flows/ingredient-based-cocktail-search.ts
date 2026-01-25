@@ -86,7 +86,9 @@ const prompt = ai.definePrompt({
   tools: [getCocktailRecipes],
   prompt: `You are a cocktail expert. A user will provide you with a description of ingredients that they have on hand. Use the getCocktailRecipes tool to find recipes that use those ingredients. Return a list of cocktail recipes that can be made with the given ingredients.
 
-Ingredients description: {{{ingredientsDescription}}}`,
+<user_ingredients>
+{{{ingredientsDescription}}}
+</user_ingredients>`,
 });
 
 const ingredientBasedCocktailSearchFlow = ai.defineFlow(
