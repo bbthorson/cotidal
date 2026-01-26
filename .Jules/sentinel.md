@@ -34,3 +34,8 @@
 **Vulnerability:** The `archetypeDrink` Server Action mixed system instructions ("You are The Oracle...") with user input ("Analyze: ${drinkName}") in a single text prompt. This allowed potential Prompt Injection where malicious input could override the AI's persona or logic.
 **Learning:** Reliance on the model to "behave" when instructions and data are concatenated is fragile. Modern LLM APIs and SDKs (like Vercel AI SDK) support a distinct `system` parameter effectively creating a "sandbox" for the persona that user input cannot easily override.
 **Prevention:** Refactored `src/app/actions/archetype-drink.ts` to move the persona and rules into the `system` property, leaving the `prompt` property exclusively for the user-provided drink data.
+
+## 2025-05-28 - CSP Configuration Gap with External Auth Services
+**Vulnerability:** The Content Security Policy (CSP) in `next.config.ts` was configured to block all external connections except TheCocktailDB, effectively breaking the application's Firebase Authentication which relies on Google's identity domains. Additionally, `script-src` allowed `'unsafe-eval'`.
+**Learning:** CSPs must be tested against the full runtime behavior of the application, including third-party SDKs (like Firebase) that perform client-side network requests to their own domains. A "strict" CSP that blocks essential services is functionally a denial of service. Also, `unsafe-eval` is rarely needed in modern Next.js production builds and weakens XSS protection.
+**Prevention:** Updated `next.config.ts` to whitelist specific Firebase/Google domains (`identitytoolkit.googleapis.com`, etc.) and removed `'unsafe-eval'` to align with security best practices without breaking functionality.
