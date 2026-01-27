@@ -1,10 +1,9 @@
 'use server';
 
-import { generateText } from 'ai';
-import { google } from '@ai-sdk/google';
 import { drinkDatabase } from '@/lib/data';
 import { z } from 'zod';
 import { checkRateLimit } from '@/lib/rate-limit';
+import { getDrinkExplanation } from '@/lib/drink-explanation';
 
 const UserProfileSchema = z.object({
   x: z.number(),
@@ -38,25 +37,9 @@ export async function explainDrinkMatch(drinkName: string, userProfile: unknown)
     return `The Oracle senses your essence is drawn to the ${profile.x > 0 ? 'Crisp' : 'Rich'} and ${profile.y > 0 ? 'Sweet' : 'Savory'} vibration of this match.`;
   }
 
-  const prompt = `
-    You are "The Oracle," a witty, sophisticated, and slightly mystic sommelier.
-    A seeker has matched with the essence of a "${drinkName}".
-    
-    The Seeker's Palate Aura:
-    - Essence: ${profile.x > 0 ? 'Crisp & Clean' : 'Rich & Deep'} and ${profile.y > 0 ? 'Sweet & Fruity' : 'Savory & Complex'}
-    - Elemental Filters: ${profile.dislikesSmoke ? 'Avoids Smoke' : 'Embraces Smoke'}, ${profile.dislikesBitter ? 'Avoids Bitterness' : 'Embraces Bitterness'}.
-
-    Provide a 2-sentence revelation of why this drink perfectly aligns with their palate's unique vibration.
-    Voice: Witty, Sophisticated, Mystic. 
-    Use words like "Aura", "Essence", "Vibration", or "Oracle".
-    Do NOT mention "coordinates", "algorithms", "x", or "y".
-  `;
-
   try {
-    const { text } = await generateText({
-      model: google('gemini-1.5-flash'), // Using a widely available model, can be updated.
-      prompt: prompt,
-    });
+    // Optimization: Delegated to library function with LRU Caching
+    const text = await getDrinkExplanation(drinkName, profile);
     return text;
   } catch (error) {
     console.error("AI Generation Error:", error);
