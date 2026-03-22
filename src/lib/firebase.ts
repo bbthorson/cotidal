@@ -1,6 +1,7 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
+import { getAI, GoogleAIBackend } from "firebase/ai";
 
 // In some build environments (like Firebase App Hosting), environment variables might not be available during the build step.
 // We provide a fallback mock key to allow the build to pass (e.g. static generation of pages).
@@ -20,4 +21,6 @@ const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-export { app, auth, db };
+const ai = getAI(app, { backend: new GoogleAIBackend() });
+
+export { app, auth, db, ai };

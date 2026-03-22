@@ -13,11 +13,10 @@ import { ConversationThread } from '@/components/app/ConversationThread';
 import { AnswerChoices } from '@/components/app/AnswerChoices';
 import { Button } from '@/components/ui/button';
 import { useDiscoveryQuiz, type UserProfile } from '@/hooks/useDiscoveryQuiz';
+import { useBartenderChat } from '@/hooks/useBartenderChat';
 import {
   type ConversationMessage,
   createMessage,
-  ENRICHED_FEEDBACK,
-  TIER_TRANSITIONS,
 } from '@/lib/conversation';
 
 // Lazy load heavy results components
@@ -57,6 +56,7 @@ export default function Home() {
   const [vibeTags, setVibeTags] = useState<Record<string, number> | null>(initialProfile?.vibeTags ?? null);
   const [conversationHistory, setConversationHistory] = useState<ConversationMessage[]>([]);
   const middleRef = useRef<HTMLDivElement>(null);
+  const bartender = useBartenderChat();
 
   const applyProfile = useCallback((profile: UserProfile) => {
     setUser(profileToUser(profile));
@@ -78,7 +78,6 @@ export default function Home() {
 
   const handleQuizComplete = useCallback((profile: UserProfile) => {
     applyProfile(profile);
-    // Add final bartender message
     setConversationHistory(prev => [
       ...prev,
       createMessage('system', "I've got your menu. Take a look."),
@@ -88,35 +87,43 @@ export default function Home() {
 
   const quiz = useDiscoveryQuiz(handleQuizComplete);
 
-  const addMessages = useCallback((...messages: ConversationMessage[]) => {
-    setConversationHistory(prev => [...prev, ...messages]);
+  // Update a specific message's content by id
+  const updateMessage = useCallback((id: string, content: string) => {
+    setConversationHistory(prev =>
+      prev.map(msg => msg.id === id ? { ...msg, content } : msg)
+    );
   }, []);
 
   const handleQuizAnswer = useCallback((option: QuestionOption, index: number) => {
     const questionId = quiz.currentQuestion.id;
+    const questionText = quiz.currentQuestion.text;
     const result = quiz.handleAnswer(option, index);
 
+    // Add user message + placeholder bartender message immediately
     const userMsg = createMessage('user', option.text);
-    const feedback = ENRICHED_FEEDBACK[`${questionId}-${index}`] || option.feedback || '';
-    const bartenderMsg = createMessage('bartender', feedback);
+    const bartenderMsg = createMessage('bartender', '…');
 
     if (result.tierChanged) {
-      const transition = TIER_TRANSITIONS[result.prevTier];
-      if (transition) {
-        addMessages(userMsg, bartenderMsg, createMessage('system', transition));
-      } else {
-        addMessages(userMsg, bartenderMsg);
-      }
+      const systemMsg = createMessage('system', '…');
+      setConversationHistory(prev => [...prev, userMsg, bartenderMsg, systemMsg]);
+
+      // Fire AI requests in parallel
+      bartender.getBartenderResponse(questionText, option.text, questionId, index)
+        .then(text => updateMessage(bartenderMsg.id, text));
+      bartender.getTierTransition(result.prevTier, result.newTier)
+        .then(text => updateMessage(systemMsg.id, text));
     } else {
-      addMessages(userMsg, bartenderMsg);
+      setConversationHistory(prev => [...prev, userMsg, bartenderMsg]);
+
+      bartender.getBartenderResponse(questionText, option.text, questionId, index)
+        .then(text => updateMessage(bartenderMsg.id, text));
     }
-  }, [quiz, addMessages]);
+  }, [quiz, bartender, updateMessage]);
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     const el = middleRef.current;
     if (!el) return;
-    // Only auto-scroll if user is near the bottom (within 100px)
     const isNearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 100;
     if (isNearBottom) {
       requestAnimationFrame(() => {
@@ -147,12 +154,14 @@ export default function Home() {
     setUser({ x: 0, y: 0, filters: [] });
     setVibeTags(null);
     setConversationHistory([]);
+    bartender.resetChat();
     setScreen('quiz');
   };
 
   const handleReset = () => {
     localStorage.removeItem('user_profile');
     setConversationHistory([]);
+    bartender.resetChat();
     setScreen('welcome');
   };
 
