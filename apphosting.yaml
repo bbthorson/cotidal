@@ -5,3 +5,18 @@ runConfig:
   # Increase this value if you'd like to automatically spin up
   # more instances in response to increased traffic.
   maxInstances: 1
+
+env:
+  # AT Protocol / Bluesky OAuth (opt-in)
+  - variable: NEXT_PUBLIC_ATPROTO_ENABLED
+    value: "true"
+  - variable: ATPROTO_CLIENT_ID
+    availability:
+      - BUILD
+      - RUNTIME
+    secret: atproto-client-id
+  - variable: ATPROTO_REDIRECT_URI
+    availability:
+      - BUILD
+      - RUNTIME
+    secret: atproto-redirect-uri

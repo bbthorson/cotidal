@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 import { FirebaseAuthProvider } from "@/components/app/FirebaseAuthProvider";
+import { AtprotoProvider } from "@/components/app/AtprotoProvider";
 import { Playfair_Display, PT_Sans } from 'next/font/google';
 
 const playfair = Playfair_Display({
@@ -33,7 +34,9 @@ export default function RootLayout({
           Skip to content
         </a>
         <FirebaseAuthProvider>
-          {children}
+          <AtprotoProvider>
+            {children}
+          </AtprotoProvider>
         </FirebaseAuthProvider>
         <Toaster />
       </body>

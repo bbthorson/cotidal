@@ -1,0 +1,44 @@
+{
+  "lexicon": 1,
+  "id": "app.crystalcoupe.palate",
+  "defs": {
+    "main": {
+      "type": "record",
+      "description": "A user's cocktail palate profile from The Crystal Coupe",
+      "key": "literal:self",
+      "record": {
+        "type": "object",
+        "required": ["x", "y", "dislikesSmoke", "dislikesBitter", "dislikesAnise", "vibeTags", "createdAt"],
+        "properties": {
+          "x": {
+            "type": "number",
+            "description": "Position on Rich(-10) to Crisp(+10) axis",
+            "minimum": -10,
+            "maximum": 10
+          },
+          "y": {
+            "type": "number",
+            "description": "Position on Savory(-10) to Sweet(+10) axis",
+            "minimum": -10,
+            "maximum": 10
+          },
+          "dislikesSmoke": { "type": "boolean" },
+          "dislikesBitter": { "type": "boolean" },
+          "dislikesAnise": { "type": "boolean" },
+          "vibeTags": {
+            "type": "object",
+            "description": "Tag affinity scores from quiz responses"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "datetime"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "datetime"
+          }
+        }
+      }
+    }
+  }
+}

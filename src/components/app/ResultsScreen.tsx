@@ -13,6 +13,7 @@ import { MapPin } from './MapPin';
 import { UserPin } from './UserPin';
 import { DrinkCard } from './DrinkCard';
 import { MapBackground } from './MapBackground';
+import { ConnectBluesky } from './ConnectBluesky';
 
 interface ResultsScreenProps {
     user: User;
@@ -21,10 +22,10 @@ interface ResultsScreenProps {
 }
 
 const CONTEXTS: Record<ContextType, { label: string; icon: string; description: string }> = {
-    usual: { label: "My Usual", icon: "🍸", description: "Your calibrated flavor profile." },
-    business: { label: "Business", icon: "🤝", description: "Safe, prestigious, and impressive." },
-    party: { label: "Party", icon: "🎉", description: "Fun, social, and easy-drinking." },
-    holiday: { label: "Holiday", icon: "🎄", description: "Cozy, warm, and comforting." },
+    usual: { label: "My Usual", icon: "🍸", description: "Your go-to picks." },
+    business: { label: "Business", icon: "🤝", description: "Something that makes you look good." },
+    party: { label: "Party", icon: "🎉", description: "Easy-drinking crowd pleasers." },
+    holiday: { label: "Holiday", icon: "🎄", description: "Warm, cozy, festive." },
 };
 
 // Optimization: Pre-calculate CONTEXT entries to avoid re-creating the array on every render
@@ -187,9 +188,9 @@ export function ResultsScreen({ user, vibeTags, onReset }: ResultsScreenProps) {
                     tabIndex={-1}
                     className="font-headline text-3xl sm:text-4xl font-bold text-primary outline-none"
                 >
-                    The Palate Revelation
+                    Your Drink Profile
                 </h1>
-                <p className="text-muted-foreground italic font-serif text-lg">Your personal flavor universe, unveiled.</p>
+                <p className="text-muted-foreground italic font-serif text-lg">Here&apos;s what we&apos;d pour you.</p>
             </div>
 
             {/* Context Switcher */}
@@ -207,7 +208,7 @@ export function ResultsScreen({ user, vibeTags, onReset }: ResultsScreenProps) {
             </div>
 
             {/* The Visual Map */}
-            <Card className="relative w-full aspect-square max-w-lg mx-auto bg-[#FDFBF7] shadow-inner border-2 border-primary/10 overflow-hidden">
+            <Card className="relative w-full aspect-square max-w-lg mx-auto bg-card shadow-bar border border-primary/10 overflow-hidden">
                 {/* Optimization: Extracted static map background to memoized component to prevent re-rendering during hover events */}
                 <MapBackground />
 
@@ -273,13 +274,20 @@ export function ResultsScreen({ user, vibeTags, onReset }: ResultsScreenProps) {
 
             <Chatbot />
 
+            <ConnectBluesky
+                user={user}
+                vibeTags={vibeTags || {}}
+                heroDrinkName={heroDrink?.name || ''}
+                quadrant={user.x <= 0 && user.y >= 0 ? 'Lush & Lively' : user.x > 0 && user.y >= 0 ? 'Crisp & Clean' : user.x <= 0 && user.y < 0 ? 'Decadent & Deep' : 'Bold & Complex'}
+            />
+
             <div className="text-center pt-8 border-t border-primary/10">
                 <Button
                     onClick={onReset}
                     variant="ghost"
                     className="text-muted-foreground hover:text-primary tracking-widest uppercase text-xs h-auto min-h-[44px] px-8"
                 >
-                    Return to the Oracle (Reset)
+                    Start Over
                 </Button>
             </div>
         </div>
