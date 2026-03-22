@@ -1,5 +1,5 @@
 'use client';
-import { useMemo, useEffect, useCallback, useRef } from 'react';
+import { useMemo, useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import { auth } from '@/lib/firebase';
 import { getUserProfile } from '@/lib/profile-service';
@@ -10,21 +10,12 @@ import { ChatHeader } from '@/components/app/ChatHeader';
 import { ChatThread } from '@/components/app/ChatThread';
 import { ChatInput } from '@/components/app/ChatInput';
 import { useConversationThread } from '@/hooks/useConversationThread';
-import type { UserProfile } from '@/hooks/useDiscoveryQuiz';
 
 // Lazy load heavy results components
 const ResultsScreen = dynamic(() => import('@/components/app/ResultsScreen').then(mod => mod.ResultsScreen), {
   loading: () => <div className="flex min-h-[300px] w-full items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary/50" /></div>,
   ssr: false,
 });
-
-function profileToUser(profile: UserProfile) {
-  const filters: string[] = [];
-  if (profile.dislikesSmoke) filters.push('noSmoke');
-  if (profile.dislikesBitter) filters.push('noBitter');
-  if (profile.dislikesAnise) filters.push('noAnise');
-  return { x: profile.x, y: profile.y, filters, dislikesAnise: profile.dislikesAnise };
-}
 
 export default function Home() {
   const thread = useConversationThread();
@@ -43,25 +34,6 @@ export default function Home() {
     return () => unsubscribe();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  // Auto-scroll to bottom on new messages
-  useEffect(() => {
-    const el = threadRef.current;
-    if (!el) return;
-    const isNearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 100;
-    if (isNearBottom) {
-      requestAnimationFrame(() => {
-        el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
-      });
-    }
-  }, [thread.messages]);
-
-  // Scroll to top when switching to results
-  useEffect(() => {
-    if (thread.screen === 'results') {
-      threadRef.current?.scrollTo({ top: 0 });
-    }
-  }, [thread.screen]);
 
   const finalUser = useMemo(() => {
     if (thread.screen === 'results') {
@@ -82,7 +54,7 @@ export default function Home() {
         header={<ChatHeader />}
         middle={
           thread.vibeTags ? (
-            <div ref={threadRef} className="flex-1 overflow-y-auto">
+            <div className="flex-1 overflow-y-auto">
               <ResultsScreen user={finalUser} vibeTags={thread.vibeTags} />
             </div>
           ) : (
@@ -103,9 +75,13 @@ export default function Home() {
     );
   }
 
+  const placeholder = thread.awaitingOpener
+    ? "Tell me what you're in the mood for…"
+    : "Type your answer…";
+
   return (
     <ChatLayout
-      header={<ChatHeader progress={thread.progress} />}
+      header={<ChatHeader progress={thread.quizStarted ? thread.progress : undefined} />}
       middle={
         <ChatThread
           messages={thread.messages}
@@ -120,7 +96,7 @@ export default function Home() {
         <ChatInput
           onSend={thread.handleSendText}
           disabled={thread.isNavigating}
-          placeholder="Type your answer…"
+          placeholder={placeholder}
         />
       }
     />

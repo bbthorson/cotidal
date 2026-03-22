@@ -54,7 +54,7 @@ export async function explainDrinkMatch(drinkName: string, userProfile: unknown)
 
   try {
     const { text } = await generateText({
-      model: google('gemini-1.5-flash'), // Using a widely available model, can be updated.
+      model: google('gemini-2.5-flash-lite'),
       prompt: prompt,
     });
     return text;

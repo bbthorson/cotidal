@@ -110,7 +110,7 @@ export function useConversationThread() {
     setMessages(prev => [...prev, feedbackMsg]);
 
     // Fire AI for feedback (just feedback, no next question)
-    bartender.getUnifiedTurn(questionText, option.text, questionId, index, null,
+    bartender.getBartenderResponse(questionText, option.text, questionId, index,
       result.tierChanged ? { from: result.prevTier, to: result.newTier } : undefined
     ).then(text => updateMessage(feedbackMsg.id, text));
 
@@ -182,9 +182,9 @@ export function useConversationThread() {
       const feedbackMsg = createMsg('bartender', '…');
       setMessages(prev => [...prev, feedbackMsg]);
 
-      bartender.getUnifiedTurn(questionText, text, questionId, matchedIndex, null,
+      bartender.getBartenderResponse(questionText, text, questionId, matchedIndex,
         result.tierChanged ? { from: result.prevTier, to: result.newTier } : undefined
-      ).then(t => updateMessage(feedbackMsg.id, t));
+      ).then((t: string) => updateMessage(feedbackMsg.id, t));
 
       if (!result.isComplete) {
         pendingFeedbackRef.current = {
@@ -226,6 +226,8 @@ export function useConversationThread() {
     pendingOptions,
     isNavigating: quiz.isNavigating,
     progress: quiz.progress,
+    quizStarted,
+    awaitingOpener,
     user,
     vibeTags,
     handleSelectOption,

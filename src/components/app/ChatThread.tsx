@@ -1,5 +1,5 @@
 'use client';
-import { RefObject } from 'react';
+import { RefObject, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import type { QuestionOption } from '@/lib/discovery-questions';
 import { QuickReplyChips } from './QuickReplyChips';
@@ -28,6 +28,15 @@ export function ChatThread({
   isNavigating,
   threadRef,
 }: ChatThreadProps) {
+  // Auto-scroll to bottom when messages change
+  useEffect(() => {
+    const el = threadRef?.current;
+    if (!el) return;
+    requestAnimationFrame(() => {
+      el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
+    });
+  }, [messages, pendingOptions, threadRef]);
+
   // Find the last bartender message index to attach chips
   const lastBartenderIdx = (() => {
     for (let i = messages.length - 1; i >= 0; i--) {

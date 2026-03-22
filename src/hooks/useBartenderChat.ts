@@ -12,7 +12,7 @@ Rules:
 - Reference their previous answers to build a narrative ("First black coffee, now fizzy — you want contrast")
 - Use specific drink/flavor knowledge (mention actual spirits, techniques, flavor notes)
 - Don't be cheesy or use clichés like "great choice!" — be genuine
-- When you're given a next question to ask, weave it naturally into your response — react to their answer first, then transition into the next question as part of the same thought
+- Don't ask questions — just respond to their choice and hint at what it tells you
 - Never mention that you're an AI`;
 
 let model: ReturnType<typeof getGenerativeModel> | null = null;
@@ -25,7 +25,7 @@ function getModel(): ReturnType<typeof getGenerativeModel> | null {
       model = getGenerativeModel(ai, {
         model: 'gemini-2.5-flash-lite',
         generationConfig: {
-          maxOutputTokens: 200,
+          maxOutputTokens: 150,
           temperature: 0.8,
           topP: 0.9,
         },
@@ -55,17 +55,15 @@ export function useBartenderChat() {
     chatRef.current = null;
   }, []);
 
-  // Phase 2: Unified turn — feedback on answer + next question woven together
-  const getUnifiedTurn = useCallback(async (
+  // Feedback on the user's answer to a quiz question
+  const getBartenderResponse = useCallback(async (
     questionText: string,
     answerText: string,
     questionId: string,
     optionIndex: number,
-    nextQuestionText: string | null,
     tierTransition?: { from: string; to: string },
   ): Promise<string> => {
-    const feedbackFallback = ENRICHED_FEEDBACK[`${questionId}-${optionIndex}`] || '';
-    const fallback = feedbackFallback;
+    const fallback = ENRICHED_FEEDBACK[`${questionId}-${optionIndex}`] || '';
 
     try {
       const chat = getChat();
@@ -77,12 +75,6 @@ export function useBartenderChat() {
         prompt += `\n\n[We just finished the "${tierTransition.from}" section and are moving to "${tierTransition.to}". Briefly note this shift in your response.]`;
       }
 
-      if (nextQuestionText) {
-        prompt += `\n\n[After reacting to my answer, naturally transition to asking me this next question: "${nextQuestionText}"]`;
-      } else {
-        prompt += `\n\n[Just react to my answer. Don't ask a follow-up question — the next question will be provided separately.]`;
-      }
-
       const result = await chat.sendMessage(prompt);
       const text = result.response.text().trim();
       return text || fallback;
@@ -92,15 +84,15 @@ export function useBartenderChat() {
     }
   }, [getChat]);
 
-  // Phase 3: Interpret freeform text against current options
+  // Interpret freeform text against current options
   const interpretFreeText = useCallback(async (
     userText: string,
     questionText: string,
     optionTexts: string[],
-  ): Promise<{ matchedIndex: number; bartenderText: string }> => {
+  ): Promise<{ matchedIndex: number }> => {
     try {
       const chat = getChat();
-      if (!chat) return { matchedIndex: -1, bartenderText: '' };
+      if (!chat) return { matchedIndex: -1 };
 
       const prompt = `[The user typed a freeform response instead of picking an option. Interpret which option they meant, if any.
 
@@ -116,25 +108,24 @@ Be generous in matching — if the user's intent clearly aligns with an option, 
       const result = await chat.sendMessage(prompt);
       const raw = result.response.text().trim();
 
-      // Parse JSON from response
       const jsonMatch = raw.match(/\{[\s\S]*\}/);
-      if (!jsonMatch) return { matchedIndex: -1, bartenderText: '' };
+      if (!jsonMatch) return { matchedIndex: -1 };
 
       const parsed = JSON.parse(jsonMatch[0]);
       const idx = typeof parsed.matchedIndex === 'number' ? parsed.matchedIndex : -1;
 
       if (idx >= 0 && idx < optionTexts.length) {
-        return { matchedIndex: idx, bartenderText: '' };
+        return { matchedIndex: idx };
       }
 
-      return { matchedIndex: -1, bartenderText: '' };
+      return { matchedIndex: -1 };
     } catch (e) {
       console.error('Freeform interpretation failed:', e);
-      return { matchedIndex: -1, bartenderText: '' };
+      return { matchedIndex: -1 };
     }
   }, [getChat]);
 
-  // Phase 3: Handle the opener — user's first freeform message before quiz
+  // Handle the opener — user's first freeform message before quiz
   const getOpenerResponse = useCallback(async (
     userText: string,
   ): Promise<string> => {
@@ -157,5 +148,5 @@ React naturally to what they said — acknowledge their mood, reference any spec
     }
   }, [getChat]);
 
-  return { getUnifiedTurn, interpretFreeText, getOpenerResponse, resetChat };
+  return { getBartenderResponse, interpretFreeText, getOpenerResponse, resetChat };
 }
