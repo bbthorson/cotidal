@@ -22,19 +22,16 @@ test('Mobile Map: Should be responsive and square', async ({ page }) => {
   await page.click('text=Sipping slowly.');
 
   // Wait for results
-  await expect(page.locator('text=Your Drink Profile')).toBeVisible({ timeout: 15000 });
+  await expect(page.locator('text=Your Drink Menu')).toBeVisible({ timeout: 15000 });
 
-  const mapContainer = page.locator('.aspect-square.max-w-lg');
+  // Mini flavor map is a decorative 2:1 aspect ratio element
+  const mapContainer = page.locator('.aspect-\\[2\\/1\\].max-w-sm');
   const box = await mapContainer.boundingBox();
 
   if (box) {
-    // Check if it's square
-    expect(Math.abs(box.width - box.height)).toBeLessThan(5);
-
-    // Check if it's taking up appropriate width on mobile (close to screen width)
-    const viewport = page.viewportSize();
-    if (viewport) {
-        expect(box.width).toBeGreaterThan(viewport.width * 0.8);
-    }
+    // Check if it's roughly 2:1 aspect ratio
+    const ratio = box.width / box.height;
+    expect(ratio).toBeGreaterThan(1.8);
+    expect(ratio).toBeLessThan(2.2);
   }
 });

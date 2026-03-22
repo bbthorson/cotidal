@@ -20,7 +20,7 @@ test('Bartender Persona: Explanation should feel knowledgeable and approachable'
   await page.click('text=Sipping slowly.');
 
   // Wait for results
-  await expect(page.locator('text=Your Drink Profile')).toBeVisible({ timeout: 15000 });
+  await expect(page.locator('text=Your Drink Menu')).toBeVisible({ timeout: 15000 });
 
   // Click the 'Why This Drink?' button on the hero drink
   const explainButton = page.locator('button:has-text("Why This Drink?")').first();

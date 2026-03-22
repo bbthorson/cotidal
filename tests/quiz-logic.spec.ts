@@ -20,7 +20,7 @@ test('Quiz Logic: Full flow and final profile verification', async ({ page }) =>
   await page.click('text=Sipping slowly.'); // dx: 1, dy: -1
 
   // Wait for results
-  await expect(page.locator('text=Your Drink Profile')).toBeVisible({ timeout: 15000 });
+  await expect(page.locator('text=Your Drink Menu')).toBeVisible({ timeout: 15000 });
 
   // Verify localStorage
   const profile = await page.evaluate(() => JSON.parse(localStorage.getItem('user_profile') || '{}'));

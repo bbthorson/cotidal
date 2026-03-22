@@ -37,7 +37,7 @@ test('Scoring Logic: Vibe tags and coordinates should accumulate correctly', asy
   await page.click('text=Sipping slowly.');
 
   // Verify localStorage
-  await expect(page.locator('text=Your Drink Profile')).toBeVisible();
+  await expect(page.locator('text=Your Drink Menu')).toBeVisible();
 
   const profile = await page.evaluate(() => JSON.parse(localStorage.getItem('user_profile') || '{}'));
 
