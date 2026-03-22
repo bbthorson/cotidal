@@ -1,16 +1,14 @@
 'use client';
-import { useMemo, useEffect, useRef } from 'react';
+import { useMemo } from 'react';
 import { drinkDatabase, type User, type ContextType } from '@/lib/data';
 import { calculateDistance, calculateContextScore } from '@/lib/scoring';
 import { ConnectBluesky } from './ConnectBluesky';
 import { MiniFlavorMap } from './MiniFlavorMap';
 import { MenuSection } from './MenuSection';
-import { CoupeLogo } from './CoupeLogo';
 
 interface ResultsScreenProps {
     user: User;
     vibeTags?: Record<string, number>;
-    onReset: () => void;
 }
 
 const MENU_SECTIONS: { context: ContextType; title: string; count: number }[] = [
@@ -20,14 +18,8 @@ const MENU_SECTIONS: { context: ContextType; title: string; count: number }[] = 
     { context: 'holiday',  title: "Holiday Warmth",       count: 6 },
 ];
 
-export function ResultsScreen({ user, vibeTags, onReset }: ResultsScreenProps) {
-    const headingRef = useRef<HTMLHeadingElement>(null);
-
-    useEffect(() => {
-        headingRef.current?.focus();
-    }, []);
-
-    // Stage 1: Filter & Base Score (Biological + Structural)
+export function ResultsScreen({ user, vibeTags }: ResultsScreenProps) {
+    // Stage 1: Filter & Base Score
     const baseScoredDrinks = useMemo(() => {
         const dislikesSmoke = user.filters.includes('noSmoke');
         const dislikesBitter = user.filters.includes('noBitter');
@@ -60,7 +52,6 @@ export function ResultsScreen({ user, vibeTags, onReset }: ResultsScreenProps) {
         });
     }, [user, vibeTags]);
 
-    // Compute all 4 menu sections from base scores
     const sections = useMemo(() => {
         return MENU_SECTIONS.map(({ context, title, count }) => {
             const drinks = baseScoredDrinks.map(drink => ({
@@ -71,26 +62,12 @@ export function ResultsScreen({ user, vibeTags, onReset }: ResultsScreenProps) {
         });
     }, [baseScoredDrinks]);
 
-    // Top drinks for the mini map (from "Your Go-To's" section)
     const topDrinks = sections[0].drinks;
-
-    // Hero drink for Bluesky sharing
     const heroDrink = topDrinks[0];
 
     return (
         <div className="animate-in fade-in duration-500 space-y-12">
-
-            <div className="text-center space-y-4">
-                <CoupeLogo className="w-10 h-10 text-primary mx-auto" />
-                <h1
-                    ref={headingRef}
-                    tabIndex={-1}
-                    className="font-headline text-4xl sm:text-5xl font-bold text-primary outline-none"
-                >
-                    Your Drink Menu
-                </h1>
-                <p className="text-muted-foreground italic font-serif text-lg">Curated for your palate.</p>
-            </div>
+            <p className="text-center text-muted-foreground italic font-serif text-lg">Curated for your palate.</p>
 
             <MiniFlavorMap user={user} topDrinks={topDrinks} />
 
@@ -113,15 +90,6 @@ export function ResultsScreen({ user, vibeTags, onReset }: ResultsScreenProps) {
                 heroDrinkName={heroDrink?.name || ''}
                 quadrant={user.x <= 0 && user.y >= 0 ? 'Lush & Lively' : user.x > 0 && user.y >= 0 ? 'Crisp & Clean' : user.x <= 0 && user.y < 0 ? 'Decadent & Deep' : 'Bold & Complex'}
             />
-
-            <div className="text-center pt-8">
-                <button
-                    onClick={onReset}
-                    className="font-condensed text-xs uppercase tracking-[0.2em] text-muted-foreground hover:text-primary underline underline-offset-4 decoration-primary/30 hover:decoration-primary/60 transition-colors min-h-[44px] px-4"
-                >
-                    Start Over
-                </button>
-            </div>
         </div>
     );
 }

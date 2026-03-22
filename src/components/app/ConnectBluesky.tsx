@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
 import { publishPalate, sharePalateToFeed } from '@/app/actions/atproto-publish';
-import type { UserProfile } from './DiscoveryQuiz';
+import type { UserProfile } from '@/hooks/useDiscoveryQuiz';
 import type { User } from '@/lib/data';
 
 interface ConnectBlueskyProps {

@@ -2,7 +2,7 @@
 
 import { cookies } from 'next/headers';
 import { publishPalateProfile, shareToFeed } from '@/lib/atproto/publish';
-import type { UserProfile } from '@/components/app/DiscoveryQuiz';
+import type { UserProfile } from '@/hooks/useDiscoveryQuiz';
 import { z } from 'zod';
 
 const ProfileSchema = z.object({

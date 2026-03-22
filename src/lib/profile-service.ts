@@ -1,6 +1,6 @@
 import { db } from './firebase';
 import { doc, getDoc, setDoc, serverTimestamp, query, collection, where, getDocs, limit } from 'firebase/firestore';
-import type { UserProfile } from '@/components/app/DiscoveryQuiz';
+import type { UserProfile } from '@/hooks/useDiscoveryQuiz';
 
 const COLLECTION_NAME = 'profiles';
 

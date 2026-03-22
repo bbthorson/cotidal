@@ -1,7 +1,7 @@
 import { Agent } from '@atproto/api';
 import { PALATE_COLLECTION, PALATE_RKEY, type PalateRecord } from './lexicon';
 import { getAtprotoClient } from './client';
-import type { UserProfile } from '@/components/app/DiscoveryQuiz';
+import type { UserProfile } from '@/hooks/useDiscoveryQuiz';
 
 export async function publishPalateProfile(
   did: string,
