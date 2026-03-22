@@ -65,9 +65,7 @@ export function useBartenderChat() {
     tierTransition?: { from: string; to: string },
   ): Promise<string> => {
     const feedbackFallback = ENRICHED_FEEDBACK[`${questionId}-${optionIndex}`] || '';
-    const fallback = nextQuestionText
-      ? `${feedbackFallback} ${nextQuestionText}`
-      : feedbackFallback;
+    const fallback = feedbackFallback;
 
     try {
       const chat = getChat();
@@ -82,7 +80,7 @@ export function useBartenderChat() {
       if (nextQuestionText) {
         prompt += `\n\n[After reacting to my answer, naturally transition to asking me this next question: "${nextQuestionText}"]`;
       } else {
-        prompt += `\n\n[This was the last question. Wrap up with something like "I've got a good read on you now — let me put together your menu."]`;
+        prompt += `\n\n[Just react to my answer. Don't ask a follow-up question — the next question will be provided separately.]`;
       }
 
       const result = await chat.sendMessage(prompt);

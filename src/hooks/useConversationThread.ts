@@ -67,11 +67,12 @@ export function useConversationThread() {
     );
   }, []);
 
-  // Start the quiz — show first question with chips
+  // Start the quiz — show first question as bartender message with chips
   const startQuiz = useCallback(() => {
     setQuizStarted(true);
     setAwaitingOpener(false);
     if (quiz.currentQuestion) {
+      setMessages(prev => [...prev, createMsg('bartender', quiz.currentQuestion!.text)]);
       setPendingOptions(quiz.currentQuestion.options);
     }
   }, [quiz.currentQuestion]);
@@ -81,6 +82,15 @@ export function useConversationThread() {
       setScreen('results');
     }
   }, []);
+
+  // Ref to track pending feedback message for async AI response
+  const pendingFeedbackRef = useRef<{
+    feedbackMsgId: string;
+    questionText: string;
+    answerText: string;
+    questionId: string;
+    optionIndex: number;
+  } | null>(null);
 
   const handleSelectOption = useCallback((option: QuestionOption, index: number) => {
     if (quiz.isNavigating || !quiz.currentQuestion) return;
@@ -92,77 +102,44 @@ export function useConversationThread() {
     setMessages(prev => [...prev, createMsg('user', option.text)]);
     setPendingOptions(null);
 
-    // Process answer — get result before firing AI
+    // Process answer
     const result = quiz.handleAnswer(option, index);
 
-    // Add bartender placeholder for unified turn
-    const bartenderMsg = createMsg('bartender', '…');
-    setMessages(prev => [...prev, bartenderMsg]);
+    // Add bartender feedback placeholder
+    const feedbackMsg = createMsg('bartender', '…');
+    setMessages(prev => [...prev, feedbackMsg]);
 
-    // Determine next question text for the unified turn
-    // We need to peek at what the next question will be after the state updates
-    // The quiz hook sets currentQuestionId after 600ms, so we can't read it yet
-    // Instead, we pass the info to the AI and show chips when the question arrives
+    // Fire AI for feedback (just feedback, no next question)
+    bartender.getUnifiedTurn(questionText, option.text, questionId, index, null,
+      result.tierChanged ? { from: result.prevTier, to: result.newTier } : undefined
+    ).then(text => updateMessage(feedbackMsg.id, text));
 
-    // Fire unified AI turn
-    const tierTransition = result.tierChanged
-      ? { from: result.prevTier, to: result.newTier }
-      : undefined;
-
-    // We'll get the next question text from the effect when quiz.currentQuestion changes
-    // For now, fire with null — the effect will handle showing chips
-    if (result.isComplete) {
-      bartender.getUnifiedTurn(questionText, option.text, questionId, index, null, tierTransition)
-        .then(text => updateMessage(bartenderMsg.id, text));
-    } else {
-      // Store the bartender message id so the effect can update it with the next question
-      pendingUnifiedRef.current = {
-        bartenderMsgId: bartenderMsg.id,
+    // Store ref so the effect can add the next question message
+    if (!result.isComplete) {
+      pendingFeedbackRef.current = {
+        feedbackMsgId: feedbackMsg.id,
         questionText,
         answerText: option.text,
         questionId,
         optionIndex: index,
-        tierTransition,
       };
     }
   }, [quiz, bartender, updateMessage]);
 
-  // Ref to track pending unified turn that needs the next question
-  const pendingUnifiedRef = useRef<{
-    bartenderMsgId: string;
-    questionText: string;
-    answerText: string;
-    questionId: string;
-    optionIndex: number;
-    tierTransition?: { from: string; to: string };
-  } | null>(null);
-
-  // Watch for quiz question changes to fire unified turn and show chips
-  const prevQuestionRef = useRef<string | null>(null);
+  // Watch for navigation completing to show next question + chips
+  // We track isNavigating going from true → false, which means the quiz
+  // has settled on the next question (currentQuestionId is set).
+  const wasNavigatingRef = useRef(false);
   useEffect(() => {
     if (!quizStarted) return;
-    const qId = quiz.currentQuestion?.id ?? null;
-    if (qId && qId !== prevQuestionRef.current && prevQuestionRef.current !== null) {
-      // Question changed — fire unified turn with next question text
-      const pending = pendingUnifiedRef.current;
-      if (pending) {
-        const nextQText = quiz.currentQuestion!.text;
-        bartender.getUnifiedTurn(
-          pending.questionText,
-          pending.answerText,
-          pending.questionId,
-          pending.optionIndex,
-          nextQText,
-          pending.tierTransition,
-        ).then(text => updateMessage(pending.bartenderMsgId, text));
-        pendingUnifiedRef.current = null;
-      }
-
-      // Show chips for the new question
+    if (wasNavigatingRef.current && !quiz.isNavigating && quiz.currentQuestion) {
+      // Navigation just completed — show next question and chips
+      pendingFeedbackRef.current = null;
+      setMessages(prev => [...prev, createMsg('bartender', quiz.currentQuestion!.text)]);
       setPendingOptions(quiz.currentQuestion!.options);
     }
-    prevQuestionRef.current = qId;
-  }, [quiz.currentQuestion, quizStarted, bartender, updateMessage]);
+    wasNavigatingRef.current = quiz.isNavigating;
+  }, [quiz.isNavigating, quiz.currentQuestion, quizStarted]);
 
   // Handle freeform text input
   const handleSendText = useCallback(async (text: string) => {
@@ -177,7 +154,6 @@ export function useConversationThread() {
 
       bartender.getOpenerResponse(text).then(response => {
         updateMessage(openerMsg.id, response);
-        // Start the quiz after opener response
         startQuiz();
       });
       return;
@@ -195,10 +171,6 @@ export function useConversationThread() {
     const { matchedIndex } = await bartender.interpretFreeText(text, questionText, optionTexts);
 
     if (matchedIndex >= 0 && matchedIndex < pendingOptions.length) {
-      // Matched — treat as if they tapped that chip
-      // Remove the user message we just added (handleSelectOption will add it again)
-      // Actually, we already added the user message with freeform text — that's fine,
-      // but handleSelectOption adds another. Let's call the quiz directly instead.
       const option = pendingOptions[matchedIndex];
       const questionId = quiz.currentQuestion?.id;
       if (!questionId || !quiz.currentQuestion) return;
@@ -206,24 +178,21 @@ export function useConversationThread() {
       setPendingOptions(null);
       const result = quiz.handleAnswer(option, matchedIndex);
 
-      const bartenderMsg = createMsg('bartender', '…');
-      setMessages(prev => [...prev, bartenderMsg]);
+      // Feedback placeholder
+      const feedbackMsg = createMsg('bartender', '…');
+      setMessages(prev => [...prev, feedbackMsg]);
 
-      const tierTransition = result.tierChanged
-        ? { from: result.prevTier, to: result.newTier }
-        : undefined;
+      bartender.getUnifiedTurn(questionText, text, questionId, matchedIndex, null,
+        result.tierChanged ? { from: result.prevTier, to: result.newTier } : undefined
+      ).then(t => updateMessage(feedbackMsg.id, t));
 
-      if (result.isComplete) {
-        bartender.getUnifiedTurn(questionText, text, questionId, matchedIndex, null, tierTransition)
-          .then(t => updateMessage(bartenderMsg.id, t));
-      } else {
-        pendingUnifiedRef.current = {
-          bartenderMsgId: bartenderMsg.id,
+      if (!result.isComplete) {
+        pendingFeedbackRef.current = {
+          feedbackMsgId: feedbackMsg.id,
           questionText,
           answerText: text,
           questionId,
           optionIndex: matchedIndex,
-          tierTransition,
         };
       }
     } else {
