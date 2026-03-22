@@ -3,7 +3,7 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 import { FirebaseAuthProvider } from "@/components/app/FirebaseAuthProvider";
 import { AtprotoProvider } from "@/components/app/AtprotoProvider";
-import { Playfair_Display, PT_Sans } from 'next/font/google';
+import { Playfair_Display, PT_Sans, Barlow_Condensed } from 'next/font/google';
 
 const playfair = Playfair_Display({
   subsets: ['latin'],
@@ -17,9 +17,18 @@ const ptSans = PT_Sans({
   variable: '--font-pt-sans',
 });
 
+const barlow = Barlow_Condensed({
+  subsets: ['latin'],
+  weight: ['400', '600'],
+  variable: '--font-barlow',
+});
+
 export const metadata: Metadata = {
   title: 'The Crystal Coupe',
-  description: 'Intuiting your desires, one drink at a time.',
+  description: 'Find your perfect drink.',
+  icons: {
+    icon: '/icon.svg',
+  },
 };
 
 export default function RootLayout({
@@ -28,7 +37,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning className={`${playfair.variable} ${ptSans.variable}`}>
+    <html lang="en" suppressHydrationWarning className={`${playfair.variable} ${ptSans.variable} ${barlow.variable}`}>
       <body className="font-body antialiased">
         <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-6 focus:py-3 focus:bg-background focus:text-foreground focus:border focus:border-primary/20 focus:shadow-xl focus:rounded-md font-bold transition-all">
           Skip to content

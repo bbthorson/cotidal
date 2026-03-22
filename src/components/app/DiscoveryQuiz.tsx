@@ -1,10 +1,8 @@
 'use client';
 import { useState, useRef } from 'react';
+import { motion } from 'framer-motion';
 import { questions, drinkDatabase, Drink, QuestionTier, QuestionOption } from '@/lib/data';
 import { calculateDistance } from '@/lib/scoring';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
 import { Loader2 } from 'lucide-react';
 import { BinaryQuestionCard } from './BinaryQuestionCard';
 import { auth } from '@/lib/firebase';
@@ -40,24 +38,25 @@ const TIER_OFFSETS = {
   context: calibrationQuestions.length + architectureQuestions.length,
 };
 
+const TIER_TITLES: Record<QuestionTier, string> = {
+  calibration: 'The Basics',
+  architecture: 'Your Style',
+  context: 'The Details',
+};
+
 export function DiscoveryQuiz({ onComplete }: DiscoveryQuizProps) {
   const questionRef = useRef<HTMLHeadingElement>(null);
 
-  // State for user profile
   const [profile, setProfile] = useState<UserProfile>({
-    x: 0,
-    y: 0,
+    x: 0, y: 0,
     dislikesSmoke: false,
     dislikesBitter: false,
     dislikesAnise: false,
     vibeTags: {}
   });
 
-  // State for quiz progress
   const [currentTier, setCurrentTier] = useState<QuestionTier>('calibration');
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-
-  // State for navigation feedback
   const [isNavigating, setIsNavigating] = useState(false);
   const [selectedOptionIndex, setSelectedOptionIndex] = useState<number | null>(null);
 
@@ -72,7 +71,6 @@ export function DiscoveryQuiz({ onComplete }: DiscoveryQuizProps) {
   const currentQuestions = getCurrentQuestions();
   const currentQuestion = currentQuestions[currentQuestionIndex];
 
-  // Calculate progress in O(1) without array scanning
   const totalQuestions = questions.length;
   const globalIndex = TIER_OFFSETS[currentTier] + currentQuestionIndex;
   const progress = ((globalIndex + 1) / totalQuestions) * 100;
@@ -82,7 +80,6 @@ export function DiscoveryQuiz({ onComplete }: DiscoveryQuizProps) {
     setIsNavigating(true);
     setSelectedOptionIndex(index);
 
-    // 1. Update Profile Logic
     const newProfile = { ...profile };
     newProfile.x = Math.max(-10, Math.min(10, newProfile.x + option.dx));
     newProfile.y = Math.max(-10, Math.min(10, newProfile.y + option.dy));
@@ -101,18 +98,13 @@ export function DiscoveryQuiz({ onComplete }: DiscoveryQuizProps) {
 
     setProfile(newProfile);
 
-    // 2. Feedback Logic
-    // Inline feedback is handled in the render method now for better UX.
-
-    // 3. Advance Logic
-    const delay = option.feedback ? 800 : 400; // Minimum 400ms delay to show feedback
+    const delay = option.feedback ? 800 : 400;
     setTimeout(() => {
       if (currentQuestionIndex < currentQuestions.length - 1) {
         setCurrentQuestionIndex(currentQuestionIndex + 1);
         setIsNavigating(false);
         setSelectedOptionIndex(null);
       } else {
-        // Move to next Tier or Finish
         if (currentTier === 'calibration') {
           setCurrentTier('architecture');
           setCurrentQuestionIndex(0);
@@ -125,14 +117,12 @@ export function DiscoveryQuiz({ onComplete }: DiscoveryQuizProps) {
           setSelectedOptionIndex(null);
         } else {
           finishQuiz(newProfile);
-          // Note: Component unmounts here, so we don't reset navigation state
         }
       }
     }, delay);
   };
 
   const finishQuiz = (finalProfile: UserProfile) => {
-    // 1. Filter (Hard constraints)
     const candidates = drinkDatabase.filter(d => {
       if (finalProfile.dislikesSmoke && d.hasSmoke) return false;
       if (finalProfile.dislikesBitter && d.isBitter) return false;
@@ -140,19 +130,14 @@ export function DiscoveryQuiz({ onComplete }: DiscoveryQuizProps) {
       return true;
     });
 
-    // 2. Rank (Distance)
     const scoredCandidates = candidates.map(drink => {
       const dist = calculateDistance(finalProfile, drink);
       return { ...drink, distance: dist, score: 0 };
     });
 
-    // Sort by distance ascending (closest first)
     scoredCandidates.sort((a, b) => a.distance - b.distance);
-
-    // Take top 10 closest for Vibe refinement
     const topCandidates = scoredCandidates.slice(0, 10);
 
-    // 3. Vibe Sort (within the top candidates)
     const rankedCandidates = topCandidates.map(drink => {
       let matchScore = 0;
       drink.tags.forEach(tag => {
@@ -160,113 +145,102 @@ export function DiscoveryQuiz({ onComplete }: DiscoveryQuizProps) {
           matchScore += finalProfile.vibeTags[tag];
         }
       });
-
-      // Final Score combines distance (inverse) and vibe match
-      // We want higher score = better match.
-      // Distance 0 should be high score.
       const distanceScore = 10 - Math.min(10, drink.distance);
-
       return { ...drink, score: distanceScore + (matchScore * 0.5) };
     });
 
-    // Sort by Final Score descending
     rankedCandidates.sort((a, b) => b.score - a.score);
 
-    // Save to local storage
     localStorage.setItem('user_profile', JSON.stringify(finalProfile));
 
-    // Save to Firestore if authenticated
     if (auth.currentUser) {
       saveUserProfile(auth.currentUser.uid, finalProfile).catch(e => {
         console.error("Failed to sync profile to Firestore", e);
       });
     }
 
-    // Call onComplete
     onComplete(finalProfile, rankedCandidates);
   };
 
-  const getTierTitle = () => {
-    switch (currentTier) {
-      case 'calibration': return 'The Basics';
-      case 'architecture': return 'Your Style';
-      case 'context': return 'The Details';
-    }
-  };
-
   return (
-    <div className="w-full max-w-4xl mx-auto p-4">
-      <Card className="shadow-bar glass-dark border-primary/10 min-h-[500px] flex flex-col bar-texture overflow-hidden">
-        <CardHeader className="text-center pt-8">
-          <h1 className="font-headline text-2xl sm:text-3xl md:text-4xl font-bold text-primary tracking-tight">
-            {getTierTitle()}
-          </h1>
-          <div className="max-w-md mx-auto w-full mt-6">
-              <Progress
-                value={progress}
-                className="h-1.5 bg-primary/10 transition-all duration-300"
-                aria-label="Quiz progress"
-                aria-valuetext={`Question ${globalIndex + 1} of ${totalQuestions}`}
-              />
-          </div>
-        </CardHeader>
-        <CardContent className="flex-1 flex flex-col justify-start px-6 pt-8 pb-12">
-            <div
-              key={currentQuestion.id}
-              className="w-full animate-in fade-in duration-300"
-            >
-              {currentQuestion.options.length === 2 ? (
-                <BinaryQuestionCard
-                  questionText={currentQuestion.text}
-                  options={currentQuestion.options}
-                  onAnswer={handleAnswer}
-                  isNavigating={isNavigating}
-                  selectedOptionIndex={selectedOptionIndex}
-                  titleRef={questionRef}
-                />
-              ) : (
-                <div className="space-y-8 py-4">
-                  <h2
-                    ref={questionRef}
-                    tabIndex={-1}
-                    className="font-headline text-3xl md:text-4xl text-primary text-center leading-tight outline-none"
-                  >
-                    {currentQuestion.text}
-                  </h2>
-                  <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-                    {currentQuestion.options.map((option, index) => {
-                      const isSelected = isNavigating && selectedOptionIndex === index;
-                      return (
-                        <Button
-                          key={`${currentQuestion.id}-${index}`}
-                          onClick={() => handleAnswer(option, index)}
-                          disabled={isNavigating && !isSelected}
-                          variant={isSelected ? "default" : "outline"}
-                          className={`
-                            h-auto py-8 text-xl font-serif whitespace-normal min-h-[120px] 
-                            flex flex-col gap-3 transition-all duration-500 rounded-2xl
-                            ${isSelected ? 'shadow-2xl shadow-primary/20 ring-2 ring-primary scale-[1.02]' : 'glass-dark border-primary/10 hover:bg-white/5 hover:scale-[1.01]'}
-                          `}
-                        >
-                          <div className="flex items-center gap-2 text-center">
-                            {option.text}
-                            {isSelected && !option.feedback && <Loader2 className="h-5 w-5 animate-spin" />}
-                          </div>
+    <div className="space-y-8">
+      {/* Progress bar — thin line at top */}
+      <div className="w-full h-0.5 bg-primary/10 rounded-full overflow-hidden" role="progressbar" aria-label="Quiz progress" aria-valuenow={progress}>
+        <div
+          className="h-full bg-primary transition-all duration-300 ease-out"
+          style={{ width: `${progress}%` }}
+        />
+      </div>
 
-                          {isSelected && option.feedback && (
-                            <span className="text-sm font-medium text-primary-foreground/90 italic bg-primary/20 px-3 py-1 rounded-lg animate-in fade-in slide-in-from-bottom-1 duration-200">
-                              {option.feedback}
-                            </span>
-                          )}
-                        </Button>
-                      );
-                    })}
+      {/* Tier label */}
+      <p className="font-condensed text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+        {TIER_TITLES[currentTier]}
+      </p>
+
+      {/* Question area */}
+      <div key={currentQuestion.id} className="animate-in fade-in duration-300">
+        {currentQuestion.options.length <= 3 ? (
+          <BinaryQuestionCard
+            questionText={currentQuestion.text}
+            options={currentQuestion.options}
+            onAnswer={handleAnswer}
+            isNavigating={isNavigating}
+            selectedOptionIndex={selectedOptionIndex}
+            titleRef={questionRef}
+          />
+        ) : (
+          <div className="space-y-8">
+            <h2
+              ref={questionRef}
+              tabIndex={-1}
+              className="font-headline text-3xl md:text-4xl text-primary leading-tight outline-none"
+            >
+              {currentQuestion.text}
+            </h2>
+            <div className="space-y-1">
+              {currentQuestion.options.map((option, index) => {
+                const isSelected = isNavigating && selectedOptionIndex === index;
+                const isDisabled = isNavigating && !isSelected;
+                return (
+                  <div key={`${currentQuestion.id}-${index}`}>
+                    <button
+                      onClick={() => handleAnswer(option, index)}
+                      disabled={isDisabled}
+                      className={`
+                        w-full text-left py-4 px-4 transition-all duration-200 outline-none
+                        font-headline text-xl md:text-2xl
+                        border-l-2
+                        ${isSelected
+                          ? 'border-primary text-primary'
+                          : 'border-transparent text-foreground/70 hover:border-primary/40 hover:text-foreground'
+                        }
+                        ${isDisabled ? 'opacity-30' : ''}
+                        focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background
+                      `}
+                    >
+                      {option.text}
+                    </button>
+
+                    {isSelected && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -4 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="pl-4 ml-[2px] border-l-2 border-primary/30 py-2"
+                      >
+                        {option.feedback ? (
+                          <span className="text-sm italic text-muted-foreground">{option.feedback}</span>
+                        ) : (
+                          <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                        )}
+                      </motion.div>
+                    )}
                   </div>
-                </div>
-              )}
+                );
+              })}
             </div>
-        </CardContent>
-      </Card>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

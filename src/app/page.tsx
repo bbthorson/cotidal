@@ -107,8 +107,8 @@ export default function Home() {
   };
 
   return (
-    <div className="flex min-h-dvh items-center justify-center p-4">
-      <main id="main-content" className="container max-w-5xl w-full transition-opacity duration-500 ease-in-out" tabIndex={-1}>
+    <div className="min-h-dvh">
+      <main id="main-content" className="w-full max-w-2xl mx-auto px-5 pt-12 pb-20 transition-opacity duration-500 ease-in-out" tabIndex={-1}>
         {screen === 'welcome' && <WelcomeScreen onStartQuiz={handleStartQuiz} />}
         {screen === 'discoveryQuiz' && <DiscoveryQuiz onComplete={handleDiscoveryQuizComplete} />}
         {screen === 'finalResults' && vibeTags && <ResultsScreen user={finalUser} vibeTags={vibeTags} onReset={handleReset} />}

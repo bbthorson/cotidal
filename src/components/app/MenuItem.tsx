@@ -2,8 +2,6 @@
 
 import { memo, useState, useEffect } from 'react';
 import { AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Loader2 } from 'lucide-react';
 import Image from 'next/image';
@@ -66,29 +64,28 @@ export const MenuItem = memo(function MenuItem({ drink, userX, userY, userFilter
                 className="py-3 px-1 hover:no-underline hover:bg-primary/[0.03] transition-colors group"
                 onClick={() => setExpanded(true)}
             >
-                <div className="flex items-center gap-3 flex-1 min-w-0 pr-2">
-                    <div className="min-w-0 flex-1 text-left">
-                        <span className="font-headline text-sm font-bold text-primary truncate block">
-                            {drink.name}
-                        </span>
-                        <span className="text-[11px] text-muted-foreground">{drink.type}</span>
-                    </div>
-                    <div className="flex gap-1 shrink-0">
-                        {drink.tags.slice(0, 2).map(tag => (
-                            <Badge key={tag} variant="outline" className="text-[9px] uppercase px-1.5 py-0 h-4 border-primary/10">
-                                {tag}
-                            </Badge>
-                        ))}
-                    </div>
+                <div className="flex items-baseline gap-2 flex-1 min-w-0 pr-2">
+                    <span className="font-headline text-sm font-bold text-primary truncate shrink-0">
+                        {drink.name}
+                    </span>
+                    <span className="flex-1 border-b border-dotted border-muted-foreground/20 min-w-4" />
+                    <span className="font-condensed text-xs uppercase tracking-wider text-muted-foreground shrink-0">
+                        {drink.type}
+                    </span>
                 </div>
             </AccordionTrigger>
             <AccordionContent className="px-1">
                 <div className="space-y-3">
+                    {/* Tags as italic text */}
+                    <p className="text-xs italic text-muted-foreground/70">
+                        {drink.tags.slice(0, 3).join(', ')}
+                    </p>
+
                     {/* Image */}
                     {loadingDetails ? (
-                        <Skeleton className="w-full h-48 rounded-lg" />
+                        <Skeleton className="w-full h-48 rounded-sm" />
                     ) : details ? (
-                        <div className="relative w-full h-48 rounded-lg overflow-hidden">
+                        <div className="relative w-full h-48 rounded-sm overflow-hidden">
                             <Image
                                 src={details.strDrinkThumb}
                                 alt={drink.name}
@@ -110,20 +107,15 @@ export const MenuItem = memo(function MenuItem({ drink, userX, userY, userFilter
                     {explanation ? (
                         <p className="text-sm text-foreground/80">{explanation}</p>
                     ) : (
-                        <Button
+                        <button
                             onClick={handleExplain}
                             disabled={loadingExplanation}
-                            variant="outline"
-                            size="sm"
-                            className="w-full border-primary/20 text-primary hover:bg-primary/5 tracking-widest uppercase text-[10px] font-bold"
+                            className="font-condensed text-[10px] uppercase tracking-[0.2em] text-muted-foreground hover:text-primary underline underline-offset-4 decoration-primary/30 hover:decoration-primary/60 transition-colors py-2 flex items-center gap-2"
                         >
-                            {loadingExplanation ? <Loader2 className="mr-2 h-3 w-3 animate-spin" /> : null}
-                            {loadingExplanation ? "Thinking..." : "Why This Drink?"}
-                        </Button>
+                            {loadingExplanation && <Loader2 className="h-3 w-3 animate-spin" />}
+                            {loadingExplanation ? 'Thinking...' : 'Why This Drink?'}
+                        </button>
                     )}
-
-                    {/* Future: Tried It feedback */}
-                    {/* <TriedItButton drinkName={drink.name} /> */}
                 </div>
             </AccordionContent>
         </AccordionItem>

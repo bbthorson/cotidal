@@ -89,6 +89,33 @@
     pointer-events: none;
     z-index: 0;
   }
+
+  /* Coaster-style card: nearly square edges, subtle ring stain */
+  .coaster {
+    @apply rounded-sm;
+    box-shadow:
+      inset 0 0 0 1px rgba(212, 148, 26, 0.06),
+      inset 0 0 40px 20px rgba(212, 148, 26, 0.02);
+  }
+
+  /* Dot leader for wine-list style name...type layout */
+  .dot-leader {
+    display: flex;
+    align-items: baseline;
+  }
+  .dot-leader::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px dotted hsl(var(--muted-foreground) / 0.3);
+    margin: 0 0.5rem;
+    min-width: 1rem;
+  }
+
+  /* Thin editorial horizontal rule */
+  .editorial-rule {
+    height: 1px;
+    background: linear-gradient(to right, transparent, hsl(var(--primary) / 0.2), transparent);
+  }
 }
 
 

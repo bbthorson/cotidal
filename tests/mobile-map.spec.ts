@@ -4,7 +4,7 @@ test.use({ ...devices['iPhone 12'] });
 
 test('Mobile Map: Should be responsive and square', async ({ page }) => {
   await page.goto('/');
-  await page.click('text=Let\'s Go');
+  await page.click('text=Begin');
 
   // The Basics (skip quickly)
   await page.click('text=Black or Espresso.');

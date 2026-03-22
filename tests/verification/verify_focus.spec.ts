@@ -9,7 +9,7 @@ test('Verify BinaryQuestionCard focus management', async ({ page }) => {
   await page.waitForTimeout(1000);
 
   // Start the quiz
-  await page.getByRole('button', { name: 'Begin the Reading' }).click();
+  await page.getByRole('button', { name: 'Begin' }).click();
 
   // Wait for the first question
   // First question is: "How do you take your coffee?"

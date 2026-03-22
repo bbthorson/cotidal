@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 test('Scoring Logic: Vibe tags and coordinates should accumulate correctly', async ({ page }) => {
   await page.goto('/');
-  await page.click('text=Let\'s Go');
+  await page.click('text=Begin');
 
   // Calibration: Coffee (Black) -> dx: 5
   await page.click('text=Black or Espresso.');

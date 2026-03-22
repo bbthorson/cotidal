@@ -1,7 +1,6 @@
 'use client';
 
 import { memo } from 'react';
-import { Card } from '@/components/ui/card';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { MapBackground } from './MapBackground';
 import { MapPin } from './MapPin';
@@ -18,7 +17,7 @@ interface MiniFlavorMapProps {
 
 export const MiniFlavorMap = memo(function MiniFlavorMap({ user, topDrinks }: MiniFlavorMapProps) {
     return (
-        <Card className="relative w-full max-w-sm mx-auto aspect-[2/1] bg-card shadow-bar border border-primary/10 overflow-hidden pointer-events-none">
+        <div className="relative w-full max-w-sm mx-auto aspect-[2/1] border border-primary/10 overflow-hidden pointer-events-none rounded-sm">
             <MapBackground />
             <TooltipProvider>
                 {topDrinks.slice(0, 5).map((drink) => (
@@ -39,6 +38,6 @@ export const MiniFlavorMap = memo(function MiniFlavorMap({ user, topDrinks }: Mi
                     yPct={toPct(user.y)}
                 />
             </TooltipProvider>
-        </Card>
+        </div>
     );
 });

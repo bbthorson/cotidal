@@ -14,6 +14,7 @@ export default {
         body: ['var(--font-pt-sans)', 'sans-serif'],
         headline: ['var(--font-playfair)', 'serif'],
         serif: ['var(--font-playfair)', 'serif'],
+        condensed: ['var(--font-barlow)', 'sans-serif'],
         code: ['monospace'],
       },
       colors: {

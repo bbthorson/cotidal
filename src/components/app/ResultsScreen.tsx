@@ -2,10 +2,10 @@
 import { useMemo, useEffect, useRef } from 'react';
 import { drinkDatabase, type User, type ContextType } from '@/lib/data';
 import { calculateDistance, calculateContextScore } from '@/lib/scoring';
-import { Button } from '@/components/ui/button';
 import { ConnectBluesky } from './ConnectBluesky';
 import { MiniFlavorMap } from './MiniFlavorMap';
 import { MenuSection } from './MenuSection';
+import { CoupeLogo } from './CoupeLogo';
 
 interface ResultsScreenProps {
     user: User;
@@ -13,11 +13,11 @@ interface ResultsScreenProps {
     onReset: () => void;
 }
 
-const MENU_SECTIONS: { context: ContextType; title: string; icon: string; count: number }[] = [
-    { context: 'usual',    title: "Your Go-To's",         icon: '🍸', count: 8 },
-    { context: 'party',    title: "For a Night Out",      icon: '🎉', count: 6 },
-    { context: 'business', title: "Making an Impression", icon: '🤝', count: 6 },
-    { context: 'holiday',  title: "Holiday Warmth",       icon: '🎄', count: 6 },
+const MENU_SECTIONS: { context: ContextType; title: string; count: number }[] = [
+    { context: 'usual',    title: "Your Go-To's",         count: 8 },
+    { context: 'party',    title: "For a Night Out",      count: 6 },
+    { context: 'business', title: "Making an Impression", count: 6 },
+    { context: 'holiday',  title: "Holiday Warmth",       count: 6 },
 ];
 
 export function ResultsScreen({ user, vibeTags, onReset }: ResultsScreenProps) {
@@ -62,12 +62,12 @@ export function ResultsScreen({ user, vibeTags, onReset }: ResultsScreenProps) {
 
     // Compute all 4 menu sections from base scores
     const sections = useMemo(() => {
-        return MENU_SECTIONS.map(({ context, title, icon, count }) => {
+        return MENU_SECTIONS.map(({ context, title, count }) => {
             const drinks = baseScoredDrinks.map(drink => ({
                 ...drink,
                 score: drink.baseScore + calculateContextScore(drink, context),
             })).sort((a, b) => b.score - a.score).slice(0, count);
-            return { title, icon, drinks };
+            return { title, drinks };
         });
     }, [baseScoredDrinks]);
 
@@ -78,13 +78,14 @@ export function ResultsScreen({ user, vibeTags, onReset }: ResultsScreenProps) {
     const heroDrink = topDrinks[0];
 
     return (
-        <div className="animate-in fade-in duration-500 space-y-6">
+        <div className="animate-in fade-in duration-500 space-y-12">
 
-            <div className="text-center space-y-2">
+            <div className="text-center space-y-4">
+                <CoupeLogo className="w-10 h-10 text-primary mx-auto" />
                 <h1
                     ref={headingRef}
                     tabIndex={-1}
-                    className="font-headline text-3xl sm:text-4xl font-bold text-primary outline-none"
+                    className="font-headline text-4xl sm:text-5xl font-bold text-primary outline-none"
                 >
                     Your Drink Menu
                 </h1>
@@ -93,12 +94,11 @@ export function ResultsScreen({ user, vibeTags, onReset }: ResultsScreenProps) {
 
             <MiniFlavorMap user={user} topDrinks={topDrinks} />
 
-            <div className="space-y-8">
-                {sections.map(({ title, icon, drinks }) => (
+            <div className="space-y-12">
+                {sections.map(({ title, drinks }) => (
                     <MenuSection
                         key={title}
                         title={title}
-                        icon={icon}
                         drinks={drinks}
                         userX={user.x}
                         userY={user.y}
@@ -114,14 +114,13 @@ export function ResultsScreen({ user, vibeTags, onReset }: ResultsScreenProps) {
                 quadrant={user.x <= 0 && user.y >= 0 ? 'Lush & Lively' : user.x > 0 && user.y >= 0 ? 'Crisp & Clean' : user.x <= 0 && user.y < 0 ? 'Decadent & Deep' : 'Bold & Complex'}
             />
 
-            <div className="text-center pt-8 border-t border-primary/10">
-                <Button
+            <div className="text-center pt-8">
+                <button
                     onClick={onReset}
-                    variant="ghost"
-                    className="text-muted-foreground hover:text-primary tracking-widest uppercase text-xs h-auto min-h-[44px] px-8"
+                    className="font-condensed text-xs uppercase tracking-[0.2em] text-muted-foreground hover:text-primary underline underline-offset-4 decoration-primary/30 hover:decoration-primary/60 transition-colors min-h-[44px] px-4"
                 >
                     Start Over
-                </Button>
+                </button>
             </div>
         </div>
     );
