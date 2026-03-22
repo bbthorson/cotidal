@@ -6,17 +6,24 @@ runConfig:
   # more instances in response to increased traffic.
   maxInstances: 1
 
-env:
   # AT Protocol / Bluesky OAuth (opt-in)
-  - variable: NEXT_PUBLIC_ATPROTO_ENABLED
-    value: "true"
-  - variable: ATPROTO_CLIENT_ID
-    availability:
-      - BUILD
-      - RUNTIME
-    secret: atproto-client-id
-  - variable: ATPROTO_REDIRECT_URI
-    availability:
-      - BUILD
-      - RUNTIME
-    secret: atproto-redirect-uri
+  # To enable, set NEXT_PUBLIC_ATPROTO_ENABLED to "true" and configure secrets:
+  #   firebase apphosting:secrets:set atproto-client-id
+  #   firebase apphosting:secrets:set atproto-redirect-uri
+  #   firebase apphosting:secrets:grantaccess atproto-client-id
+  #   firebase apphosting:secrets:grantaccess atproto-redirect-uri
+  # Then uncomment the env block below:
+  #
+  # env:
+  #   - variable: NEXT_PUBLIC_ATPROTO_ENABLED
+  #     value: "true"
+  #   - variable: ATPROTO_CLIENT_ID
+  #     availability:
+  #       - BUILD
+  #       - RUNTIME
+  #     secret: atproto-client-id
+  #   - variable: ATPROTO_REDIRECT_URI
+  #     availability:
+  #       - BUILD
+  #       - RUNTIME
+  #     secret: atproto-redirect-uri
