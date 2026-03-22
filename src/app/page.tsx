@@ -95,6 +95,7 @@ export default function Home() {
   }, []);
 
   const handleQuizAnswer = useCallback((option: QuestionOption, index: number) => {
+    if (!quiz.currentQuestion) return;
     const questionId = quiz.currentQuestion.id;
     const questionText = quiz.currentQuestion.text;
     const result = quiz.handleAnswer(option, index);
@@ -155,6 +156,7 @@ export default function Home() {
     setVibeTags(null);
     setConversationHistory([]);
     bartender.resetChat();
+    quiz.resetQuiz();
     setScreen('quiz');
   };
 
@@ -192,27 +194,36 @@ export default function Home() {
     );
   } else if (screen === 'quiz') {
     middleContent = <ConversationThread messages={conversationHistory} />;
-    promptContent = (
-      <div className="space-y-2">
-        <p className="font-condensed text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-          {quiz.tierLabel}
-        </p>
-        <h2 className="font-headline text-2xl md:text-3xl text-primary leading-tight">
-          {quiz.currentQuestion.text}
-        </h2>
-        {/* Progress bar */}
-        <div className="w-full h-0.5 bg-primary/10 rounded-full overflow-hidden" role="progressbar" aria-label="Quiz progress" aria-valuenow={quiz.progress}>
-          <div className="h-full bg-primary transition-all duration-300 ease-out" style={{ width: `${quiz.progress}%` }} />
+    if (quiz.currentQuestion) {
+      promptContent = (
+        <div className="space-y-2">
+          <p className="font-condensed text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+            {quiz.tierLabel}
+          </p>
+          <h2 className="font-headline text-2xl md:text-3xl text-primary leading-tight">
+            {quiz.currentQuestion.text}
+          </h2>
+          {/* Progress bar */}
+          <div className="w-full h-0.5 bg-primary/10 rounded-full overflow-hidden" role="progressbar" aria-label="Quiz progress" aria-valuenow={quiz.progress}>
+            <div className="h-full bg-primary transition-all duration-300 ease-out" style={{ width: `${quiz.progress}%` }} />
+          </div>
         </div>
-      </div>
-    );
-    inputContent = (
-      <AnswerChoices
-        options={quiz.currentQuestion.options}
-        onAnswer={handleQuizAnswer}
-        isNavigating={quiz.isNavigating}
-      />
-    );
+      );
+      inputContent = (
+        <AnswerChoices
+          options={quiz.currentQuestion.options}
+          onAnswer={handleQuizAnswer}
+          isNavigating={quiz.isNavigating}
+        />
+      );
+    } else {
+      promptContent = (
+        <p className="font-headline text-2xl md:text-3xl text-primary italic font-serif">
+          Mixing your menu&hellip;
+        </p>
+      );
+      inputContent = null;
+    }
   } else {
     middleContent = vibeTags ? (
       <ResultsScreen user={finalUser} vibeTags={vibeTags} />
@@ -243,6 +254,7 @@ export default function Home() {
       prompt={promptContent}
       input={inputContent}
       middleRef={middleRef}
+      centerPrompt={screen !== 'results'}
     />
   );
 }

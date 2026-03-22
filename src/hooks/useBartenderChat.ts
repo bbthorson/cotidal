@@ -16,18 +16,25 @@ Rules:
 - Never mention that you're an AI`;
 
 let model: ReturnType<typeof getGenerativeModel> | null = null;
+let modelFailed = false;
 
-function getModel() {
+function getModel(): ReturnType<typeof getGenerativeModel> | null {
+  if (modelFailed) return null;
   if (!model) {
-    model = getGenerativeModel(ai, {
-      model: 'gemini-2.5-flash-lite',
-      generationConfig: {
-        maxOutputTokens: 150,
-        temperature: 0.8,
-        topP: 0.9,
-      },
-      systemInstruction: SYSTEM_PROMPT,
-    });
+    try {
+      model = getGenerativeModel(ai, {
+        model: 'gemini-2.5-flash-lite',
+        generationConfig: {
+          maxOutputTokens: 150,
+          temperature: 0.8,
+          topP: 0.9,
+        },
+        systemInstruction: SYSTEM_PROMPT,
+      });
+    } catch {
+      modelFailed = true;
+      return null;
+    }
   }
   return model;
 }
@@ -37,7 +44,9 @@ export function useBartenderChat() {
 
   const getChat = useCallback(() => {
     if (!chatRef.current) {
-      chatRef.current = getModel().startChat();
+      const m = getModel();
+      if (!m) return null;
+      chatRef.current = m.startChat();
     }
     return chatRef.current;
   }, []);
@@ -56,6 +65,7 @@ export function useBartenderChat() {
 
     try {
       const chat = getChat();
+      if (!chat) return fallback;
       const prompt = `Question: "${questionText}"\nMy answer: "${answerText}"`;
       const result = await chat.sendMessage(prompt);
       const text = result.response.text().trim();
@@ -77,6 +87,7 @@ export function useBartenderChat() {
 
     try {
       const chat = getChat();
+      if (!chat) return fallbacks[fromTier] || '';
       const prompt = `[We just finished the "${fromTier}" section and are moving to "${toTier}". Give a brief transitional comment summarizing what you've learned so far about my taste. 1-2 sentences.]`;
       const result = await chat.sendMessage(prompt);
       const text = result.response.text().trim();

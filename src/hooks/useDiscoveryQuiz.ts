@@ -1,9 +1,19 @@
 'use client';
-import { useState, useCallback } from 'react';
-import { questions, drinkDatabase, QuestionTier, QuestionOption } from '@/lib/data';
+import { useState, useCallback, useRef } from 'react';
+import { drinkDatabase } from '@/lib/data';
+import { questions as questionPool, type QuestionOption } from '@/lib/discovery-questions';
 import { calculateDistance } from '@/lib/scoring';
 import { auth } from '@/lib/firebase';
 import { saveUserProfile } from '@/lib/profile-service';
+import {
+  type BeliefState,
+  createInitialBelief,
+  updateBelief,
+  isComplete as beliefIsComplete,
+  getConfidenceProgress,
+  beliefToProfile,
+} from '@/lib/belief-state';
+import { selectNextQuestion, getTierLabel } from '@/lib/question-selector';
 
 export interface UserProfile {
   x: number;
@@ -19,57 +29,24 @@ export interface RecommendedDrink {
   score: number;
 }
 
-// Filter questions by tier outside the hook
-const calibrationQuestions = questions.filter(q => q.tier === 'calibration');
-const architectureQuestions = questions.filter(q => q.tier === 'architecture');
-const contextQuestions = questions.filter(q => q.tier === 'context');
-
-const TIER_OFFSETS = {
-  calibration: 0,
-  architecture: calibrationQuestions.length,
-  context: calibrationQuestions.length + architectureQuestions.length,
-};
-
-const TIER_LABELS: Record<QuestionTier, string> = {
-  calibration: 'The Basics',
-  architecture: 'Your Style',
-  context: 'The Details',
-};
-
-function getQuestionsForTier(tier: QuestionTier) {
-  switch (tier) {
-    case 'calibration': return calibrationQuestions;
-    case 'architecture': return architectureQuestions;
-    case 'context': return contextQuestions;
-  }
-}
-
 export interface AnswerResult {
-  prevTier: QuestionTier;
-  newTier: QuestionTier;
+  prevTier: string;
+  newTier: string;
   tierChanged: boolean;
   isComplete: boolean;
 }
 
 export function useDiscoveryQuiz(onComplete: (profile: UserProfile) => void) {
-  const [profile, setProfile] = useState<UserProfile>({
-    x: 0, y: 0,
-    dislikesSmoke: false,
-    dislikesBitter: false,
-    dislikesAnise: false,
-    vibeTags: {},
-  });
-
-  const [currentTier, setCurrentTier] = useState<QuestionTier>('calibration');
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [belief, setBelief] = useState<BeliefState>(createInitialBelief);
+  const answeredIdsRef = useRef<Set<string>>(new Set());
+  const [currentQuestionId, setCurrentQuestionId] = useState<string | null>(null);
   const [isNavigating, setIsNavigating] = useState(false);
 
-  const currentQuestions = getQuestionsForTier(currentTier);
-  const currentQuestion = currentQuestions[currentQuestionIndex];
-  const totalQuestions = questions.length;
-  const globalIndex = TIER_OFFSETS[currentTier] + currentQuestionIndex;
-  const progress = ((globalIndex + 1) / totalQuestions) * 100;
-  const tierLabel = TIER_LABELS[currentTier];
+  const currentQuestion = currentQuestionId
+    ? questionPool.find(q => q.id === currentQuestionId) ?? selectNextQuestion(belief, answeredIdsRef.current)
+    : selectNextQuestion(belief, answeredIdsRef.current);
+  const progress = getConfidenceProgress(belief);
+  const tierLabel = currentQuestion ? getTierLabel(currentQuestion) : 'The Details';
 
   const finishQuiz = useCallback((finalProfile: UserProfile) => {
     const candidates = drinkDatabase.filter(d => {
@@ -111,71 +88,64 @@ export function useDiscoveryQuiz(onComplete: (profile: UserProfile) => void) {
     onComplete(finalProfile);
   }, [onComplete]);
 
-  const handleAnswer = useCallback((option: QuestionOption, index: number): AnswerResult => {
-    if (isNavigating) return { prevTier: currentTier, newTier: currentTier, tierChanged: false, isComplete: false };
+  const handleAnswer = useCallback((option: QuestionOption, _index: number): AnswerResult => {
+    if (isNavigating || !currentQuestion) {
+      return { prevTier: 'context', newTier: 'context', tierChanged: false, isComplete: false };
+    }
     setIsNavigating(true);
 
-    const newProfile = { ...profile };
-    newProfile.x = Math.max(-10, Math.min(10, newProfile.x + option.dx));
-    newProfile.y = Math.max(-10, Math.min(10, newProfile.y + option.dy));
+    const prevTier = currentQuestion.tier;
+    answeredIdsRef.current.add(currentQuestion.id);
 
-    if (option.filterFlag) {
-      if (option.filterFlag.key === 'dislikesSmoke') newProfile.dislikesSmoke = option.filterFlag.value;
-      if (option.filterFlag.key === 'dislikesBitter') newProfile.dislikesBitter = option.filterFlag.value;
-      if (option.filterFlag.key === 'dislikesAnise') newProfile.dislikesAnise = option.filterFlag.value;
+    const newBelief = updateBelief(belief, option);
+
+    // Check if quiz is complete
+    if (beliefIsComplete(newBelief)) {
+      setBelief(newBelief);
+      setTimeout(() => {
+        finishQuiz(beliefToProfile(newBelief));
+      }, 600);
+      return { prevTier, newTier: prevTier, tierChanged: false, isComplete: true };
     }
 
-    if (option.vibeTags) {
-      newProfile.vibeTags = { ...newProfile.vibeTags };
-      option.vibeTags.forEach(tag => {
-        newProfile.vibeTags[tag] = (newProfile.vibeTags[tag] || 0) + 1;
-      });
+    // Select next question
+    const nextQuestion = selectNextQuestion(newBelief, answeredIdsRef.current);
+
+    // No more questions available — force completion
+    if (!nextQuestion) {
+      setBelief(newBelief);
+      setTimeout(() => {
+        finishQuiz(beliefToProfile(newBelief));
+      }, 600);
+      return { prevTier, newTier: prevTier, tierChanged: false, isComplete: true };
     }
 
-    setProfile(newProfile);
+    const newTier = nextQuestion.tier;
+    const tierChanged = newTier !== prevTier;
 
-    const prevTier = currentTier;
-    const tierQuestions = getQuestionsForTier(currentTier);
+    setTimeout(() => {
+      setBelief(newBelief);
+      setCurrentQuestionId(nextQuestion.id);
+      setIsNavigating(false);
+    }, 600);
 
-    if (currentQuestionIndex < tierQuestions.length - 1) {
-      // Next question in same tier
-      setTimeout(() => {
-        setCurrentQuestionIndex(i => i + 1);
-        setIsNavigating(false);
-      }, 600);
-      return { prevTier, newTier: prevTier, tierChanged: false, isComplete: false };
-    }
+    return { prevTier, newTier, tierChanged, isComplete: false };
+  }, [isNavigating, currentQuestion, belief, finishQuiz]);
 
-    // End of tier
-    if (currentTier === 'calibration') {
-      setTimeout(() => {
-        setCurrentTier('architecture');
-        setCurrentQuestionIndex(0);
-        setIsNavigating(false);
-      }, 600);
-      return { prevTier, newTier: 'architecture', tierChanged: true, isComplete: false };
-    } else if (currentTier === 'architecture') {
-      setTimeout(() => {
-        setCurrentTier('context');
-        setCurrentQuestionIndex(0);
-        setIsNavigating(false);
-      }, 600);
-      return { prevTier, newTier: 'context', tierChanged: true, isComplete: false };
-    } else {
-      // Quiz complete
-      setTimeout(() => {
-        finishQuiz(newProfile);
-      }, 600);
-      return { prevTier, newTier: 'context', tierChanged: false, isComplete: true };
-    }
-  }, [isNavigating, profile, currentTier, currentQuestionIndex, finishQuiz]);
+  const resetQuiz = useCallback(() => {
+    setBelief(createInitialBelief());
+    answeredIdsRef.current = new Set();
+    setCurrentQuestionId(null);
+    setIsNavigating(false);
+  }, []);
 
   return {
     currentQuestion,
-    currentTier,
+    currentTier: currentQuestion?.tier ?? 'context',
     progress,
     tierLabel,
     isNavigating,
     handleAnswer,
+    resetQuiz,
   };
 }
