@@ -37,8 +37,8 @@ export function ChatThread({
   })();
 
   return (
-    <div ref={threadRef} className="flex-1 overflow-y-auto px-5 py-6">
-      <div className="space-y-3">
+    <div ref={threadRef} className="flex-1 overflow-y-auto px-5 py-6 flex flex-col">
+      <div className="mt-auto space-y-3 pb-4">
         {messages.map((msg, idx) => {
           switch (msg.role) {
             case 'bartender':
