@@ -22,18 +22,29 @@ function profileToUser(profile: UserProfile | null): User {
   return { x: profile.x, y: profile.y, filters, dislikesAnise: profile.dislikesAnise };
 }
 
-const WELCOME_MSG = "A few quick questions about what you like, and I'll map out your flavor profile across cocktails, wines, and spirits. Think of it as a cheat sheet for your next drink order.";
+const WELCOME_MSG = "What are you in the mood for tonight?";
+
+function getInitialProfile(): UserProfile | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const saved = localStorage.getItem('user_profile');
+    return saved ? JSON.parse(saved) as UserProfile : null;
+  } catch {
+    return null;
+  }
+}
 
 export function useConversationThread() {
-  const [screen, setScreen] = useState<Screen>('chat');
+  const initialProfile = getInitialProfile();
+  const [screen, setScreen] = useState<Screen>(initialProfile ? 'results' : 'chat');
   const [messages, setMessages] = useState<ThreadMessage[]>([
     createMsg('bartender', WELCOME_MSG),
-    createMsg('system', 'Begin', 'begin'),
   ]);
   const [pendingOptions, setPendingOptions] = useState<QuestionOption[] | null>(null);
-  const [user, setUser] = useState<User>({ x: 0, y: 0, filters: [] });
-  const [vibeTags, setVibeTags] = useState<Record<string, number> | null>(null);
+  const [user, setUser] = useState<User>(() => profileToUser(initialProfile));
+  const [vibeTags, setVibeTags] = useState<Record<string, number> | null>(initialProfile?.vibeTags ?? null);
   const [quizStarted, setQuizStarted] = useState(false);
+  const [awaitingOpener, setAwaitingOpener] = useState(true);
 
   const bartender = useBartenderChat();
 
@@ -49,12 +60,6 @@ export function useConversationThread() {
 
   const quiz = useDiscoveryQuiz(handleQuizComplete);
 
-  // When quiz starts or advances, show the current question
-  const showQuestion = useCallback((questionText: string, options: QuestionOption[]) => {
-    setMessages(prev => [...prev, createMsg('bartender', questionText)]);
-    setPendingOptions(options);
-  }, []);
-
   // Update a message's content by id (for async AI responses)
   const updateMessage = useCallback((id: string, content: string) => {
     setMessages(prev =>
@@ -62,19 +67,20 @@ export function useConversationThread() {
     );
   }, []);
 
+  // Start the quiz — show first question with chips
+  const startQuiz = useCallback(() => {
+    setQuizStarted(true);
+    setAwaitingOpener(false);
+    if (quiz.currentQuestion) {
+      setPendingOptions(quiz.currentQuestion.options);
+    }
+  }, [quiz.currentQuestion]);
+
   const handleAction = useCallback((action: string) => {
-    if (action === 'begin') {
-      setQuizStarted(true);
-      // Remove the Begin action message
-      setMessages(prev => prev.filter(m => m.action !== 'begin'));
-      // Show first question
-      if (quiz.currentQuestion) {
-        showQuestion(quiz.currentQuestion.text, quiz.currentQuestion.options);
-      }
-    } else if (action === 'results') {
+    if (action === 'results') {
       setScreen('results');
     }
-  }, [quiz.currentQuestion, showQuestion]);
+  }, []);
 
   const handleSelectOption = useCallback((option: QuestionOption, index: number) => {
     if (quiz.isNavigating || !quiz.currentQuestion) return;
@@ -86,66 +92,148 @@ export function useConversationThread() {
     setMessages(prev => [...prev, createMsg('user', option.text)]);
     setPendingOptions(null);
 
-    // Process answer
+    // Process answer — get result before firing AI
     const result = quiz.handleAnswer(option, index);
 
-    // Add bartender feedback placeholder
-    const feedbackMsg = createMsg('bartender', '…');
-    setMessages(prev => [...prev, feedbackMsg]);
+    // Add bartender placeholder for unified turn
+    const bartenderMsg = createMsg('bartender', '…');
+    setMessages(prev => [...prev, bartenderMsg]);
 
-    // Fire AI for feedback
-    bartender.getBartenderResponse(questionText, option.text, questionId, index)
-      .then(text => updateMessage(feedbackMsg.id, text));
+    // Determine next question text for the unified turn
+    // We need to peek at what the next question will be after the state updates
+    // The quiz hook sets currentQuestionId after 600ms, so we can't read it yet
+    // Instead, we pass the info to the AI and show chips when the question arrives
 
-    // Tier transition
-    if (result.tierChanged) {
-      const transMsg = createMsg('system', '…');
-      setMessages(prev => [...prev, transMsg]);
-      bartender.getTierTransition(result.prevTier, result.newTier)
-        .then(text => updateMessage(transMsg.id, text));
-    }
+    // Fire unified AI turn
+    const tierTransition = result.tierChanged
+      ? { from: result.prevTier, to: result.newTier }
+      : undefined;
 
-    // Show next question after navigation delay (quiz manages the 600ms timeout)
-    if (!result.isComplete) {
-      setTimeout(() => {
-        // Re-read currentQuestion after state updates from quiz
-        // We need to read it from the quiz hook after it updates
-      }, 650);
+    // We'll get the next question text from the effect when quiz.currentQuestion changes
+    // For now, fire with null — the effect will handle showing chips
+    if (result.isComplete) {
+      bartender.getUnifiedTurn(questionText, option.text, questionId, index, null, tierTransition)
+        .then(text => updateMessage(bartenderMsg.id, text));
+    } else {
+      // Store the bartender message id so the effect can update it with the next question
+      pendingUnifiedRef.current = {
+        bartenderMsgId: bartenderMsg.id,
+        questionText,
+        answerText: option.text,
+        questionId,
+        optionIndex: index,
+        tierTransition,
+      };
     }
   }, [quiz, bartender, updateMessage]);
 
-  // Watch for quiz question changes to show next question
+  // Ref to track pending unified turn that needs the next question
+  const pendingUnifiedRef = useRef<{
+    bartenderMsgId: string;
+    questionText: string;
+    answerText: string;
+    questionId: string;
+    optionIndex: number;
+    tierTransition?: { from: string; to: string };
+  } | null>(null);
+
+  // Watch for quiz question changes to fire unified turn and show chips
   const prevQuestionRef = useRef<string | null>(null);
   useEffect(() => {
     if (!quizStarted) return;
     const qId = quiz.currentQuestion?.id ?? null;
     if (qId && qId !== prevQuestionRef.current && prevQuestionRef.current !== null) {
-      // Question changed — show the new one
-      showQuestion(quiz.currentQuestion!.text, quiz.currentQuestion!.options);
+      // Question changed — fire unified turn with next question text
+      const pending = pendingUnifiedRef.current;
+      if (pending) {
+        const nextQText = quiz.currentQuestion!.text;
+        bartender.getUnifiedTurn(
+          pending.questionText,
+          pending.answerText,
+          pending.questionId,
+          pending.optionIndex,
+          nextQText,
+          pending.tierTransition,
+        ).then(text => updateMessage(pending.bartenderMsgId, text));
+        pendingUnifiedRef.current = null;
+      }
+
+      // Show chips for the new question
+      setPendingOptions(quiz.currentQuestion!.options);
     }
     prevQuestionRef.current = qId;
-  }, [quiz.currentQuestion, quizStarted, showQuestion]);
+  }, [quiz.currentQuestion, quizStarted, bartender, updateMessage]);
 
-  const handleSendText = useCallback((text: string) => {
-    if (!pendingOptions || quiz.isNavigating) return;
+  // Handle freeform text input
+  const handleSendText = useCallback(async (text: string) => {
+    if (quiz.isNavigating) return;
 
-    // Fuzzy match against current options
-    const lower = text.toLowerCase();
-    const matchIdx = pendingOptions.findIndex(opt =>
-      opt.text.toLowerCase().includes(lower) || lower.includes(opt.text.toLowerCase())
-    );
+    // Phase 3: Open-ended opener
+    if (awaitingOpener) {
+      setMessages(prev => [...prev, createMsg('user', text)]);
 
-    if (matchIdx >= 0) {
-      handleSelectOption(pendingOptions[matchIdx], matchIdx);
+      const openerMsg = createMsg('bartender', '…');
+      setMessages(prev => [...prev, openerMsg]);
+
+      bartender.getOpenerResponse(text).then(response => {
+        updateMessage(openerMsg.id, response);
+        // Start the quiz after opener response
+        startQuiz();
+      });
+      return;
+    }
+
+    if (!pendingOptions) return;
+
+    // Add user message immediately
+    setMessages(prev => [...prev, createMsg('user', text)]);
+
+    // Phase 3: AI interpretation of freeform text
+    const optionTexts = pendingOptions.map(o => o.text);
+    const questionText = quiz.currentQuestion?.text ?? '';
+
+    const { matchedIndex } = await bartender.interpretFreeText(text, questionText, optionTexts);
+
+    if (matchedIndex >= 0 && matchedIndex < pendingOptions.length) {
+      // Matched — treat as if they tapped that chip
+      // Remove the user message we just added (handleSelectOption will add it again)
+      // Actually, we already added the user message with freeform text — that's fine,
+      // but handleSelectOption adds another. Let's call the quiz directly instead.
+      const option = pendingOptions[matchedIndex];
+      const questionId = quiz.currentQuestion?.id;
+      if (!questionId || !quiz.currentQuestion) return;
+
+      setPendingOptions(null);
+      const result = quiz.handleAnswer(option, matchedIndex);
+
+      const bartenderMsg = createMsg('bartender', '…');
+      setMessages(prev => [...prev, bartenderMsg]);
+
+      const tierTransition = result.tierChanged
+        ? { from: result.prevTier, to: result.newTier }
+        : undefined;
+
+      if (result.isComplete) {
+        bartender.getUnifiedTurn(questionText, text, questionId, matchedIndex, null, tierTransition)
+          .then(t => updateMessage(bartenderMsg.id, t));
+      } else {
+        pendingUnifiedRef.current = {
+          bartenderMsgId: bartenderMsg.id,
+          questionText,
+          answerText: text,
+          questionId,
+          optionIndex: matchedIndex,
+          tierTransition,
+        };
+      }
     } else {
-      // No match — add user text and bartender nudge
+      // No match — bartender nudge, keep chips
       setMessages(prev => [
         ...prev,
-        createMsg('user', text),
-        createMsg('bartender', "Hmm, I've got some specific options in mind — try one of those for now."),
+        createMsg('bartender', "I hear you, but I need you to pick one of these to keep things moving. Which one speaks to you?"),
       ]);
     }
-  }, [pendingOptions, quiz.isNavigating, handleSelectOption]);
+  }, [awaitingOpener, pendingOptions, quiz, bartender, updateMessage, startQuiz]);
 
   const reset = useCallback(() => {
     localStorage.removeItem('user_profile');
@@ -154,12 +242,12 @@ export function useConversationThread() {
     msgCounter = 0;
     setMessages([
       createMsg('bartender', WELCOME_MSG),
-      createMsg('system', 'Begin', 'begin'),
     ]);
     setPendingOptions(null);
     setUser({ x: 0, y: 0, filters: [] });
     setVibeTags(null);
     setQuizStarted(false);
+    setAwaitingOpener(true);
     setScreen('chat');
   }, [quiz, bartender]);
 

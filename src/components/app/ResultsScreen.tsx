@@ -4,6 +4,7 @@ import { drinkDatabase, type User, type ContextType } from '@/lib/data';
 import { calculateDistance, calculateContextScore } from '@/lib/scoring';
 import { ConnectBluesky } from './ConnectBluesky';
 import { MiniFlavorMap } from './MiniFlavorMap';
+import { HeroDrinkCard } from './HeroDrinkCard';
 import { MenuSection } from './MenuSection';
 
 interface ResultsScreenProps {
@@ -64,25 +65,51 @@ export function ResultsScreen({ user, vibeTags }: ResultsScreenProps) {
 
     const topDrinks = sections[0].drinks;
     const heroDrink = topDrinks[0];
+    const restOfTopDrinks = topDrinks.slice(1);
 
     return (
-        <div className="animate-in fade-in duration-500 space-y-12">
-            <p className="text-center text-muted-foreground italic font-serif text-lg">Curated for your palate.</p>
+        <div className="animate-in fade-in duration-500 px-5 py-6 space-y-10">
+            {/* Hero section */}
+            <div className="space-y-6">
+                <p className="text-center text-muted-foreground/60 italic font-serif text-base">
+                    Curated for your palate.
+                </p>
 
-            <MiniFlavorMap user={user} topDrinks={topDrinks} />
+                <MiniFlavorMap user={user} topDrinks={topDrinks} />
 
-            <div className="space-y-12">
-                {sections.map(({ title, drinks }) => (
-                    <MenuSection
-                        key={title}
-                        title={title}
-                        drinks={drinks}
+                {heroDrink && (
+                    <HeroDrinkCard
+                        drink={heroDrink}
                         userX={user.x}
                         userY={user.y}
                         userFilters={user.filters}
                     />
-                ))}
+                )}
             </div>
+
+            {/* Rest of Go-To's */}
+            {restOfTopDrinks.length > 0 && (
+                <MenuSection
+                    title={sections[0].title}
+                    drinks={restOfTopDrinks}
+                    userX={user.x}
+                    userY={user.y}
+                    userFilters={user.filters}
+                    startRank={2}
+                />
+            )}
+
+            {/* Other context sections */}
+            {sections.slice(1).map(({ title, drinks }) => (
+                <MenuSection
+                    key={title}
+                    title={title}
+                    drinks={drinks}
+                    userX={user.x}
+                    userY={user.y}
+                    userFilters={user.filters}
+                />
+            ))}
 
             <ConnectBluesky
                 user={user}
