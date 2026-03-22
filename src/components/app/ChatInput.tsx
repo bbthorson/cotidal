@@ -37,7 +37,7 @@ export function ChatInput({ onSend, disabled = false, placeholder = "Type someth
   }, [handleSend]);
 
   return (
-    <div className="flex items-end gap-2 px-5 py-3 pb-[env(safe-area-inset-bottom,12px)] border-t border-primary/10 bg-background">
+    <div className="flex items-end gap-2 px-5 pt-3 pb-[max(env(safe-area-inset-bottom,0px),16px)] border-t border-primary/10 bg-background">
       <textarea
         ref={textareaRef}
         rows={1}
