@@ -109,9 +109,9 @@ export const questions: Question[] = [
         id: 'flavor_revelation',
         tier: 'context',
         type: 'narrative',
-        text: "Which essence calls to you more?",
+        text: "Which flavor are you drawn to?",
         options: [
-            { text: "Black Licorice (Anise)", dx: -1, dy: -2, filterFlag: { key: 'dislikesAnise', value: false }, vibeTags: ['polarizing'], feedback: "The Oracle sees adventure." },
+            { text: "Black Licorice (Anise)", dx: -1, dy: -2, filterFlag: { key: 'dislikesAnise', value: false }, vibeTags: ['polarizing'], feedback: "Adventurous — I like it." },
             { text: "Spiced Orange (Citrus)", dx: 1, dy: 2, filterFlag: { key: 'dislikesAnise', value: true }, vibeTags: ['spice'], feedback: "Warmth and sunshine." }
         ]
     },

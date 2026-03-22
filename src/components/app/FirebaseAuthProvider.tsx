@@ -18,7 +18,7 @@ export function FirebaseAuthProvider({ children }: { children: React.ReactNode }
       <div className="flex h-dvh w-full items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="font-serif italic text-primary/60">The Oracle is acknowledging your presence...</p>
+          <p className="font-serif italic text-primary/60">Setting things up...</p>
         </div>
       </div>
     );

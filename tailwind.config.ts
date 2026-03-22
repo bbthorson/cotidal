@@ -13,12 +13,24 @@ export default {
       fontFamily: {
         body: ['var(--font-pt-sans)', 'sans-serif'],
         headline: ['var(--font-playfair)', 'serif'],
+        serif: ['var(--font-playfair)', 'serif'],
         code: ['monospace'],
       },
       colors: {
-        sage: '#8A9A5B',
-        terracotta: '#E2725B',
-        obsidian: '#0B0B0B',
+        amber: {
+          50: '#FFF8E1',
+          100: '#FFECB3',
+          200: '#FFD54F',
+          300: '#FFCA28',
+          400: '#FFC107',
+          500: '#D4941A',
+          600: '#B7800F',
+          700: '#8B6914',
+          800: '#5D4610',
+          900: '#3D2E0A',
+        },
+        copper: '#C47035',
+        barrel: '#1A1D26',
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',
         card: {
@@ -77,6 +89,8 @@ export default {
       },
       boxShadow: {
         'mcm': '4px 4px 0px 0px rgba(183, 65, 14, 1)',
+        'bar': '0 4px 24px -4px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(212, 148, 26, 0.08)',
+        'glow': '0 0 20px rgba(212, 148, 26, 0.15)',
       },
       keyframes: {
         'accordion-down': {

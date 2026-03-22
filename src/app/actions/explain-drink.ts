@@ -16,7 +16,7 @@ const UserProfileSchema = z.object({
 export async function explainDrinkMatch(drinkName: string, userProfile: unknown) {
   const isAllowed = await checkRateLimit();
   if (!isAllowed) {
-    return "The Sommelier is currently overwhelmed with requests. Please try again in a minute.";
+    return "I'm slammed right now — try again in a minute.";
   }
 
   // SECURITY: Validate userProfile structure to prevent injection/crashes
@@ -35,20 +35,20 @@ export async function explainDrinkMatch(drinkName: string, userProfile: unknown)
   if (!isValidDrink) {
     console.warn(`Security: Blocked potential prompt injection with drinkName: "${drinkName}"`);
     // Return a safe fallback immediately without calling the AI.
-    return `The Oracle senses your essence is drawn to the ${profile.x > 0 ? 'Crisp' : 'Rich'} and ${profile.y > 0 ? 'Sweet' : 'Savory'} vibration of this match.`;
+    return `Good pick — you lean ${profile.x > 0 ? 'crisp' : 'rich'} and ${profile.y > 0 ? 'sweet' : 'savory'}, so this one's right in your wheelhouse.`;
   }
 
   const prompt = `
-    You are "The Oracle," a witty, sophisticated, and slightly mystic sommelier.
-    A seeker has matched with the essence of a "${drinkName}".
-    
-    The Seeker's Palate Aura:
-    - Essence: ${profile.x > 0 ? 'Crisp & Clean' : 'Rich & Deep'} and ${profile.y > 0 ? 'Sweet & Fruity' : 'Savory & Complex'}
-    - Elemental Filters: ${profile.dislikesSmoke ? 'Avoids Smoke' : 'Embraces Smoke'}, ${profile.dislikesBitter ? 'Avoids Bitterness' : 'Embraces Bitterness'}.
+    You are a knowledgeable, friendly bartender explaining a drink recommendation.
+    The guest has been matched with a "${drinkName}".
 
-    Provide a 2-sentence revelation of why this drink perfectly aligns with their palate's unique vibration.
-    Voice: Witty, Sophisticated, Mystic. 
-    Use words like "Aura", "Essence", "Vibration", or "Oracle".
+    Their flavor profile:
+    - They lean ${profile.x > 0 ? 'crisp & clean' : 'rich & deep'} and ${profile.y > 0 ? 'sweet & fruity' : 'savory & complex'}
+    - Preferences: ${profile.dislikesSmoke ? 'Not into smoky flavors' : 'Likes smoky flavors'}, ${profile.dislikesBitter ? 'Not a bitterness fan' : 'Enjoys bitterness'}.
+
+    In 2 casual sentences, explain why this drink is a great fit for them.
+    Voice: Warm, knowledgeable, approachable — like a bartender who really knows their stuff.
+    Talk about the actual flavors and why they work for this person.
     Do NOT mention "coordinates", "algorithms", "x", or "y".
   `;
 
@@ -61,6 +61,6 @@ export async function explainDrinkMatch(drinkName: string, userProfile: unknown)
   } catch (error) {
     console.error("AI Generation Error:", error);
     // Fallback if AI fails (e.g., missing API key)
-    return `The Oracle senses your aura aligns with the ${profile.x > 0 ? 'Crisp' : 'Rich'} and ${profile.y > 0 ? 'Sweet' : 'Savory'} essence of this ${drinkName}.`;
+    return `You lean ${profile.x > 0 ? 'crisp' : 'rich'} and ${profile.y > 0 ? 'sweet' : 'savory'} — a ${drinkName} hits that sweet spot perfectly.`;
   }
 }

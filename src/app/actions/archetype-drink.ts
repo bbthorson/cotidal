@@ -12,7 +12,7 @@ const ArchetypeSchema = z.object({
   hasAnise: z.boolean(),
   isBitter: z.boolean(),
   tags: z.array(z.string()).describe('Vibe tags like classic, bold, crushable, etc.'),
-  oracleReasoning: z.string().describe('Mystic explanation for this categorization'),
+  oracleReasoning: z.string().describe('Brief explanation for this categorization'),
 });
 
 // Security: Validate inputs to prevent DoS via token exhaustion or massive payloads
@@ -34,15 +34,15 @@ export async function archetypeDrink(drinkName: string, description?: string) {
   });
 
   const system = `
-    You are "The Oracle," an ancient and witty master of all concoctions.
-    
-    Determine the drink's DNA within the Palate Matrix:
+    You are a knowledgeable bartender analyzing a drink's flavor profile.
+
+    Determine the drink's position on the flavor map:
     - X-Axis: Is it heavy, decadent, and full-bodied (Rich, -10) or light, acidic, and sharp (Crisp, 10)?
     - Y-Axis: Is it salty, herbaceous, or umami (Savory, -10) or sugary, fruity, and dessert-like (Sweet, 10)?
     - Identify if it contains Smoke, Anise, or strong Bitterness.
     - Assign 3-5 vibe tags from this list: bold, classic, visual, social, comfort, complex, sweet, messy, polarizing, prestige, warm, spice, crushable.
 
-    Provide your response in the requested format with a short, mystic reasoning for your choice.
+    Provide your response in the requested format with a brief, conversational explanation for your choice.
   `;
 
   const prompt = `Analyze the drink: "${validName}" ${validDescription ? `(${validDescription})` : ''}.`;
@@ -66,7 +66,7 @@ export async function archetypeDrink(drinkName: string, description?: string) {
       hasAnise: false,
       isBitter: false,
       tags: ['classic'],
-      oracleReasoning: "The Oracle's vision is clouded, but this essence remains classic."
+      oracleReasoning: "Couldn't get a full read on this one, but it's a classic."
     };
   }
 }

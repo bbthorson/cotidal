@@ -118,10 +118,10 @@ export const Chatbot = memo(function Chatbot() {
       <CardHeader>
         <h2 className="font-headline text-3xl font-bold text-primary flex items-center gap-2">
           <Bot />
-          Drink Discovery Chat
+          What Can I Make?
         </h2>
         <CardDescription>
-          Have some ingredients but not sure what to make? Describe what you have, and our AI-bartender will suggest some cocktails.
+          Got a few bottles at home? Tell me what you&apos;re working with and I&apos;ll suggest something good.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -150,7 +150,7 @@ export const Chatbot = memo(function Chatbot() {
               </motion.div>
               <div className="space-y-1">
                 <p className="font-headline font-bold text-lg text-primary">Mixing up some ideas...</p>
-                <p className="text-sm text-muted-foreground">Consulting the cocktail matrix.</p>
+                <p className="text-sm text-muted-foreground">Give me a sec.</p>
               </div>
             </CardContent>
           </Card>

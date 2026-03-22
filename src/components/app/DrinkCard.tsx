@@ -45,7 +45,7 @@ export const DrinkCard = memo(function DrinkCard({
       aria-label={`View details for ${drink.name}`}
       className={cn(
         "transition-all duration-300 border-2 cursor-pointer overflow-hidden focus-visible:outline-none",
-        index === 0 ? "border-[#B7410E] bg-[#FDFBF7] shadow-mcm" : "border-transparent bg-card/50 hover:bg-card hover:border-primary/20",
+        index === 0 ? "border-primary/30 bg-card shadow-glow" : "border-transparent bg-card/50 hover:bg-card hover:border-primary/20",
         isHovered && "ring-2 ring-primary"
       )}
       onMouseEnter={() => onHover(drink)}
@@ -110,8 +110,8 @@ export const DrinkCard = memo(function DrinkCard({
               <p className="text-sm text-muted-foreground">
                 {explanation || (
                   <span>
-                    Perfectly balanced for your palate coordinates [{userX}, {userY}].
-                    {context !== 'usual' && ` Selected specifically for the ${contextLabel} vibe.`}
+                    A strong match for your flavor profile.
+                    {context !== 'usual' && ` Especially good for a ${contextLabel.toLowerCase()} setting.`}
                   </span>
                 )}
               </p>
@@ -124,7 +124,7 @@ export const DrinkCard = memo(function DrinkCard({
                   className="w-full border-primary/20 text-primary hover:bg-primary/5 tracking-widest uppercase text-[10px] font-bold"
                 >
                   {loadingExplanation ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                  {loadingExplanation ? "The Oracle is intuiting..." : "Oracle's Vision"}
+                  {loadingExplanation ? "Thinking..." : "Why This Drink?"}
                 </Button>
               )}
             </CardContent>

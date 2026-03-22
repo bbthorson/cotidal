@@ -4,7 +4,7 @@ test('Auth: Should attempt anonymous sign-in on load', async ({ page }) => {
   await page.goto('/');
 
   // The loader should appear initially
-  // page.locator('text=The Oracle is acknowledging your presence...');
+  // page.locator('text=Setting things up...');
   // Since it's fast, we might miss it or it might hang if no config.
 
   // Wait for the auth wrapper to have a status

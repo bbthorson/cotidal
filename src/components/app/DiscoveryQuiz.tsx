@@ -5,7 +5,6 @@ import { calculateDistance } from '@/lib/scoring';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { motion, AnimatePresence } from 'framer-motion';
 import { Loader2 } from 'lucide-react';
 import { BinaryQuestionCard } from './BinaryQuestionCard';
 import { auth } from '@/lib/firebase';
@@ -189,43 +188,32 @@ export function DiscoveryQuiz({ onComplete }: DiscoveryQuizProps) {
 
   const getTierTitle = () => {
     switch (currentTier) {
-      case 'calibration': return 'Phase 1: Calibration';
-      case 'architecture': return 'Phase 2: Architecture';
-      case 'context': return 'Phase 3: Context';
+      case 'calibration': return 'The Basics';
+      case 'architecture': return 'Your Style';
+      case 'context': return 'The Details';
     }
   };
 
   return (
     <div className="w-full max-w-4xl mx-auto p-4">
-      <Card className="shadow-2xl glass-dark border-primary/20 min-h-[500px] flex flex-col">
+      <Card className="shadow-bar glass-dark border-primary/10 min-h-[500px] flex flex-col bar-texture overflow-hidden">
         <CardHeader className="text-center pt-8">
           <h1 className="font-headline text-2xl sm:text-3xl md:text-4xl font-bold text-primary tracking-tight">
             {getTierTitle()}
           </h1>
           <div className="max-w-md mx-auto w-full mt-6">
-            <motion.div
-              animate={isNavigating ? { scale: [1, 1.02, 1] } : {}}
-              transition={{ duration: 0.4 }}
-            >
               <Progress
                 value={progress}
-                className="h-1.5 bg-primary/10"
+                className="h-1.5 bg-primary/10 transition-all duration-300"
                 aria-label="Quiz progress"
                 aria-valuetext={`Question ${globalIndex + 1} of ${totalQuestions}`}
               />
-            </motion.div>
           </div>
         </CardHeader>
         <CardContent className="flex-1 flex flex-col justify-start px-6 pt-8 pb-12">
-          <AnimatePresence mode="wait">
-            <motion.div
+            <div
               key={currentQuestion.id}
-              initial={{ opacity: 0, scale: 0.98 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 1.02 }}
-              transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
-              className="w-full"
-              onAnimationComplete={() => questionRef.current?.focus()}
+              className="w-full animate-in fade-in duration-300"
             >
               {currentQuestion.options.length === 2 ? (
                 <BinaryQuestionCard
@@ -266,13 +254,9 @@ export function DiscoveryQuiz({ onComplete }: DiscoveryQuizProps) {
                           </div>
 
                           {isSelected && option.feedback && (
-                            <motion.span
-                              initial={{ opacity: 0, y: 5 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              className="text-sm font-medium text-primary-foreground/90 italic bg-primary/20 px-3 py-1 rounded-lg"
-                            >
+                            <span className="text-sm font-medium text-primary-foreground/90 italic bg-primary/20 px-3 py-1 rounded-lg animate-in fade-in slide-in-from-bottom-1 duration-200">
                               {option.feedback}
-                            </motion.span>
+                            </span>
                           )}
                         </Button>
                       );
@@ -280,8 +264,7 @@ export function DiscoveryQuiz({ onComplete }: DiscoveryQuizProps) {
                   </div>
                 </div>
               )}
-            </motion.div>
-          </AnimatePresence>
+            </div>
         </CardContent>
       </Card>
     </div>
