@@ -3,6 +3,14 @@ import { useRef, useCallback } from 'react';
 import { getGenerativeModel } from 'firebase/ai';
 import { ai } from '@/lib/firebase';
 import { ENRICHED_FEEDBACK } from '@/lib/conversation';
+import type { BeliefState } from '@/lib/belief-state';
+import type { Question } from '@/lib/discovery-questions';
+import {
+  buildQuestionPrompt,
+  parseAIResponse,
+  extractFeedbackFromText,
+  type AIQuestionResponse,
+} from '@/lib/ai-question-generator';
 
 const SYSTEM_PROMPT = `You are a knowledgeable, warm bartender helping someone discover their perfect drink. You're building a flavor profile through a series of questions.
 
@@ -13,6 +21,7 @@ Rules:
 - Use specific drink/flavor knowledge (mention actual spirits, techniques, flavor notes)
 - Don't be cheesy or use clichés like "great choice!" — be genuine
 - Don't ask questions — just respond to their choice and hint at what it tells you
+- Sometimes you'll be asked to generate the next question in JSON format — follow the schema exactly when asked
 - Never mention that you're an AI`;
 
 let model: ReturnType<typeof getGenerativeModel> | null = null;
@@ -25,7 +34,7 @@ function getModel(): ReturnType<typeof getGenerativeModel> | null {
       model = getGenerativeModel(ai, {
         model: 'gemini-2.5-flash-lite',
         generationConfig: {
-          maxOutputTokens: 150,
+          maxOutputTokens: 500,
           temperature: 0.8,
           topP: 0.9,
         },
@@ -148,5 +157,52 @@ React naturally to what they said — acknowledge their mood, reference any spec
     }
   }, [getChat]);
 
-  return { getBartenderResponse, interpretFreeText, getOpenerResponse, resetChat };
+  // Post-calibration: unified feedback + next question generation
+  let aiQuestionCounter = 0;
+  const getNextQuestionWithFeedback = useCallback(async (
+    questionText: string,
+    answerText: string,
+    questionId: string,
+    optionIndex: number,
+    beliefState: BeliefState,
+    tierTransition?: { from: string; to: string },
+  ): Promise<{ feedback: string; question: Question | null }> => {
+    const feedbackFallback = ENRICHED_FEEDBACK[`${questionId}-${optionIndex}`] || '';
+
+    try {
+      const chat = getChat();
+      if (!chat) return { feedback: feedbackFallback, question: null };
+
+      const prompt = buildQuestionPrompt(beliefState, questionText, answerText, tierTransition);
+      const result = await chat.sendMessage(prompt);
+      const raw = result.response.text().trim();
+
+      const parsed = parseAIResponse(raw);
+      if (parsed) {
+        const question: Question | null = parsed.question ? {
+          id: `ai-${++aiQuestionCounter}`,
+          tier: 'architecture',
+          text: parsed.question.text,
+          type: 'narrative',
+          options: parsed.question.options,
+          primaryAxis: parsed.question.primaryAxis,
+          informationGain: Math.max(...parsed.question.options.map(
+            o => Math.abs(parsed.question!.primaryAxis === 'x' ? o.dx : o.dy)
+          )),
+          isAIGenerated: true,
+        } : null;
+
+        return { feedback: parsed.feedback, question };
+      }
+
+      // Partial fallback — try to extract just the feedback
+      const partialFeedback = extractFeedbackFromText(raw);
+      return { feedback: partialFeedback || feedbackFallback, question: null };
+    } catch (e) {
+      console.error('AI question generation failed:', e);
+      return { feedback: feedbackFallback, question: null };
+    }
+  }, [getChat]);
+
+  return { getBartenderResponse, getNextQuestionWithFeedback, interpretFreeText, getOpenerResponse, resetChat };
 }

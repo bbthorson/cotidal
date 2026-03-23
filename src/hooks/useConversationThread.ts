@@ -83,15 +83,6 @@ export function useConversationThread() {
     }
   }, []);
 
-  // Ref to track pending feedback message for async AI response
-  const pendingFeedbackRef = useRef<{
-    feedbackMsgId: string;
-    questionText: string;
-    answerText: string;
-    questionId: string;
-    optionIndex: number;
-  } | null>(null);
-
   const handleSelectOption = useCallback((option: QuestionOption, index: number) => {
     if (quiz.isNavigating || !quiz.currentQuestion) return;
 
@@ -105,38 +96,63 @@ export function useConversationThread() {
     // Process answer
     const result = quiz.handleAnswer(option, index);
 
-    // Add bartender feedback placeholder
+    if (result.isComplete) {
+      // Quiz done — just show feedback
+      const feedbackMsg = createMsg('bartender', '…');
+      setMessages(prev => [...prev, feedbackMsg]);
+      bartender.getBartenderResponse(questionText, option.text, questionId, index,
+        result.tierChanged ? { from: result.prevTier, to: result.newTier } : undefined
+      ).then(text => updateMessage(feedbackMsg.id, text));
+      return;
+    }
+
+    if (result.needsAIQuestion) {
+      // Post-calibration: unified AI call for feedback + next question
+      const feedbackMsg = createMsg('bartender', '…');
+      setMessages(prev => [...prev, feedbackMsg]);
+
+      bartender.getNextQuestionWithFeedback(
+        questionText, option.text, questionId, index,
+        result.beliefState,
+        result.tierChanged ? { from: result.prevTier, to: result.newTier } : undefined
+      ).then(({ feedback, question }) => {
+        updateMessage(feedbackMsg.id, feedback);
+
+        // After feedback settles, show the next question
+        setTimeout(() => {
+          if (question) {
+            quiz.setAIQuestion(question);
+            setMessages(prev => [...prev, createMsg('bartender', question.text)]);
+            setPendingOptions(question.options);
+          } else {
+            // AI failed — fallback to hardcoded pool
+            quiz.setFallbackQuestion();
+          }
+        }, 600);
+      });
+      return;
+    }
+
+    // Calibration phase: feedback only, question comes from navigation effect
     const feedbackMsg = createMsg('bartender', '…');
     setMessages(prev => [...prev, feedbackMsg]);
 
-    // Fire AI for feedback (just feedback, no next question)
     bartender.getBartenderResponse(questionText, option.text, questionId, index,
       result.tierChanged ? { from: result.prevTier, to: result.newTier } : undefined
     ).then(text => updateMessage(feedbackMsg.id, text));
-
-    // Store ref so the effect can add the next question message
-    if (!result.isComplete) {
-      pendingFeedbackRef.current = {
-        feedbackMsgId: feedbackMsg.id,
-        questionText,
-        answerText: option.text,
-        questionId,
-        optionIndex: index,
-      };
-    }
   }, [quiz, bartender, updateMessage]);
 
-  // Watch for navigation completing to show next question + chips
-  // We track isNavigating going from true → false, which means the quiz
-  // has settled on the next question (currentQuestionId is set).
+  // Watch for navigation completing to show next question + chips (calibration only)
   const wasNavigatingRef = useRef(false);
   useEffect(() => {
     if (!quizStarted) return;
     if (wasNavigatingRef.current && !quiz.isNavigating && quiz.currentQuestion) {
       // Navigation just completed — show next question and chips
-      pendingFeedbackRef.current = null;
-      setMessages(prev => [...prev, createMsg('bartender', quiz.currentQuestion!.text)]);
-      setPendingOptions(quiz.currentQuestion!.options);
+      // Only for calibration/fallback questions (AI questions are handled inline)
+      if (!quiz.currentQuestion.isAIGenerated) {
+        setMessages(prev => [...prev, createMsg('bartender', quiz.currentQuestion!.text)]);
+        setPendingOptions(quiz.currentQuestion!.options);
+      }
     }
     wasNavigatingRef.current = quiz.isNavigating;
   }, [quiz.isNavigating, quiz.currentQuestion, quizStarted]);
@@ -145,7 +161,7 @@ export function useConversationThread() {
   const handleSendText = useCallback(async (text: string) => {
     if (quiz.isNavigating) return;
 
-    // Phase 3: Open-ended opener
+    // Open-ended opener
     if (awaitingOpener) {
       setMessages(prev => [...prev, createMsg('user', text)]);
 
@@ -164,7 +180,7 @@ export function useConversationThread() {
     // Add user message immediately
     setMessages(prev => [...prev, createMsg('user', text)]);
 
-    // Phase 3: AI interpretation of freeform text
+    // AI interpretation of freeform text
     const optionTexts = pendingOptions.map(o => o.text);
     const questionText = quiz.currentQuestion?.text ?? '';
 
@@ -178,22 +194,36 @@ export function useConversationThread() {
       setPendingOptions(null);
       const result = quiz.handleAnswer(option, matchedIndex);
 
-      // Feedback placeholder
-      const feedbackMsg = createMsg('bartender', '…');
-      setMessages(prev => [...prev, feedbackMsg]);
+      if (result.needsAIQuestion) {
+        // Post-calibration: unified call
+        const feedbackMsg = createMsg('bartender', '…');
+        setMessages(prev => [...prev, feedbackMsg]);
 
-      bartender.getBartenderResponse(questionText, text, questionId, matchedIndex,
-        result.tierChanged ? { from: result.prevTier, to: result.newTier } : undefined
-      ).then((t: string) => updateMessage(feedbackMsg.id, t));
+        bartender.getNextQuestionWithFeedback(
+          questionText, text, questionId, matchedIndex,
+          result.beliefState,
+          result.tierChanged ? { from: result.prevTier, to: result.newTier } : undefined
+        ).then(({ feedback, question }) => {
+          updateMessage(feedbackMsg.id, feedback);
 
-      if (!result.isComplete) {
-        pendingFeedbackRef.current = {
-          feedbackMsgId: feedbackMsg.id,
-          questionText,
-          answerText: text,
-          questionId,
-          optionIndex: matchedIndex,
-        };
+          setTimeout(() => {
+            if (question) {
+              quiz.setAIQuestion(question);
+              setMessages(prev => [...prev, createMsg('bartender', question.text)]);
+              setPendingOptions(question.options);
+            } else {
+              quiz.setFallbackQuestion();
+            }
+          }, 600);
+        });
+      } else {
+        // Calibration phase
+        const feedbackMsg = createMsg('bartender', '…');
+        setMessages(prev => [...prev, feedbackMsg]);
+
+        bartender.getBartenderResponse(questionText, text, questionId, matchedIndex,
+          result.tierChanged ? { from: result.prevTier, to: result.newTier } : undefined
+        ).then((t: string) => updateMessage(feedbackMsg.id, t));
       }
     } else {
       // No match — bartender nudge, keep chips

@@ -33,6 +33,25 @@ export function selectNextQuestion(
   return candidates[0] ?? null;
 }
 
+// Fallback: pick from non-calibration hardcoded pool (skips calibration IDs)
+export function selectFallbackQuestion(
+  belief: BeliefState,
+  answeredIds: Set<string>,
+): Question | null {
+  const targetAxis = getMaxUncertaintyAxis(belief);
+
+  const candidates = questions
+    .filter(q => !answeredIds.has(q.id) && !CALIBRATION_IDS.includes(q.id))
+    .sort((a, b) => {
+      const aMatchesTarget = a.primaryAxis === targetAxis ? 1 : 0;
+      const bMatchesTarget = b.primaryAxis === targetAxis ? 1 : 0;
+      if (aMatchesTarget !== bMatchesTarget) return bMatchesTarget - aMatchesTarget;
+      return b.informationGain - a.informationGain;
+    });
+
+  return candidates[0] ?? null;
+}
+
 export function getTierLabel(question: Question): string {
   switch (question.tier) {
     case 'calibration': return 'The Basics';

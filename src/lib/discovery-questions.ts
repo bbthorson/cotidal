@@ -26,6 +26,7 @@ export interface Question {
     options: QuestionOption[];
     primaryAxis: 'x' | 'y';     // which axis this question most informs
     informationGain: number;     // max |delta| across options on primary axis
+    isAIGenerated?: boolean;
 }
 
 export const questions: Question[] = [

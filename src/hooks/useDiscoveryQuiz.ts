@@ -1,7 +1,7 @@
 'use client';
 import { useState, useCallback, useRef } from 'react';
 import { drinkDatabase } from '@/lib/data';
-import { questions as questionPool, type QuestionOption } from '@/lib/discovery-questions';
+import { questions as questionPool, type Question, type QuestionOption } from '@/lib/discovery-questions';
 import { calculateDistance } from '@/lib/scoring';
 import { auth } from '@/lib/firebase';
 import { saveUserProfile } from '@/lib/profile-service';
@@ -13,7 +13,9 @@ import {
   getConfidenceProgress,
   beliefToProfile,
 } from '@/lib/belief-state';
-import { selectNextQuestion, getTierLabel } from '@/lib/question-selector';
+import { selectNextQuestion, selectFallbackQuestion, getTierLabel } from '@/lib/question-selector';
+
+const CALIBRATION_COUNT = 3;
 
 export interface UserProfile {
   x: number;
@@ -34,6 +36,8 @@ export interface AnswerResult {
   newTier: string;
   tierChanged: boolean;
   isComplete: boolean;
+  needsAIQuestion: boolean;
+  beliefState: BeliefState;
 }
 
 export function useDiscoveryQuiz(onComplete: (profile: UserProfile) => void) {
@@ -41,10 +45,20 @@ export function useDiscoveryQuiz(onComplete: (profile: UserProfile) => void) {
   const answeredIdsRef = useRef<Set<string>>(new Set());
   const [currentQuestionId, setCurrentQuestionId] = useState<string | null>(null);
   const [isNavigating, setIsNavigating] = useState(false);
+  // Store AI-generated questions so they can be looked up by ID
+  const aiQuestionsRef = useRef<Map<string, Question>>(new Map());
 
-  const currentQuestion = currentQuestionId
-    ? questionPool.find(q => q.id === currentQuestionId) ?? selectNextQuestion(belief, answeredIdsRef.current)
-    : selectNextQuestion(belief, answeredIdsRef.current);
+  const currentQuestion = (() => {
+    if (currentQuestionId) {
+      // Check AI questions first, then hardcoded pool
+      const aiQ = aiQuestionsRef.current.get(currentQuestionId);
+      if (aiQ) return aiQ;
+      const poolQ = questionPool.find(q => q.id === currentQuestionId);
+      if (poolQ) return poolQ;
+    }
+    return selectNextQuestion(belief, answeredIdsRef.current);
+  })();
+
   const progress = getConfidenceProgress(belief);
   const tierLabel = currentQuestion ? getTierLabel(currentQuestion) : 'The Details';
 
@@ -90,7 +104,7 @@ export function useDiscoveryQuiz(onComplete: (profile: UserProfile) => void) {
 
   const handleAnswer = useCallback((option: QuestionOption, _index: number): AnswerResult => {
     if (isNavigating || !currentQuestion) {
-      return { prevTier: 'context', newTier: 'context', tierChanged: false, isComplete: false };
+      return { prevTier: 'context', newTier: 'context', tierChanged: false, isComplete: false, needsAIQuestion: false, beliefState: belief };
     }
     setIsNavigating(true);
 
@@ -105,19 +119,25 @@ export function useDiscoveryQuiz(onComplete: (profile: UserProfile) => void) {
       setTimeout(() => {
         finishQuiz(beliefToProfile(newBelief));
       }, 600);
-      return { prevTier, newTier: prevTier, tierChanged: false, isComplete: true };
+      return { prevTier, newTier: prevTier, tierChanged: false, isComplete: true, needsAIQuestion: false, beliefState: newBelief };
     }
 
-    // Select next question
+    // Post-calibration: let the orchestrator handle AI question generation
+    if (newBelief.questionCount >= CALIBRATION_COUNT) {
+      setBelief(newBelief);
+      // Don't select next question or clear isNavigating — orchestrator will call setAIQuestion or setFallbackQuestion
+      return { prevTier, newTier: prevTier, tierChanged: false, isComplete: false, needsAIQuestion: true, beliefState: newBelief };
+    }
+
+    // Calibration phase: select next hardcoded question synchronously
     const nextQuestion = selectNextQuestion(newBelief, answeredIdsRef.current);
 
-    // No more questions available — force completion
     if (!nextQuestion) {
       setBelief(newBelief);
       setTimeout(() => {
         finishQuiz(beliefToProfile(newBelief));
       }, 600);
-      return { prevTier, newTier: prevTier, tierChanged: false, isComplete: true };
+      return { prevTier, newTier: prevTier, tierChanged: false, isComplete: true, needsAIQuestion: false, beliefState: newBelief };
     }
 
     const newTier = nextQuestion.tier;
@@ -129,12 +149,32 @@ export function useDiscoveryQuiz(onComplete: (profile: UserProfile) => void) {
       setIsNavigating(false);
     }, 600);
 
-    return { prevTier, newTier, tierChanged, isComplete: false };
+    return { prevTier, newTier, tierChanged, isComplete: false, needsAIQuestion: false, beliefState: newBelief };
   }, [isNavigating, currentQuestion, belief, finishQuiz]);
+
+  // Inject an AI-generated question
+  const setAIQuestion = useCallback((question: Question) => {
+    aiQuestionsRef.current.set(question.id, question);
+    setCurrentQuestionId(question.id);
+    setIsNavigating(false);
+  }, []);
+
+  // Fallback to hardcoded pool when AI fails
+  const setFallbackQuestion = useCallback(() => {
+    const fallback = selectFallbackQuestion(belief, answeredIdsRef.current);
+    if (fallback) {
+      setCurrentQuestionId(fallback.id);
+      setIsNavigating(false);
+    } else {
+      // No more questions — force completion
+      finishQuiz(beliefToProfile(belief));
+    }
+  }, [belief, finishQuiz]);
 
   const resetQuiz = useCallback(() => {
     setBelief(createInitialBelief());
     answeredIdsRef.current = new Set();
+    aiQuestionsRef.current = new Map();
     setCurrentQuestionId(null);
     setIsNavigating(false);
   }, []);
@@ -145,7 +185,10 @@ export function useDiscoveryQuiz(onComplete: (profile: UserProfile) => void) {
     progress,
     tierLabel,
     isNavigating,
+    belief,
     handleAnswer,
+    setAIQuestion,
+    setFallbackQuestion,
     resetQuiz,
   };
 }
