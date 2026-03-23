@@ -59,7 +59,13 @@ export function ChatThread({
                     transition={{ duration: 0.4, ease: 'easeOut' }}
                     className="border-l border-primary/20 pl-3 py-0.5"
                   >
-                    <p className="text-sm text-foreground/70 italic leading-snug">{msg.content}</p>
+                    {msg.content === '…' ? (
+                      <span className="typing-dots text-sm text-foreground/70 italic leading-snug" aria-label="Thinking">
+                        <span className="dot">.</span><span className="dot">.</span><span className="dot">.</span>
+                      </span>
+                    ) : (
+                      <p className="text-sm text-foreground/70 italic leading-snug">{msg.content}</p>
+                    )}
                   </motion.div>
                   {/* Chips appear below the last bartender message */}
                   {idx === lastBartenderIdx && pendingOptions && (

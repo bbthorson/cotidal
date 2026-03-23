@@ -8,6 +8,12 @@ import { useBartenderChat } from './useBartenderChat';
 
 type Screen = 'chat' | 'results';
 
+// Ensure async responses take at least minMs so typing indicator feels natural
+async function withMinDelay<T>(promise: Promise<T>, minMs = 500): Promise<T> {
+  const [result] = await Promise.all([promise, new Promise(r => setTimeout(r, minMs))]);
+  return result;
+}
+
 let msgCounter = 0;
 function createMsg(role: ThreadMessage['role'], content: string, action?: string): ThreadMessage {
   return { id: `t-${++msgCounter}`, role, content, action };
@@ -100,9 +106,9 @@ export function useConversationThread() {
       // Quiz done — just show feedback
       const feedbackMsg = createMsg('bartender', '…');
       setMessages(prev => [...prev, feedbackMsg]);
-      bartender.getBartenderResponse(questionText, option.text, questionId, index,
+      withMinDelay(bartender.getBartenderResponse(questionText, option.text, questionId, index,
         result.tierChanged ? { from: result.prevTier, to: result.newTier } : undefined
-      ).then(text => updateMessage(feedbackMsg.id, text));
+      )).then(text => updateMessage(feedbackMsg.id, text));
       return;
     }
 
@@ -111,11 +117,11 @@ export function useConversationThread() {
       const feedbackMsg = createMsg('bartender', '…');
       setMessages(prev => [...prev, feedbackMsg]);
 
-      bartender.getNextQuestionWithFeedback(
+      withMinDelay(bartender.getNextQuestionWithFeedback(
         questionText, option.text, questionId, index,
         result.beliefState,
         result.tierChanged ? { from: result.prevTier, to: result.newTier } : undefined
-      ).then(({ feedback, question }) => {
+      )).then(({ feedback, question }) => {
         updateMessage(feedbackMsg.id, feedback);
 
         // After feedback settles, show the next question
@@ -123,12 +129,13 @@ export function useConversationThread() {
           if (question) {
             quiz.setAIQuestion(question);
             setMessages(prev => [...prev, createMsg('bartender', question.text)]);
-            setPendingOptions(question.options);
+            // Stagger chips after question text
+            setTimeout(() => setPendingOptions(question.options), 400);
           } else {
             // AI failed — fallback to hardcoded pool
             quiz.setFallbackQuestion();
           }
-        }, 600);
+        }, 1400);
       });
       return;
     }
@@ -137,9 +144,9 @@ export function useConversationThread() {
     const feedbackMsg = createMsg('bartender', '…');
     setMessages(prev => [...prev, feedbackMsg]);
 
-    bartender.getBartenderResponse(questionText, option.text, questionId, index,
+    withMinDelay(bartender.getBartenderResponse(questionText, option.text, questionId, index,
       result.tierChanged ? { from: result.prevTier, to: result.newTier } : undefined
-    ).then(text => updateMessage(feedbackMsg.id, text));
+    )).then(text => updateMessage(feedbackMsg.id, text));
   }, [quiz, bartender, updateMessage]);
 
   // Watch for navigation completing to show next question + chips (calibration only)
@@ -151,7 +158,8 @@ export function useConversationThread() {
       // Only for calibration/fallback questions (AI questions are handled inline)
       if (!quiz.currentQuestion.isAIGenerated) {
         setMessages(prev => [...prev, createMsg('bartender', quiz.currentQuestion!.text)]);
-        setPendingOptions(quiz.currentQuestion!.options);
+        // Stagger chips after question text
+        setTimeout(() => setPendingOptions(quiz.currentQuestion!.options), 400);
       }
     }
     wasNavigatingRef.current = quiz.isNavigating;
@@ -168,9 +176,10 @@ export function useConversationThread() {
       const openerMsg = createMsg('bartender', '…');
       setMessages(prev => [...prev, openerMsg]);
 
-      bartender.getOpenerResponse(text).then(response => {
+      withMinDelay(bartender.getOpenerResponse(text)).then(response => {
         updateMessage(openerMsg.id, response);
-        startQuiz();
+        // Brief pause before first question appears
+        setTimeout(() => startQuiz(), 800);
       });
       return;
     }
@@ -210,11 +219,11 @@ export function useConversationThread() {
             if (question) {
               quiz.setAIQuestion(question);
               setMessages(prev => [...prev, createMsg('bartender', question.text)]);
-              setPendingOptions(question.options);
+              setTimeout(() => setPendingOptions(question.options), 400);
             } else {
               quiz.setFallbackQuestion();
             }
-          }, 600);
+          }, 1400);
         });
       } else {
         // Calibration phase

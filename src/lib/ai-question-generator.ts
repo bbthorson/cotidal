@@ -1,6 +1,6 @@
 import type { VibeTag } from './data';
 import type { BeliefState, FilterState } from './belief-state';
-import { getMaxUncertaintyAxis } from './belief-state';
+import { getMaxUncertaintyAxis, getProgressContext } from './belief-state';
 
 const VALID_VIBE_TAGS: VibeTag[] = [
   'bold', 'classic', 'visual', 'social', 'comfort', 'complex',
@@ -53,10 +53,17 @@ export function buildQuestionPrompt(
 ): string {
   const targetAxis = getMaxUncertaintyAxis(belief);
   const unresolvedFilters = getUnresolvedFilters(belief.filters);
+  const progressCtx = getProgressContext(belief);
 
   const axisDesc = targetAxis === 'x'
     ? 'X-axis (Rich & Full ← → Crisp & Light)'
     : 'Y-axis (Savory & Dry ← → Sweet & Fruity)';
+
+  const progressCue = progressCtx.phase === 'almost-done'
+    ? `\n- PROGRESS CUE: You're almost done — weave in something like "I've got a pretty clear picture" or "One more thing..." in your feedback. Keep it natural, not formulaic.`
+    : progressCtx.phase === 'midway'
+    ? `\n- PROGRESS CUE: You're getting a feel for them — optionally hint at it naturally, like "Starting to see where you land..." but don't force it.`
+    : '';
 
   let prompt = `The guest just answered your question.
 
@@ -68,8 +75,8 @@ ${tierTransition ? `[We just finished the "${tierTransition.from}" section and a
 Current flavor profile state:
 - X-axis (Rich ← → Crisp): mean=${belief.axes.x.mean.toFixed(1)}, uncertainty=${uncertaintyLabel(belief.axes.x.variance)}
 - Y-axis (Savory ← → Sweet): mean=${belief.axes.y.mean.toFixed(1)}, uncertainty=${uncertaintyLabel(belief.axes.y.variance)}
-- Questions asked: ${belief.questionCount}
-${unresolvedFilters.length > 0 ? `- Unresolved filters: ${unresolvedFilters.map(f => FILTER_LABELS[f]).join(', ')}` : '- All filters resolved'}
+- Questions asked: ${belief.questionCount} (${progressCtx.questionsRemaining} remaining)
+${unresolvedFilters.length > 0 ? `- Unresolved filters: ${unresolvedFilters.map(f => FILTER_LABELS[f]).join(', ')}` : '- All filters resolved'}${progressCue}
 
 TARGET: Focus your next question on the ${axisDesc} because it has the highest uncertainty.
 ${unresolvedFilters.length > 0 ? `Also consider probing: ${unresolvedFilters.map(f => FILTER_LABELS[f]).join(', ')}` : ''}

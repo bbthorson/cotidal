@@ -20,9 +20,9 @@ export interface BeliefState {
 }
 
 const INITIAL_VARIANCE = 25;
-const COMPLETION_THRESHOLD = 2.5;
-const MIN_QUESTIONS = 5;
-const MAX_QUESTIONS = 12;
+const COMPLETION_THRESHOLD = 3.5;
+const MIN_QUESTIONS = 4;
+const MAX_QUESTIONS = 8;
 
 export function createInitialBelief(): BeliefState {
   return {
@@ -46,7 +46,7 @@ export function updateBelief(state: BeliefState, option: QuestionOption): Belief
   // Update x axis
   if (option.dx !== 0) {
     const prev = newAxes.x;
-    const shrink = Math.min(0.4, Math.abs(option.dx) / 10);
+    const shrink = Math.min(0.5, Math.abs(option.dx) / 8);
     newAxes.x = {
       mean: Math.max(-10, Math.min(10, prev.mean + option.dx)),
       variance: prev.variance * (1 - shrink),
@@ -56,7 +56,7 @@ export function updateBelief(state: BeliefState, option: QuestionOption): Belief
   // Update y axis
   if (option.dy !== 0) {
     const prev = newAxes.y;
-    const shrink = Math.min(0.4, Math.abs(option.dy) / 10);
+    const shrink = Math.min(0.5, Math.abs(option.dy) / 8);
     newAxes.y = {
       mean: Math.max(-10, Math.min(10, prev.mean + option.dy)),
       variance: prev.variance * (1 - shrink),
@@ -120,6 +120,22 @@ export function getConfidenceProgress(state: BeliefState): number {
   const avgVariance = axisValues.reduce((sum, a) => sum + a.variance, 0) / axisValues.length;
   const progress = (1 - avgVariance / INITIAL_VARIANCE) * 100;
   return Math.max(0, Math.min(100, progress));
+}
+
+export function getProgressContext(state: BeliefState): {
+  phase: 'early' | 'midway' | 'almost-done';
+  questionsRemaining: string;
+} {
+  const progress = getConfidenceProgress(state);
+  const remaining = MAX_QUESTIONS - state.questionCount;
+
+  if (progress < 40 || state.questionCount <= 3) {
+    return { phase: 'early', questionsRemaining: `up to ${remaining}` };
+  }
+  if (progress >= 75 || remaining <= 2) {
+    return { phase: 'almost-done', questionsRemaining: `${remaining} or fewer` };
+  }
+  return { phase: 'midway', questionsRemaining: `about ${remaining}` };
 }
 
 export function beliefToProfile(state: BeliefState): UserProfile {
