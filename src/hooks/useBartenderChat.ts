@@ -84,8 +84,19 @@ export function useBartenderChat() {
         prompt += `\n\n[We just finished the "${tierTransition.from}" section and are moving to "${tierTransition.to}". Briefly note this shift in your response.]`;
       }
 
+      prompt += `\n\n[Respond with natural bartender feedback only. Do NOT return JSON.]`;
+
       const result = await chat.sendMessage(prompt);
-      const text = result.response.text().trim();
+      let text = result.response.text().trim();
+
+      // If the model accidentally returns JSON, extract just the feedback
+      if (text.startsWith('{')) {
+        try {
+          const parsed = JSON.parse(text);
+          if (typeof parsed.feedback === 'string') text = parsed.feedback;
+        } catch { /* not JSON, use as-is */ }
+      }
+
       return text || fallback;
     } catch (e) {
       console.error('Bartender AI failed, using fallback:', e);
