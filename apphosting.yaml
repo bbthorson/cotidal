@@ -6,6 +6,38 @@ runConfig:
   # more instances in response to increased traffic.
   maxInstances: 1
 
+env:
+  - variable: NEXT_PUBLIC_FIREBASE_API_KEY
+    value: AIzaSyDmbGwBxZMnplGbh30m5rhYQn3LuulbMbE
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
+    value: studio-7093671699-17b25.firebaseapp.com
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: NEXT_PUBLIC_FIREBASE_PROJECT_ID
+    value: studio-7093671699-17b25
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
+    value: studio-7093671699-17b25.firebasestorage.app
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
+    value: "234936561416"
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: NEXT_PUBLIC_FIREBASE_APP_ID
+    value: "1:234936561416:web:62ad7c18eba4f7ea5246bd"
+    availability:
+      - BUILD
+      - RUNTIME
+
   # AT Protocol / Bluesky OAuth (opt-in)
   # To enable, set NEXT_PUBLIC_ATPROTO_ENABLED to "true" and configure secrets:
   #   firebase apphosting:secrets:set atproto-client-id
