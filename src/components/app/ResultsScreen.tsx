@@ -6,10 +6,13 @@ import { ConnectBluesky } from './ConnectBluesky';
 import { MiniFlavorMap } from './MiniFlavorMap';
 import { HeroDrinkCard } from './HeroDrinkCard';
 import { MenuSection } from './MenuSection';
+import { DrinkLogForm } from './DrinkLogForm';
+import type { UserProfile } from '@/hooks/useDiscoveryQuiz';
 
 interface ResultsScreenProps {
     user: User;
     vibeTags?: Record<string, number>;
+    onPalateUpdated?: (profile: UserProfile) => void;
 }
 
 const MENU_SECTIONS: { context: ContextType; title: string; count: number }[] = [
@@ -19,7 +22,7 @@ const MENU_SECTIONS: { context: ContextType; title: string; count: number }[] = 
     { context: 'holiday',  title: "Holiday Warmth",       count: 6 },
 ];
 
-export function ResultsScreen({ user, vibeTags }: ResultsScreenProps) {
+export function ResultsScreen({ user, vibeTags, onPalateUpdated }: ResultsScreenProps) {
     // Stage 1: Filter & Base Score
     const baseScoredDrinks = useMemo(() => {
         const dislikesSmoke = user.filters.includes('noSmoke');
@@ -116,6 +119,15 @@ export function ResultsScreen({ user, vibeTags }: ResultsScreenProps) {
                 vibeTags={vibeTags || {}}
                 heroDrinkName={heroDrink?.name || ''}
                 quadrant={user.x <= 0 && user.y >= 0 ? 'Lush & Lively' : user.x > 0 && user.y >= 0 ? 'Crisp & Clean' : user.x <= 0 && user.y < 0 ? 'Decadent & Deep' : 'Bold & Complex'}
+            />
+
+            <DrinkLogForm
+                recommendedDrinks={topDrinks.map(d => d.name)}
+                onPalateUpdated={(profile) => {
+                    if (onPalateUpdated) {
+                        onPalateUpdated(profile);
+                    }
+                }}
             />
         </div>
     );

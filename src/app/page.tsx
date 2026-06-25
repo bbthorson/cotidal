@@ -10,6 +10,7 @@ import { ChatHeader } from '@/components/app/ChatHeader';
 import { ChatThread } from '@/components/app/ChatThread';
 import { ChatInput } from '@/components/app/ChatInput';
 import { useConversationThread } from '@/hooks/useConversationThread';
+import { MarketingSite } from '@/components/app/MarketingSite';
 
 // Lazy load heavy results components
 const ResultsScreen = dynamic(() => import('@/components/app/ResultsScreen').then(mod => mod.ResultsScreen), {
@@ -48,6 +49,20 @@ export default function Home() {
 
   // --- Render by screen ---
 
+  if (thread.screen === 'marketing') {
+    return (
+      <MarketingSite
+        onStartQuiz={() => {
+          thread.setScreen('chat');
+        }}
+        onExploreAsGuest={() => {
+          thread.setScreen('results');
+        }}
+        hasLocalProfile={!!thread.vibeTags}
+      />
+    );
+  }
+
   if (thread.screen === 'results') {
     return (
       <ChatLayout
@@ -55,7 +70,11 @@ export default function Home() {
         middle={
           thread.vibeTags ? (
             <div className="flex-1 overflow-y-auto">
-              <ResultsScreen user={finalUser} vibeTags={thread.vibeTags} />
+              <ResultsScreen
+                user={finalUser}
+                vibeTags={thread.vibeTags}
+                onPalateUpdated={thread.handlePalateUpdated}
+              />
             </div>
           ) : (
             <div className="flex min-h-[300px] w-full items-center justify-center">

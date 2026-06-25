@@ -5,8 +5,10 @@ import type { QuestionOption } from '@/lib/discovery-questions';
 import type { ThreadMessage } from '@/components/app/ChatThread';
 import { useDiscoveryQuiz, type UserProfile } from './useDiscoveryQuiz';
 import { useBartenderChat } from './useBartenderChat';
+import { useAtprotoContext } from '@/components/app/AtprotoProvider';
+import { getConnectedPalate, publishPalate } from '@/app/actions/atproto-publish';
 
-type Screen = 'chat' | 'results';
+type Screen = 'chat' | 'results' | 'marketing';
 
 // Ensure async responses take at least minMs so typing indicator feels natural
 async function withMinDelay<T>(promise: Promise<T>, minMs = 500): Promise<T> {
@@ -42,7 +44,7 @@ function getInitialProfile(): UserProfile | null {
 
 export function useConversationThread() {
   const initialProfile = getInitialProfile();
-  const [screen, setScreen] = useState<Screen>(initialProfile ? 'results' : 'chat');
+  const [screen, setScreen] = useState<Screen>(initialProfile ? 'results' : 'marketing');
   const [messages, setMessages] = useState<ThreadMessage[]>([
     createMsg('bartender', WELCOME_MSG),
   ]);
@@ -53,6 +55,46 @@ export function useConversationThread() {
   const [awaitingOpener, setAwaitingOpener] = useState(true);
 
   const bartender = useBartenderChat();
+  const { isConnected } = useAtprotoContext();
+
+  useEffect(() => {
+    if (isConnected) {
+      getConnectedPalate().then(async (profile) => {
+        if (profile) {
+          setUser(profileToUser(profile));
+          setVibeTags(profile.vibeTags);
+          localStorage.setItem('user_profile', JSON.stringify(profile));
+          setScreen('results');
+          setMessages(prev => {
+            if (prev.some(msg => msg.content.includes("Logged in with Bluesky profile"))) return prev;
+            return [
+              ...prev,
+              createMsg('system', "Logged in with Bluesky profile. Loaded taste preferences.")
+            ];
+          });
+        } else {
+          // Connected, but no profile on repo yet. Check if we have a local guest profile.
+          const guestProfile = getInitialProfile();
+          if (guestProfile) {
+            // Auto-publish local profile to repo
+            await publishPalate(guestProfile);
+            setUser(profileToUser(guestProfile));
+            setVibeTags(guestProfile.vibeTags);
+            setScreen('results');
+            setMessages(prev => [
+              ...prev,
+              createMsg('system', "Connected! Your local palate profile has been saved to your repository.")
+            ]);
+          } else {
+            // No profile anywhere -> trigger onboarding quiz
+            setScreen('chat');
+          }
+        }
+      }).catch(err => {
+        console.error("Failed to load palate from AT Protocol:", err);
+      });
+    }
+  }, [isConnected]);
 
   const handleQuizComplete = useCallback((profile: UserProfile) => {
     setUser(profileToUser(profile));
@@ -157,9 +199,12 @@ export function useConversationThread() {
       // Navigation just completed — show next question and chips
       // Only for calibration/fallback questions (AI questions are handled inline)
       if (!quiz.currentQuestion.isAIGenerated) {
-        setMessages(prev => [...prev, createMsg('bartender', quiz.currentQuestion!.text)]);
-        // Stagger chips after question text
-        setTimeout(() => setPendingOptions(quiz.currentQuestion!.options), 400);
+        const questionText = quiz.currentQuestion.text;
+        const questionOptions = quiz.currentQuestion.options;
+        setTimeout(() => {
+          setMessages(prev => [...prev, createMsg('bartender', questionText)]);
+          setTimeout(() => setPendingOptions(questionOptions), 400);
+        }, 0);
       }
     }
     wasNavigatingRef.current = quiz.isNavigating;
@@ -259,6 +304,12 @@ export function useConversationThread() {
     setScreen('chat');
   }, [quiz, bartender]);
 
+  const handlePalateUpdated = useCallback((profile: UserProfile) => {
+    setUser(profileToUser(profile));
+    setVibeTags(profile.vibeTags);
+    localStorage.setItem('user_profile', JSON.stringify(profile));
+  }, []);
+
   return {
     screen,
     messages,
@@ -272,6 +323,7 @@ export function useConversationThread() {
     handleSelectOption,
     handleSendText,
     handleAction,
+    handlePalateUpdated,
     reset,
     setScreen,
   };

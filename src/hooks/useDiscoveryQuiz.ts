@@ -5,6 +5,7 @@ import { questions as questionPool, type Question, type QuestionOption } from '@
 import { calculateDistance } from '@/lib/scoring';
 import { auth } from '@/lib/firebase';
 import { saveUserProfile } from '@/lib/profile-service';
+import { publishPalate } from '@/app/actions/atproto-publish';
 import {
   type BeliefState,
   createInitialBelief,
@@ -43,20 +44,22 @@ export interface AnswerResult {
 export function useDiscoveryQuiz(onComplete: (profile: UserProfile) => void) {
   const [belief, setBelief] = useState<BeliefState>(createInitialBelief);
   const answeredIdsRef = useRef<Set<string>>(new Set());
+  const [answeredIdsState, setAnsweredIdsState] = useState<Set<string>>(() => new Set());
   const [currentQuestionId, setCurrentQuestionId] = useState<string | null>(null);
   const [isNavigating, setIsNavigating] = useState(false);
   // Store AI-generated questions so they can be looked up by ID
   const aiQuestionsRef = useRef<Map<string, Question>>(new Map());
+  const [aiQuestionsState, setAiQuestionsState] = useState<Map<string, Question>>(() => new Map());
 
   const currentQuestion = (() => {
     if (currentQuestionId) {
       // Check AI questions first, then hardcoded pool
-      const aiQ = aiQuestionsRef.current.get(currentQuestionId);
+      const aiQ = aiQuestionsState.get(currentQuestionId);
       if (aiQ) return aiQ;
       const poolQ = questionPool.find(q => q.id === currentQuestionId);
       if (poolQ) return poolQ;
     }
-    return selectNextQuestion(belief, answeredIdsRef.current);
+    return selectNextQuestion(belief, answeredIdsState);
   })();
 
   const progress = getConfidenceProgress(belief);
@@ -99,6 +102,11 @@ export function useDiscoveryQuiz(onComplete: (profile: UserProfile) => void) {
       });
     }
 
+    // Automatically sync to AT Protocol if connected
+    publishPalate(finalProfile).catch(e => {
+      console.warn("Failed to auto-publish to AT Protocol:", e);
+    });
+
     onComplete(finalProfile);
   }, [onComplete]);
 
@@ -110,6 +118,7 @@ export function useDiscoveryQuiz(onComplete: (profile: UserProfile) => void) {
 
     const prevTier = currentQuestion.tier;
     answeredIdsRef.current.add(currentQuestion.id);
+    setAnsweredIdsState(new Set(answeredIdsRef.current));
 
     const newBelief = updateBelief(belief, option);
 
@@ -152,9 +161,9 @@ export function useDiscoveryQuiz(onComplete: (profile: UserProfile) => void) {
     return { prevTier, newTier, tierChanged, isComplete: false, needsAIQuestion: false, beliefState: newBelief };
   }, [isNavigating, currentQuestion, belief, finishQuiz]);
 
-  // Inject an AI-generated question
   const setAIQuestion = useCallback((question: Question) => {
     aiQuestionsRef.current.set(question.id, question);
+    setAiQuestionsState(new Map(aiQuestionsRef.current));
     setCurrentQuestionId(question.id);
     setIsNavigating(false);
   }, []);
@@ -174,7 +183,9 @@ export function useDiscoveryQuiz(onComplete: (profile: UserProfile) => void) {
   const resetQuiz = useCallback(() => {
     setBelief(createInitialBelief());
     answeredIdsRef.current = new Set();
+    setAnsweredIdsState(new Set());
     aiQuestionsRef.current = new Map();
+    setAiQuestionsState(new Map());
     setCurrentQuestionId(null);
     setIsNavigating(false);
   }, []);

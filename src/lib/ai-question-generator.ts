@@ -65,7 +65,7 @@ export function buildQuestionPrompt(
     ? `\n- PROGRESS CUE: You're getting a feel for them — optionally hint at it naturally, like "Starting to see where you land..." but don't force it.`
     : '';
 
-  let prompt = `The guest just answered your question.
+  const prompt = `The guest just answered your question.
 
 Question: "${questionText}"
 Their answer: "${answerText}"

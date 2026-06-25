@@ -1,7 +1,8 @@
 import { Agent } from '@atproto/api';
-import { PALATE_COLLECTION, PALATE_RKEY, type PalateRecord } from './lexicon';
+import { PALATE_COLLECTION, PALATE_RKEY, DRINK_LOG_COLLECTION, type PalateRecord, type DrinkLogRecord } from './lexicon';
 import { getAtprotoClient } from './client';
 import type { UserProfile } from '@/hooks/useDiscoveryQuiz';
+import { derivePalateRecord } from '../sensory';
 
 export async function publishPalateProfile(
   did: string,
@@ -13,18 +14,20 @@ export async function publishPalateProfile(
   const session = await client.restore(did);
   const agent = new Agent(session);
 
-  const now = new Date().toISOString();
-  const record: PalateRecord = {
-    $type: PALATE_COLLECTION,
-    x: profile.x,
-    y: profile.y,
-    dislikesSmoke: profile.dislikesSmoke,
-    dislikesBitter: profile.dislikesBitter,
-    dislikesAnise: profile.dislikesAnise,
-    vibeTags: profile.vibeTags,
-    createdAt: now,
-    updatedAt: now,
-  };
+  // Try to load existing profile to preserve sensory updates
+  let existing: PalateRecord | null = null;
+  try {
+    const response = await agent.com.atproto.repo.getRecord({
+      repo: did,
+      collection: PALATE_COLLECTION,
+      rkey: PALATE_RKEY,
+    });
+    existing = response.data.value as PalateRecord;
+  } catch {
+    // Ignore error if record doesn't exist yet
+  }
+
+  const record = derivePalateRecord(profile, existing);
 
   const response = await agent.com.atproto.repo.putRecord({
     repo: did,
@@ -35,6 +38,7 @@ export async function publishPalateProfile(
 
   return { uri: response.data.uri, cid: response.data.cid };
 }
+
 
 export async function shareToFeed(
   did: string,
@@ -96,5 +100,71 @@ export async function getPalateProfile(did: string): Promise<PalateRecord | null
     return response.data.value as PalateRecord;
   } catch {
     return null;
+  }
+}
+
+export async function publishRawPalateRecord(
+  did: string,
+  record: PalateRecord
+): Promise<{ uri: string; cid: string }> {
+  const client = getAtprotoClient();
+  if (!client) throw new Error('AT Protocol not configured');
+
+  const session = await client.restore(did);
+  const agent = new Agent(session);
+
+  const response = await agent.com.atproto.repo.putRecord({
+    repo: did,
+    collection: PALATE_COLLECTION,
+    rkey: PALATE_RKEY,
+    record,
+  });
+
+  return { uri: response.data.uri, cid: response.data.cid };
+}
+
+export async function publishDrinkLog(
+  did: string,
+  log: Omit<DrinkLogRecord, '$type'>
+): Promise<{ uri: string; cid: string }> {
+  const client = getAtprotoClient();
+  if (!client) throw new Error('AT Protocol not configured');
+
+  const session = await client.restore(did);
+  const agent = new Agent(session);
+
+  const record: DrinkLogRecord = {
+    $type: DRINK_LOG_COLLECTION,
+    ...log,
+  };
+
+  const response = await agent.com.atproto.repo.createRecord({
+    repo: did,
+    collection: DRINK_LOG_COLLECTION,
+    record,
+  });
+
+  return { uri: response.data.uri, cid: response.data.cid };
+}
+
+export async function getDrinkLogs(did: string, limit?: number): Promise<DrinkLogRecord[]> {
+  const client = getAtprotoClient();
+  if (!client) return [];
+
+  try {
+    const session = await client.restore(did);
+    const agent = new Agent(session);
+
+    const response = await agent.com.atproto.repo.listRecords({
+      repo: did,
+      collection: DRINK_LOG_COLLECTION,
+      limit: limit || 50,
+      reverse: true, // Show newest first
+    });
+
+    return response.data.records.map(r => r.value as DrinkLogRecord);
+  } catch (e) {
+    console.error('Failed to get drink logs:', e);
+    return [];
   }
 }
