@@ -5,13 +5,17 @@ import { useAtprotoContext } from './AtprotoProvider';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Loader2, Plus, History, MapPin, Star, MessageSquare } from 'lucide-react';
-import { logDrinkFeedback, getConnectedDrinkLogs } from '@/app/actions/atproto-publish';
+import { logDrinkFeedback } from '@/app/actions/atproto-publish';
 import type { DrinkLogRecord } from '@/lib/atproto/lexicon';
 import type { UserProfile } from '@/hooks/useDiscoveryQuiz';
 
 interface DrinkLogFormProps {
   recommendedDrinks: string[];
   onPalateUpdated: (profile: UserProfile) => void;
+  selectedLocation?: string | null;
+  history: DrinkLogRecord[];
+  loadingHistory?: boolean;
+  onLogAdded: () => void;
 }
 
 const HEDONIC_LABELS: Record<number, string> = {
@@ -40,7 +44,14 @@ const DEVIATION_OPTIONS = [
   { value: "too-fizzy", label: "Too Carbonated" },
 ];
 
-export function DrinkLogForm({ recommendedDrinks, onPalateUpdated }: DrinkLogFormProps) {
+export function DrinkLogForm({
+  recommendedDrinks,
+  onPalateUpdated,
+  selectedLocation,
+  history,
+  loadingHistory = false,
+  onLogAdded,
+}: DrinkLogFormProps) {
   const { isConnected } = useAtprotoContext();
   
   // Form State
@@ -54,29 +65,15 @@ export function DrinkLogForm({ recommendedDrinks, onPalateUpdated }: DrinkLogFor
   
   // UI States
   const [submitting, setSubmitting] = useState(false);
-  const [loadingHistory, setLoadingHistory] = useState(false);
-  const [history, setHistory] = useState<DrinkLogRecord[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
-  // Load history if connected
-  const fetchHistory = async () => {
-    if (!isConnected) return;
-    setLoadingHistory(true);
-    try {
-      const logs = await getConnectedDrinkLogs(10);
-      setHistory(logs);
-    } catch (e) {
-      console.error("Failed to load tasted history:", e);
-    } finally {
-      setLoadingHistory(false);
-    }
-  };
-
+  // Sync selectedLocation prop to input state
   useEffect(() => {
-    fetchHistory();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isConnected]);
+    if (selectedLocation) {
+      setLocationName(selectedLocation);
+    }
+  }, [selectedLocation]);
 
   const toggleDeviation = (value: string) => {
     setSelectedDeviations(prev => 
@@ -119,8 +116,8 @@ export function DrinkLogForm({ recommendedDrinks, onPalateUpdated }: DrinkLogFor
         setNote('');
         setRating(5);
         
-        // Refresh history
-        await fetchHistory();
+        // Trigger history reload in parent
+        onLogAdded();
       } else {
         setError(result.error || "Failed to log feedback.");
       }
@@ -131,6 +128,14 @@ export function DrinkLogForm({ recommendedDrinks, onPalateUpdated }: DrinkLogFor
       setSubmitting(false);
     }
   };
+
+  const uniqueLocations = Array.from(
+    new Set(
+      history
+        .map(h => h.location)
+        .filter((loc): loc is string => !!loc && loc.trim().length > 0)
+    )
+  );
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-12 gap-8 pt-6 border-t border-primary/10">
@@ -189,8 +194,14 @@ export function DrinkLogForm({ recommendedDrinks, onPalateUpdated }: DrinkLogFor
                   onChange={(e) => setLocationName(e.target.value)}
                   placeholder="e.g. Pegu Club, Sage Apothecary, Home"
                   className="w-full rounded-lg border border-primary/10 bg-background/40 pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary/30"
+                  list="location-suggestions"
                   required
                 />
+                <datalist id="location-suggestions">
+                  {uniqueLocations.map(loc => (
+                    <option key={loc} value={loc} />
+                  ))}
+                </datalist>
               </div>
             </div>
 

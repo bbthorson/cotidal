@@ -85,6 +85,7 @@ test('AT Protocol: DrinkLogRecordSchema should validate drink logs with optional
 
   // Location is optional
   const recordNoLocation = { ...validRecord };
+  // @ts-expect-error - deleting location to test optionality
   delete recordNoLocation.location;
   expect(DrinkLogRecordSchema.safeParse(recordNoLocation).success).toBe(true);
 

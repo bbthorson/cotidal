@@ -1,13 +1,17 @@
 'use client';
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { drinkDatabase, type User, type ContextType } from '@/lib/data';
-import { calculateDistance, calculateContextScore } from '@/lib/scoring';
+import { calculateContextScore, calculateWeightedRelevance, getQuadrantName } from '@/lib/scoring';
 import { ConnectBluesky } from './ConnectBluesky';
 import { MiniFlavorMap } from './MiniFlavorMap';
 import { HeroDrinkCard } from './HeroDrinkCard';
 import { MenuSection } from './MenuSection';
 import { DrinkLogForm } from './DrinkLogForm';
+import { useAtprotoContext } from './AtprotoProvider';
+import { getConnectedDrinkLogs } from '@/app/actions/atproto-publish';
+import { MapPin } from 'lucide-react';
 import type { UserProfile } from '@/hooks/useDiscoveryQuiz';
+import type { DrinkLogRecord } from '@/lib/atproto/lexicon';
 
 interface ResultsScreenProps {
     user: User;
@@ -23,7 +27,41 @@ const MENU_SECTIONS: { context: ContextType; title: string; count: number }[] = 
 ];
 
 export function ResultsScreen({ user, vibeTags, onPalateUpdated }: ResultsScreenProps) {
-    // Stage 1: Filter & Base Score
+    const { isConnected } = useAtprotoContext();
+    const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
+    const [history, setHistory] = useState<DrinkLogRecord[]>([]);
+    const [loadingHistory, setLoadingHistory] = useState(false);
+
+    const fetchHistory = async () => {
+        if (!isConnected) return;
+        setLoadingHistory(true);
+        try {
+            const logs = await getConnectedDrinkLogs(50);
+            setHistory(logs);
+        } catch (e) {
+            console.error("Failed to load tasted history:", e);
+        } finally {
+            setLoadingHistory(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchHistory();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isConnected]);
+
+    // Unique venues logged in history
+    const uniqueLocations = useMemo(() => {
+        return Array.from(
+            new Set(
+                history
+                    .map(h => h.location)
+                    .filter((loc): loc is string => !!loc && loc.trim().length > 0)
+            )
+        );
+    }, [history]);
+
+    // Stage 1: Filter & Base Score using Weighted User Relevance
     const baseScoredDrinks = useMemo(() => {
         const dislikesSmoke = user.filters.includes('noSmoke');
         const dislikesBitter = user.filters.includes('noBitter');
@@ -36,32 +74,58 @@ export function ResultsScreen({ user, vibeTags, onPalateUpdated }: ResultsScreen
             return true;
         });
 
+        const userWithVibe = {
+            x: user.x,
+            y: user.y,
+            vibeTags: vibeTags || null,
+        };
+
+        // Convert History to MinimalDrinkLog format for calculation
+        const minimalLogs = history.map(log => ({
+            drinkName: log.drinkName,
+            location: log.location,
+            hedonicScale: log.hedonicScale,
+            createdAt: log.createdAt,
+        }));
+
         return availableDrinks.map(drink => {
-            const distance = calculateDistance(user, drink);
+            const score = calculateWeightedRelevance(
+                userWithVibe,
+                drink,
+                minimalLogs,
+                selectedLocation
+            );
 
-            let vibeScore = 0;
-            if (vibeTags) {
-                drink.tags.forEach(tag => {
-                    if (vibeTags[tag]) vibeScore += vibeTags[tag];
-                });
-            }
+            // Filter out dislikes (hedonic scale <= 3)
+            const latestLog = minimalLogs
+                .filter(log => log.drinkName.toLowerCase() === drink.name.toLowerCase())
+                .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
+            const isHardDislike = latestLog && latestLog.hedonicScale <= 3;
 
-            const baseScore = (1 / (distance + 0.1)) + (vibeScore * 2);
+            // Maintain distance for MiniFlavorMap / display compatibility
+            const distance = Math.sqrt(Math.pow(user.x - drink.x, 2) + Math.pow(user.y - drink.y, 2));
 
             return {
                 ...drink,
                 distance,
-                baseScore,
+                baseScore: score, // Mapping relevanceScore to baseScore for section ranking
+                relevanceScore: score,
+                isHardDislike,
             };
-        });
-    }, [user, vibeTags]);
+        }).filter(d => !d.isHardDislike);
+    }, [user, vibeTags, history, selectedLocation]);
 
     const sections = useMemo(() => {
         return MENU_SECTIONS.map(({ context, title, count }) => {
-            const drinks = baseScoredDrinks.map(drink => ({
-                ...drink,
-                score: drink.baseScore + calculateContextScore(drink, context),
-            })).sort((a, b) => b.score - a.score).slice(0, count);
+            const drinks = baseScoredDrinks.map(drink => {
+                const contextBoost = calculateContextScore(drink, context);
+                // Boost adds up to 16 relevance points (contextBoost * 2)
+                const finalScore = Math.max(0, Math.min(100, drink.relevanceScore + (contextBoost * 2)));
+                return {
+                    ...drink,
+                    score: finalScore,
+                };
+            }).sort((a, b) => b.score - a.score).slice(0, count);
             return { title, drinks };
         });
     }, [baseScoredDrinks]);
@@ -72,10 +136,65 @@ export function ResultsScreen({ user, vibeTags, onPalateUpdated }: ResultsScreen
 
     return (
         <div className="animate-in fade-in duration-500 px-5 py-6 space-y-10">
+            {/* Location Selector Widget */}
+            <div className="glass-dark border-primary/10 rounded-xl p-5 space-y-4 shadow-md max-w-xl mx-auto coaster">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                        <MapPin className="w-4 h-4 text-primary" />
+                        <span className="font-mono text-2xs uppercase tracking-widest text-muted-foreground">Tasting Venue Context</span>
+                    </div>
+                    {selectedLocation && (
+                        <button
+                            onClick={() => setSelectedLocation(null)}
+                            className="text-3xs font-mono text-secondary hover:underline uppercase tracking-wider"
+                        >
+                            Reset Location
+                        </button>
+                    )}
+                </div>
+
+                <div className="flex gap-2">
+                    <input
+                        type="text"
+                        value={selectedLocation || ''}
+                        onChange={(e) => setSelectedLocation(e.target.value || null)}
+                        placeholder="Filter by venue (e.g. Sage Apothecary, The Nomad Bar)..."
+                        className="flex-1 rounded-lg border border-primary/10 bg-background/40 px-3.5 py-2 text-xs placeholder:text-muted-foreground/45 focus:outline-none focus:ring-1 focus:ring-primary/30 text-foreground"
+                    />
+                </div>
+
+                {uniqueLocations.length > 0 && (
+                    <div className="space-y-1">
+                        <span className="font-mono text-[9px] text-muted-foreground/75 block">Previously Visited:</span>
+                        <div className="flex flex-wrap gap-1.5">
+                            {uniqueLocations.slice(0, 5).map(loc => {
+                                const active = selectedLocation?.toLowerCase().trim() === loc.toLowerCase().trim();
+                                return (
+                                    <button
+                                        key={loc}
+                                        onClick={() => setSelectedLocation(active ? null : loc)}
+                                        className={`px-2.5 py-1 rounded-full text-3xs font-mono border transition-all ${
+                                            active
+                                                ? 'bg-primary border-primary text-primary-foreground shadow-[0_0_8px_rgba(212,148,26,0.15)]'
+                                                : 'border-primary/10 bg-background/20 text-muted-foreground hover:border-primary/30 hover:text-foreground'
+                                        }`}
+                                    >
+                                        {loc}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+                )}
+            </div>
+
             {/* Hero section */}
             <div className="space-y-6">
                 <p className="text-center text-muted-foreground/60 italic font-serif text-base">
-                    Curated for your palate.
+                    {selectedLocation 
+                        ? `Curated for your palate at ${selectedLocation}.`
+                        : "Curated for your palate."
+                    }
                 </p>
 
                 <MiniFlavorMap user={user} topDrinks={topDrinks} />
@@ -118,7 +237,7 @@ export function ResultsScreen({ user, vibeTags, onPalateUpdated }: ResultsScreen
                 user={user}
                 vibeTags={vibeTags || {}}
                 heroDrinkName={heroDrink?.name || ''}
-                quadrant={user.x <= 0 && user.y >= 0 ? 'Lush & Lively' : user.x > 0 && user.y >= 0 ? 'Crisp & Clean' : user.x <= 0 && user.y < 0 ? 'Decadent & Deep' : 'Bold & Complex'}
+                quadrant={getQuadrantName(user.x, user.y)}
             />
 
             <DrinkLogForm
@@ -128,6 +247,10 @@ export function ResultsScreen({ user, vibeTags, onPalateUpdated }: ResultsScreen
                         onPalateUpdated(profile);
                     }
                 }}
+                selectedLocation={selectedLocation}
+                history={history}
+                loadingHistory={loadingHistory}
+                onLogAdded={fetchHistory}
             />
         </div>
     );

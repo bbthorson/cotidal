@@ -63,7 +63,12 @@ export const DrinkCard = memo(function DrinkCard({ drink, rank, userX, userY, us
           <span className="font-headline text-sm font-bold text-primary group-hover:text-primary/80 transition-colors truncate">
             {drink.name}
           </span>
-          <span className="ml-auto shrink-0">
+          <span className="ml-auto shrink-0 flex items-center gap-2">
+            {drink.score !== undefined && (
+              <span className="font-mono text-[9px] text-secondary bg-secondary/10 px-1.5 py-0.5 rounded border border-secondary/15 font-bold">
+                {Math.round(drink.score)}% Match
+              </span>
+            )}
             <span className={`font-condensed text-[10px] uppercase tracking-[0.15em] px-2 py-0.5 rounded-full ${typeStyle}`}>
               {drink.type}
             </span>

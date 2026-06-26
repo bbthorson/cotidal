@@ -53,11 +53,16 @@ export const HeroDrinkCard = memo(function HeroDrinkCard({ drink, userX, userY, 
 
       <div className="border border-primary/15 rounded-sm p-5 space-y-3 bg-primary/[0.02]">
         {/* Name + type */}
-        <div className="flex items-baseline gap-3">
+        <div className="flex items-baseline gap-3 w-full">
           <h3 className="font-headline text-xl font-bold text-primary">
             {drink.name}
           </h3>
-          <span className={`font-condensed text-[10px] uppercase tracking-[0.15em] px-2 py-0.5 rounded-full ${typeStyle}`}>
+          {drink.score !== undefined && (
+            <span className="font-mono text-2xs text-secondary bg-secondary/15 px-2 py-0.5 rounded border border-secondary/20 font-bold">
+              {Math.round(drink.score)}% Match
+            </span>
+          )}
+          <span className={`font-condensed text-[10px] uppercase tracking-[0.15em] px-2 py-0.5 rounded-full ml-auto ${typeStyle}`}>
             {drink.type}
           </span>
         </div>
