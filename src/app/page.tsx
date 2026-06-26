@@ -68,19 +68,13 @@ export default function Home() {
       <ChatLayout
         header={<ChatHeader />}
         middle={
-          thread.vibeTags ? (
-            <div className="flex-1 overflow-y-auto">
-              <ResultsScreen
-                user={finalUser}
-                vibeTags={thread.vibeTags}
-                onPalateUpdated={thread.handlePalateUpdated}
-              />
-            </div>
-          ) : (
-            <div className="flex min-h-[300px] w-full items-center justify-center">
-              <Loader2 className="h-8 w-8 animate-spin text-primary/50" />
-            </div>
-          )
+          <div className="flex-1 overflow-y-auto">
+            <ResultsScreen
+              user={finalUser}
+              vibeTags={thread.vibeTags || {}}
+              onPalateUpdated={thread.handlePalateUpdated}
+            />
+          </div>
         }
         input={
           <button
