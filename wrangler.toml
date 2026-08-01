@@ -2,7 +2,4 @@
 name = "crystal-coupe"
 compatibility_date = "2026-08-01"
 compatibility_flags = ["nodejs_compat"]
-
-[build]
-command = "npx astro build"
-output_dir = "dist"
+pages_build_output_dir = "./dist"
