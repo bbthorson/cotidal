@@ -1,38 +1,25 @@
 'use client';
 import { useMemo, useEffect, useRef } from 'react';
-import dynamic from 'next/dynamic';
-import { auth } from '@/lib/firebase';
 import { getUserProfile } from '@/lib/profile-service';
-import { onAuthStateChanged } from 'firebase/auth';
-import { Loader2 } from 'lucide-react';
 import { ChatLayout } from '@/components/app/ChatLayout';
 import { ChatHeader } from '@/components/app/ChatHeader';
 import { ChatThread } from '@/components/app/ChatThread';
 import { ChatInput } from '@/components/app/ChatInput';
 import { useConversationThread } from '@/hooks/useConversationThread';
 import { MarketingSite } from '@/components/app/MarketingSite';
-
-// Lazy load heavy results components
-const ResultsScreen = dynamic(() => import('@/components/app/ResultsScreen').then(mod => mod.ResultsScreen), {
-  loading: () => <div className="flex min-h-[300px] w-full items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary/50" /></div>,
-  ssr: false,
-});
+import { ResultsScreen } from '@/components/app/ResultsScreen';
 
 export default function Home() {
   const thread = useConversationThread();
   const threadRef = useRef<HTMLDivElement>(null);
 
-  // Load cloud profile on auth
+  // Load local profile if present
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser) {
-        const cloudProfile = await getUserProfile(firebaseUser.uid);
-        if (cloudProfile) {
-          thread.setScreen('results');
-        }
+    getUserProfile().then((localProfile) => {
+      if (localProfile && thread.screen === 'marketing') {
+        // Local profile loaded
       }
     });
-    return () => unsubscribe();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

@@ -1,13 +1,8 @@
-'use server';
-
-import { cookies } from 'next/headers';
 import { publishPalateProfile, shareToFeed, getPalateProfile, publishRawPalateRecord, publishDrinkLog, getDrinkLogs } from '@/lib/atproto/publish';
 import { derivePalateRecord, getDrinkSensoryVector } from '@/lib/sensory';
 import type { UserProfile } from '@/hooks/useDiscoveryQuiz';
 import { z } from 'zod';
 import { drinkDatabase } from '@/lib/data';
-import { getFirestore } from 'firebase-admin/firestore';
-import { getAdminApp } from '@/lib/atproto/admin';
 import type { PalateRecord, DrinkLogRecord } from '@/lib/atproto/lexicon';
 
 const ProfileSchema = z.object({
@@ -19,9 +14,16 @@ const ProfileSchema = z.object({
   vibeTags: z.record(z.string(), z.number()),
 });
 
+function getDidFromCookie(): string | undefined {
+  if (typeof document !== 'undefined') {
+    const match = document.cookie.match(/(?:^|; )atproto_did=([^;]*)/);
+    return match ? decodeURIComponent(match[1]) : undefined;
+  }
+  return undefined;
+}
+
 export async function publishPalate(profile: UserProfile): Promise<{ success: boolean; uri?: string; error?: string }> {
-  const cookieStore = await cookies();
-  const did = cookieStore.get('atproto_did')?.value;
+  const did = getDidFromCookie();
   if (!did) return { success: false, error: 'Not connected to Bluesky' };
 
   const parsed = ProfileSchema.safeParse(profile);
@@ -29,10 +31,6 @@ export async function publishPalate(profile: UserProfile): Promise<{ success: bo
 
   try {
     const result = await publishPalateProfile(did, parsed.data as UserProfile);
-    
-    // Also sync to Firestore if possible
-    await syncProfileToFirestore(did, parsed.data as UserProfile);
-
     return { success: true, uri: result.uri };
   } catch (e) {
     console.error('Failed to publish palate:', e);
@@ -44,15 +42,14 @@ export async function sharePalateToFeed(
   topDrink: string,
   quadrant: string
 ): Promise<{ success: boolean; uri?: string; error?: string }> {
-  const cookieStore = await cookies();
-  const did = cookieStore.get('atproto_did')?.value;
+  const did = getDidFromCookie();
   if (!did) return { success: false, error: 'Not connected to Bluesky' };
 
   if (!topDrink || topDrink.length > 100) return { success: false, error: 'Invalid drink name' };
   if (!quadrant || quadrant.length > 50) return { success: false, error: 'Invalid quadrant' };
 
   try {
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://crystalcoupe.app';
+    const appUrl = typeof window !== 'undefined' ? window.location.origin : 'https://crystalcoupe.app';
     const result = await shareToFeed(did, topDrink, quadrant, appUrl);
     return { success: true, uri: result.uri };
   } catch (e) {
@@ -62,8 +59,7 @@ export async function sharePalateToFeed(
 }
 
 export async function getConnectedPalate(): Promise<UserProfile | null> {
-  const cookieStore = await cookies();
-  const did = cookieStore.get('atproto_did')?.value;
+  const did = getDidFromCookie();
   if (!did) return null;
 
   try {
@@ -84,24 +80,72 @@ export async function getConnectedPalate(): Promise<UserProfile | null> {
   }
 }
 
-
+export interface LogDrinkOptions {
+  drinkName: string;
+  rating: number;
+  baseSpirit?: string;
+  isHomePour?: boolean;
+  location?: string;
+  venue?: { name: string; lat?: number; lng?: number };
+  sensoryProfile?: {
+    bitter: number;
+    sweet: number;
+    sour: number;
+    spiritForward: number;
+    citrus: number;
+    herbal: number;
+  };
+  glassware?: string;
+  garnish?: string;
+  deviations?: string[];
+  note?: string;
+  crosspostToFeed?: boolean;
+}
 
 export async function logDrinkFeedback(
-  drinkName: string,
-  location: string,
-  hedonicScale: number,
-  deviations: string[],
-  note?: string
-): Promise<{ success: boolean; profile?: UserProfile; error?: string }> {
-  const cookieStore = await cookies();
-  const did = cookieStore.get('atproto_did')?.value;
+  drinkNameOrOptions: string | LogDrinkOptions,
+  locationArg?: string,
+  ratingArg?: number,
+  deviationsArg?: string[],
+  noteArg?: string
+): Promise<{ success: boolean; profile?: UserProfile; uri?: string; error?: string }> {
+  const did = getDidFromCookie();
   if (!did) return { success: false, error: 'Not connected to Bluesky' };
 
+  let options: LogDrinkOptions;
+  if (typeof drinkNameOrOptions === 'object') {
+    options = drinkNameOrOptions;
+  } else {
+    options = {
+      drinkName: drinkNameOrOptions,
+      location: locationArg || '',
+      rating: ratingArg ?? 5.0,
+      deviations: deviationsArg || [],
+      note: noteArg,
+    };
+  }
+
+  const {
+    drinkName,
+    rating,
+    baseSpirit,
+    isHomePour = false,
+    location,
+    venue,
+    sensoryProfile,
+    glassware,
+    garnish,
+    deviations = [],
+    note,
+    crosspostToFeed = false,
+  } = options;
+
+  const hedonicScale = Math.max(1, Math.min(9, Math.round(rating * 0.8 + 1)));
+  const finalLocation = isHomePour ? 'Home Pour' : (venue?.name || location || 'Unknown Venue');
+
   try {
-    // 1. Fetch current palate record or initialize
     let record = await getPalateProfile(did);
     if (!record) {
-      // Create empty placeholder
       const dummyProfile: UserProfile = { x: 0, y: 0, dislikesSmoke: false, dislikesBitter: false, dislikesAnise: false, vibeTags: {} };
       record = derivePalateRecord(dummyProfile, null);
     }
@@ -129,7 +173,13 @@ export async function logDrinkFeedback(
     let bitterAversion = record.aversions.bitter;
     let aniseAversion = record.aversions.anise;
 
-    // 2. Adjust based on deviations
+    if (sensoryProfile) {
+      bitter = Math.max(0, Math.min(10, (bitter + sensoryProfile.bitter * 2) / 2));
+      sweet = Math.max(0, Math.min(10, (sweet + sensoryProfile.sweet * 2) / 2));
+      sour = Math.max(0, Math.min(10, (sour + sensoryProfile.sour * 2) / 2));
+      herbaceous = Math.max(0, Math.min(10, (herbaceous + sensoryProfile.herbal * 2) / 2));
+    }
+
     for (const dev of deviations) {
       if (dev === 'too-sweet') {
         yShift -= 1.2;
@@ -138,7 +188,7 @@ export async function logDrinkFeedback(
         yShift += 1.2;
         sweet = Math.min(10, sweet + 0.6);
       } else if (dev === 'too-sour') {
-        xShift += 0.6; // move towards crisp
+        xShift += 0.6;
         sour = Math.max(0, sour - 0.6);
       } else if (dev === 'not-sour-enough') {
         xShift -= 0.6;
@@ -153,10 +203,10 @@ export async function logDrinkFeedback(
         aniseAversion = true;
         herbaceous = Math.max(0, herbaceous - 1.5);
       } else if (dev === 'too-rich') {
-        xShift += 1.2; // move towards crisp
+        xShift += 1.2;
         body = Math.max(0, body - 0.6);
       } else if (dev === 'too-crisp') {
-        xShift -= 1.2; // move towards rich
+        xShift -= 1.2;
         body = Math.min(10, body + 0.6);
       } else if (dev === 'too-flat') {
         effervescence = Math.min(10, effervescence + 0.8);
@@ -165,30 +215,24 @@ export async function logDrinkFeedback(
       }
     }
 
-    // 3. Nudge towards liked drink
-    const drink = drinkDatabase.find(d => d.name === drinkName);
-    if (drink && hedonicScale >= 7) {
-      // Nudge coordinates 15% towards drink coordinates
+    const drink = drinkDatabase.find(d => d.name.toLowerCase() === drinkName.toLowerCase());
+    if (drink && rating >= 7.0) {
       xShift += 0.15 * (drink.x - currentX);
       yShift += 0.15 * (drink.y - currentY);
 
-      // Nudge sensory vector
       const drinkSensory = getDrinkSensoryVector(drink);
       sweet += 0.15 * (drinkSensory.tastes.sweet - sweet);
       sour += 0.15 * (drinkSensory.tastes.sour - sour);
       bitter += 0.15 * (drinkSensory.tastes.bitter - bitter);
       umami += 0.15 * (drinkSensory.tastes.umami - umami);
-
       smoky += 0.15 * (drinkSensory.aromas.smoky - smoky);
       herbaceous += 0.15 * (drinkSensory.aromas.herbaceous - herbaceous);
       spicy += 0.15 * (drinkSensory.aromas.spicy - spicy);
       fruity += 0.15 * (drinkSensory.aromas.fruity - fruity);
       floral += 0.15 * (drinkSensory.aromas.floral - floral);
-
       body += 0.15 * (drinkSensory.textures.body - body);
       effervescence += 0.15 * (drinkSensory.textures.effervescence - effervescence);
 
-      // Nudge vibe tags
       const updatedVibeTags = { ...(record.vibeTags as Record<string, number> || {}) };
       drink.tags.forEach(tag => {
         updatedVibeTags[tag] = Math.min(5.0, (updatedVibeTags[tag] || 0) + 0.25);
@@ -196,7 +240,6 @@ export async function logDrinkFeedback(
       record.vibeTags = updatedVibeTags;
     }
 
-    // Apply shifts and bounds
     const finalX = Math.max(-10, Math.min(10, currentX + xShift));
     const finalY = Math.max(-10, Math.min(10, currentY + yShift));
 
@@ -218,15 +261,21 @@ export async function logDrinkFeedback(
       updatedAt: new Date().toISOString()
     };
 
-    // 4. Publish updated PalateRecord
     await publishRawPalateRecord(did, updatedPalate);
 
-    // 5. Publish DrinkLogRecord
-    await publishDrinkLog(did, {
+    const drinkLogRes = await publishDrinkLog(did, {
       drinkName,
-      location,
+      rating,
+      baseSpirit,
+      isHomePour,
+      location: finalLocation,
+      venue: venue || (location ? { name: location } : undefined),
+      sensoryProfile,
+      glassware,
+      garnish,
       hedonicScale,
       deviations: deviations as DrinkLogRecord['deviations'],
+      notes: note || '',
       note: note || '',
       palateShift: {
         x: finalX - currentX,
@@ -235,7 +284,17 @@ export async function logDrinkFeedback(
       createdAt: new Date().toISOString()
     });
 
-    // 6. Sync to local database
+    if (crosspostToFeed) {
+      try {
+        const appUrl = typeof window !== 'undefined' ? window.location.origin : 'https://crystalcoupe.app';
+        const stars = '★'.repeat(Math.round(rating / 2)) + '☆'.repeat(5 - Math.round(rating / 2));
+        const postText = `Logged a ${rating.toFixed(1)}/10 ${drinkName} ${isHomePour ? '(Home Pour)' : `at ${finalLocation}`} on Crystal Coupe ${stars}`;
+        await shareToFeed(did, drinkName, postText, appUrl);
+      } catch (e) {
+        console.error('Failed to crosspost to feed:', e);
+      }
+    }
+
     const mappedProfile: UserProfile = {
       x: finalX,
       y: finalY,
@@ -245,11 +304,10 @@ export async function logDrinkFeedback(
       vibeTags: updatedPalate.vibeTags as Record<string, number>
     };
 
-    await syncProfileToFirestore(did, mappedProfile);
-
     return {
       success: true,
-      profile: mappedProfile
+      profile: mappedProfile,
+      uri: drinkLogRes.uri
     };
   } catch (e) {
     console.error('Failed to log drink feedback:', e);
@@ -258,8 +316,7 @@ export async function logDrinkFeedback(
 }
 
 export async function getConnectedDrinkLogs(limit?: number): Promise<DrinkLogRecord[]> {
-  const cookieStore = await cookies();
-  const did = cookieStore.get('atproto_did')?.value;
+  const did = getDidFromCookie();
   if (!did) return [];
 
   try {
@@ -269,26 +326,3 @@ export async function getConnectedDrinkLogs(limit?: number): Promise<DrinkLogRec
     return [];
   }
 }
-
-// Sync helper using Admin SDK
-async function syncProfileToFirestore(did: string, profile: UserProfile) {
-  try {
-    const db = getFirestore(getAdminApp());
-    const snapshot = await db.collection('profiles').where('atprotoDid', '==', did).limit(1).get();
-    if (!snapshot.empty) {
-      const docRef = snapshot.docs[0].ref;
-      await docRef.update({
-        x: profile.x,
-        y: profile.y,
-        dislikesSmoke: profile.dislikesSmoke,
-        dislikesBitter: profile.dislikesBitter,
-        dislikesAnise: profile.dislikesAnise,
-        vibeTags: profile.vibeTags,
-        updatedAt: new Date(),
-      });
-    }
-  } catch (e) {
-    console.error('Failed to sync profile to Firestore via admin:', e);
-  }
-}
-

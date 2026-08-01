@@ -36,9 +36,10 @@ We have pivoted from a simple linear quiz to a **"Triangulation Engine"**.
 *   **Botanical & Mystic:** The aesthetic is "Mystic Pharmacy". Use glassmorphism, Botanical greens (Sage), Terracotta accents, and Obsidian backgrounds.
 
 ## Future Roadmap (for next Agent)
-1.  **Persistence:** Save the User's `x, y` to a database (Firebase/Postgres).
-2.  **The Feedback Loop:** Implement the "Rate this Drink" feature that adjusts the User's `x, y` based on feedback (e.g., "Too bitter" -> Move user left).
-3.  **Dynamic Map:** Allow users to drag their dot to explore "What if I try something Rich?"
+1.  **Framework Transition (Astro Native):** We have migrated the application to Astro. In future efforts, progressively transition UI components away from React Islands to native Astro components / Web Components / lightweight vanilla JS where feasible for zero client JS footprint.
+2.  **Persistence:** Save the User's `x, y` to AT Protocol PDS / local storage.
+3.  **The Feedback Loop:** Implement the "Rate this Drink" feature that adjusts the User's `x, y` based on feedback (e.g., "Too bitter" -> Move user left).
+4.  **Dynamic Map:** Allow users to drag their dot to explore "What if I try something Rich?"
 
 ## Development Tips
 *   Always check `src/lib/data.ts` when adding new filtering logic.

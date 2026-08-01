@@ -3,8 +3,6 @@ import { useState, useCallback, useRef } from 'react';
 import { drinkDatabase } from '@/lib/data';
 import { questions as questionPool, type Question, type QuestionOption } from '@/lib/discovery-questions';
 import { calculateDistance } from '@/lib/scoring';
-import { auth } from '@/lib/firebase';
-import { saveUserProfile } from '@/lib/profile-service';
 import { publishPalate } from '@/app/actions/atproto-publish';
 import {
   type BeliefState,
@@ -95,12 +93,6 @@ export function useDiscoveryQuiz(onComplete: (profile: UserProfile) => void) {
     rankedCandidates.sort((a, b) => b.score - a.score);
 
     localStorage.setItem('user_profile', JSON.stringify(finalProfile));
-
-    if (auth.currentUser) {
-      saveUserProfile(auth.currentUser.uid, finalProfile).catch(e => {
-        console.error("Failed to sync profile to Firestore", e);
-      });
-    }
 
     // Automatically sync to AT Protocol if connected
     publishPalate(finalProfile).catch(e => {
