@@ -1,11 +1,11 @@
-# The Crystal Coupe (formerly Sure Shot)
+# The Crystal Coupe
 
 The Crystal Coupe is a "Palate Companion" application designed to evolve with the user. Unlike a traditional one-and-done quiz, it acts as a persistent utility for understanding and exploring one's own taste preferences across different contexts.
 
 ## Core Concepts
 
 ### 1. Triangulation (Calibration Phase)
-Instead of a simple linear quiz, we now use a 3-step triangulation process to pinpoint the user's "Palate Coordinate":
+Instead of a simple linear quiz, we use a 3-step triangulation process to pinpoint the user's "Palate Coordinate":
 1.  **Calibration (Biological):** Assesses sugar/bitter sensitivity and acid tolerance.
 2.  **Architecture (Structural):** Determines preference for texture (fizzy/still), temperature, and vessel.
 3.  **Context (Environmental):** Applies hard filters (Smoke, Anise) and pacing preferences.
@@ -25,35 +25,36 @@ Your taste doesn't change, but your situation does. The app features a **Context
 - **Holiday:** Highlights "Warm", "Comfort", and "Spiced" notes.
 
 ### 4. AI Sommelier
-Integrated with **Google Genkit**, the app provides witty, context-aware explanations for why a specific drink matches the user's palate and the current vibe.
+Integrated with **Vercel AI SDK (`@ai-sdk/google`)**, the app provides witty, context-aware explanations for why a specific drink matches the user's palate and the current vibe.
 
 ## Tech Stack
 
-- **Framework:** [Next.js](https://nextjs.org/) (App Router)
+- **Framework:** [Astro 7](https://astro.build/) (Server / Hybrid)
+- **Deployment:** [Cloudflare Pages](https://pages.cloudflare.com/) (`@astrojs/cloudflare`)
 - **Language:** TypeScript
 - **Styling:** [Tailwind CSS](https://tailwindcss.com/)
-- **UI Components:** [Radix UI](https://www.radix-ui.com/) & [Lucide React](https://lucide.dev/)
+- **UI Components:** [React 19](https://react.dev/), [Radix UI](https://www.radix-ui.com/) & [Lucide React](https://lucide.dev/)
 - **Data Enrichment:** [TheCocktailDB API](https://www.thecocktaildb.com/) (Real-time images/recipes)
-- **AI Integration:** [Genkit](https://firebase.google.com/docs/genkit) (`@genkit-ai/google-genai`)
-- **Package Manager:** pnpm
+- **AI Integration:** [Vercel AI SDK](https://sdk.vercel.ai/docs) (`@ai-sdk/google`)
+- **Package Manager:** npm
 
 ## Getting Started
 
 ### Prerequisites
-- Node.js (v20 or later recommended)
-- pnpm
+- Node.js (v22 or later recommended)
+- npm
 
 ### Installation
 
 1. Clone the repository:
    ```bash
    git clone <repository-url>
-   cd nextn
+   cd crystal-coupe
    ```
 
 2. Install dependencies:
    ```bash
-   pnpm install
+   npm install
    ```
 
 ### Running the Application
@@ -61,25 +62,10 @@ Integrated with **Google Genkit**, the app provides witty, context-aware explana
 To start the development server:
 
 ```bash
-pnpm dev
+npm run dev
 ```
 
 The app will be available at `http://localhost:9002`.
-
-### AI Development
-
-To run the Genkit developer UI:
-
-```bash
-pnpm genkit:dev
-```
-
-## Project Structure
-
-- `src/app`: Next.js App Router pages and layouts.
-- `src/components/app`: Core application logic (DiscoveryQuiz, ResultsScreen).
-- `src/lib`: Data definitions (`data.ts` for drinks and questions).
-- `src/ai`: Genkit flows and configuration.
 
 ## License
 
