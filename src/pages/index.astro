@@ -1,6 +1,5 @@
 ---
 import '../app/globals.css';
-import { AtprotoProvider } from '../components/app/AtprotoProvider';
 import Home from '../app/page';
 
 const title = 'The Crystal Coupe';
@@ -24,9 +23,7 @@ const description = 'Find your perfect drink.';
       Skip to content
     </a>
     <main id="main-content">
-      <AtprotoProvider client:load>
-        <Home client:load />
-      </AtprotoProvider>
+      <Home client:only="react" />
     </main>
   </body>
 </html>

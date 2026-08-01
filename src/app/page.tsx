@@ -1,4 +1,5 @@
 'use client';
+
 import { useMemo, useEffect, useRef } from 'react';
 import { getUserProfile } from '@/lib/profile-service';
 import { ChatLayout } from '@/components/app/ChatLayout';
@@ -8,12 +9,12 @@ import { ChatInput } from '@/components/app/ChatInput';
 import { useConversationThread } from '@/hooks/useConversationThread';
 import { MarketingSite } from '@/components/app/MarketingSite';
 import { ResultsScreen } from '@/components/app/ResultsScreen';
+import { AtprotoProvider } from '@/components/app/AtprotoProvider';
 
-export default function Home() {
+function HomeContent() {
   const thread = useConversationThread();
   const threadRef = useRef<HTMLDivElement>(null);
 
-  // Load local profile if present
   useEffect(() => {
     getUserProfile().then((localProfile) => {
       if (localProfile && thread.screen === 'marketing') {
@@ -33,8 +34,6 @@ export default function Home() {
     }
     return thread.user;
   }, [thread.user, thread.screen]);
-
-  // --- Render by screen ---
 
   if (thread.screen === 'marketing') {
     return (
@@ -100,5 +99,13 @@ export default function Home() {
         />
       }
     />
+  );
+}
+
+export default function Home() {
+  return (
+    <AtprotoProvider>
+      <HomeContent />
+    </AtprotoProvider>
   );
 }
