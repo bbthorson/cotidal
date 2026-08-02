@@ -1,5 +1,3 @@
-'use client';
-
 import { useMemo, useEffect, useRef } from 'react';
 import { getUserProfile } from '@/lib/profile-service';
 import { ChatLayout } from '@/components/app/ChatLayout';

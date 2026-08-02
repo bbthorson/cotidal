@@ -1,4 +1,3 @@
-'use client';
 import { useState, useCallback, useRef, useEffect } from 'react';
 import type { User } from '@/lib/data';
 import type { QuestionOption } from '@/lib/discovery-questions';
@@ -6,7 +5,7 @@ import type { ThreadMessage } from '@/components/app/ChatThread';
 import { useDiscoveryQuiz, type UserProfile } from './useDiscoveryQuiz';
 import { useBartenderChat } from './useBartenderChat';
 import { useAtprotoContext } from '@/components/app/AtprotoProvider';
-import { getConnectedPalate, publishPalate } from '@/app/actions/atproto-publish';
+import { getConnectedPalate, publishPalate } from '@/lib/api-client';
 
 type Screen = 'chat' | 'results' | 'marketing';
 

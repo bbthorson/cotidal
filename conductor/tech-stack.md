@@ -1,7 +1,7 @@
 # Technology Stack
 
 ## Core Framework
-- **Framework:** Next.js (App Router)
+- **Framework:** Astro
 - **Language:** TypeScript
 - **Runtime:** Node.js (>=20.0.0)
 

@@ -1,8 +1,6 @@
-'use client';
-
 import { memo, useState, useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
-import { explainDrinkMatch } from '@/app/actions/explain-drink';
+import { explainDrinkMatch } from '@/lib/api-client';
 import type { Drink } from '@/lib/data';
 
 const TYPE_STYLES: Record<string, string> = {

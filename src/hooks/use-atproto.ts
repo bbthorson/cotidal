@@ -1,9 +1,7 @@
-'use client';
-
 import { useCallback, useEffect, useState } from 'react';
 
 const isAtprotoEnabled = typeof process !== 'undefined'
-  ? !!process.env?.NEXT_PUBLIC_ATPROTO_ENABLED
+  ? !!(process.env?.PUBLIC_ATPROTO_ENABLED || process.env?.ATPROTO_ENABLED || process.env?.NEXT_PUBLIC_ATPROTO_ENABLED)
   : !!(import.meta.env?.PUBLIC_ATPROTO_ENABLED || import.meta.env?.NEXT_PUBLIC_ATPROTO_ENABLED);
 
 

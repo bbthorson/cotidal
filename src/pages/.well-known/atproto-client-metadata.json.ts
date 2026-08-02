@@ -1,6 +1,6 @@
-import { NextResponse } from 'next/server';
+import type { APIRoute } from 'astro';
 
-export async function GET() {
+export const GET: APIRoute = async () => {
   const baseUrl = process.env.ATPROTO_CLIENT_ID
     ? new URL(process.env.ATPROTO_CLIENT_ID).origin
     : `http://127.0.0.1:${process.env.PORT || '9002'}`;
@@ -31,9 +31,10 @@ export async function GET() {
         token_endpoint_auth_method: 'none',
       };
 
-  return NextResponse.json(metadata, {
+  return new Response(JSON.stringify(metadata), {
     headers: {
+      'Content-Type': 'application/json',
       'Cache-Control': 'public, max-age=3600',
     },
   });
-}
+};

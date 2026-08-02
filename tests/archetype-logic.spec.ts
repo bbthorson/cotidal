@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { archetypeDrink } from '../src/app/actions/archetype-drink';
+import { archetypeDrink } from '../src/lib/api-client';
 
 test('AI Archetyping: Negroni should be bitter and savory', async () => {
   // This test requires a valid GOOGLE_GENERATIVE_AI_API_KEY to run fully, 

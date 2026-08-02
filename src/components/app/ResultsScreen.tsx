@@ -1,4 +1,3 @@
-'use client';
 import { useMemo, useState, useEffect } from 'react';
 import { drinkDatabase, type User, type ContextType } from '@/lib/data';
 import { calculateContextScore, calculateWeightedRelevance, getQuadrantName } from '@/lib/scoring';
@@ -11,7 +10,7 @@ import { PalateRadarChart } from './PalateRadarChart';
 import { DrinkMapView } from './DrinkMapView';
 import { AppNavigation, type ActiveTab } from './AppNavigation';
 import { useAtprotoContext } from './AtprotoProvider';
-import { getConnectedDrinkLogs } from '@/app/actions/atproto-publish';
+import { getConnectedDrinkLogs } from '@/lib/api-client';
 import { MapPin } from 'lucide-react';
 import type { UserProfile } from '@/hooks/useDiscoveryQuiz';
 import type { DrinkLogRecord } from '@/lib/atproto/lexicon';

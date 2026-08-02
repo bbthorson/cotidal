@@ -14,9 +14,8 @@ function getBaseUrl(): string {
   const port = process.env.PORT || '9002';
   return `http://127.0.0.1:${port}`;
 }
-
 export function getAtprotoClient(): NodeOAuthClient | null {
-  if (!process.env.NEXT_PUBLIC_ATPROTO_ENABLED) return null;
+  if (!process.env.PUBLIC_ATPROTO_ENABLED && !process.env.ATPROTO_ENABLED && !process.env.NEXT_PUBLIC_ATPROTO_ENABLED) return null;
 
   if (client) return client;
 

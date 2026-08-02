@@ -1,11 +1,9 @@
-'use client';
-
 import { useState, useEffect } from 'react';
 import { useAtprotoContext } from './AtprotoProvider';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Loader2, Plus, History, MapPin, Star, MessageSquare, Home, Sparkles, Share2 } from 'lucide-react';
-import { logDrinkFeedback } from '@/app/actions/atproto-publish';
+import { logDrinkFeedback } from '@/lib/api-client';
 import type { DrinkLogRecord, SensoryProfile } from '@/lib/atproto/lexicon';
 import type { UserProfile } from '@/hooks/useDiscoveryQuiz';
 

@@ -1,9 +1,8 @@
-'use client';
 import { useState, useCallback, useRef } from 'react';
 import { drinkDatabase } from '@/lib/data';
 import { questions as questionPool, type Question, type QuestionOption } from '@/lib/discovery-questions';
 import { calculateDistance } from '@/lib/scoring';
-import { publishPalate } from '@/app/actions/atproto-publish';
+import { publishPalate } from '@/lib/api-client';
 import {
   type BeliefState,
   createInitialBelief,
