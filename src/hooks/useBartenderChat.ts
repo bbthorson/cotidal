@@ -1,20 +1,15 @@
 'use client';
-import { useRef, useCallback } from 'react';
+import { useCallback } from 'react';
 import { ENRICHED_FEEDBACK } from '@/lib/conversation';
 import type { BeliefState } from '@/lib/belief-state';
 import type { Question } from '@/lib/discovery-questions';
-import {
-  buildQuestionPrompt,
-  parseAIResponse,
-  extractFeedbackFromText,
-} from '@/lib/ai-question-generator';
 
 export function useBartenderChat() {
   const resetChat = useCallback(() => {}, []);
 
   const getBartenderResponse = useCallback(async (
-    questionText: string,
-    answerText: string,
+    _questionText: string,
+    _answerText: string,
     questionId: string,
     optionIndex: number,
     _tierTransition?: { from: string; to: string },
@@ -36,10 +31,9 @@ export function useBartenderChat() {
     return "Interesting — I can already tell you've got taste. Let me ask you a few things to zero in on your flavor profile.";
   }, []);
 
-  let aiQuestionCounter = 0;
   const getNextQuestionWithFeedback = useCallback(async (
-    questionText: string,
-    answerText: string,
+    _questionText: string,
+    _answerText: string,
     questionId: string,
     optionIndex: number,
     _beliefState: BeliefState,

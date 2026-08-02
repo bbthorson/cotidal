@@ -13,7 +13,6 @@
     "@ai-sdk/google": "^2.0.45",
     "@astrojs/cloudflare": "^14.1.7",
     "@astrojs/react": "^6.0.2",
-    "@astrojs/tailwind": "^6.0.2",
     "@atproto/api": "^0.19.4",
     "@atproto/oauth-client-node": "^0.3.17",
     "@atproto/syntax": "^0.5.1",

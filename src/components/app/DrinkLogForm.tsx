@@ -465,7 +465,6 @@ export function DrinkLogForm({
               <div className="space-y-3 overflow-y-auto max-h-[420px] pr-1">
                 {history.map((log, i) => {
                   const displayRating = log.rating ?? (log.hedonicScale ? (log.hedonicScale - 1) * 1.25 : 5.0);
-                  const badge = getRatingBadge(displayRating);
                   return (
                     <div key={i} className="p-3.5 rounded-lg border border-primary/10 bg-background/20 space-y-2 text-xs">
                       <div className="flex justify-between items-start">

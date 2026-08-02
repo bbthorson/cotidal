@@ -16,13 +16,6 @@ interface ConnectBlueskyProps {
   quadrant: string;
 }
 
-function getQuadrant(x: number, y: number): string {
-  if (x <= 0 && y >= 0) return 'Lush & Lively';
-  if (x > 0 && y >= 0) return 'Crisp & Clean';
-  if (x <= 0 && y < 0) return 'Decadent & Deep';
-  return 'Bold & Complex';
-}
-
 export function ConnectBluesky({ user, vibeTags, heroDrinkName, quadrant }: ConnectBlueskyProps) {
   const { isEnabled, isConnected, handle, displayName, connecting, error, connect, disconnect } = useAtprotoContext();
   const [inputHandle, setInputHandle] = useState('');

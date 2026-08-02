@@ -53,7 +53,6 @@ export async function shareToFeed(
   const agent = new Agent(session);
 
   const text = `I just discovered my cocktail palate on The Crystal Coupe! My flavor profile lands in ${quadrant} and my top match is ${topDrink}. Discover yours:`;
-  const linkStart = text.length + 1;
   const linkText = appUrl;
 
   const response = await agent.com.atproto.repo.createRecord({

@@ -2,7 +2,7 @@ import type { UserProfile } from '@/hooks/useDiscoveryQuiz';
 
 const STORAGE_KEY = 'user_profile';
 
-export async function saveUserProfile(userId: string, profile: UserProfile) {
+export async function saveUserProfile(_userId: string, profile: UserProfile) {
   try {
     if (typeof window !== 'undefined') {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(profile));
@@ -12,7 +12,7 @@ export async function saveUserProfile(userId: string, profile: UserProfile) {
   }
 }
 
-export async function getUserProfile(userId?: string): Promise<UserProfile | null> {
+export async function getUserProfile(_userId?: string): Promise<UserProfile | null> {
   try {
     if (typeof window !== 'undefined') {
       const stored = localStorage.getItem(STORAGE_KEY);
@@ -27,7 +27,7 @@ export async function getUserProfile(userId?: string): Promise<UserProfile | nul
   }
 }
 
-export async function getProfileByDid(did: string): Promise<UserProfile | null> {
+export async function getProfileByDid(_did: string): Promise<UserProfile | null> {
   // When AT Protocol is connected, profile is retrieved directly from AT Protocol PDS
   return null;
 }
