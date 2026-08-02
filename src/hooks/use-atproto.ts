@@ -2,7 +2,10 @@
 
 import { useCallback, useEffect, useState } from 'react';
 
-const isAtprotoEnabled = !!process.env.NEXT_PUBLIC_ATPROTO_ENABLED;
+const isAtprotoEnabled = typeof process !== 'undefined'
+  ? !!process.env?.NEXT_PUBLIC_ATPROTO_ENABLED
+  : !!(import.meta.env?.PUBLIC_ATPROTO_ENABLED || import.meta.env?.NEXT_PUBLIC_ATPROTO_ENABLED);
+
 
 interface AtprotoState {
   isEnabled: boolean;
