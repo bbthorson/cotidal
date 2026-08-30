@@ -1,0 +1,17 @@
+---
+import { quadrants } from '../../lib/copy';
+---
+
+<ul class="grid grid-cols-2 gap-x-6 gap-y-7 border-t border-primary/10 pt-7">
+  {
+    quadrants.map((q) => (
+      <li class="space-y-1.5">
+        <span class="block font-mono text-3xs uppercase tracking-[0.2em] text-primary/60">
+          {q.axis}
+        </span>
+        <h3 class="font-serif text-lg font-bold leading-none text-foreground">{q.name}</h3>
+        <p class="text-2xs leading-relaxed text-muted-foreground">{q.gloss}</p>
+      </li>
+    ))
+  }
+</ul>

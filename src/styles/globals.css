@@ -4,6 +4,13 @@
 
 @layer base {
   :root {
+    /* Font stacks — these back the `font-*` utilities in tailwind.config.ts.
+       Without them every font-body / font-serif / font-condensed class
+       silently falls through to the browser default. */
+    --font-pt-sans: 'PT Sans';
+    --font-playfair: 'Playfair Display';
+    --font-barlow: 'Barlow Condensed';
+
     /* Deep charcoal with warm undertone — like a dimly lit bar */
     --background: 220 15% 8%;
     --foreground: 35 30% 92%;

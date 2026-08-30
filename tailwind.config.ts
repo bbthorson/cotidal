@@ -4,12 +4,19 @@ import tailwindAnimate from 'tailwindcss-animate';
 export default {
   darkMode: ['class'],
   content: [
-    './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
-    './src/components/**/*.{js,ts,jsx,tsx,mdx}',
-    './src/app/**/*.{js,ts,jsx,tsx,mdx}',
+    './src/pages/**/*.{astro,js,ts,jsx,tsx,mdx}',
+    './src/components/**/*.{astro,js,ts,jsx,tsx,mdx}',
+    './src/layouts/**/*.{astro,js,ts,jsx,tsx,mdx}',
+    './src/lib/copy.ts',
   ],
   theme: {
     extend: {
+      fontSize: {
+        // `text-2xs` / `text-3xs` are used ~40 times across the app but were
+        // never defined, so those elements silently rendered at inherited size.
+        '3xs': ['0.625rem', { lineHeight: '0.875rem' }],
+        '2xs': ['0.6875rem', { lineHeight: '1rem' }],
+      },
       fontFamily: {
         body: ['var(--font-pt-sans)', 'sans-serif'],
         headline: ['var(--font-playfair)', 'serif'],

@@ -3,8 +3,7 @@ import { test, expect, devices } from '@playwright/test';
 test.use({ ...devices['iPhone 12'] });
 
 test('Mobile Map: Should be responsive and square', async ({ page }) => {
-  await page.goto('/');
-  await page.click('text=Begin');
+  await page.goto('/taste');
 
   // The Basics (skip quickly)
   await page.click('text=Black or Espresso.');

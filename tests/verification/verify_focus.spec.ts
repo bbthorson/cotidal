@@ -1,12 +1,9 @@
 import { test, expect } from '@playwright/test';
 
 test('Verify quiz layout and question progression', async ({ page }) => {
-  await page.goto('http://localhost:9002');
+  await page.goto('/taste');
 
   await page.waitForTimeout(1000);
-
-  // Start the quiz
-  await page.getByRole('button', { name: 'Begin' }).click();
 
   // First question should be visible in the prompt zone
   await expect(page.getByText('How do you take your coffee?')).toBeVisible();

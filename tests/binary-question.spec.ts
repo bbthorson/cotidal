@@ -1,8 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 test('Quiz: Should render options and show enriched feedback on click', async ({ page }) => {
-  await page.goto('/');
-  await page.click('text=Begin');
+  await page.goto('/taste');
 
   // The first question is "How do you take your coffee?"
   await expect(page.locator('text=How do you take your coffee?')).toBeVisible();

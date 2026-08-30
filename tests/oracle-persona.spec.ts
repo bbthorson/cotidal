@@ -1,8 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 test('Bartender Persona: Explanation should feel knowledgeable and approachable', async ({ page }) => {
-  await page.goto('/');
-  await page.click('text=Begin');
+  await page.goto('/taste');
 
   // The Basics
   await page.click('text=Black or Espresso.');
