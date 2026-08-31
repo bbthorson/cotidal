@@ -20,7 +20,7 @@ export const hero = {
   headline: 'Every palate has',
   headlineAccent: 'a coordinate.',
   body:
-    'Two axes — rich to crisp, savory to sweet. Answer a few questions and your point appears on the map. What surrounds it is what you should be drinking.',
+    'Answer a few questions. A point appears. What surrounds it is what you should be ordering.',
   primaryCta: 'Find your coordinate',
   primaryCtaReturning: 'Return to your map',
   secondaryCta: 'Look at the map first',
@@ -68,6 +68,8 @@ export const quadrants = [
  */
 export const sections = {
   map: 'The four regions',
+  /** The reveal. The hero withholds the axes; this is where they land. */
+  mapNote: 'Two axes — rich to crisp, savory to sweet. Four regions between them.',
   principles: 'What you keep',
   connect: 'Sign in',
 } as const;
@@ -75,7 +77,7 @@ export const sections = {
 export const connect = {
   title: 'Carry it with you',
   body:
-    'Your coordinate is written to your own account, not ours. Sign in to keep it, log what you drink, and find friends whose maps overlap with yours.',
+    'Your coordinate is written to your own account, not ours. Sign in to keep it, log what you drink, and find the people whose maps overlap yours.',
   placeholder: 'you.bsky.social',
   submit: 'Sign in with Bluesky',
   divider: 'or',

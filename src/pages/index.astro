@@ -47,8 +47,10 @@ const error = errorParam ? (errorCodes[errorParam] ?? errorCodes.authorize_faile
         <p class="label-caps">{hero.eyebrow}</p>
       </header>
 
-      <!-- Hero: one move -->
-      <section class="pb-16 pt-16 text-center md:pb-24 md:pt-24">
+      <!-- Hero. The deck sits above the figure so the coupe is the last beat
+           before the call to action, rather than an interruption in the middle
+           of the argument. -->
+      <section class="pb-16 pt-14 text-center md:pb-20 md:pt-20">
         <h1
           class="mx-auto max-w-2xl font-serif text-4xl font-bold leading-display text-foreground md:text-6xl"
         >
@@ -56,19 +58,19 @@ const error = errorParam ? (errorCodes[errorParam] ?? errorCodes.authorize_faile
           <em class="font-normal italic text-primary">{hero.headlineAccent}</em>
         </h1>
 
-        <div class="mt-16 md:mt-20">
-          <CoupeFigure />
-        </div>
-
         <p
-          class="mx-auto mt-14 max-w-xl font-serif text-base leading-relaxed text-muted-foreground md:text-lg"
+          class="mx-auto mt-7 max-w-md font-serif text-base leading-relaxed text-muted-foreground md:text-lg"
         >
           {hero.body}
         </p>
 
+        <div class="mt-12 md:mt-14">
+          <CoupeFigure />
+        </div>
+
         <a
           href="/taste"
-          class="mt-10 inline-flex items-center justify-center border border-foreground bg-secondary px-8 py-3.5 font-condensed text-xs font-bold uppercase tracking-label text-secondary-foreground transition-colors hover:bg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+          class="mt-12 inline-flex items-center justify-center border border-foreground bg-secondary px-8 py-3.5 font-condensed text-xs font-bold uppercase tracking-label text-secondary-foreground transition-colors hover:bg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
         >
           {hero.primaryCta}
         </a>
@@ -76,9 +78,12 @@ const error = errorParam ? (errorCodes[errorParam] ?? errorCodes.authorize_faile
 
       <!-- The map, as a menu -->
       <section class="pb-16 md:pb-20">
-        <h2 class="label-caps mb-5 border-b border-foreground pb-2 text-foreground">
+        <h2 class="label-caps border-b border-foreground pb-2 text-foreground">
           {sections.map}
         </h2>
+        <p class="mb-5 mt-3 font-serif text-sm italic text-muted-foreground">
+          {sections.mapNote}
+        </p>
         <QuadrantGrid />
         <a
           href="/taste?browse=1"
