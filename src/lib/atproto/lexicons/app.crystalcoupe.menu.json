@@ -1,0 +1,106 @@
+{
+  "lexicon": 1,
+  "id": "app.crystalcoupe.menu",
+  "defs": {
+    "main": {
+      "type": "record",
+      "description": "A menu as seen at a point in time. Menus are posts, not rows: authored, dated, and immutable. They are never edited — a changed menu is a new record, so history is free. Authority comes from the signing repo, not from a field: a menu in a venue's own repo is that venue's menu; one in a patron's repo is a sighting. The app view prefers the venue's own and otherwise takes consensus across sightings.",
+      "key": "tid",
+      "record": {
+        "type": "object",
+        "required": ["venue", "publishedAt"],
+        "properties": {
+          "venue": {
+            "type": "ref",
+            "ref": "app.crystalcoupe.defs#venueRef"
+          },
+          "title": {
+            "type": "string",
+            "description": "What the menu calls itself, e.g. `Winter Cocktails`.",
+            "maxLength": 200,
+            "maxGraphemes": 100
+          },
+          "publishedAt": {
+            "type": "string",
+            "format": "datetime",
+            "description": "When this menu was published or observed."
+          },
+          "validFrom": { "type": "string", "format": "datetime" },
+          "validUntil": {
+            "type": "string",
+            "format": "datetime",
+            "description": "For seasonal menus or one-night lists. Absent means open-ended."
+          },
+          "sections": {
+            "type": "array",
+            "maxLength": 40,
+            "items": { "type": "ref", "ref": "#section" }
+          },
+          "capture": {
+            "type": "ref",
+            "ref": "#capture",
+            "description": "Present on a patron's sighting, absent on a venue's own publication."
+          },
+          "createdAt": { "type": "string", "format": "datetime" }
+        }
+      }
+    },
+    "section": {
+      "type": "object",
+      "required": ["items"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "maxLength": 200,
+          "maxGraphemes": 100
+        },
+        "items": {
+          "type": "array",
+          "maxLength": 200,
+          "items": { "type": "ref", "ref": "#item" }
+        }
+      }
+    },
+    "item": {
+      "type": "object",
+      "required": ["drink"],
+      "properties": {
+        "drink": { "type": "ref", "ref": "app.crystalcoupe.defs#drinkRef" },
+        "description": {
+          "type": "string",
+          "description": "The menu's own words. Kept verbatim: it is the best signal for matching a house name to a flavour profile.",
+          "maxLength": 1000,
+          "maxGraphemes": 500
+        },
+        "price": { "type": "ref", "ref": "app.crystalcoupe.defs#price" },
+        "credits": {
+          "type": "array",
+          "maxLength": 10,
+          "items": { "type": "ref", "ref": "app.crystalcoupe.defs#credit" }
+        }
+      }
+    },
+    "capture": {
+      "type": "object",
+      "description": "How a sighting was obtained. A menu observed by a patron is evidence, not fact — several independent sightings are what make the app view confident.",
+      "required": ["method"],
+      "properties": {
+        "method": {
+          "type": "string",
+          "knownValues": ["photo", "manual", "import"]
+        },
+        "photo": {
+          "type": "blob",
+          "accept": ["image/jpeg", "image/png", "image/webp"],
+          "maxSize": 4000000
+        },
+        "confidence": {
+          "type": "integer",
+          "description": "0-100. How much the parser trusts its own reading.",
+          "minimum": 0,
+          "maximum": 100
+        }
+      }
+    }
+  }
+}

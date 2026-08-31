@@ -1,0 +1,87 @@
+{
+  "lexicon": 1,
+  "id": "app.crystalcoupe.pour",
+  "defs": {
+    "main": {
+      "type": "record",
+      "description": "One drink, drunk once, by the author. Supersedes app.crystalcoupe.drinkLog, whose JSON and TypeScript definitions had drifted apart. The rating belongs to the drinker and describes the drink; `credits` attributes the people involved but carries no score, so a poor rating can never resolve to a judgement of a person.",
+      "key": "tid",
+      "record": {
+        "type": "object",
+        "required": ["drink", "rating", "createdAt"],
+        "properties": {
+          "drink": { "type": "ref", "ref": "app.crystalcoupe.defs#drinkRef" },
+          "venue": {
+            "type": "ref",
+            "ref": "app.crystalcoupe.defs#venueRef",
+            "description": "Absent for a pour at home."
+          },
+          "menu": {
+            "type": "ref",
+            "ref": "app.crystalcoupe.defs#entityRef",
+            "description": "The menu sighting this was ordered from, if any."
+          },
+          "credits": {
+            "type": "array",
+            "description": "Attribution only — see app.crystalcoupe.defs#credit.",
+            "maxLength": 10,
+            "items": { "type": "ref", "ref": "app.crystalcoupe.defs#credit" }
+          },
+          "rating": { "type": "ref", "ref": "#rating" },
+          "deviations": {
+            "type": "array",
+            "description": "How it missed, in the drinker's terms. This is what actually moves the palate coordinate.",
+            "maxLength": 11,
+            "items": {
+              "type": "string",
+              "knownValues": [
+                "too-sweet", "not-sweet-enough",
+                "too-sour", "not-sour-enough",
+                "too-bitter", "too-smoky", "too-anise",
+                "too-rich", "too-crisp",
+                "too-flat", "too-fizzy"
+              ]
+            }
+          },
+          "palateShift": {
+            "type": "ref",
+            "ref": "#shift",
+            "description": "How this pour moved the author's coordinate, kept so the map's history can be replayed."
+          },
+          "note": {
+            "type": "string",
+            "maxLength": 3000,
+            "maxGraphemes": 1000
+          },
+          "isHomePour": { "type": "boolean" },
+          "createdAt": { "type": "string", "format": "datetime" }
+        }
+      }
+    },
+    "rating": {
+      "type": "object",
+      "description": "A 9-point hedonic scale — the standard instrument for 'how much did you like this', and the right tool for feedback (as opposed to discovery).",
+      "required": ["hedonic"],
+      "properties": {
+        "hedonic": {
+          "type": "integer",
+          "description": "1: dislike extremely, 5: neutral, 9: like extremely.",
+          "minimum": 1,
+          "maximum": 9
+        },
+        "wouldOrderAgain": {
+          "type": "boolean",
+          "description": "Adoption rather than approval. This is what a recipe's reception is built from: 'reordered by 61%' credits a designer without ever producing a score that can shame one."
+        }
+      }
+    },
+    "shift": {
+      "type": "object",
+      "required": ["x", "y"],
+      "properties": {
+        "x": { "type": "integer", "minimum": -20, "maximum": 20 },
+        "y": { "type": "integer", "minimum": -20, "maximum": 20 }
+      }
+    }
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "lexicon": 1,
+  "id": "app.crystalcoupe.venue",
+  "defs": {
+    "main": {
+      "type": "record",
+      "description": "A bar or restaurant claiming itself. Held at rkey `self` in the venue's own repo, so possession of the record IS the claim — no approval step and no registry. A venue whose handle is its domain (deathandco.com) is verified by the protocol itself. Publishing this is what retroactively links every patron sighting already pointing at that domain.",
+      "key": "literal:self",
+      "record": {
+        "type": "object",
+        "required": ["name", "createdAt"],
+        "properties": {
+          "name": { "type": "string", "maxLength": 200, "maxGraphemes": 100 },
+          "description": { "type": "string", "maxLength": 2000, "maxGraphemes": 1000 },
+          "location": {
+            "type": "union",
+            "refs": [
+              "community.lexicon.location.address",
+              "community.lexicon.location.geo",
+              "community.lexicon.location.fsq"
+            ]
+          },
+          "website": { "type": "string", "format": "uri" },
+          "currentMenu": {
+            "type": "ref",
+            "ref": "app.crystalcoupe.defs#entityRef",
+            "description": "The menu record to treat as current. Menus are immutable, so this pointer is how a venue says which one is live."
+          },
+          "createdAt": { "type": "string", "format": "datetime" }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "lexicon": 1,
+  "id": "app.crystalcoupe.maker",
+  "defs": {
+    "main": {
+      "type": "record",
+      "description": "A bartender or drink designer's professional profile, at rkey `self`. Deliberately contains NO score and NO aggregate. A portfolio is computed by following `recipes` out to the works themselves and reading their reception — a pull the maker initiates, not a number anyone can rank them by. There is intentionally no way to express 'this person rates N'.",
+      "key": "literal:self",
+      "record": {
+        "type": "object",
+        "required": ["displayName", "createdAt"],
+        "properties": {
+          "displayName": { "type": "string", "maxLength": 200, "maxGraphemes": 100 },
+          "bio": { "type": "string", "maxLength": 2000, "maxGraphemes": 1000 },
+          "recipes": {
+            "type": "array",
+            "description": "Works this person claims. Reception is read from these, never stored here.",
+            "maxLength": 200,
+            "items": { "type": "ref", "ref": "app.crystalcoupe.defs#entityRef" }
+          },
+          "venues": {
+            "type": "array",
+            "description": "Where they pour or have poured.",
+            "maxLength": 50,
+            "items": { "type": "ref", "ref": "app.crystalcoupe.defs#entityRef" }
+          },
+          "createdAt": { "type": "string", "format": "datetime" }
+        }
+      }
+    }
+  }
+}

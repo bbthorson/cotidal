@@ -1,0 +1,89 @@
+{
+  "lexicon": 1,
+  "id": "app.crystalcoupe.recipe",
+  "defs": {
+    "main": {
+      "type": "record",
+      "description": "An authored drink specification. This is the ownable unit: nobody owns 'Penicillin', but the person who wrote a Penicillin spec owns that spec. Reception aggregates here — onto a work — which is what lets a drink designer show their record without anyone building a rating of a person.",
+      "key": "tid",
+      "record": {
+        "type": "object",
+        "required": ["name", "createdAt"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 200,
+            "maxGraphemes": 100
+          },
+          "slug": {
+            "type": "string",
+            "description": "Folk category this belongs to, if any, e.g. `sour`. Unowned.",
+            "maxLength": 64
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 2000,
+            "maxGraphemes": 1000
+          },
+          "ingredients": {
+            "type": "array",
+            "maxLength": 40,
+            "items": { "type": "ref", "ref": "#ingredient" }
+          },
+          "method": {
+            "type": "string",
+            "maxLength": 4000,
+            "maxGraphemes": 2000
+          },
+          "glassware": { "type": "string", "maxLength": 100 },
+          "garnish": { "type": "string", "maxLength": 200 },
+          "credits": {
+            "type": "array",
+            "description": "Who designed it. An adapter should credit the original author.",
+            "maxLength": 10,
+            "items": { "type": "ref", "ref": "app.crystalcoupe.defs#credit" }
+          },
+          "adaptedFrom": {
+            "type": "ref",
+            "ref": "app.crystalcoupe.defs#entityRef",
+            "description": "The spec this riffs on, so lineage stays visible."
+          },
+          "coordinates": {
+            "type": "ref",
+            "ref": "#coordinates",
+            "description": "Where this sits on the palate map."
+          },
+          "createdAt": { "type": "string", "format": "datetime" },
+          "updatedAt": { "type": "string", "format": "datetime" }
+        }
+      }
+    },
+    "ingredient": {
+      "type": "object",
+      "required": ["name"],
+      "properties": {
+        "name": { "type": "string", "maxLength": 200 },
+        "amount": { "type": "string", "description": "As written, e.g. `3/4 oz`.", "maxLength": 50 },
+        "optional": { "type": "boolean" }
+      }
+    },
+    "coordinates": {
+      "type": "object",
+      "required": ["x", "y"],
+      "properties": {
+        "x": {
+          "type": "integer",
+          "description": "Rich (-10) to Crisp (+10).",
+          "minimum": -10,
+          "maximum": 10
+        },
+        "y": {
+          "type": "integer",
+          "description": "Savory (-10) to Sweet (+10).",
+          "minimum": -10,
+          "maximum": 10
+        }
+      }
+    }
+  }
+}
