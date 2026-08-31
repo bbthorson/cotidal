@@ -31,12 +31,27 @@ the suite must pass with no key.
 | Path | Route | Status |
 |---|---|---|
 | Drink explanation | `POST /api/explain-drink` | **Live.** Hero card on mount, drink card on expand. |
-| Drink archetyping | `POST /api/archetype-drink` | **Reachable, unused.** No UI calls it; `archetypeDrink()` in `api-client.ts` is exercised only by `tests/archetype-logic.spec.ts`. |
+| Drink archetyping | `POST /api/archetype-drink` | **Reachable, unused.** No UI calls it; `archetypeDrink()` in `api-client.ts` is exercised only by `tests/archetype-logic.spec.ts`. Gated and metered anyway — it spends the pricier call of the two. |
 | Adaptive questions | — | **Parked.** See [Parked work](#parked-work). |
 
 Every call site has a deterministic fallback and none of them can fail the
 caller: both routes catch and return usable copy, both clients catch and return
 usable copy. Keep it that way. **A model outage must be invisible.**
+
+So both routes **always answer `200` with usable content**, and `400` is
+reserved for input that was malformed. A guest, a throttled member, a missing
+key and a failed call are all indistinguishable to the caller by design — which
+would also make them indistinguishable to us, so the reason travels in an
+`x-generation` header instead:
+
+| `x-generation` | Meaning |
+|---|---|
+| `model` | The model wrote it. |
+| `unauthenticated` | No restorable session. Generation is for members. |
+| `rate-limited` | A member over their allowance. |
+| `unavailable` | No key configured, or the call failed. |
+
+A `400` carries no header: nothing was decided about it.
 
 ## Provider
 
@@ -55,12 +70,12 @@ in `tests/archetype-logic.spec.ts`.
 > software. Configuring a key changes live output for the first time, so
 > review the prose after doing it rather than before.
 
-**Pin one model, in one place.** The two routes currently name different models
-and one of them (`gemini-1.5-flash`, in `archetype-drink.ts`) is no longer
-available to new API projects — a fresh key fails on it and falls through to
-the fallback, indistinguishably from success. Model IDs are a drift surface of
-exactly the kind `AGENTS.md` warns about: they belong in one constant, and the
-current ID should be checked against Google's deprecation page when it changes.
+**One model, named once.** `GENERATION_MODEL` in `src/lib/generation.ts` is the
+only place a model id appears. The routes previously named different models and
+one of them (`gemini-1.5-flash`) was no longer available to new API projects —
+a fresh key would have failed on it and fallen through to the fallback,
+indistinguishably from success. Check Google's deprecation list before changing
+the constant.
 
 ## The membership line
 
@@ -93,42 +108,51 @@ session cannot be restored. It is **not** tolerable as the gate on a billed
 call, which would happily run first and bill regardless.
 
 **Gate on a restorable OAuth session, not on the presence of a cookie.** The
-DID names whose session to restore; the restore is the authorisation.
+DID names whose session to restore; the restore is the authorisation. That is
+`restoredDid()` in `src/lib/atproto/session.ts`, which both model routes call
+before spending anything, and which `atproto-publish.ts` now shares a cookie
+parser with so there is one implementation of the claim.
+
+> **Known limitation.** `createSessionStore()` holds OAuth sessions in a
+> module-scope `Map`, which is per-isolate on Workers exactly as the limiter's
+> was. Restores will therefore fail for genuinely signed-in members whenever a
+> request lands on a fresh isolate, and generation degrades to the guest
+> fallback when it does. This predates the gate and already affects every write
+> action, but the gate is the first thing whose *quality* depends on it.
+> Durable session storage is the fix, and it blocks members-only generation
+> being reliable in production.
 
 ## Budget
 
 The bill is set by whether the endpoints are open, not by which model writes
-the sentence. Both are unauthenticated `POST` routes today, and:
+the sentence. `checkRateLimit` was once a stub that unconditionally returned
+`true` while the working implementation sat unreferenced beside it — the
+signatures never met, so both routes called the stub and believed they were
+metered.
 
-```ts
-// src/lib/rate-limit.ts
-export async function checkRateLimit(_config = defaultRateLimitConfig): Promise<boolean> {
-  return true;
-}
-```
+`src/lib/rate-limit.ts` now runs two mechanisms:
 
-The real implementation — IP map, time-based pruning, O(1) eviction under a
-`MAX_LIMIT` cap — sits complete and unreferenced in `rate-limit-logic.ts`. The
-signatures never met: `isRateLimited(ip)` wants an IP, `checkRateLimit()` takes
-none, and the request was never plumbed through. Both routes call the stub and
-believe they are metered.
+- **Cloudflare's rate limiting binding** (`GENERATION_RATE_LIMITER` in
+  `wrangler.toml`) in production. A module-scope `Map` is per-isolate on
+  Workers — Cloudflare runs many, recycles them freely, and an attacker spreads
+  across them for free. The in-memory logic is correct as logic and weak as a
+  limiter; only durable state holds.
+- **The in-memory limiter** everywhere else. `npm run dev`, `astro preview` and
+  the suite have no bindings, and a limiter that exists only in production is
+  one nobody can test.
 
-This is the highest-priority item on this page. **An open, unmetered model
-proxy on the public internet is the failure mode; the model's price per token
-is not.**
+A binding that throws falls back to the in-memory limiter rather than failing
+open. Some metering beats none.
 
-Two constraints on fixing it:
+**The quota belongs to a DID, not an IP.** Generation is members-only, so by
+the time anything is metered the caller has proven an account — which is harder
+to rotate than an address. Order in both routes: validate → authenticate →
+meter → call. **Malformed and unauthenticated requests cost nothing and consume
+no quota.**
 
-1. **A module-scope `Map` is per-isolate on Workers.** Cloudflare runs many,
-   recycles them freely, and an attacker distributes across them for free. The
-   existing logic is correct as logic and weak as a limiter. Durable state
-   (Cloudflare's own rate limiting, KV, or a Durable Object) is what actually
-   holds.
-2. **Meter before the model call and after the cheap rejections.** Malformed
-   input and unauthenticated requests should cost nothing and consume no quota.
-
-Ordering, once decided: wire a real limiter, then configure the key. Not the
-other way round.
+`tests/generation-gate.spec.ts` asserts the limiter refuses past its allowance,
+meters per key, prefers a bound limiter, and does not fail open when one
+throws.
 
 ## Parked work
 
@@ -159,3 +183,6 @@ fixed question bank.
 4. **Meter before you call.** No route reaches a model without passing a
    limiter that can actually say no.
 5. **The tests never need a key.** Mock the boundary; assert the contract.
+6. **A new model route inherits all of it** — session gate, meter, fallback,
+   `x-generation` header. There is no such thing as a route too small to
+   bill someone.

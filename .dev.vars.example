@@ -1,0 +1,14 @@
+# Local secrets for `astro dev` / `astro preview`. Copy to `.dev.vars`, which
+# is gitignored. In production these are Worker secrets set in Cloudflare.
+
+# Generative copy (docs/generation.md). Without it the model routes serve their
+# deterministic fallbacks — which looks exactly like working software, so set
+# it deliberately rather than discovering it later.
+GOOGLE_GENERATIVE_AI_API_KEY=
+
+# AT Protocol OAuth. Sign-in is disabled entirely unless this is truthy.
+ATPROTO_ENABLED=
+PUBLIC_ATPROTO_ENABLED=
+# Production only: the hosted client metadata URL. Absent, the client runs in
+# loopback development mode against http://127.0.0.1:9002.
+ATPROTO_CLIENT_ID=

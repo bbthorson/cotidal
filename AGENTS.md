@@ -114,6 +114,9 @@ unclaimed reference to a later account is the app view's job.
 - Test the contract, not the path. Order-independent logic (scoring, belief
   state) belongs in unit tests; browser tests cover routing, rendering, and
   degradation.
+- Model routes are gated, metered, and always answer with usable content —
+  session gate, per-DID limiter, deterministic fallback, `x-generation` header.
+  A new one inherits all four (`docs/generation.md`).
 - Mock model boundaries in tests. The suite must pass with no API key.
 - `npm` is the package manager — `package-lock.json` is the lockfile.
 
@@ -136,11 +139,10 @@ interface; see `docs/brand.md`.
 4. **Menu capture.** Photograph a menu, get a recommendation, no account
    required — value before signup, and it builds the venue/menu corpus as a
    byproduct.
-5. **Close the generative surface.** `checkRateLimit` is a stub that always
-   allows, so both model routes are unmetered and unauthenticated; the working
-   limiter in `rate-limit-logic.ts` has no call sites. Wire a limiter that
-   survives Workers isolates, gate generation on a restorable session, pin one
-   model ID. See `docs/generation.md`.
+5. **Durable session storage.** `createSessionStore()` keeps OAuth sessions in
+   a module-scope `Map` — per-isolate on Workers, so a restore fails whenever a
+   request lands on a fresh isolate. Every write action already suffers this;
+   members-only generation now depends on it too. See `docs/generation.md`.
 6. **Region pages** (`/regions/<id>`). The landing page's four regions now
    link into `/drinks`; a real page per region is the reading path proper.
    Content-led — same sourcing discipline as `src/content/drinks/`.

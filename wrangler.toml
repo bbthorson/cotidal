@@ -2,3 +2,15 @@
 name = "crystal-coupe"
 compatibility_date = "2026-08-01"
 compatibility_flags = ["nodejs_compat"]
+
+# Rate limiting for the model routes. A module-scope Map is per-isolate on
+# Workers, so the in-memory limiter in src/lib/rate-limit-logic.ts cannot hold
+# on its own — it stays as the local/dev fallback. See docs/generation.md.
+#
+# `namespace_id` is an arbitrary but stable identifier for this limiter;
+# changing it resets every counter. `period` accepts only 10 or 60.
+[[unsafe.bindings]]
+name = "GENERATION_RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "1001"
+simple = { limit = 20, period = 60 }

@@ -3,6 +3,23 @@ import { generateObject } from 'ai';
 import { google } from '@ai-sdk/google';
 import { z } from 'zod';
 import { checkRateLimit } from '@/lib/rate-limit';
+import { restoredDid } from '@/lib/atproto/session';
+import {
+  GENERATION_MODEL,
+  ARCHETYPE_FALLBACK,
+  generationHeaders,
+  type GenerationOutcome,
+} from '@/lib/generation';
+
+/**
+ * Place an arbitrary drink on the map. Nothing in the UI calls this yet —
+ * `archetypeDrink()` in api-client.ts is reached only from tests — but it is a
+ * public endpoint that spends a model call, so it is gated and metered exactly
+ * like the live one. See docs/generation.md.
+ *
+ * `generateObject` with a schema is the pricier of the two calls, which is the
+ * reason an unused route is not left open.
+ */
 
 const ArchetypeSchema = z.object({
   x: z.number().min(-10).max(10).describe('X-axis: Rich (-10) to Crisp (10)'),
@@ -14,21 +31,21 @@ const ArchetypeSchema = z.object({
   oracleReasoning: z.string().describe('Brief explanation for this categorization'),
 });
 
+const PLAIN_TEXT = /^[^<>{}\\]*$/;
+const PLAIN_TEXT_MESSAGE =
+  'Please use plain text only (no special characters like <, >, {, }, \\).';
+
 const InputSchema = z.object({
-  drinkName: z.string().min(1).max(100).regex(/^[^<>{}\\]+$/, "Please use plain text only (no special characters like <, >, {, }, \\)."),
-  description: z.string().max(1000).regex(/^[^<>{}\\]*$/, "Please use plain text only (no special characters like <, >, {, }, \\).").optional(),
+  drinkName: z.string().min(1).max(100).regex(/^[^<>{}\\]+$/, PLAIN_TEXT_MESSAGE),
+  description: z.string().max(1000).regex(PLAIN_TEXT, PLAIN_TEXT_MESSAGE).optional(),
 });
 
-export const POST: APIRoute = async ({ request }) => {
-  const isAllowed = await checkRateLimit();
-  if (!isAllowed) {
-    return new Response(JSON.stringify({ error: 'Rate limit exceeded' }), {
-      status: 429,
-      headers: { 'Content-Type': 'application/json' },
-    });
-  }
+/** Always 200 with a usable drink shape. The reason travels in the header. */
+const respond = (object: unknown, outcome: GenerationOutcome) =>
+  new Response(JSON.stringify(object), { status: 200, headers: generationHeaders(outcome) });
 
-  let body: { drinkName?: string; description?: string };
+export const POST: APIRoute = async ({ request, locals }) => {
+  let body: unknown;
   try {
     body = await request.json();
   } catch {
@@ -38,15 +55,20 @@ export const POST: APIRoute = async ({ request }) => {
     });
   }
 
-  const parseRes = InputSchema.safeParse(body);
-  if (!parseRes.success) {
+  const parsed = InputSchema.safeParse(body);
+  if (!parsed.success) {
     return new Response(JSON.stringify({ error: 'Invalid input' }), {
       status: 400,
       headers: { 'Content-Type': 'application/json' },
     });
   }
 
-  const { drinkName: validName, description: validDescription } = parseRes.data;
+  const { drinkName, description } = parsed.data;
+
+  const did = await restoredDid(request);
+  if (!did) return respond(ARCHETYPE_FALLBACK, 'unauthenticated');
+
+  if (!(await checkRateLimit(did, locals))) return respond(ARCHETYPE_FALLBACK, 'rate-limited');
 
   const system = `
     You are a knowledgeable bartender analyzing a drink's flavor profile.
@@ -60,33 +82,18 @@ export const POST: APIRoute = async ({ request }) => {
     Provide your response in the requested format with a brief, conversational explanation for your choice.
   `;
 
-  const prompt = `Analyze the drink: "${validName}" ${validDescription ? `(${validDescription})` : ''}.`;
+  const prompt = `Analyze the drink: "${drinkName}" ${description ? `(${description})` : ''}.`;
 
   try {
     const { object } = await generateObject({
-      model: google('gemini-1.5-flash'),
+      model: google(GENERATION_MODEL),
       schema: ArchetypeSchema,
       system,
       prompt,
     });
-
-    return new Response(JSON.stringify(object), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return respond(object, 'model');
   } catch (error) {
-    console.error("Archetyping Error:", error);
-    return new Response(JSON.stringify({
-      x: 0,
-      y: 0,
-      hasSmoke: false,
-      hasAnise: false,
-      isBitter: false,
-      tags: ['classic'],
-      oracleReasoning: "Couldn't get a full read on this one, but it's a classic."
-    }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    console.error('Archetyping failed:', error);
+    return respond(ARCHETYPE_FALLBACK, 'unavailable');
   }
 };

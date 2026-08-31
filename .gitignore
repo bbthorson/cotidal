@@ -42,3 +42,6 @@ yarn-error.log*
 dist/
 .wrangler/
 .pnpm-store/
+
+# local secrets
+.dev.vars
