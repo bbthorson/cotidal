@@ -11,6 +11,15 @@ export default {
   ],
   theme: {
     extend: {
+      letterSpacing: {
+        // Named so the brand's tracking is a decision made once, in one place,
+        // rather than an arbitrary value re-typed per component.
+        wordmark: '0.15em',
+        label: '0.2em',
+      },
+      lineHeight: {
+        display: '1.05',
+      },
       fontSize: {
         // `text-2xs` / `text-3xs` are used ~40 times across the app but were
         // never defined, so those elements silently rendered at inherited size.

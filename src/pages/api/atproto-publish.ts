@@ -5,6 +5,7 @@ import type { UserProfile } from '@/hooks/useDiscoveryQuiz';
 import { z } from 'zod';
 import { drinkDatabase } from '@/lib/data';
 import type { PalateRecord, DrinkLogRecord } from '@/lib/atproto/lexicon';
+import type { LogDrinkOptions } from '@/lib/api-client';
 
 const ProfileSchema = z.object({
   x: z.number().min(-10).max(10),
@@ -107,9 +108,18 @@ export const POST: APIRoute = async ({ request }) => {
   }
 
   if (body.action === 'logDrinkFeedback') {
-    const options = body.options as any;
+    // Request body: every field is unvalidated, hence Partial. The guard
+    // below plus the defaults in the destructure are what make it safe.
+    const options = body.options as Partial<LogDrinkOptions> | undefined;
     if (!options || typeof options !== 'object') {
       return new Response(JSON.stringify({ success: false, error: 'Invalid options' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+    }
+
+    // `drinkName` was previously read through an `as any` and used unguarded
+    // in three places, so a request without one wrote a record with an
+    // undefined name rather than being rejected here.
+    if (typeof options.drinkName !== 'string' || !options.drinkName.trim()) {
+      return new Response(JSON.stringify({ success: false, error: 'drinkName is required' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
     }
 
     const {

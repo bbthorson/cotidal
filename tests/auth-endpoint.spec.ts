@@ -44,3 +44,11 @@ test('Auth: client metadata is served for OAuth discovery', async ({ request }) 
     expect([404, 500, 503]).toContain(res.status());
   }
 });
+
+/*
+ * The `drinkName` guard added alongside this (atproto-publish.ts) is not
+ * reachable over HTTP without an authenticated session: the route returns 401
+ * before it validates the body. An end-to-end test here would pass on the
+ * auth check rather than the guard, so the guard is left to the type system
+ * and its own explicit check instead of a test that proves nothing.
+ */
