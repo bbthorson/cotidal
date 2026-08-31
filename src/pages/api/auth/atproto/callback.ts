@@ -16,9 +16,13 @@ export const GET: APIRoute = async ({ request, redirect }) => {
 
     const response = redirect('/taste?connected=true');
 
+    // The cookie names whose session to restore; `restore()` is what
+    // authorises (src/lib/atproto/session.ts). `Secure` in production so it
+    // is never sent in the clear — development runs on loopback http.
+    const secure = url.protocol === 'https:' ? ' Secure;' : '';
     response.headers.append(
       'Set-Cookie',
-      `atproto_did=${did}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${60 * 60 * 24 * 30}`
+      `atproto_did=${did}; Path=/; HttpOnly;${secure} SameSite=Lax; Max-Age=${60 * 60 * 24 * 30}`
     );
 
     return response;

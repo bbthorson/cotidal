@@ -113,14 +113,26 @@ DID names whose session to restore; the restore is the authorisation. That is
 before spending anything, and which `atproto-publish.ts` now shares a cookie
 parser with so there is one implementation of the claim.
 
-> **Known limitation.** `createSessionStore()` holds OAuth sessions in a
-> module-scope `Map`, which is per-isolate on Workers exactly as the limiter's
-> was. Restores will therefore fail for genuinely signed-in members whenever a
-> request lands on a fresh isolate, and generation degrades to the guest
-> fallback when it does. This predates the gate and already affects every write
-> action, but the gate is the first thing whose *quality* depends on it.
-> Durable session storage is the fix, and it blocks members-only generation
-> being reliable in production.
+This is the pattern the protocol's own example app uses: `getSession()` in
+[statusphere][sp] reads a plain `did` cookie and returns `client.restore(did)`,
+with the cookie `httpOnly` and `secure` and doing no work beyond naming a DID.
+Ours now matches, `Secure` included.
+
+> **Known limitation.** Where statusphere backs both `stateStore` and
+> `sessionStore` with a database keyed by DID, `createSessionStore()` here
+> holds sessions in a module-scope `Map` — per-isolate on Workers, exactly as
+> the limiter's was. Restores therefore fail for genuinely signed-in members
+> whenever a request lands on a fresh isolate, and generation degrades to the
+> guest fallback when they do. This predates the gate and already breaks every
+> write action, but the gate is the first thing whose *quality* depends on it.
+>
+> The fix is a KV- or D1-backed store implementing the same three methods
+> (`get`, `set`, `del`). The obstacle is not the store: Cloudflare bindings are
+> reachable only through the request context, while `getAtprotoClient()` is a
+> module singleton, so `env` has to be threaded through it and its callers in
+> `publish.ts`. It also needs a namespace created in Cloudflare.
+
+[sp]: https://github.com/bluesky-social/statusphere-example-app
 
 ## Budget
 
