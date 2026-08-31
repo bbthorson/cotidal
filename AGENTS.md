@@ -29,7 +29,7 @@ something that drifts from the first. Three had already happened:
 | Layer | Truth | How drift is caught |
 |---|---|---|
 | Records | `src/lib/atproto/lexicons/*.json` | `npm run lexicons` |
-| Styling | `globals.css` tokens + `tailwind.config.ts` | *(convention — lint pending)* |
+| Styling | `globals.css` tokens + `tailwind.config.ts` | `npm run lint` — arbitrary values and raw colours are an error in `pages/`, `layouts/` and `components/marketing/` |
 | Marketing copy | `src/lib/copy.ts` | *(convention)* |
 | Drink prose | `src/content/drinks/*.md` | `tests/drink-content.spec.ts` |
 
@@ -79,6 +79,21 @@ reason the register exists rather than being a set of encyclopedia entries.
 Prose is written from primary sources rather than adapted from any one
 reference, so no entry inherits a share-alike licence.
 
+**To add an entry**, create `src/content/drinks/<slug>.md`. The filename is the
+URL. `name` in the frontmatter must match a `name` in `drinkDatabase` exactly —
+including the parenthetical, as in `Daiquiri (Classic)`. `family` is a closed
+enum in `src/content.config.ts`; extend it there before using a new value. Then:
+
+```bash
+npm run typecheck   # the frontmatter schema is checked at build time
+npx playwright test tests/drink-content.spec.ts
+```
+
+Wikipedia is a fine index for finding the primary sources. It is not itself a
+source: follow it out to the bar manual, the newspaper, or the archive, cite
+that, and write the prose yourself. Its text is CC BY-SA, so close paraphrase
+would attach a share-alike obligation to the entry.
+
 ### AT Protocol — `src/lib/atproto/`
 - `lexicons/*.json` — schemas (authoritative)
 - `records.ts` — Zod for `pour`, `menu`, `recipe`, `venue`, `maker`, `defs`
@@ -107,7 +122,11 @@ interface; see `docs/brand.md`.
 1. **Namespace.** `app.crystalcoupe.*` is a placeholder until a domain is
    registered — NSID authority comes from the reversed domain.
 2. **Migrate `drinkLog` → `pour`**, then delete the legacy lexicon.
-3. **Lint the token rules** so items 2 and 3 above stop being conventions.
+3. **Carry the palette into `/taste`.** The inversion onto paper landed on `/`
+   and `/drinks`; the app route still has ~38 hard-coded colours in
+   `src/components/app/`, which the token rule reports as warnings rather than
+   errors. Until those are tokens, that route is paper chrome over components
+   that assume a dark ground.
 4. **Menu capture.** Photograph a menu, get a recommendation, no account
    required — value before signup, and it builds the venue/menu corpus as a
    byproduct.

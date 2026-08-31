@@ -44,6 +44,12 @@ than to people. The reasoning is in **[docs/data-model.md](docs/data-model.md)**
 | Drink data | [TheCocktailDB](https://www.thecocktaildb.com/) |
 | Model | [Vercel AI SDK](https://sdk.vercel.ai/docs) (`@ai-sdk/google`) |
 
+Deploys are handled by Cloudflare's own Git integration — it builds and
+releases the Worker on push. There is deliberately no deploy workflow in
+`.github/workflows/`; the one that used to live there duplicated that job and
+uploaded `dist` as a static directory, which is not what an `output: 'server'`
+build produces. CI (`ci.yml`) only lints, typechecks, builds and tests.
+
 ### Routes
 
 - **`/`** — the landing page. Pure Astro, **zero client JavaScript**; sign-in
@@ -76,6 +82,19 @@ The suite needs no model key: `useBartenderChat` serves canned copy and model
 boundaries are mocked. In sandboxes without a matching browser, set
 `PLAYWRIGHT_CHROMIUM_PATH`, `PLAYWRIGHT_NO_SANDBOX`, and
 `PLAYWRIGHT_SKIP_WEBSERVER`.
+
+**Running the suite from an AI coding agent:** Astro 7 detects agent
+environments and starts the dev server in the *background* automatically
+(`astro dev` → `am-i-vibing`). Playwright starts `npm run dev` and waits for a
+long-lived process, so it sees the server exit immediately and reports
+"webServer exited early" — the tests never run. Set `ASTRO_DEV_BACKGROUND=0` to
+force the foreground:
+
+```bash
+ASTRO_DEV_BACKGROUND=0 npx playwright test
+```
+
+This does not affect CI or a normal terminal, where no agent is detected.
 
 ## Docs
 
