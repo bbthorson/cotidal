@@ -114,6 +114,17 @@ export default [
     },
   },
 
+  /**
+   * `src/env.d.ts` is Astro's ambient-types entry point and a triple-slash
+   * reference is the only way to pull in `.astro/types.d.ts`, which is
+   * generated (and gitignored) rather than importable. Without it the content
+   * collection resolves as `any` in every page that reads it.
+   */
+  {
+    files: ['src/env.d.ts'],
+    rules: { '@typescript-eslint/triple-slash-reference': 'off' },
+  },
+
   {
     files: ['tests/**/*.ts', 'scripts/**/*.mjs', '*.config.{ts,mjs}'],
     rules: {

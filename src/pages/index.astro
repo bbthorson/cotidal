@@ -3,12 +3,17 @@ import Base from '../layouts/Base.astro';
 import ConnectForm from '../components/marketing/ConnectForm.astro';
 import QuadrantGrid from '../components/marketing/QuadrantGrid.astro';
 import Principles from '../components/marketing/Principles.astro';
-import { site, hero, connect, footer } from '../lib/copy';
+import Monogram from '../components/marketing/Monogram.astro';
+import CoupeFigure from '../components/marketing/CoupeFigure.astro';
+import { site, hero, connect, footer, drinks, sections } from '../lib/copy';
 
 /**
  * The landing page ships zero JavaScript. Everything interactive lives at
  * /taste, which is where the React island is mounted. Sign-in is a plain
  * form post (see src/pages/api/auth/atproto/login.ts).
+ *
+ * Laid out as a printed menu — hairline rules, one section per idea, and the
+ * coupe as the single large move. See docs/brand.md.
  */
 
 const atprotoEnabled = !!(
@@ -29,85 +34,98 @@ const error = errorParam ? (errorCodes[errorParam] ?? errorCodes.authorize_faile
 ---
 
 <Base>
-  <div
-    class="bar-texture flex min-h-screen flex-col justify-between overflow-y-auto bg-background px-6 py-12 text-foreground md:py-20"
-  >
-    <!-- Header -->
-    <header
-      class="mx-auto mb-12 flex w-full max-w-4xl items-center justify-between border-b border-primary/10 pb-6"
-    >
-      <div class="flex items-center gap-3">
-        <span
-          class="flex h-8 w-8 items-center justify-center rounded-full border border-primary/40 bg-card font-serif text-sm font-bold text-primary shadow-glow"
-        >
-          {site.mark}
-        </span>
-        <span class="font-serif text-sm uppercase tracking-wordmark text-muted-foreground">
-          {site.name}
-        </span>
-      </div>
-      <p class="font-mono text-3xs uppercase tracking-label text-primary/50">
-        {hero.eyebrow}
-      </p>
-    </header>
+  <div class="bar-texture min-h-screen bg-background text-foreground">
+    <div class="mx-auto w-full max-w-3xl px-6 py-10 md:py-14">
+      <!-- Header -->
+      <header class="flex items-center justify-between border-b border-foreground pb-4">
+        <div class="flex items-center gap-3">
+          <Monogram class="h-9 w-9" />
+          <span class="font-serif text-sm font-bold uppercase tracking-wordmark text-foreground">
+            {site.name}
+          </span>
+        </div>
+        <p class="label-caps">{hero.eyebrow}</p>
+      </header>
 
-    <!-- Hero -->
-    <div class="mx-auto mb-16 grid w-full max-w-4xl flex-1 grid-cols-1 items-center gap-12 md:grid-cols-12">
-      <div class="space-y-6 md:col-span-7">
-        <h1 class="font-serif text-4xl font-bold leading-display text-foreground md:text-5xl lg:text-6xl">
-          {hero.headline}<br /><span class="text-primary">{hero.headlineAccent}</span>
+      <!-- Hero. The deck sits above the figure so the coupe is the last beat
+           before the call to action, rather than an interruption in the middle
+           of the argument. -->
+      <section class="pb-16 pt-14 text-center md:pb-20 md:pt-20">
+        <h1
+          class="mx-auto max-w-2xl font-serif text-4xl font-bold leading-display text-foreground md:text-6xl"
+        >
+          {hero.headline}<br />
+          <em class="font-normal italic text-primary">{hero.headlineAccent}</em>
         </h1>
-        <p class="max-w-lg font-serif text-base leading-relaxed text-muted-foreground md:text-lg">
+
+        <p
+          class="mx-auto mt-7 max-w-md font-serif text-base leading-relaxed text-muted-foreground md:text-lg"
+        >
           {hero.body}
         </p>
+
+        <div class="mt-12 md:mt-14">
+          <CoupeFigure />
+        </div>
+
+        <a
+          href="/taste"
+          class="mt-12 inline-flex items-center justify-center border border-foreground bg-secondary px-8 py-3.5 font-condensed text-xs font-bold uppercase tracking-label text-secondary-foreground transition-colors hover:bg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+        >
+          {hero.primaryCta}
+        </a>
+      </section>
+
+      <!-- The map, as a menu -->
+      <section class="pb-16 md:pb-20">
+        <h2 class="label-caps border-b border-foreground pb-2 text-foreground">
+          {sections.map}
+        </h2>
+        <p class="mb-5 mt-3 font-serif text-sm italic text-muted-foreground">
+          {sections.mapNote}
+        </p>
         <QuadrantGrid />
-      </div>
+        <a
+          href="/taste?browse=1"
+          class="mt-5 inline-block font-serif text-xs italic text-muted-foreground underline underline-offset-4 transition-colors hover:text-primary"
+        >
+          {hero.secondaryCta}
+        </a>
+      </section>
 
-      <!-- Actions -->
-      <div class="w-full md:col-span-5">
-        <div class="glass-dark rounded-lg border-primary/10 p-6 shadow-bar">
-          <div class="space-y-6">
-            <a
-              href="/taste"
-              class="inline-flex w-full items-center justify-center rounded-md bg-primary px-4 py-3.5 text-xs font-bold uppercase tracking-widest text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-            >
-              {hero.primaryCta}
-            </a>
-
-            <div class="flex items-center py-1">
-              <span class="editorial-rule flex-grow"></span>
-              <span class="mx-4 flex-shrink font-mono text-3xs uppercase tracking-widest text-muted-foreground">
-                {connect.divider}
-              </span>
-              <span class="editorial-rule flex-grow"></span>
-            </div>
-
-            <div class="space-y-2">
-              <h2 class="font-serif text-lg font-bold text-primary">{connect.title}</h2>
-              <p class="text-xs leading-relaxed text-muted-foreground">{connect.body}</p>
-            </div>
-
+      <!-- Sign in -->
+      <section class="pb-16 md:pb-20">
+        <h2 class="label-caps mb-5 border-b border-foreground pb-2 text-foreground">
+          {sections.connect}
+        </h2>
+        <div class="coaster border border-border bg-card p-6 shadow-bar md:p-8">
+          <h3 class="font-serif text-xl font-bold text-foreground">{connect.title}</h3>
+          <p class="mt-2 max-w-md font-serif text-sm leading-relaxed text-muted-foreground">
+            {connect.body}
+          </p>
+          <div class="mt-6 max-w-sm">
             <ConnectForm enabled={atprotoEnabled} error={error} />
-
-            <a
-              href="/taste?browse=1"
-              class="block w-full py-1 text-center font-mono text-3xs text-muted-foreground transition-colors hover:text-foreground"
-            >
-              {hero.secondaryCta}
-            </a>
           </div>
         </div>
-      </div>
-    </div>
+      </section>
 
-    <div class="mx-auto w-full max-w-4xl">
-      <Principles />
-    </div>
+      <!-- Principles -->
+      <section class="pb-16 md:pb-20">
+        <h2 class="label-caps mb-5 border-b border-foreground pb-2 text-foreground">
+          {sections.principles}
+        </h2>
+        <Principles />
+      </section>
 
-    <footer
-      class="mx-auto mt-16 w-full max-w-4xl border-t border-primary/5 pt-6 text-center font-mono text-3xs text-muted-foreground/40"
-    >
-      {footer.note} · {footer.drinkResponsibly}
-    </footer>
+      <footer
+        class="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 border-t border-foreground pt-5 text-center font-condensed text-3xs uppercase tracking-label text-muted-foreground"
+      >
+        <a href="/drinks" class="transition-colors hover:text-primary">{drinks.navLabel}</a>
+        <span aria-hidden="true">·</span>
+        <span>{footer.note}</span>
+        <span aria-hidden="true">·</span>
+        <span>{footer.drinkResponsibly}</span>
+      </footer>
+    </div>
   </div>
 </Base>

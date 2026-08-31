@@ -104,10 +104,15 @@ export default {
         md: '0.25rem',
         sm: 'calc(var(--radius) - 8px)',
       },
+      // Shadows for a paper ground. The previous set assumed obsidian: a hard
+      // black drop and an amber glow, both of which read as dirt on cream.
       boxShadow: {
-        'mcm': '4px 4px 0px 0px rgba(183, 65, 14, 1)',
-        'bar': '0 4px 24px -4px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(212, 148, 26, 0.08)',
-        'glow': '0 0 20px rgba(212, 148, 26, 0.15)',
+        // Letterpress-style hard offset, in terracotta.
+        'mcm': '4px 4px 0px 0px hsl(8 55% 40%)',
+        // A sheet lifted a millimetre off the stock.
+        'bar': '0 1px 2px 0 hsl(40 20% 40% / 0.06), 0 8px 24px -12px hsl(40 20% 30% / 0.18)',
+        // Was a glow. On paper the equivalent is an impression, not light.
+        'glow': 'inset 0 0 0 1px hsl(41 29% 81%)',
       },
       keyframes: {
         'accordion-down': {

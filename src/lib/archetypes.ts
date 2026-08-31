@@ -8,6 +8,11 @@ export interface ArchetypeDefinition {
   icon: string;
   description: string;
   keyTraits: string[];
+  /**
+   * Names here must exist in `drinkDatabase` — this is a view onto the map,
+   * not a second list of drinks. `tests/drink-content.spec.ts` enforces it;
+   * six of these had already drifted out of the database when it was added.
+   */
   recommendedDrinks: string[];
   colorHex: string;
 }
@@ -40,7 +45,7 @@ export const PALATE_ARCHETYPES: Record<string, ArchetypeDefinition> = {
     icon: '🍋',
     description: 'You crave vibrant acidity, fresh citrus zests, and effervescent highballs that feel clean, crisp, and crushable.',
     keyTraits: ['High Citrus', 'Vibrant Sourness', 'Effervescent'],
-    recommendedDrinks: ['Last Word', 'Daiquiri', 'French 75', 'Aviation'],
+    recommendedDrinks: ['Last Word', 'Daiquiri (Classic)', 'French 75', 'Aviation'],
     colorHex: '#4a90e2', // Crisp Azure
   },
   'agave-smoke': {
