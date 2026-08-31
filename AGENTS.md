@@ -112,6 +112,13 @@ would attach a share-alike obligation to the entry.
 `locals.runtime.env`** — that getter throws in Astro v6+, so an optional chain
 does not protect you. It fails loudly in production and silently in dev.
 
+**`handleResolver` must stay set.** Unset, `NodeOAuthClient` builds an
+`AtprotoHandleResolverNode`, which wraps fetch in undici-based SSRF protection
+and reads `process.versions.undici`. workerd ships no undici, so from
+`@atproto/oauth-client-node` 0.5 the *constructor throws* — sign-in dies before
+it starts. Nothing in the suite catches this: the tests run with AT Protocol
+disabled, so the client is never built.
+
 Records are signed by their authors and **never rewritten**. Reconciling an
 unclaimed reference to a later account is the app view's job.
 

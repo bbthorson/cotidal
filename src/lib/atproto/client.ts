@@ -52,6 +52,22 @@ export function getAtprotoClient(): NodeOAuthClient | null {
         },
     stateStore: createStateStore(),
     sessionStore: createSessionStore(),
+
+    /**
+     * Resolve handles over HTTP rather than DNS.
+     *
+     * Left unset, NodeOAuthClient builds an `AtprotoHandleResolverNode`, which
+     * wraps fetch in undici-based SSRF protection and reads
+     * `process.versions.undici`. workerd does not ship undici, so from
+     * @atproto/oauth-client-node 0.5 that **throws in the constructor**:
+     *
+     *     Unicast SSRF protection requires Node.js 20.6+
+     *
+     * Naming an HTTP resolver skips that path entirely. It is the right choice
+     * on Workers regardless of version, because the Node resolver's DNS lookups
+     * are not something workerd can do either.
+     */
+    handleResolver: process.env.ATPROTO_HANDLE_RESOLVER || 'https://public.api.bsky.app',
   });
 
   return client;

@@ -12,3 +12,6 @@ PUBLIC_ATPROTO_ENABLED=
 # Production only: the hosted client metadata URL. Absent, the client runs in
 # loopback development mode against http://127.0.0.1:9002.
 ATPROTO_CLIENT_ID=
+# Optional. Handles resolve over HTTP because the Node resolver needs undici,
+# which workerd does not ship. Defaults to https://public.api.bsky.app.
+ATPROTO_HANDLE_RESOLVER=
