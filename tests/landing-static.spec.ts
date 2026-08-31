@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { QUADRANT_ORDER } from '../src/lib/quadrant';
 
 /**
  * The landing page is the app's front door and must stay free of client
@@ -46,6 +47,22 @@ test('Landing: hero and quadrants are server-rendered', async ({ page }) => {
     expect(html).toContain(quadrant);
   }
   expect(html).not.toMatch(/triangulat/i);
+});
+
+/**
+ * The landing page names the four regions and the register groups its entries
+ * under the same four. Those are two hand-written lists of the same ids, which
+ * is the drift this codebase keeps producing — so the link between them is
+ * asserted rather than assumed.
+ */
+test('Landing: each region links to its section of the register', async ({ page }) => {
+  const landing = await (await page.request.get('/')).text();
+  const register = await (await page.request.get('/drinks')).text();
+
+  for (const id of QUADRANT_ORDER) {
+    expect(landing, `no landing link to the ${id} region`).toContain(`/drinks#${id}`);
+    expect(register, `no ${id} section for the landing link to reach`).toContain(`id="${id}"`);
+  }
 });
 
 test('Landing: sign-in works without JavaScript', async ({ browser }) => {

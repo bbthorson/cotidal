@@ -4,6 +4,22 @@ import { google } from '@ai-sdk/google';
 import { drinkDatabase } from '@/lib/data';
 import { z } from 'zod';
 import { checkRateLimit } from '@/lib/rate-limit';
+import { restoredDid } from '@/lib/atproto/session';
+import {
+  GENERATION_MODEL,
+  explanationFallback,
+  generationHeaders,
+  type GenerationOutcome,
+} from '@/lib/generation';
+
+/**
+ * Why this drink suits you — the one place per-user prose beats a template,
+ * and the only live generative path in the product (docs/generation.md).
+ *
+ * Order matters: validate, authenticate, meter, then call the model. A
+ * malformed or unauthenticated request must cost nothing and consume no
+ * quota, and nothing bills before a session has actually been restored.
+ */
 
 const UserProfileSchema = z.object({
   x: z.number(),
@@ -12,16 +28,17 @@ const UserProfileSchema = z.object({
   dislikesBitter: z.boolean(),
 });
 
-export const POST: APIRoute = async ({ request }) => {
-  const isAllowed = await checkRateLimit();
-  if (!isAllowed) {
-    return new Response(JSON.stringify({ text: "I'm slammed right now — try again in a minute." }), {
-      status: 429,
-      headers: { 'Content-Type': 'application/json' },
-    });
-  }
+const InputSchema = z.object({
+  drinkName: z.string().min(1).max(100),
+  userProfile: UserProfileSchema,
+});
 
-  let body: { drinkName?: string; userProfile?: unknown };
+/** Always 200 with usable copy. The reason travels in the header. */
+const respond = (text: string, outcome: GenerationOutcome) =>
+  new Response(JSON.stringify({ text }), { status: 200, headers: generationHeaders(outcome) });
+
+export const POST: APIRoute = async ({ request }) => {
+  let body: unknown;
   try {
     body = await request.json();
   } catch {
@@ -31,32 +48,28 @@ export const POST: APIRoute = async ({ request }) => {
     });
   }
 
-  const { drinkName, userProfile } = body;
-  if (!drinkName) {
-    return new Response(JSON.stringify({ error: 'Missing drinkName' }), {
+  const parsed = InputSchema.safeParse(body);
+  if (!parsed.success) {
+    return new Response(JSON.stringify({ error: 'Invalid input' }), {
       status: 400,
       headers: { 'Content-Type': 'application/json' },
     });
   }
 
-  const profileResult = UserProfileSchema.safeParse(userProfile);
-  if (!profileResult.success) {
-    return new Response(JSON.stringify({ text: "This drink is an excellent choice for your palate." }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    });
-  }
+  const { drinkName, userProfile: profile } = parsed.data;
+  const fallback = explanationFallback(drinkName, profile);
 
-  const profile = profileResult.data;
-  const isValidDrink = drinkDatabase.some(d => d.name === drinkName);
+  // Generation is for members. A guest's fallback is derived from their own
+  // coordinate and is the whole product for them, so it reads as copy.
+  const did = await restoredDid(request);
+  if (!did) return respond(fallback, 'unauthenticated');
 
-  if (!isValidDrink) {
-    return new Response(
-      JSON.stringify({
-        text: `Good pick — you lean ${profile.x > 0 ? 'crisp' : 'rich'} and ${profile.y > 0 ? 'sweet' : 'savory'}, so this one's right in your wheelhouse.`,
-      }),
-      { status: 200, headers: { 'Content-Type': 'application/json' } }
-    );
+  if (!(await checkRateLimit(did))) return respond(fallback, 'rate-limited');
+
+  // Only drinks we know about reach the model: an unrecognised name is
+  // unvalidated text, and there is nothing to explain about it anyway.
+  if (!drinkDatabase.some((d) => d.name === drinkName)) {
+    return respond(fallback, 'unavailable');
   }
 
   const prompt = `
@@ -74,21 +87,10 @@ export const POST: APIRoute = async ({ request }) => {
   `;
 
   try {
-    const { text } = await generateText({
-      model: google('gemini-2.5-flash-lite'),
-      prompt,
-    });
-    return new Response(JSON.stringify({ text }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    const { text } = await generateText({ model: google(GENERATION_MODEL), prompt });
+    return respond(text, 'model');
   } catch (error) {
-    console.error("AI Generation Error:", error);
-    return new Response(
-      JSON.stringify({
-        text: `You lean ${profile.x > 0 ? 'crisp' : 'rich'} and ${profile.y > 0 ? 'sweet' : 'savory'} — a ${drinkName} hits that sweet spot perfectly.`,
-      }),
-      { status: 200, headers: { 'Content-Type': 'application/json' } }
-    );
+    console.error('Explanation generation failed:', error);
+    return respond(fallback, 'unavailable');
   }
 };

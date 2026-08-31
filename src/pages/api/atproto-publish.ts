@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { drinkDatabase } from '@/lib/data';
 import type { PalateRecord, DrinkLogRecord } from '@/lib/atproto/lexicon';
 import type { LogDrinkOptions } from '@/lib/api-client';
+import { didFromRequest } from '@/lib/atproto/session';
 
 const ProfileSchema = z.object({
   x: z.number().min(-10).max(10),
@@ -15,15 +16,6 @@ const ProfileSchema = z.object({
   dislikesAnise: z.boolean(),
   vibeTags: z.record(z.string(), z.number()),
 });
-
-function getDidFromHeaderOrCookie(request: Request): string | undefined {
-  const cookieHeader = request.headers.get('cookie');
-  if (cookieHeader) {
-    const match = cookieHeader.match(/(?:^|; )atproto_did=([^;]*)/);
-    if (match) return decodeURIComponent(match[1]);
-  }
-  return undefined;
-}
 
 export const POST: APIRoute = async ({ request }) => {
   let body: { action?: string; [key: string]: unknown };
@@ -36,7 +28,7 @@ export const POST: APIRoute = async ({ request }) => {
     });
   }
 
-  const did = getDidFromHeaderOrCookie(request);
+  const did = didFromRequest(request);
 
   if (body.action === 'getConnectedPalate') {
     if (!did) return new Response(JSON.stringify({ profile: null }), { status: 200, headers: { 'Content-Type': 'application/json' } });

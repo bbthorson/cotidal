@@ -66,6 +66,7 @@ the user.
 question that reduces the most uncertainty. **Only the first three questions
 are fixed** — never hard-code a path through the quiz in a test.
 `useBartenderChat` is entirely local canned copy, so the flow runs offline.
+What may call a model, and who sees the result, is `docs/generation.md`.
 
 ### Drink prose — `src/content/drinks/`, `src/content.config.ts`
 An Astro content collection behind `/drinks`, prerendered and script-free.
@@ -78,6 +79,11 @@ reason the register exists rather than being a set of encyclopedia entries.
 
 Prose is written from primary sources rather than adapted from any one
 reference, so no entry inherits a share-alike licence.
+
+`/drinks` groups entries under the four regions, and each section carries its
+quadrant `id` as an anchor because the landing page links into them
+(`/drinks#ember`). Those are two hand-written lists of the same ids;
+`tests/landing-static.spec.ts` asserts they still agree.
 
 **To add an entry**, create `src/content/drinks/<slug>.md`. The filename is the
 URL. `name` in the frontmatter must match a `name` in `drinkDatabase` exactly —
@@ -98,7 +104,20 @@ would attach a share-alike obligation to the entry.
 - `lexicons/*.json` — schemas (authoritative)
 - `records.ts` — Zod for `pour`, `menu`, `recipe`, `venue`, `maker`, `defs`
 - `lexicon.ts` — legacy `palate` and `drinkLog`, being migrated onto `pour`
-- `client.ts`, `session-store.ts`, `publish.ts` — OAuth and writes
+- `client.ts`, `store.ts`, `publish.ts` — OAuth and writes
+- `session.ts` — the `atproto_did` cookie is a *claim*; `restore()` is the
+  authorisation. Anything billed or destructive gates on `restoredDid()`.
+
+**Bindings come from `cloudflare:workers` via `src/lib/runtime.ts`, never from
+`locals.runtime.env`** — that getter throws in Astro v6+, so an optional chain
+does not protect you. It fails loudly in production and silently in dev.
+
+**`handleResolver` must stay set.** Unset, `NodeOAuthClient` builds an
+`AtprotoHandleResolverNode`, which wraps fetch in undici-based SSRF protection
+and reads `process.versions.undici`. workerd ships no undici, so from
+`@atproto/oauth-client-node` 0.5 the *constructor throws* — sign-in dies before
+it starts. Nothing in the suite catches this: the tests run with AT Protocol
+disabled, so the client is never built.
 
 Records are signed by their authors and **never rewritten**. Reconciling an
 unclaimed reference to a later account is the app view's job.
@@ -108,6 +127,9 @@ unclaimed reference to a later account is the app view's job.
 - Test the contract, not the path. Order-independent logic (scoring, belief
   state) belongs in unit tests; browser tests cover routing, rendering, and
   degradation.
+- Model routes are gated, metered, and always answer with usable content —
+  session gate, per-DID limiter, deterministic fallback, `x-generation` header.
+  A new one inherits all four (`docs/generation.md`).
 - Mock model boundaries in tests. The suite must pass with no API key.
 - `npm` is the package manager — `package-lock.json` is the lockfile.
 
@@ -130,9 +152,23 @@ interface; see `docs/brand.md`.
 4. **Menu capture.** Photograph a menu, get a recommendation, no account
    required — value before signup, and it builds the venue/menu corpus as a
    byproduct.
-5. **Rework elicitation.** Swipes for breadth, forced-choice pairs for
+5. **Create the `ATPROTO_SESSIONS` KV namespace** and put its id in
+   `wrangler.toml`, which currently holds a placeholder. Until then the OAuth
+   stores fall back to a per-isolate `Map` in production and every signed-in
+   action breaks on a cold isolate.
+6. **Region pages** (`/regions/<id>`). The landing page's four regions now
+   link into `/drinks`; a real page per region is the reading path proper.
+   Content-led — same sourcing discipline as `src/content/drinks/`.
+7. **The return visit.** Logging a pour and watching the point move is the
+   only recurring behaviour in the product and has no front door.
+8. **Venue claim and menu publishing.** Handle-as-domain makes claiming and
+   publishing the same act; the lexicons exist and nothing renders them.
+9. **Rework elicitation.** Swipes for breadth, forced-choice pairs for
    precision, the 9-point hedonic for post-drink feedback. Never swipe on
    drink *names* — that measures familiarity, not taste.
-6. **The Overlap.** Two people in the same bar, conversation starters from
-   what their maps share. Surface only the intersection; lead with
-   disagreement about drinks.
+10. **The Overlap.** Two people in the same bar, conversation starters from
+    what their maps share. Discovery comes from the user's existing follow
+    graph, not a second one built here. Surface only the intersection; lead
+    with disagreement about drinks.
+
+Sequencing and the reasoning behind it: `docs/routes.md`.

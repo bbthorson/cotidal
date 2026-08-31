@@ -1,6 +1,5 @@
 import { NodeOAuthClient } from '@atproto/oauth-client-node';
-import { createSessionStore } from './session-store';
-import { createStateStore } from './state-store';
+import { createSessionStore, createStateStore } from './store';
 
 let client: NodeOAuthClient | null = null;
 
@@ -14,6 +13,10 @@ function getBaseUrl(): string {
   const port = process.env.PORT || '9002';
   return `http://127.0.0.1:${port}`;
 }
+/**
+ * The stores resolve their KV binding per call (`./store`), so the client is a
+ * plain singleton and nothing has to hand it a request context.
+ */
 export function getAtprotoClient(): NodeOAuthClient | null {
   if (!process.env.PUBLIC_ATPROTO_ENABLED && !process.env.ATPROTO_ENABLED && !process.env.NEXT_PUBLIC_ATPROTO_ENABLED) return null;
 
@@ -49,6 +52,22 @@ export function getAtprotoClient(): NodeOAuthClient | null {
         },
     stateStore: createStateStore(),
     sessionStore: createSessionStore(),
+
+    /**
+     * Resolve handles over HTTP rather than DNS.
+     *
+     * Left unset, NodeOAuthClient builds an `AtprotoHandleResolverNode`, which
+     * wraps fetch in undici-based SSRF protection and reads
+     * `process.versions.undici`. workerd does not ship undici, so from
+     * @atproto/oauth-client-node 0.5 that **throws in the constructor**:
+     *
+     *     Unicast SSRF protection requires Node.js 20.6+
+     *
+     * Naming an HTTP resolver skips that path entirely. It is the right choice
+     * on Workers regardless of version, because the Node resolver's DNS lookups
+     * are not something workerd can do either.
+     */
+    handleResolver: process.env.ATPROTO_HANDLE_RESOLVER || 'https://public.api.bsky.app',
   });
 
   return client;

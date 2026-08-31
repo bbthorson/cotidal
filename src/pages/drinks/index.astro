@@ -64,7 +64,7 @@ const grouped = quadrants.map((quadrant) => ({
       <div class="space-y-14">
         {
           grouped.map(({ quadrant, items }) => (
-            <section>
+            <section id={quadrant.id} class="scroll-mt-8">
               <div class="flex items-baseline justify-between border-b border-foreground pb-2">
                 <h2 class="font-serif text-xl font-bold text-foreground">{quadrant.name}</h2>
                 <span class="label-caps text-secondary">{quadrant.axis}</span>
