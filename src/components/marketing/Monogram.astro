@@ -1,0 +1,38 @@
+---
+import { site } from '../../lib/copy';
+
+interface Props {
+  class?: string;
+}
+
+const { class: className = '' } = Astro.props;
+
+/**
+ * Diamond monogram. Inline SVG rather than an icon library: this renders on
+ * `/`, which ships no client JavaScript, so nothing here may pull an island.
+ *
+ * Colours come from Tailwind token classes rather than fill/stroke attributes
+ * — a literal `hsl(...)` in an attribute trips the token rule in
+ * eslint.config.mjs, which is the point of that rule.
+ */
+---
+
+<span class={`inline-flex items-center justify-center ${className}`} aria-hidden="true">
+  <svg viewBox="0 0 48 48" class="h-full w-full" fill="none">
+    <rect
+      x="24"
+      y="2"
+      width="31"
+      height="31"
+      transform="rotate(45 24 2)"
+      class="stroke-primary"
+      stroke-width="1.25"
+    />
+    <!-- A coupe reduced to three strokes. -->
+    <path d="M17 19 Q24 28 31 19" class="stroke-primary" stroke-width="1.25" />
+    <path d="M16 19 H32" class="stroke-primary" stroke-width="1.25" />
+    <path d="M24 28 V33" class="stroke-primary" stroke-width="1.25" />
+    <path d="M19 33.5 H29" class="stroke-primary" stroke-width="1.25" />
+  </svg>
+  <span class="sr-only">{site.name}</span>
+</span>

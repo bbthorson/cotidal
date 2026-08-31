@@ -1,6 +1,7 @@
 ---
 import { getCollection } from 'astro:content';
 import Base from '../../layouts/Base.astro';
+import Monogram from '../../components/marketing/Monogram.astro';
 import { site, drinks as copy, footer, quadrants } from '../../lib/copy';
 import { drinkDatabase } from '../../lib/data';
 import { quadrantIdFor } from '../../lib/quadrant';
@@ -8,6 +9,9 @@ import { quadrantIdFor } from '../../lib/quadrant';
 /**
  * Static, like `/`. Nothing on this route is interactive, so nothing here
  * mounts an island — see AGENTS.md on keeping the front door script-free.
+ *
+ * Set as a printed list: quadrants are section heads the way a wine list uses
+ * regions, and each drink is a ruled row.
  */
 export const prerender = true;
 
@@ -34,60 +38,62 @@ const grouped = quadrants.map((quadrant) => ({
 ---
 
 <Base title={`${copy.title} · ${site.name}`} description={copy.intro}>
-  <div class="bar-texture min-h-screen bg-background px-6 py-12 text-foreground md:py-20">
-    <header class="mx-auto mb-12 flex w-full max-w-4xl items-center justify-between border-b border-primary/10 pb-6">
-      <a href="/" class="flex items-center gap-3">
-        <span class="flex h-8 w-8 items-center justify-center rounded-full border border-primary/40 bg-card font-serif text-sm font-bold text-primary shadow-glow">
-          {site.mark}
-        </span>
-        <span class="font-serif text-sm uppercase tracking-wordmark text-muted-foreground">
-          {site.name}
-        </span>
-      </a>
-      <p class="font-mono text-3xs uppercase tracking-label text-primary/50">{copy.eyebrow}</p>
-    </header>
+  <div class="bar-texture min-h-screen bg-background text-foreground">
+    <div class="mx-auto w-full max-w-3xl px-6 py-10 md:py-14">
+      <header class="flex items-center justify-between border-b border-foreground pb-4">
+        <a href="/" class="flex items-center gap-3">
+          <Monogram class="h-9 w-9" />
+          <span class="font-serif text-sm font-bold uppercase tracking-wordmark text-foreground">
+            {site.name}
+          </span>
+        </a>
+        <p class="label-caps">{copy.eyebrow}</p>
+      </header>
 
-    <div class="mx-auto w-full max-w-4xl">
-      <h1 class="font-serif text-4xl font-bold leading-display text-foreground md:text-5xl">
-        {copy.title}
-      </h1>
-      <p class="mt-6 max-w-xl font-serif text-base leading-relaxed text-muted-foreground">
-        {copy.intro}
-      </p>
+      <section class="pb-14 pt-14 text-center md:pb-20 md:pt-20">
+        <h1 class="font-serif text-4xl font-bold leading-display text-foreground md:text-5xl">
+          {copy.title}
+        </h1>
+        <p
+          class="mx-auto mt-6 max-w-xl font-serif text-base leading-relaxed text-muted-foreground"
+        >
+          {copy.intro}
+        </p>
+      </section>
 
-      <div class="mt-16 space-y-12">
+      <div class="space-y-14">
         {
           grouped.map(({ quadrant, items }) => (
-            <section class="border-t border-primary/10 pt-7">
-              <div class="mb-5 space-y-1.5">
-                <span class="block font-mono text-3xs uppercase tracking-label text-primary/60">
-                  {quadrant.axis}
-                </span>
-                <h2 class="font-serif text-lg font-bold leading-none text-foreground">
-                  {quadrant.name}
-                </h2>
-                <p class="text-2xs leading-relaxed text-muted-foreground">{quadrant.gloss}</p>
+            <section>
+              <div class="flex items-baseline justify-between border-b border-foreground pb-2">
+                <h2 class="font-serif text-xl font-bold text-foreground">{quadrant.name}</h2>
+                <span class="label-caps text-secondary">{quadrant.axis}</span>
               </div>
+              <p class="mt-2 font-serif text-xs italic leading-relaxed text-muted-foreground">
+                {quadrant.gloss}
+              </p>
 
               {items.length === 0 ? (
-                <p class="text-2xs italic text-muted-foreground/50">{copy.emptyQuadrant}</p>
+                <p class="mt-5 font-serif text-xs italic text-muted-foreground/60">
+                  {copy.emptyQuadrant}
+                </p>
               ) : (
-                <ul class="space-y-4">
+                <ul class="mt-4 border-b border-border">
                   {items.map(({ entry, drink }) => (
-                    <li>
-                      <a
-                        href={`/drinks/${entry.id}`}
-                        class="group block rounded-md border border-primary/5 bg-card/10 p-4 transition-colors hover:border-primary/20"
-                      >
-                        <div class="flex items-baseline gap-3">
-                          <h3 class="font-serif text-base font-bold text-primary transition-colors group-hover:text-primary/80">
+                    <li class="menu-row">
+                      <a href={`/drinks/${entry.id}`} class="group block py-4">
+                        <span class="dot-leader">
+                          <span class="font-serif text-base font-bold text-foreground transition-colors group-hover:text-primary">
                             {entry.data.title}
-                          </h3>
-                          <span class="ml-auto shrink-0 font-mono text-3xs uppercase tracking-label text-muted-foreground/50">
-                            {drink.x > 0 ? 'Crisp' : 'Rich'} · {drink.y > 0 ? 'Sweet' : 'Savory'}
                           </span>
-                        </div>
-                        <p class="mt-1.5 font-serif text-xs leading-relaxed text-muted-foreground">
+                          <span class="leader" aria-hidden="true" />
+                          <span class="label-caps shrink-0 tabular-nums">
+                            {drink.x > 0 ? '+' : ''}
+                            {drink.x}, {drink.y > 0 ? '+' : ''}
+                            {drink.y}
+                          </span>
+                        </span>
+                        <p class="mt-1 max-w-xl font-serif text-xs leading-relaxed text-muted-foreground">
                           {entry.data.summary}
                         </p>
                       </a>
@@ -100,8 +106,12 @@ const grouped = quadrants.map((quadrant) => ({
         }
       </div>
 
-      <footer class="mt-16 border-t border-primary/5 pt-6 text-center font-mono text-3xs text-muted-foreground/40">
-        {footer.note} · {footer.drinkResponsibly}
+      <footer
+        class="mt-16 flex flex-wrap items-center justify-center gap-x-3 border-t border-foreground pt-5 text-center font-condensed text-3xs uppercase tracking-label text-muted-foreground"
+      >
+        <span>{footer.note}</span>
+        <span aria-hidden="true">·</span>
+        <span>{footer.drinkResponsibly}</span>
       </footer>
     </div>
   </div>

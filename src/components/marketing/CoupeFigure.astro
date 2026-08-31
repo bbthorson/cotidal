@@ -1,0 +1,40 @@
+---
+/**
+ * The one big move on the landing page: a coupe drawn as flat geometry, an
+ * accent shape behind it, and a hairline ground rule running past both edges.
+ *
+ * The crosshair on the surface is the product argument in one image — the
+ * drink is where your coordinate lands, so the map is drawn into the glass
+ * rather than printed next to it.
+ *
+ * Geometry note: the bowl is a quadratic, so its lowest point is not the
+ * control point. With rim y=60 and control y=148 it bottoms at y=104
+ * (0.25·60 + 0.5·148 + 0.25·60), which is where the stem has to start — an
+ * earlier version began the stem at the control point and left a visible gap.
+ *
+ * Inline SVG, no island. Token classes, not colour attributes.
+ */
+---
+
+<figure class="mx-auto w-full max-w-sm">
+  <svg viewBox="0 0 260 190" class="w-full" fill="none" role="presentation">
+    <!-- Accent mass, peeking out from behind the bowl -->
+    <circle cx="94" cy="42" r="27" class="fill-accent" />
+
+    <!-- Liquid -->
+    <path d="M66 60 Q130 148 194 60 Z" class="fill-primary" />
+
+    <!-- Bowl, stem, foot -->
+    <path d="M66 60 Q130 148 194 60" class="stroke-foreground" stroke-width="1.5" />
+    <path d="M62 60 H198" class="stroke-foreground" stroke-width="1.5" />
+    <path d="M130 104 V166" class="stroke-foreground" stroke-width="1.5" />
+    <path d="M101 167 H159" class="stroke-foreground" stroke-width="1.5" />
+
+    <!-- The coordinate, sitting on the surface -->
+    <path d="M130 42 V78 M112 60 H148" class="stroke-foreground/40" stroke-width="1" />
+    <circle cx="130" cy="60" r="4" class="fill-foreground" />
+
+    <!-- Ground rule, running past the glass on both sides -->
+    <path d="M0 167.5 H260" class="stroke-foreground/30" stroke-width="1" />
+  </svg>
+</figure>

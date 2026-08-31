@@ -61,6 +61,17 @@ export const quadrants = [
   },
 ] as const;
 
+/**
+ * Section labels. The page reads as a printed menu, and a menu names its
+ * sections — these are the equivalent of "Plates" and "Cocktails" at the head
+ * of a column.
+ */
+export const sections = {
+  map: 'The four regions',
+  principles: 'What you keep',
+  connect: 'Sign in',
+} as const;
+
 export const connect = {
   title: 'Carry it with you',
   body:
@@ -110,6 +121,9 @@ export const drinks = {
   claimedLabel: 'Claimed, not established',
   sourcesLabel: 'Sources',
   optionalLabel: 'optional',
+  glassLabel: 'Glass',
+  methodLabel: 'Method',
+  garnishLabel: 'Garnish',
   emptyQuadrant: 'Nothing written up here yet.',
 } as const;
 

@@ -1,16 +1,28 @@
 ---
 import { quadrants } from '../../lib/copy';
+
+/**
+ * The four regions as a printed menu table: hairline-ruled rows, the name and
+ * gloss in the body column, the axis boxed off to the right the way a price
+ * column is. Was a 2×2 card grid, which read as a dashboard rather than a menu.
+ */
 ---
 
-<ul class="grid grid-cols-2 gap-x-6 gap-y-7 border-t border-primary/10 pt-7">
+<ul class="border-b border-border">
   {
     quadrants.map((q) => (
-      <li class="space-y-1.5">
-        <span class="block font-mono text-3xs uppercase tracking-label text-primary/60">
+      <li class="menu-row flex items-baseline gap-4 py-4 first:border-t-0 md:gap-8">
+        <div class="min-w-0 flex-1">
+          <h3 class="font-serif text-lg font-bold leading-none text-foreground md:text-xl">
+            {q.name}
+          </h3>
+          <p class="mt-1.5 font-serif text-xs leading-relaxed text-muted-foreground md:text-sm">
+            {q.gloss}
+          </p>
+        </div>
+        <span class="label-caps shrink-0 border border-border px-2.5 py-1.5 text-secondary">
           {q.axis}
         </span>
-        <h3 class="font-serif text-lg font-bold leading-none text-foreground">{q.name}</h3>
-        <p class="text-2xs leading-relaxed text-muted-foreground">{q.gloss}</p>
       </li>
     ))
   }
