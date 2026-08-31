@@ -102,6 +102,8 @@ This does not affect CI or a normal terminal, where no agent is detected.
   references, menus-as-posts, why nobody rates people
 - **[docs/brand.md](docs/brand.md)** — voice, palette, and the rules that keep
   styling out of components
+- **[docs/generation.md](docs/generation.md)** — what the model may write, who
+  sees it, and why the bill is set by the rate limiter rather than the model
 - **[AGENTS.md](AGENTS.md)** — architecture notes for contributors
 
 ## License

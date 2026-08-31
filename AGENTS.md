@@ -66,6 +66,7 @@ the user.
 question that reduces the most uncertainty. **Only the first three questions
 are fixed** — never hard-code a path through the quiz in a test.
 `useBartenderChat` is entirely local canned copy, so the flow runs offline.
+What may call a model, and who sees the result, is `docs/generation.md`.
 
 ### Drink prose — `src/content/drinks/`, `src/content.config.ts`
 An Astro content collection behind `/drinks`, prerendered and script-free.
@@ -130,9 +131,14 @@ interface; see `docs/brand.md`.
 4. **Menu capture.** Photograph a menu, get a recommendation, no account
    required — value before signup, and it builds the venue/menu corpus as a
    byproduct.
-5. **Rework elicitation.** Swipes for breadth, forced-choice pairs for
+5. **Close the generative surface.** `checkRateLimit` is a stub that always
+   allows, so both model routes are unmetered and unauthenticated; the working
+   limiter in `rate-limit-logic.ts` has no call sites. Wire a limiter that
+   survives Workers isolates, gate generation on a restorable session, pin one
+   model ID. See `docs/generation.md`.
+6. **Rework elicitation.** Swipes for breadth, forced-choice pairs for
    precision, the 9-point hedonic for post-drink feedback. Never swipe on
    drink *names* — that measures familiarity, not taste.
-6. **The Overlap.** Two people in the same bar, conversation starters from
+7. **The Overlap.** Two people in the same bar, conversation starters from
    what their maps share. Surface only the intersection; lead with
    disagreement about drinks.
