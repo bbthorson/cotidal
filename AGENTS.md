@@ -80,6 +80,11 @@ reason the register exists rather than being a set of encyclopedia entries.
 Prose is written from primary sources rather than adapted from any one
 reference, so no entry inherits a share-alike licence.
 
+`/drinks` groups entries under the four regions, and each section carries its
+quadrant `id` as an anchor because the landing page links into them
+(`/drinks#ember`). Those are two hand-written lists of the same ids;
+`tests/landing-static.spec.ts` asserts they still agree.
+
 **To add an entry**, create `src/content/drinks/<slug>.md`. The filename is the
 URL. `name` in the frontmatter must match a `name` in `drinkDatabase` exactly —
 including the parenthetical, as in `Daiquiri (Classic)`. `family` is a closed
@@ -136,9 +141,19 @@ interface; see `docs/brand.md`.
    limiter in `rate-limit-logic.ts` has no call sites. Wire a limiter that
    survives Workers isolates, gate generation on a restorable session, pin one
    model ID. See `docs/generation.md`.
-6. **Rework elicitation.** Swipes for breadth, forced-choice pairs for
+6. **Region pages** (`/regions/<id>`). The landing page's four regions now
+   link into `/drinks`; a real page per region is the reading path proper.
+   Content-led — same sourcing discipline as `src/content/drinks/`.
+7. **The return visit.** Logging a pour and watching the point move is the
+   only recurring behaviour in the product and has no front door.
+8. **Venue claim and menu publishing.** Handle-as-domain makes claiming and
+   publishing the same act; the lexicons exist and nothing renders them.
+9. **Rework elicitation.** Swipes for breadth, forced-choice pairs for
    precision, the 9-point hedonic for post-drink feedback. Never swipe on
    drink *names* — that measures familiarity, not taste.
-7. **The Overlap.** Two people in the same bar, conversation starters from
-   what their maps share. Surface only the intersection; lead with
-   disagreement about drinks.
+10. **The Overlap.** Two people in the same bar, conversation starters from
+    what their maps share. Discovery comes from the user's existing follow
+    graph, not a second one built here. Surface only the intersection; lead
+    with disagreement about drinks.
+
+Sequencing and the reasoning behind it: `docs/routes.md`.

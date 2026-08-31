@@ -104,6 +104,8 @@ This does not affect CI or a normal terminal, where no agent is detected.
   styling out of components
 - **[docs/generation.md](docs/generation.md)** — what the model may write, who
   sees it, and why the bill is set by the rate limiter rather than the model
+- **[docs/routes.md](docs/routes.md)** — what each surface promises, which
+  routes work for a stranger, and the order to build them in
 - **[AGENTS.md](AGENTS.md)** — architecture notes for contributors
 
 ## License
