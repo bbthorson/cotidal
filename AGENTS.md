@@ -31,6 +31,7 @@ something that drifts from the first. Three had already happened:
 | Records | `src/lib/atproto/lexicons/*.json` | `npm run lexicons` |
 | Styling | `globals.css` tokens + `tailwind.config.ts` | *(convention — lint pending)* |
 | Marketing copy | `src/lib/copy.ts` | *(convention)* |
+| Drink prose | `src/content/drinks/*.md` | `tests/drink-content.spec.ts` |
 
 Found in the wild, each silent:
 
@@ -42,6 +43,10 @@ Found in the wild, each silent:
 - `font-body` / `font-serif` / `font-condensed` pointed at `--font-*`
   variables that did not exist, so all three Google Fonts loaded and none
   applied.
+
+- Six of the `recommendedDrinks` in `archetypes.ts` named drinks that were not
+  in `drinkDatabase` at all, so the `agave-smoke` archetype recommended four
+  drinks the app could neither map nor score.
 
 Add a field to a lexicon before using it, a token before styling with it, and
 a string to `copy.ts` before rendering it.
@@ -61,6 +66,18 @@ the user.
 question that reduces the most uncertainty. **Only the first three questions
 are fixed** — never hard-code a path through the quiz in a test.
 `useBartenderChat` is entirely local canned copy, so the flow runs offline.
+
+### Drink prose — `src/content/drinks/`, `src/content.config.ts`
+An Astro content collection behind `/drinks`, prerendered and script-free.
+
+Two rules make it safe to grow. **Frontmatter carries no coordinates** — an
+entry joins to `drinkDatabase` by `name`, so the map stays the one place a
+drink's position is defined. And **`documented` may not be empty**: the format
+separates what is attested from what is merely repeated, which is the whole
+reason the register exists rather than being a set of encyclopedia entries.
+
+Prose is written from primary sources rather than adapted from any one
+reference, so no entry inherits a share-alike licence.
 
 ### AT Protocol — `src/lib/atproto/`
 - `lexicons/*.json` — schemas (authoritative)

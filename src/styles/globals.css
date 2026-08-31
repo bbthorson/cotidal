@@ -118,6 +118,19 @@
     min-width: 1rem;
   }
 
+  /* Body copy for a drink entry. Markdown output carries no classes of its
+     own, so the typography is defined once here rather than re-typed as
+     arbitrary values in every page that renders a collection entry. */
+  .prose-entry {
+    @apply font-serif text-sm leading-relaxed text-muted-foreground;
+  }
+  .prose-entry > p + p {
+    margin-top: 1.25rem;
+  }
+  .prose-entry em {
+    @apply not-italic text-foreground/80;
+  }
+
   /* Thin editorial horizontal rule */
   .editorial-rule {
     height: 1px;

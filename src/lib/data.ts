@@ -43,6 +43,10 @@ export const drinkDatabase: Drink[] = [
     { name: "Caipirinha", type: "Cocktail", x: 6, y: 6, hasSmoke: false, hasAnise: false, isBitter: false, tags: ['social', 'bold', 'messy'] },
     { name: "German Riesling (Kabinett)", type: "Wine", x: 8, y: 7, hasSmoke: false, hasAnise: false, isBitter: false, tags: ['classic', 'social', 'crushable'] },
     { name: "Moscato d'Asti", type: "Wine", x: 9, y: 9, hasSmoke: false, hasAnise: false, isBitter: false, tags: ['social', 'comfort', 'sweet'] },
+    { name: "Mai Tai", type: "Cocktail", x: 2, y: 6, hasSmoke: false, hasAnise: false, isBitter: false, tags: ['classic', 'social', 'complex', 'visual'] },
+    { name: "Naked & Famous", type: "Cocktail", x: 3, y: 1, hasSmoke: true, hasAnise: false, isBitter: true, tags: ['complex', 'bold', 'visual'] },
+    { name: "Division Bell", type: "Cocktail", x: 3, y: 2, hasSmoke: true, hasAnise: false, isBitter: true, tags: ['complex', 'visual', 'bold'] },
+    { name: "Mezcal Paloma", type: "Cocktail", x: 6, y: 2, hasSmoke: true, hasAnise: false, isBitter: true, tags: ['social', 'crushable', 'complex'] },
 
     // --- QUADRANT 2: DECADENT & DEEP (Rich & Sweet) [x < 0, y > 0] ---
     { name: "Espresso Martini", type: "Cocktail", x: -5, y: 6, hasSmoke: false, hasAnise: false, isBitter: true, tags: ['visual', 'social', 'bold', 'messy'] },
@@ -96,6 +100,7 @@ export const drinkDatabase: Drink[] = [
     { name: "Vieux Carré", type: "Cocktail", x: -9, y: -6, hasSmoke: false, hasAnise: false, isBitter: true, tags: ['complex', 'bold', 'prestige'] },
     { name: "Sazerac", type: "Cocktail", x: -7, y: -7, hasSmoke: false, hasAnise: true, isBitter: true, tags: ['classic', 'bold', 'complex'] },
     { name: "Penicillin", type: "Cocktail", x: -5, y: -4, hasSmoke: true, hasAnise: false, isBitter: false, tags: ['complex', 'bold', 'warm', 'spice'] },
+    { name: "Oaxaca Old Fashioned", type: "Cocktail", x: -6, y: -4, hasSmoke: true, hasAnise: false, isBitter: false, tags: ['complex', 'bold', 'classic', 'prestige'] },
     { name: "Rob Roy", type: "Cocktail", x: -8, y: -6, hasSmoke: false, hasAnise: false, isBitter: true, tags: ['classic', 'bold'] },
     { name: "Rusty Nail", type: "Cocktail", x: -9, y: -4, hasSmoke: false, hasAnise: false, isBitter: false, tags: ['bold', 'comfort', 'classic'] },
     { name: "Martinez", type: "Cocktail", x: -5, y: -5, hasSmoke: false, hasAnise: false, isBitter: true, tags: ['classic', 'complex', 'prestige'] },

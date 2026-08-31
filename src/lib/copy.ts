@@ -30,24 +30,31 @@ export const hero = {
  * The four quadrants of the palate map, named rather than explained.
  * Order matches reading order on the map: top-left, top-right, bottom-left,
  * bottom-right. Axis values are the sign of (x, y) in `src/lib/data.ts`.
+ *
+ * `id` is the stable handle code joins on — rename a quadrant here without
+ * breaking `src/lib/quadrant.ts`, which maps coordinates onto these.
  */
 export const quadrants = [
   {
+    id: 'ember',
     name: 'The Ember',
     axis: 'Rich · Savory',
     gloss: 'Bitter, aged, and unhurried. Drinks that argue back.',
   },
   {
+    id: 'salt-line',
     name: 'The Salt Line',
     axis: 'Crisp · Savory',
     gloss: 'Dry, mineral, and exact. Nothing hidden behind sugar.',
   },
   {
+    id: 'vault',
     name: 'The Vault',
     axis: 'Rich · Sweet',
     gloss: 'Dense and warm. The last drink of the night.',
   },
   {
+    id: 'orchard',
     name: 'The Orchard',
     axis: 'Crisp · Sweet',
     gloss: 'Bright, fast, and built for company.',
@@ -84,6 +91,27 @@ export const principles = [
       'The same coordinate works anywhere that speaks the protocol: another bar, another client, another app entirely.',
   },
 ] as const;
+
+/**
+ * The drinks register. The premise is the separation: cocktail origin stories
+ * are overwhelmingly unsourced retelling, and a product that claims to measure
+ * taste precisely should be the one that says which is which.
+ */
+export const drinks = {
+  eyebrow: 'The register',
+  title: 'What is actually known',
+  intro:
+    'Most of what gets said about a cocktail is repetition. Each entry separates what is on the record from what is only told, gives the build, and places the drink on the map.',
+  navLabel: 'The register',
+  backLabel: 'All drinks',
+  coordinateLabel: 'Coordinate',
+  buildLabel: 'The build',
+  documentedLabel: 'On the record',
+  claimedLabel: 'Claimed, not established',
+  sourcesLabel: 'Sources',
+  optionalLabel: 'optional',
+  emptyQuadrant: 'Nothing written up here yet.',
+} as const;
 
 export const footer = {
   note: 'Built on the AT Protocol.',

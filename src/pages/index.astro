@@ -3,7 +3,7 @@ import Base from '../layouts/Base.astro';
 import ConnectForm from '../components/marketing/ConnectForm.astro';
 import QuadrantGrid from '../components/marketing/QuadrantGrid.astro';
 import Principles from '../components/marketing/Principles.astro';
-import { site, hero, connect, footer } from '../lib/copy';
+import { site, hero, connect, footer, drinks } from '../lib/copy';
 
 /**
  * The landing page ships zero JavaScript. Everything interactive lives at
@@ -107,7 +107,8 @@ const error = errorParam ? (errorCodes[errorParam] ?? errorCodes.authorize_faile
     <footer
       class="mx-auto mt-16 w-full max-w-4xl border-t border-primary/5 pt-6 text-center font-mono text-3xs text-muted-foreground/40"
     >
-      {footer.note} · {footer.drinkResponsibly}
+      <a href="/drinks" class="transition-colors hover:text-muted-foreground">{drinks.navLabel}</a>
+      <span class="px-2">·</span>{footer.note} · {footer.drinkResponsibly}
     </footer>
   </div>
 </Base>

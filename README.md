@@ -49,6 +49,8 @@ than to people. The reasoning is in **[docs/data-model.md](docs/data-model.md)**
 - **`/`** — the landing page. Pure Astro, **zero client JavaScript**; sign-in
   is a plain form post that works without it.
 - **`/taste`** — the interactive app. The only route that mounts an island.
+- **`/drinks`** — the register: what is actually known about a drink, separated
+  from what is only repeated about it. Static, zero client JavaScript.
 
 Keep it that way: `client:only` on the whole app previously meant ~860 KB of
 JavaScript had to download and hydrate before anything painted at all,

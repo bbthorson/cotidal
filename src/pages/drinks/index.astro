@@ -1,0 +1,108 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import { site, drinks as copy, footer, quadrants } from '../../lib/copy';
+import { drinkDatabase } from '../../lib/data';
+import { quadrantIdFor } from '../../lib/quadrant';
+
+/**
+ * Static, like `/`. Nothing on this route is interactive, so nothing here
+ * mounts an island — see AGENTS.md on keeping the front door script-free.
+ */
+export const prerender = true;
+
+const entries = await getCollection('drinks');
+
+/**
+ * Coordinates come from `drinkDatabase`, never from frontmatter. An entry that
+ * does not join is a bug, and `tests/drink-content.spec.ts` fails on it — but
+ * a missing join must not take the whole page down at build time either.
+ */
+const placed = entries
+  .map((entry) => {
+    const drink = drinkDatabase.find((d) => d.name === entry.data.name);
+    return drink ? { entry, drink } : null;
+  })
+  .filter((v): v is NonNullable<typeof v> => v !== null);
+
+const grouped = quadrants.map((quadrant) => ({
+  quadrant,
+  items: placed
+    .filter(({ drink }) => quadrantIdFor(drink.x, drink.y) === quadrant.id)
+    .sort((a, b) => a.entry.data.title.localeCompare(b.entry.data.title)),
+}));
+---
+
+<Base title={`${copy.title} · ${site.name}`} description={copy.intro}>
+  <div class="bar-texture min-h-screen bg-background px-6 py-12 text-foreground md:py-20">
+    <header class="mx-auto mb-12 flex w-full max-w-4xl items-center justify-between border-b border-primary/10 pb-6">
+      <a href="/" class="flex items-center gap-3">
+        <span class="flex h-8 w-8 items-center justify-center rounded-full border border-primary/40 bg-card font-serif text-sm font-bold text-primary shadow-glow">
+          {site.mark}
+        </span>
+        <span class="font-serif text-sm uppercase tracking-wordmark text-muted-foreground">
+          {site.name}
+        </span>
+      </a>
+      <p class="font-mono text-3xs uppercase tracking-label text-primary/50">{copy.eyebrow}</p>
+    </header>
+
+    <div class="mx-auto w-full max-w-4xl">
+      <h1 class="font-serif text-4xl font-bold leading-display text-foreground md:text-5xl">
+        {copy.title}
+      </h1>
+      <p class="mt-6 max-w-xl font-serif text-base leading-relaxed text-muted-foreground">
+        {copy.intro}
+      </p>
+
+      <div class="mt-16 space-y-12">
+        {
+          grouped.map(({ quadrant, items }) => (
+            <section class="border-t border-primary/10 pt-7">
+              <div class="mb-5 space-y-1.5">
+                <span class="block font-mono text-3xs uppercase tracking-label text-primary/60">
+                  {quadrant.axis}
+                </span>
+                <h2 class="font-serif text-lg font-bold leading-none text-foreground">
+                  {quadrant.name}
+                </h2>
+                <p class="text-2xs leading-relaxed text-muted-foreground">{quadrant.gloss}</p>
+              </div>
+
+              {items.length === 0 ? (
+                <p class="text-2xs italic text-muted-foreground/50">{copy.emptyQuadrant}</p>
+              ) : (
+                <ul class="space-y-4">
+                  {items.map(({ entry, drink }) => (
+                    <li>
+                      <a
+                        href={`/drinks/${entry.id}`}
+                        class="group block rounded-md border border-primary/5 bg-card/10 p-4 transition-colors hover:border-primary/20"
+                      >
+                        <div class="flex items-baseline gap-3">
+                          <h3 class="font-serif text-base font-bold text-primary transition-colors group-hover:text-primary/80">
+                            {entry.data.title}
+                          </h3>
+                          <span class="ml-auto shrink-0 font-mono text-3xs uppercase tracking-label text-muted-foreground/50">
+                            {drink.x > 0 ? 'Crisp' : 'Rich'} · {drink.y > 0 ? 'Sweet' : 'Savory'}
+                          </span>
+                        </div>
+                        <p class="mt-1.5 font-serif text-xs leading-relaxed text-muted-foreground">
+                          {entry.data.summary}
+                        </p>
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+          ))
+        }
+      </div>
+
+      <footer class="mt-16 border-t border-primary/5 pt-6 text-center font-mono text-3xs text-muted-foreground/40">
+        {footer.note} · {footer.drinkResponsibly}
+      </footer>
+    </div>
+  </div>
+</Base>
