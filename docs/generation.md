@@ -118,19 +118,15 @@ This is the pattern the protocol's own example app uses: `getSession()` in
 with the cookie `httpOnly` and `secure` and doing no work beyond naming a DID.
 Ours now matches, `Secure` included.
 
-> **Known limitation.** Where statusphere backs both `stateStore` and
-> `sessionStore` with a database keyed by DID, `createSessionStore()` here
-> holds sessions in a module-scope `Map` — per-isolate on Workers, exactly as
-> the limiter's was. Restores therefore fail for genuinely signed-in members
-> whenever a request lands on a fresh isolate, and generation degrades to the
-> guest fallback when they do. This predates the gate and already breaks every
-> write action, but the gate is the first thing whose *quality* depends on it.
->
-> The fix is a KV- or D1-backed store implementing the same three methods
-> (`get`, `set`, `del`). The obstacle is not the store: Cloudflare bindings are
-> reachable only through the request context, while `getAtprotoClient()` is a
-> module singleton, so `env` has to be threaded through it and its callers in
-> `publish.ts`. It also needs a namespace created in Cloudflare.
+Where statusphere backs both stores with a database keyed by DID,
+`src/lib/atproto/store.ts` backs them with KV (`ATPROTO_SESSIONS`) and keeps a
+`Map` as the off-platform fallback. Both were module-scope `Map`s before, which
+is per-isolate on Workers exactly as the limiter's was — so `restore()` failed
+on a cold isolate, every signed-in action broke silently, and generation fell
+back to the guest copy for members who were properly signed in.
+
+Authorization state now expires after ten minutes. It previously never expired
+at all: every abandoned sign-in leaked a `Map` entry that nothing removed.
 
 [sp]: https://github.com/bluesky-social/statusphere-example-app
 
@@ -145,7 +141,7 @@ metered.
 `src/lib/rate-limit.ts` now runs two mechanisms:
 
 - **Cloudflare's rate limiting binding** (`GENERATION_RATE_LIMITER` in
-  `wrangler.toml`) in production. A module-scope `Map` is per-isolate on
+  `wrangler.toml`) in production, verified metering at its configured 20/60s. A module-scope `Map` is per-isolate on
   Workers — Cloudflare runs many, recycles them freely, and an attacker spreads
   across them for free. The in-memory logic is correct as logic and weak as a
   limiter; only durable state holds.
@@ -163,8 +159,29 @@ meter → call. **Malformed and unauthenticated requests cost nothing and consum
 no quota.**
 
 `tests/generation-gate.spec.ts` asserts the limiter refuses past its allowance,
-meters per key, prefers a bound limiter, and does not fail open when one
-throws.
+meters per key, and does not fail open when a binding throws.
+
+## Reaching a binding
+
+**Bindings come from `cloudflare:workers`, never from `locals`.** `src/lib/runtime.ts`
+is the only module that knows this, and the rule is worth stating because the
+wrong way fails loudly in production and silently everywhere else:
+
+```ts
+// Astro v6+: this THROWS. `?.` does not save you — the getter itself raises.
+locals.runtime.env.MY_BINDING
+//    Astro.locals.runtime.env has been removed in Astro v6.
+//    Use 'import { env } from "cloudflare:workers"' instead.
+```
+
+The import only resolves inside workerd, so `runtime.ts` loads it dynamically
+and answers `undefined` off-platform — which is what lets `astro dev` and the
+suite run with no bindings while production gets the real thing.
+
+This bit once already: the first version of the metered routes read
+`locals.runtime.env` and would have crashed on every member request. Nothing
+caught it, because the test suite's requests are all unauthenticated and return
+before they reach the limiter.
 
 ## Parked work
 

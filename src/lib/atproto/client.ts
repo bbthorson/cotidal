@@ -1,6 +1,5 @@
 import { NodeOAuthClient } from '@atproto/oauth-client-node';
-import { createSessionStore } from './session-store';
-import { createStateStore } from './state-store';
+import { createSessionStore, createStateStore } from './store';
 
 let client: NodeOAuthClient | null = null;
 
@@ -14,6 +13,10 @@ function getBaseUrl(): string {
   const port = process.env.PORT || '9002';
   return `http://127.0.0.1:${port}`;
 }
+/**
+ * The stores resolve their KV binding per call (`./store`), so the client is a
+ * plain singleton and nothing has to hand it a request context.
+ */
 export function getAtprotoClient(): NodeOAuthClient | null {
   if (!process.env.PUBLIC_ATPROTO_ENABLED && !process.env.ATPROTO_ENABLED && !process.env.NEXT_PUBLIC_ATPROTO_ENABLED) return null;
 

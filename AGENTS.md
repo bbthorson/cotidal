@@ -104,7 +104,13 @@ would attach a share-alike obligation to the entry.
 - `lexicons/*.json` — schemas (authoritative)
 - `records.ts` — Zod for `pour`, `menu`, `recipe`, `venue`, `maker`, `defs`
 - `lexicon.ts` — legacy `palate` and `drinkLog`, being migrated onto `pour`
-- `client.ts`, `session-store.ts`, `publish.ts` — OAuth and writes
+- `client.ts`, `store.ts`, `publish.ts` — OAuth and writes
+- `session.ts` — the `atproto_did` cookie is a *claim*; `restore()` is the
+  authorisation. Anything billed or destructive gates on `restoredDid()`.
+
+**Bindings come from `cloudflare:workers` via `src/lib/runtime.ts`, never from
+`locals.runtime.env`** — that getter throws in Astro v6+, so an optional chain
+does not protect you. It fails loudly in production and silently in dev.
 
 Records are signed by their authors and **never rewritten**. Reconciling an
 unclaimed reference to a later account is the app view's job.
@@ -139,10 +145,10 @@ interface; see `docs/brand.md`.
 4. **Menu capture.** Photograph a menu, get a recommendation, no account
    required — value before signup, and it builds the venue/menu corpus as a
    byproduct.
-5. **Durable session storage.** `createSessionStore()` keeps OAuth sessions in
-   a module-scope `Map` — per-isolate on Workers, so a restore fails whenever a
-   request lands on a fresh isolate. Every write action already suffers this;
-   members-only generation now depends on it too. See `docs/generation.md`.
+5. **Create the `ATPROTO_SESSIONS` KV namespace** and put its id in
+   `wrangler.toml`, which currently holds a placeholder. Until then the OAuth
+   stores fall back to a per-isolate `Map` in production and every signed-in
+   action breaks on a cold isolate.
 6. **Region pages** (`/regions/<id>`). The landing page's four regions now
    link into `/drinks`; a real page per region is the reading path proper.
    Content-led — same sourcing discipline as `src/content/drinks/`.

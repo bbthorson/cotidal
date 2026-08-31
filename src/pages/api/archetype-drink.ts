@@ -44,7 +44,7 @@ const InputSchema = z.object({
 const respond = (object: unknown, outcome: GenerationOutcome) =>
   new Response(JSON.stringify(object), { status: 200, headers: generationHeaders(outcome) });
 
-export const POST: APIRoute = async ({ request, locals }) => {
+export const POST: APIRoute = async ({ request }) => {
   let body: unknown;
   try {
     body = await request.json();
@@ -68,7 +68,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
   const did = await restoredDid(request);
   if (!did) return respond(ARCHETYPE_FALLBACK, 'unauthenticated');
 
-  if (!(await checkRateLimit(did, locals))) return respond(ARCHETYPE_FALLBACK, 'rate-limited');
+  if (!(await checkRateLimit(did))) return respond(ARCHETYPE_FALLBACK, 'rate-limited');
 
   const system = `
     You are a knowledgeable bartender analyzing a drink's flavor profile.

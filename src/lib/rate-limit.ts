@@ -1,4 +1,5 @@
 import { isRateLimited, defaultRateLimitConfig, type RateLimitConfig } from './rate-limit-logic';
+import { rateLimiterBinding } from './runtime';
 
 export { isRateLimited };
 
@@ -25,20 +26,6 @@ export { isRateLimited };
 
 export const GENERATION_LIMITER = 'GENERATION_RATE_LIMITER';
 
-/** The shape Cloudflare's `ratelimit` binding exposes. */
-interface RateLimiterBinding {
-  limit(options: { key: string }): Promise<{ success: boolean }>;
-}
-
-function bindingFrom(locals: unknown): RateLimiterBinding | null {
-  const env = (locals as { runtime?: { env?: Record<string, unknown> } } | undefined)?.runtime?.env;
-  const binding = env?.[GENERATION_LIMITER];
-  if (binding && typeof (binding as RateLimiterBinding).limit === 'function') {
-    return binding as RateLimiterBinding;
-  }
-  return null;
-}
-
 /**
  * `true` when the caller may proceed.
  *
@@ -48,10 +35,9 @@ function bindingFrom(locals: unknown): RateLimiterBinding | null {
  */
 export async function checkRateLimit(
   key: string,
-  locals?: unknown,
   config: RateLimitConfig = defaultRateLimitConfig
 ): Promise<boolean> {
-  const binding = bindingFrom(locals);
+  const binding = await rateLimiterBinding(GENERATION_LIMITER);
 
   if (binding) {
     try {

@@ -37,7 +37,7 @@ const InputSchema = z.object({
 const respond = (text: string, outcome: GenerationOutcome) =>
   new Response(JSON.stringify({ text }), { status: 200, headers: generationHeaders(outcome) });
 
-export const POST: APIRoute = async ({ request, locals }) => {
+export const POST: APIRoute = async ({ request }) => {
   let body: unknown;
   try {
     body = await request.json();
@@ -64,7 +64,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
   const did = await restoredDid(request);
   if (!did) return respond(fallback, 'unauthenticated');
 
-  if (!(await checkRateLimit(did, locals))) return respond(fallback, 'rate-limited');
+  if (!(await checkRateLimit(did))) return respond(fallback, 'rate-limited');
 
   // Only drinks we know about reach the model: an unrecognised name is
   // unvalidated text, and there is nothing to explain about it anyway.

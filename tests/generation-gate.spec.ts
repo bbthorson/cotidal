@@ -110,42 +110,19 @@ test.describe('The limiter', () => {
     expect(await checkRateLimit(quiet)).toBe(true);
   });
 
-  test('prefers the Cloudflare binding when one is bound', async () => {
-    const calls: string[] = [];
+  test('is reached through the binding resolver, not Astro locals', async () => {
+    // `locals.runtime.env` THROWS in Astro v6+ rather than returning
+    // undefined, so a `?.` chain does not save you — an earlier version of
+    // this limiter would have crashed on every metered request in production.
+    // Bindings come from `cloudflare:workers` via src/lib/runtime.ts instead.
     const locals = {
-      runtime: {
-        env: {
-          GENERATION_RATE_LIMITER: {
-            async limit({ key }: { key: string }) {
-              calls.push(key);
-              return { success: false };
-            },
-          },
-        },
+      get runtime(): never {
+        throw new Error('Astro.locals.runtime.env has been removed in Astro v6.');
       },
     };
 
-    expect(await checkRateLimit('did:plc:example', locals)).toBe(false);
-    expect(calls).toEqual(['did:plc:example']);
-  });
-
-  test('falls back to the in-memory limiter when the binding throws', async () => {
-    const locals = {
-      runtime: {
-        env: {
-          GENERATION_RATE_LIMITER: {
-            async limit() {
-              throw new Error('binding unavailable');
-            },
-          },
-        },
-      },
-    };
-
-    // Not fail-open: the in-memory limiter still answers, and still refuses.
-    const key = `throwing-${Date.now()}-${Math.random()}`;
-    expect(await checkRateLimit(key, locals)).toBe(true);
-    for (let i = 0; i < defaultRateLimitConfig.max; i++) await checkRateLimit(key, locals);
-    expect(await checkRateLimit(key, locals)).toBe(false);
+    const key = `no-locals-${Date.now()}-${Math.random()}`;
+    expect(await checkRateLimit(key)).toBe(true);
+    expect(() => locals.runtime, 'the throwing getter is the thing we avoid').toThrow();
   });
 });
