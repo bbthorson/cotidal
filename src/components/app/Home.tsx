@@ -1,26 +1,15 @@
-import { useMemo, useEffect, useRef } from 'react';
-import { getUserProfile } from '@/lib/profile-service';
+import { useMemo, useRef } from 'react';
 import { ChatLayout } from '@/components/app/ChatLayout';
 import { ChatHeader } from '@/components/app/ChatHeader';
 import { ChatThread } from '@/components/app/ChatThread';
 import { ChatInput } from '@/components/app/ChatInput';
 import { useConversationThread } from '@/hooks/useConversationThread';
-import { MarketingSite } from '@/components/app/MarketingSite';
 import { ResultsScreen } from '@/components/app/ResultsScreen';
 import { AtprotoProvider } from '@/components/app/AtprotoProvider';
 
 function HomeContent() {
   const thread = useConversationThread();
   const threadRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    getUserProfile().then((localProfile) => {
-      if (localProfile && thread.screen === 'marketing') {
-        // Local profile loaded
-      }
-    });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   const finalUser = useMemo(() => {
     if (thread.screen === 'results') {
@@ -32,20 +21,6 @@ function HomeContent() {
     }
     return thread.user;
   }, [thread.user, thread.screen]);
-
-  if (thread.screen === 'marketing') {
-    return (
-      <MarketingSite
-        onStartQuiz={() => {
-          thread.setScreen('chat');
-        }}
-        onExploreAsGuest={() => {
-          thread.setScreen('results');
-        }}
-        hasLocalProfile={!!thread.vibeTags}
-      />
-    );
-  }
 
   if (thread.screen === 'results') {
     return (

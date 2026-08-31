@@ -14,7 +14,7 @@ export const GET: APIRoute = async ({ request, redirect }) => {
     const { session } = await client.callback(params);
     const did = session.did;
 
-    const response = redirect('/?connected=true');
+    const response = redirect('/taste?connected=true');
 
     response.headers.append(
       'Set-Cookie',

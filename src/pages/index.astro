@@ -1,29 +1,113 @@
 ---
-import '../styles/globals.css';
-import Home from '../components/app/Home';
+import Base from '../layouts/Base.astro';
+import ConnectForm from '../components/marketing/ConnectForm.astro';
+import QuadrantGrid from '../components/marketing/QuadrantGrid.astro';
+import Principles from '../components/marketing/Principles.astro';
+import { site, hero, connect, footer } from '../lib/copy';
 
-const title = 'The Crystal Coupe';
-const description = 'Find your perfect drink.';
+/**
+ * The landing page ships zero JavaScript. Everything interactive lives at
+ * /taste, which is where the React island is mounted. Sign-in is a plain
+ * form post (see src/pages/api/auth/atproto/login.ts).
+ */
+
+const atprotoEnabled = !!(
+  import.meta.env.PUBLIC_ATPROTO_ENABLED ?? import.meta.env.ATPROTO_ENABLED
+);
+
+const errorCodes: Record<string, string> = {
+  not_configured: 'Sign-in is not configured right now.',
+  invalid_handle: 'That handle does not look right. Try again.',
+  invalid_request: 'Something went wrong with that request.',
+  authorize_failed: 'We could not reach your provider. Try again.',
+  atproto_not_configured: 'Sign-in is not configured right now.',
+  atproto_callback_failed: 'Sign-in did not complete. Try again.',
+};
+
+const errorParam = Astro.url.searchParams.get('error');
+const error = errorParam ? (errorCodes[errorParam] ?? errorCodes.authorize_failed) : null;
 ---
 
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>{title}</title>
-    <meta name="description" content={description} />
-    <link rel="icon" type="image/svg+xml" href="/icon.svg" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600&family=PT+Sans:wght@400;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
-  </head>
-  <body class="font-body antialiased bg-background text-foreground">
-    <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-6 focus:py-3 focus:bg-background focus:text-foreground focus:border focus:border-primary/20 focus:shadow-xl focus:rounded-md font-bold transition-all">
-      Skip to content
-    </a>
-    <main id="main-content">
-      <Home client:only="react" />
-    </main>
-  </body>
-</html>
+<Base>
+  <div
+    class="bar-texture flex min-h-screen flex-col justify-between overflow-y-auto bg-background px-6 py-12 text-foreground md:py-20"
+  >
+    <!-- Header -->
+    <header
+      class="mx-auto mb-12 flex w-full max-w-4xl items-center justify-between border-b border-primary/10 pb-6"
+    >
+      <div class="flex items-center gap-3">
+        <span
+          class="flex h-8 w-8 items-center justify-center rounded-full border border-primary/40 bg-card font-serif text-sm font-bold text-primary shadow-glow"
+        >
+          {site.mark}
+        </span>
+        <span class="font-serif text-sm uppercase tracking-wordmark text-muted-foreground">
+          {site.name}
+        </span>
+      </div>
+      <p class="font-mono text-3xs uppercase tracking-label text-primary/50">
+        {hero.eyebrow}
+      </p>
+    </header>
+
+    <!-- Hero -->
+    <div class="mx-auto mb-16 grid w-full max-w-4xl flex-1 grid-cols-1 items-center gap-12 md:grid-cols-12">
+      <div class="space-y-6 md:col-span-7">
+        <h1 class="font-serif text-4xl font-bold leading-display text-foreground md:text-5xl lg:text-6xl">
+          {hero.headline}<br /><span class="text-primary">{hero.headlineAccent}</span>
+        </h1>
+        <p class="max-w-lg font-serif text-base leading-relaxed text-muted-foreground md:text-lg">
+          {hero.body}
+        </p>
+        <QuadrantGrid />
+      </div>
+
+      <!-- Actions -->
+      <div class="w-full md:col-span-5">
+        <div class="glass-dark rounded-lg border-primary/10 p-6 shadow-bar">
+          <div class="space-y-6">
+            <a
+              href="/taste"
+              class="inline-flex w-full items-center justify-center rounded-md bg-primary px-4 py-3.5 text-xs font-bold uppercase tracking-widest text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+            >
+              {hero.primaryCta}
+            </a>
+
+            <div class="flex items-center py-1">
+              <span class="editorial-rule flex-grow"></span>
+              <span class="mx-4 flex-shrink font-mono text-3xs uppercase tracking-widest text-muted-foreground">
+                {connect.divider}
+              </span>
+              <span class="editorial-rule flex-grow"></span>
+            </div>
+
+            <div class="space-y-2">
+              <h2 class="font-serif text-lg font-bold text-primary">{connect.title}</h2>
+              <p class="text-xs leading-relaxed text-muted-foreground">{connect.body}</p>
+            </div>
+
+            <ConnectForm enabled={atprotoEnabled} error={error} />
+
+            <a
+              href="/taste?browse=1"
+              class="block w-full py-1 text-center font-mono text-3xs text-muted-foreground transition-colors hover:text-foreground"
+            >
+              {hero.secondaryCta}
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mx-auto w-full max-w-4xl">
+      <Principles />
+    </div>
+
+    <footer
+      class="mx-auto mt-16 w-full max-w-4xl border-t border-primary/5 pt-6 text-center font-mono text-3xs text-muted-foreground/40"
+    >
+      {footer.note} · {footer.drinkResponsibly}
+    </footer>
+  </div>
+</Base>

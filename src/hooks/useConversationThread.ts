@@ -7,7 +7,7 @@ import { useBartenderChat } from './useBartenderChat';
 import { useAtprotoContext } from '@/components/app/AtprotoProvider';
 import { getConnectedPalate, publishPalate } from '@/lib/api-client';
 
-type Screen = 'chat' | 'results' | 'marketing';
+type Screen = 'chat' | 'results';
 
 // Ensure async responses take at least minMs so typing indicator feels natural
 async function withMinDelay<T>(promise: Promise<T>, minMs = 500): Promise<T> {
@@ -41,9 +41,20 @@ function getInitialProfile(): UserProfile | null {
   }
 }
 
+/**
+ * `/taste?browse=1` is the "look at the map first" entry point from the
+ * landing page: show the results screen without requiring the quiz.
+ */
+function wantsBrowse(): boolean {
+  if (typeof window === 'undefined') return false;
+  return new URLSearchParams(window.location.search).get('browse') === '1';
+}
+
 export function useConversationThread() {
   const initialProfile = getInitialProfile();
-  const [screen, setScreen] = useState<Screen>(initialProfile ? 'results' : 'marketing');
+  const [screen, setScreen] = useState<Screen>(
+    initialProfile || wantsBrowse() ? 'results' : 'chat'
+  );
   const [messages, setMessages] = useState<ThreadMessage[]>([
     createMsg('bartender', WELCOME_MSG),
   ]);

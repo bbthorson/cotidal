@@ -1,0 +1,36 @@
+---
+import { principles } from '../../lib/copy';
+
+/* Inline SVGs rather than lucide-react: these are decorative and must not
+   pull a React island onto a page that otherwise ships no JavaScript. */
+const paths: Record<string, string> = {
+  lock: 'M7 11V7a5 5 0 0 1 10 0v4M5 11h14v10H5z',
+  book: 'M4 19.5A2.5 2.5 0 0 1 6.5 17H20M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z',
+  compass: 'M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zM16.2 7.8l-2.9 6.4-6.4 2.9 2.9-6.4 6.4-2.9z',
+};
+---
+
+<ul class="grid grid-cols-1 gap-6 border-t border-primary/10 pt-12 md:grid-cols-3">
+  {
+    principles.map((p) => (
+      <li class="space-y-3 rounded-lg border border-primary/5 bg-card/10 p-4">
+        <span class="flex h-8 w-8 items-center justify-center rounded border border-primary/20 bg-primary/5 text-primary">
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="h-4 w-4"
+          >
+            <path d={paths[p.icon]} />
+          </svg>
+        </span>
+        <h3 class="text-sm font-bold uppercase tracking-wider text-foreground">{p.title}</h3>
+        <p class="font-serif text-xs leading-relaxed text-muted-foreground">{p.body}</p>
+      </li>
+    ))
+  }
+</ul>

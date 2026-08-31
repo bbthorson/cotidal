@@ -1,0 +1,110 @@
+{
+  "lexicon": 1,
+  "id": "app.crystalcoupe.defs",
+  "defs": {
+    "entityRef": {
+      "type": "object",
+      "description": "A reference to something that may not have an account yet. `name` is always written so a record is complete on its own; `uri`/`did` appear only once the thing has been claimed. Reconciling an unclaimed reference to a later account is the app view's job — records are signed by their authors and are never rewritten. This is the hybrid of the authoritative and unauthoritative reference patterns.",
+      "required": ["name"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Human-readable name, exactly as the author knew it.",
+          "maxLength": 200,
+          "maxGraphemes": 100
+        },
+        "uri": {
+          "type": "string",
+          "format": "at-uri",
+          "description": "Record this refers to, once one exists."
+        },
+        "cid": {
+          "type": "string",
+          "format": "cid",
+          "description": "Version of that record, pinning what was referenced."
+        },
+        "did": {
+          "type": "string",
+          "format": "did",
+          "description": "Account that owns the referenced thing, once claimed."
+        },
+        "domain": {
+          "type": "string",
+          "description": "Domain the entity is known by (a bar's website). The strongest reconciliation key available: a business that proves its domain as an atproto handle is that business.",
+          "maxLength": 253
+        }
+      }
+    },
+    "venueRef": {
+      "type": "object",
+      "description": "Where something was drunk. Location encodings come from community.lexicon.location.* so that any app speaking that vocabulary agrees about which place is meant, without anyone owning a registry of places.",
+      "required": ["entity"],
+      "properties": {
+        "entity": { "type": "ref", "ref": "#entityRef" },
+        "address": {
+          "type": "union",
+          "refs": [
+            "community.lexicon.location.address",
+            "community.lexicon.location.geo",
+            "community.lexicon.location.fsq",
+            "community.lexicon.location.hthree"
+          ],
+          "description": "Preferred: community.lexicon.location.fsq, whose Foursquare Open Places id lets two apps agree on a venue with no coordination."
+        }
+      }
+    },
+    "drinkRef": {
+      "type": "object",
+      "description": "What was drunk. A drink category (a Negroni) is folklore and is deliberately NOT ownable: it is a slug in an open catalog. A *recipe* — a specific authored formulation — is ownable, and is referenced through `recipe`.",
+      "required": ["name"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "As printed or as ordered, including a house name.",
+          "maxLength": 200,
+          "maxGraphemes": 100
+        },
+        "slug": {
+          "type": "string",
+          "description": "Canonical catalog key for the folk category, e.g. `negroni`. Unowned by design.",
+          "maxLength": 64
+        },
+        "recipe": {
+          "type": "ref",
+          "ref": "#entityRef",
+          "description": "The authored spec this pour followed, if known."
+        }
+      }
+    },
+    "credit": {
+      "type": "object",
+      "description": "Attribution for a person involved in a drink. Deliberately carries no score: this is a byline, not a rating. Ratings attach to recipes (works), never to people. See docs/data-model.md.",
+      "required": ["entity", "role"],
+      "properties": {
+        "entity": { "type": "ref", "ref": "#entityRef" },
+        "role": {
+          "type": "string",
+          "knownValues": ["maker", "author", "adapter"],
+          "description": "maker: poured this drink. author: designed the recipe. adapter: reworked someone else's."
+        }
+      }
+    },
+    "price": {
+      "type": "object",
+      "required": ["amount", "currency"],
+      "properties": {
+        "amount": {
+          "type": "integer",
+          "description": "Minor units (cents), avoiding float rounding.",
+          "minimum": 0
+        },
+        "currency": {
+          "type": "string",
+          "description": "ISO 4217 code, e.g. USD.",
+          "minLength": 3,
+          "maxLength": 3
+        }
+      }
+    }
+  }
+}

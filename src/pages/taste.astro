@@ -1,0 +1,17 @@
+---
+import Base from '../layouts/Base.astro';
+import Home from '../components/app/Home';
+import { site } from '../lib/copy';
+
+/**
+ * The interactive half of the app. This is the only route that mounts a
+ * React island — the landing page at / ships no JavaScript at all.
+ *
+ * `client:load` (not `client:only`) so the shell server-renders and the
+ * page has painted content before hydration finishes.
+ */
+---
+
+<Base title={`${site.name} — Your map`}>
+  <Home client:load />
+</Base>

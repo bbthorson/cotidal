@@ -41,12 +41,14 @@ export function QuickReplyChips({ options, onSelect, disabled }: QuickReplyChips
         exit={{ opacity: 0, y: -4 }}
         transition={{ duration: 0.3, ease: 'easeOut' }}
         className="flex flex-wrap gap-2 pt-2"
+        data-testid="quick-replies"
       >
         {options.map((option, index) => (
           <button
             key={index}
             onClick={() => onSelect(option, index)}
             disabled={disabled}
+            data-testid="quick-reply"
             className="
               px-4 py-2 text-sm rounded-full transition-all duration-200 outline-none
               border border-primary/20 text-foreground/70

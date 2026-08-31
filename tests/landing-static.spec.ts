@@ -1,0 +1,71 @@
+import { test, expect } from '@playwright/test';
+
+/**
+ * The landing page is the app's front door and must stay free of client
+ * JavaScript: it previously mounted the whole React app with `client:only`,
+ * so nothing painted until ~860 KB of JS had downloaded and hydrated.
+ */
+
+/**
+ * `astro dev` injects its own tooling (the Vite HMR client, prebundled deps,
+ * the dev toolbar) that never reaches production, and serves CSS as a module.
+ * Anything the app itself ships is bundled under /_astro/, so filtering these
+ * leaves exactly the scripts we care about in both dev and preview.
+ */
+const isDevServerScript = (url: string) =>
+  url.includes('/@vite/') ||
+  url.includes('/@id/') ||
+  url.includes('/dev-toolbar/') ||
+  url.includes('/node_modules/') ||
+  url.endsWith('.css');
+
+test('Landing: ships no client JavaScript', async ({ page }) => {
+  const scripts: string[] = [];
+  page.on('response', (res) => {
+    if (res.request().resourceType() !== 'script') return;
+    if (isDevServerScript(res.url())) return;
+    scripts.push(res.url());
+  });
+
+  await page.goto('/', { waitUntil: 'networkidle' });
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+
+  expect(scripts, `unexpected scripts: ${scripts.join(', ')}`).toHaveLength(0);
+  // No hydration directive anywhere on the page.
+  expect(await page.locator('astro-island').count()).toBe(0);
+});
+
+test('Landing: hero and quadrants are server-rendered', async ({ page }) => {
+  // Reading the raw HTML (not the DOM) proves the content arrives from the
+  // server rather than being produced by hydration.
+  const response = await page.request.get('/');
+  const html = await response.text();
+
+  expect(html).toContain('Every palate has');
+  for (const quadrant of ['The Ember', 'The Salt Line', 'The Vault', 'The Orchard']) {
+    expect(html).toContain(quadrant);
+  }
+  expect(html).not.toMatch(/triangulat/i);
+});
+
+test('Landing: sign-in works without JavaScript', async ({ browser }) => {
+  const context = await browser.newContext({ javaScriptEnabled: false });
+  const page = await context.newPage();
+  await page.goto('/');
+
+  // A real <form> post, not a fetch() handler, so the flow degrades cleanly.
+  const form = page.locator('form[action="/api/auth/atproto/login"]');
+  const disabled = page.getByText('Sign-in is not enabled in this environment.');
+  await expect(form.or(disabled).first()).toBeVisible();
+
+  await expect(page.getByRole('link', { name: /find your coordinate/i })).toHaveAttribute(
+    'href',
+    '/taste'
+  );
+  await context.close();
+});
+
+test('Landing: surfaces sign-in errors from the callback', async ({ page }) => {
+  await page.goto('/?error=atproto_callback_failed');
+  await expect(page.getByRole('alert')).toContainText('Sign-in did not complete');
+});

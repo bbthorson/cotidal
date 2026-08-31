@@ -1,0 +1,55 @@
+---
+import { connect } from '../../lib/copy';
+
+interface Props {
+  enabled: boolean;
+  error?: string | null;
+}
+
+const { enabled, error } = Astro.props;
+---
+
+<div class="space-y-3">
+  {
+    /* Rendered outside the enabled/disabled branches: a callback failure can
+       redirect here with an error even when sign-in is switched off. */
+    error && (
+      <p
+        role="alert"
+        class="rounded-md border border-destructive/20 bg-destructive/5 px-3 py-2 text-center text-2xs text-destructive"
+      >
+        {error}
+      </p>
+    )
+  }
+
+  {
+    enabled ? (
+      <form method="POST" action="/api/auth/atproto/login" class="space-y-3">
+        <label for="handle" class="sr-only">
+          {connect.submit}
+        </label>
+        <input
+          id="handle"
+          name="handle"
+          type="text"
+          required
+          autocomplete="username"
+          spellcheck="false"
+          placeholder={connect.placeholder}
+          class="w-full rounded-lg border border-primary/20 bg-background/50 px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/45 transition-all focus:outline-none focus:ring-1 focus:ring-primary/40"
+        />
+        <button
+          type="submit"
+          class="inline-flex w-full items-center justify-center rounded-md bg-primary px-4 py-3 text-xs font-bold uppercase tracking-widest text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+        >
+          {connect.submit}
+        </button>
+      </form>
+    ) : (
+      <div class="rounded-md border border-border bg-muted/20 p-3 text-center">
+        <p class="text-2xs text-muted-foreground">{connect.disabled}</p>
+      </div>
+    )
+  }
+</div>

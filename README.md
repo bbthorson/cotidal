@@ -1,71 +1,87 @@
 # The Crystal Coupe
 
-The Crystal Coupe is a "Palate Companion" application designed to evolve with the user. Unlike a traditional one-and-done quiz, it acts as a persistent utility for understanding and exploring one's own taste preferences across different contexts.
+Every palate has a coordinate. The Crystal Coupe finds yours, then tells you
+what to order.
 
-## Core Concepts
+## What it does
 
-### 1. Triangulation (Calibration Phase)
-Instead of a simple linear quiz, we use a 3-step triangulation process to pinpoint the user's "Palate Coordinate":
-1.  **Calibration (Biological):** Assesses sugar/bitter sensitivity and acid tolerance.
-2.  **Architecture (Structural):** Determines preference for texture (fizzy/still), temperature, and vessel.
-3.  **Context (Environmental):** Applies hard filters (Smoke, Anise) and pacing preferences.
+Two axes — **rich to crisp**, **savory to sweet** — locate your taste as a
+point on a map. What surrounds that point is what you should be drinking. Log
+what you actually drink and the point moves.
 
-### 2. The Palate Map
-At the heart of the experience is a 2D Matrix:
-- **X-Axis:** Rich (Left) to Crisp (Right)
-- **Y-Axis:** Sweet (Bottom) to Savory (Top)
+The profile is written to **your own** AT Protocol repository, not ours.
 
-Users are plotted as a "Pulsing Dot" on this map.
+## Concepts
 
-### 3. Context Awareness
-Your taste doesn't change, but your situation does. The app features a **Context Switcher** that adapts recommendations without moving your palate profile:
-- **My Usual:** The baseline recommendations based on pure flavor affinity.
-- **Business:** Filters for "Safe", "Prestige", and "Classic" drinks.
-- **Party:** Prioritizes "Social" and "Crushable" drinks.
-- **Holiday:** Highlights "Warm", "Comfort", and "Spiced" notes.
+### The coordinate
 
-### 4. AI Sommelier
-Integrated with **Vercel AI SDK (`@ai-sdk/google`)**, the app provides witty, context-aware explanations for why a specific drink matches the user's palate and the current vibe.
+A short adaptive conversation places you on the map. Only the first three
+questions are fixed; after that the selector picks whichever question reduces
+the most uncertainty (`src/lib/question-selector.ts`, `src/lib/belief-state.ts`).
 
-## Tech Stack
+The four quadrants are named in `docs/brand.md`.
 
-- **Framework:** [Astro 7](https://astro.build/) (Server / Hybrid)
-- **Deployment:** [Cloudflare Pages](https://pages.cloudflare.com/) (`@astrojs/cloudflare`)
-- **Language:** TypeScript
-- **Styling:** [Tailwind CSS](https://tailwindcss.com/)
-- **UI Components:** [React 19](https://react.dev/), [Radix UI](https://www.radix-ui.com/) & [Lucide React](https://lucide.dev/)
-- **Data Enrichment:** [TheCocktailDB API](https://www.thecocktaildb.com/) (Real-time images/recipes)
-- **AI Integration:** [Vercel AI SDK](https://sdk.vercel.ai/docs) (`@ai-sdk/google`)
-- **Package Manager:** npm
+### Context
 
-## Getting Started
+Your taste does not change, but your situation does. Contexts (`usual`,
+`business`, `party`, `holiday`) re-weight what lights up around you — **your
+dot does not move**.
 
-### Prerequisites
-- Node.js (v22 or later recommended)
-- npm
+### The record
 
-### Installation
+Drinks you log are dated, signed entries in your repo. Menus are posts, venues
+claim themselves by proving their domain, and ratings attach to recipes rather
+than to people. The reasoning is in **[docs/data-model.md](docs/data-model.md)**.
 
-1. Clone the repository:
-   ```bash
-   git clone <repository-url>
-   cd crystal-coupe
-   ```
+## Stack
 
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
+| | |
+|---|---|
+| Framework | [Astro 7](https://astro.build/), server output |
+| Hosting | [Cloudflare](https://developers.cloudflare.com/workers/) (`@astrojs/cloudflare`) |
+| UI | [React 19](https://react.dev/) islands, [Radix](https://www.radix-ui.com/), [Tailwind](https://tailwindcss.com/) |
+| Identity | [AT Protocol](https://atproto.com/) OAuth (`@atproto/oauth-client-node`) |
+| Drink data | [TheCocktailDB](https://www.thecocktaildb.com/) |
+| Model | [Vercel AI SDK](https://sdk.vercel.ai/docs) (`@ai-sdk/google`) |
 
-### Running the Application
+### Routes
 
-To start the development server:
+- **`/`** — the landing page. Pure Astro, **zero client JavaScript**; sign-in
+  is a plain form post that works without it.
+- **`/taste`** — the interactive app. The only route that mounts an island.
+
+Keep it that way: `client:only` on the whole app previously meant ~860 KB of
+JavaScript had to download and hydrate before anything painted at all,
+including on the landing page. `tests/landing-static.spec.ts` guards it.
+
+## Getting started
 
 ```bash
-npm run dev
+npm install
+npm run dev        # http://localhost:9002
 ```
 
-The app will be available at `http://localhost:9002`.
+### Scripts
+
+```bash
+npm run build      # production build
+npm run typecheck  # lexicons + astro check + tsc
+npm run lexicons   # validate lexicon schemas and their refs
+npx playwright test
+```
+
+The suite needs no model key: `useBartenderChat` serves canned copy and model
+boundaries are mocked. In sandboxes without a matching browser, set
+`PLAYWRIGHT_CHROMIUM_PATH`, `PLAYWRIGHT_NO_SANDBOX`, and
+`PLAYWRIGHT_SKIP_WEBSERVER`.
+
+## Docs
+
+- **[docs/data-model.md](docs/data-model.md)** — entities, unclaimed
+  references, menus-as-posts, why nobody rates people
+- **[docs/brand.md](docs/brand.md)** — voice, palette, and the rules that keep
+  styling out of components
+- **[AGENTS.md](AGENTS.md)** — architecture notes for contributors
 
 ## License
 
