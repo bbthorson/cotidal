@@ -3,17 +3,20 @@ name = "crystal-coupe"
 compatibility_date = "2026-08-01"
 compatibility_flags = ["nodejs_compat"]
 
-# OAuth sessions and authorization state (src/lib/atproto/store.ts). Without
-# this, NodeOAuthClient stores both in a module-scope Map, which is per-isolate
-# on Workers — so client.restore(did) fails whenever a request lands on a cold
-# isolate and every signed-in action silently breaks.
+# OAuth sessions and authorization state (src/lib/atproto/store.ts). Without a
+# KV namespace, NodeOAuthClient keeps both in a module-scope Map, which is
+# per-isolate on Workers — so client.restore(did) fails whenever a request lands
+# on a cold isolate and every signed-in action silently breaks.
 #
-# REPLACE `id` with a real namespace before deploying:
-#   wrangler kv namespace create ATPROTO_SESSIONS
-# `astro preview` creates a local namespace automatically and ignores the id.
+# `crystal-coupe-kv`, created in the dashboard. The id is an account-scoped
+# resource identifier, not a secret, and belongs in this file — an earlier
+# placeholder here failed the deploy at the API: "KV namespace
+# 'REPLACE_WITH_KV_NAMESPACE_ID' is not valid" [code: 10042].
+#
+# `astro preview` and `wrangler dev` create a local namespace and ignore the id.
 [[kv_namespaces]]
 binding = "ATPROTO_SESSIONS"
-id = "REPLACE_WITH_KV_NAMESPACE_ID"
+id = "063ec4c7be684f5e912e45484e3e9e8b"
 
 # Rate limiting for the model routes. A module-scope Map is per-isolate on
 # Workers, so the in-memory limiter in src/lib/rate-limit-logic.ts cannot hold

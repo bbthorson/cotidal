@@ -119,9 +119,10 @@ with the cookie `httpOnly` and `secure` and doing no work beyond naming a DID.
 Ours now matches, `Secure` included.
 
 Where statusphere backs both stores with a database keyed by DID,
-`src/lib/atproto/store.ts` backs them with KV (`ATPROTO_SESSIONS`) and keeps a
-`Map` as the off-platform fallback. Both were module-scope `Map`s before, which
-is per-isolate on Workers exactly as the limiter's was — so `restore()` failed
+`src/lib/atproto/store.ts` backs them with KV (`ATPROTO_SESSIONS`, the
+`crystal-coupe-kv` namespace) and keeps a `Map` as the off-platform fallback.
+Both were module-scope `Map`s before, which is per-isolate on Workers exactly
+as the limiter's was — so `restore()` failed
 on a cold isolate, every signed-in action broke silently, and generation fell
 back to the guest copy for members who were properly signed in.
 

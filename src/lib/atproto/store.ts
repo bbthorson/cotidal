@@ -25,6 +25,12 @@ import { kvBinding } from '../runtime';
  * The `Map` remains as the off-platform fallback, so `astro dev` and the suite
  * work with no bindings. It is per-isolate there too — a single local process
  * only ever has one.
+ *
+ * The binding is `ATPROTO_SESSIONS`, declared in `wrangler.toml` against the
+ * `crystal-coupe-kv` namespace — separate from the `SESSION` namespace Astro's
+ * own sessions use, so the two have independent lifecycles. Keys are prefixed
+ * `session:` and `state:` regardless, which is what keeps these two stores from
+ * colliding with each other.
  */
 
 export const SESSION_KV_BINDING = 'ATPROTO_SESSIONS';
