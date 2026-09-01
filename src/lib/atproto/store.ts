@@ -26,15 +26,14 @@ import { kvBinding } from '../runtime';
  * work with no bindings. It is per-isolate there too — a single local process
  * only ever has one.
  *
- * The binding is `SESSION` — the namespace the Cloudflare adapter declares for
- * Astro sessions, which Cloudflare provisions and the deploy inherits. A
- * dedicated `ATPROTO_SESSIONS` binding needed a namespace id in `wrangler.toml`
- * and shipped with a placeholder, which failed every deploy. Sharing is safe
- * because the keys cannot collide: everything written here carries a `session:`
- * or `state:` prefix, and Astro writes bare session ids.
+ * The binding is `ATPROTO_SESSIONS`, declared in `wrangler.toml` against the
+ * `crystal-coupe-kv` namespace — separate from the `SESSION` namespace Astro's
+ * own sessions use, so the two have independent lifecycles. Keys are prefixed
+ * `session:` and `state:` regardless, which is what keeps these two stores from
+ * colliding with each other.
  */
 
-export const SESSION_KV_BINDING = 'SESSION';
+export const SESSION_KV_BINDING = 'ATPROTO_SESSIONS';
 
 /** Sessions outlive a browser session; the cookie is set for the same 30 days. */
 const SESSION_TTL_SECONDS = 60 * 60 * 24 * 30;
