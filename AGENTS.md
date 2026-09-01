@@ -152,10 +152,12 @@ interface; see `docs/brand.md`.
 4. **Menu capture.** Photograph a menu, get a recommendation, no account
    required — value before signup, and it builds the venue/menu corpus as a
    byproduct.
-5. **Create the `ATPROTO_SESSIONS` KV namespace** and put its id in
-   `wrangler.toml`, which currently holds a placeholder. Until then the OAuth
-   stores fall back to a per-isolate `Map` in production and every signed-in
-   action breaks on a cold isolate.
+5. **Split the OAuth stores off the `SESSION` KV namespace.** They share it
+   with Astro sessions, keys prefixed so they cannot collide, because that
+   namespace is provisioned and inherited with no id in `wrangler.toml` — a
+   dedicated `ATPROTO_SESSIONS` binding shipped with a placeholder id and
+   failed every deploy. A real namespace and a one-line binding change split
+   them whenever the sharing starts to cost something.
 6. **Region pages** (`/regions/<id>`). The landing page's four regions now
    link into `/drinks`; a real page per region is the reading path proper.
    Content-led — same sourcing discipline as `src/content/drinks/`.

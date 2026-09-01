@@ -25,9 +25,16 @@ import { kvBinding } from '../runtime';
  * The `Map` remains as the off-platform fallback, so `astro dev` and the suite
  * work with no bindings. It is per-isolate there too — a single local process
  * only ever has one.
+ *
+ * The binding is `SESSION` — the namespace the Cloudflare adapter declares for
+ * Astro sessions, which Cloudflare provisions and the deploy inherits. A
+ * dedicated `ATPROTO_SESSIONS` binding needed a namespace id in `wrangler.toml`
+ * and shipped with a placeholder, which failed every deploy. Sharing is safe
+ * because the keys cannot collide: everything written here carries a `session:`
+ * or `state:` prefix, and Astro writes bare session ids.
  */
 
-export const SESSION_KV_BINDING = 'ATPROTO_SESSIONS';
+export const SESSION_KV_BINDING = 'SESSION';
 
 /** Sessions outlive a browser session; the cookie is set for the same 30 days. */
 const SESSION_TTL_SECONDS = 60 * 60 * 24 * 30;
