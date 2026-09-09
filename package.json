@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "astro dev --port 9002",
     "build": "astro build",
-    "preview": "astro preview",
+    "preview": "astro preview --port 9002",
     "typecheck": "npm run lexicons && astro check && tsc --noEmit",
     "lexicons": "node scripts/check-lexicons.mjs",
     "lint": "eslint .",
