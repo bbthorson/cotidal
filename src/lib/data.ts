@@ -47,6 +47,8 @@ export const drinkDatabase: Drink[] = [
     { name: "Naked & Famous", type: "Cocktail", x: 3, y: 1, hasSmoke: true, hasAnise: false, isBitter: true, tags: ['complex', 'bold', 'visual'] },
     { name: "Division Bell", type: "Cocktail", x: 3, y: 2, hasSmoke: true, hasAnise: false, isBitter: true, tags: ['complex', 'visual', 'bold'] },
     { name: "Mezcal Paloma", type: "Cocktail", x: 6, y: 2, hasSmoke: true, hasAnise: false, isBitter: true, tags: ['social', 'crushable', 'complex'] },
+    { name: "Bee's Knees", type: "Cocktail", x: 6, y: 5, hasSmoke: false, hasAnise: false, isBitter: false, tags: ['classic', 'social', 'sweet'] },
+    { name: "El Diablo", type: "Cocktail", x: 5, y: 6, hasSmoke: false, hasAnise: false, isBitter: false, tags: ['social', 'crushable', 'visual'] },
 
     // --- QUADRANT 2: DECADENT & DEEP (Rich & Sweet) [x < 0, y > 0] ---
     { name: "Espresso Martini", type: "Cocktail", x: -5, y: 6, hasSmoke: false, hasAnise: false, isBitter: true, tags: ['visual', 'social', 'bold', 'messy'] },
@@ -69,6 +71,7 @@ export const drinkDatabase: Drink[] = [
     { name: "Millionaire", type: "Cocktail", x: -5, y: 7, hasSmoke: false, hasAnise: false, isBitter: false, tags: ['classic', 'prestige', 'complex'] },
     { name: "Milk Stout", type: "Beer", x: -4, y: 5, hasSmoke: false, hasAnise: false, isBitter: false, tags: ['comfort', 'bold', 'warm'] },
     { name: "Late-Harvest Riesling", type: "Wine", x: -8, y: 5, hasSmoke: false, hasAnise: false, isBitter: false, tags: ['comfort', 'complex', 'sweet'] },
+    { name: "20th Century", type: "Cocktail", x: -3, y: 4, hasSmoke: false, hasAnise: false, isBitter: false, tags: ['classic', 'complex', 'prestige'] },
 
     // --- QUADRANT 3: CRISP & CLEAN (Crisp & Savory) [x > 0, y < 0] ---
     { name: "Gin & Tonic", type: "Cocktail", x: 8, y: -5, hasSmoke: false, hasAnise: false, isBitter: true, tags: ['classic', 'social', 'crushable'] },
@@ -91,6 +94,7 @@ export const drinkDatabase: Drink[] = [
     { name: "Spritz Veneziano (Dry)", type: "Cocktail", x: 7, y: -5, hasSmoke: false, hasAnise: false, isBitter: true, tags: ['social', 'visual'] },
     { name: "Last Word", type: "Cocktail", x: 4, y: -4, hasSmoke: false, hasAnise: true, isBitter: true, tags: ['complex', 'classic', 'prestige'] },
     { name: "Corpse Reviver No. 2", type: "Cocktail", x: 5, y: -3, hasSmoke: false, hasAnise: true, isBitter: true, tags: ['classic', 'complex', 'prestige'] },
+    { name: "Enzoni", type: "Cocktail", x: 5, y: -4, hasSmoke: false, hasAnise: false, isBitter: true, tags: ['complex', 'social', 'visual'] },
 
     // --- QUADRANT 4: BOLD & COMPLEX (Rich & Savory) [x < 0, y < 0] ---
     { name: "Negroni", type: "Cocktail", x: -6, y: -8, hasSmoke: false, hasAnise: false, isBitter: true, tags: ['bold', 'classic', 'complex', 'prestige', 'polarizing'] },
@@ -116,7 +120,9 @@ export const drinkDatabase: Drink[] = [
     { name: "Hanky Panky", type: "Cocktail", x: -5, y: -7, hasSmoke: false, hasAnise: false, isBitter: true, tags: ['classic', 'complex', 'bold'] },
     { name: "Syrah (Northern Rhône)", type: "Wine", x: -7, y: -7, hasSmoke: false, hasAnise: false, isBitter: true, tags: ['complex', 'bold', 'warm', 'spice'] },
     { name: "Absinthe Drip", type: "Spirit", x: -6, y: -2, hasSmoke: false, hasAnise: true, isBitter: true, tags: ['polarizing', 'complex', 'visual'] },
-    { name: "Sambuca (with coffee beans)", type: "Spirit", x: -2, y: -4, hasSmoke: false, hasAnise: true, isBitter: false, tags: ['sweet', 'classic', 'polarizing'] }
+    { name: "Sambuca (with coffee beans)", type: "Spirit", x: -2, y: -4, hasSmoke: false, hasAnise: true, isBitter: false, tags: ['sweet', 'classic', 'polarizing'] },
+    { name: "Tipperary", type: "Cocktail", x: -7, y: -6, hasSmoke: false, hasAnise: true, isBitter: true, tags: ['complex', 'bold', 'classic'] },
+    { name: "Monte Carlo", type: "Cocktail", x: -7, y: -4, hasSmoke: false, hasAnise: false, isBitter: true, tags: ['bold', 'complex', 'comfort'] }
 ];
 
 import { QuestionTier, QuestionOption, Question, questions } from './discovery-questions';
