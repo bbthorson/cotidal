@@ -1,4 +1,4 @@
-import { questions, type Question } from './discovery-questions';
+import { questions, type Question, type QuestionCategory } from './discovery-questions';
 import type { BeliefState } from './belief-state';
 import { getMaxUncertaintyAxis } from './belief-state';
 
@@ -57,5 +57,14 @@ export function getTierLabel(question: Question): string {
     case 'calibration': return 'The Basics';
     case 'architecture': return 'Your Style';
     case 'context': return 'The Details';
+  }
+}
+
+export function getCategoryLabel(category: QuestionCategory): string {
+  switch (category) {
+    case 'palate': return 'The Palate';
+    case 'architecture': return 'Architecture';
+    case 'ritual': return 'The Ritual';
+    case 'occasion': return 'The Hour';
   }
 }

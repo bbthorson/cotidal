@@ -1,28 +1,96 @@
-import { useMemo, useRef } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { ChatLayout } from '@/components/app/ChatLayout';
 import { ChatHeader } from '@/components/app/ChatHeader';
-import { ChatThread } from '@/components/app/ChatThread';
-import { ChatInput } from '@/components/app/ChatInput';
-import { useConversationThread } from '@/hooks/useConversationThread';
 import { ResultsScreen } from '@/components/app/ResultsScreen';
-import { AtprotoProvider } from '@/components/app/AtprotoProvider';
+import { Questionnaire } from '@/components/app/Questionnaire';
+import { AtprotoProvider, useAtprotoContext } from '@/components/app/AtprotoProvider';
+import { useDiscoveryQuiz, type UserProfile } from '@/hooks/useDiscoveryQuiz';
+import { getConnectedPalate, publishPalate } from '@/lib/api-client';
+import type { User } from '@/lib/data';
+
+function profileToUser(profile: UserProfile | null): User {
+  if (!profile) return { x: 0, y: 0, filters: [] };
+  const filters: string[] = [];
+  if (profile.dislikesSmoke) filters.push('noSmoke');
+  if (profile.dislikesBitter) filters.push('noBitter');
+  if (profile.dislikesAnise) filters.push('noAnise');
+  return {
+    x: Math.max(-10, Math.min(10, profile.x)),
+    y: Math.max(-10, Math.min(10, profile.y)),
+    filters,
+    dislikesAnise: profile.dislikesAnise,
+  };
+}
+
+function getInitialProfile(): UserProfile | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const saved = localStorage.getItem('user_profile');
+    return saved ? (JSON.parse(saved) as UserProfile) : null;
+  } catch {
+    return null;
+  }
+}
+
+function wantsBrowse(): boolean {
+  if (typeof window === 'undefined') return false;
+  return new URLSearchParams(window.location.search).get('browse') === '1';
+}
 
 function HomeContent() {
-  const thread = useConversationThread();
-  const threadRef = useRef<HTMLDivElement>(null);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(getInitialProfile);
+  const [screen, setScreen] = useState<'questionnaire' | 'results'>(() => {
+    if (typeof window === 'undefined') return 'questionnaire';
+    return getInitialProfile() || wantsBrowse() ? 'results' : 'questionnaire';
+  });
 
-  const finalUser = useMemo(() => {
-    if (thread.screen === 'results') {
-      return {
-        ...thread.user,
-        x: Math.max(-10, Math.min(10, thread.user.x)),
-        y: Math.max(-10, Math.min(10, thread.user.y)),
-      };
+  const { isConnected } = useAtprotoContext();
+
+  useEffect(() => {
+    if (isConnected) {
+      getConnectedPalate()
+        .then(async (profile) => {
+          if (profile) {
+            setUserProfile(profile);
+            localStorage.setItem('user_profile', JSON.stringify(profile));
+            setScreen('results');
+          } else {
+            const guest = getInitialProfile();
+            if (guest) {
+              await publishPalate(guest);
+              setUserProfile(guest);
+              setScreen('results');
+            }
+          }
+        })
+        .catch((err) => {
+          console.error('Failed to load palate from AT Protocol:', err);
+        });
     }
-    return thread.user;
-  }, [thread.user, thread.screen]);
+  }, [isConnected]);
 
-  if (thread.screen === 'results') {
+  const handleQuizComplete = useCallback((profile: UserProfile) => {
+    setUserProfile(profile);
+    setScreen('results');
+  }, []);
+
+  const quiz = useDiscoveryQuiz(handleQuizComplete);
+
+  const handlePalateUpdated = useCallback((profile: UserProfile) => {
+    setUserProfile(profile);
+    localStorage.setItem('user_profile', JSON.stringify(profile));
+  }, []);
+
+  const reset = useCallback(() => {
+    localStorage.removeItem('user_profile');
+    quiz.resetQuiz();
+    setUserProfile(null);
+    setScreen('questionnaire');
+  }, [quiz]);
+
+  const finalUser = useMemo(() => profileToUser(userProfile), [userProfile]);
+
+  if (screen === 'results') {
     return (
       <ChatLayout
         header={<ChatHeader />}
@@ -30,15 +98,15 @@ function HomeContent() {
           <div className="flex-1 overflow-y-auto">
             <ResultsScreen
               user={finalUser}
-              vibeTags={thread.vibeTags || {}}
-              onPalateUpdated={thread.handlePalateUpdated}
+              vibeTags={userProfile?.vibeTags || {}}
+              onPalateUpdated={handlePalateUpdated}
             />
           </div>
         }
         input={
           <button
-            onClick={thread.reset}
-            className="font-condensed text-xs uppercase tracking-[0.2em] text-muted-foreground hover:text-primary underline underline-offset-4 decoration-primary/30 hover:decoration-primary/60 transition-colors min-h-[44px] px-4 w-full text-center"
+            onClick={reset}
+            className="font-condensed text-xs uppercase tracking-label text-muted-foreground hover:text-primary underline underline-offset-4 decoration-primary/30 hover:decoration-primary/60 transition-colors min-h-[44px] px-4 w-full text-center"
           >
             Start Over
           </button>
@@ -47,30 +115,16 @@ function HomeContent() {
     );
   }
 
-  const placeholder = thread.awaitingOpener
-    ? "Tell me what you're in the mood for…"
-    : "Type your answer…";
-
   return (
-    <ChatLayout
-      header={<ChatHeader progress={thread.quizStarted ? thread.progress : undefined} />}
-      middle={
-        <ChatThread
-          messages={thread.messages}
-          pendingOptions={thread.pendingOptions}
-          onSelectOption={thread.handleSelectOption}
-          onAction={thread.handleAction}
-          isNavigating={thread.isNavigating}
-          threadRef={threadRef}
-        />
-      }
-      input={
-        <ChatInput
-          onSend={thread.handleSendText}
-          disabled={thread.isNavigating}
-          placeholder={placeholder}
-        />
-      }
+    <Questionnaire
+      currentQuestion={quiz.currentQuestion}
+      progress={quiz.progress}
+      questionCount={quiz.questionCount}
+      isNavigating={quiz.isNavigating}
+      canGoBack={quiz.canGoBack}
+      onSelectOption={quiz.handleAnswer}
+      onBack={quiz.handleBack}
+      onExploreAsGuest={() => setScreen('results')}
     />
   );
 }
