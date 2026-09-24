@@ -2,7 +2,7 @@
 
 What the model is allowed to write, who gets to see it, and what it costs.
 The endpoints are `src/pages/api/explain-drink.ts` and
-`src/pages/api/archetype-drink.ts`; the provider binding is `@ai-sdk/google`.
+`src/pages/api/archetype-drink.ts`; the provider binding is Cloudflare Workers AI (`env.AI`).
 
 ## Authored by default, generated at the edges
 
@@ -55,27 +55,18 @@ A `400` carries no header: nothing was decided about it.
 
 ## Provider
 
-Gemini, via `@ai-sdk/google`. It is the cheapest hosted tier that can write a
-passable sentence, and per-token price is not close to the deciding factor at
-this volume anyway — see [Budget](#budget). Switching providers means changing
-one import per route, so this is not a commitment worth agonising over.
+Cloudflare Workers AI natively, routed through Cloudflare AI Gateway. Inference runs on Cloudflare's serverless edge GPUs via the `AI` binding (`env.AI.run`) with no third-party API keys or egress latency.
 
-**The key is `GOOGLE_GENERATIVE_AI_API_KEY`**, read from the environment by the
-SDK. On Cloudflare it is a Worker secret; locally it goes in `.dev.vars`.
-Nothing in the repo references it by name outside this document and a comment
-in `tests/archetype-logic.spec.ts`.
+**The model is `@cf/meta/llama-3.3-70b-instruct-fp8-fast`**, pinned in `GENERATION_MODEL` in `src/lib/generation.ts`. Requests route through AI Gateway (`AI_GATEWAY_ID = 'crystal-coupe-gateway'`), providing automatic edge response caching, request logs, and routing metrics.
 
-> Until a key is configured, both routes run their catch branch on every
+For local development without bindings, credentials (`CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN`) can be passed via `.dev.vars` or environment variables. Without bindings or credentials (e.g. during offline test execution), both routes catch gracefully and return their deterministic fallback.
+
+> Until a binding or key is configured, both routes run their catch branch on every
 > request and serve the fallback. This is silent and looks like working
-> software. Configuring a key changes live output for the first time, so
-> review the prose after doing it rather than before.
+> software.
 
 **One model, named once.** `GENERATION_MODEL` in `src/lib/generation.ts` is the
-only place a model id appears. The routes previously named different models and
-one of them (`gemini-1.5-flash`) was no longer available to new API projects —
-a fresh key would have failed on it and fallen through to the fallback,
-indistinguishably from success. Check Google's deprecation list before changing
-the constant.
+only place a model id appears.
 
 ## The membership line
 

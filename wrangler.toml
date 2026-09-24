@@ -3,6 +3,11 @@ name = "crystal-coupe"
 compatibility_date = "2026-08-01"
 compatibility_flags = ["nodejs_compat"]
 
+# Cloudflare Workers AI binding for inference on Cloudflare edge GPUs
+# Routed through AI Gateway for caching, observability, and model controls (docs/generation.md).
+[ai]
+binding = "AI"
+
 # OAuth sessions and authorization state (src/lib/atproto/store.ts). Without a
 # KV namespace, NodeOAuthClient keeps both in a module-scope Map, which is
 # per-isolate on Workers — so client.restore(did) fails whenever a request lands

@@ -1,14 +1,12 @@
 import type { APIRoute } from 'astro';
-import { generateText } from 'ai';
-import { google } from '@ai-sdk/google';
 import { drinkDatabase } from '@/lib/data';
 import { z } from 'zod';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { restoredDid } from '@/lib/atproto/session';
 import {
-  GENERATION_MODEL,
   explanationFallback,
   generationHeaders,
+  runWorkersAi,
   type GenerationOutcome,
 } from '@/lib/generation';
 
@@ -72,22 +70,21 @@ export const POST: APIRoute = async ({ request }) => {
     return respond(fallback, 'unavailable');
   }
 
-  const prompt = `
-    You are a knowledgeable, friendly bartender explaining a drink recommendation.
-    The guest has been matched with a "${drinkName}".
-
-    Their flavor profile:
-    - They lean ${profile.x > 0 ? 'crisp & clean' : 'rich & deep'} and ${profile.y > 0 ? 'sweet & fruity' : 'savory & complex'}
-    - Preferences: ${profile.dislikesSmoke ? 'Not into smoky flavors' : 'Likes smoky flavors'}, ${profile.dislikesBitter ? 'Not a bitterness fan' : 'Enjoys bitterness'}.
-
-    In 2 casual sentences, explain why this drink is a great fit for them.
-    Voice: Warm, knowledgeable, approachable — like a bartender who really knows their stuff.
-    Talk about the actual flavors and why they work for this person.
-    Do NOT mention "coordinates", "algorithms", "x", or "y".
-  `;
+  const messages = [
+    {
+      role: 'system' as const,
+      content:
+        'You are a knowledgeable, friendly bartender explaining a drink recommendation. In 2 casual sentences, explain why this drink is a great fit for the guest. Voice: Warm, knowledgeable, approachable — like a bartender who really knows their stuff. Talk about the actual flavors and why they work for this person. Do NOT mention "coordinates", "algorithms", "x", or "y".',
+    },
+    {
+      role: 'user' as const,
+      content: `The guest has been matched with a "${drinkName}". Flavor profile: they lean ${profile.x > 0 ? 'crisp & clean' : 'rich & deep'} and ${profile.y > 0 ? 'sweet & fruity' : 'savory & complex'}. Preferences: ${profile.dislikesSmoke ? 'Not into smoky flavors' : 'Likes smoky flavors'}, ${profile.dislikesBitter ? 'Not a bitterness fan' : 'Enjoys bitterness'}.`,
+    },
+  ];
 
   try {
-    const { text } = await generateText({ model: google(GENERATION_MODEL), prompt });
+    const text = await runWorkersAi({ messages, maxTokens: 150 });
+    if (!text) return respond(fallback, 'unavailable');
     return respond(text, 'model');
   } catch (error) {
     console.error('Explanation generation failed:', error);
