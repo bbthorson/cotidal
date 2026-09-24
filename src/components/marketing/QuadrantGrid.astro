@@ -1,16 +1,18 @@
 ---
 import { quadrants } from '../../lib/copy';
 
-/**
- * The four regions as a printed menu table: hairline-ruled rows, the name and
- * gloss in the body column, the axis boxed off to the right the way a price
- * column is. Was a 2×2 card grid, which read as a dashboard rather than a menu.
- *
- * Each row links into its section of the register. The regions were named here
- * and led nowhere, while `/drinks` was already grouped under the same four
- * headings — so reading about a taste before being measured for one was a
- * route the site described but did not have. See docs/routes.md.
- */
+interface Props {
+  showExamples?: boolean;
+}
+
+const { showExamples = true } = Astro.props;
+
+const examples: Record<string, string[]> = {
+  ember: ['Negroni', 'Sazerac', 'Boulevardier'],
+  'salt-line': ['Dry Martini', 'Gin & Tonic', 'Gibson'],
+  vault: ['Espresso Martini', 'Brandy Alexander', 'Old Fashioned'],
+  orchard: ['Daiquiri', 'Margarita', 'Last Word', 'French 75'],
+};
 ---
 
 <ul class="border-b border-border">
@@ -19,17 +21,30 @@ import { quadrants } from '../../lib/copy';
       <li class="menu-row first:border-t-0">
         <a
           href={`/drinks#${q.id}`}
-          class="group flex items-baseline gap-4 py-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring md:gap-8"
+          class="group flex flex-col gap-2 py-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:flex-row sm:items-baseline sm:justify-between md:gap-8"
         >
           <div class="min-w-0 flex-1">
-            <h3 class="font-serif text-lg font-bold leading-none text-foreground transition-colors group-hover:text-primary md:text-xl">
-              {q.name}
-            </h3>
+            <div class="flex items-baseline gap-3">
+              <h3 class="font-serif text-lg font-bold leading-none text-foreground transition-colors group-hover:text-primary md:text-xl">
+                {q.name}
+              </h3>
+              <span class="label-caps border border-border px-2 py-0.5 text-secondary sm:hidden">
+                {q.axis}
+              </span>
+            </div>
             <p class="mt-1.5 font-serif text-xs leading-relaxed text-muted-foreground md:text-sm">
               {q.gloss}
             </p>
+            {showExamples && examples[q.id] && (
+              <p class="mt-2 font-serif text-2xs italic text-foreground/75">
+                <span class="font-condensed text-3xs uppercase not-italic tracking-label text-muted-foreground mr-1.5">
+                  Specimens:
+                </span>
+                {examples[q.id].join(' · ')}
+              </p>
+            )}
           </div>
-          <span class="label-caps shrink-0 border border-border px-2.5 py-1.5 text-secondary">
+          <span class="label-caps hidden shrink-0 border border-border px-2.5 py-1.5 text-secondary sm:inline-block">
             {q.axis}
           </span>
         </a>

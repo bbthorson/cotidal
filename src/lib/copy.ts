@@ -15,8 +15,18 @@ export const site = {
     'Find the coordinate your taste actually sits on, and what to order once you know it.',
 } as const;
 
+export const nav = {
+  skipToContent: 'Skip to content',
+  home: 'Home',
+  map: 'Palate Map',
+  register: 'The Register',
+  regions: 'The Four Regions',
+  signIn: 'Sign In',
+} as const;
+
 export const hero = {
   eyebrow: 'A reading of your taste',
+  edition: 'Specimen No. 1',
   headline: 'Every palate has',
   headlineAccent: 'a coordinate.',
   body:
@@ -24,6 +34,7 @@ export const hero = {
   primaryCta: 'Find your coordinate',
   primaryCtaReturning: 'Return to your map',
   secondaryCta: 'Look at the map first',
+  registerCta: 'Explore the register',
 } as const;
 
 /**
@@ -70,6 +81,8 @@ export const sections = {
   map: 'The four regions',
   /** The reveal. The hero withholds the axes; this is where they land. */
   mapNote: 'Two axes — rich to crisp, savory to sweet. Four regions between them.',
+  registerSpotlight: 'From the register',
+  registerSpotlightNote: 'Each entry separates what is on the record from what is merely told.',
   principles: 'What you keep',
   connect: 'Sign in',
 } as const;

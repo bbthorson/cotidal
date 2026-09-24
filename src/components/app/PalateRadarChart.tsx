@@ -4,6 +4,7 @@ import { useMemo } from 'react';
 import { ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, Radar, Tooltip } from 'recharts';
 import { Card, CardContent } from '@/components/ui/card';
 import { extractSensoryProfile, calculatePalateArchetype } from '@/lib/archetypes';
+import { tokens } from '@/lib/tokens';
 import type { PalateRecord, SensoryProfile } from '@/lib/atproto/lexicon';
 import type { UserProfile } from '@/hooks/useDiscoveryQuiz';
 
@@ -33,27 +34,22 @@ export function PalateRadarChart({ palate, className, customSensoryProfile }: Pa
   ], [profile]);
 
   return (
-    <Card className={`glass-dark border-primary/10 coaster overflow-hidden ${className || ''}`}>
+    <Card className={`glass-dark border-border coaster overflow-hidden shadow-bar ${className || ''}`}>
       <CardContent className="p-5 space-y-5">
         {/* Header & Archetype Badge */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-primary/10">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border">
           <div>
             <div className="flex items-center gap-2">
               <span className="text-xl">{archetype.icon}</span>
               <h3 className="font-serif text-lg font-bold text-foreground">Palate DNA & Sensory Profile</h3>
             </div>
-            <p className="text-3xs font-mono text-muted-foreground uppercase tracking-widest mt-0.5">
-              6-Axis Flavor Triangulation
+            <p className="label-caps mt-0.5">
+              6-Axis Flavor Profile
             </p>
           </div>
 
           <div 
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-mono font-bold"
-            style={{ 
-              backgroundColor: `${archetype.colorHex}15`,
-              borderColor: `${archetype.colorHex}40`,
-              color: archetype.colorHex
-            }}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-sm border text-xs font-condensed uppercase tracking-label font-bold bg-card border-border text-primary shadow-bar"
           >
             <span>{archetype.icon}</span>
             <span>{archetype.title}</span>
@@ -62,31 +58,31 @@ export function PalateRadarChart({ palate, className, customSensoryProfile }: Pa
 
         {/* Radar Chart Visualizer */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
-          <div className="md:col-span-7 h-[220px] w-full">
+          <div className="md:col-span-7 h-56 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <RadarChart cx="50%" cy="50%" outerRadius="75%" data={chartData}>
-                <PolarGrid stroke="rgba(212, 148, 26, 0.15)" />
+                <PolarGrid stroke={tokens.colors.border.hex} />
                 <PolarAngleAxis 
                   dataKey="subject" 
-                  tick={{ fill: 'hsl(35, 30%, 82%)', fontSize: 10, fontFamily: 'monospace' }}
+                  tick={{ fill: tokens.colors.mutedForeground.hex, fontSize: 10, fontFamily: tokens.typography.fonts.condensed }}
                 />
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: 'rgba(15, 18, 24, 0.95)',
-                    borderColor: 'rgba(212, 148, 26, 0.3)',
-                    borderRadius: '8px',
-                    color: '#f3e8d3',
+                    backgroundColor: tokens.colors.card.hex,
+                    borderColor: tokens.colors.border.hex,
+                    borderRadius: tokens.radii.sm,
+                    color: tokens.colors.foreground.hex,
                     fontSize: '11px',
-                    fontFamily: 'monospace'
+                    fontFamily: tokens.typography.fonts.condensed
                   }}
                   formatter={(val: number) => [`${val} / 5.0`, 'Sensory Score']}
                 />
                 <Radar
                   name="Taste DNA"
                   dataKey="value"
-                  stroke={archetype.colorHex}
-                  fill={archetype.colorHex}
-                  fillOpacity={0.4}
+                  stroke={tokens.colors.primary.hex}
+                  fill={tokens.colors.primary.hex}
+                  fillOpacity={0.35}
                 />
               </RadarChart>
             </ResponsiveContainer>

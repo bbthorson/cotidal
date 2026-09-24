@@ -5,9 +5,9 @@ import type { Drink } from '@/lib/data';
 
 const TYPE_STYLES: Record<string, string> = {
   Cocktail: 'bg-primary/15 text-primary',
-  Wine: 'bg-rose-500/15 text-rose-400',
-  Beer: 'bg-amber-500/15 text-amber-400',
-  Spirit: 'bg-yellow-600/15 text-yellow-500',
+  Wine: 'bg-primary/20 text-primary',
+  Beer: 'bg-secondary/15 text-secondary',
+  Spirit: 'bg-accent/30 text-foreground',
 };
 
 type ScoredDrink = Drink & { score: number; baseScore: number; distance: number };
@@ -45,22 +45,22 @@ export const HeroDrinkCard = memo(function HeroDrinkCard({ drink, userX, userY, 
 
   return (
     <div className="space-y-4">
-      <p className="font-condensed text-[10px] uppercase tracking-[0.2em] text-muted-foreground/60">
+      <p className="label-caps">
         Your Top Pick
       </p>
 
-      <div className="border border-primary/15 rounded-sm p-5 space-y-3 bg-primary/[0.02]">
+      <div className="border border-border rounded-sm p-5 space-y-3 bg-card shadow-bar">
         {/* Name + type */}
         <div className="flex items-baseline gap-3 w-full">
           <h3 className="font-headline text-xl font-bold text-primary">
             {drink.name}
           </h3>
           {drink.score !== undefined && (
-            <span className="font-mono text-2xs text-secondary bg-secondary/15 px-2 py-0.5 rounded border border-secondary/20 font-bold">
+            <span className="font-mono text-2xs text-secondary bg-secondary/15 px-2 py-0.5 rounded-sm border border-secondary/20 font-bold">
               {Math.round(drink.score)}% Match
             </span>
           )}
-          <span className={`font-condensed text-[10px] uppercase tracking-[0.15em] px-2 py-0.5 rounded-full ml-auto ${typeStyle}`}>
+          <span className={`font-condensed text-2xs uppercase tracking-wordmark px-2 py-0.5 rounded-sm ml-auto ${typeStyle}`}>
             {drink.type}
           </span>
         </div>

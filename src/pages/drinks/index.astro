@@ -1,8 +1,8 @@
 ---
 import { getCollection } from 'astro:content';
 import Base from '../../layouts/Base.astro';
-import Monogram from '../../components/marketing/Monogram.astro';
-import { site, drinks as copy, footer, quadrants } from '../../lib/copy';
+import SiteHeader from '../../components/marketing/SiteHeader.astro';
+import { site, nav, drinks as copy, footer, quadrants } from '../../lib/copy';
 import { drinkDatabase } from '../../lib/data';
 import { quadrantIdFor } from '../../lib/quadrant';
 
@@ -40,15 +40,7 @@ const grouped = quadrants.map((quadrant) => ({
 <Base title={`${copy.title} · ${site.name}`} description={copy.intro}>
   <div class="bar-texture min-h-screen bg-background text-foreground">
     <div class="mx-auto w-full max-w-3xl px-6 py-10 md:py-14">
-      <header class="flex items-center justify-between border-b border-foreground pb-4">
-        <a href="/" class="flex items-center gap-3">
-          <Monogram class="h-9 w-9" />
-          <span class="font-serif text-sm font-bold uppercase tracking-wordmark text-foreground">
-            {site.name}
-          </span>
-        </a>
-        <p class="label-caps">{copy.eyebrow}</p>
-      </header>
+      <SiteHeader currentPath="/drinks" eyebrow={copy.eyebrow} />
 
       <section class="pb-14 pt-14 text-center md:pb-20 md:pt-20">
         <h1 class="font-serif text-4xl font-bold leading-display text-foreground md:text-5xl">
@@ -106,12 +98,24 @@ const grouped = quadrants.map((quadrant) => ({
         }
       </div>
 
-      <footer
-        class="mt-16 flex flex-wrap items-center justify-center gap-x-3 border-t border-foreground pt-5 text-center font-condensed text-3xs uppercase tracking-label text-muted-foreground"
-      >
-        <span>{footer.note}</span>
-        <span aria-hidden="true">·</span>
-        <span>{footer.drinkResponsibly}</span>
+      <footer class="mt-16 border-t border-foreground pt-8 text-center">
+        <div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 font-condensed text-xs uppercase tracking-label text-muted-foreground">
+          <a href="/" class="transition-colors hover:text-primary">{nav.home}</a>
+          <span aria-hidden="true" class="text-border">·</span>
+          <a href="/taste" class="transition-colors hover:text-primary">{nav.map}</a>
+          <span aria-hidden="true" class="text-border">·</span>
+          <a href="/drinks" class="font-bold text-primary">{nav.register}</a>
+          <span aria-hidden="true" class="text-border">·</span>
+          <a href="/#regions" class="transition-colors hover:text-primary">{nav.regions}</a>
+          <span aria-hidden="true" class="text-border">·</span>
+          <a href="/#connect" class="transition-colors hover:text-primary">{nav.signIn}</a>
+        </div>
+
+        <div class="mt-5 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 font-condensed text-3xs uppercase tracking-label text-muted-foreground">
+          <span>{footer.note}</span>
+          <span aria-hidden="true">·</span>
+          <span>{footer.drinkResponsibly}</span>
+        </div>
       </footer>
     </div>
   </div>

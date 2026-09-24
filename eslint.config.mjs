@@ -93,8 +93,12 @@ export default [
   {
     files: [
       'src/pages/**/*.{astro,ts,tsx}',
-      'src/layouts/**/*.astro',
-      'src/components/marketing/**/*.astro',
+      'src/layouts/**/*.{astro,ts,tsx}',
+      'src/components/**/*.{astro,ts,tsx}',
+    ],
+    ignores: [
+      'src/components/ui/**',
+      'src/components/app/**',
     ],
     rules: { 'no-restricted-syntax': ['error', ...tokenRuleEntries] },
   },

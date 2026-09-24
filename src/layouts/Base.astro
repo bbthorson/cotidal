@@ -1,6 +1,6 @@
 ---
 import '../styles/globals.css';
-import { site } from '../lib/copy';
+import { site, nav } from '../lib/copy';
 
 interface Props {
   title?: string;
@@ -28,9 +28,9 @@ const { title = site.name, description = site.description } = Astro.props;
   <body class="font-body antialiased bg-background text-foreground">
     <a
       href="#main-content"
-      class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-6 focus:py-3 focus:bg-background focus:text-foreground focus:border focus:border-primary/20 focus:shadow-xl focus:rounded-md font-bold transition-all"
+      class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-5 focus:py-2.5 focus:bg-card focus:text-foreground focus:border focus:border-foreground focus:shadow-bar focus:rounded-sm font-condensed text-xs uppercase tracking-label font-bold transition-all"
     >
-      Skip to content
+      {nav.skipToContent}
     </a>
     <main id="main-content">
       <slot />

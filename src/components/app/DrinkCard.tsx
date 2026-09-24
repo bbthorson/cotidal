@@ -5,9 +5,9 @@ import type { Drink } from '@/lib/data';
 
 const TYPE_STYLES: Record<string, string> = {
   Cocktail: 'bg-primary/15 text-primary',
-  Wine: 'bg-rose-500/15 text-rose-400',
-  Beer: 'bg-amber-500/15 text-amber-400',
-  Spirit: 'bg-yellow-600/15 text-yellow-500',
+  Wine: 'bg-primary/20 text-primary',
+  Beer: 'bg-secondary/15 text-secondary',
+  Spirit: 'bg-accent/30 text-foreground',
 };
 
 type ScoredDrink = Drink & { score: number; baseScore: number; distance: number };
@@ -55,7 +55,7 @@ export const DrinkCard = memo(function DrinkCard({ drink, rank, userX, userY, us
       <div className="py-3 space-y-1.5">
         {/* Top row: rank + name + type badge */}
         <div className="flex items-baseline gap-3">
-          <span className="font-condensed text-[10px] text-muted-foreground/40 tabular-nums w-4 shrink-0">
+          <span className="font-condensed text-2xs text-muted-foreground/40 tabular-nums w-4 shrink-0">
             {rank}
           </span>
           <span className="font-headline text-sm font-bold text-primary group-hover:text-primary/80 transition-colors truncate">
@@ -63,11 +63,11 @@ export const DrinkCard = memo(function DrinkCard({ drink, rank, userX, userY, us
           </span>
           <span className="ml-auto shrink-0 flex items-center gap-2">
             {drink.score !== undefined && (
-              <span className="font-mono text-[9px] text-secondary bg-secondary/10 px-1.5 py-0.5 rounded border border-secondary/15 font-bold">
+              <span className="font-mono text-3xs text-secondary bg-secondary/10 px-1.5 py-0.5 rounded-sm border border-secondary/15 font-bold">
                 {Math.round(drink.score)}% Match
               </span>
             )}
-            <span className={`font-condensed text-[10px] uppercase tracking-[0.15em] px-2 py-0.5 rounded-full ${typeStyle}`}>
+            <span className={`font-condensed text-2xs uppercase tracking-wordmark px-2 py-0.5 rounded-sm ${typeStyle}`}>
               {drink.type}
             </span>
           </span>

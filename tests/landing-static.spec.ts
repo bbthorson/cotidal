@@ -86,3 +86,18 @@ test('Landing: surfaces sign-in errors from the callback', async ({ page }) => {
   await page.goto('/?error=atproto_callback_failed');
   await expect(page.getByRole('alert')).toContainText('Sign-in did not complete');
 });
+
+test('Navigation: unified header navigation renders on landing and register', async ({ page }) => {
+  const landing = await (await page.request.get('/')).text();
+  expect(landing).toContain('aria-label="Main Navigation"');
+  expect(landing).toContain('href="/taste"');
+  expect(landing).toContain('href="/drinks"');
+  expect(landing).toContain('href="/#regions"');
+  expect(landing).toContain('href="/#connect"');
+
+  const register = await (await page.request.get('/drinks')).text();
+  expect(register).toContain('aria-label="Main Navigation"');
+  expect(register).toContain('href="/taste"');
+  expect(register).toContain('href="/drinks"');
+});
+
