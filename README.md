@@ -42,7 +42,7 @@ than to people. The reasoning is in **[docs/data-model.md](docs/data-model.md)**
 | UI | [React 19](https://react.dev/) islands, [Radix](https://www.radix-ui.com/), [Tailwind](https://tailwindcss.com/) |
 | Identity | [AT Protocol](https://atproto.com/) OAuth (`@atproto/oauth-client-node`) |
 | Drink data | [TheCocktailDB](https://www.thecocktaildb.com/) |
-| Model | [Vercel AI SDK](https://sdk.vercel.ai/docs) (`@ai-sdk/google`) |
+| Model | [Cloudflare Workers AI](https://developers.cloudflare.com/workers-ai/) + [AI Gateway](https://developers.cloudflare.com/ai-gateway/) |
 
 Deploys are handled by Cloudflare's own Git integration — it builds and
 releases the Worker on push. There is deliberately no deploy workflow in

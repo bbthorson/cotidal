@@ -8,8 +8,113 @@
  * They are named here once.
  */
 
-/** Pinned deliberately. Check Google's deprecation list before changing it. */
-export const GENERATION_MODEL = 'gemini-2.5-flash-lite';
+import { aiBinding } from './runtime';
+
+/**
+ * Pinned deliberately. Cloudflare Workers AI model running on edge GPUs.
+ * See docs/generation.md.
+ */
+export const GENERATION_MODEL = '@cf/meta/llama-3.3-70b-instruct-fp8-fast';
+
+/**
+ * AI Gateway ID for routing, caching, and observability in Cloudflare.
+ */
+export const AI_GATEWAY_ID = 'crystal-coupe-gateway';
+
+export interface WorkersAiMessage {
+  role: 'system' | 'user' | 'assistant';
+  content: string;
+}
+
+export interface WorkersAiOptions {
+  messages: WorkersAiMessage[];
+  maxTokens?: number;
+}
+
+/**
+ * Run inference via Cloudflare Workers AI.
+ *
+ * Primary path: Native `env.AI` binding in Cloudflare Workers, routed through AI Gateway.
+ * Local/dev path: If off-platform, checks for `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN`.
+ * Fallback: If neither binding nor credentials exist (e.g. tests or vanilla local dev), returns null.
+ */
+export async function runWorkersAi(options: WorkersAiOptions): Promise<string | null> {
+  const binding = await aiBinding();
+  if (binding) {
+    const res = await binding.run(
+      GENERATION_MODEL,
+      {
+        messages: options.messages,
+        max_tokens: options.maxTokens ?? 256,
+      },
+      {
+        gateway: {
+          id: AI_GATEWAY_ID,
+          skipCache: false,
+        },
+      }
+    );
+    if (typeof res?.response === 'string') {
+      return res.response.trim();
+    }
+  }
+
+  // Off-platform REST fallback if credentials are provided in environment
+  const accountId = typeof process !== 'undefined' ? process.env?.CLOUDFLARE_ACCOUNT_ID : undefined;
+  const apiToken = typeof process !== 'undefined' ? process.env?.CLOUDFLARE_API_TOKEN : undefined;
+
+  if (accountId && apiToken) {
+    try {
+      const url = `https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/${GENERATION_MODEL}`;
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${apiToken}`,
+          'Content-Type': 'application/json',
+          'cf-aig-gateway': AI_GATEWAY_ID,
+        },
+        body: JSON.stringify({
+          messages: options.messages,
+          max_tokens: options.maxTokens ?? 256,
+        }),
+      });
+
+      if (!res.ok) {
+        console.error('Workers AI REST call failed with status:', res.status);
+        return null;
+      }
+
+      const data = (await res.json()) as { result?: { response?: string } };
+      if (typeof data?.result?.response === 'string') {
+        return data.result.response.trim();
+      }
+    } catch (err) {
+      console.error('Workers AI REST fallback error:', err);
+      return null;
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Safely extract JSON from raw model output, handling fenced markdown blocks or raw JSON.
+ */
+export function extractJson<T = unknown>(rawText: string): T | null {
+  try {
+    const fenced = rawText.match(/```(?:json)?\s*([\s\S]*?)```/);
+    if (fenced) {
+      return JSON.parse(fenced[1].trim()) as T;
+    }
+    const jsonMatch = rawText.match(/(\{[\s\S]*\}|\[[\s\S]*\])/);
+    if (jsonMatch) {
+      return JSON.parse(jsonMatch[0].trim()) as T;
+    }
+    return JSON.parse(rawText.trim()) as T;
+  } catch {
+    return null;
+  }
+}
 
 /**
  * Why a response says what it says. These routes always answer with usable

@@ -1,13 +1,12 @@
 import type { APIRoute } from 'astro';
-import { generateObject } from 'ai';
-import { google } from '@ai-sdk/google';
 import { z } from 'zod';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { restoredDid } from '@/lib/atproto/session';
 import {
-  GENERATION_MODEL,
   ARCHETYPE_FALLBACK,
   generationHeaders,
+  runWorkersAi,
+  extractJson,
   type GenerationOutcome,
 } from '@/lib/generation';
 
@@ -74,24 +73,47 @@ export const POST: APIRoute = async ({ request }) => {
     You are a knowledgeable bartender analyzing a drink's flavor profile.
 
     Determine the drink's position on the flavor map:
-    - X-Axis: Is it heavy, decadent, and full-bodied (Rich, -10) or light, acidic, and sharp (Crisp, 10)?
-    - Y-Axis: Is it salty, herbaceous, or umami (Savory, -10) or sugary, fruity, and dessert-like (Sweet, 10)?
-    - Identify if it contains Smoke, Anise, or strong Bitterness.
-    - Assign 3-5 vibe tags from this list: bold, classic, visual, social, comfort, complex, sweet, messy, polarizing, prestige, warm, spice, crushable.
+    - X-Axis (x): Is it heavy, decadent, and full-bodied (Rich, -10) or light, acidic, and sharp (Crisp, 10)? Return a number between -10 and 10.
+    - Y-Axis (y): Is it salty, herbaceous, or umami (Savory, -10) or sugary, fruity, and dessert-like (Sweet, 10)? Return a number between -10 and 10.
+    - hasSmoke: boolean (true if it contains noticeable smoke)
+    - hasAnise: boolean (true if it contains noticeable anise/licorice)
+    - isBitter: boolean (true if it contains strong bitterness)
+    - tags: array of 3-5 vibe tags chosen from: bold, classic, visual, social, comfort, complex, sweet, messy, polarizing, prestige, warm, spice, crushable.
+    - oracleReasoning: brief conversational explanation for this categorization.
 
-    Provide your response in the requested format with a brief, conversational explanation for your choice.
+    Respond with ONLY a JSON object matching this structure:
+    {
+      "x": number,
+      "y": number,
+      "hasSmoke": boolean,
+      "hasAnise": boolean,
+      "isBitter": boolean,
+      "tags": string[],
+      "oracleReasoning": string
+    }
   `;
 
   const prompt = `Analyze the drink: "${drinkName}" ${description ? `(${description})` : ''}.`;
 
   try {
-    const { object } = await generateObject({
-      model: google(GENERATION_MODEL),
-      schema: ArchetypeSchema,
-      system,
-      prompt,
+    const raw = await runWorkersAi({
+      messages: [
+        { role: 'system', content: system },
+        { role: 'user', content: prompt },
+      ],
+      maxTokens: 300,
     });
-    return respond(object, 'model');
+
+    if (!raw) return respond(ARCHETYPE_FALLBACK, 'unavailable');
+
+    const parsedJson = extractJson(raw);
+    const validated = ArchetypeSchema.safeParse(parsedJson);
+    if (!validated.success) {
+      console.error('Archetype validation failed:', validated.error);
+      return respond(ARCHETYPE_FALLBACK, 'unavailable');
+    }
+
+    return respond(validated.data, 'model');
   } catch (error) {
     console.error('Archetyping failed:', error);
     return respond(ARCHETYPE_FALLBACK, 'unavailable');
