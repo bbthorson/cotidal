@@ -4,10 +4,10 @@
   "private": true,
   "packageManager": "pnpm@10.32.1",
   "scripts": {
-    "dev": "astro dev --port 9002",
-    "build": "astro build",
-    "preview": "astro preview --port 9002",
-    "typecheck": "npm run lexicons && astro check && tsc --noEmit",
+    "dev": "ASTRO_TELEMETRY_DISABLED=1 astro dev --port 9002",
+    "build": "ASTRO_TELEMETRY_DISABLED=1 astro build",
+    "preview": "ASTRO_TELEMETRY_DISABLED=1 astro preview --port 9002",
+    "typecheck": "npm run lexicons && ASTRO_TELEMETRY_DISABLED=1 astro check && tsc --noEmit",
     "lexicons": "node scripts/check-lexicons.mjs",
     "lint": "eslint .",
     "check": "npm run lint && npm run typecheck"

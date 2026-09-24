@@ -2,8 +2,8 @@
 import { getCollection, render } from 'astro:content';
 import type { GetStaticPaths } from 'astro';
 import Base from '../../layouts/Base.astro';
-import Monogram from '../../components/marketing/Monogram.astro';
-import { site, drinks as copy, footer } from '../../lib/copy';
+import SiteHeader from '../../components/marketing/SiteHeader.astro';
+import { site, nav, drinks as copy, footer } from '../../lib/copy';
 import { drinkDatabase } from '../../lib/data';
 import { quadrantFor } from '../../lib/quadrant';
 
@@ -30,17 +30,10 @@ const quadrant = drink ? quadrantFor(drink.x, drink.y) : null;
 <Base title={`${d.title} · ${site.name}`} description={d.summary}>
   <div class="bar-texture min-h-screen bg-background text-foreground">
     <div class="mx-auto w-full max-w-2xl px-6 py-10 md:py-14">
-      <header class="flex items-center justify-between border-b border-foreground pb-4">
-        <a href="/" class="flex items-center gap-3">
-          <Monogram class="h-9 w-9" />
-          <span class="font-serif text-sm font-bold uppercase tracking-wordmark text-foreground">
-            {site.name}
-          </span>
-        </a>
-        <a href="/drinks" class="label-caps transition-colors hover:text-primary">
-          {copy.backLabel}
-        </a>
-      </header>
+      <SiteHeader
+        currentPath={`/drinks/${entry.id}`}
+        backLink={{ href: '/drinks', label: copy.backLabel }}
+      />
 
       <article>
         <!-- Title plate, in the manner of the reference: one name, a lot of air -->
@@ -201,14 +194,24 @@ const quadrant = drink ? quadrantFor(drink.x, drink.y) : null;
         </section>
       </article>
 
-      <footer
-        class="flex flex-wrap items-center justify-center gap-x-3 border-t border-foreground pt-5 text-center font-condensed text-3xs uppercase tracking-label text-muted-foreground"
-      >
-        <a href="/drinks" class="transition-colors hover:text-primary">{copy.backLabel}</a>
-        <span aria-hidden="true">·</span>
-        <span>{footer.note}</span>
-        <span aria-hidden="true">·</span>
-        <span>{footer.drinkResponsibly}</span>
+      <footer class="mt-16 border-t border-foreground pt-8 text-center">
+        <div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 font-condensed text-xs uppercase tracking-label text-muted-foreground">
+          <a href="/" class="transition-colors hover:text-primary">{nav.home}</a>
+          <span aria-hidden="true" class="text-border">·</span>
+          <a href="/taste" class="transition-colors hover:text-primary">{nav.map}</a>
+          <span aria-hidden="true" class="text-border">·</span>
+          <a href="/drinks" class="font-bold text-primary">{nav.register}</a>
+          <span aria-hidden="true" class="text-border">·</span>
+          <a href="/#regions" class="transition-colors hover:text-primary">{nav.regions}</a>
+          <span aria-hidden="true" class="text-border">·</span>
+          <a href="/#connect" class="transition-colors hover:text-primary">{nav.signIn}</a>
+        </div>
+
+        <div class="mt-5 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 font-condensed text-3xs uppercase tracking-label text-muted-foreground">
+          <span>{footer.note}</span>
+          <span aria-hidden="true">·</span>
+          <span>{footer.drinkResponsibly}</span>
+        </div>
       </footer>
     </div>
   </div>

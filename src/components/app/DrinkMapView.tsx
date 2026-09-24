@@ -229,18 +229,18 @@ export function DrinkMapView({ userLogs = [] }: DrinkMapViewProps) {
       {/* Interactive Map Grid Container */}
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
         {/* Interactive Map Canvas */}
-        <div className="md:col-span-7 relative aspect-[4/3] w-full border border-primary/15 rounded-xl overflow-hidden glass-dark shadow-2xl">
+        <div className="md:col-span-7 relative aspect-video w-full border border-border rounded-sm overflow-hidden bg-card shadow-bar">
           {/* Grid Background Pattern */}
           <div 
             className="absolute inset-0 opacity-15"
             style={{
-              backgroundImage: `radial-gradient(circle at 1px 1px, rgba(212, 148, 26, 0.4) 1px, transparent 0)`,
+              backgroundImage: `radial-gradient(circle at 1px 1px, hsl(var(--foreground) / 0.4) 1px, transparent 0)`,
               backgroundSize: '24px 24px'
             }}
           />
 
-          <div className="absolute top-3 left-3 bg-black/60 backdrop-blur-md px-3 py-1 rounded-full border border-primary/20 text-4xs font-mono text-muted-foreground uppercase tracking-widest flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+          <div className="absolute top-3 left-3 bg-card px-3 py-1 rounded-sm border border-border text-3xs font-condensed text-muted-foreground uppercase tracking-label flex items-center gap-1.5 shadow-bar">
+            <span className="w-2 h-2 rounded-sm bg-secondary animate-pulse" />
             Live Dish Map ({filteredPins.length} Pins)
           </div>
 
@@ -256,14 +256,14 @@ export function DrinkMapView({ userLogs = [] }: DrinkMapViewProps) {
                   isActive ? 'scale-125 z-30' : 'hover:scale-110'
                 }`}
               >
-                <div className={`flex items-center gap-1 px-2 py-1 rounded-full border shadow-lg font-mono text-3xs transition-all ${
+                <div className={`flex items-center gap-1 px-2 py-1 rounded-sm border shadow-bar font-condensed text-3xs uppercase tracking-label transition-all ${
                   isActive 
-                    ? 'bg-primary text-primary-foreground border-amber-300 font-bold shadow-[0_0_15px_rgba(212,148,26,0.5)]'
-                    : 'bg-black/80 text-foreground border-primary/30 group-hover:border-primary'
+                    ? 'bg-secondary text-secondary-foreground border-foreground font-bold'
+                    : 'bg-card text-foreground border-border group-hover:border-primary'
                 }`}>
-                  <MapPin className="w-3 h-3 text-amber-400 fill-amber-400/30" />
-                  <span className="truncate max-w-[100px]">{pin.drinkName}</span>
-                  <span className="text-4xs opacity-80">({pin.rating.toFixed(1)})</span>
+                  <MapPin className="w-3 h-3 text-primary fill-primary/30" />
+                  <span className="truncate max-w-24">{pin.drinkName}</span>
+                  <span className="text-3xs opacity-80">({pin.rating.toFixed(1)})</span>
                 </div>
               </button>
             );
@@ -317,14 +317,14 @@ export function DrinkMapView({ userLogs = [] }: DrinkMapViewProps) {
               </CardContent>
             </Card>
           ) : (
-            <div className="p-8 text-center text-xs font-serif text-muted-foreground border border-primary/10 rounded-xl glass-dark">
+            <div className="p-8 text-center text-xs font-serif text-muted-foreground border border-border rounded-sm bg-card shadow-bar">
               Click any pin on the map to inspect dish-level rating and venue details.
             </div>
           )}
 
           {/* List View of Matches */}
-          <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1">
-            <span className="text-4xs font-mono text-muted-foreground uppercase tracking-widest block px-1">
+          <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
+            <span className="label-caps block px-1">
               Top Ranked Dishes ({filteredPins.length})
             </span>
             {filteredPins.slice(0, 5).map(pin => (

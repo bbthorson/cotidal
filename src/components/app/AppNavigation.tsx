@@ -1,6 +1,6 @@
 'use client';
 
-import { Wine, Compass, MapPin, Bot } from 'lucide-react';
+import { Wine, Compass, MapPin, Sparkles } from 'lucide-react';
 
 export type ActiveTab = 'palate' | 'log' | 'map' | 'oracle';
 
@@ -12,33 +12,35 @@ interface AppNavigationProps {
 
 export function AppNavigation({ activeTab, onTabChange, loggedCount = 0 }: AppNavigationProps) {
   const navItems: { id: ActiveTab; label: string; icon: React.ReactNode; badge?: string }[] = [
-    { id: 'palate', label: 'Palate & DNA', icon: <Wine className="w-4 h-4" /> },
-    { id: 'log', label: 'Coupe Log', icon: <Compass className="w-4 h-4" />, badge: loggedCount > 0 ? `${loggedCount}` : undefined },
-    { id: 'map', label: 'Drink Map', icon: <MapPin className="w-4 h-4" /> },
-    { id: 'oracle', label: 'AI Oracle', icon: <Bot className="w-4 h-4" /> },
+    { id: 'palate', label: 'Palate', icon: <Wine className="h-3.5 w-3.5" /> },
+    { id: 'log', label: 'Log', icon: <Compass className="h-3.5 w-3.5" />, badge: loggedCount > 0 ? `${loggedCount}` : undefined },
+    { id: 'map', label: 'Drink Map', icon: <MapPin className="h-3.5 w-3.5" /> },
+    { id: 'oracle', label: 'Oracle', icon: <Sparkles className="h-3.5 w-3.5" /> },
   ];
 
   return (
-    <div className="sticky top-0 z-30 bg-background/80 backdrop-blur-md border-b border-primary/10 py-2.5 px-4 mb-6">
-      <div className="max-w-4xl mx-auto flex items-center justify-center gap-1 sm:gap-2">
+    <div className="sticky top-0 z-30 mb-6 border-b border-border bg-background/95 py-2.5 px-4 backdrop-blur-sm">
+      <div className="mx-auto flex max-w-4xl items-center justify-center gap-1.5 sm:gap-2">
         {navItems.map((item) => {
           const isActive = activeTab === item.id;
           return (
             <button
               key={item.id}
               onClick={() => onTabChange(item.id)}
-              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-mono transition-all duration-200 ${
+              className={`flex items-center gap-2 rounded-sm px-3.5 py-1.5 font-condensed text-xs uppercase tracking-label transition-colors ${
                 isActive
-                  ? 'bg-primary text-primary-foreground font-bold shadow-[0_0_12px_rgba(212,148,26,0.25)] border border-amber-300/40'
-                  : 'text-muted-foreground hover:text-foreground hover:bg-background/40 border border-transparent'
+                  ? 'border border-foreground bg-secondary font-bold text-secondary-foreground shadow-bar'
+                  : 'border border-transparent text-muted-foreground hover:bg-card hover:text-foreground'
               }`}
             >
               {item.icon}
-              <span className="hidden sm:inline">{item.label}</span>
+              <span>{item.label}</span>
               {item.badge && (
-                <span className={`px-1.5 py-0.2 rounded-full text-4xs font-mono font-bold ${
-                  isActive ? 'bg-primary-foreground text-primary' : 'bg-primary/20 text-primary'
-                }`}>
+                <span
+                  className={`rounded-sm px-1.5 py-0.5 font-condensed text-3xs font-bold ${
+                    isActive ? 'bg-background text-foreground' : 'bg-muted text-muted-foreground'
+                  }`}
+                >
                   {item.badge}
                 </span>
               )}

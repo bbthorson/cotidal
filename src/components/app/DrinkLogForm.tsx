@@ -40,11 +40,11 @@ const DEVIATION_OPTIONS = [
 ];
 
 function getRatingBadge(score: number): { label: string; color: string } {
-  if (score >= 9.5) return { label: 'Masterpiece', color: 'text-amber-400 border-amber-400/40 bg-amber-400/10' };
-  if (score >= 8.5) return { label: 'Outstanding', color: 'text-emerald-400 border-emerald-400/40 bg-emerald-400/10' };
-  if (score >= 7.0) return { label: 'Very Good', color: 'text-sky-400 border-sky-400/40 bg-sky-400/10' };
-  if (score >= 5.5) return { label: 'Solid / Good', color: 'text-secondary border-secondary/40 bg-secondary/10' };
-  if (score >= 4.0) return { label: 'Average', color: 'text-muted-foreground border-muted-foreground/30 bg-muted/20' };
+  if (score >= 9.5) return { label: 'Masterpiece', color: 'text-primary border-primary/40 bg-primary/10' };
+  if (score >= 8.5) return { label: 'Outstanding', color: 'text-secondary border-secondary/40 bg-secondary/10' };
+  if (score >= 7.0) return { label: 'Very Good', color: 'text-secondary/80 border-secondary/30 bg-secondary/5' };
+  if (score >= 5.5) return { label: 'Solid / Good', color: 'text-foreground/80 border-border bg-card' };
+  if (score >= 4.0) return { label: 'Average', color: 'text-muted-foreground border-border bg-muted/20' };
   return { label: 'Subpar', color: 'text-destructive border-destructive/40 bg-destructive/10' };
 }
 
@@ -460,17 +460,17 @@ export function DrinkLogForm({
                 No drinks logged on your repository yet. Order something and submit your first log above!
               </div>
             ) : (
-              <div className="space-y-3 overflow-y-auto max-h-[420px] pr-1">
+              <div className="space-y-3 overflow-y-auto max-h-96 pr-1">
                 {history.map((log, i) => {
                   const displayRating = log.rating ?? (log.hedonicScale ? (log.hedonicScale - 1) * 1.25 : 5.0);
                   return (
-                    <div key={i} className="p-3.5 rounded-lg border border-primary/10 bg-background/20 space-y-2 text-xs">
+                    <div key={i} className="p-3.5 rounded-sm border border-border bg-card space-y-2 text-xs">
                       <div className="flex justify-between items-start">
                         <div>
                           <div className="flex items-center gap-1.5">
                             <h4 className="font-bold text-foreground">{log.drinkName}</h4>
                             {log.baseSpirit && (
-                              <span className="text-4xs font-mono text-muted-foreground bg-primary/5 border border-primary/10 px-1.5 py-0.2 rounded">
+                              <span className="text-3xs font-condensed text-muted-foreground bg-muted border border-border px-1.5 py-0.5 rounded-sm">
                                 {log.baseSpirit}
                               </span>
                             )}

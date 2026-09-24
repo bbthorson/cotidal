@@ -34,20 +34,6 @@ export default {
         code: ['monospace'],
       },
       colors: {
-        amber: {
-          50: '#FFF8E1',
-          100: '#FFECB3',
-          200: '#FFD54F',
-          300: '#FFCA28',
-          400: '#FFC107',
-          500: '#D4941A',
-          600: '#B7800F',
-          700: '#8B6914',
-          800: '#5D4610',
-          900: '#3D2E0A',
-        },
-        copper: '#C47035',
-        barrel: '#1A1D26',
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',
         card: {
