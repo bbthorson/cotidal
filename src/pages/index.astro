@@ -1,6 +1,5 @@
 ---
-import Base from '../layouts/Base.astro';
-import SiteHeader from '../components/marketing/SiteHeader.astro';
+import AppShell from '../layouts/AppShell.astro';
 import ConnectForm from '../components/marketing/ConnectForm.astro';
 import QuadrantGrid from '../components/marketing/QuadrantGrid.astro';
 import Principles from '../components/marketing/Principles.astro';
@@ -33,13 +32,8 @@ const errorParam = Astro.url.searchParams.get('error');
 const error = errorParam ? (errorCodes[errorParam] ?? errorCodes.authorize_failed) : null;
 ---
 
-<Base>
-  <div class="bar-texture min-h-screen bg-background text-foreground">
-    <div class="mx-auto w-full max-w-3xl px-6 py-10 md:py-14">
-      <!-- Masthead & Unified Navigation -->
-      <SiteHeader currentPath="/" eyebrow={hero.eyebrow} />
-
-      <!-- Hero. The deck sits above the figure so the coupe is the last beat
+<AppShell currentPath="/" eyebrow={hero.eyebrow} width="standard">
+  <!-- Hero. The deck sits above the figure so the coupe is the last beat
            before the call to action, rather than an interruption in the middle
            of the argument. -->
       <section class="pb-16 pt-12 text-center md:pb-20 md:pt-16">
@@ -181,6 +175,4 @@ const error = errorParam ? (errorCodes[errorParam] ?? errorCodes.authorize_faile
           <span>{footer.drinkResponsibly}</span>
         </div>
       </footer>
-    </div>
-  </div>
-</Base>
+</AppShell>

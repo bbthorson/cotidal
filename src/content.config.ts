@@ -26,10 +26,15 @@ import { z } from 'astro/zod';
 export const DRINK_FAMILIES = [
   'old-fashioned',
   'martini',
+  'manhattan',
   'sour',
   'highball',
   'aperitivo',
   'dessert',
+  'wine',
+  'fortified-wine',
+  'beer',
+  'spirit',
 ] as const;
 
 const ingredient = z.object({
@@ -73,7 +78,7 @@ const drinks = defineCollection({
       method: z.string(),
       garnish: z.string().optional(),
     }),
-    ingredients: z.array(ingredient).min(1),
+    ingredients: z.array(ingredient).default([]),
     documented: z.array(attested).min(1),
     claimed: z.array(asserted).default([]),
     sources: z.array(reference).min(1),

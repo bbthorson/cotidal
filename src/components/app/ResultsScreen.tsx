@@ -10,8 +10,8 @@ import { PalateRadarChart } from './PalateRadarChart';
 import { DrinkMapView } from './DrinkMapView';
 import { AppNavigation, type ActiveTab } from './AppNavigation';
 import { useAtprotoContext } from './AtprotoProvider';
-import { getConnectedDrinkLogs } from '@/lib/api-client';
-import { MapPin } from 'lucide-react';
+import { getConnectedDrinkLogs, refinePalateWithAI } from '@/lib/api-client';
+import { MapPin, Sparkles } from 'lucide-react';
 import type { UserProfile } from '@/hooks/useDiscoveryQuiz';
 import type { DrinkLogRecord } from '@/lib/atproto/lexicon';
 
@@ -34,6 +34,33 @@ export function ResultsScreen({ user, vibeTags, onPalateUpdated }: ResultsScreen
     const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
     const [history, setHistory] = useState<DrinkLogRecord[]>([]);
     const [loadingHistory, setLoadingHistory] = useState(false);
+    const [refineNotes, setRefineNotes] = useState('');
+    const [isRefining, setIsRefining] = useState(false);
+    const [dossier, setDossier] = useState<string | null>(null);
+
+    const handleRefinePalate = async () => {
+        if (!refineNotes.trim() || isRefining) return;
+        setIsRefining(true);
+        try {
+            const currentProfile: UserProfile = {
+                x: user.x,
+                y: user.y,
+                dislikesSmoke: user.filters.includes('noSmoke'),
+                dislikesBitter: user.filters.includes('noBitter'),
+                dislikesAnise: user.filters.includes('noAnise'),
+                vibeTags: vibeTags || {},
+            };
+            const result = await refinePalateWithAI(refineNotes, currentProfile);
+            setDossier(result.dossier);
+            if (onPalateUpdated) {
+                onPalateUpdated(result.profile);
+            }
+        } catch (err) {
+            console.error('Failed to refine palate:', err);
+        } finally {
+            setIsRefining(false);
+        }
+    };
 
     const fetchHistory = async () => {
         if (!isConnected) return;
@@ -156,6 +183,66 @@ export function ResultsScreen({ user, vibeTags, onPalateUpdated }: ResultsScreen
                     <div className="space-y-8 animate-in fade-in duration-300">
                         {/* 6-Axis Palate Radar Chart & Dynamic Archetype */}
                         <PalateRadarChart palate={userProfileForRadar} />
+
+                        {/* AI Palate Refinement (Member Feature) */}
+                        <div className="border border-border bg-card p-6 rounded-sm shadow-bar space-y-4">
+                            <div className="flex items-center justify-between border-b border-border/60 pb-3">
+                                <div className="flex items-center gap-2">
+                                    <Sparkles className="w-4 h-4 text-primary" />
+                                    <h3 className="font-serif text-lg font-bold text-foreground">AI Palate Refinement</h3>
+                                </div>
+                                <span className="label-caps text-primary">Member Instrument</span>
+                            </div>
+
+                            {isConnected ? (
+                                <div className="space-y-4">
+                                    <p className="font-serif text-sm text-muted-foreground leading-relaxed">
+                                        Have specific quirks or house rules? Tell us anything you avoid, crave, or swear by. The model will calibrate your coordinate and update your AT Protocol record.
+                                    </p>
+                                    <textarea
+                                        value={refineNotes}
+                                        onChange={(e) => setRefineNotes(e.target.value)}
+                                        placeholder="e.g., I get migraines from red wine tannins, love dry gin martinis with a twist, but absolutely despise licorice or absinthe."
+                                        rows={3}
+                                        className="w-full p-3 bg-background border border-border text-foreground font-serif text-sm rounded-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary placeholder:text-muted-foreground/60 resize-none"
+                                    />
+                                    <div className="flex items-center justify-between">
+                                        <button
+                                            onClick={handleRefinePalate}
+                                            disabled={isRefining || refineNotes.trim().length < 2}
+                                            className="px-4 py-2 font-condensed text-xs uppercase tracking-label font-bold bg-secondary text-secondary-foreground hover:bg-secondary/90 transition-colors rounded-sm shadow-bar disabled:opacity-50"
+                                        >
+                                            {isRefining ? 'Calibrating…' : 'Refine Coordinate &rarr;'}
+                                        </button>
+                                        <span className="font-mono text-3xs text-muted-foreground/60">
+                                            Metered via AT Protocol
+                                        </span>
+                                    </div>
+                                    {dossier && (
+                                        <div className="mt-4 p-4 border-l-2 border-primary bg-secondary/10 space-y-1">
+                                            <span className="label-caps text-primary block">Palate Colophon</span>
+                                            <p className="font-serif text-sm italic text-foreground leading-relaxed">
+                                                {dossier}
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
+                            ) : (
+                                <div className="space-y-3">
+                                    <p className="font-serif text-sm text-muted-foreground leading-relaxed">
+                                        Sign in with your Bluesky / AT Protocol handle to unlock continuous AI palate refinement, custom ingredient tolerances, and personalized palate colophons.
+                                    </p>
+                                    <div className="pt-2">
+                                        <ConnectBluesky
+                                            user={user}
+                                            vibeTags={vibeTags || {}}
+                                            heroDrinkName={heroDrink?.name || ''}
+                                            quadrant={getQuadrantName(user.x, user.y)}
+                                        />
+                                    </div>
+                                </div>
+                            )}
+                        </div>
 
                         {/* Location Selector Widget */}
                         <div className="glass-dark border-primary/10 rounded-xl p-5 space-y-4 shadow-md coaster">

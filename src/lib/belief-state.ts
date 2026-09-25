@@ -68,6 +68,13 @@ export function updateBelief(state: BeliefState, option: QuestionOption): Belief
   if (option.filterFlag) {
     newFilters[option.filterFlag.key] = option.filterFlag.value;
   }
+  if (option.filterFlags) {
+    for (const [key, value] of Object.entries(option.filterFlags)) {
+      if (value !== undefined) {
+        newFilters[key as keyof FilterState] = value;
+      }
+    }
+  }
 
   // Update vibe tags
   const newVibeTags = { ...state.vibeTags };

@@ -2,8 +2,13 @@ import { questions, type Question, type QuestionCategory } from './discovery-que
 import type { BeliefState } from './belief-state';
 import { getMaxUncertaintyAxis } from './belief-state';
 
-// First 3 questions are always calibration (cold start)
-const CALIBRATION_IDS = ['coffee', 'dessert', 'bitter_tol'];
+// The 4 Sommelier Triads: Negative Elimination cold start
+const CALIBRATION_IDS = [
+  'triad_sugar_texture',
+  'triad_bitter_botanical',
+  'triad_smoke_oak',
+  'triad_proof_tempo',
+];
 
 export function selectNextQuestion(
   belief: BeliefState,

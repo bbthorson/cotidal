@@ -67,3 +67,23 @@ test('Belief: confidence rises with answers and starts incomplete', async () => 
 
   expect(getConfidenceProgress(belief)).toBeGreaterThan(before);
 });
+
+test('Belief: Sommelier Triads apply repulsive vectors and resolve filters', async () => {
+  let belief = createInitialBelief();
+
+  // Triad 1: Pushing away "Dense Velvet & Demerara" (Option 1) -> moves away from sweet/rich (dx: 4, dy: -4)
+  belief = updateBelief(belief, option('triad_sugar_texture', 1));
+  let profile = beliefToProfile(belief);
+  expect(profile.x).toBeGreaterThan(0); // Pushed crisp
+  expect(profile.y).toBeLessThan(0);    // Pushed savory
+
+  // Triad 2: Pushing away "Alpine Roots & Dark Amaro" (Option 0) -> dislikesBitter: true
+  belief = updateBelief(belief, option('triad_bitter_botanical', 0));
+  profile = beliefToProfile(belief);
+  expect(profile.dislikesBitter).toBe(true);
+
+  // Triad 3: Pushing away "Charred Agave & Islay Peat" (Option 0) -> dislikesSmoke: true
+  belief = updateBelief(belief, option('triad_smoke_oak', 0));
+  profile = beliefToProfile(belief);
+  expect(profile.dislikesSmoke).toBe(true);
+});

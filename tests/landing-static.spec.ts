@@ -65,6 +65,17 @@ test('Landing: each region links to its section of the register', async ({ page 
   }
 });
 
+test('Landing: each region links to its dedicated region page', async ({ page }) => {
+  const landing = await (await page.request.get('/')).text();
+
+  for (const id of QUADRANT_ORDER) {
+    expect(landing, `no landing link to /regions/${id}`).toContain(`/regions/${id}`);
+    const regionPage = await (await page.request.get(`/regions/${id}`)).text();
+    expect(regionPage).toContain('Sensory Stance');
+    expect(regionPage).toContain('Technical Anatomy');
+  }
+});
+
 test('Landing: sign-in works without JavaScript', async ({ browser }) => {
   const context = await browser.newContext({ javaScriptEnabled: false });
   const page = await context.newPage();
@@ -99,5 +110,10 @@ test('Navigation: unified header navigation renders on landing and register', as
   expect(register).toContain('aria-label="Main Navigation"');
   expect(register).toContain('href="/taste"');
   expect(register).toContain('href="/drinks"');
+
+  const taste = await (await page.request.get('/taste')).text();
+  expect(taste).toContain('aria-label="Main Navigation"');
+  expect(taste).toContain('href="/taste"');
+  expect(taste).toContain('href="/drinks"');
 });
 

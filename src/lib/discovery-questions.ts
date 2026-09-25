@@ -15,6 +15,7 @@ export interface QuestionOption {
     key: 'dislikesSmoke' | 'dislikesBitter' | 'dislikesAnise';
     value: boolean;
   };
+  filterFlags?: Partial<Record<'dislikesSmoke' | 'dislikesBitter' | 'dislikesAnise', boolean>>;
   feedback?: string;
 }
 
@@ -25,7 +26,7 @@ export interface Question {
   sectionNumber: string; // e.g. "01", "02", "03", "04"
   text: string;
   subtitle?: string;     // Sensory subtitle on the ledger card
-  type?: 'narrative' | 'boolean' | 'image-grid';
+  type?: 'narrative' | 'boolean' | 'image-grid' | 'triad';
   options: QuestionOption[];
   primaryAxis: 'x' | 'y';
   informationGain: number;
@@ -41,8 +42,153 @@ export const QUESTION_CATEGORIES: { id: QuestionCategory; index: string; label: 
 
 export const questions: Question[] = [
   // =========================================================================
-  // 01. THE PALATE (Taste & Chemistry: sweet, acid, bitter, smoke, botanical)
+  // THE SOMMELIER TRIADS (Negative Elimination: Cold Deterministic Baseline)
   // =========================================================================
+  {
+    id: 'triad_sugar_texture',
+    tier: 'calibration',
+    category: 'palate',
+    sectionNumber: '01',
+    text: "Which glass do you push away first?",
+    subtitle: "Calibrating acid sensitivity and sugar ceiling",
+    type: 'triad',
+    primaryAxis: 'y',
+    informationGain: 8,
+    options: [
+      {
+        text: "Sharp Citrus & Mineral",
+        note: "Bracing lime, green apple, cold soda, bone dry finish",
+        dx: -4,
+        dy: 3,
+        feedback: "Averse to bracing acid; seeking weight and roundness."
+      },
+      {
+        text: "Dense Velvet & Demerara",
+        note: "Spiced fig, molasses, rich cream, candied stonefruit",
+        dx: 4,
+        dy: -4,
+        feedback: "Low sugar ceiling; rejecting heavy syrup and unctuous sweetness."
+      },
+      {
+        text: "Stark Botanical Brine",
+        note: "Dry gin, sea spray, olive leaf, austere finish",
+        dx: -2,
+        dy: 4,
+        feedback: "Stark dryness rejected; craving sweetness and fruit."
+      }
+    ]
+  },
+  {
+    id: 'triad_bitter_botanical',
+    tier: 'calibration',
+    category: 'palate',
+    sectionNumber: '01',
+    text: "Which botanical profile do you eliminate?",
+    subtitle: "Testing bitterness tolerance and aromatic friction",
+    type: 'triad',
+    primaryAxis: 'x',
+    informationGain: 8,
+    options: [
+      {
+        text: "Alpine Roots & Dark Amaro",
+        note: "Gentian root, pine needle, artichoke, intense bitter bite",
+        dx: 2,
+        dy: 3,
+        filterFlag: { key: 'dislikesBitter', value: true },
+        feedback: "Intense botanical bitterness rejected."
+      },
+      {
+        text: "Star Anise & Absinthe",
+        note: "Black licorice, fennel bulb, heavy wormwood aromatics",
+        dx: 1,
+        dy: -1,
+        filterFlag: { key: 'dislikesAnise', value: true },
+        feedback: "Anise and licorice aromatics eliminated."
+      },
+      {
+        text: "Sweet Floral & Elderflower",
+        note: "White blossom, ripe pear, elderflower, soft clover honey",
+        dx: -2,
+        dy: -4,
+        filterFlags: { dislikesBitter: false, dislikesAnise: false },
+        feedback: "Perfumed sweetness pushed away; amaro and botanicals embraced."
+      }
+    ]
+  },
+  {
+    id: 'triad_smoke_oak',
+    tier: 'calibration',
+    category: 'architecture',
+    sectionNumber: '02',
+    text: "Which spirit foundation do you push away?",
+    subtitle: "Calibrating peat, smoke, and barrel intensity",
+    type: 'triad',
+    primaryAxis: 'x',
+    informationGain: 8,
+    options: [
+      {
+        text: "Charred Agave & Islay Peat",
+        note: "Bonfire smoke, mezcal ash, campfire ember, iodine peat",
+        dx: 3,
+        dy: 1,
+        filterFlag: { key: 'dislikesSmoke', value: true },
+        feedback: "Heavy smoke and peat rejected."
+      },
+      {
+        text: "Toasted Bourbon & Maple",
+        note: "Heavily charred American oak, brown butter, vanilla bean",
+        dx: 3,
+        dy: -3,
+        filterFlags: { dislikesSmoke: false },
+        feedback: "Heavy bourbon oak and vanilla sweetness pushed away."
+      },
+      {
+        text: "Raw Highland Agave & Pepper",
+        note: "Crisp vegetal spirit, green pepper, crushed wet river stone",
+        dx: -3,
+        dy: 1,
+        filterFlags: { dislikesSmoke: false },
+        feedback: "Pungent vegetal spirit heat eliminated."
+      }
+    ]
+  },
+  {
+    id: 'triad_proof_tempo',
+    tier: 'calibration',
+    category: 'ritual',
+    sectionNumber: '03',
+    text: "Which drink preparation do you push away?",
+    subtitle: "Calibrating temperature, dilution, and proof heat",
+    type: 'triad',
+    primaryAxis: 'x',
+    informationGain: 7,
+    options: [
+      {
+        text: "Undiluted & High-Proof",
+        note: "Room-temperature spirit bite, oily coating, no ice",
+        dx: 4,
+        dy: 0,
+        vibeTags: ['classic', 'crushable'],
+        feedback: "Spirit-forward burn rejected; craving cold dilution."
+      },
+      {
+        text: "Tall, Fizzy & Ice-Cold",
+        note: "High-carbonation soda, mountain ice, feather-light body",
+        dx: -4,
+        dy: 0,
+        vibeTags: ['complex', 'polarizing'],
+        feedback: "Thin highballs pushed away; demanding weight and depth."
+      },
+      {
+        text: "Frothy Velvet & Nutmeg",
+        note: "Egg white meringue, rich custard mouthfeel, heavy texture",
+        dx: 2,
+        dy: -3,
+        vibeTags: ['classic', 'social'],
+        feedback: "Foamy dessert texture eliminated; leaning clean and direct."
+      }
+    ]
+  },
   {
     id: 'coffee',
     tier: 'calibration',

@@ -1,7 +1,6 @@
 ---
 import { getCollection } from 'astro:content';
-import Base from '../../layouts/Base.astro';
-import SiteHeader from '../../components/marketing/SiteHeader.astro';
+import AppShell from '../../layouts/AppShell.astro';
 import { site, nav, drinks as copy, footer, quadrants } from '../../lib/copy';
 import { drinkDatabase } from '../../lib/data';
 import { quadrantIdFor } from '../../lib/quadrant';
@@ -37,12 +36,14 @@ const grouped = quadrants.map((quadrant) => ({
 }));
 ---
 
-<Base title={`${copy.title} · ${site.name}`} description={copy.intro}>
-  <div class="bar-texture min-h-screen bg-background text-foreground">
-    <div class="mx-auto w-full max-w-3xl px-6 py-10 md:py-14">
-      <SiteHeader currentPath="/drinks" eyebrow={copy.eyebrow} />
-
-      <section class="pb-14 pt-14 text-center md:pb-20 md:pt-20">
+<AppShell
+  title={`${copy.title} · ${site.name}`}
+  description={copy.intro}
+  currentPath="/drinks"
+  eyebrow={copy.eyebrow}
+  width="standard"
+>
+  <section class="pb-14 pt-14 text-center md:pb-20 md:pt-20">
         <h1 class="font-serif text-4xl font-bold leading-display text-foreground md:text-5xl">
           {copy.title}
         </h1>
@@ -117,6 +118,4 @@ const grouped = quadrants.map((quadrant) => ({
           <span>{footer.drinkResponsibly}</span>
         </div>
       </footer>
-    </div>
-  </div>
-</Base>
+</AppShell>

@@ -1,8 +1,7 @@
 ---
 import { getCollection, render } from 'astro:content';
 import type { GetStaticPaths } from 'astro';
-import Base from '../../layouts/Base.astro';
-import SiteHeader from '../../components/marketing/SiteHeader.astro';
+import AppShell from '../../layouts/AppShell.astro';
 import { site, nav, drinks as copy, footer } from '../../lib/copy';
 import { drinkDatabase } from '../../lib/data';
 import { quadrantFor } from '../../lib/quadrant';
@@ -27,15 +26,14 @@ const drink = drinkDatabase.find((item) => item.name === d.name);
 const quadrant = drink ? quadrantFor(drink.x, drink.y) : null;
 ---
 
-<Base title={`${d.title} · ${site.name}`} description={d.summary}>
-  <div class="bar-texture min-h-screen bg-background text-foreground">
-    <div class="mx-auto w-full max-w-2xl px-6 py-10 md:py-14">
-      <SiteHeader
-        currentPath={`/drinks/${entry.id}`}
-        backLink={{ href: '/drinks', label: copy.backLabel }}
-      />
-
-      <article>
+<AppShell
+  title={`${d.title} · ${site.name}`}
+  description={d.summary}
+  currentPath={`/drinks/${entry.id}`}
+  backLink={{ href: '/drinks', label: copy.backLabel }}
+  width="prose"
+>
+  <article>
         <!-- Title plate, in the manner of the reference: one name, a lot of air -->
         <div class="border-b border-foreground pb-10 pt-14 text-center md:pt-20">
           <p class="label-caps">{d.family}</p>
@@ -79,26 +77,28 @@ const quadrant = drink ? quadrantFor(drink.x, drink.y) : null;
           <h2 class="label-caps border-b border-foreground pb-2 text-foreground">
             {copy.buildLabel}
           </h2>
-          <ul class="border-b border-border">
-            {
-              d.ingredients.map((i) => (
-                <li class="menu-row dot-leader py-2.5 first:border-t-0">
-                  <span class="font-serif text-sm text-foreground">
-                    {i.name}
-                    {i.optional && (
-                      <em class="ml-2 font-condensed text-3xs uppercase not-italic tracking-label text-muted-foreground">
-                        {copy.optionalLabel}
-                      </em>
-                    )}
-                  </span>
-                  <span class="leader" aria-hidden="true"></span>
-                  <span class="shrink-0 font-condensed text-sm tabular-nums text-secondary">
-                    {i.amount}
-                  </span>
-                </li>
-              ))
-            }
-          </ul>
+          {
+            d.ingredients.length > 0 && (
+              <ul class="border-b border-border">
+                {d.ingredients.map((i) => (
+                  <li class="menu-row dot-leader py-2.5 first:border-t-0">
+                    <span class="font-serif text-sm text-foreground">
+                      {i.name}
+                      {i.optional && (
+                        <em class="ml-2 font-condensed text-3xs uppercase not-italic tracking-label text-muted-foreground">
+                          {copy.optionalLabel}
+                        </em>
+                      )}
+                    </span>
+                    <span class="leader" aria-hidden="true"></span>
+                    <span class="shrink-0 font-condensed text-sm tabular-nums text-secondary">
+                      {i.amount}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )
+          }
           <dl class="mt-5 space-y-2.5">
             <div class="flex gap-4">
               <dt class="label-caps w-16 shrink-0 pt-0.5">{copy.glassLabel}</dt>
@@ -213,6 +213,4 @@ const quadrant = drink ? quadrantFor(drink.x, drink.y) : null;
           <span>{footer.drinkResponsibly}</span>
         </div>
       </footer>
-    </div>
-  </div>
-</Base>
+</AppShell>
