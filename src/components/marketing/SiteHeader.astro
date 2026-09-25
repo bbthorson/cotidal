@@ -1,79 +1,61 @@
 ---
 import Monogram from './Monogram.astro';
-import { site, nav } from '../../lib/copy';
+import { site } from '../../lib/copy';
+import { destinations, signIn, isCurrent } from '../../lib/site-nav';
 
 interface Props {
   currentPath?: string;
-  eyebrow?: string;
-  backLink?: { href: string; label: string };
 }
 
-const { currentPath = '/', eyebrow, backLink } = Astro.props;
-
-const isDrinks = currentPath.startsWith('/drinks');
-const isTaste = currentPath.startsWith('/taste');
-const isLog = currentPath.startsWith('/log');
-
-const navItems = [
-  { href: '/taste', label: nav.map, active: isTaste },
-  { href: '/log', label: nav.log, active: isLog },
-  { href: '/drinks', label: nav.register, active: isDrinks },
-  { href: '/#regions', label: nav.regions, active: false },
-  { href: '/#connect', label: nav.signIn, active: false },
-];
+const { currentPath = '/' } = Astro.props;
 ---
 
 <header class="border-b border-foreground pb-4">
-  <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-    <div class="flex items-center justify-between">
+  <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+    <div class="flex items-center">
       <a
         href="/"
         class="group flex items-center gap-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
-        <Monogram class="h-8 w-8 md:h-9 md:w-9 transition-transform group-hover:scale-105" />
-        <div class="leading-none">
+        <Monogram class="h-8 w-8 shrink-0 transition-transform group-hover:scale-105 md:h-9 md:w-9" />
+        <div class="whitespace-nowrap leading-none">
           <span class="block font-serif text-sm font-bold uppercase tracking-wordmark text-foreground md:text-base">
             {site.name}
           </span>
           <span class="mt-1 block font-condensed text-3xs uppercase tracking-label text-muted-foreground">
-            {eyebrow ?? site.tagline}
+            {site.tagline}
           </span>
         </div>
       </a>
-
-      {backLink && (
-        <a
-          href={backLink.href}
-          class="font-condensed text-xs uppercase tracking-label text-muted-foreground transition-colors hover:text-primary sm:hidden"
-        >
-          {backLink.label}
-        </a>
-      )}
     </div>
 
-    <nav aria-label="Main Navigation" class="flex flex-wrap items-center gap-1.5 sm:gap-2">
-      {backLink && (
-        <a
-          href={backLink.href}
-          class="mr-2 hidden items-center gap-1 font-condensed text-xs uppercase tracking-label text-muted-foreground transition-colors hover:text-primary sm:inline-flex"
-        >
-          &larr; {backLink.label}
-        </a>
-      )}
+    <div class="flex flex-wrap items-center gap-x-3 gap-y-2 lg:flex-nowrap">
+      <nav aria-label="Main Navigation" class="flex flex-wrap items-center gap-1 lg:flex-nowrap">
+        {destinations.map((item) => {
+          const active = isCurrent(currentPath, item.match);
+          return (
+            <a
+              href={item.href}
+              aria-current={active ? 'page' : undefined}
+              class:list={[
+                'whitespace-nowrap px-2 py-1.5 font-condensed text-xs uppercase tracking-label transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                active
+                  ? 'border border-foreground bg-secondary font-bold text-secondary-foreground shadow-bar'
+                  : 'border border-transparent text-muted-foreground hover:bg-card hover:text-foreground',
+              ]}
+            >
+              {item.label}
+            </a>
+          );
+        })}
+      </nav>
 
-      {navItems.map((item) => (
-        <a
-          href={item.href}
-          class:list={[
-            'px-2.5 py-1.5 font-condensed text-xs uppercase tracking-label transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-            item.active
-              ? 'border border-foreground bg-secondary font-bold text-secondary-foreground shadow-bar'
-              : 'text-muted-foreground hover:bg-card hover:text-foreground'
-          ]}
-        >
-          {item.label}
-        </a>
-      ))}
-    </nav>
+      <a
+        href={signIn.href}
+        class="shrink-0 whitespace-nowrap border border-foreground px-3 py-1.5 font-condensed text-xs uppercase tracking-label text-foreground transition-colors hover:bg-secondary hover:text-secondary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      >
+        {signIn.label}
+      </a>
+    </div>
   </div>
 </header>

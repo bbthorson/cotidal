@@ -19,8 +19,8 @@ export function AppNavigation({ activeTab, onTabChange, loggedCount = 0 }: AppNa
   ];
 
   return (
-    <div className="sticky top-0 z-30 mb-6 border-b border-border bg-background/95 py-2.5 px-4 backdrop-blur-sm">
-      <div className="mx-auto flex max-w-4xl items-center justify-center gap-1.5 sm:gap-2">
+    <div className="sticky top-0 z-30 mb-6 border-b border-border bg-background/95 py-2.5 backdrop-blur-sm">
+      <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2">
         {navItems.map((item) => {
           const isActive = activeTab === item.id;
           return (

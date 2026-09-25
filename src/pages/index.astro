@@ -4,7 +4,7 @@ import ConnectForm from '../components/marketing/ConnectForm.astro';
 import QuadrantGrid from '../components/marketing/QuadrantGrid.astro';
 import Principles from '../components/marketing/Principles.astro';
 import CoupeFigure from '../components/marketing/CoupeFigure.astro';
-import { nav, hero, connect, footer, drinks, sections } from '../lib/copy';
+import { hero, connect, drinks, sections } from '../lib/copy';
 
 /**
  * The landing page ships zero JavaScript. Everything interactive lives at
@@ -32,7 +32,7 @@ const errorParam = Astro.url.searchParams.get('error');
 const error = errorParam ? (errorCodes[errorParam] ?? errorCodes.authorize_failed) : null;
 ---
 
-<AppShell currentPath="/" eyebrow={hero.eyebrow} width="standard">
+<AppShell currentPath="/" width="standard">
   <!-- Hero. The deck sits above the figure so the coupe is the last beat
            before the call to action, rather than an interruption in the middle
            of the argument. -->
@@ -149,32 +149,10 @@ const error = errorParam ? (errorCodes[errorParam] ?? errorCodes.authorize_faile
       </section>
 
       <!-- Principles -->
-      <section class="pb-16 md:pb-20">
+      <section>
         <h2 class="label-caps mb-5 border-b border-foreground pb-2 text-foreground">
           {sections.principles}
         </h2>
         <Principles />
       </section>
-
-      <footer class="border-t border-foreground pt-8 text-center">
-        <div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 font-condensed text-xs uppercase tracking-label text-muted-foreground">
-          <a href="/" class="transition-colors hover:text-primary">{nav.home}</a>
-          <span aria-hidden="true" class="text-border">·</span>
-          <a href="/taste" class="transition-colors hover:text-primary">{nav.map}</a>
-          <span aria-hidden="true" class="text-border">·</span>
-          <a href="/drinks" class="transition-colors hover:text-primary">{nav.register}</a>
-          <span aria-hidden="true" class="text-border">·</span>
-          <a href="/#regions" class="transition-colors hover:text-primary">{nav.regions}</a>
-          <span aria-hidden="true" class="text-border">·</span>
-          <a href="/bars" class="transition-colors hover:text-primary">{nav.bars}</a>
-          <span aria-hidden="true" class="text-border">·</span>
-          <a href="/#connect" class="transition-colors hover:text-primary">{nav.signIn}</a>
-        </div>
-
-        <div class="mt-5 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 font-condensed text-3xs uppercase tracking-label text-muted-foreground">
-          <span>{footer.note}</span>
-          <span aria-hidden="true">·</span>
-          <span>{footer.drinkResponsibly}</span>
-        </div>
-      </footer>
 </AppShell>

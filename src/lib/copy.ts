@@ -27,7 +27,6 @@ export const nav = {
 } as const;
 
 export const hero = {
-  eyebrow: 'A reading of your taste',
   edition: 'Specimen No. 1',
   headline: 'Every palate has',
   headlineAccent: 'a coordinate.',
