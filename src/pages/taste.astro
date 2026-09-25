@@ -2,6 +2,7 @@
 import AppShell from '../layouts/AppShell.astro';
 import Home from '../components/app/Home';
 import { site, nav } from '../lib/copy';
+import { loadRegister } from '../lib/register.server';
 
 /**
  * The interactive half of the app. This is the only route that mounts a
@@ -10,6 +11,8 @@ import { site, nav } from '../lib/copy';
  * `client:load` (not `client:only`) so the shell server-renders and the
  * page has painted content before hydration finishes.
  */
+
+const register = await loadRegister();
 ---
 
 <AppShell
@@ -17,5 +20,5 @@ import { site, nav } from '../lib/copy';
   currentPath="/taste"
   width="wide"
 >
-  <Home client:load />
+  <Home client:load register={register} />
 </AppShell>

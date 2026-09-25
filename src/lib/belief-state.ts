@@ -22,7 +22,7 @@ export interface BeliefState {
 const INITIAL_VARIANCE = 25;
 const COMPLETION_THRESHOLD = 3.5;
 const MIN_QUESTIONS = 4;
-const MAX_QUESTIONS = 8;
+export const MAX_QUESTIONS = 8;
 
 export function createInitialBelief(): BeliefState {
   return {

@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { returnVisit } from '../src/lib/copy';
+import { returnVisit, pour } from '../src/lib/copy';
 
 test('Return Visit: server-renders /log route shell', async ({ page }) => {
   const response = await page.request.get('/log');
@@ -11,38 +11,34 @@ test('Return Visit: server-renders /log route shell', async ({ page }) => {
   expect(html).toContain('href="/log"');
 });
 
-test('Return Visit: cold visitor can test guest pour and observe coordinate shift', async ({ page }) => {
+test('Return Visit: a guest logs a pour, sees the coordinate move, then the ledger', async ({ page }) => {
   await page.goto('/log');
 
-  // Verify cold visitor callout
+  // The cold state says what the page is, and the ways in.
   await expect(page.getByText(returnVisit.coldTitle)).toBeVisible();
   await expect(page.getByText(returnVisit.coldBody)).toBeVisible();
+  await page.getByRole('button', { name: returnVisit.guestCta }).click();
 
-  // Click guest specimen action
-  const guestButton = page.getByRole('button', { name: /test a pour as guest/i });
-  await expect(guestButton).toBeVisible();
-  await guestButton.click();
+  // The working surface: where you are, and the one pour form.
+  await expect(page.getByRole('heading', { name: returnVisit.logTitle })).toBeVisible();
+  await expect(page.getByText(returnVisit.youAreIn)).toBeVisible();
 
-  // The active palate surface appears
-  await expect(page.getByRole('heading', { name: /log a pour/i })).toBeVisible();
-  await expect(page.getByText('Your Flavor Position')).toBeVisible();
+  const where = page.getByRole('group', { name: pour.whereLabel });
+  await where.getByRole('button', { name: pour.atHome }).click();
+  await expect(where.getByRole('button', { name: pour.atHome })).toHaveAttribute('aria-pressed', 'true');
 
-  // Context: toggle Home Pour
-  const homePourToggle = page.getByRole('button', { name: /switch to home pour/i });
-  await homePourToggle.click();
-  await expect(page.getByText('Home Pour Active')).toBeVisible();
+  // The 9-point scale is what the pour record stores.
+  await page.getByRole('radio', { name: /^8:/ }).click();
+  await page.getByRole('button', { name: 'Too sweet', exact: true }).click();
+  await page.getByRole('button', { name: pour.submit }).click();
 
-  // Deviations: toggle 'Too sweet'
-  const tooSweetBtn = page.getByRole('button', { name: 'Too sweet', exact: true });
-  await tooSweetBtn.click();
+  // The same after-a-pour screen as /taste.
+  await expect(page.getByRole('heading', { name: 'Your coordinate moved.' })).toBeVisible();
+  await expect(page.getByText(/8 of 9/)).toBeVisible();
+  await page.getByRole('button', { name: returnVisit.movedBack }).click();
 
-  // Submit pour
-  const submitBtn = page.getByRole('button', { name: /log pour & calibrate map/i });
-  await submitBtn.click();
-
-  // Observe shift feedback banner and chronicle
-  await expect(page.getByText(/palate shift recorded/i)).toBeVisible();
   await expect(page.getByRole('heading', { name: returnVisit.ledgerTitle, exact: true })).toBeVisible();
-  await expect(page.getByText('Home Pour', { exact: true })).toBeVisible();
-  await expect(page.getByText('too sweet', { exact: true })).toBeVisible();
+  const ledger = page.locator('ol').filter({ hasText: 'Too sweet' });
+  await expect(ledger).toContainText(pour.home);
+  await expect(ledger).toContainText('8 of 9');
 });

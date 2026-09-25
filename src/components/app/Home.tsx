@@ -1,10 +1,13 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import { ResultsScreen } from '@/components/app/ResultsScreen';
 import { Questionnaire } from '@/components/app/Questionnaire';
+import { Reveal } from '@/components/app/Reveal';
+import { SignInSheet } from '@/components/app/SignInSheet';
 import { AtprotoProvider, useAtprotoContext } from '@/components/app/AtprotoProvider';
 import { useDiscoveryQuiz, type UserProfile } from '@/hooks/useDiscoveryQuiz';
 import { getConnectedPalate, publishPalate } from '@/lib/api-client';
 import type { User } from '@/lib/data';
+import type { Register } from '@/lib/register';
 
 function profileToUser(profile: UserProfile | null): User {
   if (!profile) return { x: 0, y: 0, filters: [] };
@@ -35,12 +38,19 @@ function wantsBrowse(): boolean {
   return new URLSearchParams(window.location.search).get('browse') === '1';
 }
 
-function HomeContent() {
+/**
+ * The first visit is three beats (Flow Recommendations): the questions, the
+ * reveal, then the menu. A returning visitor goes straight to the menu.
+ */
+type Screen = 'questionnaire' | 'reveal' | 'results';
+
+function HomeContent({ register }: { register: Register }) {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(getInitialProfile);
-  const [screen, setScreen] = useState<'questionnaire' | 'results'>(() => {
+  const [screen, setScreen] = useState<Screen>(() => {
     if (typeof window === 'undefined') return 'questionnaire';
     return getInitialProfile() || wantsBrowse() ? 'results' : 'questionnaire';
   });
+  const [signInOpen, setSignInOpen] = useState(false);
 
   const { isConnected } = useAtprotoContext();
 
@@ -67,9 +77,24 @@ function HomeContent() {
     }
   }, [isConnected]);
 
+  // The header's "Sign in" on this route links to ?signin=1 (site-nav.ts),
+  // which opens the sheet rather than leaving for the landing page's form.
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    if (url.searchParams.get('signin') !== '1') return;
+    url.searchParams.delete('signin');
+    window.history.replaceState({}, '', url.pathname + url.search);
+    setSignInOpen(true);
+  }, []);
+
+  // Each beat starts at the top of the page.
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [screen]);
+
   const handleQuizComplete = useCallback((profile: UserProfile) => {
     setUserProfile(profile);
-    setScreen('results');
+    setScreen('reveal');
   }, []);
 
   const quiz = useDiscoveryQuiz(handleQuizComplete);
@@ -88,44 +113,50 @@ function HomeContent() {
 
   const finalUser = useMemo(() => profileToUser(userProfile), [userProfile]);
 
-  if (screen === 'results') {
-    return (
-      <div className="pt-4">
-        <ResultsScreen
-          user={finalUser}
-          vibeTags={userProfile?.vibeTags || {}}
-          onPalateUpdated={handlePalateUpdated}
-        />
-        <div className="mt-12 text-center border-t border-border pt-6 pb-12">
-          <button
-            onClick={reset}
-            className="font-condensed text-xs uppercase tracking-label text-muted-foreground hover:text-primary underline underline-offset-4 decoration-primary/30 hover:decoration-primary/60 transition-colors min-h-11 px-4"
-          >
-            Start Over
-          </button>
-        </div>
-      </div>
+  let content;
+  if (screen === 'reveal') {
+    content = (
+      <Reveal x={finalUser.x} y={finalUser.y} onContinue={() => setScreen('results')} onRetake={reset} />
+    );
+  } else if (screen === 'results') {
+    content = (
+      <ResultsScreen
+        user={finalUser}
+        hasCoordinate={!!userProfile}
+        vibeTags={userProfile?.vibeTags || {}}
+        register={register}
+        onPalateUpdated={handlePalateUpdated}
+        onRequestSignIn={() => setSignInOpen(true)}
+        onStartOver={reset}
+      />
+    );
+  } else {
+    content = (
+      <Questionnaire
+        currentQuestion={quiz.currentQuestion}
+        progress={quiz.progress}
+        questionCount={quiz.questionCount}
+        isNavigating={quiz.isNavigating}
+        canGoBack={quiz.canGoBack}
+        onSelectOption={quiz.handleAnswer}
+        onBack={quiz.handleBack}
+        onExploreAsGuest={() => setScreen('results')}
+      />
     );
   }
 
   return (
-    <Questionnaire
-      currentQuestion={quiz.currentQuestion}
-      progress={quiz.progress}
-      questionCount={quiz.questionCount}
-      isNavigating={quiz.isNavigating}
-      canGoBack={quiz.canGoBack}
-      onSelectOption={quiz.handleAnswer}
-      onBack={quiz.handleBack}
-      onExploreAsGuest={() => setScreen('results')}
-    />
+    <>
+      {content}
+      <SignInSheet open={signInOpen} onOpenChange={setSignInOpen} />
+    </>
   );
 }
 
-export default function Home() {
+export default function Home({ register }: { register: Register }) {
   return (
     <AtprotoProvider>
-      <HomeContent />
+      <HomeContent register={register} />
     </AtprotoProvider>
   );
 }

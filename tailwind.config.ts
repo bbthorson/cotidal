@@ -25,18 +25,49 @@ export default {
       },
       spacing: {
         'safe-b': 'max(env(safe-area-inset-bottom, 0px), 1rem)',
+        // 3px: the progress bar and the active tab's rule
+        '0.75': '3px',
+        // 7px: a drink on the map
+        '1.75': '0.4375rem',
+        // 18px: the padding inside a plate or the top-pick sheet
+        '4.5': '1.125rem',
+        // 22px: the rank column in a menu row
+        '5.5': '1.375rem',
+        // 52px: the height of a primary action on a phone
+        '13': '3.25rem',
+      },
+      // `data-open:` for Radix parts, which mark themselves data-state="open".
+      data: {
+        open: 'state="open"',
+      },
+      borderWidth: {
+        // The active tab's top rule
+        '3': '3px',
       },
       fontSize: {
         // `text-2xs` / `text-3xs` are used ~40 times across the app but were
         // never defined, so those elements silently rendered at inherited size.
         '3xs': ['0.625rem', { lineHeight: '0.875rem' }],
         '2xs': ['0.6875rem', { lineHeight: '1rem' }],
+        // The specimen-book type scale (docs/design-system.md). Named for the
+        // role, so a size is chosen once rather than approximated per screen.
+        meta: ['0.8125rem', { lineHeight: '1.5' }], // 13 · PT Sans small
+        ui: ['0.9375rem', { lineHeight: '1.55' }], // 15 · PT Sans body
+        prose: ['1.0625rem', { lineHeight: '1.6' }], // 17 · Playfair prose
+        plate: ['1.1875rem', { lineHeight: '1.3' }], // 19 · option and drink names
+        title: ['1.875rem', { lineHeight: '1.15' }], // 30 · a question, a drink
+        hero: ['2.5rem', { lineHeight: '1.05' }], // 40 · landing headline on a phone
+        // Not `reveal`: that is a colour, and a shared name emits both.
+        region: ['3.5rem', { lineHeight: '1' }], // 56 · a region, revealed
       },
       fontFamily: {
         body: ['var(--font-pt-sans)', 'sans-serif'],
         headline: ['var(--font-playfair)', 'serif'],
         serif: ['var(--font-playfair)', 'serif'],
         condensed: ['var(--font-barlow)', 'sans-serif'],
+        // Monospace is not a brand face. Anything still asking for it gets
+        // Barlow, which carries every number in the system.
+        mono: ['var(--font-barlow)', 'sans-serif'],
         code: ['monospace'],
       },
       colors: {
@@ -70,6 +101,13 @@ export default {
           DEFAULT: 'hsl(var(--destructive))',
           foreground: 'hsl(var(--destructive-foreground))',
         },
+        reveal: {
+          DEFAULT: 'hsl(var(--reveal))',
+          foreground: 'hsl(var(--reveal-foreground))',
+          muted: 'hsl(var(--reveal-muted))',
+          mark: 'hsl(var(--reveal-mark))',
+          trace: 'hsl(var(--reveal-trace))',
+        },
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',
@@ -91,10 +129,17 @@ export default {
           ring: 'hsl(var(--sidebar-ring))',
         },
       },
+      // Square corners (docs/design-system.md, 04). Every named radius
+      // resolves to 0 except `sm`, which is 2px and reserved for inputs;
+      // `full` stays for the dots on the map.
       borderRadius: {
-        lg: '0.5rem',
-        md: '0.25rem',
-        sm: 'calc(var(--radius) - 8px)',
+        DEFAULT: '0',
+        sm: '2px',
+        md: '0',
+        lg: '0',
+        xl: '0',
+        '2xl': '0',
+        '3xl': '0',
       },
       // Shadows for a paper ground. The previous set assumed obsidian: a hard
       // black drop and an amber glow, both of which read as dirt on cream.
@@ -123,8 +168,14 @@ export default {
             height: '0',
           },
         },
+        // The one thing that moves on the reveal: the dot landing.
+        land: {
+          from: { opacity: '0', transform: 'translate(-50%, 50%) scale(2.4)' },
+          to: { opacity: '1', transform: 'translate(-50%, 50%) scale(1)' },
+        },
       },
       animation: {
+        land: 'land 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) 0.35s both',
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
       },

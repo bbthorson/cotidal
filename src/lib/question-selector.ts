@@ -68,7 +68,7 @@ export function getTierLabel(question: Question): string {
 export function getCategoryLabel(category: QuestionCategory): string {
   switch (category) {
     case 'palate': return 'The Palate';
-    case 'architecture': return 'Architecture';
+    case 'architecture': return 'The Method';
     case 'ritual': return 'The Ritual';
     case 'occasion': return 'The Hour';
   }

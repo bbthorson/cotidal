@@ -13,6 +13,13 @@ import {
 } from '@/lib/belief-state';
 import { selectNextQuestion, selectFallbackQuestion, getTierLabel, getCategoryLabel } from '@/lib/question-selector';
 
+/**
+ * How long the chosen plate holds its letterpress offset before the next
+ * question replaces it. Long enough to see the choice land; short enough
+ * that the quiz still feels like it advances on its own.
+ */
+const ADVANCE_MS = 450;
+
 export interface UserProfile {
   x: number;
   y: number;
@@ -113,6 +120,10 @@ export function useDiscoveryQuiz(onComplete: (profile: UserProfile) => void) {
       return { prevTier: 'context', newTier: 'context', tierChanged: false, isComplete: false, needsAIQuestion: false, beliefState: belief };
     }
     setIsNavigating(true);
+    // Pin the question being answered. The first question is otherwise
+    // derived from the answered set, which changes below, so it would be
+    // replaced at once instead of holding the chosen plate until the advance.
+    setCurrentQuestionId(currentQuestion.id);
 
     // Save step into history for back-navigation
     setHistory(prev => [
@@ -135,7 +146,7 @@ export function useDiscoveryQuiz(onComplete: (profile: UserProfile) => void) {
       setBelief(newBelief);
       setTimeout(() => {
         finishQuiz(beliefToProfile(newBelief));
-      }, 300);
+      }, ADVANCE_MS);
       return { prevTier, newTier: prevTier, tierChanged: false, isComplete: true, needsAIQuestion: false, beliefState: newBelief };
     }
 
@@ -146,7 +157,7 @@ export function useDiscoveryQuiz(onComplete: (profile: UserProfile) => void) {
       setBelief(newBelief);
       setTimeout(() => {
         finishQuiz(beliefToProfile(newBelief));
-      }, 300);
+      }, ADVANCE_MS);
       return { prevTier, newTier: prevTier, tierChanged: false, isComplete: true, needsAIQuestion: false, beliefState: newBelief };
     }
 
@@ -157,7 +168,7 @@ export function useDiscoveryQuiz(onComplete: (profile: UserProfile) => void) {
       setBelief(newBelief);
       setCurrentQuestionId(nextQuestion.id);
       setIsNavigating(false);
-    }, 200);
+    }, ADVANCE_MS);
 
     return { prevTier, newTier, tierChanged, isComplete: false, needsAIQuestion: false, beliefState: newBelief };
   }, [isNavigating, currentQuestion, belief, finishQuiz]);

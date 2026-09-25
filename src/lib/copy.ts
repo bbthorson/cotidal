@@ -21,7 +21,8 @@ export const nav = {
   map: 'Palate Map',
   register: 'The Register',
   regions: 'The Four Regions',
-  signIn: 'Sign In',
+  signIn: 'Sign in',
+  menu: 'Menu',
   log: 'Log a Pour',
   bars: 'For Bars',
 } as const;
@@ -34,6 +35,10 @@ export const hero = {
     'Answer a few questions. A point appears. What surrounds it is what you should be ordering.',
   primaryCta: 'Find your coordinate',
   primaryCtaReturning: 'Return to your map',
+  /** Stated under the one primary action, so the cost is known up front. */
+  cost: 'About two minutes · no account needed',
+  /** The reading path: one tap away, never a second button. */
+  readFirst: 'Read the four regions first',
   secondaryCta: 'Look at the map first',
   registerCta: 'Explore the register',
 } as const;
@@ -89,13 +94,97 @@ export const sections = {
 } as const;
 
 export const connect = {
-  title: 'Carry it with you',
+  title: 'Keep this coordinate.',
   body:
-    'Your coordinate is written to your own account, not ours. Sign in to keep it, log what you drink, and find the people whose maps overlap yours.',
+    'Your coordinate is written to your own account, not ours. Sign in to keep it, log what you drink, and watch it move.',
+  label: 'Your Bluesky handle',
   placeholder: 'you.bsky.social',
   submit: 'Sign in with Bluesky',
+  connecting: 'Opening Bluesky…',
+  guest: 'Keep browsing as a guest',
   divider: 'or',
   disabled: 'Sign-in is not enabled in this environment.',
+  /**
+   * What signing in buys, in the order a guest will feel it. One list, used
+   * by the landing page's sign-in section and the in-app sheet alike, so the
+   * promise cannot drift between them. "Friends" says plainly it is later.
+   */
+  buys: [
+    {
+      title: 'It’s saved to your account',
+      body: 'Written to your own Bluesky repository. It stays yours if you leave.',
+    },
+    {
+      title: 'Log a pour, watch it move',
+      body: 'Rate what you drink; your coordinate and menu follow.',
+    },
+    {
+      title: 'Compare with friends',
+      body: 'Later: people you already follow who have a coordinate.',
+    },
+  ],
+} as const;
+
+/** The quiz's own chrome. The questions themselves live in discovery-questions.ts. */
+export const quiz = {
+  back: 'Back',
+  backLabel: 'Back to the previous question',
+  skip: 'Skip',
+  skipLabel: 'Skip the questions and go to the menu',
+  /** "3 of about 8" — honest, because the selector is adaptive. */
+  countJoiner: 'of about',
+  pushAway: 'Tap the one you’d send back.',
+  loading: 'Locating your coordinate…',
+} as const;
+
+/** The reveal: the one screen where the product says who you are. */
+export const reveal = {
+  eyebrow: 'Your coordinate lands in',
+  continue: 'See what to order',
+  retake: 'Not you? Retake',
+} as const;
+
+/** The menu that replaces the old results dashboard. */
+export const menu = {
+  youAreIn: 'You are in',
+  /** Four drinking occasions, switched in one place rather than stacked. */
+  contexts: [
+    { id: 'usual', label: 'Usual', title: 'Your go-to' },
+    { id: 'party', label: 'Night out', title: 'For a night out' },
+    { id: 'business', label: 'Impress', title: 'Making an impression' },
+    { id: 'holiday', label: 'Holiday', title: 'Holiday warmth' },
+  ],
+  contextsLabel: 'Occasion',
+  topPrefix: 'No. 1',
+  keepTitle: 'Keep this coordinate',
+  keepBody: 'Log pours and watch it move.',
+  signedInAs: 'Signed in as',
+  share: 'Share to your feed',
+  shared: 'Shared',
+  signOut: 'Sign out',
+  refineTitle: 'Tell us what you avoid',
+  refineBody:
+    'Anything you avoid, crave or swear by. Your coordinate moves to match, and the change is written to your account.',
+  refinePlaceholder: 'Red wine gives me headaches. I love a dry martini. Nothing that tastes of licorice.',
+  refineSubmit: 'Move my coordinate',
+  refining: 'Moving…',
+  refineResult: 'What changed',
+  startOver: 'Start over',
+  empty: 'Nothing on the map fits these limits yet.',
+  tabs: { menu: 'Menu', map: 'Map', log: 'Log a pour' },
+  tabsLabel: 'Your coordinate',
+} as const;
+
+/** After a pour is logged: the payoff of signing in, shown every time. */
+export const moved = {
+  eyebrow: 'Logged',
+  title: 'Your coordinate moved.',
+  stillIn: 'Still in',
+  nowIn: 'Now in',
+  rankOnMenu: (n: number) => `Now No. ${n} on your menu`,
+  offMenu: 'Not on your menu',
+  newOnMenu: 'New on your menu',
+  back: 'Back to your menu',
 } as const;
 
 export const principles = [
@@ -147,18 +236,95 @@ export const returnVisit = {
   eyebrow: 'The Return Visit',
   title: 'Your map, and what moved it.',
   intro:
-    'Every drink you log is a dated entry signed by you. Each pour adjusts your coordinate, pulling your taste profile toward what you actually enjoy.',
+    'Every drink you log is a dated entry signed by you, and each one moves your coordinate toward what you actually enjoy.',
   coldTitle: 'The loop is: drink → log → the map changes.',
   coldBody:
-    'Your palate is not a static quiz result. It is a decentralised record on the AT Protocol that moves every time you log a pour.',
-  signInCta: 'Sign in to access your ledger',
+    'Your coordinate is not a quiz result. It is a record in your own account, and it moves every time you log a pour.',
+  signInCta: 'Sign in',
   quizCta: 'Find your coordinate first',
-  guestCta: 'Test a pour as guest',
+  guestCta: 'Try a pour as a guest',
+  guestNote: 'As a guest, the pour stays on this device.',
+  youAreIn: 'You are in',
+  poursLabel: (n: number) => (n === 1 ? '1 pour' : `${n} pours`),
+  menuLink: 'Your menu',
+  regionLink: 'About this region',
   logEyebrow: 'New entry',
   logTitle: 'Log a pour',
   ledgerEyebrow: 'Chronicle',
   ledgerTitle: 'What moved it',
   ledgerEmpty: 'No pours logged yet. Pour a glass, note how it lands, and log it above.',
+  movedBack: 'Back to your ledger',
+} as const;
+
+/**
+ * The one pour form and the one ledger, shared by the Log tab in /taste and
+ * the return visit at /log. Ratings are the 9-point hedonic scale the pour
+ * record stores (app.crystalcoupe.pour), so what you tap is what is written.
+ */
+export const pour = {
+  drinkLabel: 'What you’re drinking',
+  drinkPlaceholder: 'A drink on the map, or anything else',
+  suggestionsLabel: 'From your menu',
+  nearLabel: 'Close to you',
+  whereLabel: 'Where',
+  atBar: 'At a bar',
+  atHome: 'At home',
+  barLabel: 'Bar name',
+  barPlaceholder: 'Attaboy, Dante, your local',
+  recentLabel: 'Recently',
+  ratingLabel: 'How it landed',
+  /** Index 0 is 1 on the scale. */
+  hedonic: [
+    'Dislike extremely',
+    'Dislike very much',
+    'Dislike moderately',
+    'Dislike slightly',
+    'Neither',
+    'Like slightly',
+    'Like moderately',
+    'Like very much',
+    'Like extremely',
+  ],
+  scoreOf: (n: number) => `${n} of 9`,
+  deviationsLabel: 'What was off',
+  optional: 'optional',
+  deviations: {
+    'too-sweet': 'Too sweet',
+    'not-sweet-enough': 'Not sweet enough',
+    'too-sour': 'Too sour',
+    'not-sour-enough': 'Not sour enough',
+    'too-bitter': 'Too bitter',
+    'too-smoky': 'Too smoky',
+    'too-anise': 'Too much anise',
+    'too-rich': 'Too rich',
+    'too-crisp': 'Too dry',
+    'too-flat': 'Too flat',
+    'too-fizzy': 'Too fizzy',
+  },
+  noteLabel: 'A note',
+  notePlaceholder: 'The nose, the finish, who made it',
+  moreDetail: 'More detail',
+  spiritLabel: 'Base spirit',
+  glassLabel: 'Glass',
+  garnishLabel: 'Garnish',
+  garnishPlaceholder: 'Orange peel, brandied cherry',
+  sensoryLabel: 'How it tasted, 0 to 5',
+  sensory: {
+    bitter: 'Bitter',
+    sweet: 'Sweet',
+    sour: 'Sour',
+    spiritForward: 'Spirit-forward',
+    citrus: 'Citrus',
+    herbal: 'Herbal',
+  },
+  crosspost: 'Also post it to your Bluesky feed',
+  submit: 'Log this pour',
+  submitting: 'Logging…',
+  signInToLog: 'Sign in to log a pour',
+  needDrink: 'Name the drink first.',
+  needBar: 'Name the bar, or choose “At home”.',
+  failed: 'That pour did not save. Try again.',
+  home: 'Home',
 } as const;
 
 export const venuesCopy = {

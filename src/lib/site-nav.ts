@@ -17,4 +17,13 @@ export const destinations = [
 
 export const signIn = { href: '/#connect', label: nav.signIn } as const;
 
+/**
+ * Inside the app, "Sign in" opens the one sign-in sheet rather than sending
+ * the reader back to the landing page's form. The island reads the query
+ * parameter; everywhere else the static form is the target, so it keeps
+ * working without JavaScript.
+ */
+export const signInHref = (currentPath: string) =>
+  currentPath.startsWith('/taste') ? '/taste?signin=1' : signIn.href;
+
 export const isCurrent = (currentPath: string, match: string) => currentPath.startsWith(match);
