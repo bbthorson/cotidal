@@ -22,6 +22,8 @@ export const nav = {
   register: 'The Register',
   regions: 'The Four Regions',
   signIn: 'Sign In',
+  log: 'Log a Pour',
+  bars: 'For Bars',
 } as const;
 
 export const hero = {
@@ -142,7 +144,68 @@ export const drinks = {
   emptyQuadrant: 'Nothing written up here yet.',
 } as const;
 
+export const returnVisit = {
+  eyebrow: 'The Return Visit',
+  title: 'Your map, and what moved it.',
+  intro:
+    'Every drink you log is a dated entry signed by you. Each pour adjusts your coordinate, pulling your taste profile toward what you actually enjoy.',
+  coldTitle: 'The loop is: drink → log → the map changes.',
+  coldBody:
+    'Your palate is not a static quiz result. It is a decentralised record on the AT Protocol that moves every time you log a pour.',
+  signInCta: 'Sign in to access your ledger',
+  quizCta: 'Find your coordinate first',
+  guestCta: 'Test a pour as guest',
+  logEyebrow: 'New entry',
+  logTitle: 'Log a pour',
+  ledgerEyebrow: 'Chronicle',
+  ledgerTitle: 'What moved it',
+  ledgerEmpty: 'No pours logged yet. Pour a glass, note how it lands, and log it above.',
+} as const;
+
+export const venuesCopy = {
+  eyebrow: 'The Supply Side',
+  title: 'An open protocol for the bars that make culture.',
+  subtitle:
+    'No Yelp extortion. No unindexed PDFs. Publish your menu directly to your domain and the AT Protocol, measure genuine palate density, and claim portable credit for your specs.',
+  pillars: [
+    {
+      label: 'Pillar I',
+      title: 'Menu as Canonical Publication',
+      description:
+        'Publish once to your own domain and repository. Your menu renders cleanly across the open web, indexed by flavor coordinates rather than raw keyword searches.',
+    },
+    {
+      label: 'Pillar II',
+      title: 'Palate Intelligence',
+      description:
+        'Move beyond sales volume and angry review stars. See the sensory distribution of your actual guests across the four palate regions, and pinpoint unserved flavor demand.',
+    },
+    {
+      label: 'Pillar III',
+      title: 'Recipe Syndication & Credit',
+      description:
+        'When your signature cocktails become modern classics poured worldwide, track verified adoption and pours across bars rather than watching your work go uncredited.',
+    },
+    {
+      label: 'Pillar IV',
+      title: 'Direct-to-Regulars Broadcast',
+      description:
+        'Because your identity is verified by your domain handle, guests who save your venue subscribe directly to your feed. No algorithmic tax to announce seasonal menus or guest shifts.',
+    },
+  ],
+  lookupEyebrow: 'Domain Verification',
+  lookupTitle: 'Claim your venue',
+  lookupDescription:
+    'Venues verify ownership through handle-as-domain (e.g. deathandco.com). Publishing an official venue record instantly reconciles all historical patron sightings to your account.',
+  domainPlaceholder: 'yourbar.com',
+  checkDomainCta: 'Preview venue sightings',
+  earlyAccessNotice:
+    'The venue publishing suite is in active development. If you direct a cocktail program and want early access to palate density analytics, join the registry below.',
+  waitlistCta: 'Request early access',
+} as const;
+
 export const footer = {
   note: 'Built on the AT Protocol.',
   drinkResponsibly: 'Please drink responsibly.',
 } as const;
+

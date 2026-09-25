@@ -5,7 +5,7 @@ import { ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, Radar, Tool
 import { Card, CardContent } from '@/components/ui/card';
 import { extractSensoryProfile, calculatePalateArchetype } from '@/lib/archetypes';
 import { tokens } from '@/lib/tokens';
-import type { PalateRecord, SensoryProfile } from '@/lib/atproto/lexicon';
+import type { PalateRecord, SensoryProfile } from '@/lib/atproto/records';
 import type { UserProfile } from '@/hooks/useDiscoveryQuiz';
 
 interface PalateRadarChartProps {

@@ -68,9 +68,9 @@ for (const [id, doc] of docs) {
 }
 
 /** Collections the code writes to must have a schema on disk. */
-const source = readFileSync('src/lib/atproto/lexicon.ts', 'utf8');
+const source = readFileSync('src/lib/atproto/records.ts', 'utf8');
 for (const [, nsid] of source.matchAll(/'(app\.crystalcoupe\.[a-zA-Z.]+)'/g)) {
-  if (!docs.has(nsid)) errors.push(`lexicon.ts references "${nsid}" with no lexicon file`);
+  if (!docs.has(nsid)) errors.push(`records.ts references "${nsid}" with no lexicon file`);
 }
 
 if (errors.length) {

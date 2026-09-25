@@ -98,13 +98,8 @@ export default [
     ],
     ignores: [
       'src/components/ui/**',
-      'src/components/app/**',
     ],
     rules: { 'no-restricted-syntax': ['error', ...tokenRuleEntries] },
-  },
-  {
-    files: ['src/components/app/**/*.tsx'],
-    rules: { 'no-restricted-syntax': ['warn', ...tokenRuleEntries] },
   },
 
   // Vendored shadcn/ui components: upstream code, kept close to source so it

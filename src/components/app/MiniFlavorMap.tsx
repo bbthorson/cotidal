@@ -17,7 +17,7 @@ interface MiniFlavorMapProps {
 
 export const MiniFlavorMap = memo(function MiniFlavorMap({ user, topDrinks }: MiniFlavorMapProps) {
     return (
-        <div className="relative w-full max-w-sm mx-auto aspect-[2/1] border border-primary/10 overflow-hidden pointer-events-none rounded-sm">
+        <div className="relative w-full max-w-sm mx-auto aspect-2/1 border border-primary/10 overflow-hidden pointer-events-none rounded-sm">
             <MapBackground />
             <TooltipProvider>
                 {topDrinks.slice(0, 5).map((drink) => (

@@ -99,7 +99,7 @@ function HomeContent() {
         <div className="mt-12 text-center border-t border-border pt-6 pb-12">
           <button
             onClick={reset}
-            className="font-condensed text-xs uppercase tracking-label text-muted-foreground hover:text-primary underline underline-offset-4 decoration-primary/30 hover:decoration-primary/60 transition-colors min-h-[44px] px-4"
+            className="font-condensed text-xs uppercase tracking-label text-muted-foreground hover:text-primary underline underline-offset-4 decoration-primary/30 hover:decoration-primary/60 transition-colors min-h-11 px-4"
           >
             Start Over
           </button>

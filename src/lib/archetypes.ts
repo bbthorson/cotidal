@@ -1,4 +1,4 @@
-import type { PalateRecord, SensoryProfile } from './atproto/lexicon';
+import type { PalateRecord, SensoryProfile } from './atproto/records';
 import type { UserProfile } from '@/hooks/useDiscoveryQuiz';
 
 export interface ArchetypeDefinition {

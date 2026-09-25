@@ -1,5 +1,5 @@
 import type { UserProfile } from '@/hooks/useDiscoveryQuiz';
-import type { DrinkLogRecord } from '@/lib/atproto/lexicon';
+import type { PourRecord } from '@/lib/atproto/records';
 
 export interface LogDrinkOptions {
   drinkName: string;
@@ -138,19 +138,21 @@ export async function logDrinkFeedback(
   }
 }
 
-export async function getConnectedDrinkLogs(limit?: number): Promise<DrinkLogRecord[]> {
+export async function getConnectedPours(limit?: number): Promise<PourRecord[]> {
   try {
     const res = await fetch('/api/atproto-publish', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'getConnectedDrinkLogs', limit }),
+      body: JSON.stringify({ action: 'getConnectedPours', limit }),
     });
     const data = await res.json();
-    return data.logs ?? [];
+    return data.pours ?? data.logs ?? [];
   } catch {
     return [];
   }
 }
+
+export const getConnectedDrinkLogs = getConnectedPours;
 
 export async function refinePalateWithAI(
   notes: string,

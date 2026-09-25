@@ -13,7 +13,7 @@ import { useAtprotoContext } from './AtprotoProvider';
 import { getConnectedDrinkLogs, refinePalateWithAI } from '@/lib/api-client';
 import { MapPin, Sparkles } from 'lucide-react';
 import type { UserProfile } from '@/hooks/useDiscoveryQuiz';
-import type { DrinkLogRecord } from '@/lib/atproto/lexicon';
+import type { PourRecord } from '@/lib/atproto/records';
 
 interface ResultsScreenProps {
     user: User;
@@ -32,7 +32,7 @@ export function ResultsScreen({ user, vibeTags, onPalateUpdated }: ResultsScreen
     const { isConnected } = useAtprotoContext();
     const [activeTab, setActiveTab] = useState<ActiveTab>('palate');
     const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
-    const [history, setHistory] = useState<DrinkLogRecord[]>([]);
+    const [history, setHistory] = useState<PourRecord[]>([]);
     const [loadingHistory, setLoadingHistory] = useState(false);
     const [refineNotes, setRefineNotes] = useState('');
     const [isRefining, setIsRefining] = useState(false);
@@ -85,7 +85,7 @@ export function ResultsScreen({ user, vibeTags, onPalateUpdated }: ResultsScreen
         return Array.from(
             new Set(
                 history
-                    .map(h => h.location)
+                    .map(h => (h.isHomePour ? 'Home Pour' : h.venue?.entity?.name))
                     .filter((loc): loc is string => !!loc && loc.trim().length > 0)
             )
         );
@@ -110,11 +110,11 @@ export function ResultsScreen({ user, vibeTags, onPalateUpdated }: ResultsScreen
             vibeTags: vibeTags || null,
         };
 
-        const minimalLogs = history.map(log => ({
-            drinkName: log.drinkName,
-            location: log.location,
-            hedonicScale: log.hedonicScale || (log.rating ? Math.round(log.rating * 0.8 + 1) : 5),
-            createdAt: log.createdAt,
+        const minimalLogs = history.map(pour => ({
+            drinkName: pour.drink.name,
+            location: pour.isHomePour ? 'Home Pour' : pour.venue?.entity?.name,
+            hedonicScale: pour.rating.hedonic,
+            createdAt: pour.createdAt,
         }));
 
         return availableDrinks.map(drink => {
@@ -273,7 +273,7 @@ export function ResultsScreen({ user, vibeTags, onPalateUpdated }: ResultsScreen
 
                             {uniqueLocations.length > 0 && (
                                 <div className="space-y-1">
-                                    <span className="font-mono text-[9px] text-muted-foreground/75 block">Previously Visited:</span>
+                                    <span className="font-mono text-3xs text-muted-foreground/75 block">Previously Visited:</span>
                                     <div className="flex flex-wrap gap-1.5">
                                         {uniqueLocations.slice(0, 5).map(loc => {
                                             const active = selectedLocation?.toLowerCase().trim() === loc.toLowerCase().trim();
@@ -283,7 +283,7 @@ export function ResultsScreen({ user, vibeTags, onPalateUpdated }: ResultsScreen
                                                     onClick={() => setSelectedLocation(active ? null : loc)}
                                                     className={`px-2.5 py-1 rounded-full text-3xs font-mono border transition-all ${
                                                         active
-                                                            ? 'bg-primary border-primary text-primary-foreground shadow-[0_0_8px_rgba(212,148,26,0.15)]'
+                                                            ? 'bg-primary border-primary text-primary-foreground shadow-glow'
                                                             : 'border-primary/10 bg-background/20 text-muted-foreground hover:border-primary/30 hover:text-foreground'
                                                     }`}
                                                 >

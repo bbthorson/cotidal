@@ -5,12 +5,14 @@
  * disagree, which is what stops the drift that produced two different
  * definitions of the old `drinkLog`.
  *
- * `app.crystalcoupe.palate` and the legacy `drinkLog` still live in
- * `lexicon.ts`; they move here as the app is migrated onto `pour`.
+ * `app.crystalcoupe.palate` and `app.crystalcoupe.pour` live here.
+ * The legacy `drinkLog` has been superseded by `pour`.
  */
 import { z } from 'zod';
 
 export const DEFS_LEXICON = 'app.crystalcoupe.defs';
+export const PALATE_COLLECTION = 'app.crystalcoupe.palate';
+export const PALATE_RKEY = 'self';
 export const POUR_COLLECTION = 'app.crystalcoupe.pour';
 export const MENU_COLLECTION = 'app.crystalcoupe.menu';
 export const RECIPE_COLLECTION = 'app.crystalcoupe.recipe';
@@ -78,6 +80,58 @@ export const PriceSchema = z.object({
   currency: z.string().length(3),
 });
 export type Price = z.infer<typeof PriceSchema>;
+
+// ---------------------------------------------------------------------------
+// app.crystalcoupe.palate
+// ---------------------------------------------------------------------------
+
+export const PalateRecordSchema = z.object({
+  $type: z.literal(PALATE_COLLECTION),
+  mapCoordinates: z.object({
+    x: z.number().min(-10).max(10),
+    y: z.number().min(-10).max(10),
+  }),
+  sensoryVector: z.object({
+    tastes: z.object({
+      sweet: z.number().min(0).max(10),
+      sour: z.number().min(0).max(10),
+      salty: z.number().min(0).max(10),
+      bitter: z.number().min(0).max(10),
+      umami: z.number().min(0).max(10),
+    }),
+    aromas: z.object({
+      smoky: z.number().min(0).max(10),
+      herbaceous: z.number().min(0).max(10),
+      spicy: z.number().min(0).max(10),
+      fruity: z.number().min(0).max(10),
+      floral: z.number().min(0).max(10),
+    }),
+    textures: z.object({
+      body: z.number().min(0).max(10),
+      effervescence: z.number().min(0).max(10),
+    }),
+  }),
+  aversions: z.object({
+    smoke: z.boolean(),
+    bitter: z.boolean(),
+    anise: z.boolean(),
+  }),
+  archetype: z.string().optional(),
+  vibeTags: z.record(z.string(), z.number()),
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime().optional(),
+});
+export type PalateRecord = z.infer<typeof PalateRecordSchema>;
+
+export const SensoryProfileSchema = z.object({
+  bitter: z.number().min(0).max(5),
+  sweet: z.number().min(0).max(5),
+  sour: z.number().min(0).max(5),
+  spiritForward: z.number().min(0).max(5),
+  citrus: z.number().min(0).max(5),
+  herbal: z.number().min(0).max(5),
+});
+export type SensoryProfile = z.infer<typeof SensoryProfileSchema>;
 
 // ---------------------------------------------------------------------------
 // app.crystalcoupe.pour

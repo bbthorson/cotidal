@@ -89,7 +89,7 @@ export function ChatThread({
                   transition={{ duration: 0.3, ease: 'easeOut' }}
                   className="text-right"
                 >
-                  <span className="font-condensed text-[10px] uppercase tracking-[0.15em] text-muted-foreground/60">
+                  <span className="font-condensed text-3xs uppercase tracking-wordmark text-muted-foreground/60">
                     {msg.content}
                   </span>
                 </motion.div>
@@ -109,10 +109,10 @@ export function ChatThread({
                       <button
                         onClick={() => onAction?.(msg.action!)}
                         className="
-                          font-condensed text-xs uppercase tracking-[0.2em]
+                          font-condensed text-xs uppercase tracking-label
                           text-primary hover:text-primary/80
                           underline underline-offset-4 decoration-primary/30 hover:decoration-primary/60
-                          transition-colors min-h-[44px] px-4
+                          transition-colors min-h-11 px-4
                         "
                       >
                         {msg.content}
