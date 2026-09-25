@@ -29,24 +29,113 @@ import { site, nav, venuesCopy, footer } from '../lib/copy';
       </p>
     </header>
 
-    <!-- Four Pillars Grid -->
+    <!-- Five Front Doors Grid -->
     <section class="space-y-6">
       <div class="border-b border-foreground pb-2">
-        <h2 class="label-caps text-foreground">The Four Pillars</h2>
+        <h2 class="label-caps text-foreground">{venuesCopy.doorsTitle}</h2>
+      </div>
+
+      <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {venuesCopy.doors.map((door, idx) => (
+          <article class:list={[
+            "coaster border border-border bg-card p-6 transition-all hover:border-primary flex flex-col justify-between",
+            idx === 4 ? "md:col-span-2 lg:col-span-1" : ""
+          ]}>
+            <div>
+              <span class="label-caps text-secondary block mb-2">{door.label}</span>
+              <h3 class="font-serif text-lg font-bold text-foreground mb-3">
+                {door.title}
+              </h3>
+              <p class="font-serif text-sm leading-relaxed text-muted-foreground">
+                {door.description}
+              </p>
+            </div>
+          </article>
+        ))}
+      </div>
+    </section>
+
+    <!-- For Bartenders & Drink Designers -->
+    <section class="space-y-6">
+      <div class="border-b border-foreground pb-2">
+        <span class="label-caps text-primary block mb-1">Makers & Creators</span>
+        <h2 class="font-serif text-2xl font-bold text-foreground">{venuesCopy.makerTitle}</h2>
+        <p class="font-serif text-sm text-foreground/80 mt-1">{venuesCopy.makerSubtitle}</p>
       </div>
 
       <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-        {venuesCopy.pillars.map((pillar) => (
-          <article class="coaster border border-border bg-card p-6 transition-all hover:border-primary">
-            <span class="label-caps text-secondary block mb-2">{pillar.label}</span>
-            <h3 class="font-serif text-xl font-bold text-foreground mb-3">
-              {pillar.title}
+        {venuesCopy.makerFeatures.map((feat) => (
+          <article class="coaster border border-border bg-card p-6">
+            <span class="label-caps text-secondary block mb-2">{feat.label}</span>
+            <h3 class="font-serif text-lg font-bold text-foreground mb-3">
+              {feat.title}
             </h3>
             <p class="font-serif text-sm leading-relaxed text-muted-foreground">
-              {pillar.description}
+              {feat.description}
             </p>
           </article>
         ))}
+      </div>
+    </section>
+
+    <!-- Plans & Capabilities (Free vs Pro) -->
+    <section class="space-y-6">
+      <div class="border-b border-foreground pb-2">
+        <h2 class="label-caps text-foreground">{venuesCopy.tiersTitle}</h2>
+      </div>
+
+      <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+        <!-- Free Tier -->
+        <article class="coaster border border-border bg-card p-6 flex flex-col justify-between space-y-6">
+          <div class="space-y-4">
+            <div class="flex items-center justify-between border-b border-border pb-3">
+              <div>
+                <span class="label-caps text-muted-foreground block">{venuesCopy.freeTier.title}</span>
+                <span class="font-condensed text-xs uppercase tracking-label text-foreground font-semibold">Open Protocol</span>
+              </div>
+              <span class="rounded-sm border border-border bg-background px-2.5 py-1 font-condensed text-3xs uppercase tracking-label text-muted-foreground">
+                {venuesCopy.freeTier.badge}
+              </span>
+            </div>
+            <p class="font-serif text-sm text-foreground/80">
+              {venuesCopy.freeTier.description}
+            </p>
+            <ul class="space-y-2 pt-2">
+              {venuesCopy.freeTier.features.map((feature) => (
+                <li class="flex items-start gap-2 font-serif text-xs text-muted-foreground">
+                  <span aria-hidden="true" class="text-secondary select-none font-bold">✓</span>
+                  <span>{feature}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </article>
+
+        <!-- Pro Tier -->
+        <article class="coaster border-2 border-primary bg-card p-6 flex flex-col justify-between space-y-6 shadow-bar">
+          <div class="space-y-4">
+            <div class="flex items-center justify-between border-b border-primary/40 pb-3">
+              <div>
+                <span class="label-caps text-primary block">{venuesCopy.proTier.title}</span>
+                <span class="font-condensed text-xs uppercase tracking-label text-foreground font-semibold">Hospitality OS</span>
+              </div>
+              <span class="rounded-sm border border-primary bg-primary/10 px-2.5 py-1 font-condensed text-xs uppercase tracking-label text-primary font-bold">
+                {venuesCopy.proTier.badge}
+              </span>
+            </div>
+            <p class="font-serif text-sm text-foreground/90">
+              {venuesCopy.proTier.description}
+            </p>
+            <ul class="space-y-2 pt-2">
+              {venuesCopy.proTier.features.map((feature) => (
+                <li class="flex items-start gap-2 font-serif text-xs text-foreground">
+                  <span aria-hidden="true" class="text-primary select-none font-bold">★</span>
+                  <span>{feature}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </article>
       </div>
     </section>
 

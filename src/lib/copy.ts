@@ -163,36 +163,90 @@ export const returnVisit = {
 } as const;
 
 export const venuesCopy = {
-  eyebrow: 'The Supply Side',
-  title: 'An open protocol for the bars that make culture.',
+  eyebrow: 'The Front Door',
+  title: 'The single source of truth for the bars that make culture.',
   subtitle:
-    'No Yelp extortion. No unindexed PDFs. Publish your menu directly to your domain and the AT Protocol, measure genuine palate density, and claim portable credit for your specs.',
-  pillars: [
+    'Sync with Toast. Publish to your own domain and Google Maps. Guide guests by palate at the table, and turn your bar into a sovereign AT Protocol Space.',
+  doorsTitle: 'The Five Front Doors',
+  doors: [
     {
-      label: 'Pillar I',
-      title: 'Menu as Canonical Publication',
+      label: 'Front Door I',
+      title: 'The Taste-Guided Table QR',
       description:
-        'Publish once to your own domain and repository. Your menu renders cleanly across the open web, indexed by flavor coordinates rather than raw keyword searches.',
+        'No clunky PDFs or spreadsheet menus. Patrons scan a table coaster to browse drinks by flavor quadrant, see their personal palate match, and tap once to order on Toast.',
     },
     {
-      label: 'Pillar II',
-      title: 'Palate Intelligence',
+      label: 'Front Door II',
+      title: 'Automated POS & 86 Sync',
       description:
-        'Move beyond sales volume and angry review stars. See the sensory distribution of your actual guests across the four palate regions, and pinpoint unserved flavor demand.',
+        'Pull menus, categories, and prices directly from Toast or Square. 86 an ingredient in your POS, and it immediately dims across the QR menu and your website.',
     },
     {
-      label: 'Pillar III',
-      title: 'Recipe Syndication & Credit',
+      label: 'Front Door III',
+      title: 'Google Maps & Search Presence',
       description:
-        'When your signature cocktails become modern classics poured worldwide, track verified adoption and pours across bars rather than watching your work go uncredited.',
+        'Direct Google Business Profile integration updates your official menu link, hours, and structured items. Deep schema.org indexing makes every cocktail discoverable.',
     },
     {
-      label: 'Pillar IV',
-      title: 'Direct-to-Regulars Broadcast',
+      label: 'Front Door IV',
+      title: 'Hosted Web & Custom Domain',
       description:
-        'Because your identity is verified by your domain handle, guests who save your venue subscribe directly to your feed. No algorithmic tax to announce seasonal menus or guest shifts.',
+        'Replace slow, $30/month Squarespace sites with a blazingly fast, paper-styled website on your own domain (e.g. attaboy.nyc). Statically rendered with zero script bloat.',
+    },
+    {
+      label: 'Front Door V',
+      title: 'Bar as an AT Protocol Space',
+      description:
+        'Your physical location becomes a sovereign social anchor. Guests see mutuals who visited, compare table palate overlap, and sign pours into a decentralized guestbook.',
     },
   ],
+  makerTitle: 'For Bartenders & Drink Designers',
+  makerSubtitle:
+    'The craft deserves more than an informal resume and uncredited cocktail specs.',
+  makerFeatures: [
+    {
+      label: 'The Living CV',
+      title: 'Portable Recipe & Adoption Ledger',
+      description:
+        'Claim your residency history and sign your authored specs. Track verified adoption across bars worldwide without degrading star ratings.',
+    },
+    {
+      label: 'The Back Bar',
+      title: 'Private Peer Community',
+      description:
+        'A gated network for verified cocktail makers to peer-review draft specs, exchange prep techniques, and coordinate guest shifts.',
+    },
+  ],
+  tiersTitle: 'Plans & Capabilities',
+  freeTier: {
+    title: 'Venue Profile',
+    badge: 'Free Forever',
+    description:
+      'Everything required to claim your sovereign identity and publish on the open protocol.',
+    features: [
+      'Handle-as-domain claim (attaboy.nyc)',
+      'Canonical AT Protocol menu publishing',
+      'Directory listing on Crystal Coupe search',
+      'Patron sighting & pour aggregation ledger',
+      'Recipe attribution & author credits',
+    ],
+  },
+  proTier: {
+    title: 'Branded Bar Suite',
+    badge: '$49 / month',
+    description:
+      'The full operating system connecting your POS, table QR, custom domain, and Google Maps.',
+    features: [
+      'Live Toast / Square / Clover bi-directional sync',
+      'Real-time 86 status automatic sync',
+      'Hosted custom domain website (attaboy.nyc)',
+      'Google Maps & Google Business Profile sync',
+      'Taste-guided Table QR with 1-tap Toast ordering',
+      'Palate Density demand analytics & dead-spot reports',
+      'Interactive AT Protocol Space & guestbook curation',
+      'Social specimen card & Instagram Story exporter',
+    ],
+  },
   lookupEyebrow: 'Domain Verification',
   lookupTitle: 'Claim your venue',
   lookupDescription:
@@ -200,7 +254,7 @@ export const venuesCopy = {
   domainPlaceholder: 'yourbar.com',
   checkDomainCta: 'Preview venue sightings',
   earlyAccessNotice:
-    'The venue publishing suite is in active development. If you direct a cocktail program and want early access to palate density analytics, join the registry below.',
+    'The B2B suite is currently accepting beverage programs for private beta onboarding. Claim your handle to reserve your domain.',
   waitlistCta: 'Request early access',
 } as const;
 
