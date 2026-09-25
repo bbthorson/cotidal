@@ -2,6 +2,7 @@
 import AppShell from '../layouts/AppShell.astro';
 import ReturnVisit from '../components/app/ReturnVisit';
 import { site, returnVisit } from '../lib/copy';
+import { loadRegister } from '../lib/register.server';
 
 /**
  * The return visit: "Your map, and what moved it."
@@ -10,6 +11,8 @@ import { site, returnVisit } from '../lib/copy';
  * of the product. Mounts ReturnVisit with client:load so the shell server-renders
  * and paints before hydration finishes.
  */
+
+const register = await loadRegister();
 ---
 
 <AppShell
@@ -17,5 +20,5 @@ import { site, returnVisit } from '../lib/copy';
   currentPath="/log"
   width="standard"
 >
-  <ReturnVisit client:load />
+  <ReturnVisit client:load register={register} />
 </AppShell>

@@ -173,10 +173,6 @@ export const menu = {
   empty: 'Nothing on the map fits these limits yet.',
   tabs: { menu: 'Menu', map: 'Map', log: 'Log a pour' },
   tabsLabel: 'Your coordinate',
-  venueLabel: 'Where you’re drinking',
-  venuePlaceholder: 'A bar name, or leave blank',
-  venueRecent: 'Recently',
-  venueClear: 'Clear',
 } as const;
 
 /** After a pour is logged: the payoff of signing in, shown every time. */
@@ -240,18 +236,95 @@ export const returnVisit = {
   eyebrow: 'The Return Visit',
   title: 'Your map, and what moved it.',
   intro:
-    'Every drink you log is a dated entry signed by you. Each pour adjusts your coordinate, pulling your taste profile toward what you actually enjoy.',
+    'Every drink you log is a dated entry signed by you, and each one moves your coordinate toward what you actually enjoy.',
   coldTitle: 'The loop is: drink → log → the map changes.',
   coldBody:
-    'Your palate is not a static quiz result. It is a decentralised record on the AT Protocol that moves every time you log a pour.',
-  signInCta: 'Sign in to access your ledger',
+    'Your coordinate is not a quiz result. It is a record in your own account, and it moves every time you log a pour.',
+  signInCta: 'Sign in',
   quizCta: 'Find your coordinate first',
-  guestCta: 'Test a pour as guest',
+  guestCta: 'Try a pour as a guest',
+  guestNote: 'As a guest, the pour stays on this device.',
+  youAreIn: 'You are in',
+  poursLabel: (n: number) => (n === 1 ? '1 pour' : `${n} pours`),
+  menuLink: 'Your menu',
+  regionLink: 'About this region',
   logEyebrow: 'New entry',
   logTitle: 'Log a pour',
   ledgerEyebrow: 'Chronicle',
   ledgerTitle: 'What moved it',
   ledgerEmpty: 'No pours logged yet. Pour a glass, note how it lands, and log it above.',
+  movedBack: 'Back to your ledger',
+} as const;
+
+/**
+ * The one pour form and the one ledger, shared by the Log tab in /taste and
+ * the return visit at /log. Ratings are the 9-point hedonic scale the pour
+ * record stores (app.crystalcoupe.pour), so what you tap is what is written.
+ */
+export const pour = {
+  drinkLabel: 'What you’re drinking',
+  drinkPlaceholder: 'A drink on the map, or anything else',
+  suggestionsLabel: 'From your menu',
+  nearLabel: 'Close to you',
+  whereLabel: 'Where',
+  atBar: 'At a bar',
+  atHome: 'At home',
+  barLabel: 'Bar name',
+  barPlaceholder: 'Attaboy, Dante, your local',
+  recentLabel: 'Recently',
+  ratingLabel: 'How it landed',
+  /** Index 0 is 1 on the scale. */
+  hedonic: [
+    'Dislike extremely',
+    'Dislike very much',
+    'Dislike moderately',
+    'Dislike slightly',
+    'Neither',
+    'Like slightly',
+    'Like moderately',
+    'Like very much',
+    'Like extremely',
+  ],
+  scoreOf: (n: number) => `${n} of 9`,
+  deviationsLabel: 'What was off',
+  optional: 'optional',
+  deviations: {
+    'too-sweet': 'Too sweet',
+    'not-sweet-enough': 'Not sweet enough',
+    'too-sour': 'Too sour',
+    'not-sour-enough': 'Not sour enough',
+    'too-bitter': 'Too bitter',
+    'too-smoky': 'Too smoky',
+    'too-anise': 'Too much anise',
+    'too-rich': 'Too rich',
+    'too-crisp': 'Too dry',
+    'too-flat': 'Too flat',
+    'too-fizzy': 'Too fizzy',
+  },
+  noteLabel: 'A note',
+  notePlaceholder: 'The nose, the finish, who made it',
+  moreDetail: 'More detail',
+  spiritLabel: 'Base spirit',
+  glassLabel: 'Glass',
+  garnishLabel: 'Garnish',
+  garnishPlaceholder: 'Orange peel, brandied cherry',
+  sensoryLabel: 'How it tasted, 0 to 5',
+  sensory: {
+    bitter: 'Bitter',
+    sweet: 'Sweet',
+    sour: 'Sour',
+    spiritForward: 'Spirit-forward',
+    citrus: 'Citrus',
+    herbal: 'Herbal',
+  },
+  crosspost: 'Also post it to your Bluesky feed',
+  submit: 'Log this pour',
+  submitting: 'Logging…',
+  signInToLog: 'Sign in to log a pour',
+  needDrink: 'Name the drink first.',
+  needBar: 'Name the bar, or choose “At home”.',
+  failed: 'That pour did not save. Try again.',
+  home: 'Home',
 } as const;
 
 export const venuesCopy = {

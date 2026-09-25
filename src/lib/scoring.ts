@@ -42,10 +42,6 @@ export const calculateContextScore = (drink: Drink, context: ContextType) => {
     return score;
 };
 
-// Convert coordinates to CSS percentages (Range -10 to 10 mapped to 0% to 100%)
-// Moved here to be reusable across components (ResultsScreen, UserPin, MapPin)
-export const toPct = (val: number) => ((val + 10) / 20) * 100;
-
 export interface MinimalDrinkLog {
   drinkName: string;
   location?: string;

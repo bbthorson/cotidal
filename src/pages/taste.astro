@@ -1,9 +1,8 @@
 ---
-import { getCollection } from 'astro:content';
 import AppShell from '../layouts/AppShell.astro';
 import Home from '../components/app/Home';
 import { site, nav } from '../lib/copy';
-import type { Register } from '../lib/register';
+import { loadRegister } from '../lib/register.server';
 
 /**
  * The interactive half of the app. This is the only route that mounts a
@@ -13,20 +12,7 @@ import type { Register } from '../lib/register';
  * page has painted content before hydration finishes.
  */
 
-const entries = await getCollection('drinks');
-const register: Register = Object.fromEntries(
-  entries.map((entry) => [
-    entry.data.name,
-    {
-      slug: entry.id,
-      title: entry.data.title,
-      build: entry.data.ingredients
-        .filter((i) => !i.optional)
-        .map((i) => i.name)
-        .join(' · '),
-    },
-  ])
-);
+const register = await loadRegister();
 ---
 
 <AppShell

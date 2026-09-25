@@ -2,9 +2,10 @@ import { useMemo, useState, useEffect, useCallback } from 'react';
 import { drinkDatabase, type Drink, type User, type ContextType } from '@/lib/data';
 import { calculateContextScore, calculateWeightedRelevance } from '@/lib/scoring';
 import { quadrantFor } from '@/lib/quadrant';
-import { hero, menu, nav } from '@/lib/copy';
+import { hero, menu, nav, pour, returnVisit } from '@/lib/copy';
 import type { Register } from '@/lib/register';
-import { DrinkLogForm } from './DrinkLogForm';
+import { PourForm, hedonicToRating, type PourEntry } from './PourForm';
+import { PourLedger } from './PourLedger';
 import { DrinkMapView } from './DrinkMapView';
 import { AppNavigation, type ActiveTab } from './AppNavigation';
 import { useAtprotoContext } from './AtprotoProvider';
@@ -13,6 +14,7 @@ import { Moved } from './Moved';
 import {
   explainDrinkMatch,
   getConnectedDrinkLogs,
+  logDrinkFeedback,
   refinePalateWithAI,
   sharePalateToFeed,
 } from '@/lib/api-client';
@@ -39,7 +41,7 @@ const MENU_LENGTH = 8;
 interface PourMoved {
   from: { x: number; y: number };
   drinkName: string;
-  rating: number;
+  hedonic: number;
   /** The go-to menu before the pour, by name. */
   before: string[];
 }
@@ -66,6 +68,8 @@ export function ResultsScreen({
   const [history, setHistory] = useState<PourRecord[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [pourMoved, setPourMoved] = useState<PourMoved | null>(null);
+  const [logging, setLogging] = useState(false);
+  const [logError, setLogError] = useState<string | null>(null);
 
   const fetchHistory = useCallback(async () => {
     if (!isConnected) return;
@@ -156,9 +160,41 @@ export function ResultsScreen({
     window.scrollTo(0, 0);
   };
 
-  const handleLogged = (profile: UserProfile, pour: { drinkName: string; rating: number }) => {
-    setPourMoved({ from: { x: user.x, y: user.y }, ...pour, before: goTo.map((d) => d.name) });
-    onPalateUpdated?.(profile);
+  const handleLog = async (entry: PourEntry) => {
+    setLogging(true);
+    setLogError(null);
+    try {
+      const result = await logDrinkFeedback({
+        drinkName: entry.drinkName,
+        rating: hedonicToRating(entry.hedonic),
+        isHomePour: entry.isHomePour,
+        location: entry.isHomePour ? 'Home Pour' : entry.venue,
+        venue: entry.isHomePour ? undefined : { name: entry.venue },
+        deviations: entry.deviations,
+        note: entry.note || undefined,
+        crosspostToFeed: entry.crosspost,
+        baseSpirit: entry.detail?.baseSpirit,
+        glassware: entry.detail?.glassware,
+        garnish: entry.detail?.garnish || undefined,
+        sensoryProfile: entry.detail?.sensory,
+      });
+      if (result.success && result.profile) {
+        setPourMoved({
+          from: { x: user.x, y: user.y },
+          drinkName: entry.drinkName,
+          hedonic: entry.hedonic,
+          before: goTo.map((d) => d.name),
+        });
+        onPalateUpdated?.(result.profile);
+        fetchHistory();
+      } else {
+        setLogError(result.error || pour.failed);
+      }
+    } catch {
+      setLogError(pour.failed);
+    } finally {
+      setLogging(false);
+    }
   };
 
   if (pourMoved) {
@@ -173,9 +209,8 @@ export function ResultsScreen({
         from={pourMoved.from}
         to={{ x: user.x, y: user.y }}
         drinkName={pourMoved.drinkName}
-        rating={pourMoved.rating}
-        rank={index >= 0 ? index + 1 : null}
-        newcomer={newcomer}
+        scoreLabel={pour.scoreOf(pourMoved.hedonic)}
+        menuChange={{ rank: index >= 0 ? index + 1 : null, newcomer }}
         displayName={displayName}
         onDone={() => {
           setPourMoved(null);
@@ -321,20 +356,39 @@ export function ResultsScreen({
       )}
 
       {activeTab === 'log' && (
-        <div className="mt-4.5 space-y-6 motion-safe:animate-in motion-safe:fade-in">
-          <VenueField
-            value={selectedLocation}
-            recent={recentVenues}
-            onChange={setSelectedLocation}
-          />
-          <DrinkLogForm
-            recommendedDrinks={goTo.map((d) => d.name)}
-            onPalateUpdated={handleLogged}
-            selectedLocation={selectedLocation}
-            history={history}
-            loadingHistory={loadingHistory}
-            onLogAdded={fetchHistory}
-          />
+        <div className="mt-8 space-y-10 motion-safe:animate-in motion-safe:fade-in">
+          <section>
+            <h2 className="mb-4 border-b border-foreground pb-1.5 font-serif text-xl font-bold">{returnVisit.logTitle}</h2>
+            <PourForm
+              suggestions={goTo.map((d) => d.name)}
+              labelFor={displayName}
+              initialDrink={goTo[0]?.name}
+              venue={selectedLocation ?? ''}
+              onVenueChange={(v) => setSelectedLocation(v || null)}
+              recentVenues={recentVenues.filter((v) => v !== 'Home Pour')}
+              isMember={isConnected}
+              submitting={logging}
+              error={logError}
+              onSubmit={handleLog}
+              submitSlot={
+                isConnected ? undefined : (
+                  <button
+                    type="button"
+                    onClick={onRequestSignIn}
+                    className="min-h-13 w-full border border-foreground bg-secondary font-condensed text-sm font-bold uppercase tracking-label text-secondary-foreground transition-colors hover:bg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  >
+                    {pour.signInToLog}
+                  </button>
+                )
+              }
+            />
+          </section>
+          {isConnected && (
+            <section>
+              <h2 className="mb-1 font-serif text-xl font-bold">{returnVisit.ledgerTitle}</h2>
+              <PourLedger pours={history} register={register} empty={returnVisit.ledgerEmpty} loading={loadingHistory} />
+            </section>
+          )}
         </div>
       )}
     </div>
@@ -418,65 +472,6 @@ function TopPick({
         >
           {loading ? '…' : why?.text}
         </p>
-      )}
-    </div>
-  );
-}
-
-/** "Where you're drinking" — the venue filter, moved here from the menu. */
-function VenueField({
-  value,
-  recent,
-  onChange,
-}: {
-  value: string | null;
-  recent: string[];
-  onChange: (value: string | null) => void;
-}) {
-  return (
-    <div className="flex flex-col gap-2.5">
-      <label className="flex flex-col gap-1.5">
-        <span className="font-condensed text-xs uppercase tracking-label text-muted-foreground">{menu.venueLabel}</span>
-        <input
-          type="text"
-          value={value || ''}
-          onChange={(e) => onChange(e.target.value || null)}
-          placeholder={menu.venuePlaceholder}
-          className="min-h-12 rounded-sm border border-border bg-card px-3.5 font-body text-base text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
-        />
-      </label>
-      {recent.length > 0 && (
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="font-condensed text-xs uppercase tracking-label text-muted-foreground">{menu.venueRecent}</span>
-          {recent.slice(0, 5).map((loc) => {
-            const active = value?.toLowerCase().trim() === loc.toLowerCase().trim();
-            return (
-              <button
-                key={loc}
-                type="button"
-                aria-pressed={active}
-                onClick={() => onChange(active ? null : loc)}
-                className={cn(
-                  'min-h-9 border px-2.5 font-condensed text-xs uppercase tracking-label transition-colors',
-                  active
-                    ? 'border-secondary bg-secondary text-secondary-foreground'
-                    : 'border-border text-secondary hover:border-foreground'
-                )}
-              >
-                {loc}
-              </button>
-            );
-          })}
-          {value && (
-            <button
-              type="button"
-              onClick={() => onChange(null)}
-              className="min-h-9 px-1 font-condensed text-xs uppercase tracking-label text-muted-foreground underline decoration-primary underline-offset-4 hover:text-primary"
-            >
-              {menu.venueClear}
-            </button>
-          )}
-        </div>
       )}
     </div>
   );
