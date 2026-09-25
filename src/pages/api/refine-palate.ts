@@ -1,12 +1,10 @@
 import type { APIRoute } from 'astro';
-import { generateText } from 'ai';
-import { google } from '@ai-sdk/google';
 import { z } from 'zod';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { restoredDid } from '@/lib/atproto/session';
 import {
-  GENERATION_MODEL,
   generationHeaders,
+  runWorkersAi,
   type GenerationOutcome,
 } from '@/lib/generation';
 
@@ -126,11 +124,8 @@ export const POST: APIRoute = async ({ request }) => {
 
   // 3. Model call
   try {
-    const prompt = `You are the master sensory calibrator for The Crystal Coupe cocktail catalog.
+    const systemPrompt = `You are the master sensory calibrator for The Crystal Coupe cocktail catalog.
 A member has submitted freeform taste notes, quirks, and dealbreakers.
-Current profile: x=${currentProfile.x} (-10 Rich to +10 Crisp), y=${currentProfile.y} (-10 Savory to +10 Sweet), dislikesSmoke=${currentProfile.dislikesSmoke}, dislikesBitter=${currentProfile.dislikesBitter}, dislikesAnise=${currentProfile.dislikesAnise}.
-User notes: "${notes}".
-
 Evaluate how the user's notes adjust their coordinate:
 - deltaX: integer between -3 and +3 (negative pulls toward Rich/barrel/viscous, positive pulls toward Crisp/acid/carbonation).
 - deltaY: integer between -3 and +3 (negative pulls toward Savory/dry/mineral, positive pulls toward Sweet/fruit/syrup).
@@ -139,7 +134,7 @@ Evaluate how the user's notes adjust their coordinate:
 - dislikesAnise: boolean
 - dossier: exactly 2 sentences in the brand voice ("Cold instrument, warm secret"): clinical, elegant, literary, describing their calibrated sensory stance.
 
-Return pure JSON matching:
+Respond ONLY with valid JSON in this format:
 {
   "deltaX": number,
   "deltaY": number,
@@ -149,17 +144,18 @@ Return pure JSON matching:
   "dossier": string
 }`;
 
-    const timeout = new Promise<never>((_, reject) =>
-      setTimeout(() => reject(new Error('timeout')), 5000)
-    );
+    const userPrompt = `Current profile: x=${currentProfile.x} (-10 Rich to +10 Crisp), y=${currentProfile.y} (-10 Savory to +10 Sweet), dislikesSmoke=${currentProfile.dislikesSmoke}, dislikesBitter=${currentProfile.dislikesBitter}, dislikesAnise=${currentProfile.dislikesAnise}.
+User notes: "${notes}".`;
 
-    const call = generateText({
-      model: google(GENERATION_MODEL),
-      prompt,
-    });
+    const messages = [
+      { role: 'system' as const, content: systemPrompt },
+      { role: 'user' as const, content: userPrompt },
+    ];
 
-    const result = await Promise.race([call, timeout]);
-    const jsonMatch = result.text.match(/\{[\s\S]*\}/);
+    const raw = await runWorkersAi({ messages, maxTokens: 256 });
+    if (!raw) return respond(fallback, 'unavailable');
+
+    const jsonMatch = raw.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
       return respond(fallback, 'unavailable');
     }

@@ -19,7 +19,7 @@ const DIR = 'src/lib/atproto/lexicons';
 const NAMESPACE = 'app.crystalcoupe';
 
 /** Namespaces we reference but do not define; see docs/data-model.md. */
-const EXTERNAL = ['community.lexicon.', 'com.atproto.', 'app.bsky.'];
+const EXTERNAL = ['community.lexicon.', 'com.atproto.', 'app.bsky.', 'site.standard.'];
 
 const errors = [];
 const docs = new Map();

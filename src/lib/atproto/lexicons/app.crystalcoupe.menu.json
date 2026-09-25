@@ -41,6 +41,11 @@
             "ref": "#capture",
             "description": "Present on a patron's sighting, absent on a venue's own publication."
           },
+          "document": {
+            "type": "ref",
+            "ref": "app.crystalcoupe.defs#entityRef",
+            "description": "Pointer to the corresponding site.standard.document record if this menu is published as a Standard.site document."
+          },
           "createdAt": { "type": "string", "format": "datetime" }
         }
       }
