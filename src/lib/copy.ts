@@ -256,6 +256,9 @@ export const venuesCopy = {
   earlyAccessNotice:
     'The B2B suite is currently accepting beverage programs for private beta onboarding. Claim your handle to reserve your domain.',
   waitlistCta: 'Request early access',
+  seededTitle: 'The Anchor Register',
+  seededSubtitle:
+    'Historical sightings and canonical specs awaiting domain reconciliation. When a venue proves its domain handle, its sightings light up retroactively.',
 } as const;
 
 export const footer = {

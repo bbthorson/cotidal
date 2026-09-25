@@ -1,6 +1,7 @@
 ---
 import AppShell from '../layouts/AppShell.astro';
 import { site, nav, venuesCopy, footer } from '../lib/copy';
+import { venueDatabase } from '../lib/venues-database';
 
 /**
  * The Supply Side: Venues and bars on the AT Protocol.
@@ -136,6 +137,51 @@ import { site, nav, venuesCopy, footer } from '../lib/copy';
             </ul>
           </div>
         </article>
+      </div>
+    </section>
+
+    <!-- Seeded Anchor Venues -->
+    <section class="space-y-6">
+      <div class="border-b border-foreground pb-2">
+        <span class="label-caps text-primary block mb-1">Decentralized Corpus</span>
+        <h2 class="font-serif text-2xl font-bold text-foreground">{venuesCopy.seededTitle}</h2>
+        <p class="font-serif text-sm text-foreground/80 mt-1">{venuesCopy.seededSubtitle}</p>
+      </div>
+
+      <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {venueDatabase.slice(0, 6).map((venue) => (
+          <article class="coaster border border-border bg-card p-6 flex flex-col justify-between space-y-4">
+            <div>
+              <div class="flex items-center justify-between border-b border-border pb-2 mb-3">
+                <span class="font-mono text-xs text-primary font-semibold">{venue.domain}</span>
+                <span class="rounded-sm border border-border px-2 py-0.5 font-condensed text-3xs uppercase tracking-label text-muted-foreground">
+                  {venue.claimStatus}
+                </span>
+              </div>
+              <h3 class="font-serif text-xl font-bold text-foreground mb-1">{venue.name}</h3>
+              <p class="font-serif text-xs text-muted-foreground mb-3">{venue.neighborhood} · {venue.city}</p>
+              <p class="font-serif text-xs leading-relaxed text-foreground/80 mb-4">{venue.summary}</p>
+              
+              <div class="border-t border-border/60 pt-3">
+                <span class="label-caps text-secondary block mb-2">Mapped Specs ({venue.menu.length})</span>
+                <ul class="space-y-1.5 font-serif text-xs text-foreground/90">
+                  {venue.menu.map((item) => (
+                    <li class="flex items-center justify-between">
+                      <span class="font-medium">{item.name}</span>
+                      <span class="font-mono text-3xs text-muted-foreground">[{item.x > 0 ? `+${item.x}` : item.x}, {item.y > 0 ? `+${item.y}` : item.y}]</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+            
+            <div class="pt-2">
+              <span class="block w-full text-center rounded-sm border border-border bg-background py-1.5 font-condensed text-3xs uppercase tracking-label text-muted-foreground">
+                Unclaimed Sighting · Proves with DNS
+              </span>
+            </div>
+          </article>
+        ))}
       </div>
     </section>
 
