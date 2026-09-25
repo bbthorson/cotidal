@@ -117,3 +117,22 @@ test('Navigation: unified header navigation renders on landing and register', as
   expect(taste).toContain('href="/drinks"');
 });
 
+
+test('Header: on a phone the destinations fold under "Menu", without JavaScript', async ({ browser }) => {
+  const context = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 390, height: 844 } });
+  const page = await context.newPage();
+  await page.goto('/');
+
+  const nav = page.getByRole('navigation', { name: 'Main Navigation' });
+  await expect(nav).toBeHidden();
+  await page.locator('header summary').click();
+  await expect(nav).toBeVisible();
+  await expect(nav.getByRole('link', { name: /the register/i })).toBeVisible();
+  await context.close();
+});
+
+test('Landing: one primary action, with its cost stated', async ({ page }) => {
+  const html = await (await page.request.get('/')).text();
+  expect(html).toContain('About two minutes · no account needed');
+  expect(html).toContain('href="#regions"');
+});
