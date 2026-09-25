@@ -29,6 +29,20 @@ All colors, typography, elevations, and layout metrics are defined centrally in 
 | `--accent` | `80 24% 76%` | `#C6D1B2` | Muted sage mass |
 | `--border` | `41 29% 81%` | `#D6CEBA` | Tan hairline border |
 | `--muted-foreground` | `125 6% 39%` | `#5D6A61` | Warm grey-green for metadata & glosses |
+| `--destructive` | `0 65% 42%` | `#B12828` | Errors only |
+
+**Colour rules.** Terracotta marks what is *yours* (your dot, your top pick, focus); forest is for actions (primary buttons, active tabs). Text is full-strength ink, forest, terracotta or grey-green — de-emphasise with size and weight, never with opacity.
+
+### The reveal ground (`reveal-*`)
+Forest laid as the stock, paper as the ink. Used **only** where the product reveals something: the coordinate landing after the questions (`Reveal.tsx`) and moving after a pour (`Moved.tsx`). Never a theme the user switches to.
+
+| Token | HSL Value | Hex | Role |
+|---|---|---|---|
+| `--reveal` | `148 20% 17%` | `#23342B` | Ground |
+| `--reveal-foreground` | `47 39% 93%` | `#F4F1E6` | Text and rules |
+| `--reveal-muted` | `80 24% 76%` | `#C6D1B2` | Labels (sage) |
+| `--reveal-mark` | `9 55% 52%` | `#C8543F` | Your dot |
+| `--reveal-trace` | `12 58% 78%` | `#E7B3A6` | Where your dot was |
 
 ### Typography Tokens
 | Token | Font Family / Size | Tracking / Leading | Usage |
@@ -40,6 +54,15 @@ All colors, typography, elevations, and layout metrics are defined centrally in 
 | `tracking-wordmark` | `0.15em` | — | Site title wordmark |
 | `text-3xs` | `0.625rem` / `0.875rem` | — | Micro labels & colophons |
 | `text-2xs` | `0.6875rem` / `1rem` | — | Footnotes, specimen markers |
+| `text-meta` | 13px / 1.5 | — | PT Sans small: glosses, notes |
+| `text-ui` | 15px / 1.55 | — | PT Sans body |
+| `text-prose` | 17px / 1.6 | — | Playfair prose |
+| `text-plate` | 19px / 1.3 | — | Option and drink names |
+| `text-title` | 30px / 1.15 | — | A question, a drink, a sheet title |
+| `text-hero` | 40px / 1.05 | — | Landing headline on a phone |
+| `text-region` | 56px / 1 | — | A region, revealed (Playfair 400 italic) |
+
+Fonts (`Base.astro`): Playfair Display 400, 400 italic and 700; PT Sans 400/700; Barlow Condensed 400/600/700. `font-mono` resolves to Barlow — monospace is not a brand face.
 
 ### Elevation & Shadows
 | Token | Definition | Intent |
@@ -48,10 +71,16 @@ All colors, typography, elevations, and layout metrics are defined centrally in 
 | `shadow-mcm` | `4px 4px 0px 0px hsl(8 55% 40%)` | Hard letterpress offset in terracotta |
 | `shadow-glow` | `inset 0 0 0 1px hsl(41 29% 81%)` | An impression/stamp, not a digital light halo |
 
+### Corners
+Radius is 0 for sheets, plates, buttons and tabs. `rounded-sm` (2px) is the one exception, for inputs. `rounded-full` stays for the dots on the map.
+
 ### Form & Component Patterns
 - **Dot Leader**: `.dot-leader` with `.leader` spacer for wine-list style alignments (`Name .......... Amount`).
 - **Menu Row**: `.menu-row` creates a clean hairline top rule with generous breathing room.
-- **Coaster**: `.coaster` applies nearly square corners (`rounded-sm`) with an inset border impression.
+- **Top pick sheet**: the one sheet that is yours — ink edge, `bg-card`, `shadow-mcm`.
+- **Option plate**: the whole plate is the button; chosen = ink edge + `shadow-mcm`, struck through when the question asks what to push away.
+- **Segmented control**: four equal cells in an ink frame; active cell `bg-secondary`.
+- **Tags**: axis (outline, forest), region (terracotta fill), status (sage fill). No other tag styles.
 - **Paper Grain**: `.bar-texture` applies a subtle SVG fractal grain texture.
 
 ---
@@ -67,7 +96,13 @@ Navigation is unified across the entire site through `<SiteHeader.astro>`:
    - **Sign In** (`/#connect`)
 3. **Active State Indicators**: Routes are identified via `currentPath` and styled with `bg-secondary text-secondary-foreground shadow-bar`.
 4. **Sub-Route Navigation**: In `/drinks/[slug]`, the header supports a semantic `backLink` while retaining global site navigation.
-5. **In-App Controls**: In `/taste`, `<AppNavigation />` adheres strictly to the paper token system (square corners, `font-condensed text-xs uppercase tracking-label`).
+5. **Phones**: the header collapses to wordmark · Sign in · Menu. "Menu" is a `<details>` that opens the same `<nav>` through `peer-open`, so `/` still ships no JavaScript.
+6. **Focus mode**: any element marked `data-focus-mode` (the quiz, the reveal, the after-a-pour screen) hides the site header and footer below `lg` (`globals.css`, pure CSS so nothing flashes before hydration).
+7. **In-App Controls**: In `/taste`, `<AppNavigation />` is Menu · Map · Log a pour — a bar along the bottom of a phone, a ruled strip above the content from `lg`.
+
+## The first-visit flow (`/taste`)
+
+Questions → reveal → your menu. Sign-in is offered once, after the reveal, as one sheet (`SignInSheet.tsx`) that states what it buys; the landing page's form (`ConnectForm.astro`) renders the same promise from `connect.buys` in `copy.ts`. The radar chart, the archetypes and the Oracle tab are retired from the interface; the region is the only identity. Logging a pour ends on the after-a-pour screen, which shows the coordinate moving and what changed on the menu.
 
 ---
 

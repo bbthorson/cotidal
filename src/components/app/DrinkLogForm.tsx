@@ -9,7 +9,8 @@ import type { UserProfile } from '@/hooks/useDiscoveryQuiz';
 
 interface DrinkLogFormProps {
   recommendedDrinks: string[];
-  onPalateUpdated: (profile: UserProfile) => void;
+  /** Called with the moved coordinate and the pour that moved it. */
+  onPalateUpdated: (profile: UserProfile, pour: { drinkName: string; rating: number }) => void;
   selectedLocation?: string | null;
   history: PourRecord[];
   loadingHistory?: boolean;
@@ -144,7 +145,7 @@ export function DrinkLogForm({
 
       if (result.success && result.profile) {
         setSuccessMsg(`Logged "${finalDrinkName}" (${rating.toFixed(1)}/10) to your AT Protocol repository!`);
-        onPalateUpdated(result.profile);
+        onPalateUpdated(result.profile, { drinkName: finalDrinkName, rating });
         
         // Reset form inputs
         setCustomDrinkName('');

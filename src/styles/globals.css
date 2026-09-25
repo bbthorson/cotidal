@@ -38,7 +38,22 @@
     --border: 41 29% 81%;
     --input: 41 29% 81%;
     --ring: 8 55% 40%;
-    --radius: 0.75rem;
+    /* Printed matter has square corners. Sheets, plates and buttons are 0;
+       `rounded-sm` (2px) is the one exception, for inputs. */
+    --radius: 0px;
+
+    /* The reveal ground (evolution B): forest ink laid as the stock, paper as
+       the ink. Used only where the product reveals something — your
+       coordinate landing, and your coordinate moving after a pour. Never a
+       theme the user switches to. */
+    --reveal: 148 20% 17%;
+    --reveal-foreground: 47 39% 93%;
+    /* Sage for labels on the ink ground */
+    --reveal-muted: 80 24% 76%;
+    /* Terracotta lifted so the dot holds its own against forest */
+    --reveal-mark: 9 55% 52%;
+    /* Pale terracotta for the trace a moved dot leaves behind */
+    --reveal-trace: 12 58% 78%;
 
     --chart-1: 8 55% 40%;
     --chart-2: 140 22% 24%;
@@ -122,15 +137,28 @@
     margin: 0 0.5rem;
     min-width: 1.5rem;
   }
+  /* The same leader on the reveal ground */
+  .dot-leader > .leader.leader-reveal {
+    border-bottom-color: hsl(var(--reveal-foreground) / 0.35);
+  }
 
   /* A printed menu row: hairline above, generous leading, nothing else. */
   .menu-row {
     border-top: 1px solid hsl(var(--border));
   }
 
-  /* Letterpress-style caps used for labels and column heads. */
+  /* Letterpress-style caps used for labels and column heads. 12px, 600:
+     it was 10px, below what the brand allows for any running label. */
   .label-caps {
-    @apply font-condensed text-3xs uppercase tracking-label text-muted-foreground;
+    @apply font-condensed text-xs font-semibold uppercase tracking-label text-muted-foreground;
+  }
+
+  /* A <summary> that reads as a plain control, not a disclosure triangle. */
+  .summary-plain {
+    list-style: none;
+  }
+  .summary-plain::-webkit-details-marker {
+    display: none;
   }
 
   /* Body copy for a drink entry. Markdown output carries no classes of its
@@ -153,6 +181,16 @@
   }
 }
 
+
+/* Focus mode. The quiz and the reveals are one-move screens on a phone, so
+   the site header and footer step out of the way while they are showing.
+   Pure CSS so it holds before hydration: the island server-renders the
+   marker, and nothing flashes. Desktop keeps the chrome. */
+@media (max-width: 1023px) {
+  body:has([data-focus-mode]) [data-site-chrome] {
+    display: none;
+  }
+}
 
 @layer base {
   * {

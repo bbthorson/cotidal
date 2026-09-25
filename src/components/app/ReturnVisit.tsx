@@ -422,8 +422,8 @@ function ReturnVisitContent() {
               </div>
 
               {/* Map Surface */}
-              <div className="relative w-full aspect-2/1 border border-primary/10 overflow-hidden rounded-sm">
-                <MapBackground />
+              <div className="relative w-full aspect-2/1 overflow-hidden border border-foreground bg-card">
+                <MapBackground highlight={currentQuadrant.id} />
                 <TooltipProvider>
                   <UserPin
                     x={userModel.x}

@@ -21,7 +21,8 @@ export const nav = {
   map: 'Palate Map',
   register: 'The Register',
   regions: 'The Four Regions',
-  signIn: 'Sign In',
+  signIn: 'Sign in',
+  menu: 'Menu',
   log: 'Log a Pour',
   bars: 'For Bars',
 } as const;
@@ -34,6 +35,10 @@ export const hero = {
     'Answer a few questions. A point appears. What surrounds it is what you should be ordering.',
   primaryCta: 'Find your coordinate',
   primaryCtaReturning: 'Return to your map',
+  /** Stated under the one primary action, so the cost is known up front. */
+  cost: 'About two minutes · no account needed',
+  /** The reading path: one tap away, never a second button. */
+  readFirst: 'Read the four regions first',
   secondaryCta: 'Look at the map first',
   registerCta: 'Explore the register',
 } as const;
@@ -89,13 +94,101 @@ export const sections = {
 } as const;
 
 export const connect = {
-  title: 'Carry it with you',
+  title: 'Keep this coordinate.',
   body:
-    'Your coordinate is written to your own account, not ours. Sign in to keep it, log what you drink, and find the people whose maps overlap yours.',
+    'Your coordinate is written to your own account, not ours. Sign in to keep it, log what you drink, and watch it move.',
+  label: 'Your Bluesky handle',
   placeholder: 'you.bsky.social',
   submit: 'Sign in with Bluesky',
+  connecting: 'Opening Bluesky…',
+  guest: 'Keep browsing as a guest',
   divider: 'or',
   disabled: 'Sign-in is not enabled in this environment.',
+  /**
+   * What signing in buys, in the order a guest will feel it. One list, used
+   * by the landing page's sign-in section and the in-app sheet alike, so the
+   * promise cannot drift between them. "Friends" says plainly it is later.
+   */
+  buys: [
+    {
+      title: 'It’s saved to your account',
+      body: 'Written to your own Bluesky repository. It stays yours if you leave.',
+    },
+    {
+      title: 'Log a pour, watch it move',
+      body: 'Rate what you drink; your coordinate and menu follow.',
+    },
+    {
+      title: 'Compare with friends',
+      body: 'Later: people you already follow who have a coordinate.',
+    },
+  ],
+} as const;
+
+/** The quiz's own chrome. The questions themselves live in discovery-questions.ts. */
+export const quiz = {
+  back: 'Back',
+  backLabel: 'Back to the previous question',
+  skip: 'Skip',
+  skipLabel: 'Skip the questions and go to the menu',
+  /** "3 of about 8" — honest, because the selector is adaptive. */
+  countJoiner: 'of about',
+  pushAway: 'Tap the one you’d send back.',
+  loading: 'Locating your coordinate…',
+} as const;
+
+/** The reveal: the one screen where the product says who you are. */
+export const reveal = {
+  eyebrow: 'Your coordinate lands in',
+  continue: 'See what to order',
+  retake: 'Not you? Retake',
+} as const;
+
+/** The menu that replaces the old results dashboard. */
+export const menu = {
+  youAreIn: 'You are in',
+  /** Four drinking occasions, switched in one place rather than stacked. */
+  contexts: [
+    { id: 'usual', label: 'Usual', title: 'Your go-to' },
+    { id: 'party', label: 'Night out', title: 'For a night out' },
+    { id: 'business', label: 'Impress', title: 'Making an impression' },
+    { id: 'holiday', label: 'Holiday', title: 'Holiday warmth' },
+  ],
+  contextsLabel: 'Occasion',
+  topPrefix: 'No. 1',
+  keepTitle: 'Keep this coordinate',
+  keepBody: 'Log pours and watch it move.',
+  signedInAs: 'Signed in as',
+  share: 'Share to your feed',
+  shared: 'Shared',
+  signOut: 'Sign out',
+  refineTitle: 'Tell us what you avoid',
+  refineBody:
+    'Anything you avoid, crave or swear by. Your coordinate moves to match, and the change is written to your account.',
+  refinePlaceholder: 'Red wine gives me headaches. I love a dry martini. Nothing that tastes of licorice.',
+  refineSubmit: 'Move my coordinate',
+  refining: 'Moving…',
+  refineResult: 'What changed',
+  startOver: 'Start over',
+  empty: 'Nothing on the map fits these limits yet.',
+  tabs: { menu: 'Menu', map: 'Map', log: 'Log a pour' },
+  tabsLabel: 'Your coordinate',
+  venueLabel: 'Where you’re drinking',
+  venuePlaceholder: 'A bar name, or leave blank',
+  venueRecent: 'Recently',
+  venueClear: 'Clear',
+} as const;
+
+/** After a pour is logged: the payoff of signing in, shown every time. */
+export const moved = {
+  eyebrow: 'Logged',
+  title: 'Your coordinate moved.',
+  stillIn: 'Still in',
+  nowIn: 'Now in',
+  rankOnMenu: (n: number) => `Now No. ${n} on your menu`,
+  offMenu: 'Not on your menu',
+  newOnMenu: 'New on your menu',
+  back: 'Back to your menu',
 } as const;
 
 export const principles = [

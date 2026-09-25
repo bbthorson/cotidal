@@ -1,388 +1,598 @@
-import { useMemo, useState, useEffect } from 'react';
-import { drinkDatabase, type User, type ContextType } from '@/lib/data';
-import { calculateContextScore, calculateWeightedRelevance, getQuadrantName } from '@/lib/scoring';
-import { ConnectBluesky } from './ConnectBluesky';
-import { MiniFlavorMap } from './MiniFlavorMap';
-import { HeroDrinkCard } from './HeroDrinkCard';
-import { MenuSection } from './MenuSection';
+import { useMemo, useState, useEffect, useCallback } from 'react';
+import { drinkDatabase, type Drink, type User, type ContextType } from '@/lib/data';
+import { calculateContextScore, calculateWeightedRelevance } from '@/lib/scoring';
+import { quadrantFor } from '@/lib/quadrant';
+import { hero, menu, nav } from '@/lib/copy';
+import type { Register } from '@/lib/register';
 import { DrinkLogForm } from './DrinkLogForm';
-import { PalateRadarChart } from './PalateRadarChart';
 import { DrinkMapView } from './DrinkMapView';
 import { AppNavigation, type ActiveTab } from './AppNavigation';
 import { useAtprotoContext } from './AtprotoProvider';
-import { getConnectedDrinkLogs, refinePalateWithAI } from '@/lib/api-client';
-import { MapPin, Sparkles } from 'lucide-react';
+import { CoordinateMap, DrinkDot, MapThumb, YouMark } from './CoordinateMap';
+import { Moved } from './Moved';
+import {
+  explainDrinkMatch,
+  getConnectedDrinkLogs,
+  refinePalateWithAI,
+  sharePalateToFeed,
+} from '@/lib/api-client';
+import { cn } from '@/lib/utils';
 import type { UserProfile } from '@/hooks/useDiscoveryQuiz';
 import type { PourRecord } from '@/lib/atproto/records';
 
 interface ResultsScreenProps {
-    user: User;
-    vibeTags?: Record<string, number>;
-    onPalateUpdated?: (profile: UserProfile) => void;
+  user: User;
+  /** False when browsing without having answered the questions. */
+  hasCoordinate: boolean;
+  vibeTags?: Record<string, number>;
+  register: Register;
+  onPalateUpdated?: (profile: UserProfile) => void;
+  onRequestSignIn: () => void;
+  onStartOver: () => void;
 }
 
-const MENU_SECTIONS: { context: ContextType; title: string; count: number }[] = [
-    { context: 'usual',    title: "Your Go-To's",         count: 8 },
-    { context: 'party',    title: "For a Night Out",      count: 6 },
-    { context: 'business', title: "Making an Impression", count: 6 },
-    { context: 'holiday',  title: "Holiday Warmth",       count: 6 },
-];
+type ScoredDrink = Drink & { score: number };
 
-export function ResultsScreen({ user, vibeTags, onPalateUpdated }: ResultsScreenProps) {
-    const { isConnected } = useAtprotoContext();
-    const [activeTab, setActiveTab] = useState<ActiveTab>('palate');
-    const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
-    const [history, setHistory] = useState<PourRecord[]>([]);
-    const [loadingHistory, setLoadingHistory] = useState(false);
-    const [refineNotes, setRefineNotes] = useState('');
-    const [isRefining, setIsRefining] = useState(false);
-    const [dossier, setDossier] = useState<string | null>(null);
+/** One menu per occasion: the top pick and seven more. */
+const MENU_LENGTH = 8;
 
-    const handleRefinePalate = async () => {
-        if (!refineNotes.trim() || isRefining) return;
-        setIsRefining(true);
-        try {
-            const currentProfile: UserProfile = {
-                x: user.x,
-                y: user.y,
-                dislikesSmoke: user.filters.includes('noSmoke'),
-                dislikesBitter: user.filters.includes('noBitter'),
-                dislikesAnise: user.filters.includes('noAnise'),
-                vibeTags: vibeTags || {},
-            };
-            const result = await refinePalateWithAI(refineNotes, currentProfile);
-            setDossier(result.dossier);
-            if (onPalateUpdated) {
-                onPalateUpdated(result.profile);
-            }
-        } catch (err) {
-            console.error('Failed to refine palate:', err);
-        } finally {
-            setIsRefining(false);
-        }
+interface PourMoved {
+  from: { x: number; y: number };
+  drinkName: string;
+  rating: number;
+  /** The go-to menu before the pour, by name. */
+  before: string[];
+}
+
+/**
+ * Your menu (Flow Recommendations, R4), which replaces the old results
+ * dashboard. One list, with the four occasions switched in one place; the
+ * top pick is the one sheet that is yours. The radar chart, the archetype and
+ * the Oracle tab are retired: the region is the only identity.
+ */
+export function ResultsScreen({
+  user,
+  hasCoordinate,
+  vibeTags,
+  register,
+  onPalateUpdated,
+  onRequestSignIn,
+  onStartOver,
+}: ResultsScreenProps) {
+  const { isEnabled, isConnected, handle, disconnect } = useAtprotoContext();
+  const [activeTab, setActiveTab] = useState<ActiveTab>('menu');
+  const [context, setContext] = useState<ContextType>('usual');
+  const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
+  const [history, setHistory] = useState<PourRecord[]>([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
+  const [pourMoved, setPourMoved] = useState<PourMoved | null>(null);
+
+  const fetchHistory = useCallback(async () => {
+    if (!isConnected) return;
+    setLoadingHistory(true);
+    try {
+      setHistory(await getConnectedDrinkLogs(50));
+    } catch (e) {
+      console.error('Failed to load tasted history:', e);
+    } finally {
+      setLoadingHistory(false);
+    }
+  }, [isConnected]);
+
+  useEffect(() => {
+    fetchHistory();
+  }, [fetchHistory]);
+
+  const recentVenues = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          history
+            .map((h) => (h.isHomePour ? 'Home Pour' : h.venue?.entity?.name))
+            .filter((loc): loc is string => !!loc && loc.trim().length > 0)
+        )
+      ),
+    [history]
+  );
+
+  // Filter, then score by weighted relevance (coordinate, vibe, history, venue).
+  const baseScored = useMemo(() => {
+    const dislikesSmoke = user.filters.includes('noSmoke');
+    const dislikesBitter = user.filters.includes('noBitter');
+    const dislikesAnise = user.filters.includes('noAnise');
+
+    const logs = history.map((pour) => ({
+      drinkName: pour.drink.name,
+      location: pour.isHomePour ? 'Home Pour' : pour.venue?.entity?.name,
+      hedonicScale: pour.rating.hedonic,
+      createdAt: pour.createdAt,
+    }));
+
+    return drinkDatabase
+      .filter((d) => !(dislikesSmoke && d.hasSmoke) && !(dislikesBitter && d.isBitter) && !(dislikesAnise && d.hasAnise))
+      .filter((drink) => {
+        // A drink you rated 3 or lower last time comes off the menu.
+        const latest = logs
+          .filter((log) => log.drinkName.toLowerCase() === drink.name.toLowerCase())
+          .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
+        return !(latest && latest.hedonicScale <= 3);
+      })
+      .map((drink) => ({
+        drink,
+        relevance: calculateWeightedRelevance(
+          { x: user.x, y: user.y, vibeTags: vibeTags || null },
+          drink,
+          logs,
+          selectedLocation
+        ),
+      }));
+  }, [user, vibeTags, history, selectedLocation]);
+
+  const menuFor = useCallback(
+    (ctx: ContextType): ScoredDrink[] =>
+      baseScored
+        .map(({ drink, relevance }) => ({
+          ...drink,
+          score: Math.round(Math.max(0, Math.min(100, relevance + calculateContextScore(drink, ctx) * 2))),
+        }))
+        .sort((a, b) => b.score - a.score)
+        .slice(0, MENU_LENGTH),
+    [baseScored]
+  );
+
+  const current = useMemo(() => menuFor(context), [menuFor, context]);
+  const goTo = useMemo(() => menuFor('usual'), [menuFor]);
+
+  const displayName = useCallback((name: string) => register[name]?.title ?? name, [register]);
+  const region = quadrantFor(user.x, user.y);
+
+  const changeTab = (tab: ActiveTab) => {
+    // Logging needs an account. A guest gets the one sign-in sheet instead.
+    if (tab === 'log' && isEnabled && !isConnected) {
+      onRequestSignIn();
+      return;
+    }
+    setActiveTab(tab);
+    window.scrollTo(0, 0);
+  };
+
+  const handleLogged = (profile: UserProfile, pour: { drinkName: string; rating: number }) => {
+    setPourMoved({ from: { x: user.x, y: user.y }, ...pour, before: goTo.map((d) => d.name) });
+    onPalateUpdated?.(profile);
+  };
+
+  if (pourMoved) {
+    const after = goTo.map((d) => d.name);
+    const index = after.findIndex((n) => n.toLowerCase() === pourMoved.drinkName.toLowerCase());
+    const newcomer =
+      after.find(
+        (n) => !pourMoved.before.includes(n) && n.toLowerCase() !== pourMoved.drinkName.toLowerCase()
+      ) ?? null;
+    return (
+      <Moved
+        from={pourMoved.from}
+        to={{ x: user.x, y: user.y }}
+        drinkName={pourMoved.drinkName}
+        rating={pourMoved.rating}
+        rank={index >= 0 ? index + 1 : null}
+        newcomer={newcomer}
+        displayName={displayName}
+        onDone={() => {
+          setPourMoved(null);
+          setActiveTab('menu');
+        }}
+      />
+    );
+  }
+
+  const top = current[0];
+  const rest = current.slice(1);
+  const contextTitle = menu.contexts.find((c) => c.id === context)?.title ?? '';
+
+  return (
+    <div className="mx-auto max-w-xl pb-28 pt-5 motion-safe:animate-in motion-safe:fade-in lg:pb-0 lg:pt-8">
+      <AppNavigation activeTab={activeTab} onTabChange={changeTab} />
+
+      {/* Where you are: region name, and the 2:1 thumbnail with your dot */}
+      <div className="flex items-center justify-between gap-4">
+        {hasCoordinate ? (
+          <div className="flex flex-col gap-1">
+            <span className="label-caps">{menu.youAreIn}</span>
+            <span className="font-serif text-2xl italic leading-none text-primary">{region.name}</span>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={onStartOver}
+            className="flex min-h-11 items-center font-serif text-lg italic text-foreground underline decoration-primary underline-offset-4 hover:text-primary"
+          >
+            {hero.primaryCta}
+          </button>
+        )}
+        {hasCoordinate && <MapThumb x={user.x} y={user.y} />}
+      </div>
+
+      {activeTab === 'menu' && (
+        <div className="motion-safe:animate-in motion-safe:fade-in">
+          {/* The four occasions, switched in one place */}
+          <div
+            role="group"
+            aria-label={menu.contextsLabel}
+            className="mt-4.5 grid grid-cols-4 border border-foreground"
+          >
+            {menu.contexts.map((c, i) => {
+              const active = c.id === context;
+              return (
+                <button
+                  key={c.id}
+                  type="button"
+                  aria-pressed={active}
+                  onClick={() => setContext(c.id as ContextType)}
+                  className={cn(
+                    'min-h-11 px-1 font-condensed text-xs font-semibold uppercase tracking-wider transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring',
+                    i > 0 && 'border-l border-foreground',
+                    active ? 'bg-secondary text-secondary-foreground' : 'bg-card text-foreground hover:bg-muted'
+                  )}
+                >
+                  {c.label}
+                </button>
+              );
+            })}
+          </div>
+
+          {top ? (
+            <>
+              <TopPick
+                drink={top}
+                title={contextTitle}
+                entry={register[top.name]}
+                user={user}
+              />
+              <ol className="mt-5.5 border-t border-foreground">
+                {rest.map((d, i) => (
+                  <li key={d.name} className="dot-leader border-b border-border py-3">
+                    <span className="w-5.5 shrink-0 font-condensed text-meta tabular-nums text-muted-foreground">
+                      {i + 2}
+                    </span>
+                    <DrinkName name={d.name} entry={register[d.name]} className="text-prose" />
+                    <span aria-hidden="true" className="leader" />
+                    <span className="font-condensed text-ui font-semibold tabular-nums" aria-label={`Closeness ${d.score}`}>
+                      {d.score}
+                    </span>
+                  </li>
+                ))}
+              </ol>
+            </>
+          ) : (
+            <p className="mt-6 font-serif text-prose italic text-muted-foreground">{menu.empty}</p>
+          )}
+
+          {/* One sign-in prompt, below the list, stating the benefit */}
+          {isEnabled && !isConnected && (
+            <div className="mt-5 flex items-center gap-3 border border-border bg-card p-4">
+              <div className="flex flex-1 flex-col gap-0.5">
+                <span className="font-serif text-base font-bold">{menu.keepTitle}</span>
+                <span className="text-meta text-muted-foreground">{menu.keepBody}</span>
+              </div>
+              <button
+                type="button"
+                onClick={onRequestSignIn}
+                className="min-h-11 shrink-0 border border-foreground bg-secondary px-3.5 font-condensed text-xs font-bold uppercase tracking-label text-secondary-foreground transition-colors hover:bg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              >
+                {nav.signIn}
+              </button>
+            </div>
+          )}
+
+          {isConnected && (
+            <MemberTools
+              user={user}
+              vibeTags={vibeTags || {}}
+              handle={handle}
+              topName={top ? displayName(top.name) : ''}
+              regionName={region.name}
+              onPalateUpdated={onPalateUpdated}
+              onSignOut={disconnect}
+            />
+          )}
+
+          <div className="mt-10 border-t border-border pt-4 text-center">
+            <button
+              type="button"
+              onClick={onStartOver}
+              className="min-h-11 px-4 font-condensed text-meta uppercase tracking-label text-muted-foreground underline decoration-primary underline-offset-4 transition-colors hover:text-primary"
+            >
+              {menu.startOver}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'map' && (
+        <div className="mt-4.5 space-y-8 motion-safe:animate-in motion-safe:fade-in">
+          <CoordinateMap you={hasCoordinate ? user : undefined} showAxes>
+            {drinkDatabase.map((d) => (
+              <DrinkDot key={d.name} x={d.x} y={d.y} filled={current.some((c) => c.name === d.name)} />
+            ))}
+            {hasCoordinate && <YouMark x={user.x} y={user.y} label={`Your coordinate, in ${region.name}`} />}
+          </CoordinateMap>
+          {history.length > 0 && <DrinkMapView userLogs={history} />}
+        </div>
+      )}
+
+      {activeTab === 'log' && (
+        <div className="mt-4.5 space-y-6 motion-safe:animate-in motion-safe:fade-in">
+          <VenueField
+            value={selectedLocation}
+            recent={recentVenues}
+            onChange={setSelectedLocation}
+          />
+          <DrinkLogForm
+            recommendedDrinks={goTo.map((d) => d.name)}
+            onPalateUpdated={handleLogged}
+            selectedLocation={selectedLocation}
+            history={history}
+            loadingHistory={loadingHistory}
+            onLogAdded={fetchHistory}
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function DrinkName({
+  name,
+  entry,
+  className,
+}: {
+  name: string;
+  entry?: Register[string];
+  className?: string;
+}) {
+  const label = entry?.title ?? name;
+  const classes = cn('font-serif font-bold text-foreground', className);
+  return entry ? (
+    <a href={`/drinks/${entry.slug}`} className={cn(classes, 'transition-colors hover:text-primary')}>
+      {label}
+    </a>
+  ) : (
+    <span className={classes}>{label}</span>
+  );
+}
+
+/**
+ * The top pick: the one sheet that is yours, so it takes the letterpress
+ * offset. The explanation is written once, here, rather than on tap for every
+ * row.
+ */
+function TopPick({
+  drink,
+  title,
+  entry,
+  user,
+}: {
+  drink: ScoredDrink;
+  title: string;
+  entry?: Register[string];
+  user: User;
+}) {
+  const [why, setWhy] = useState<{ name: string; text: string | null } | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    explainDrinkMatch(drink.name, {
+      x: user.x,
+      y: user.y,
+      dislikesSmoke: user.filters.includes('noSmoke'),
+      dislikesBitter: user.filters.includes('noBitter'),
+    })
+      .then((text) => !cancelled && setWhy({ name: drink.name, text }))
+      .catch(() => !cancelled && setWhy({ name: drink.name, text: null }));
+    return () => {
+      cancelled = true;
     };
+  }, [drink.name, user.x, user.y, user.filters]);
 
-    const fetchHistory = async () => {
-        if (!isConnected) return;
-        setLoadingHistory(true);
-        try {
-            const logs = await getConnectedDrinkLogs(50);
-            setHistory(logs);
-        } catch (e) {
-            console.error("Failed to load tasted history:", e);
-        } finally {
-            setLoadingHistory(false);
-        }
-    };
+  const loading = why?.name !== drink.name;
 
-    useEffect(() => {
-        fetchHistory();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isConnected]);
+  return (
+    <div className="mt-5 flex flex-col gap-2.5 border border-foreground bg-card p-4.5 shadow-mcm">
+      <div className="flex items-baseline justify-between">
+        <span className="font-condensed text-xs font-semibold uppercase tracking-label text-secondary">
+          {menu.topPrefix} · {title}
+        </span>
+        <span className="font-condensed text-base font-bold tabular-nums" aria-label={`Closeness ${drink.score}`}>
+          {drink.score}
+        </span>
+      </div>
+      <DrinkName name={drink.name} entry={entry} className="text-title" />
+      {entry?.build && <span className="text-sm text-muted-foreground">{entry.build}</span>}
+      {(loading || why?.text) && (
+        <p
+          aria-busy={loading}
+          className={cn(
+            'border-t border-border pt-2.5 font-serif text-ui italic',
+            loading && 'text-muted-foreground motion-safe:animate-pulse'
+          )}
+        >
+          {loading ? '…' : why?.text}
+        </p>
+      )}
+    </div>
+  );
+}
 
-    // Unique venues logged in history
-    const uniqueLocations = useMemo(() => {
-        return Array.from(
-            new Set(
-                history
-                    .map(h => (h.isHomePour ? 'Home Pour' : h.venue?.entity?.name))
-                    .filter((loc): loc is string => !!loc && loc.trim().length > 0)
-            )
-        );
-    }, [history]);
-
-    // Stage 1: Filter & Base Score using Weighted User Relevance
-    const baseScoredDrinks = useMemo(() => {
-        const dislikesSmoke = user.filters.includes('noSmoke');
-        const dislikesBitter = user.filters.includes('noBitter');
-        const dislikesAnise = user.filters.includes('noAnise');
-
-        const availableDrinks = drinkDatabase.filter(d => {
-            if (dislikesSmoke && d.hasSmoke) return false;
-            if (dislikesBitter && d.isBitter) return false;
-            if (dislikesAnise && d.hasAnise) return false;
-            return true;
-        });
-
-        const userWithVibe = {
-            x: user.x,
-            y: user.y,
-            vibeTags: vibeTags || null,
-        };
-
-        const minimalLogs = history.map(pour => ({
-            drinkName: pour.drink.name,
-            location: pour.isHomePour ? 'Home Pour' : pour.venue?.entity?.name,
-            hedonicScale: pour.rating.hedonic,
-            createdAt: pour.createdAt,
-        }));
-
-        return availableDrinks.map(drink => {
-            const score = calculateWeightedRelevance(
-                userWithVibe,
-                drink,
-                minimalLogs,
-                selectedLocation
+/** "Where you're drinking" — the venue filter, moved here from the menu. */
+function VenueField({
+  value,
+  recent,
+  onChange,
+}: {
+  value: string | null;
+  recent: string[];
+  onChange: (value: string | null) => void;
+}) {
+  return (
+    <div className="flex flex-col gap-2.5">
+      <label className="flex flex-col gap-1.5">
+        <span className="font-condensed text-xs uppercase tracking-label text-muted-foreground">{menu.venueLabel}</span>
+        <input
+          type="text"
+          value={value || ''}
+          onChange={(e) => onChange(e.target.value || null)}
+          placeholder={menu.venuePlaceholder}
+          className="min-h-12 rounded-sm border border-border bg-card px-3.5 font-body text-base text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
+        />
+      </label>
+      {recent.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="font-condensed text-xs uppercase tracking-label text-muted-foreground">{menu.venueRecent}</span>
+          {recent.slice(0, 5).map((loc) => {
+            const active = value?.toLowerCase().trim() === loc.toLowerCase().trim();
+            return (
+              <button
+                key={loc}
+                type="button"
+                aria-pressed={active}
+                onClick={() => onChange(active ? null : loc)}
+                className={cn(
+                  'min-h-9 border px-2.5 font-condensed text-xs uppercase tracking-label transition-colors',
+                  active
+                    ? 'border-secondary bg-secondary text-secondary-foreground'
+                    : 'border-border text-secondary hover:border-foreground'
+                )}
+              >
+                {loc}
+              </button>
             );
+          })}
+          {value && (
+            <button
+              type="button"
+              onClick={() => onChange(null)}
+              className="min-h-9 px-1 font-condensed text-xs uppercase tracking-label text-muted-foreground underline decoration-primary underline-offset-4 hover:text-primary"
+            >
+              {menu.venueClear}
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
 
-            const latestLog = minimalLogs
-                .filter(log => log.drinkName.toLowerCase() === drink.name.toLowerCase())
-                .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
-            const isHardDislike = latestLog && latestLog.hedonicScale <= 3;
+/** For signed-in members: who you are, sharing, and "tell us what you avoid". */
+function MemberTools({
+  user,
+  vibeTags,
+  handle,
+  topName,
+  regionName,
+  onPalateUpdated,
+  onSignOut,
+}: {
+  user: User;
+  vibeTags: Record<string, number>;
+  handle: string | null;
+  topName: string;
+  regionName: string;
+  onPalateUpdated?: (profile: UserProfile) => void;
+  onSignOut: () => void;
+}) {
+  const [notes, setNotes] = useState('');
+  const [refining, setRefining] = useState(false);
+  const [result, setResult] = useState<string | null>(null);
+  const [shareState, setShareState] = useState<'idle' | 'sharing' | 'shared'>('idle');
+  const [shareError, setShareError] = useState<string | null>(null);
 
-            const distance = Math.sqrt(Math.pow(user.x - drink.x, 2) + Math.pow(user.y - drink.y, 2));
-
-            return {
-                ...drink,
-                distance,
-                baseScore: score,
-                relevanceScore: score,
-                isHardDislike,
-            };
-        }).filter(d => !d.isHardDislike);
-    }, [user, vibeTags, history, selectedLocation]);
-
-    const sections = useMemo(() => {
-        return MENU_SECTIONS.map(({ context, title, count }) => {
-            const drinks = baseScoredDrinks.map(drink => {
-                const contextBoost = calculateContextScore(drink, context);
-                const finalScore = Math.max(0, Math.min(100, drink.relevanceScore + (contextBoost * 2)));
-                return {
-                    ...drink,
-                    score: finalScore,
-                };
-            }).sort((a, b) => b.score - a.score).slice(0, count);
-            return { title, drinks };
-        });
-    }, [baseScoredDrinks]);
-
-    const topDrinks = sections[0].drinks;
-    const heroDrink = topDrinks[0];
-    const restOfTopDrinks = topDrinks.slice(1);
-
-    const userProfileForRadar = useMemo(() => ({
+  const refine = async () => {
+    if (notes.trim().length < 2 || refining) return;
+    setRefining(true);
+    try {
+      const response = await refinePalateWithAI(notes, {
         x: user.x,
         y: user.y,
         dislikesSmoke: user.filters.includes('noSmoke'),
         dislikesBitter: user.filters.includes('noBitter'),
         dislikesAnise: user.filters.includes('noAnise'),
-        vibeTags: vibeTags || {},
-    }), [user, vibeTags]);
+        vibeTags,
+      });
+      setResult(response.dossier);
+      onPalateUpdated?.(response.profile);
+    } catch (err) {
+      console.error('Failed to refine palate:', err);
+    } finally {
+      setRefining(false);
+    }
+  };
 
-    return (
-        <div className="animate-in fade-in duration-500 pb-16">
-            <AppNavigation
-                activeTab={activeTab}
-                onTabChange={setActiveTab}
-                loggedCount={history.length}
-            />
+  const share = async () => {
+    setShareState('sharing');
+    setShareError(null);
+    const response = await sharePalateToFeed(topName, regionName);
+    if (response.success) {
+      setShareState('shared');
+    } else {
+      setShareState('idle');
+      setShareError(response.error || 'That did not go through. Try again.');
+    }
+  };
 
-            <div className="space-y-10">
-                {/* Tab 1: Palate & DNA */}
-                {activeTab === 'palate' && (
-                    <div className="space-y-8 animate-in fade-in duration-300">
-                        {/* 6-Axis Palate Radar Chart & Dynamic Archetype */}
-                        <PalateRadarChart palate={userProfileForRadar} />
+  return (
+    <div className="mt-8 space-y-8">
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 border-y border-border py-2">
+        <span className="mr-auto text-meta text-muted-foreground">
+          {menu.signedInAs} <span className="font-bold text-foreground">@{handle}</span>
+        </span>
+        <button
+          type="button"
+          onClick={share}
+          disabled={shareState !== 'idle'}
+          className="min-h-11 font-condensed text-xs uppercase tracking-label text-secondary transition-colors hover:text-primary disabled:text-muted-foreground"
+        >
+          {shareState === 'shared' ? menu.shared : menu.share}
+        </button>
+        <button
+          type="button"
+          onClick={onSignOut}
+          className="min-h-11 font-condensed text-xs uppercase tracking-label text-muted-foreground transition-colors hover:text-foreground"
+        >
+          {menu.signOut}
+        </button>
+        {shareError && (
+          <p role="alert" className="w-full text-meta text-destructive">
+            {shareError}
+          </p>
+        )}
+      </div>
 
-                        {/* AI Palate Refinement (Member Feature) */}
-                        <div className="border border-border bg-card p-6 rounded-sm shadow-bar space-y-4">
-                            <div className="flex items-center justify-between border-b border-border/60 pb-3">
-                                <div className="flex items-center gap-2">
-                                    <Sparkles className="w-4 h-4 text-primary" />
-                                    <h3 className="font-serif text-lg font-bold text-foreground">AI Palate Refinement</h3>
-                                </div>
-                                <span className="label-caps text-primary">Member Instrument</span>
-                            </div>
-
-                            {isConnected ? (
-                                <div className="space-y-4">
-                                    <p className="font-serif text-sm text-muted-foreground leading-relaxed">
-                                        Have specific quirks or house rules? Tell us anything you avoid, crave, or swear by. The model will calibrate your coordinate and update your AT Protocol record.
-                                    </p>
-                                    <textarea
-                                        value={refineNotes}
-                                        onChange={(e) => setRefineNotes(e.target.value)}
-                                        placeholder="e.g., I get migraines from red wine tannins, love dry gin martinis with a twist, but absolutely despise licorice or absinthe."
-                                        rows={3}
-                                        className="w-full p-3 bg-background border border-border text-foreground font-serif text-sm rounded-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary placeholder:text-muted-foreground/60 resize-none"
-                                    />
-                                    <div className="flex items-center justify-between">
-                                        <button
-                                            onClick={handleRefinePalate}
-                                            disabled={isRefining || refineNotes.trim().length < 2}
-                                            className="px-4 py-2 font-condensed text-xs uppercase tracking-label font-bold bg-secondary text-secondary-foreground hover:bg-secondary/90 transition-colors rounded-sm shadow-bar disabled:opacity-50"
-                                        >
-                                            {isRefining ? 'Calibrating…' : 'Refine Coordinate &rarr;'}
-                                        </button>
-                                        <span className="font-mono text-3xs text-muted-foreground/60">
-                                            Metered via AT Protocol
-                                        </span>
-                                    </div>
-                                    {dossier && (
-                                        <div className="mt-4 p-4 border-l-2 border-primary bg-secondary/10 space-y-1">
-                                            <span className="label-caps text-primary block">Palate Colophon</span>
-                                            <p className="font-serif text-sm italic text-foreground leading-relaxed">
-                                                {dossier}
-                                            </p>
-                                        </div>
-                                    )}
-                                </div>
-                            ) : (
-                                <div className="space-y-3">
-                                    <p className="font-serif text-sm text-muted-foreground leading-relaxed">
-                                        Sign in with your Bluesky / AT Protocol handle to unlock continuous AI palate refinement, custom ingredient tolerances, and personalized palate colophons.
-                                    </p>
-                                    <div className="pt-2">
-                                        <ConnectBluesky
-                                            user={user}
-                                            vibeTags={vibeTags || {}}
-                                            heroDrinkName={heroDrink?.name || ''}
-                                            quadrant={getQuadrantName(user.x, user.y)}
-                                        />
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Location Selector Widget */}
-                        <div className="glass-dark border-primary/10 rounded-xl p-5 space-y-4 shadow-md coaster">
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                    <MapPin className="w-4 h-4 text-primary" />
-                                    <span className="font-mono text-2xs uppercase tracking-widest text-muted-foreground">Tasting Venue Context</span>
-                                </div>
-                                {selectedLocation && (
-                                    <button
-                                        onClick={() => setSelectedLocation(null)}
-                                        className="text-3xs font-mono text-secondary hover:underline uppercase tracking-wider"
-                                    >
-                                        Reset Location
-                                    </button>
-                                )}
-                            </div>
-
-                            <div className="flex gap-2">
-                                <input
-                                    type="text"
-                                    value={selectedLocation || ''}
-                                    onChange={(e) => setSelectedLocation(e.target.value || null)}
-                                    placeholder="Filter recommendations by venue (e.g. Sage Apothecary, The Nomad Bar)..."
-                                    className="flex-1 rounded-lg border border-primary/10 bg-background/40 px-3.5 py-2 text-xs placeholder:text-muted-foreground/45 focus:outline-none focus:ring-1 focus:ring-primary/30 text-foreground"
-                                />
-                            </div>
-
-                            {uniqueLocations.length > 0 && (
-                                <div className="space-y-1">
-                                    <span className="font-mono text-3xs text-muted-foreground/75 block">Previously Visited:</span>
-                                    <div className="flex flex-wrap gap-1.5">
-                                        {uniqueLocations.slice(0, 5).map(loc => {
-                                            const active = selectedLocation?.toLowerCase().trim() === loc.toLowerCase().trim();
-                                            return (
-                                                <button
-                                                    key={loc}
-                                                    onClick={() => setSelectedLocation(active ? null : loc)}
-                                                    className={`px-2.5 py-1 rounded-full text-3xs font-mono border transition-all ${
-                                                        active
-                                                            ? 'bg-primary border-primary text-primary-foreground shadow-glow'
-                                                            : 'border-primary/10 bg-background/20 text-muted-foreground hover:border-primary/30 hover:text-foreground'
-                                                    }`}
-                                                >
-                                                    {loc}
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Hero & 2D Flavor Map Section */}
-                        <div className="space-y-6">
-                            <p className="text-center text-muted-foreground/60 italic font-serif text-base">
-                                {selectedLocation 
-                                    ? `Curated for your palate at ${selectedLocation}.`
-                                    : "Curated for your taste DNA."
-                                }
-                            </p>
-
-                            <MiniFlavorMap user={user} topDrinks={topDrinks} />
-
-                            {heroDrink && (
-                                <HeroDrinkCard
-                                    drink={heroDrink}
-                                    userX={user.x}
-                                    userY={user.y}
-                                    userFilters={user.filters}
-                                />
-                            )}
-                        </div>
-
-                        {/* Rest of Go-To's */}
-                        {restOfTopDrinks.length > 0 && (
-                            <MenuSection
-                                title={sections[0].title}
-                                drinks={restOfTopDrinks}
-                                userX={user.x}
-                                userY={user.y}
-                                userFilters={user.filters}
-                                startRank={2}
-                            />
-                        )}
-
-                        {/* Other context sections */}
-                        {sections.slice(1).map(({ title, drinks }) => (
-                            <MenuSection
-                                key={title}
-                                title={title}
-                                drinks={drinks}
-                                userX={user.x}
-                                userY={user.y}
-                                userFilters={user.filters}
-                            />
-                        ))}
-
-                        <ConnectBluesky
-                            user={user}
-                            vibeTags={vibeTags || {}}
-                            heroDrinkName={heroDrink?.name || ''}
-                            quadrant={getQuadrantName(user.x, user.y)}
-                        />
-                    </div>
-                )}
-
-                {/* Tab 2: Coupe Log */}
-                {activeTab === 'log' && (
-                    <div className="animate-in fade-in duration-300">
-                        <DrinkLogForm
-                            recommendedDrinks={topDrinks.map(d => d.name)}
-                            onPalateUpdated={(profile) => {
-                                if (onPalateUpdated) {
-                                    onPalateUpdated(profile);
-                                }
-                            }}
-                            selectedLocation={selectedLocation}
-                            history={history}
-                            loadingHistory={loadingHistory}
-                            onLogAdded={fetchHistory}
-                        />
-                    </div>
-                )}
-
-                {/* Tab 3: Drink Map */}
-                {activeTab === 'map' && (
-                    <div className="animate-in fade-in duration-300">
-                        <DrinkMapView userLogs={history} />
-                    </div>
-                )}
-
-                {/* Tab 4: AI Oracle */}
-                {activeTab === 'oracle' && (
-                    <div className="animate-in fade-in duration-300 p-8 text-center text-muted-foreground font-serif">
-                        The AI Bartender Oracle is available directly in the conversational quiz mode.
-                    </div>
-                )}
-            </div>
-        </div>
-    );
+      <section className="space-y-3">
+        <h2 className="border-b border-foreground pb-1.5 font-serif text-xl font-bold">{menu.refineTitle}</h2>
+        <p className="text-ui text-muted-foreground">{menu.refineBody}</p>
+        <textarea
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          placeholder={menu.refinePlaceholder}
+          rows={3}
+          aria-label={menu.refineTitle}
+          className="w-full resize-none rounded-sm border border-border bg-card p-3.5 font-body text-base text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
+        />
+        <button
+          type="button"
+          onClick={refine}
+          disabled={refining || notes.trim().length < 2}
+          className="min-h-12 border border-foreground bg-transparent px-6 font-condensed text-meta font-semibold uppercase tracking-label text-foreground transition-colors hover:bg-secondary hover:text-secondary-foreground disabled:border-border disabled:text-muted-foreground disabled:hover:bg-transparent"
+        >
+          {refining ? menu.refining : menu.refineSubmit}
+        </button>
+        {result && (
+          <div className="border-l-2 border-primary pl-4">
+            <span className="label-caps text-primary">{menu.refineResult}</span>
+            <p className="mt-1 font-serif text-ui italic">{result}</p>
+          </div>
+        )}
+      </section>
+    </div>
+  );
 }
-

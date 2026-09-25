@@ -33,11 +33,16 @@ export interface Question {
   isAIGenerated?: boolean;
 }
 
-export const QUESTION_CATEGORIES: { id: QuestionCategory; index: string; label: string; description: string }[] = [
-  { id: 'palate',       index: '01', label: 'The Palate',       description: 'Taste & Chemistry' },
-  { id: 'architecture', index: '02', label: 'Architecture',     description: 'Method, Ice & Texture' },
-  { id: 'ritual',       index: '03', label: 'The Ritual',       description: 'Vessel & Aromatics' },
-  { id: 'occasion',     index: '04', label: 'The Hour',         description: 'Setting & Tempo' },
+/**
+ * `label` is shown as the question's eyebrow and `short` in the quiz's stage
+ * row. "Architecture" is internal vocabulary (AGENTS.md), so the interface
+ * calls that stage "The Method".
+ */
+export const QUESTION_CATEGORIES: { id: QuestionCategory; index: string; label: string; short: string; description: string }[] = [
+  { id: 'palate',       index: '01', label: 'The Palate',       short: 'Palate', description: 'Taste & Chemistry' },
+  { id: 'architecture', index: '02', label: 'The Method',       short: 'Method', description: 'Method, Ice & Texture' },
+  { id: 'ritual',       index: '03', label: 'The Ritual',       short: 'Ritual', description: 'Vessel & Aromatics' },
+  { id: 'occasion',     index: '04', label: 'The Hour',         short: 'Hour',   description: 'Setting & Tempo' },
 ];
 
 export const questions: Question[] = [
@@ -50,7 +55,7 @@ export const questions: Question[] = [
     category: 'palate',
     sectionNumber: '01',
     text: "Which glass do you push away first?",
-    subtitle: "Calibrating acid sensitivity and sugar ceiling",
+    subtitle: "Tap the one you’d send back.",
     type: 'triad',
     primaryAxis: 'y',
     informationGain: 8,
@@ -84,7 +89,7 @@ export const questions: Question[] = [
     category: 'palate',
     sectionNumber: '01',
     text: "Which botanical profile do you eliminate?",
-    subtitle: "Testing bitterness tolerance and aromatic friction",
+    subtitle: "Tap the one you’d send back.",
     type: 'triad',
     primaryAxis: 'x',
     informationGain: 8,
@@ -121,7 +126,7 @@ export const questions: Question[] = [
     category: 'architecture',
     sectionNumber: '02',
     text: "Which spirit foundation do you push away?",
-    subtitle: "Calibrating peat, smoke, and barrel intensity",
+    subtitle: "Tap the one you’d send back.",
     type: 'triad',
     primaryAxis: 'x',
     informationGain: 8,
@@ -158,7 +163,7 @@ export const questions: Question[] = [
     category: 'ritual',
     sectionNumber: '03',
     text: "Which drink preparation do you push away?",
-    subtitle: "Calibrating temperature, dilution, and proof heat",
+    subtitle: "Tap the one you’d send back.",
     type: 'triad',
     primaryAxis: 'x',
     informationGain: 7,
@@ -195,7 +200,7 @@ export const questions: Question[] = [
     category: 'palate',
     sectionNumber: '01',
     text: "How do you take your coffee?",
-    subtitle: "Calibrating roast intensity, acid, and sugar tolerance",
+    subtitle: "Roast, acid, and how much sugar.",
     primaryAxis: 'x',
     informationGain: 5,
     options: [
@@ -221,7 +226,7 @@ export const questions: Question[] = [
     category: 'palate',
     sectionNumber: '01',
     text: "Pick a finish to a perfect meal.",
-    subtitle: "Gauging brightness versus deep cocoa and lush cream",
+    subtitle: "Something bright, or cocoa and cream.",
     primaryAxis: 'y',
     informationGain: 8,
     options: [
