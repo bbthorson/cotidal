@@ -132,6 +132,12 @@ unclaimed reference to a later account is the app view's job.
   A new one inherits all four (`docs/generation.md`).
 - Mock model boundaries in tests. The suite must pass with no API key.
 - `npm` is the package manager — `package-lock.json` is the lockfile.
+- In Claude Code on the web, `.claude/hooks/session-start.sh` installs
+  dependencies and sets the env vars the suite needs there. Run the suite the
+  way CI does, against the preview build: `npm run build && CI=1 npx
+  playwright test`. Against `npm run dev`, server rendering throws "The
+  Console.createTask method is not implemented" (React 19's dev build on
+  workerd) and about a third of the suite fails.
 
 ## Vocabulary
 
