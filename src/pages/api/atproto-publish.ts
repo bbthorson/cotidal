@@ -1,10 +1,17 @@
 import type { APIRoute } from 'astro';
-import { publishPalateProfile, shareToFeed, getPalateProfile, publishRawPalateRecord, publishDrinkLog, getDrinkLogs } from '@/lib/atproto/publish';
+import {
+  publishPalateProfile,
+  shareToFeed,
+  getPalateProfile,
+  publishRawPalateRecord,
+  publishPour,
+  getPours,
+} from '@/lib/atproto/publish';
 import { derivePalateRecord, getDrinkSensoryVector } from '@/lib/sensory';
 import type { UserProfile } from '@/hooks/useDiscoveryQuiz';
 import { z } from 'zod';
 import { drinkDatabase } from '@/lib/data';
-import type { PalateRecord, DrinkLogRecord } from '@/lib/atproto/lexicon';
+import type { PalateRecord, PourRecord } from '@/lib/atproto/records';
 import type { LogDrinkOptions } from '@/lib/api-client';
 import { didFromRequest } from '@/lib/atproto/session';
 
@@ -50,15 +57,15 @@ export const POST: APIRoute = async ({ request }) => {
     }
   }
 
-  if (body.action === 'getConnectedDrinkLogs') {
-    if (!did) return new Response(JSON.stringify({ logs: [] }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+  if (body.action === 'getConnectedDrinkLogs' || body.action === 'getConnectedPours') {
+    if (!did) return new Response(JSON.stringify({ logs: [], pours: [] }), { status: 200, headers: { 'Content-Type': 'application/json' } });
     try {
       const limit = typeof body.limit === 'number' ? body.limit : undefined;
-      const logs = await getDrinkLogs(did, limit);
-      return new Response(JSON.stringify({ logs }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+      const pours = await getPours(did, limit);
+      return new Response(JSON.stringify({ pours, logs: pours }), { status: 200, headers: { 'Content-Type': 'application/json' } });
     } catch (e) {
-      console.error('Failed to get connected drink logs:', e);
-      return new Response(JSON.stringify({ logs: [] }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+      console.error('Failed to get connected pours:', e);
+      return new Response(JSON.stringify({ pours: [], logs: [] }), { status: 200, headers: { 'Content-Type': 'application/json' } });
     }
   }
 
@@ -117,13 +124,13 @@ export const POST: APIRoute = async ({ request }) => {
     const {
       drinkName,
       rating = 5.0,
-      baseSpirit,
+      baseSpirit: _baseSpirit,
       isHomePour = false,
       location,
       venue,
       sensoryProfile,
-      glassware,
-      garnish,
+      glassware: _glassware,
+      garnish: _garnish,
       deviations = [],
       note,
       crosspostToFeed = false,
@@ -252,25 +259,30 @@ export const POST: APIRoute = async ({ request }) => {
 
       await publishRawPalateRecord(did, updatedPalate);
 
-      const drinkLogRes = await publishDrinkLog(did, {
-        drinkName,
-        rating,
-        baseSpirit,
-        isHomePour,
-        location: finalLocation,
-        venue: venue || (location ? { name: location } : undefined),
-        sensoryProfile,
-        glassware,
-        garnish,
-        hedonicScale,
-        deviations: deviations as DrinkLogRecord['deviations'],
-        notes: note || '',
-        note: note || '',
-        palateShift: {
-          x: finalX - currentX,
-          y: finalY - currentY
+      const pourRes = await publishPour(did, {
+        drink: {
+          name: drinkName,
+          slug: drink?.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
         },
-        createdAt: new Date().toISOString()
+        venue: isHomePour
+          ? undefined
+          : {
+              entity: {
+                name: venue?.name || location || 'Unknown Venue',
+              },
+            },
+        rating: {
+          hedonic: hedonicScale,
+          wouldOrderAgain: rating >= 7.0,
+        },
+        deviations: (deviations && deviations.length > 0 ? deviations : undefined) as PourRecord['deviations'],
+        note: note ? note.slice(0, 3000) : undefined,
+        palateShift: {
+          x: Math.round(finalX - currentX),
+          y: Math.round(finalY - currentY),
+        },
+        isHomePour: !!isHomePour,
+        createdAt: new Date().toISOString(),
       });
 
       if (crosspostToFeed) {
@@ -296,7 +308,7 @@ export const POST: APIRoute = async ({ request }) => {
       return new Response(JSON.stringify({
         success: true,
         profile: mappedProfile,
-        uri: drinkLogRes.uri
+        uri: pourRes.uri
       }), { status: 200, headers: { 'Content-Type': 'application/json' } });
     } catch (e) {
       console.error('Failed to log drink feedback:', e);

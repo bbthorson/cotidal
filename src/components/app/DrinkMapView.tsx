@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { MapPin, Star, Search, Filter, Navigation } from 'lucide-react';
-import type { DrinkLogRecord } from '@/lib/atproto/lexicon';
+import type { PourRecord } from '@/lib/atproto/records';
 
 interface DrinkPin {
   id: string;
@@ -115,7 +115,7 @@ const CURATED_DRINK_PINS: DrinkPin[] = [
 ];
 
 interface DrinkMapViewProps {
-  userLogs?: DrinkLogRecord[];
+  userLogs?: PourRecord[];
 }
 
 export function DrinkMapView({ userLogs = [] }: DrinkMapViewProps) {
@@ -127,19 +127,19 @@ export function DrinkMapView({ userLogs = [] }: DrinkMapViewProps) {
   // Combine curated pins with user ATProto logs if geotagged
   const allPins = useMemo(() => {
     const userPins: DrinkPin[] = userLogs
-      .filter(l => l.venue?.name || l.location)
+      .filter((l) => l.venue?.entity?.name)
       .map((l, idx) => ({
         id: `user-${idx}`,
-        drinkName: l.drinkName,
-        venueName: l.venue?.name || l.location || 'Logged Location',
+        drinkName: l.drink.name,
+        venueName: l.venue?.entity?.name || 'Logged Location',
         city: 'Your History',
         latPct: 30 + ((idx * 17) % 55),
         lngPct: 25 + ((idx * 23) % 55),
-        rating: l.rating ?? (l.hedonicScale ? (l.hedonicScale - 1) * 1.25 : 8.0),
-        baseSpirit: l.baseSpirit || 'Cocktail',
-        tags: l.deviations || ['logged'],
-        glassware: l.glassware || 'Coupe',
-        description: l.notes || l.note || 'Logged via AT Protocol PDS',
+        rating: (l.rating.hedonic - 1) * 1.25,
+        baseSpirit: 'Cocktail',
+        tags: l.deviations ? [...l.deviations] : ['logged'],
+        glassware: 'Coupe',
+        description: l.note || 'Logged via AT Protocol PDS',
       }));
 
     return [...CURATED_DRINK_PINS, ...userPins];

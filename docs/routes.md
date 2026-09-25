@@ -96,7 +96,9 @@ reconciliation happens in the app view and never by rewriting anyone's records.
 
 What is needed is a route, not a schema: a `/venues` (or `/bars`) surface where
 a venue signs in with its domain handle, sees what patrons have already logged
-there, and publishes a menu. The lexicons exist; nothing renders them.
+there, and publishes a menu. The lexicons exist; nothing renders them. The placeholder
+route lives at `/bars`. Detailed product and commercial reasoning for the B2B
+suite lives in `docs/venues.md`.
 
 **Menu capture is the same corpus from the other end.** A patron photographing
 a menu gets a recommendation with no account required — value before signup —

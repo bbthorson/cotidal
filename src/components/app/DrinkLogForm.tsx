@@ -4,14 +4,14 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Loader2, Plus, History, MapPin, Star, MessageSquare, Home, Sparkles, Share2 } from 'lucide-react';
 import { logDrinkFeedback } from '@/lib/api-client';
-import type { DrinkLogRecord, SensoryProfile } from '@/lib/atproto/lexicon';
+import type { PourRecord, SensoryProfile } from '@/lib/atproto/records';
 import type { UserProfile } from '@/hooks/useDiscoveryQuiz';
 
 interface DrinkLogFormProps {
   recommendedDrinks: string[];
   onPalateUpdated: (profile: UserProfile) => void;
   selectedLocation?: string | null;
-  history: DrinkLogRecord[];
+  history: PourRecord[];
   loadingHistory?: boolean;
   onLogAdded: () => void;
 }
@@ -461,23 +461,19 @@ export function DrinkLogForm({
               </div>
             ) : (
               <div className="space-y-3 overflow-y-auto max-h-96 pr-1">
-                {history.map((log, i) => {
-                  const displayRating = log.rating ?? (log.hedonicScale ? (log.hedonicScale - 1) * 1.25 : 5.0);
+                {history.map((pour, i) => {
+                  const displayRating = (pour.rating.hedonic - 1) * 1.25;
+                  const venueName = pour.isHomePour ? 'Home Pour' : (pour.venue?.entity?.name || 'Unknown Venue');
                   return (
                     <div key={i} className="p-3.5 rounded-sm border border-border bg-card space-y-2 text-xs">
                       <div className="flex justify-between items-start">
                         <div>
                           <div className="flex items-center gap-1.5">
-                            <h4 className="font-bold text-foreground">{log.drinkName}</h4>
-                            {log.baseSpirit && (
-                              <span className="text-3xs font-condensed text-muted-foreground bg-muted border border-border px-1.5 py-0.5 rounded-sm">
-                                {log.baseSpirit}
-                              </span>
-                            )}
+                            <h4 className="font-bold text-foreground">{pour.drink.name}</h4>
                           </div>
                           <div className="flex items-center gap-1 text-3xs text-muted-foreground/80 font-mono mt-0.5">
-                            {log.isHomePour ? <Home className="w-2.5 h-2.5 text-secondary" /> : <MapPin className="w-2.5 h-2.5 text-secondary" />}
-                            <span>{log.location || log.venue?.name || 'Unknown Venue'}</span>
+                            {pour.isHomePour ? <Home className="w-2.5 h-2.5 text-secondary" /> : <MapPin className="w-2.5 h-2.5 text-secondary" />}
+                            <span>{venueName}</span>
                           </div>
                         </div>
 
@@ -489,9 +485,9 @@ export function DrinkLogForm({
                       </div>
 
                       {/* Deviations & Notes */}
-                      {log.deviations && log.deviations.length > 0 && (
+                      {pour.deviations && pour.deviations.length > 0 && (
                         <div className="flex flex-wrap gap-1">
-                          {log.deviations.map(dev => (
+                          {pour.deviations.map(dev => (
                             <span key={dev} className="px-1.5 py-0.5 rounded-full bg-secondary/5 border border-secondary/15 text-4xs uppercase tracking-wider text-secondary">
                               {dev.replace(/-/g, ' ')}
                             </span>
@@ -499,15 +495,15 @@ export function DrinkLogForm({
                         </div>
                       )}
 
-                      {(log.notes || log.note) && (
+                      {pour.note && (
                         <div className="flex gap-1.5 p-2 rounded bg-card/40 border border-primary/5 text-3xs text-muted-foreground font-serif italic">
                           <MessageSquare className="w-3 h-3 flex-shrink-0 mt-0.5" />
-                          <span>&ldquo;{log.notes || log.note}&rdquo;</span>
+                          <span>&ldquo;{pour.note}&rdquo;</span>
                         </div>
                       )}
 
                       <div className="text-4xs text-right text-muted-foreground/60 font-mono">
-                        {new Date(log.createdAt).toLocaleDateString()}
+                        {new Date(pour.createdAt).toLocaleDateString()}
                       </div>
                     </div>
                   );

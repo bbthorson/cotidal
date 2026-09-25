@@ -1,6 +1,6 @@
 import type { Drink } from '@/lib/data';
 import type { UserProfile } from '@/hooks/useDiscoveryQuiz';
-import { PALATE_COLLECTION, type PalateRecord } from './atproto/lexicon';
+import { PALATE_COLLECTION, type PalateRecord } from './atproto/records';
 
 export interface SensoryVector {
   tastes: {

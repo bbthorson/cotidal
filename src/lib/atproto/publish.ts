@@ -1,5 +1,11 @@
 import { Agent } from '@atproto/api';
-import { PALATE_COLLECTION, PALATE_RKEY, DRINK_LOG_COLLECTION, type PalateRecord, type DrinkLogRecord } from './lexicon';
+import {
+  PALATE_COLLECTION,
+  PALATE_RKEY,
+  POUR_COLLECTION,
+  type PalateRecord,
+  type PourRecord,
+} from './records';
 import { getAtprotoClient } from './client';
 import type { UserProfile } from '@/hooks/useDiscoveryQuiz';
 import { derivePalateRecord } from '../sensory';
@@ -122,9 +128,9 @@ export async function publishRawPalateRecord(
   return { uri: response.data.uri, cid: response.data.cid };
 }
 
-export async function publishDrinkLog(
+export async function publishPour(
   did: string,
-  log: Omit<DrinkLogRecord, '$type'>
+  pour: Omit<PourRecord, '$type'>
 ): Promise<{ uri: string; cid: string }> {
   const client = getAtprotoClient();
   if (!client) throw new Error('AT Protocol not configured');
@@ -132,21 +138,21 @@ export async function publishDrinkLog(
   const session = await client.restore(did);
   const agent = new Agent(session);
 
-  const record: DrinkLogRecord = {
-    $type: DRINK_LOG_COLLECTION,
-    ...log,
+  const record: PourRecord = {
+    $type: POUR_COLLECTION,
+    ...pour,
   };
 
   const response = await agent.com.atproto.repo.createRecord({
     repo: did,
-    collection: DRINK_LOG_COLLECTION,
+    collection: POUR_COLLECTION,
     record,
   });
 
   return { uri: response.data.uri, cid: response.data.cid };
 }
 
-export async function getDrinkLogs(did: string, limit?: number): Promise<DrinkLogRecord[]> {
+export async function getPours(did: string, limit?: number): Promise<PourRecord[]> {
   const client = getAtprotoClient();
   if (!client) return [];
 
@@ -156,14 +162,18 @@ export async function getDrinkLogs(did: string, limit?: number): Promise<DrinkLo
 
     const response = await agent.com.atproto.repo.listRecords({
       repo: did,
-      collection: DRINK_LOG_COLLECTION,
+      collection: POUR_COLLECTION,
       limit: limit || 50,
       reverse: true, // Show newest first
     });
 
-    return response.data.records.map(r => r.value as DrinkLogRecord);
+    return response.data.records.map((r) => r.value as PourRecord);
   } catch (e) {
-    console.error('Failed to get drink logs:', e);
+    console.error('Failed to get pours:', e);
     return [];
   }
 }
+
+// Backwards compatibility aliases
+export const publishDrinkLog = publishPour;
+export const getDrinkLogs = getPours;

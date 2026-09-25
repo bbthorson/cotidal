@@ -63,37 +63,46 @@ test('AT Protocol: getDrinkSensoryVector should correctly map drink properties',
   expect(sensory.textures.body).toBe(8.0);
 });
 
-test('AT Protocol: DrinkLogRecordSchema should validate drink logs with optional location', async () => {
-  const { DrinkLogRecordSchema } = await import('../src/lib/atproto/lexicon');
-  
+test('AT Protocol: PourRecordSchema should validate pour records conforming to pour lexicon', async () => {
+  const { PourRecordSchema } = await import('../src/lib/atproto/records');
+
   const validRecord = {
-    $type: 'app.crystalcoupe.drinkLog' as const,
-    drinkName: 'Manhattan',
-    location: 'The Nomad Bar',
-    hedonicScale: 8,
-    deviations: ['too-sweet'],
+    $type: 'app.crystalcoupe.pour' as const,
+    drink: { name: 'Manhattan', slug: 'manhattan' },
+    venue: {
+      entity: { name: 'The Nomad Bar' },
+    },
+    rating: {
+      hedonic: 8,
+      wouldOrderAgain: true,
+    },
+    deviations: ['too-sweet'] as const,
     note: 'Slightly too sweet, but excellent rye selection.',
-    palateShift: { x: 0.1, y: -0.2 },
-    createdAt: new Date().toISOString()
+    palateShift: { x: 0, y: -1 },
+    createdAt: new Date().toISOString(),
   };
 
-  const parsed = DrinkLogRecordSchema.safeParse(validRecord);
+  const parsed = PourRecordSchema.safeParse(validRecord);
   expect(parsed.success).toBe(true);
   if (parsed.success) {
-    expect(parsed.data.location).toBe('The Nomad Bar');
+    expect(parsed.data.drink.name).toBe('Manhattan');
+    expect(parsed.data.venue?.entity.name).toBe('The Nomad Bar');
+    expect(parsed.data.rating.hedonic).toBe(8);
   }
 
-  // Location is optional
-  const recordNoLocation = { ...validRecord };
-  // @ts-expect-error - deleting location to test optionality
-  delete recordNoLocation.location;
-  expect(DrinkLogRecordSchema.safeParse(recordNoLocation).success).toBe(true);
-
-  // Location > 100 chars should fail
-  const invalidRecord = {
+  // Venue is optional for home pour
+  const homePour = {
     ...validRecord,
-    location: 'a'.repeat(101)
+    isHomePour: true,
   };
-  expect(DrinkLogRecordSchema.safeParse(invalidRecord).success).toBe(false);
+  delete (homePour as Partial<typeof validRecord>).venue;
+  expect(PourRecordSchema.safeParse(homePour).success).toBe(true);
+
+  // Missing required drink or rating should fail
+  const invalidRecord = {
+    $type: 'app.crystalcoupe.pour' as const,
+    createdAt: new Date().toISOString(),
+  };
+  expect(PourRecordSchema.safeParse(invalidRecord).success).toBe(false);
 });
 

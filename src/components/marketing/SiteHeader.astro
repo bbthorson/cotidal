@@ -12,9 +12,11 @@ const { currentPath = '/', eyebrow, backLink } = Astro.props;
 
 const isDrinks = currentPath.startsWith('/drinks');
 const isTaste = currentPath.startsWith('/taste');
+const isLog = currentPath.startsWith('/log');
 
 const navItems = [
   { href: '/taste', label: nav.map, active: isTaste },
+  { href: '/log', label: nav.log, active: isLog },
   { href: '/drinks', label: nav.register, active: isDrinks },
   { href: '/#regions', label: nav.regions, active: false },
   { href: '/#connect', label: nav.signIn, active: false },

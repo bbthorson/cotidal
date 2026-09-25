@@ -20,6 +20,12 @@ export default {
       lineHeight: {
         display: '1.05',
       },
+      aspectRatio: {
+        '2/1': '2 / 1',
+      },
+      spacing: {
+        'safe-b': 'max(env(safe-area-inset-bottom, 0px), 1rem)',
+      },
       fontSize: {
         // `text-2xs` / `text-3xs` are used ~40 times across the app but were
         // never defined, so those elements silently rendered at inherited size.
