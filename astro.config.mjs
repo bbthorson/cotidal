@@ -7,6 +7,7 @@ export default defineConfig({
   output: 'server',
   adapter: cloudflare({
     prerenderEnvironment: 'node',
+    remoteBindings: false,
   }),
   integrations: [
     react(),
