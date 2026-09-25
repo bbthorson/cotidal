@@ -2,6 +2,7 @@
 import { getCollection } from 'astro:content';
 import type { GetStaticPaths } from 'astro';
 import AppShell from '../../layouts/AppShell.astro';
+import PageTitle from '../../components/marketing/PageTitle.astro';
 import { site } from '../../lib/copy';
 import { drinkDatabase } from '../../lib/data';
 import { QUADRANT_ORDER, quadrantIdFor, type QuadrantId } from '../../lib/quadrant';
@@ -42,31 +43,20 @@ const otherRegions = QUADRANT_ORDER.filter((rId) => rId !== id).map((rId) =>
   width="standard"
 >
   <article class="space-y-16">
-    <!-- Header Title Plate -->
-    <header class="border-b border-foreground pb-10 pt-12 text-center md:pb-14 md:pt-16">
-      <div class="flex items-center justify-center gap-2">
+    <PageTitle title={region.name} lede={region.gloss} ruled>
+      <div slot="eyebrow" class="flex items-center justify-center gap-2">
         <span class="label-caps border border-border px-2.5 py-0.5 text-secondary">
           {region.axis}
         </span>
-        <span class="font-mono text-3xs uppercase tracking-widest text-muted-foreground">
+        <span class="font-condensed text-3xs uppercase tracking-label text-muted-foreground">
           {region.coordinateRange}
         </span>
       </div>
-
-      <h1 class="mt-4 font-serif text-4xl font-bold leading-display text-foreground md:text-6xl">
-        {region.name}
-      </h1>
-
-      <p class="mx-auto mt-5 max-w-xl font-serif text-lg italic leading-relaxed text-muted-foreground md:text-xl">
-        {region.gloss}
-      </p>
-    </header>
+    </PageTitle>
 
     <!-- Character & Sensory Stance -->
     <section class="space-y-6">
-      <div class="border-b border-border pb-2">
-        <span class="label-caps text-primary">Sensory Stance</span>
-      </div>
+      <h2 class="label-caps border-b border-foreground pb-2 text-foreground">Sensory Stance</h2>
       <p class="font-serif text-base leading-relaxed text-foreground md:text-lg">
         {region.character}
       </p>
@@ -79,7 +69,7 @@ const otherRegions = QUADRANT_ORDER.filter((rId) => rId !== id).map((rId) =>
     <section class="border border-border bg-card p-6 md:p-8 rounded-sm shadow-bar space-y-6">
       <div class="border-b border-border/60 pb-3 flex items-center justify-between">
         <span class="label-caps text-primary">Technical Anatomy</span>
-        <span class="font-mono text-3xs text-muted-foreground uppercase">Formulation Spec</span>
+        <span class="font-condensed text-3xs uppercase tracking-label text-muted-foreground">Formulation Spec</span>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">

@@ -177,7 +177,7 @@ export function ResultsScreen({ user, vibeTags, onPalateUpdated }: ResultsScreen
                 loggedCount={history.length}
             />
 
-            <div className="px-5 max-w-4xl mx-auto space-y-10">
+            <div className="space-y-10">
                 {/* Tab 1: Palate & DNA */}
                 {activeTab === 'palate' && (
                     <div className="space-y-8 animate-in fade-in duration-300">

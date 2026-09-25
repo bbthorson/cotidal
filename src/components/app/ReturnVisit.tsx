@@ -296,7 +296,7 @@ function ReturnVisitContent() {
   // Cold state: stranger with no profile
   if (!profile && !isConnected) {
     return (
-      <div className="py-12 space-y-12 max-w-3xl mx-auto">
+      <div className="py-12 space-y-12">
         <div className="border border-border bg-card p-8 md:p-12 shadow-bar space-y-6 text-center">
           <div className="inline-flex items-center justify-center p-3 rounded-full bg-secondary/10 border border-secondary/20 text-secondary mb-2">
             <Compass className="w-6 h-6" />

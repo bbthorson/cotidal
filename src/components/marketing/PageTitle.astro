@@ -1,0 +1,33 @@
+---
+interface Props {
+  eyebrow?: string;
+  title: string;
+  lede?: string;
+  /** A rule under the plate, for pages whose body starts with running prose. */
+  ruled?: boolean;
+}
+
+const { eyebrow, title, lede, ruled = false } = Astro.props;
+
+/**
+ * The title plate every static route opens with, so the distance from the
+ * header to the h1 and the h1's size are set once. Extra detail (a coordinate,
+ * a range) goes in the default slot under the lede; anything that replaces the
+ * eyebrow goes in the `eyebrow` slot.
+ */
+---
+
+<div class:list={['pb-10 pt-12 text-center md:pb-14 md:pt-16', ruled && 'border-b border-foreground']}>
+  {Astro.slots.has('eyebrow') ? (
+    <div class="mb-4"><slot name="eyebrow" /></div>
+  ) : (
+    eyebrow && <p class="label-caps mb-4">{eyebrow}</p>
+  )}
+  <h1 class="font-serif text-4xl font-bold leading-display text-foreground md:text-5xl">{title}</h1>
+  {lede && (
+    <p class="mx-auto mt-5 max-w-xl font-serif text-base leading-relaxed text-muted-foreground md:text-lg">
+      {lede}
+    </p>
+  )}
+  <slot />
+</div>

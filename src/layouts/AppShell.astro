@@ -1,25 +1,23 @@
 ---
 import Base from './Base.astro';
 import SiteHeader from '../components/marketing/SiteHeader.astro';
+import SiteFooter from '../components/marketing/SiteFooter.astro';
 
 interface Props {
   title?: string;
   description?: string;
   currentPath: string;
-  eyebrow?: string;
   backLink?: { href: string; label: string };
   width?: 'prose' | 'standard' | 'wide';
 }
 
-const {
-  title,
-  description,
-  currentPath,
-  eyebrow,
-  backLink,
-  width = 'standard',
-} = Astro.props;
+const { title, description, currentPath, backLink, width = 'standard' } = Astro.props;
 
+/**
+ * The header and footer sit in one fixed band on every route; `width` sizes
+ * only the content column between them. Applying it to the header as well
+ * made the logo and nav jump sideways from page to page.
+ */
 const widthClass = {
   prose: 'max-w-2xl',
   standard: 'max-w-3xl',
@@ -29,9 +27,26 @@ const widthClass = {
 
 <Base title={title} description={description}>
   <div class="bar-texture min-h-screen bg-background text-foreground">
-    <div class:list={['mx-auto w-full px-6 py-10 md:py-14', widthClass]}>
-      <SiteHeader currentPath={currentPath} eyebrow={eyebrow} backLink={backLink} />
+    <div class="mx-auto w-full max-w-5xl px-6 pt-10 md:pt-14">
+      <SiteHeader currentPath={currentPath} />
+    </div>
+
+    <div class:list={['mx-auto w-full px-6', widthClass]}>
+      {backLink && (
+        <nav aria-label="Breadcrumb" class="pt-6">
+          <a
+            href={backLink.href}
+            class="font-condensed text-xs uppercase tracking-label text-muted-foreground transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            &larr; {backLink.label}
+          </a>
+        </nav>
+      )}
       <slot />
+    </div>
+
+    <div class="mx-auto w-full max-w-5xl px-6 pb-10 pt-16 md:pb-14">
+      <SiteFooter currentPath={currentPath} />
     </div>
   </div>
 </Base>

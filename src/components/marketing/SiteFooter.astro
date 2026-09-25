@@ -1,0 +1,39 @@
+---
+import { nav, footer } from '../../lib/copy';
+import { destinations, signIn, isCurrent } from '../../lib/site-nav';
+
+interface Props {
+  currentPath?: string;
+}
+
+const { currentPath = '/' } = Astro.props;
+
+const links = [
+  { href: '/', label: nav.home, active: currentPath === '/' },
+  ...destinations.map((d) => ({ href: d.href, label: d.label, active: isCurrent(currentPath, d.match) })),
+  { href: signIn.href, label: signIn.label, active: false },
+];
+---
+
+<footer class="border-t border-foreground pt-8 text-center">
+  <div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 font-condensed text-xs uppercase tracking-label text-muted-foreground">
+    {links.map((link, i) => (
+      <>
+        {i > 0 && <span aria-hidden="true" class="text-border">·</span>}
+        <a
+          href={link.href}
+          aria-current={link.active ? 'page' : undefined}
+          class:list={[link.active ? 'font-bold text-foreground' : 'transition-colors hover:text-primary']}
+        >
+          {link.label}
+        </a>
+      </>
+    ))}
+  </div>
+
+  <div class="mt-5 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 font-condensed text-3xs uppercase tracking-label text-muted-foreground">
+    <span>{footer.note}</span>
+    <span aria-hidden="true">·</span>
+    <span>{footer.drinkResponsibly}</span>
+  </div>
+</footer>

@@ -1,6 +1,7 @@
 ---
 import AppShell from '../layouts/AppShell.astro';
-import { site, nav, venuesCopy, footer } from '../lib/copy';
+import PageTitle from '../components/marketing/PageTitle.astro';
+import { site, venuesCopy } from '../lib/copy';
 
 /**
  * The Supply Side: Venues and bars on the AT Protocol.
@@ -14,20 +15,10 @@ import { site, nav, venuesCopy, footer } from '../lib/copy';
 <AppShell
   title={`${site.name} — ${venuesCopy.eyebrow}`}
   currentPath="/bars"
-  eyebrow={venuesCopy.eyebrow}
   width="wide"
 >
-  <main class="space-y-16 py-8">
-    <!-- Hero / Positioning -->
-    <header class="max-w-2xl space-y-4">
-      <span class="label-caps text-primary block">{venuesCopy.eyebrow}</span>
-      <h1 class="font-serif text-3xl font-bold tracking-tight text-foreground md:text-4xl">
-        {venuesCopy.title}
-      </h1>
-      <p class="font-serif text-base leading-relaxed text-foreground/80 md:text-lg">
-        {venuesCopy.subtitle}
-      </p>
-    </header>
+  <div class="space-y-16">
+    <PageTitle eyebrow={venuesCopy.eyebrow} title={venuesCopy.title} lede={venuesCopy.subtitle} />
 
     <!-- Four Pillars Grid -->
     <section class="space-y-6">
@@ -51,7 +42,7 @@ import { site, nav, venuesCopy, footer } from '../lib/copy';
     </section>
 
     <!-- Domain Claim / Lookup Card -->
-    <section class="border border-border bg-card p-8 coaster space-y-6 max-w-2xl">
+    <section class="border border-border bg-card p-8 coaster space-y-6">
       <div class="space-y-2">
         <span class="label-caps text-primary block">{venuesCopy.lookupEyebrow}</span>
         <h2 class="font-serif text-2xl font-bold text-foreground">
@@ -87,28 +78,5 @@ import { site, nav, venuesCopy, footer } from '../lib/copy';
         </div>
       </div>
     </section>
-
-    <!-- Footer -->
-    <footer class="border-t border-foreground pt-8 text-center">
-      <div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 font-condensed text-xs uppercase tracking-label text-muted-foreground">
-        <a href="/" class="transition-colors hover:text-primary">{nav.home}</a>
-        <span aria-hidden="true" class="text-border">·</span>
-        <a href="/taste" class="transition-colors hover:text-primary">{nav.map}</a>
-        <span aria-hidden="true" class="text-border">·</span>
-        <a href="/drinks" class="transition-colors hover:text-primary">{nav.register}</a>
-        <span aria-hidden="true" class="text-border">·</span>
-        <a href="/#regions" class="transition-colors hover:text-primary">{nav.regions}</a>
-        <span aria-hidden="true" class="text-border">·</span>
-        <a href="/bars" class="font-bold text-foreground">{nav.bars}</a>
-        <span aria-hidden="true" class="text-border">·</span>
-        <a href="/#connect" class="transition-colors hover:text-primary">{nav.signIn}</a>
-      </div>
-
-      <div class="mt-5 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 font-condensed text-3xs uppercase tracking-label text-muted-foreground">
-        <span>{footer.note}</span>
-        <span aria-hidden="true">·</span>
-        <span>{footer.drinkResponsibly}</span>
-      </div>
-    </footer>
-  </main>
+  </div>
 </AppShell>
