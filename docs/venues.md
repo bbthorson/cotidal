@@ -75,20 +75,25 @@ domain name), patrons who save or follow the venue are direct subscribers:
 
 | NSID | Role in B2B |
 |---|---|
-| `app.crystalcoupe.venue` | Domain verification (`attaboy.nyc`), location, current menu pointer |
-| `app.crystalcoupe.menu` | Signed, versioned menu snapshot with section headers and item specs |
+| `app.crystalcoupe.venue` | Domain verification (`attaboy.nyc`), location, current menu pointer, publication link |
+| `app.crystalcoupe.menu` | Signed, versioned menu snapshot with section headers, item specs, and document pointer |
 | `app.crystalcoupe.recipe` | Authored spec, technique, creator attribution |
 | `app.crystalcoupe.maker` | Bartender professional profile and portable portfolio |
 | `app.crystalcoupe.pour` | Patron check-in and re-order signal (`wouldOrderAgain`) |
+| `site.standard.publication` | Canonical web publication (Standard.site), served at `/.well-known/site.standard.publication` |
+| `site.standard.document` | Individual syndicated menu release, announcement, or editorial post |
 
-## Verification model
+## Verification & Hosting model
 
-A bar does not need a special crypto wallet or manual approval queue. Ownership
-derives from **handle-as-domain**:
-- The venue proves DNS control of its domain (e.g., `attaboy.nyc`).
-- It signs `app.crystalcoupe.venue` at `rkey: self`.
-- **Reconciliation is retroactive:** All patron sightings and historic pour
-  records referencing `attaboy.nyc` instantly light up under the venue's account.
+A bar does not need a special crypto wallet, manual approval queue, or separate CMS.
+Ownership and web publishing derive from **handle-as-domain + Standard.site**:
+
+1. **One DNS Record:** The bar points its domain (`attaboy.nyc`) via CNAME to Crystal Coupe's static edge proxy.
+2. **Handle Verification:** The edge responds to `https://attaboy.nyc/.well-known/atproto-did` with the venue's DID, completing ATProto domain-handle verification without manual TXT record juggling.
+3. **Standard.site Publication:** The edge responds to `https://attaboy.nyc/.well-known/site.standard.publication` pointing to `at://<did>/site.standard.publication/self`.
+4. **Canonical Claim:** The venue signs `app.crystalcoupe.venue` at `rkey: self` in its repository, pointing `currentMenu` to its live menu and `publication` to its Standard.site publication.
+5. **Retroactive Reconciliation:** All patron sightings and historic pour records referencing `attaboy.nyc` instantly light up under the venue's account.
+6. **Zero-JS Astro Web Site:** The edge renders a fast, accessible, paper-and-ink web presence directly from the repository's signed records. Documents include `<link rel="site.standard.document" href="...">` in `<head>` for rich Bluesky preview cards and ATProto reader unfurls.
 
 ## Commercial model
 

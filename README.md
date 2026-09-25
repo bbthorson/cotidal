@@ -100,6 +100,8 @@ This does not affect CI or a normal terminal, where no agent is detected.
 
 - **[docs/data-model.md](docs/data-model.md)** — entities, unclaimed
   references, menus-as-posts, why nobody rates people
+- **[docs/lexicon-adoption.md](docs/lexicon-adoption.md)** — why and how
+  venues, apps, and creators adopt `app.crystalcoupe.*`
 - **[docs/brand.md](docs/brand.md)** — voice, palette, and the rules that keep
   styling out of components
 - **[docs/generation.md](docs/generation.md)** — what the model may write, who

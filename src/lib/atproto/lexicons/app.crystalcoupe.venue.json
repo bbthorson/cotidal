@@ -26,6 +26,11 @@
             "ref": "app.crystalcoupe.defs#entityRef",
             "description": "The menu record to treat as current. Menus are immutable, so this pointer is how a venue says which one is live."
           },
+          "publication": {
+            "type": "ref",
+            "ref": "app.crystalcoupe.defs#entityRef",
+            "description": "Pointer to the venue's site.standard.publication record (rkey `self`), connecting the venue to its Standard.site web presence."
+          },
           "createdAt": { "type": "string", "format": "datetime" }
         }
       }

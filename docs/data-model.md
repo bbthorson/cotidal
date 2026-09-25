@@ -134,4 +134,7 @@ do not control.
 TypeScript definitions had silently drifted apart. The old lexicon remains
 until the app is migrated off it.
 
+A guide for external apps, venues, and developers adopting these records
+is in **[docs/lexicon-adoption.md](lexicon-adoption.md)**.
+
 [refs]: https://blog.smokesignal.events/posts/3lvbownlrme2a-atprotocol-record-references-authoritative-vs-unauthoritative-patterns

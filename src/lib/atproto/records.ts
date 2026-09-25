@@ -211,6 +211,8 @@ export const MenuRecordSchema = z.object({
   validUntil: z.string().datetime().optional(),
   sections: z.array(MenuSectionSchema).max(40).optional(),
   capture: MenuCaptureSchema.optional(),
+  /** Standard.site document pointer if published to a publication. */
+  document: EntityRefSchema.optional(),
   createdAt: z.string().datetime().optional(),
 });
 export type MenuRecord = z.infer<typeof MenuRecordSchema>;
@@ -268,6 +270,8 @@ export const VenueRecordSchema = z.object({
   website: z.string().optional(),
   /** Menus are immutable, so a venue points at the one that is live. */
   currentMenu: EntityRefSchema.optional(),
+  /** Standard.site publication pointer (site.standard.publication at rkey self). */
+  publication: EntityRefSchema.optional(),
   createdAt: z.string().datetime(),
 });
 export type VenueRecord = z.infer<typeof VenueRecordSchema>;
