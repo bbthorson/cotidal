@@ -1,0 +1,209 @@
+---
+import { getCollection } from 'astro:content';
+import type { GetStaticPaths } from 'astro';
+import AppShell from '../../layouts/AppShell.astro';
+import { site } from '../../lib/copy';
+import { drinkDatabase } from '../../lib/data';
+import { QUADRANT_ORDER, quadrantIdFor, type QuadrantId } from '../../lib/quadrant';
+import { getRegionDetail } from '../../lib/regions';
+
+export const prerender = true;
+
+export const getStaticPaths = (() => {
+  return QUADRANT_ORDER.map((id) => ({
+    params: { id },
+  }));
+}) satisfies GetStaticPaths;
+
+const { id } = Astro.params as { id: QuadrantId };
+const region = getRegionDetail(id);
+
+// Query drinks belonging to this quadrant
+const allEntries = await getCollection('drinks');
+const placedDrinks = allEntries
+  .map((entry) => {
+    const drink = drinkDatabase.find((d) => d.name === entry.data.name);
+    return drink ? { entry, drink } : null;
+  })
+  .filter((v): v is NonNullable<typeof v> => v !== null)
+  .filter(({ drink }) => quadrantIdFor(drink.x, drink.y) === id)
+  .sort((a, b) => a.entry.data.title.localeCompare(b.entry.data.title));
+
+const otherRegions = QUADRANT_ORDER.filter((rId) => rId !== id).map((rId) =>
+  getRegionDetail(rId)
+);
+---
+
+<AppShell
+  title={`${region.name} · ${site.name}`}
+  description={region.gloss}
+  currentPath={`/regions/${region.id}`}
+  backLink={{ href: '/#regions', label: 'The Four Regions' }}
+  width="standard"
+>
+  <article class="space-y-16">
+    <!-- Header Title Plate -->
+    <header class="border-b border-foreground pb-10 pt-12 text-center md:pb-14 md:pt-16">
+      <div class="flex items-center justify-center gap-2">
+        <span class="label-caps border border-border px-2.5 py-0.5 text-secondary">
+          {region.axis}
+        </span>
+        <span class="font-mono text-3xs uppercase tracking-widest text-muted-foreground">
+          {region.coordinateRange}
+        </span>
+      </div>
+
+      <h1 class="mt-4 font-serif text-4xl font-bold leading-display text-foreground md:text-6xl">
+        {region.name}
+      </h1>
+
+      <p class="mx-auto mt-5 max-w-xl font-serif text-lg italic leading-relaxed text-muted-foreground md:text-xl">
+        {region.gloss}
+      </p>
+    </header>
+
+    <!-- Character & Sensory Stance -->
+    <section class="space-y-6">
+      <div class="border-b border-border pb-2">
+        <span class="label-caps text-primary">Sensory Stance</span>
+      </div>
+      <p class="font-serif text-base leading-relaxed text-foreground md:text-lg">
+        {region.character}
+      </p>
+      <p class="font-serif text-base leading-relaxed text-muted-foreground md:text-lg">
+        {region.philosophy}
+      </p>
+    </section>
+
+    <!-- Technical Anatomy & Chemistry Ledger -->
+    <section class="border border-border bg-card p-6 md:p-8 rounded-sm shadow-bar space-y-6">
+      <div class="border-b border-border/60 pb-3 flex items-center justify-between">
+        <span class="label-caps text-primary">Technical Anatomy</span>
+        <span class="font-mono text-3xs text-muted-foreground uppercase">Formulation Spec</span>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="space-y-2">
+          <span class="label-caps text-muted-foreground block">Foundation Spirits</span>
+          <p class="font-serif text-sm text-foreground">
+            {region.chemistry.baseSpirits.join(' · ')}
+          </p>
+        </div>
+
+        <div class="space-y-2">
+          <span class="label-caps text-muted-foreground block">Key Flavor Compounds</span>
+          <p class="font-serif text-sm text-foreground">
+            {region.chemistry.flavorCompounds.join(' · ')}
+          </p>
+        </div>
+
+        <div class="space-y-2">
+          <span class="label-caps text-muted-foreground block">Method & Dilution</span>
+          <p class="font-serif text-sm text-foreground">
+            {region.chemistry.technique}
+          </p>
+        </div>
+
+        <div class="space-y-2">
+          <span class="label-caps text-muted-foreground block">Canonical Glassware</span>
+          <p class="font-serif text-sm text-foreground">
+            {region.chemistry.glassware}
+          </p>
+        </div>
+      </div>
+
+      <div class="border-t border-border/60 pt-4">
+        <span class="label-caps text-muted-foreground block mb-1">What This Order Signals</span>
+        <p class="font-serif text-sm italic text-foreground/90">
+          "{region.orderingProfile}"
+        </p>
+      </div>
+    </section>
+
+    <!-- Canonical Specimens in the Register -->
+    <section class="space-y-6">
+      <div class="flex items-baseline justify-between border-b border-foreground pb-2">
+        <div class="flex items-baseline gap-3">
+          <span class="label-caps text-primary">Specimens</span>
+          <h2 class="font-serif text-xl font-bold text-foreground">
+            Catalogued Drinks in {region.name}
+          </h2>
+        </div>
+        <a
+          href={`/drinks#${region.id}`}
+          class="font-condensed text-xs uppercase tracking-label text-muted-foreground hover:text-primary transition-colors"
+        >
+          View in register &rarr;
+        </a>
+      </div>
+
+      {placedDrinks.length > 0 ? (
+        <ul class="divide-y divide-border">
+          {placedDrinks.map(({ entry, drink }) => (
+            <li class="py-4 group">
+              <a
+                href={`/drinks/${entry.id}`}
+                class="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-2 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
+              >
+                <div class="space-y-1 flex-1">
+                  <div class="flex items-baseline gap-2">
+                    <span class="font-serif text-lg font-bold text-foreground group-hover:text-primary transition-colors">
+                      {entry.data.title}
+                    </span>
+                    <span class="label-caps text-muted-foreground">
+                      {entry.data.family}
+                    </span>
+                  </div>
+                  <p class="font-serif text-xs italic text-muted-foreground line-clamp-1">
+                    {entry.data.summary}
+                  </p>
+                </div>
+
+                <div class="flex items-center gap-3 shrink-0">
+                  <span class="font-condensed text-xs tabular-nums text-primary border border-border px-2 py-0.5 rounded-sm">
+                    {drink.x > 0 ? '+' : ''}{drink.x}, {drink.y > 0 ? '+' : ''}{drink.y}
+                  </span>
+                  <span class="font-condensed text-xs uppercase tracking-label text-muted-foreground group-hover:text-foreground transition-colors">
+                    Read spec &rarr;
+                  </span>
+                </div>
+              </a>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p class="font-serif text-sm italic text-muted-foreground py-4">
+          No drinks catalogued in this region yet.
+        </p>
+      )}
+    </section>
+
+    <!-- Other Regions Footer Navigation -->
+    <section class="border-t border-foreground pt-12 space-y-6">
+      <span class="label-caps text-muted-foreground block text-center">
+        Explore Other Regions
+      </span>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {otherRegions.map((other) => (
+          <a
+            href={`/regions/${other.id}`}
+            class="group border border-border bg-card p-4 rounded-sm hover:border-primary hover:shadow-bar transition-all flex flex-col justify-between"
+          >
+            <div>
+              <span class="label-caps text-secondary block mb-1">{other.axis}</span>
+              <h3 class="font-serif text-base font-bold text-foreground group-hover:text-primary transition-colors">
+                {other.name}
+              </h3>
+              <p class="font-serif text-xs italic text-muted-foreground mt-1 line-clamp-2">
+                {other.gloss}
+              </p>
+            </div>
+            <span class="font-condensed text-3xs uppercase tracking-label text-primary mt-3 block">
+              Explore &rarr;
+            </span>
+          </a>
+        ))}
+      </div>
+    </section>
+  </article>
+</AppShell>

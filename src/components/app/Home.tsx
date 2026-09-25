@@ -1,6 +1,4 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
-import { ChatLayout } from '@/components/app/ChatLayout';
-import { ChatHeader } from '@/components/app/ChatHeader';
 import { ResultsScreen } from '@/components/app/ResultsScreen';
 import { Questionnaire } from '@/components/app/Questionnaire';
 import { AtprotoProvider, useAtprotoContext } from '@/components/app/AtprotoProvider';
@@ -92,26 +90,21 @@ function HomeContent() {
 
   if (screen === 'results') {
     return (
-      <ChatLayout
-        header={<ChatHeader />}
-        middle={
-          <div className="flex-1 overflow-y-auto">
-            <ResultsScreen
-              user={finalUser}
-              vibeTags={userProfile?.vibeTags || {}}
-              onPalateUpdated={handlePalateUpdated}
-            />
-          </div>
-        }
-        input={
+      <div className="pt-4">
+        <ResultsScreen
+          user={finalUser}
+          vibeTags={userProfile?.vibeTags || {}}
+          onPalateUpdated={handlePalateUpdated}
+        />
+        <div className="mt-12 text-center border-t border-border pt-6 pb-12">
           <button
             onClick={reset}
-            className="font-condensed text-xs uppercase tracking-label text-muted-foreground hover:text-primary underline underline-offset-4 decoration-primary/30 hover:decoration-primary/60 transition-colors min-h-[44px] px-4 w-full text-center"
+            className="font-condensed text-xs uppercase tracking-label text-muted-foreground hover:text-primary underline underline-offset-4 decoration-primary/30 hover:decoration-primary/60 transition-colors min-h-[44px] px-4"
           >
             Start Over
           </button>
-        }
-      />
+        </div>
+      </div>
     );
   }
 

@@ -1,7 +1,7 @@
 ---
-import Base from '../layouts/Base.astro';
+import AppShell from '../layouts/AppShell.astro';
 import Home from '../components/app/Home';
-import { site } from '../lib/copy';
+import { site, nav } from '../lib/copy';
 
 /**
  * The interactive half of the app. This is the only route that mounts a
@@ -12,6 +12,11 @@ import { site } from '../lib/copy';
  */
 ---
 
-<Base title={`${site.name} — Your map`}>
+<AppShell
+  title={`${site.name} — ${nav.map}`}
+  currentPath="/taste"
+  eyebrow={nav.map}
+  width="wide"
+>
   <Home client:load />
-</Base>
+</AppShell>

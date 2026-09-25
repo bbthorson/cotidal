@@ -151,3 +151,30 @@ export async function getConnectedDrinkLogs(limit?: number): Promise<DrinkLogRec
     return [];
   }
 }
+
+export async function refinePalateWithAI(
+  notes: string,
+  currentProfile: UserProfile
+): Promise<{ profile: UserProfile; dossier: string; generation?: string }> {
+  try {
+    const res = await fetch('/api/refine-palate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ notes, currentProfile }),
+    });
+    const generation = res.headers.get('x-generation') || 'unavailable';
+    const data = await res.json();
+    return {
+      profile: data.profile,
+      dossier: data.dossier,
+      generation,
+    };
+  } catch (error) {
+    console.error('Failed to refine palate with AI:', error);
+    return {
+      profile: currentProfile,
+      dossier: 'Your palate baseline remains anchored.',
+      generation: 'unavailable',
+    };
+  }
+}

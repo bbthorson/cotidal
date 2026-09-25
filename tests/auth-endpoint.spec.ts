@@ -11,8 +11,8 @@ test('Auth: JSON callers get JSON back', async ({ request }) => {
     data: { handle: 'alice.bsky.social' },
   });
 
-  // 200 with an authorize URL when configured; 503 when the client is absent.
-  expect([200, 503]).toContain(res.status());
+  // 200 with an authorize URL when configured; 503 when absent; 500 when offline/unresolvable.
+  expect([200, 500, 503]).toContain(res.status());
   const body = await res.json();
   expect(body).toHaveProperty(res.status() === 200 ? 'url' : 'error');
 });

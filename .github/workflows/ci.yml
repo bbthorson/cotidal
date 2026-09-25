@@ -15,6 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       ASTRO_TELEMETRY_DISABLED: 1
+      CLOUDFLARE_VITE_FORCE_LOCAL: 'true'
     steps:
       - uses: actions/checkout@v4
 
