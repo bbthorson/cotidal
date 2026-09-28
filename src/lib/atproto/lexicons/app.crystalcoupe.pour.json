@@ -4,7 +4,7 @@
   "defs": {
     "main": {
       "type": "record",
-      "description": "One drink, drunk once, by the author. Supersedes app.crystalcoupe.drinkLog, whose JSON and TypeScript definitions had drifted apart. The rating belongs to the drinker and describes the drink; `credits` attributes the people involved but carries no score, so a poor rating can never resolve to a judgement of a person.",
+      "description": "One drink, drunk once, by the author. Contains objective CATA detection and gLMS subjective valuation. The rating belongs to the drinker and describes the drink; `credits` attributes the people involved but carries no score.",
       "key": "tid",
       "record": {
         "type": "object",
@@ -28,25 +28,21 @@
             "items": { "type": "ref", "ref": "app.crystalcoupe.defs#credit" }
           },
           "rating": { "type": "ref", "ref": "#rating" },
-          "deviations": {
-            "type": "array",
-            "description": "How it missed, in the drinker's terms. This is what actually moves the palate coordinate.",
-            "maxLength": 11,
-            "items": {
-              "type": "string",
-              "knownValues": [
-                "too-sweet", "not-sweet-enough",
-                "too-sour", "not-sour-enough",
-                "too-bitter", "too-smoky", "too-anise",
-                "too-rich", "too-crisp",
-                "too-flat", "too-fizzy"
-              ]
-            }
-          },
-          "palateShift": {
+          "perceivedIntensities": {
             "type": "ref",
-            "ref": "#shift",
-            "description": "How this pour moved the author's coordinate, kept so the map's history can be replayed."
+            "ref": "#perceivedIntensities",
+            "description": "0-100 gLMS scales for discrete structural/tactile vectors."
+          },
+          "cata": {
+            "type": "array",
+            "description": "Check-All-That-Apply array for unbiased retronasal VOC categorization.",
+            "maxLength": 20,
+            "items": { "type": "string", "maxLength": 32 }
+          },
+          "context": {
+            "type": "ref",
+            "ref": "#context",
+            "description": "Transitory physiological and circadian state data for SSS and prandial normalization."
           },
           "note": {
             "type": "string",
@@ -60,27 +56,50 @@
     },
     "rating": {
       "type": "object",
-      "description": "A 9-point hedonic scale — the standard instrument for 'how much did you like this', and the right tool for feedback (as opposed to discovery).",
+      "description": "Hedonic liking score anchored to standard psychophysical instruments.",
       "required": ["hedonic"],
       "properties": {
         "hedonic": {
           "type": "integer",
-          "description": "1: dislike extremely, 5: neutral, 9: like extremely.",
+          "description": "1: dislike extremely, 5: neutral, 9: like extremely (standard 9-point hedonic).",
           "minimum": 1,
           "maximum": 9
         },
+        "glmsValence": {
+          "type": "number",
+          "description": "Continuous bipolar gLMS liking score (-100 to +100).",
+          "minimum": -100,
+          "maximum": 100
+        },
         "wouldOrderAgain": {
           "type": "boolean",
-          "description": "Adoption rather than approval. This is what a recipe's reception is built from: 'reordered by 61%' credits a designer without ever producing a score that can shame one."
+          "description": "Adoption rather than approval. Used to gauge recipe reception without personal scoring."
         }
       }
     },
-    "shift": {
+    "perceivedIntensities": {
       "type": "object",
-      "required": ["x", "y"],
+      "description": "0-100 gLMS scales mapping discrete structural/tactile vectors.",
       "properties": {
-        "x": { "type": "integer", "minimum": -20, "maximum": 20 },
-        "y": { "type": "integer", "minimum": -20, "maximum": 20 }
+        "sweetness": { "type": "number", "minimum": 0, "maximum": 100 },
+        "sourness": { "type": "number", "minimum": 0, "maximum": 100 },
+        "bitterness": { "type": "number", "minimum": 0, "maximum": 100 },
+        "astringency": { "type": "number", "minimum": 0, "maximum": 100 },
+        "effervescence": { "type": "number", "minimum": 0, "maximum": 100 }
+      }
+    },
+    "context": {
+      "type": "object",
+      "description": "Temporal and physiological state data for SSS and diurnal normalization.",
+      "properties": {
+        "volumeConsumedMl": {
+          "type": "number",
+          "description": "Estimated volume consumed in milliliters (for sensory-specific satiety decay)."
+        },
+        "fastingDurationHours": {
+          "type": "number",
+          "description": "Hours since last substantial meal (for ghrelin / postprandial sweet reward weighting)."
+        }
       }
     }
   }

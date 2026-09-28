@@ -137,7 +137,7 @@ export function DrinkMapView({ userLogs = [] }: DrinkMapViewProps) {
         lngPct: 25 + ((idx * 23) % 55),
         rating: (l.rating.hedonic - 1) * 1.25,
         baseSpirit: 'Cocktail',
-        tags: l.deviations ? [...l.deviations] : ['logged'],
+        tags: l.cata ? [...l.cata] : ['logged'],
         glassware: 'Coupe',
         description: l.note || 'Logged via AT Protocol PDS',
       }));

@@ -1,13 +1,17 @@
 import type { UserProfile } from '@/hooks/useDiscoveryQuiz';
-import type { PourRecord } from '@/lib/atproto/records';
+import type { PourRecord, PerceivedIntensities, PourContext } from '@/lib/atproto/records';
 
 export interface LogDrinkOptions {
   drinkName: string;
   rating: number;
+  glmsValence?: number;
   baseSpirit?: string;
   isHomePour?: boolean;
   location?: string;
   venue?: { name: string; lat?: number; lng?: number };
+  perceivedIntensities?: PerceivedIntensities;
+  cata?: string[];
+  context?: PourContext;
   sensoryProfile?: {
     bitter: number;
     sweet: number;
@@ -20,6 +24,7 @@ export interface LogDrinkOptions {
   garnish?: string;
   deviations?: string[];
   note?: string;
+  wouldOrderAgain?: boolean;
   crosspostToFeed?: boolean;
 }
 

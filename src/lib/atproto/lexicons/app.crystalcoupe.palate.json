@@ -4,11 +4,11 @@
   "defs": {
     "main": {
       "type": "record",
-      "description": "A user's rich sensory palate profile from The Crystal Coupe",
+      "description": "A user's psychophysical palate profile and dynamic preference state from The Crystal Coupe",
       "key": "literal:self",
       "record": {
         "type": "object",
-        "required": ["mapCoordinates", "sensoryVector", "aversions", "vibeTags", "createdAt"],
+        "required": ["mapCoordinates", "dynamicState", "phenotypes", "aversions", "vibeTags", "createdAt"],
         "properties": {
           "mapCoordinates": {
             "type": "object",
@@ -28,41 +28,15 @@
               }
             }
           },
-          "sensoryVector": {
-            "type": "object",
-            "required": ["tastes", "aromas", "textures"],
-            "properties": {
-              "tastes": {
-                "type": "object",
-                "required": ["sweet", "sour", "salty", "bitter", "umami"],
-                "properties": {
-                  "sweet": { "type": "number", "minimum": 0, "maximum": 10 },
-                  "sour": { "type": "number", "minimum": 0, "maximum": 10 },
-                  "salty": { "type": "number", "minimum": 0, "maximum": 10 },
-                  "bitter": { "type": "number", "minimum": 0, "maximum": 10 },
-                  "umami": { "type": "number", "minimum": 0, "maximum": 10 }
-                }
-              },
-              "aromas": {
-                "type": "object",
-                "required": ["smoky", "herbaceous", "spicy", "fruity", "floral"],
-                "properties": {
-                  "smoky": { "type": "number", "minimum": 0, "maximum": 10 },
-                  "herbaceous": { "type": "number", "minimum": 0, "maximum": 10 },
-                  "spicy": { "type": "number", "minimum": 0, "maximum": 10 },
-                  "fruity": { "type": "number", "minimum": 0, "maximum": 10 },
-                  "floral": { "type": "number", "minimum": 0, "maximum": 10 }
-                }
-              },
-              "textures": {
-                "type": "object",
-                "required": ["body", "effervescence"],
-                "properties": {
-                  "body": { "type": "number", "minimum": 0, "maximum": 10, "description": "Viscosity/richness" },
-                  "effervescence": { "type": "number", "minimum": 0, "maximum": 10, "description": "Carbonation" }
-                }
-              }
-            }
+          "dynamicState": {
+            "type": "ref",
+            "ref": "#dynamicState",
+            "description": "Computed Extended Kalman Filter state vector and error covariance."
+          },
+          "phenotypes": {
+            "type": "ref",
+            "ref": "#phenotypes",
+            "description": "Physiological sensitivity proxies (TAS2R38, TRPV1)."
           },
           "aversions": {
             "type": "object",
@@ -75,7 +49,7 @@
           },
           "vibeTags": {
             "type": "object",
-            "description": "Tag affinity scores from quiz responses"
+            "description": "Tag affinity scores from quiz responses and tasting history"
           },
           "createdAt": {
             "type": "string",
@@ -85,6 +59,46 @@
             "type": "string",
             "format": "datetime"
           }
+        }
+      }
+    },
+    "dynamicState": {
+      "type": "object",
+      "required": ["latentVector", "covarianceDiagonal", "eventCount"],
+      "properties": {
+        "latentVector": {
+          "type": "array",
+          "items": { "type": "number" },
+          "description": "5-dimensional latent preference state: [x_crisp, y_sweet, theta_bitter, theta_tannin, theta_complexity]"
+        },
+        "covarianceDiagonal": {
+          "type": "array",
+          "items": { "type": "number" },
+          "description": "Diagonal of EKF error covariance matrix P_k representing multidimensional uncertainty."
+        },
+        "eventCount": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Count of sequential tastings processed."
+        },
+        "lastUpdate": {
+          "type": "string",
+          "format": "datetime"
+        }
+      }
+    },
+    "phenotypes": {
+      "type": "object",
+      "properties": {
+        "tas2r38BitterSensitivity": {
+          "type": "string",
+          "knownValues": ["non-taster", "medium-taster", "super-taster"],
+          "description": "Bitter receptor expression density behavioral proxy."
+        },
+        "trigeminalTolerance": {
+          "type": "string",
+          "knownValues": ["low", "moderate", "high"],
+          "description": "TRPV1 thermal / ethanol burn tolerance."
         }
       }
     }

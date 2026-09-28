@@ -13,6 +13,7 @@ export interface PourEntry {
   isHomePour: boolean;
   venue: string;
   deviations: Deviation[];
+  cata?: string[];
   note: string;
   crosspost: boolean;
   detail?: {
@@ -32,6 +33,21 @@ export const hedonicToRating = (hedonic: number) => (hedonic - 1) * 1.25;
 const BASE_SPIRITS = ['Bourbon', 'Rye', 'Scotch', 'Gin', 'Rum', 'Tequila', 'Mezcal', 'Vodka', 'Cognac / Brandy', 'Amaro / Aperitif', 'Non-alcoholic'];
 const GLASSES = ['Coupe', 'Nick & Nora', 'Rocks', 'Highball', 'Martini', 'Tiki mug'];
 const SENSORY_AXES = ['bitter', 'sweet', 'sour', 'spiritForward', 'citrus', 'herbal'] as const;
+
+export const CATA_OPTIONS = [
+  'Bright Citrus',
+  'Lime Peel',
+  'Stone Fruit',
+  'Dark Cherry',
+  'Campfire Smoke',
+  'Botanical Herb',
+  'Baking Spice',
+  'Toasted Oak',
+  'Floral Blossom',
+  'Bittersweet Cocoa',
+  'Briny Mineral',
+  'Rich Velvet Body',
+] as const;
 
 interface PourFormProps {
   /** Quick picks shown under the drink field, e.g. the top of your menu. */
@@ -76,6 +92,7 @@ export function PourForm({
   const [isHomePour, setIsHomePour] = useState(false);
   const [hedonic, setHedonic] = useState(7);
   const [deviations, setDeviations] = useState<Deviation[]>([]);
+  const [cata, setCata] = useState<string[]>([]);
   const [note, setNote] = useState('');
   const [crosspost, setCrosspost] = useState(false);
   const [baseSpirit, setBaseSpirit] = useState(BASE_SPIRITS[0]);
@@ -103,6 +120,7 @@ export function PourForm({
       isHomePour,
       venue: venue.trim(),
       deviations,
+      cata: cata.length > 0 ? cata : undefined,
       note: note.trim(),
       crosspost: isMember && crosspost,
       detail: isMember
@@ -110,6 +128,7 @@ export function PourForm({
         : undefined,
     });
     setDeviations([]);
+    setCata([]);
     setNote('');
   };
 
@@ -250,6 +269,27 @@ export function PourForm({
                 onClick={() => setDeviations((prev) => (active ? prev.filter((d) => d !== dev) : [...prev, dev]))}
               >
                 {pour.deviations[dev]}
+              </Tag>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* CATA notes: objective volatile categorization */}
+      <div className="flex flex-col gap-2">
+        <FieldLabel as="span">
+          Flavor Notes Detected <span className="normal-case tracking-normal">({pour.optional})</span>
+        </FieldLabel>
+        <div className="flex flex-wrap gap-2">
+          {CATA_OPTIONS.map((item) => {
+            const active = cata.includes(item);
+            return (
+              <Tag
+                key={item}
+                active={active}
+                onClick={() => setCata((prev) => (active ? prev.filter((c) => c !== item) : [...prev, item]))}
+              >
+                {item}
               </Tag>
             );
           })}

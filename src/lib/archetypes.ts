@@ -90,16 +90,21 @@ export function extractSensoryProfile(
     return { bitter: 2.5, sweet: 2.5, sour: 2.5, spiritForward: 2.5, citrus: 2.5, herbal: 2.5 };
   }
 
-  // If PalateRecord with sensoryVector exists
-  if ('sensoryVector' in palate && palate.sensoryVector) {
-    const sv = palate.sensoryVector;
+  // If PalateRecord with dynamicState exists
+  if ('dynamicState' in palate && palate.dynamicState) {
+    const v = palate.dynamicState.latentVector;
+    const crisp = v[0] ?? 0;
+    const sweet = v[1] ?? 0;
+    const bitterVal = v[2] ?? 5;
+    const tanninVal = v[3] ?? 5;
+    const compVal = v[4] ?? 5;
     return {
-      bitter: Math.max(0, Math.min(5, sv.tastes.bitter / 2)),
-      sweet: Math.max(0, Math.min(5, sv.tastes.sweet / 2)),
-      sour: Math.max(0, Math.min(5, sv.tastes.sour / 2)),
-      spiritForward: Math.max(0, Math.min(5, (10 - sv.tastes.sweet) / 2)),
-      citrus: Math.max(0, Math.min(5, sv.tastes.sour / 2 + 0.5)),
-      herbal: Math.max(0, Math.min(5, sv.aromas.herbaceous / 2 + sv.aromas.smoky / 4)),
+      bitter: Math.max(0, Math.min(5, bitterVal / 2)),
+      sweet: Math.max(0, Math.min(5, 2.5 + sweet / 4)),
+      sour: Math.max(0, Math.min(5, 2.5 + crisp / 4)),
+      spiritForward: Math.max(0, Math.min(5, 2.5 - sweet / 4 + tanninVal / 10)),
+      citrus: Math.max(0, Math.min(5, 2.5 + crisp / 4)),
+      herbal: Math.max(0, Math.min(5, compVal / 2)),
     };
   }
 

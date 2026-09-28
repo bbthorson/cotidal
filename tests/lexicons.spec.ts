@@ -125,3 +125,65 @@ test('Locations: place vocabulary is borrowed, not reinvented', async () => {
   const ours = readdirSync(DIR).map((f) => f.replace('.json', ''));
   expect(ours.every((id) => id.startsWith('app.crystalcoupe.'))).toBe(true);
 });
+
+test('Psychophysics: palate records dynamicState and pour records CATA/gLMS', async () => {
+  const { PalateRecordSchema, PALATE_COLLECTION } = await import('../src/lib/atproto/records');
+
+  const validPalate = {
+    $type: PALATE_COLLECTION,
+    mapCoordinates: { x: 2.5, y: -4.0 },
+    dynamicState: {
+      latentVector: [2.5, -4.0, 6.2, 5.0, 7.1],
+      covarianceDiagonal: [3.2, 2.8, 4.1, 4.0, 3.5],
+      eventCount: 14,
+      lastUpdate: new Date().toISOString(),
+    },
+    phenotypes: {
+      tas2r38BitterSensitivity: 'medium-taster' as const,
+      trigeminalTolerance: 'moderate' as const,
+    },
+    aversions: {
+      smoke: false,
+      bitter: false,
+      anise: true,
+    },
+    vibeTags: { citrus: 4, crushable: 3 },
+    createdAt: new Date().toISOString(),
+  };
+  expect(PalateRecordSchema.safeParse(validPalate).success).toBe(true);
+
+  const psychophysicalPour = {
+    $type: POUR_COLLECTION,
+    drink: {
+      name: 'Daiquiri',
+      slug: 'daiquiri',
+      stimulus: {
+        matrixType: 'cocktail' as const,
+        abv: 22.5,
+        residualSugarGpl: 45.0,
+        acidityPh: 3.2,
+        astringencyIndex: 1.0,
+      },
+    },
+    rating: {
+      hedonic: 8,
+      glmsValence: 65.4,
+      wouldOrderAgain: true,
+    },
+    perceivedIntensities: {
+      sweetness: 55,
+      sourness: 70,
+      bitterness: 5,
+      astringency: 10,
+      effervescence: 0,
+    },
+    cata: ['lime-peel', 'bright-citrus', 'sugarcane'],
+    context: {
+      volumeConsumedMl: 140,
+      fastingDurationHours: 2.5,
+    },
+    createdAt: new Date().toISOString(),
+  };
+  expect(PourRecordSchema.safeParse(psychophysicalPour).success).toBe(true);
+});
+

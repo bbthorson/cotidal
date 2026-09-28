@@ -33,37 +33,56 @@ function getInitialLocalProfile(): UserProfile | null {
   }
 }
 
+import {
+  createInitialPalateState,
+  updatePalateEKF,
+  projectTo2D,
+  type TastingObservation,
+} from '@/lib/palate-state';
+
 /**
- * A guest's pour moves the coordinate on this device only, by the same rules
- * the server applies: deviations push along an axis, and a pour you liked
- * (7+) pulls you a little toward the drink.
+ * A guest's pour moves the coordinate on this device only, by the exact same
+ * Extended Kalman Filter (EKF) rules the server applies.
  */
 function guestShift(profile: UserProfile | null, entry: PourEntry): UserProfile {
-  const x0 = profile?.x ?? 0;
-  const y0 = profile?.y ?? 0;
-  let dx = 0;
-  let dy = 0;
-  for (const dev of entry.deviations) {
-    if (dev === 'too-sweet') dy -= 1.2;
-    else if (dev === 'not-sweet-enough') dy += 1.2;
-    else if (dev === 'too-sour') dx += 0.6;
-    else if (dev === 'not-sour-enough') dx -= 0.6;
-    else if (dev === 'too-rich') dx += 1.2;
-    else if (dev === 'too-crisp') dx -= 1.2;
+  const prior = createInitialPalateState({
+    x: profile?.x ?? 0,
+    y: profile?.y ?? 0,
+    dislikesBitter: profile?.dislikesBitter ?? false,
+  });
+
+  const drink = drinkDatabase.find((d) => d.name.toLowerCase() === entry.drinkName.toLowerCase()) || {
+    name: entry.drinkName,
+    type: 'Cocktail' as const,
+    x: profile?.x ?? 0,
+    y: profile?.y ?? 0,
+    hasSmoke: false,
+    hasAnise: false,
+    isBitter: false,
+    tags: ['classic'] as const,
+  };
+
+  const observation: TastingObservation = {
+    hedonic: entry.hedonic,
+  };
+
+  const { nextState } = updatePalateEKF(prior, drink, observation);
+  const coords = projectTo2D(nextState);
+
+  const updatedVibeTags = { ...(profile?.vibeTags ?? {}) };
+  if (entry.hedonic >= 7 && drink.tags) {
+    drink.tags.forEach((tag) => {
+      updatedVibeTags[tag] = Math.min(5.0, (updatedVibeTags[tag] || 0) + 0.25);
+    });
   }
-  const drink = drinkDatabase.find((d) => d.name.toLowerCase() === entry.drinkName.toLowerCase());
-  if (drink && entry.hedonic >= 7) {
-    dx += 0.15 * (drink.x - x0);
-    dy += 0.15 * (drink.y - y0);
-  }
-  const clamp = (v: number) => Math.round(Math.max(-10, Math.min(10, v)) * 10) / 10;
+
   return {
-    x: clamp(x0 + dx),
-    y: clamp(y0 + dy),
+    x: coords.x,
+    y: coords.y,
     dislikesSmoke: profile?.dislikesSmoke ?? false,
     dislikesBitter: profile?.dislikesBitter ?? false,
     dislikesAnise: profile?.dislikesAnise ?? false,
-    vibeTags: profile?.vibeTags ?? {},
+    vibeTags: updatedVibeTags,
   };
 }
 
@@ -172,6 +191,7 @@ function ReturnVisitContent({ register }: { register: Register }) {
           location: entry.isHomePour ? 'Home Pour' : entry.venue,
           venue: entry.isHomePour ? undefined : { name: entry.venue },
           deviations: entry.deviations,
+          cata: entry.cata,
           note: entry.note || undefined,
           crosspostToFeed: entry.crosspost,
           baseSpirit: entry.detail?.baseSpirit,
@@ -195,8 +215,6 @@ function ReturnVisitContent({ register }: { register: Register }) {
           drink: { name: entry.drinkName, slug: slugifyDrink(entry.drinkName) },
           venue: entry.isHomePour ? undefined : { entity: { name: entry.venue } },
           rating: { hedonic: entry.hedonic, wouldOrderAgain: entry.hedonic >= 7 },
-          deviations: entry.deviations,
-          palateShift: { x: Math.round(updated.x - from.x), y: Math.round(updated.y - from.y) },
           note: entry.note || undefined,
           isHomePour: entry.isHomePour,
           createdAt: new Date().toISOString(),

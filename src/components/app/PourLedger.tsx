@@ -57,14 +57,14 @@ export function PourLedger({ pours, register = {}, empty, loading = false }: Pou
               {' · '}
               {pour.hedonic[p.rating.hedonic - 1]}
             </p>
-            {p.deviations && p.deviations.length > 0 && (
+            {p.cata && p.cata.length > 0 && (
               <ul className="flex flex-wrap gap-1.5">
-                {p.deviations.map((dev) => (
+                {p.cata.map((desc) => (
                   <li
-                    key={dev}
+                    key={desc}
                     className="border border-border px-2 py-0.5 font-condensed text-xs uppercase tracking-label text-secondary"
                   >
-                    {pour.deviations[dev] ?? dev}
+                    {desc}
                   </li>
                 ))}
               </ul>
