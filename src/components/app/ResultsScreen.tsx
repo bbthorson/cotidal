@@ -171,6 +171,7 @@ export function ResultsScreen({
         location: entry.isHomePour ? 'Home Pour' : entry.venue,
         venue: entry.isHomePour ? undefined : { name: entry.venue },
         deviations: entry.deviations,
+        cata: entry.cata,
         note: entry.note || undefined,
         crosspostToFeed: entry.crosspost,
         baseSpirit: entry.detail?.baseSpirit,

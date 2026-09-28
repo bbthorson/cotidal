@@ -118,21 +118,40 @@ Publishing new NSIDs in that namespace goes through the Lexicon Community
 working group, because the namespace maps to `lexicon.community`, a domain we
 do not control.
 
+## Psychophysical Preference Modeling
+
+Taste preferences are non-stationary, high-dimensional biological systems.
+Rather than treating a palate as a static coordinate, The Crystal Coupe models
+a user's taste trajectory using an **Extended Kalman Filter (EKF)** over a
+five-dimensional latent preference space:
+
+$$\mathbf{x}_k = [x_{\text{crisp}}, y_{\text{sweet}}, \theta_{\text{bitter}}, \theta_{\text{tannin}}, \theta_{\text{complexity}}]^T$$
+
+The user-facing 2D map ($x$: Rich-Crisp, $y$: Savory-Sweet) is the primary
+orthogonal projection of this latent vector. The system tracks algorithmic
+confidence via the diagonal trace of the error covariance matrix $\mathbf{P}_k$.
+
+To prevent transient noise from corrupting longitudinal state estimates, pours
+pass through biological normalizers before updating the filter:
+1. **Sensory-Specific Satiety (SSS)**: Exponential pleasantness decay as volume increases ($V_{\text{consumed}}$).
+2. **Prandial & Circadian Ghrelin Weighting**: Normalization for fasting vs. postprandial sweet reward amplification.
+3. **Decoupling CATA from Hedonics**: Uncoupling objective detection (Check-All-That-Apply arrays) from subjective liking to eliminate aspirational reporting bias.
+
+For full physiological and mathematical derivations, see **[docs/sensory-science.md](sensory-science.md)**.
+
 ## Records
 
 | NSID | Key | Holder | Purpose |
 |---|---|---|---|
-| `app.crystalcoupe.palate` | `self` | Rater | Coordinate and sensory profile |
-| `app.crystalcoupe.pour` | tid | Rater | One drink, drunk once |
-| `app.crystalcoupe.menu` | tid | Venue **or** patron | A menu at a point in time |
-| `app.crystalcoupe.recipe` | tid | Author | An authored spec |
-| `app.crystalcoupe.venue` | `self` | Venue | A bar claiming itself |
-| `app.crystalcoupe.maker` | `self` | Maker | A professional profile |
-| `app.crystalcoupe.defs` | — | — | Shared reference types |
+| `app.crystalcoupe.palate` | `self` | Rater | 2D coordinates, 5D dynamic state vector $\mathbf{x}_k$, covariance $\mathbf{P}_k$, and phenotypes |
+| `app.crystalcoupe.pour` | tid | Rater | Drink check-in with 9-point hedonic / gLMS, objective CATA tags, and SSS context |
+| `app.crystalcoupe.menu` | tid | Venue **or** patron | An immutable menu snapshot at a point in time |
+| `app.crystalcoupe.recipe` | tid | Author | An authored spec with technique, credits, and chemometric stimulus specs |
+| `app.crystalcoupe.venue` | `self` | Venue | A bar claiming itself via domain handle |
+| `app.crystalcoupe.maker` | `self` | Maker | A professional profile linking authored recipes |
+| `app.crystalcoupe.defs` | — | — | Shared types: `entityRef`, `venueRef`, `drinkRef`, `stimulus`, `credit`, `price` |
 
-`app.crystalcoupe.pour` supersedes `app.crystalcoupe.drinkLog`, whose JSON and
-TypeScript definitions had silently drifted apart. The old lexicon remains
-until the app is migrated off it.
+`app.crystalcoupe.pour` provides the clean sensory observation record, fully superseding legacy drift heuristics.
 
 A guide for external apps, venues, and developers adopting these records
 is in **[docs/lexicon-adoption.md](lexicon-adoption.md)**.

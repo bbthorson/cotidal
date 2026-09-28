@@ -56,6 +56,15 @@ export const VenueRefSchema = z.object({
 });
 export type VenueRef = z.infer<typeof VenueRefSchema>;
 
+export const StimulusSchema = z.object({
+  matrixType: z.enum(['cocktail', 'wine', 'spirit', 'beer', 'tea', 'coffee', 'cider', 'non-alcoholic']).optional(),
+  abv: z.number().min(0).max(100).optional(),
+  residualSugarGpl: z.number().min(0).optional(),
+  acidityPh: z.number().min(1).max(14).optional(),
+  astringencyIndex: z.number().min(0).max(10).optional(),
+});
+export type Stimulus = z.infer<typeof StimulusSchema>;
+
 /**
  * A drink category is folklore and unowned — it is a `slug` in an open
  * catalog. A `recipe` is the authored, ownable formulation.
@@ -64,6 +73,7 @@ export const DrinkRefSchema = z.object({
   name: z.string().min(1).max(200),
   slug: z.string().max(64).optional(),
   recipe: EntityRefSchema.optional(),
+  stimulus: StimulusSchema.optional(),
 });
 export type DrinkRef = z.infer<typeof DrinkRefSchema>;
 
@@ -85,32 +95,28 @@ export type Price = z.infer<typeof PriceSchema>;
 // app.crystalcoupe.palate
 // ---------------------------------------------------------------------------
 
+export const DynamicStateSchema = z.object({
+  latentVector: z.array(z.number()),
+  covarianceDiagonal: z.array(z.number()),
+  eventCount: z.number().int().min(0),
+  lastUpdate: z.string().datetime().optional(),
+});
+export type DynamicState = z.infer<typeof DynamicStateSchema>;
+
+export const PhenotypesSchema = z.object({
+  tas2r38BitterSensitivity: z.enum(['non-taster', 'medium-taster', 'super-taster']).optional(),
+  trigeminalTolerance: z.enum(['low', 'moderate', 'high']).optional(),
+});
+export type Phenotypes = z.infer<typeof PhenotypesSchema>;
+
 export const PalateRecordSchema = z.object({
   $type: z.literal(PALATE_COLLECTION),
   mapCoordinates: z.object({
     x: z.number().min(-10).max(10),
     y: z.number().min(-10).max(10),
   }),
-  sensoryVector: z.object({
-    tastes: z.object({
-      sweet: z.number().min(0).max(10),
-      sour: z.number().min(0).max(10),
-      salty: z.number().min(0).max(10),
-      bitter: z.number().min(0).max(10),
-      umami: z.number().min(0).max(10),
-    }),
-    aromas: z.object({
-      smoky: z.number().min(0).max(10),
-      herbaceous: z.number().min(0).max(10),
-      spicy: z.number().min(0).max(10),
-      fruity: z.number().min(0).max(10),
-      floral: z.number().min(0).max(10),
-    }),
-    textures: z.object({
-      body: z.number().min(0).max(10),
-      effervescence: z.number().min(0).max(10),
-    }),
-  }),
+  dynamicState: DynamicStateSchema,
+  phenotypes: PhenotypesSchema,
   aversions: z.object({
     smoke: z.boolean(),
     bitter: z.boolean(),
@@ -144,10 +150,13 @@ export const DEVIATIONS = [
   'too-rich', 'too-crisp',
   'too-flat', 'too-fizzy',
 ] as const;
+export type Deviation = (typeof DEVIATIONS)[number];
 
 export const RatingSchema = z.object({
   /** 9-point hedonic scale: 1 dislike extremely, 5 neutral, 9 like extremely. */
   hedonic: z.number().int().min(1).max(9),
+  /** Continuous bipolar gLMS liking score (-100 to +100). */
+  glmsValence: z.number().min(-100).max(100).optional(),
   /**
    * Adoption rather than approval. A recipe's reception is built from this —
    * "reordered by 61%" credits a designer without producing a score that
@@ -157,6 +166,21 @@ export const RatingSchema = z.object({
 });
 export type Rating = z.infer<typeof RatingSchema>;
 
+export const PerceivedIntensitiesSchema = z.object({
+  sweetness: z.number().min(0).max(100).optional(),
+  sourness: z.number().min(0).max(100).optional(),
+  bitterness: z.number().min(0).max(100).optional(),
+  astringency: z.number().min(0).max(100).optional(),
+  effervescence: z.number().min(0).max(100).optional(),
+});
+export type PerceivedIntensities = z.infer<typeof PerceivedIntensitiesSchema>;
+
+export const PourContextSchema = z.object({
+  volumeConsumedMl: z.number().optional(),
+  fastingDurationHours: z.number().optional(),
+});
+export type PourContext = z.infer<typeof PourContextSchema>;
+
 export const PourRecordSchema = z.object({
   $type: z.literal(POUR_COLLECTION),
   drink: DrinkRefSchema,
@@ -164,13 +188,10 @@ export const PourRecordSchema = z.object({
   menu: EntityRefSchema.optional(),
   credits: z.array(CreditSchema).max(10).optional(),
   rating: RatingSchema,
-  deviations: z.array(z.enum(DEVIATIONS)).max(11).optional(),
-  palateShift: z
-    .object({
-      x: z.number().int().min(-20).max(20),
-      y: z.number().int().min(-20).max(20),
-    })
-    .optional(),
+  perceivedIntensities: PerceivedIntensitiesSchema.optional(),
+  deviations: z.array(z.string().max(32)).max(10).optional(),
+  cata: z.array(z.string().max(32)).max(20).optional(),
+  context: PourContextSchema.optional(),
   note: z.string().max(3000).optional(),
   isHomePour: z.boolean().optional(),
   createdAt: z.string().datetime(),
@@ -257,6 +278,7 @@ export const RecipeRecordSchema = z.object({
       y: z.number().int().min(-10).max(10),
     })
     .optional(),
+  stimulus: StimulusSchema.optional(),
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime().optional(),
 });

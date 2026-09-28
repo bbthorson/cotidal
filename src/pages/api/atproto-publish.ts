@@ -7,13 +7,21 @@ import {
   publishPour,
   getPours,
 } from '@/lib/atproto/publish';
-import { derivePalateRecord, getDrinkSensoryVector } from '@/lib/sensory';
+import { derivePalateRecord } from '@/lib/sensory';
 import type { UserProfile } from '@/hooks/useDiscoveryQuiz';
 import { z } from 'zod';
 import { drinkDatabase } from '@/lib/data';
-import type { PalateRecord, PourRecord } from '@/lib/atproto/records';
+import type { PalateRecord } from '@/lib/atproto/records';
 import type { LogDrinkOptions } from '@/lib/api-client';
 import { didFromRequest } from '@/lib/atproto/session';
+import {
+  fromDynamicRecord,
+  toDynamicRecord,
+  updatePalateEKF,
+  projectTo2D,
+  createInitialPalateState,
+  type TastingObservation,
+} from '@/lib/palate-state';
 
 const ProfileSchema = z.object({
   x: z.number().min(-10).max(10),
@@ -128,10 +136,10 @@ export const POST: APIRoute = async ({ request }) => {
       isHomePour = false,
       location,
       venue,
-      sensoryProfile,
+      sensoryProfile: _sensoryProfile,
       glassware: _glassware,
       garnish: _garnish,
-      deviations = [],
+      deviations: _deviations = [],
       note,
       crosspostToFeed = false,
     } = options;
@@ -146,115 +154,55 @@ export const POST: APIRoute = async ({ request }) => {
         record = derivePalateRecord(dummyProfile, null);
       }
 
-      const currentX = record.mapCoordinates.x;
-      const currentY = record.mapCoordinates.y;
-      let xShift = 0;
-      let yShift = 0;
+      const priorState = record.dynamicState
+        ? fromDynamicRecord(record.dynamicState)
+        : createInitialPalateState({
+            x: record.mapCoordinates.x,
+            y: record.mapCoordinates.y,
+            dislikesBitter: record.aversions.bitter,
+          });
 
-      let sweet = record.sensoryVector.tastes.sweet;
-      let sour = record.sensoryVector.tastes.sour;
-      let bitter = record.sensoryVector.tastes.bitter;
-      let umami = record.sensoryVector.tastes.umami;
-      
-      let smoky = record.sensoryVector.aromas.smoky;
-      let herbaceous = record.sensoryVector.aromas.herbaceous;
-      let spicy = record.sensoryVector.aromas.spicy;
-      let fruity = record.sensoryVector.aromas.fruity;
-      let floral = record.sensoryVector.aromas.floral;
+      const drink = drinkDatabase.find(d => d.name.toLowerCase() === drinkName.toLowerCase()) || {
+        name: drinkName,
+        type: 'Cocktail' as const,
+        x: record.mapCoordinates.x,
+        y: record.mapCoordinates.y,
+        hasSmoke: false,
+        hasAnise: false,
+        isBitter: false,
+        tags: ['classic'] as const,
+      };
 
-      let bodyVal = record.sensoryVector.textures.body;
-      let effervescence = record.sensoryVector.textures.effervescence;
+      const observation: TastingObservation = {
+        hedonic: hedonicScale,
+        glmsValence: options.glmsValence,
+        perceivedIntensities: options.perceivedIntensities,
+        cata: options.cata,
+        context: options.context,
+      };
 
-      let smokeAversion = record.aversions.smoke;
-      let bitterAversion = record.aversions.bitter;
-      let aniseAversion = record.aversions.anise;
+      const { nextState } = updatePalateEKF(priorState, drink, observation);
+      const coords = projectTo2D(nextState);
 
-      if (sensoryProfile) {
-        bitter = Math.max(0, Math.min(10, (bitter + sensoryProfile.bitter * 2) / 2));
-        sweet = Math.max(0, Math.min(10, (sweet + sensoryProfile.sweet * 2) / 2));
-        sour = Math.max(0, Math.min(10, (sour + sensoryProfile.sour * 2) / 2));
-        herbaceous = Math.max(0, Math.min(10, (herbaceous + sensoryProfile.herbal * 2) / 2));
-      }
-
-      for (const dev of deviations) {
-        if (dev === 'too-sweet') {
-          yShift -= 1.2;
-          sweet = Math.max(0, sweet - 0.6);
-        } else if (dev === 'not-sweet-enough') {
-          yShift += 1.2;
-          sweet = Math.min(10, sweet + 0.6);
-        } else if (dev === 'too-sour') {
-          xShift += 0.6;
-          sour = Math.max(0, sour - 0.6);
-        } else if (dev === 'not-sour-enough') {
-          xShift -= 0.6;
-          sour = Math.min(10, sour + 0.6);
-        } else if (dev === 'too-bitter') {
-          bitterAversion = true;
-          bitter = Math.max(0, bitter - 1.5);
-        } else if (dev === 'too-smoky') {
-          smokeAversion = true;
-          smoky = Math.max(0, smoky - 1.5);
-        } else if (dev === 'too-anise') {
-          aniseAversion = true;
-          herbaceous = Math.max(0, herbaceous - 1.5);
-        } else if (dev === 'too-rich') {
-          xShift += 1.2;
-          bodyVal = Math.max(0, bodyVal - 0.6);
-        } else if (dev === 'too-crisp') {
-          xShift -= 1.2;
-          bodyVal = Math.min(10, bodyVal + 0.6);
-        } else if (dev === 'too-flat') {
-          effervescence = Math.min(10, effervescence + 0.8);
-        } else if (dev === 'too-fizzy') {
-          effervescence = Math.max(0, effervescence - 0.8);
-        }
-      }
-
-      const drink = drinkDatabase.find(d => d.name.toLowerCase() === drinkName.toLowerCase());
-      if (drink && rating >= 7.0) {
-        xShift += 0.15 * (drink.x - currentX);
-        yShift += 0.15 * (drink.y - currentY);
-
-        const drinkSensory = getDrinkSensoryVector(drink);
-        sweet += 0.15 * (drinkSensory.tastes.sweet - sweet);
-        sour += 0.15 * (drinkSensory.tastes.sour - sour);
-        bitter += 0.15 * (drinkSensory.tastes.bitter - bitter);
-        umami += 0.15 * (drinkSensory.tastes.umami - umami);
-        smoky += 0.15 * (drinkSensory.aromas.smoky - smoky);
-        herbaceous += 0.15 * (drinkSensory.aromas.herbaceous - herbaceous);
-        spicy += 0.15 * (drinkSensory.aromas.spicy - spicy);
-        fruity += 0.15 * (drinkSensory.aromas.fruity - fruity);
-        floral += 0.15 * (drinkSensory.aromas.floral - floral);
-        bodyVal += 0.15 * (drinkSensory.textures.body - bodyVal);
-        effervescence += 0.15 * (drinkSensory.textures.effervescence - effervescence);
-
-        const updatedVibeTags = { ...(record.vibeTags as Record<string, number> || {}) };
+      const updatedVibeTags = { ...(record.vibeTags as Record<string, number> || {}) };
+      if (hedonicScale >= 7 && drink.tags) {
         drink.tags.forEach(tag => {
           updatedVibeTags[tag] = Math.min(5.0, (updatedVibeTags[tag] || 0) + 0.25);
         });
-        record.vibeTags = updatedVibeTags;
       }
-
-      const finalX = Math.max(-10, Math.min(10, currentX + xShift));
-      const finalY = Math.max(-10, Math.min(10, currentY + yShift));
 
       const updatedPalate: PalateRecord = {
         $type: record.$type,
-        mapCoordinates: { x: finalX, y: finalY },
-        sensoryVector: {
-          tastes: { sweet, sour, salty: 2.0, bitter, umami },
-          aromas: { smoky, herbaceous, spicy, fruity, floral },
-          textures: { body: bodyVal, effervescence }
+        mapCoordinates: { x: coords.x, y: coords.y },
+        dynamicState: toDynamicRecord(nextState),
+        phenotypes: record.phenotypes || {
+          tas2r38BitterSensitivity: record.aversions.bitter ? 'super-taster' : 'medium-taster',
+          trigeminalTolerance: 'moderate',
         },
-        aversions: {
-          smoke: smokeAversion,
-          bitter: bitterAversion,
-          anise: aniseAversion
-        },
-        vibeTags: record.vibeTags,
+        aversions: record.aversions,
+        vibeTags: updatedVibeTags,
         createdAt: record.createdAt,
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
       };
 
       await publishRawPalateRecord(did, updatedPalate);
@@ -262,7 +210,7 @@ export const POST: APIRoute = async ({ request }) => {
       const pourRes = await publishPour(did, {
         drink: {
           name: drinkName,
-          slug: drink?.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
+          slug: drink?.name ? drink.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') : undefined,
         },
         venue: isHomePour
           ? undefined
@@ -273,14 +221,13 @@ export const POST: APIRoute = async ({ request }) => {
             },
         rating: {
           hedonic: hedonicScale,
-          wouldOrderAgain: rating >= 7.0,
+          glmsValence: options.glmsValence,
+          wouldOrderAgain: options.wouldOrderAgain ?? (rating >= 7.0),
         },
-        deviations: (deviations && deviations.length > 0 ? deviations : undefined) as PourRecord['deviations'],
+        perceivedIntensities: options.perceivedIntensities,
+        cata: options.cata && options.cata.length > 0 ? options.cata : undefined,
+        context: options.context,
         note: note ? note.slice(0, 3000) : undefined,
-        palateShift: {
-          x: Math.round(finalX - currentX),
-          y: Math.round(finalY - currentY),
-        },
         isHomePour: !!isHomePour,
         createdAt: new Date().toISOString(),
       });
@@ -297,12 +244,12 @@ export const POST: APIRoute = async ({ request }) => {
       }
 
       const mappedProfile: UserProfile = {
-        x: finalX,
-        y: finalY,
-        dislikesSmoke: smokeAversion,
-        dislikesBitter: bitterAversion,
-        dislikesAnise: aniseAversion,
-        vibeTags: updatedPalate.vibeTags as Record<string, number>
+        x: coords.x,
+        y: coords.y,
+        dislikesSmoke: record.aversions.smoke,
+        dislikesBitter: record.aversions.bitter,
+        dislikesAnise: record.aversions.anise,
+        vibeTags: updatedVibeTags,
       };
 
       return new Response(JSON.stringify({

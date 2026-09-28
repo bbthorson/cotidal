@@ -73,6 +73,44 @@
           "type": "ref",
           "ref": "#entityRef",
           "description": "The authored spec this pour followed, if known."
+        },
+        "stimulus": {
+          "type": "ref",
+          "ref": "#stimulus",
+          "description": "Objective chemometric and physiochemical parameters of the drink."
+        }
+      }
+    },
+    "stimulus": {
+      "type": "object",
+      "description": "Objective physiochemical parameters of a liquid matrix.",
+      "properties": {
+        "matrixType": {
+          "type": "string",
+          "knownValues": ["cocktail", "wine", "spirit", "beer", "tea", "coffee", "cider", "non-alcoholic"]
+        },
+        "abv": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Alcohol by volume percentage."
+        },
+        "residualSugarGpl": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Residual sugar measured in grams per liter (g/L)."
+        },
+        "acidityPh": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 14,
+          "description": "Acidity measured on the pH scale."
+        },
+        "astringencyIndex": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 10,
+          "description": "Index representing polyphenol / tannin density and salivary PRP precipitation potential."
         }
       }
     },

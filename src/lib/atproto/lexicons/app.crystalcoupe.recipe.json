@@ -53,6 +53,11 @@
             "ref": "#coordinates",
             "description": "Where this sits on the palate map."
           },
+          "stimulus": {
+            "type": "ref",
+            "ref": "app.crystalcoupe.defs#stimulus",
+            "description": "Objective physiochemical and chemometric profile of this spec."
+          },
           "createdAt": { "type": "string", "format": "datetime" },
           "updatedAt": { "type": "string", "format": "datetime" }
         }

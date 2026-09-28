@@ -61,6 +61,14 @@ sort within it; context re-weights on top.
 **Your dot stays put.** Changing context changes the map around the user, not
 the user.
 
+### Psychophysical State & EKF — `src/lib/palate-state.ts`
+Models longitudinal taste preference drift via an Extended Kalman Filter (EKF).
+The 5D latent state vector ($\mathbf{x}_k \in \mathbb{R}^5$) tracks Rich-Crisp,
+Savory-Sweet, Acidity Sensitivity, Ethanol Tolerance, and Tannin Tolerance, accompanied
+by error covariance matrix ($\mathbf{P}_k$). Updates account for Stevens' Power Law,
+Sensory-Specific Satiety (SSS exponential volume decay), and circadian prandial
+ghrelin curves. Detailed psychophysics in `docs/sensory-science.md`.
+
 ### Elicitation — `belief-state.ts`, `question-selector.ts`, `useDiscoveryQuiz.ts`
 `belief-state` holds per-axis estimates and confidence; the selector picks the
 question that reduces the most uncertainty. **Only the first three questions
@@ -149,7 +157,9 @@ interface; see `docs/brand.md`.
 
 1. **Namespace.** `app.crystalcoupe.*` is a placeholder until a domain is
    registered — NSID authority comes from the reversed domain.
-2. **Migrate `drinkLog` → `pour`**, then delete the legacy lexicon.
+2. **Migrate `drinkLog` → `pour`** *(Completed)*. Clean-slate implementation
+   with 5D EKF dynamic state, gLMS hedonic ratings, CATA volatile descriptors,
+   and prandial satiety normalization. Legacy `drinkLog` replaced by `pour`.
 3. **Carry the palette into `/taste`.** The inversion onto paper landed on `/`
    and `/drinks`; the app route still has ~38 hard-coded colours in
    `src/components/app/`, which the token rule reports as warnings rather than

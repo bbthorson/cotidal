@@ -3,7 +3,7 @@ import { derivePalateRecord, getDrinkSensoryVector } from '../src/lib/sensory';
 import type { UserProfile } from '../src/hooks/useDiscoveryQuiz';
 import type { Drink } from '../src/lib/data';
 
-test('AT Protocol: derivePalateRecord should correctly build structured sensory vector', async () => {
+test('AT Protocol: derivePalateRecord should correctly build structured dynamic state', async () => {
   const profile: UserProfile = {
     x: 4.0,
     y: -2.0,
@@ -19,22 +19,20 @@ test('AT Protocol: derivePalateRecord should correctly build structured sensory 
   expect(record.mapCoordinates.x).toBe(4.0);
   expect(record.mapCoordinates.y).toBe(-2.0);
 
-  // Assert basic tastes (derived from coordinates)
-  // sweet: 5 + (y/2) = 5 + (-1) = 4
-  expect(record.sensoryVector.tastes.sweet).toBe(4.0);
-  // umami: 5 - (y/2) = 5 - (-1) = 6
-  expect(record.sensoryVector.tastes.umami).toBe(6.0);
-  // sour: 5 + (x/2) = 5 + 2 = 7
-  expect(record.sensoryVector.tastes.sour).toBe(7.0);
+  // Assert dynamic state vector and covariance
+  expect(record.dynamicState.latentVector[0]).toBe(4.0);
+  expect(record.dynamicState.latentVector[1]).toBe(-2.0);
+  expect(record.dynamicState.covarianceDiagonal.length).toBe(5);
+  expect(record.dynamicState.eventCount).toBe(0);
+
+  // Assert phenotypes
+  expect(record.phenotypes.tas2r38BitterSensitivity).toBe('medium-taster');
+  expect(record.phenotypes.trigeminalTolerance).toBe('moderate');
 
   // Assert aversions
   expect(record.aversions.smoke).toBe(true);
   expect(record.aversions.bitter).toBe(false);
   expect(record.aversions.anise).toBe(true);
-
-  // Assert volatile aromas
-  expect(record.sensoryVector.aromas.smoky).toBe(0.0);
-  expect(record.sensoryVector.aromas.herbaceous).toBe(0.0);
 });
 
 test('AT Protocol: getDrinkSensoryVector should correctly map drink properties', async () => {
@@ -74,11 +72,19 @@ test('AT Protocol: PourRecordSchema should validate pour records conforming to p
     },
     rating: {
       hedonic: 8,
+      glmsValence: 68.5,
       wouldOrderAgain: true,
     },
-    deviations: ['too-sweet'] as const,
-    note: 'Slightly too sweet, but excellent rye selection.',
-    palateShift: { x: 0, y: -1 },
+    perceivedIntensities: {
+      sweetness: 45,
+      bitterness: 30,
+    },
+    cata: ['rye-spice', 'cherry', 'oak'],
+    context: {
+      volumeConsumedMl: 120,
+      fastingDurationHours: 1.5,
+    },
+    note: 'Slightly sweet, but excellent rye selection.',
     createdAt: new Date().toISOString(),
   };
 
@@ -88,6 +94,7 @@ test('AT Protocol: PourRecordSchema should validate pour records conforming to p
     expect(parsed.data.drink.name).toBe('Manhattan');
     expect(parsed.data.venue?.entity.name).toBe('The Nomad Bar');
     expect(parsed.data.rating.hedonic).toBe(8);
+    expect(parsed.data.cata).toContain('rye-spice');
   }
 
   // Venue is optional for home pour

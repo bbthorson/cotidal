@@ -43,13 +43,13 @@ bad for everyone:
 
 | NSID | Key | Role |
 |---|---|---|
-| `app.crystalcoupe.palate` | `self` | Drinker's 2D coordinate and sensory vector |
-| `app.crystalcoupe.pour` | `tid` | A drink logged by a patron (the check-in) |
+| `app.crystalcoupe.palate` | `self` | Drinker's 2D coordinate, dynamic psychophysical state (EKF), and genetic phenotypes |
+| `app.crystalcoupe.pour` | `tid` | Drink check-in with gLMS ratings, VOC CATA tags, perceived intensities, and prandial context |
 | `app.crystalcoupe.menu` | `tid` | Signed menu snapshot with sections, items, and coordinates |
-| `app.crystalcoupe.recipe` | `tid` | Authored formulation, specs, technique, and creator credits |
+| `app.crystalcoupe.recipe` | `tid` | Authored formulation, specs, technique, physical stimulus, and creator credits |
 | `app.crystalcoupe.venue` | `self` | Venue profile, location, current menu pointer, and publication link |
 | `app.crystalcoupe.maker` | `self` | Professional portfolio linking authored recipes |
-| `app.crystalcoupe.defs` | — | Shared types: `entityRef`, `venueRef`, `drinkRef`, `price` |
+| `app.crystalcoupe.defs` | — | Shared types: `stimulus`, `entityRef`, `venueRef`, `drinkRef`, `price` |
 
 ---
 
@@ -156,6 +156,13 @@ await agent.api.com.atproto.repo.createRecord({
     drink: {
       name: 'Penicillin',
       slug: 'penicillin',
+      stimulus: {
+        abv: 18.5,
+        residualSugarGpl: 45,
+        acidityPh: 3.2,
+        astringencyIndex: 3,
+        matrixType: 'cocktail',
+      },
       recipe: {
         name: 'Penicillin',
         uri: 'at://did:plc:samross/app.crystalcoupe.recipe/3l9876543210',
@@ -168,9 +175,26 @@ await agent.api.com.atproto.repo.createRecord({
       },
     },
     rating: {
-      wouldOrderAgain: true, // The primary quality metric
-      hedonicScale: 8,       // Optional 1-9 hedonic scale
+      wouldOrderAgain: true, // Binary hedonic quality metric
+      hedonicScale: 8,       // 1-9 Hedonic scale
+      glmsValence: 65,       // General Labeled Magnitude Scale (-100 to +100)
       note: 'Perfect ginger heat and peaty aromatics.',
+    },
+    perceivedIntensities: {
+      sweetness: 42,
+      sourness: 68,
+      bitterness: 28,
+      salinity: 5,
+      richness: 72,
+      cooling: 10,
+      burn: 54,
+      astringency: 25,
+    },
+    deviations: ['too-sour'],
+    cata: ['peaty', 'citrus', 'spicy_heat', 'smoky'], // Check-All-That-Apply descriptors
+    context: {
+      volumeConsumedMl: 160,     // SSS (Sensory-Specific Satiety) calculation
+      fastingDurationHours: 3.5, // Circadian prandial ghrelin curve
     },
     createdAt: new Date().toISOString(),
   },
@@ -178,29 +202,25 @@ await agent.api.com.atproto.repo.createRecord({
 ```
 
 #### Reading & Updating the Palate
-Drinker coordinates live at `app.crystalcoupe.palate` at `rkey: self`. Client
-apps can read the record to place the user on their own taste map or suggest
-matching drinks:
+Drinker coordinates and dynamic psychophysical state live at `app.crystalcoupe.palate` at `rkey: self`.
+The preference state is modeled as an Extended Kalman Filter (EKF) tracking 5 latent sensory dimensions:
 
 ```jsonc
 // app.crystalcoupe.palate at rkey: self
 {
   "$type": "app.crystalcoupe.palate",
   "mapCoordinates": { "x": -4.2, "y": -2.1 },
-  "sensoryVector": {
-    "tastes": {
-      "sweet": 3,
-      "sour": 7,
-      "salty": 2,
-      "bitter": 6,
-      "umami": 4
-    },
-    "sensations": {
-      "boozy": 8,
-      "smoky": 7,
-      "spicy": 6,
-      "refreshing": 4
-    }
+  "dynamicState": {
+    // Latent vector: [RichCrisp, SavorySweet, AciditySensitivity, EthanolTolerance, TanninTolerance]
+    "latentVector": [-4.2, -2.1, 0.45, 0.65, 0.50],
+    // Diagonal error covariance matrix P_k (uncertainty trace)
+    "covarianceDiagonal": [0.12, 0.15, 0.08, 0.09, 0.14],
+    "eventCount": 18,
+    "lastUpdate": "2026-09-25T18:00:00Z"
+  },
+  "phenotypes": {
+    "tas2r38BitterSensitivity": "medium",
+    "trigeminalTolerance": "high"
   },
   "updatedAt": "2026-09-25T18:00:00Z"
 }
@@ -230,6 +250,13 @@ Publish `app.crystalcoupe.recipe` to establish the canonical spec:
   ],
   "method": "Shake vigorously with ice and strain into a chilled coupe.",
   "glassware": "Coupe",
+  "stimulus": {
+    "abv": 21.0,
+    "residualSugarGpl": 65,
+    "acidityPh": 2.9,
+    "astringencyIndex": 2,
+    "matrixType": "cocktail"
+  },
   "credits": [
     {
       "entity": { "name": "Sam Ross", "did": "did:plc:samross" },
@@ -279,9 +306,10 @@ developer can read, index, or write to these collections.
      - *"Seasonal spring menu drops"*
 5. **AI Sommelier & Concierge Agents:**
    - An AI agent can read a diner's public `app.crystalcoupe.palate` record
-     to know their exact ingredient tolerances (e.g., `dislikesAnise: true`,
-     `dislikesSmoke: true`) and flavor stance (Rich vs. Crisp) before making a
-     dinner pairing recommendation.
+     to know their exact psychophysical latent state (e.g., ethanol tolerance,
+     acidity sensitivity), genetic phenotypes (`tas2r38BitterSensitivity: "high"`,
+     `trigeminalTolerance: "low"`), and flavor stance before making a dinner pairing
+     recommendation.
 
 #### Reading records permissionlessly (XRPC)
 

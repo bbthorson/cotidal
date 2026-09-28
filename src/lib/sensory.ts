@@ -1,6 +1,7 @@
 import type { Drink } from '@/lib/data';
 import type { UserProfile } from '@/hooks/useDiscoveryQuiz';
 import { PALATE_COLLECTION, type PalateRecord } from './atproto/records';
+import { createInitialPalateState, toDynamicRecord } from './palate-state';
 
 export interface SensoryVector {
   tastes: {
@@ -51,24 +52,18 @@ export function getDrinkSensoryVector(drink: Drink): SensoryVector {
 export function derivePalateRecord(profile: UserProfile, existing?: PalateRecord | null): PalateRecord {
   const now = new Date().toISOString();
   
-  if (existing && existing.sensoryVector) {
-    return {
-      $type: PALATE_COLLECTION,
-      mapCoordinates: {
-        x: profile.x,
-        y: profile.y,
-      },
-      sensoryVector: existing.sensoryVector,
-      aversions: {
-        smoke: profile.dislikesSmoke,
-        bitter: profile.dislikesBitter,
-        anise: profile.dislikesAnise,
-      },
-      vibeTags: profile.vibeTags,
-      createdAt: existing.createdAt || now,
-      updatedAt: now,
-    };
-  }
+  const dynamicState = existing?.dynamicState ?? toDynamicRecord(
+    createInitialPalateState({
+      x: profile.x,
+      y: profile.y,
+      dislikesBitter: profile.dislikesBitter,
+    })
+  );
+
+  const phenotypes = existing?.phenotypes ?? {
+    tas2r38BitterSensitivity: profile.dislikesBitter ? 'super-taster' : 'medium-taster',
+    trigeminalTolerance: 'moderate',
+  };
 
   return {
     $type: PALATE_COLLECTION,
@@ -76,33 +71,15 @@ export function derivePalateRecord(profile: UserProfile, existing?: PalateRecord
       x: profile.x,
       y: profile.y,
     },
-    sensoryVector: {
-      tastes: {
-        sweet: Math.max(0, Math.min(10, 5 + profile.y / 2)),
-        sour: Math.max(0, Math.min(10, 5 + profile.x / 2)),
-        salty: 2.0,
-        bitter: profile.dislikesBitter ? 0.0 : 4.0,
-        umami: Math.max(0, Math.min(10, 5 - profile.y / 2)),
-      },
-      aromas: {
-        smoky: profile.dislikesSmoke ? 0.0 : 3.0,
-        herbaceous: profile.dislikesAnise ? 0.0 : 3.0,
-        spicy: 3.0,
-        fruity: Math.max(0, Math.min(10, 5 + profile.y / 2)),
-        floral: Math.max(0, Math.min(10, 5 + profile.x / 2)),
-      },
-      textures: {
-        body: Math.max(0, Math.min(10, 5 - profile.x / 2)),
-        effervescence: Math.max(0, Math.min(10, 5 + profile.x / 2)),
-      }
-    },
+    dynamicState,
+    phenotypes,
     aversions: {
       smoke: profile.dislikesSmoke,
       bitter: profile.dislikesBitter,
       anise: profile.dislikesAnise,
     },
     vibeTags: profile.vibeTags,
-    createdAt: now,
+    createdAt: existing?.createdAt || now,
     updatedAt: now,
   };
 }
