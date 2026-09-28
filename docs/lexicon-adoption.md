@@ -190,6 +190,7 @@ await agent.api.com.atproto.repo.createRecord({
       burn: 54,
       astringency: 25,
     },
+    deviations: ['too-sour'],
     cata: ['peaty', 'citrus', 'spicy_heat', 'smoky'], // Check-All-That-Apply descriptors
     context: {
       volumeConsumedMl: 160,     // SSS (Sensory-Specific Satiety) calculation

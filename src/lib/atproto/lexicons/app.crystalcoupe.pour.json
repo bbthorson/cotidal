@@ -33,6 +33,12 @@
             "ref": "#perceivedIntensities",
             "description": "0-100 gLMS scales for discrete structural/tactile vectors."
           },
+          "deviations": {
+            "type": "array",
+            "description": "Patron feedback on drink balance (e.g. too-sweet, not-sweet-enough, too-sour).",
+            "maxLength": 10,
+            "items": { "type": "string", "maxLength": 32 }
+          },
           "cata": {
             "type": "array",
             "description": "Check-All-That-Apply array for unbiased retronasal VOC categorization.",

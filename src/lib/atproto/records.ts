@@ -189,6 +189,7 @@ export const PourRecordSchema = z.object({
   credits: z.array(CreditSchema).max(10).optional(),
   rating: RatingSchema,
   perceivedIntensities: PerceivedIntensitiesSchema.optional(),
+  deviations: z.array(z.string().max(32)).max(10).optional(),
   cata: z.array(z.string().max(32)).max(20).optional(),
   context: PourContextSchema.optional(),
   note: z.string().max(3000).optional(),

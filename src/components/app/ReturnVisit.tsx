@@ -215,6 +215,8 @@ function ReturnVisitContent({ register }: { register: Register }) {
           drink: { name: entry.drinkName, slug: slugifyDrink(entry.drinkName) },
           venue: entry.isHomePour ? undefined : { entity: { name: entry.venue } },
           rating: { hedonic: entry.hedonic, wouldOrderAgain: entry.hedonic >= 7 },
+          deviations: entry.deviations.length > 0 ? entry.deviations : undefined,
+          cata: entry.cata && entry.cata.length > 0 ? entry.cata : undefined,
           note: entry.note || undefined,
           isHomePour: entry.isHomePour,
           createdAt: new Date().toISOString(),
