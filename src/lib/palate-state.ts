@@ -390,19 +390,83 @@ export function updatePalateEKF(
   };
 }
 
+// How far "what was off" nudges the dot, on (crisp, sweet). These are the
+// fixed nudges the app used before the EKF; they stay because the pour form
+// asks for them, and an answer that moves nothing reads as ignored.
+const DEVIATION_NUDGES: Record<string, [number, number]> = {
+  'too-sweet': [0, -1.2],
+  'not-sweet-enough': [0, 1.2],
+  'too-sour': [0.6, 0],
+  'not-sour-enough': [-0.6, 0],
+  'too-rich': [1.2, 0],
+  'too-crisp': [-1.2, 0],
+};
+
+/** The furthest one pour may move the dot, in map units. */
+export const MAX_POUR_STEP = 2;
+
 /**
- * Applies one pour to the state. A drink that is not on the map has no
- * position to learn from, so the state is returned unchanged: the EKF would
- * otherwise have to invent one, and any position it invented would move the
- * user's dot in an arbitrary direction.
+ * Applies one pour to the state.
+ *
+ * The EKF still owns the latent axes, the covariance and the event count. The
+ * dot itself moves by a simpler rule, because the EKF's hedonic prediction is
+ * near 9 for any drink close to you, which made a 7 for your own usual push
+ * you away from it:
+ *
+ * - liked (7+) steps toward the drink, disliked (3 or less) steps away, and the
+ *   middle of the scale does not move the dot;
+ * - the step scales with the current positional uncertainty, so it shrinks as
+ *   pours accumulate;
+ * - "what was off" adds its fixed nudge;
+ * - the whole move is capped at MAX_POUR_STEP.
+ *
+ * A drink that is not on the map has no position to learn from, so only the
+ * nudges apply to it.
  */
 export function applyPour(
   prior: PalateState,
   drink: Drink | undefined,
-  observation: TastingObservation
+  observation: TastingObservation,
+  deviations: readonly string[] = []
 ): PalateState {
-  if (!drink) return prior;
-  return updatePalateEKF(prior, drink, observation).nextState;
+  const next = drink
+    ? updatePalateEKF(prior, drink, observation).nextState
+    : { ...prior, vector: { ...prior.vector } };
+
+  let dx = 0;
+  let dy = 0;
+
+  if (drink) {
+    const tx = drink.x - prior.vector.crisp;
+    const ty = drink.y - prior.vector.sweet;
+    const dist = Math.hypot(tx, ty);
+    const h = observation.hedonic;
+    const pull = h >= 7 ? (h - 6) / 3 : h <= 3 ? -(4 - h) / 3 : 0;
+    if (pull !== 0 && dist > 0.5) {
+      const p = (prior.covariance[0][0] + prior.covariance[1][1]) / 2;
+      const gain = 0.3 * (p / (p + BASE_MEASUREMENT_NOISE));
+      dx += pull * gain * tx;
+      dy += pull * gain * ty;
+    }
+  }
+
+  for (const dev of deviations) {
+    const nudge = DEVIATION_NUDGES[dev];
+    if (nudge) {
+      dx += nudge[0];
+      dy += nudge[1];
+    }
+  }
+
+  const step = Math.hypot(dx, dy);
+  if (step > MAX_POUR_STEP) {
+    dx *= MAX_POUR_STEP / step;
+    dy *= MAX_POUR_STEP / step;
+  }
+
+  next.vector.crisp = Math.max(-10, Math.min(10, prior.vector.crisp + dx));
+  next.vector.sweet = Math.max(-10, Math.min(10, prior.vector.sweet + dy));
+  return next;
 }
 
 function transpose(M: Matrix5x5): Matrix5x5 {

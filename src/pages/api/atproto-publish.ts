@@ -172,7 +172,7 @@ export const POST: APIRoute = async ({ request }) => {
         context: options.context,
       };
 
-      const nextState = applyPour(priorState, drink, observation);
+      const nextState = applyPour(priorState, drink, observation, deviations);
       const coords = projectTo2D(nextState);
 
       const updatedVibeTags = { ...(record.vibeTags as Record<string, number> || {}) };
@@ -182,6 +182,13 @@ export const POST: APIRoute = async ({ request }) => {
         });
       }
 
+      // "Too bitter", "too smoky" and "too anise" are aversions, not directions.
+      const aversions = {
+        smoke: record.aversions.smoke || deviations.includes('too-smoky'),
+        bitter: record.aversions.bitter || deviations.includes('too-bitter'),
+        anise: record.aversions.anise || deviations.includes('too-anise'),
+      };
+
       const updatedPalate: PalateRecord = {
         $type: record.$type,
         mapCoordinates: { x: coords.x, y: coords.y },
@@ -190,7 +197,7 @@ export const POST: APIRoute = async ({ request }) => {
           tas2r38BitterSensitivity: record.aversions.bitter ? 'super-taster' : 'medium-taster',
           trigeminalTolerance: 'moderate',
         },
-        aversions: record.aversions,
+        aversions,
         vibeTags: updatedVibeTags,
         createdAt: record.createdAt,
         updatedAt: new Date().toISOString(),
@@ -238,9 +245,9 @@ export const POST: APIRoute = async ({ request }) => {
       const mappedProfile: UserProfile = {
         x: coords.x,
         y: coords.y,
-        dislikesSmoke: record.aversions.smoke,
-        dislikesBitter: record.aversions.bitter,
-        dislikesAnise: record.aversions.anise,
+        dislikesSmoke: aversions.smoke,
+        dislikesBitter: aversions.bitter,
+        dislikesAnise: aversions.anise,
         vibeTags: updatedVibeTags,
       };
 
