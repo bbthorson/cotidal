@@ -390,6 +390,21 @@ export function updatePalateEKF(
   };
 }
 
+/**
+ * Applies one pour to the state. A drink that is not on the map has no
+ * position to learn from, so the state is returned unchanged: the EKF would
+ * otherwise have to invent one, and any position it invented would move the
+ * user's dot in an arbitrary direction.
+ */
+export function applyPour(
+  prior: PalateState,
+  drink: Drink | undefined,
+  observation: TastingObservation
+): PalateState {
+  if (!drink) return prior;
+  return updatePalateEKF(prior, drink, observation).nextState;
+}
+
 function transpose(M: Matrix5x5): Matrix5x5 {
   const T: Matrix5x5 = [];
   for (let i = 0; i < 5; i++) {
