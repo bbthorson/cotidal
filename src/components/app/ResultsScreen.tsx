@@ -6,10 +6,10 @@ import { hero, menu, nav, pour, returnVisit } from '@/lib/copy';
 import type { Register } from '@/lib/register';
 import { PourForm, hedonicToRating, type PourEntry } from './PourForm';
 import { PourLedger } from './PourLedger';
-import { DrinkMapView } from './DrinkMapView';
+import { MapTab } from './MapTab';
 import { AppNavigation, type ActiveTab } from './AppNavigation';
 import { useAtprotoContext } from './AtprotoProvider';
-import { CoordinateMap, DrinkDot, MapThumb, YouMark } from './CoordinateMap';
+import { MapThumb } from './CoordinateMap';
 import { Moved } from './Moved';
 import {
   explainDrinkMatch,
@@ -68,6 +68,8 @@ export function ResultsScreen({
   const [history, setHistory] = useState<PourRecord[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [pourMoved, setPourMoved] = useState<PourMoved | null>(null);
+  /** A drink chosen with "Log this" on the Map tab, to open the form on. */
+  const [logDraft, setLogDraft] = useState<string | null>(null);
   const [logging, setLogging] = useState(false);
   const [logError, setLogError] = useState<string | null>(null);
 
@@ -145,6 +147,10 @@ export function ResultsScreen({
   );
 
   const current = useMemo(() => menuFor(context), [menuFor, context]);
+  const closeness = useMemo(
+    () => Object.fromEntries(baseScored.map(({ drink, relevance }) => [drink.name, relevance])),
+    [baseScored]
+  );
   const goTo = useMemo(() => menuFor('usual'), [menuFor]);
 
   const displayName = useCallback((name: string) => register[name]?.title ?? name, [register]);
@@ -180,6 +186,7 @@ export function ResultsScreen({
         sensoryProfile: entry.detail?.sensory,
       });
       if (result.success && result.profile) {
+        setLogDraft(null);
         setPourMoved({
           from: { x: user.x, y: user.y },
           drinkName: entry.drinkName,
@@ -227,7 +234,14 @@ export function ResultsScreen({
 
   return (
     <div className="mx-auto max-w-xl pb-28 pt-5 motion-safe:animate-in motion-safe:fade-in lg:pb-0 lg:pt-8">
-      <AppNavigation activeTab={activeTab} onTabChange={changeTab} />
+      <AppNavigation
+        activeTab={activeTab}
+        onTabChange={(tab) => {
+          // The bottom bar always opens a fresh form; "Log this" sets a drink.
+          setLogDraft(null);
+          changeTab(tab);
+        }}
+      />
 
       {/* Where you are: region name, and the 2:1 thumbnail with your dot */}
       <div className="flex items-center justify-between gap-4">
@@ -345,14 +359,18 @@ export function ResultsScreen({
       )}
 
       {activeTab === 'map' && (
-        <div className="mt-4.5 space-y-8 motion-safe:animate-in motion-safe:fade-in">
-          <CoordinateMap you={hasCoordinate ? user : undefined} showAxes>
-            {drinkDatabase.map((d) => (
-              <DrinkDot key={d.name} x={d.x} y={d.y} filled={current.some((c) => c.name === d.name)} />
-            ))}
-            {hasCoordinate && <YouMark x={user.x} y={user.y} label={`Your coordinate, in ${region.name}`} />}
-          </CoordinateMap>
-          {history.length > 0 && <DrinkMapView userLogs={history} />}
+        <div className="mt-4.5 motion-safe:animate-in motion-safe:fade-in">
+          <MapTab
+            you={hasCoordinate ? { x: user.x, y: user.y } : null}
+            menu={current.map((d) => d.name)}
+            closeness={closeness}
+            pours={history}
+            register={register}
+            onLog={(drinkName) => {
+              setLogDraft(drinkName);
+              changeTab('log');
+            }}
+          />
         </div>
       )}
 
@@ -361,9 +379,10 @@ export function ResultsScreen({
           <section>
             <h2 className="mb-4 border-b border-foreground pb-1.5 font-serif text-xl font-bold">{returnVisit.logTitle}</h2>
             <PourForm
+              key={logDraft ?? 'menu'}
               suggestions={goTo.map((d) => d.name)}
               labelFor={displayName}
-              initialDrink={goTo[0]?.name}
+              initialDrink={logDraft ?? goTo[0]?.name}
               venue={selectedLocation ?? ''}
               onVenueChange={(v) => setSelectedLocation(v || null)}
               recentVenues={recentVenues.filter((v) => v !== 'Home Pour')}

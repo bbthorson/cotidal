@@ -136,6 +136,58 @@ export function DrinkDot({
 }
 
 /**
+ * A tappable spot on the paper map: one or more drinks sharing a coordinate.
+ * The hit area is 24px (the WCAG minimum) rather than 44: drinks sit one grid
+ * step (~16px) apart on a phone, and the list under the map is the full-size
+ * way to reach every drink.
+ */
+export function DrinkSpot({
+  x,
+  y,
+  variant,
+  selected = false,
+  label,
+  onSelect,
+}: {
+  x: number;
+  y: number;
+  /** `filled` on your menu or liked · `hollow` elsewhere · `muted` not for you */
+  variant: 'filled' | 'hollow' | 'muted';
+  selected?: boolean;
+  /** Accessible name: the drinks at this spot. */
+  label: string;
+  onSelect: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      aria-pressed={selected}
+      onClick={onSelect}
+      className={cn(
+        'group absolute flex h-6 w-6 -translate-x-1/2 translate-y-1/2 items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+        selected && 'z-20'
+      )}
+      style={at(x, y)}
+    >
+      <span
+        aria-hidden="true"
+        className={cn(
+          'rounded-full border transition-transform group-hover:scale-150',
+          selected ? 'h-3 w-3 border-2 border-primary bg-card' : 'h-1.75 w-1.75',
+          !selected &&
+            (variant === 'filled'
+              ? 'border-foreground bg-foreground'
+              : variant === 'muted'
+                ? 'border-muted-foreground bg-muted'
+                : 'border-foreground bg-card')
+        )}
+      />
+    </button>
+  );
+}
+
+/**
  * Your dot: terracotta, a ring in the ground colour, and an ink crosshair —
  * the same mark as the coupe figure on the landing page. It does not pulse.
  * `land` animates it in once, which is the only motion on the reveal.
