@@ -14,7 +14,13 @@ import { Moved } from './Moved';
 import { PourForm, hedonicToRating, type PourEntry } from './PourForm';
 import { PourLedger } from './PourLedger';
 import { SignInSheet } from './SignInSheet';
-import { createInitialPalateState, applyPour, projectTo2D } from '@/lib/palate-state';
+import {
+  createInitialPalateState,
+  applyPour,
+  projectTo2D,
+  fromDynamicRecord,
+  toDynamicRecord,
+} from '@/lib/palate-state';
 
 function slugifyDrink(name: string): string {
   return name
@@ -34,19 +40,46 @@ function getInitialLocalProfile(): UserProfile | null {
   }
 }
 
+const GUEST_STATE_KEY = 'palate_state';
+
 /**
- * A guest's pour moves the coordinate on this device only, by the exact same
- * Extended Kalman Filter (EKF) rules the server applies.
+ * A guest's model state, kept on this device so steps shrink as pours
+ * accumulate. It is only trusted while it still sits at the profile's
+ * coordinate; retaking the quiz moves the profile and starts it afresh.
+ */
+function guestPrior(profile: UserProfile | null) {
+  const x = profile?.x ?? 0;
+  const y = profile?.y ?? 0;
+  try {
+    const saved = localStorage.getItem(GUEST_STATE_KEY);
+    if (saved) {
+      const state = fromDynamicRecord(JSON.parse(saved));
+      const at = projectTo2D(state);
+      if (at.x === x && at.y === y) return state;
+    }
+  } catch {
+    // Unreadable or blocked storage: start fresh.
+  }
+  return createInitialPalateState({ x, y, dislikesBitter: profile?.dislikesBitter ?? false });
+}
+
+/**
+ * A guest's pour moves the coordinate on this device only, by the same
+ * applyPour rules the server applies.
  */
 function guestShift(profile: UserProfile | null, entry: PourEntry): UserProfile {
-  const prior = createInitialPalateState({
-    x: profile?.x ?? 0,
-    y: profile?.y ?? 0,
-    dislikesBitter: profile?.dislikesBitter ?? false,
-  });
-
   const drink = drinkDatabase.find((d) => d.name.toLowerCase() === entry.drinkName.toLowerCase());
-  const coords = projectTo2D(applyPour(prior, drink, { hedonic: entry.hedonic }));
+  const next = applyPour(guestPrior(profile), drink, { hedonic: entry.hedonic, cata: entry.cata }, entry.deviations);
+  const coords = projectTo2D(next);
+  try {
+    // Stored at the rounded coordinate so guestPrior recognises it next time.
+    const record = toDynamicRecord(next);
+    record.latentVector[0] = coords.x;
+    record.latentVector[1] = coords.y;
+    localStorage.setItem(GUEST_STATE_KEY, JSON.stringify(record));
+  } catch {
+    // The coordinate still moves; only the shrinking step is lost.
+  }
 
   const updatedVibeTags = { ...(profile?.vibeTags ?? {}) };
   if (entry.hedonic >= 7 && drink) {
@@ -58,9 +91,9 @@ function guestShift(profile: UserProfile | null, entry: PourEntry): UserProfile 
   return {
     x: coords.x,
     y: coords.y,
-    dislikesSmoke: profile?.dislikesSmoke ?? false,
-    dislikesBitter: profile?.dislikesBitter ?? false,
-    dislikesAnise: profile?.dislikesAnise ?? false,
+    dislikesSmoke: (profile?.dislikesSmoke ?? false) || entry.deviations.includes('too-smoky'),
+    dislikesBitter: (profile?.dislikesBitter ?? false) || entry.deviations.includes('too-bitter'),
+    dislikesAnise: (profile?.dislikesAnise ?? false) || entry.deviations.includes('too-anise'),
     vibeTags: updatedVibeTags,
   };
 }
