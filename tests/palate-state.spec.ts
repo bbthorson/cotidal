@@ -2,6 +2,7 @@ import { test, expect } from '@playwright/test';
 import {
   createInitialPalateState,
   updatePalateEKF,
+  applyPour,
   normalizeObservation,
   projectTo2D,
   getPalateConfidence,
@@ -88,4 +89,15 @@ test('PalateState: EKF updates state and covariance contracts over sequential ta
   const coords = projectTo2D(state);
   expect(coords.x).toBe(Math.round(state.vector.crisp * 10) / 10);
   expect(coords.y).toBe(Math.round(state.vector.sweet * 10) / 10);
+});
+
+test('PalateState: a pour of a drink not on the map leaves the coordinate where it was', async () => {
+  const prior = createInitialPalateState({ x: -4, y: 3 });
+  for (const hedonic of [1, 5, 9]) {
+    const next = applyPour(prior, undefined, { hedonic });
+    expect(projectTo2D(next)).toEqual({ x: -4, y: 3 });
+  }
+  // A drink the map knows still moves it.
+  const moved = applyPour(prior, testDrink, { hedonic: 9 });
+  expect(projectTo2D(moved)).not.toEqual({ x: -4, y: 3 });
 });

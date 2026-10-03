@@ -14,6 +14,7 @@ import { Moved } from './Moved';
 import { PourForm, hedonicToRating, type PourEntry } from './PourForm';
 import { PourLedger } from './PourLedger';
 import { SignInSheet } from './SignInSheet';
+import { createInitialPalateState, applyPour, projectTo2D } from '@/lib/palate-state';
 
 function slugifyDrink(name: string): string {
   return name
@@ -33,13 +34,6 @@ function getInitialLocalProfile(): UserProfile | null {
   }
 }
 
-import {
-  createInitialPalateState,
-  updatePalateEKF,
-  projectTo2D,
-  type TastingObservation,
-} from '@/lib/palate-state';
-
 /**
  * A guest's pour moves the coordinate on this device only, by the exact same
  * Extended Kalman Filter (EKF) rules the server applies.
@@ -51,26 +45,11 @@ function guestShift(profile: UserProfile | null, entry: PourEntry): UserProfile 
     dislikesBitter: profile?.dislikesBitter ?? false,
   });
 
-  const drink = drinkDatabase.find((d) => d.name.toLowerCase() === entry.drinkName.toLowerCase()) || {
-    name: entry.drinkName,
-    type: 'Cocktail' as const,
-    x: profile?.x ?? 0,
-    y: profile?.y ?? 0,
-    hasSmoke: false,
-    hasAnise: false,
-    isBitter: false,
-    tags: ['classic'] as const,
-  };
-
-  const observation: TastingObservation = {
-    hedonic: entry.hedonic,
-  };
-
-  const { nextState } = updatePalateEKF(prior, drink, observation);
-  const coords = projectTo2D(nextState);
+  const drink = drinkDatabase.find((d) => d.name.toLowerCase() === entry.drinkName.toLowerCase());
+  const coords = projectTo2D(applyPour(prior, drink, { hedonic: entry.hedonic }));
 
   const updatedVibeTags = { ...(profile?.vibeTags ?? {}) };
-  if (entry.hedonic >= 7 && drink.tags) {
+  if (entry.hedonic >= 7 && drink) {
     drink.tags.forEach((tag) => {
       updatedVibeTags[tag] = Math.min(5.0, (updatedVibeTags[tag] || 0) + 0.25);
     });

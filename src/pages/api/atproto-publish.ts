@@ -17,7 +17,7 @@ import { didFromRequest } from '@/lib/atproto/session';
 import {
   fromDynamicRecord,
   toDynamicRecord,
-  updatePalateEKF,
+  applyPour,
   projectTo2D,
   createInitialPalateState,
   type TastingObservation,
@@ -139,7 +139,7 @@ export const POST: APIRoute = async ({ request }) => {
       sensoryProfile: _sensoryProfile,
       glassware: _glassware,
       garnish: _garnish,
-      deviations: _deviations = [],
+      deviations = [],
       note,
       crosspostToFeed = false,
     } = options;
@@ -162,16 +162,7 @@ export const POST: APIRoute = async ({ request }) => {
             dislikesBitter: record.aversions.bitter,
           });
 
-      const drink = drinkDatabase.find(d => d.name.toLowerCase() === drinkName.toLowerCase()) || {
-        name: drinkName,
-        type: 'Cocktail' as const,
-        x: record.mapCoordinates.x,
-        y: record.mapCoordinates.y,
-        hasSmoke: false,
-        hasAnise: false,
-        isBitter: false,
-        tags: ['classic'] as const,
-      };
+      const drink = drinkDatabase.find(d => d.name.toLowerCase() === drinkName.toLowerCase());
 
       const observation: TastingObservation = {
         hedonic: hedonicScale,
@@ -181,11 +172,11 @@ export const POST: APIRoute = async ({ request }) => {
         context: options.context,
       };
 
-      const { nextState } = updatePalateEKF(priorState, drink, observation);
+      const nextState = applyPour(priorState, drink, observation);
       const coords = projectTo2D(nextState);
 
       const updatedVibeTags = { ...(record.vibeTags as Record<string, number> || {}) };
-      if (hedonicScale >= 7 && drink.tags) {
+      if (hedonicScale >= 7 && drink) {
         drink.tags.forEach(tag => {
           updatedVibeTags[tag] = Math.min(5.0, (updatedVibeTags[tag] || 0) + 0.25);
         });
@@ -225,6 +216,7 @@ export const POST: APIRoute = async ({ request }) => {
           wouldOrderAgain: options.wouldOrderAgain ?? (rating >= 7.0),
         },
         perceivedIntensities: options.perceivedIntensities,
+        deviations: deviations.length > 0 ? deviations : undefined,
         cata: options.cata && options.cata.length > 0 ? options.cata : undefined,
         context: options.context,
         note: note ? note.slice(0, 3000) : undefined,
