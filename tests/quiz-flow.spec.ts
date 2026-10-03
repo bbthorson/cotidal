@@ -74,3 +74,27 @@ test('Menu: one list, with the four occasions switched in one place', async ({ p
   const tabs = page.getByRole('navigation', { name: 'Your coordinate' });
   await expect(tabs.getByRole('button')).toHaveText(['Menu', 'Map', 'Log a pour']);
 });
+
+test('Map: tap a drink, then "Log this" opens the form on that drink', async ({ page }) => {
+  await page.goto('/taste?browse=1');
+  await page.getByRole('navigation', { name: 'Your coordinate' }).getByRole('button', { name: 'Map' }).click();
+
+  const lenses = page.getByRole('group', { name: 'Show' });
+  await expect(lenses.getByRole('button')).toHaveText(['Everything', 'Your menu', 'Your pours']);
+
+  // The list under the map reaches every drink at full size; pick its first.
+  await expect(page.getByRole('heading', { name: 'Nearest to you' })).toBeVisible();
+  const first = page.getByRole('heading', { name: 'Nearest to you' }).locator('xpath=..').getByRole('listitem').first();
+  const drink = (await first.locator('.font-serif').textContent())!.trim();
+  await first.getByRole('button').click();
+  await expect(page.getByText('Closeness')).toBeVisible();
+
+  await page.getByRole('button', { name: 'Log this' }).click();
+  await expect(page.getByRole('heading', { name: 'Log a pour' })).toBeVisible();
+  await expect(page.getByLabel('What you’re drinking')).toHaveValue(new RegExp(drink.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').slice(0, 6)));
+
+  // Your pours lens says plainly when there is nothing yet.
+  await page.getByRole('navigation', { name: 'Your coordinate' }).getByRole('button', { name: 'Map' }).click();
+  await lenses.getByRole('button', { name: 'Your pours' }).click();
+  await expect(page.getByText('Nothing poured yet.', { exact: false })).toBeVisible();
+});
