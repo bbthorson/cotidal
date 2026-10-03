@@ -34,20 +34,7 @@ const BASE_SPIRITS = ['Bourbon', 'Rye', 'Scotch', 'Gin', 'Rum', 'Tequila', 'Mezc
 const GLASSES = ['Coupe', 'Nick & Nora', 'Rocks', 'Highball', 'Martini', 'Tiki mug'];
 const SENSORY_AXES = ['bitter', 'sweet', 'sour', 'spiritForward', 'citrus', 'herbal'] as const;
 
-export const CATA_OPTIONS = [
-  'Bright Citrus',
-  'Lime Peel',
-  'Stone Fruit',
-  'Dark Cherry',
-  'Campfire Smoke',
-  'Botanical Herb',
-  'Baking Spice',
-  'Toasted Oak',
-  'Floral Blossom',
-  'Bittersweet Cocoa',
-  'Briny Mineral',
-  'Rich Velvet Body',
-] as const;
+export const CATA_OPTIONS = pour.cata;
 
 interface PourFormProps {
   /** Quick picks shown under the drink field, e.g. the top of your menu. */
@@ -275,10 +262,10 @@ export function PourForm({
         </div>
       </div>
 
-      {/* CATA notes: objective volatile categorization */}
+      {/* Check-all-that-apply notes: what was in the glass, not whether you liked it */}
       <div className="flex flex-col gap-2">
         <FieldLabel as="span">
-          Flavor Notes Detected <span className="normal-case tracking-normal">({pour.optional})</span>
+          {pour.cataLabel} <span className="normal-case tracking-normal">({pour.optional})</span>
         </FieldLabel>
         <div className="flex flex-wrap gap-2">
           {CATA_OPTIONS.map((item) => {

@@ -175,6 +175,32 @@ export const menu = {
   tabsLabel: 'Your coordinate',
 } as const;
 
+/** The Map tab: the whole map, and any drink on it. */
+export const mapTab = {
+  lensLabel: 'Show',
+  lenses: [
+    { id: 'all', label: 'Everything' },
+    { id: 'menu', label: 'Your menu' },
+    { id: 'pours', label: 'Your pours' },
+  ],
+  hint: 'Tap a dot to see the drink.',
+  nearest: 'Nearest to you',
+  onMenu: 'On your menu',
+  poured: 'What you’ve poured',
+  closeness: 'Closeness',
+  lastPour: 'Your last pour',
+  logThis: 'Log this',
+  readEntry: 'Read the entry',
+  close: 'Close',
+  sameSpot: 'Also here',
+  noPours: 'Nothing poured yet. Log a pour and it lands here.',
+  offMap: (n: number) => (n === 1 ? '1 pour is of a drink not on the map.' : `${n} pours are of drinks not on the map.`),
+  legendMenu: 'On your menu',
+  legendElsewhere: 'Elsewhere',
+  legendLiked: 'Liked (7+)',
+  legendNot: 'Not for you',
+} as const;
+
 /** After a pour is logged: the payoff of signing in, shown every time. */
 export const moved = {
   eyebrow: 'Logged',
@@ -317,6 +343,22 @@ export const pour = {
     citrus: 'Citrus',
     herbal: 'Herbal',
   },
+  cataLabel: 'What you noticed',
+  /** Check-all-that-apply aroma and flavour notes. Stored as written. */
+  cata: [
+    'Bright Citrus',
+    'Lime Peel',
+    'Stone Fruit',
+    'Dark Cherry',
+    'Campfire Smoke',
+    'Botanical Herb',
+    'Baking Spice',
+    'Toasted Oak',
+    'Floral Blossom',
+    'Bittersweet Cocoa',
+    'Briny Mineral',
+    'Rich Velvet Body',
+  ],
   crosspost: 'Also post it to your Bluesky feed',
   submit: 'Log this pour',
   submitting: 'Logging…',

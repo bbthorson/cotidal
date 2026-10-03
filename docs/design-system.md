@@ -108,6 +108,10 @@ Questions → reveal → your menu. Sign-in is offered once, after the reveal, a
 
 One form (`PourForm.tsx`) and one ledger (`PourLedger.tsx`) serve both places. Ratings use the 9-point hedonic scale the pour record stores, as nine cells in an ink frame; "What was off" uses axis tags; spirit, glass, garnish and the sensory sliders sit behind "More detail" for signed-in members. Both places end on the same after-a-pour screen (`Moved.tsx`).
 
+## The Map tab (`MapTab.tsx`)
+
+The square map with three readings: Everything (menu drinks filled), Your menu, and Your pours (liked 7+ filled, 5–6 hollow, 4 or below muted). Each dot is a 24px target (`DrinkSpot`); drinks sharing a coordinate share one spot. Tapping a dot or a list row opens the drink under the map: region and coordinate, build, closeness, your last pour, "Log this" (which opens the Log tab on that drink) and the register entry. The list below is the full-size path to every drink. No trail of past positions is drawn, because coordinate history is not stored.
+
 ---
 
 ## 4. Strict Enforcement Architecture
