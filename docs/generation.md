@@ -85,42 +85,35 @@ identical value with or without one.
 
 ### The gate must be proof, not a claim
 
-`atproto-publish.ts` identifies users by reading an `atproto_did` cookie. It is
-`HttpOnly`, which stops page scripts from reading it — and stops nothing else.
-The cookie is unsigned, and a DID is a public identifier, so any client can
-send one:
+Sign-in is [`@bbthorson/atproto-cf-auth`][auth], mounted at `/api/auth/atproto`
+(`src/pages/api/auth/atproto/[...route].ts`, configured in
+`src/lib/atproto/auth.ts`). The session cookie (`bsky_sid`) is an opaque random
+id; the DID it maps to sits in a sealed server-side store, so a client has
+nothing to forge. An earlier version trusted an unsigned `atproto_did` cookie,
+which any client could send with someone else's public DID:
 
 ```
 curl -H 'Cookie: atproto_did=did:plc:someone-else' …
 ```
 
-That is tolerable for the existing actions, which fail at the PDS if the
-session cannot be restored. It is **not** tolerable as the gate on a billed
-call, which would happily run first and bill regardless.
+That was tolerable only for actions that fail at the PDS without a real
+session. It is not tolerable as the gate on a billed call, which would run
+first and bill regardless.
 
-**Gate on a restorable OAuth session, not on the presence of a cookie.** The
-DID names whose session to restore; the restore is the authorisation. That is
-`restoredDid()` in `src/lib/atproto/session.ts`, which both model routes call
-before spending anything, and which `atproto-publish.ts` now shares a cookie
-parser with so there is one implementation of the claim.
+**Gate on a restorable OAuth session.** `restoredDid()` and `oauthSession()` in
+`src/lib/atproto/session.ts` resolve the session and its tokens; both model
+routes call `restoredDid()` before spending anything, and `atproto-publish.ts`
+passes the same session to the PDS writes in `publish.ts`.
 
-This is the pattern the protocol's own example app uses: `getSession()` in
-[statusphere][sp] reads a plain `did` cookie and returns `client.restore(did)`,
-with the cookie `httpOnly` and `secure` and doing no work beyond naming a DID.
-Ours now matches, `Secure` included.
+Sessions and authorization state live in KV (`ATPROTO_SESSIONS`, the
+`crystal-coupe-kv` namespace), sealed with AES-GCM under the `SESSION_SECRET`
+Worker secret; an in-memory store is used only off-platform. Module-scope
+`Map`s are per-isolate on Workers, exactly as the limiter's was, which is why
+the earlier in-memory stores signed members out on a cold isolate. Without
+`SESSION_SECRET` on Workers, sign-in is disabled rather than sealed under a
+default. Changing the secret signs everyone out.
 
-Where statusphere backs both stores with a database keyed by DID,
-`src/lib/atproto/store.ts` backs them with KV (`ATPROTO_SESSIONS`, the
-`crystal-coupe-kv` namespace) and keeps a `Map` as the off-platform fallback.
-Both were module-scope `Map`s before, which is per-isolate on Workers exactly
-as the limiter's was — so `restore()` failed
-on a cold isolate, every signed-in action broke silently, and generation fell
-back to the guest copy for members who were properly signed in.
-
-Authorization state now expires after ten minutes. It previously never expired
-at all: every abandoned sign-in leaked a `Map` entry that nothing removed.
-
-[sp]: https://github.com/bluesky-social/statusphere-example-app
+[auth]: https://www.npmjs.com/package/@bbthorson/atproto-cf-auth
 
 ## Budget
 

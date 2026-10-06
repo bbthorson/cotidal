@@ -40,7 +40,7 @@ than to people. The reasoning is in **[docs/data-model.md](docs/data-model.md)**
 | Framework | [Astro 7](https://astro.build/), server output |
 | Hosting | [Cloudflare](https://developers.cloudflare.com/workers/) (`@astrojs/cloudflare`) |
 | UI | [React 19](https://react.dev/) islands, [Radix](https://www.radix-ui.com/), [Tailwind](https://tailwindcss.com/) |
-| Identity | [AT Protocol](https://atproto.com/) OAuth (`@atproto/oauth-client-node`) |
+| Identity | [AT Protocol](https://atproto.com/) OAuth (`@bbthorson/atproto-cf-auth`) |
 | Drink data | [TheCocktailDB](https://www.thecocktaildb.com/) |
 | Model | [Cloudflare Workers AI](https://developers.cloudflare.com/workers-ai/) + [AI Gateway](https://developers.cloudflare.com/ai-gateway/) |
 

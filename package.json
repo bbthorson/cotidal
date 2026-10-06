@@ -16,7 +16,7 @@
     "@astrojs/cloudflare": "^14.1.7",
     "@astrojs/react": "^6.0.2",
     "@atproto/api": "^0.20.42",
-    "@atproto/oauth-client-node": "^0.5.4",
+    "@bbthorson/atproto-cf-auth": "^0.1.0",
     "@radix-ui/react-accordion": "^1.2.3",
     "@radix-ui/react-alert-dialog": "^1.1.6",
     "@radix-ui/react-avatar": "^1.1.3",

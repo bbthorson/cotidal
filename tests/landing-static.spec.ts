@@ -94,7 +94,7 @@ test('Landing: sign-in works without JavaScript', async ({ browser }) => {
 });
 
 test('Landing: surfaces sign-in errors from the callback', async ({ page }) => {
-  await page.goto('/?error=atproto_callback_failed');
+  await page.goto('/?auth_error=callback_failed');
   await expect(page.getByRole('alert')).toContainText('Sign-in did not complete');
 });
 

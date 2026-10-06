@@ -2,7 +2,6 @@ import { test, expect } from '@playwright/test';
 import { checkRateLimit } from '../src/lib/rate-limit';
 import { defaultRateLimitConfig } from '../src/lib/rate-limit-logic';
 import { GENERATION_HEADER } from '../src/lib/generation';
-import { didFromRequest } from '../src/lib/atproto/session';
 
 /**
  * The model routes previously called a `checkRateLimit` that unconditionally
@@ -29,23 +28,15 @@ test.describe('The gate', () => {
     expect(text).not.toMatch(/error|unavailable|failed|sorry/i);
   });
 
-  test('a forged cookie is read, and is still not a session', async ({ request }) => {
-    // `atproto_did` is unsigned and a DID is public, so anyone can send one.
-    // Only a restorable OAuth session may reach a billed call.
+  test('a forged cookie is not a session', async ({ request }) => {
+    // Identity lives in the sealed server-side store behind an opaque session
+    // id, so neither a DID nor an invented session id names anyone. Only a
+    // restorable OAuth session may reach a billed call.
     const forged = 'did:plc:someone-elses-identifier';
-
-    // The cookie really is parsed — so the rejection below is the restore
-    // failing, not the header being ignored. Without this the test would pass
-    // for the wrong reason wherever sign-in is switched off, which is every
-    // environment this suite runs in.
-    const parsed = didFromRequest(
-      new Request('https://example.test', { headers: { Cookie: `atproto_did=${forged}` } })
-    );
-    expect(parsed).toBe(forged);
 
     const res = await request.post('/api/explain-drink', {
       data: { drinkName: 'Negroni', userProfile: profile },
-      headers: { Cookie: `atproto_did=${forged}` },
+      headers: { Cookie: `atproto_did=${forged}; bsky_sid=not-a-real-session` },
     });
 
     expect(res.status()).toBe(200);
