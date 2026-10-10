@@ -3,8 +3,9 @@ import type { UserProfile } from '@/hooks/useDiscoveryQuiz';
 import { createInitialPalateState, type PalateState } from './palate-state';
 
 export interface AxisBelief {
-  mean: number;      // current estimate, bounded [-10, 10]
-  variance: number;  // uncertainty — starts at 25, converges toward 0
+  mean: number;       // current estimate, bounded [-10, 10]
+  variance: number;   // uncertainty — starts at 25, falls as answers agree
+  evidence: number[]; // where each answer placed the user on this axis
 }
 
 export interface FilterState {
@@ -21,6 +22,14 @@ export interface BeliefState {
 }
 
 const INITIAL_VARIANCE = 25;
+
+// How far one answer places the user per unit of its authored nudge. The
+// strongest nudges in the bank (|d| = 4-5) place the user at the edge of the map.
+const EVIDENCE_SCALE = 2.5;
+
+// Variance of a single answer as evidence of position. Three agreeing answers
+// on an axis bring it under COMPLETION_THRESHOLD.
+const ANSWER_NOISE = 12;
 const COMPLETION_THRESHOLD = 3.5;
 const MIN_QUESTIONS = 4;
 export const MAX_QUESTIONS = 8;
@@ -28,8 +37,8 @@ export const MAX_QUESTIONS = 8;
 export function createInitialBelief(): BeliefState {
   return {
     axes: {
-      x: { mean: 0, variance: INITIAL_VARIANCE },
-      y: { mean: 0, variance: INITIAL_VARIANCE },
+      x: { mean: 0, variance: INITIAL_VARIANCE, evidence: [] },
+      y: { mean: 0, variance: INITIAL_VARIANCE, evidence: [] },
     },
     filters: {
       dislikesSmoke: null,
@@ -41,28 +50,49 @@ export function createInitialBelief(): BeliefState {
   };
 }
 
+/**
+ * Recomputes one axis from all of its evidence at once.
+ *
+ * The mean is the Gaussian posterior: a prior of 0 at INITIAL_VARIANCE and one
+ * observation per answer at ANSWER_NOISE, so the eighth answer moves the dot
+ * no more than the first. The posterior variance is then inflated by how far
+ * the answers disagree with it, so answers that contradict each other leave
+ * the axis uncertain rather than confidently centred. Working from the whole
+ * set rather than step by step makes the result independent of answer order.
+ */
+export function axisFromEvidence(evidence: number[]): AxisBelief {
+  const n = evidence.length;
+  if (n === 0) return { mean: 0, variance: INITIAL_VARIANCE, evidence: [] };
+
+  const precision = 1 / INITIAL_VARIANCE + n / ANSWER_NOISE;
+  const sum = evidence.reduce((a, z) => a + z, 0);
+  const mean = sum / ANSWER_NOISE / precision;
+
+  const dispersion = evidence.reduce((a, z) => a + (z - mean) ** 2, 0) / n;
+  const variance = Math.min(
+    INITIAL_VARIANCE,
+    (1 / precision) * Math.max(1, dispersion / ANSWER_NOISE)
+  );
+
+  return {
+    mean: Math.max(-10, Math.min(10, mean)),
+    variance,
+    evidence: [...evidence],
+  };
+}
+
+function observe(axis: AxisBelief, nudge: number): AxisBelief {
+  if (nudge === 0) return axis;
+  const z = Math.max(-10, Math.min(10, nudge * EVIDENCE_SCALE));
+  return axisFromEvidence([...axis.evidence, z]);
+}
+
 export function updateBelief(state: BeliefState, option: QuestionOption): BeliefState {
-  const newAxes = { ...state.axes };
-
-  // Update x axis
-  if (option.dx !== 0) {
-    const prev = newAxes.x;
-    const shrink = Math.min(0.5, Math.abs(option.dx) / 8);
-    newAxes.x = {
-      mean: Math.max(-10, Math.min(10, prev.mean + option.dx)),
-      variance: prev.variance * (1 - shrink),
-    };
-  }
-
-  // Update y axis
-  if (option.dy !== 0) {
-    const prev = newAxes.y;
-    const shrink = Math.min(0.5, Math.abs(option.dy) / 8);
-    newAxes.y = {
-      mean: Math.max(-10, Math.min(10, prev.mean + option.dy)),
-      variance: prev.variance * (1 - shrink),
-    };
-  }
+  const newAxes = {
+    ...state.axes,
+    x: observe(state.axes.x, option.dx),
+    y: observe(state.axes.y, option.dy),
+  };
 
   // Update filters
   const newFilters = { ...state.filters };

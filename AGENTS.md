@@ -80,9 +80,14 @@ The dot on the map is not the filter's estimate: `applyPour` moves crisp/sweet
 by a capped, simpler rule and leaves the other three axes to the EKF.
 
 ### Elicitation — `belief-state.ts`, `question-selector.ts`, `useDiscoveryQuiz.ts`
-`belief-state` holds per-axis estimates and confidence; the selector picks the
-question that reduces the most uncertainty. **Only the first three questions
-are fixed** — never hard-code a path through the quiz in a test.
+`belief-state` holds per-axis estimates and confidence. Each answer is
+evidence of position (`EVIDENCE_SCALE` × its authored nudge), and an axis is
+recomputed from all its evidence at once, so the result does not depend on
+answer order and answers that disagree leave the axis uncertain. The selector
+targets the axis with the highest variance, then ranks by each question's
+hand-set `informationGain`; it does not yet compute expected uncertainty
+reduction. **Only the first four questions (`CALIBRATION_IDS`) are fixed** —
+never hard-code a path through the quiz in a test.
 `useBartenderChat` is entirely local canned copy, so the flow runs offline.
 What may call a model, and who sees the result, is `docs/generation.md`.
 
