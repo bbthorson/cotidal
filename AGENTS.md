@@ -64,11 +64,20 @@ the user.
 
 ### Psychophysical State & EKF — `src/lib/palate-state.ts`
 Models longitudinal taste preference drift via an Extended Kalman Filter (EKF).
-The 5D latent state vector ($\mathbf{x}_k \in \mathbb{R}^5$) tracks Rich-Crisp,
-Savory-Sweet, Acidity Sensitivity, Ethanol Tolerance, and Tannin Tolerance, accompanied
-by error covariance matrix ($\mathbf{P}_k$). Updates account for Stevens' Power Law,
-Sensory-Specific Satiety (SSS exponential volume decay), and circadian prandial
-ghrelin curves. Detailed psychophysics in `docs/sensory-science.md`.
+The 5D latent state vector ($\mathbf{x}_k \in \mathbb{R}^5$) is `StateVector`:
+Rich-Crisp, Savory-Sweet, Bitter Tolerance, Tannin Tolerance and Complexity,
+accompanied by error covariance matrix ($\mathbf{P}_k$). Observations are
+normalised for Sensory-Specific Satiety (SSS exponential volume decay) and
+prandial ghrelin before they reach the filter. Detailed psychophysics in
+`docs/sensory-science.md`; the order of the axes is also the order of
+`latentVector` in `app.crystalcoupe.palate.json`.
+
+An axis learns only if `predictHedonic` reads it — otherwise its Jacobian
+entry is zero and so is its gain. Every drink-side input to that function is
+derived from `Drink` (see `complexityDemand`), never stored alongside it.
+
+The dot on the map is not the filter's estimate: `applyPour` moves crisp/sweet
+by a capped, simpler rule and leaves the other three axes to the EKF.
 
 ### Elicitation — `belief-state.ts`, `question-selector.ts`, `useDiscoveryQuiz.ts`
 `belief-state` holds per-axis estimates and confidence; the selector picks the

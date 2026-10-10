@@ -107,6 +107,16 @@ $$\mathbf{P}_{k|k-1} = \mathbf{P}_{k-1|k-1} + \mathbf{Q}$$
 $$\tilde{y}_k = z_k - h(\mathbf{\hat{x}}_{k|k-1}; \text{stimulus})$$
 $$\mathbf{H}_k = \left. \frac{\partial h}{\partial \mathbf{x}} \right|_{\mathbf{\hat{x}}_{k|k-1}}$$
 
+The measurement function predicts a 1–9 hedonic score from distance on the
+map, less a penalty for each tolerance the drink exceeds:
+$$h(\mathbf{x}) = 1 + 8 \cdot \operatorname{clamp}_{[0,1]}\!\left(1 - \frac{d}{28.28} - p_{\text{bitter}} - p_{\text{tannin}} - p_{\text{complexity}}\right)$$
+- $p_{\text{bitter}} = 0.25 \cdot (5 - \theta_{\text{bitter}})/5$ for a bitter drink when $\theta_{\text{bitter}} < 5$.
+- $p_{\text{tannin}} = 0.2 \cdot (4 - \theta_{\text{tannin}})/4$ for a smoky drink when $\theta_{\text{tannin}} < 4$.
+- $p_{\text{complexity}} = 0.2 \cdot (c - \theta_{\text{complexity}})/c$ when $\theta_{\text{complexity}} < c$, where the drink's demand $c = 2.5 + 2.5n$ and $n$ counts its smoke, anise and bitter flags.
+
+An axis that $h$ does not read has a zero Jacobian entry and so never learns;
+this is why each tolerance carries a penalty term.
+
 **3. Kalman Gain**:
 $$S_k = \mathbf{H}_k \mathbf{P}_{k|k-1} \mathbf{H}_k^T + R_k$$
 $$\mathbf{K}_k = \mathbf{P}_{k|k-1} \mathbf{H}_k^T S_k^{-1}$$

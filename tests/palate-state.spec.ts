@@ -135,3 +135,23 @@ test('PalateState: "what was off" nudges the dot, even for a drink not on the ma
   expect(projectTo2D(applyPour(prior, undefined, { hedonic: 5 }, ['too-sweet']))).toEqual({ x: 0, y: -1.2 });
   expect(projectTo2D(applyPour(prior, undefined, { hedonic: 5 }, ['too-crisp']))).toEqual({ x: -1.2, y: 0 });
 });
+
+test('PalateState: complexity learns from layered drinks and ignores plain ones', async () => {
+  const layered: Drink = { ...testDrink, x: 0, y: 0, hasSmoke: true, hasAnise: true };
+  const plain: Drink = { ...testDrink, x: 0, y: 0 };
+  const prior = createInitialPalateState({ x: 0, y: 0 });
+  const before = prior.vector.complexity;
+
+  // Without CATA, so the filter is the only thing that can move the axis.
+  const liked = updatePalateEKF(prior, layered, { hedonic: 9 });
+  expect(liked.kalmanGain[4]).not.toBe(0);
+  expect(liked.nextState.vector.complexity).toBeGreaterThan(before);
+
+  const disliked = updatePalateEKF(prior, layered, { hedonic: 2 });
+  expect(disliked.nextState.vector.complexity).toBeLessThan(before);
+
+  // A plain drink asks for nothing the user lacks, so it says nothing about complexity.
+  const plainPour = updatePalateEKF(prior, plain, { hedonic: 9 });
+  expect(plainPour.kalmanGain[4]).toBe(0);
+  expect(plainPour.nextState.vector.complexity).toBe(before);
+});

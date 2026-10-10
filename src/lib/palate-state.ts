@@ -210,6 +210,17 @@ export function normalizeObservation(
 }
 
 /**
+ * How much volatile discrimination a drink asks for, on the 0-10 scale of
+ * theta_complexity. Derived from the flags the drink already carries rather
+ * than stored, so the map stays the one place a drink is described: each of
+ * smoke, anise and bitterness is another layer to pick apart.
+ */
+export function complexityDemand(drink: Drink): number {
+  const layers = [drink.hasSmoke, drink.hasAnise, drink.isBitter].filter(Boolean).length;
+  return 2.5 + layers * 2.5;
+}
+
+/**
  * Evaluates the non-linear measurement function h(x) predicting expected hedonic response (1-9).
  */
 function predictHedonic(x: StateVector, drink: Drink): number {
@@ -232,7 +243,17 @@ function predictHedonic(x: StateVector, drink: Drink): number {
     tanninPenalty = ((4 - x.tannin) / 4) * 0.2;
   }
 
-  const affinity = Math.max(0, Math.min(1, baseMatch - bitterPenalty - tanninPenalty));
+  // Complexity penalty if the drink asks for more than the user discriminates
+  let complexityPenalty = 0;
+  const demand = complexityDemand(drink);
+  if (x.complexity < demand) {
+    complexityPenalty = ((demand - x.complexity) / demand) * 0.2;
+  }
+
+  const affinity = Math.max(
+    0,
+    Math.min(1, baseMatch - bitterPenalty - tanninPenalty - complexityPenalty)
+  );
   // Map 0..1 affinity to 1..9 hedonic scale
   return 1 + 8 * affinity;
 }
