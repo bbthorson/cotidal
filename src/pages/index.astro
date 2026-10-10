@@ -22,13 +22,17 @@ const atprotoEnabled = !!(
 const errorCodes: Record<string, string> = {
   not_configured: 'Sign-in is not configured right now.',
   invalid_handle: 'That handle does not look right. Try again.',
-  invalid_request: 'Something went wrong with that request.',
+  handle_not_found: 'We could not find that handle. Try again.',
   authorize_failed: 'We could not reach your provider. Try again.',
-  atproto_not_configured: 'Sign-in is not configured right now.',
-  atproto_callback_failed: 'Sign-in did not complete. Try again.',
+  access_denied: 'Sign-in was cancelled.',
+  callback_failed: 'Sign-in did not complete. Try again.',
+  browser_mismatch: 'Sign-in did not complete. Try again.',
+  use_loopback_ip: 'Open this site at 127.0.0.1 rather than localhost to sign in.',
+  network_error: 'We could not reach your provider. Try again.',
 };
 
-const errorParam = Astro.url.searchParams.get('error');
+// `auth_error` is what @bbthorson/atproto-cf-auth redirects back with.
+const errorParam = Astro.url.searchParams.get('auth_error');
 const error = errorParam ? (errorCodes[errorParam] ?? errorCodes.authorize_failed) : null;
 ---
 

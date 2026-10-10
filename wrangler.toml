@@ -8,10 +8,12 @@ compatibility_flags = ["nodejs_compat"]
 [ai]
 binding = "AI"
 
-# OAuth sessions and authorization state (src/lib/atproto/store.ts). Without a
-# KV namespace, NodeOAuthClient keeps both in a module-scope Map, which is
-# per-isolate on Workers — so client.restore(did) fails whenever a request lands
-# on a cold isolate and every signed-in action silently breaks.
+# Sign-in sessions and OAuth state (src/lib/atproto/auth.ts), kept by
+# @bbthorson/atproto-cf-auth and sealed with the `SESSION_SECRET` Worker secret
+# (`wrangler secret put SESSION_SECRET`, 32+ random characters). Without this
+# namespace the package falls back to memory, which is per-isolate on Workers —
+# so a signed-in user is signed out whenever a request lands on a cold isolate.
+# Without the secret, sign-in is disabled rather than sealed under a default.
 #
 # `crystal-coupe-kv`, created in the dashboard. The id is an account-scoped
 # resource identifier, not a secret, and belongs in this file — an earlier

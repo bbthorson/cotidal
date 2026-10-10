@@ -1,4 +1,6 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { AUTH_ERROR_MESSAGES, createAuthClient, takeAuthError } from '@bbthorson/atproto-cf-auth/client';
+import { AUTH_BASE_PATH } from '@/lib/atproto/paths';
 
 const isAtprotoEnabled = typeof process !== 'undefined'
   ? !!(process.env?.PUBLIC_ATPROTO_ENABLED || process.env?.ATPROTO_ENABLED || process.env?.NEXT_PUBLIC_ATPROTO_ENABLED)
@@ -17,96 +19,76 @@ interface AtprotoState {
   disconnect: () => void;
 }
 
-function getCookie(name: string): string | null {
-  if (typeof document === 'undefined') return null;
-  const match = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`));
-  return match ? decodeURIComponent(match[1]) : null;
-}
-
-function deleteCookie(name: string) {
-  document.cookie = `${name}=; path=/; max-age=0`;
-}
-
 export function useAtproto(): AtprotoState {
+  const auth = useMemo(() => createAuthClient({ basePath: AUTH_BASE_PATH }), []);
   const [did, setDid] = useState<string | null>(null);
   const [handle, setHandle] = useState<string | null>(null);
-  const [displayName, setDisplayName] = useState<string | null>(null);
   const [connecting, setConnecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Read connection state from cookies on mount and URL params
+  // Who is signed in is the server's answer, not something the page can read:
+  // the session cookie is HttpOnly and opaque.
   useEffect(() => {
     if (!isAtprotoEnabled) return;
 
-    // Read handle info from client-readable cookie
-    const handleCookie = getCookie('atproto_handle');
-    if (handleCookie) {
-      try {
-        const info = JSON.parse(handleCookie);
-        setHandle(info.handle);
-        setDisplayName(info.displayName);
-        setDid('connected'); // We know we're connected but DID is in HTTP-only cookie
-      } catch {
-        // Invalid cookie
-      }
-    }
+    const failure = takeAuthError();
+    if (failure) setError(failure.message);
 
-    // Check URL for connection result
+    let cancelled = false;
+    auth
+      .getUser()
+      .then((user) => {
+        if (cancelled || !user) return;
+        setDid(user.did);
+        setHandle(user.handle ?? null);
+      })
+      .catch(() => {
+        // Offline or unconfigured: stay a guest.
+      });
+
+    // A successful sign-in lands here with ?connected=true from older links.
     const params = new URLSearchParams(window.location.search);
-    if (params.get('connected') === 'true') {
-      // Clean up URL
+    if (params.has('connected')) {
       const url = new URL(window.location.href);
       url.searchParams.delete('connected');
       window.history.replaceState({}, '', url.pathname + url.search);
     }
-    if (params.get('error')) {
-      setError(params.get('error'));
-      const url = new URL(window.location.href);
-      url.searchParams.delete('error');
-      window.history.replaceState({}, '', url.pathname + url.search);
-    }
-  }, []);
+    return () => {
+      cancelled = true;
+    };
+  }, [auth]);
 
-  const connect = useCallback(async (inputHandle: string) => {
-    if (!isAtprotoEnabled) return;
-    setConnecting(true);
-    setError(null);
-
-    try {
-      const response = await fetch('/api/auth/atproto/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ handle: inputHandle }),
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || 'Login failed');
+  const connect = useCallback(
+    async (inputHandle: string) => {
+      if (!isAtprotoEnabled) return;
+      setConnecting(true);
+      setError(null);
+      try {
+        // Navigates to Bluesky on success; throws an AuthError otherwise.
+        await auth.signIn(inputHandle, { returnTo: window.location.pathname });
+      } catch (e) {
+        setError(e instanceof Error ? e.message : AUTH_ERROR_MESSAGES.authorize_failed);
+        setConnecting(false);
       }
-
-      const { url } = await response.json();
-      window.location.href = url;
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Connection failed');
-      setConnecting(false);
-    }
-  }, []);
+    },
+    [auth]
+  );
 
   const disconnect = useCallback(() => {
-    deleteCookie('atproto_did');
-    deleteCookie('atproto_handle');
     setDid(null);
     setHandle(null);
-    setDisplayName(null);
     setError(null);
-  }, []);
+    auth.signOut().catch(() => {
+      // The cookie is cleared server-side; a failed request leaves nothing to undo locally.
+    });
+  }, [auth]);
 
   return {
     isEnabled: isAtprotoEnabled,
     isConnected: !!did,
     did,
     handle,
-    displayName,
+    displayName: null,
     connecting,
     error,
     connect,

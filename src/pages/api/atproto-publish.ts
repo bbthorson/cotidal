@@ -13,7 +13,7 @@ import { z } from 'zod';
 import { drinkDatabase } from '@/lib/data';
 import type { PalateRecord } from '@/lib/atproto/records';
 import type { LogDrinkOptions } from '@/lib/api-client';
-import { didFromRequest } from '@/lib/atproto/session';
+import { oauthSession } from '@/lib/atproto/session';
 import {
   fromDynamicRecord,
   toDynamicRecord,
@@ -43,12 +43,12 @@ export const POST: APIRoute = async ({ request }) => {
     });
   }
 
-  const did = didFromRequest(request);
+  const session = await oauthSession(request);
 
   if (body.action === 'getConnectedPalate') {
-    if (!did) return new Response(JSON.stringify({ profile: null }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+    if (!session) return new Response(JSON.stringify({ profile: null }), { status: 200, headers: { 'Content-Type': 'application/json' } });
     try {
-      const record = await getPalateProfile(did);
+      const record = await getPalateProfile(session);
       if (!record) return new Response(JSON.stringify({ profile: null }), { status: 200, headers: { 'Content-Type': 'application/json' } });
       const profile: UserProfile = {
         x: record.mapCoordinates?.x ?? 0,
@@ -66,10 +66,10 @@ export const POST: APIRoute = async ({ request }) => {
   }
 
   if (body.action === 'getConnectedDrinkLogs' || body.action === 'getConnectedPours') {
-    if (!did) return new Response(JSON.stringify({ logs: [], pours: [] }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+    if (!session) return new Response(JSON.stringify({ logs: [], pours: [] }), { status: 200, headers: { 'Content-Type': 'application/json' } });
     try {
       const limit = typeof body.limit === 'number' ? body.limit : undefined;
-      const pours = await getPours(did, limit);
+      const pours = await getPours(session, limit);
       return new Response(JSON.stringify({ pours, logs: pours }), { status: 200, headers: { 'Content-Type': 'application/json' } });
     } catch (e) {
       console.error('Failed to get connected pours:', e);
@@ -77,7 +77,7 @@ export const POST: APIRoute = async ({ request }) => {
     }
   }
 
-  if (!did) {
+  if (!session) {
     return new Response(JSON.stringify({ success: false, error: 'Not connected to Bluesky' }), {
       status: 401,
       headers: { 'Content-Type': 'application/json' },
@@ -89,7 +89,7 @@ export const POST: APIRoute = async ({ request }) => {
     if (!parsed.success) return new Response(JSON.stringify({ success: false, error: 'Invalid profile data' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
 
     try {
-      const result = await publishPalateProfile(did, parsed.data as UserProfile);
+      const result = await publishPalateProfile(session, parsed.data as UserProfile);
       return new Response(JSON.stringify({ success: true, uri: result.uri }), { status: 200, headers: { 'Content-Type': 'application/json' } });
     } catch (e) {
       console.error('Failed to publish palate:', e);
@@ -106,7 +106,7 @@ export const POST: APIRoute = async ({ request }) => {
     if (!quadrant || quadrant.length > 50) return new Response(JSON.stringify({ success: false, error: 'Invalid quadrant' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
 
     try {
-      const result = await shareToFeed(did, topDrink, quadrant, appUrl);
+      const result = await shareToFeed(session, topDrink, quadrant, appUrl);
       return new Response(JSON.stringify({ success: true, uri: result.uri }), { status: 200, headers: { 'Content-Type': 'application/json' } });
     } catch (e) {
       console.error('Failed to share to feed:', e);
@@ -148,7 +148,7 @@ export const POST: APIRoute = async ({ request }) => {
     const finalLocation = isHomePour ? 'Home Pour' : (venue?.name || location || 'Unknown Venue');
 
     try {
-      let record = await getPalateProfile(did);
+      let record = await getPalateProfile(session);
       if (!record) {
         const dummyProfile: UserProfile = { x: 0, y: 0, dislikesSmoke: false, dislikesBitter: false, dislikesAnise: false, vibeTags: {} };
         record = derivePalateRecord(dummyProfile, null);
@@ -203,9 +203,9 @@ export const POST: APIRoute = async ({ request }) => {
         updatedAt: new Date().toISOString(),
       };
 
-      await publishRawPalateRecord(did, updatedPalate);
+      await publishRawPalateRecord(session, updatedPalate);
 
-      const pourRes = await publishPour(did, {
+      const pourRes = await publishPour(session, {
         drink: {
           name: drinkName,
           slug: drink?.name ? drink.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') : undefined,
@@ -236,7 +236,7 @@ export const POST: APIRoute = async ({ request }) => {
           const appUrl = (body.appUrl as string) || 'https://crystalcoupe.app';
           const stars = '★'.repeat(Math.round(rating / 2)) + '☆'.repeat(5 - Math.round(rating / 2));
           const postText = `Logged a ${rating.toFixed(1)}/10 ${drinkName} ${isHomePour ? '(Home Pour)' : `at ${finalLocation}`} on Crystal Coupe ${stars}`;
-          await shareToFeed(did, drinkName, postText, appUrl);
+          await shareToFeed(session, drinkName, postText, appUrl);
         } catch (e) {
           console.error('Failed to crosspost to feed:', e);
         }

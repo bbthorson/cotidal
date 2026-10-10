@@ -11,8 +11,9 @@ test('Auth: JSON callers get JSON back', async ({ request }) => {
     data: { handle: 'alice.bsky.social' },
   });
 
-  // 200 with an authorize URL when configured; 503 when absent; 500 when offline/unresolvable.
-  expect([200, 500, 503]).toContain(res.status());
+  // 200 with an authorize URL when configured; 503 when absent; 400/502 when the handle
+  // cannot be used (loopback host, offline); 500 otherwise.
+  expect([200, 400, 500, 502, 503]).toContain(res.status());
   const body = await res.json();
   expect(body).toHaveProperty(res.status() === 200 ? 'url' : 'error');
 });
@@ -33,8 +34,14 @@ test('Auth: a missing handle is rejected', async ({ request }) => {
   expect(res.status()).toBeGreaterThanOrEqual(400);
 });
 
+test('Auth: the session probe answers a guest, signed in or not configured', async ({ request }) => {
+  const res = await request.get('/api/auth/atproto/session');
+  expect(res.status()).toBe(200);
+  expect(await res.json()).toEqual({ authenticated: false });
+});
+
 test('Auth: client metadata is served for OAuth discovery', async ({ request }) => {
-  const res = await request.get('/.well-known/atproto-client-metadata.json');
+  const res = await request.get('/api/auth/atproto/client-metadata.json');
   if (res.status() === 200) {
     const body = await res.json();
     expect(body).toHaveProperty('client_id');

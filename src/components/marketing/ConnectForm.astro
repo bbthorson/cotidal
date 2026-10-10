@@ -1,5 +1,6 @@
 ---
 import { connect } from '../../lib/copy';
+import { AUTH_BASE_PATH } from '../../lib/atproto/paths';
 
 interface Props {
   enabled: boolean;
@@ -42,7 +43,8 @@ const { enabled, error } = Astro.props;
 
   {
     enabled ? (
-      <form method="POST" action="/api/auth/atproto/login" class="space-y-4">
+      <form method="POST" action={`${AUTH_BASE_PATH}/login`} class="space-y-4">
+        <input type="hidden" name="returnTo" value="/taste" />
         <label for="handle" class="flex flex-col gap-1.5">
           <span class="font-condensed text-xs uppercase tracking-label text-muted-foreground">
             {connect.label}

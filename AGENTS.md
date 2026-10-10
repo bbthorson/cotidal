@@ -17,8 +17,9 @@ landing page included. Astro was being used as a slower Next.js.
   something genuinely needs to be interactive, and scope it tightly.
 - Prefer `client:load` over `client:only` so the shell server-renders.
 - Never add an island to `/`. `tests/landing-static.spec.ts` fails if you do.
-- Sign-in is content-negotiated (`src/pages/api/auth/atproto/login.ts`): JSON
-  in, JSON out for the island; form-encoded in, 303 out for the plain form.
+- Sign-in is `@bbthorson/atproto-cf-auth`, content-negotiated at
+  `/api/auth/atproto/login`: JSON in, JSON out for the island; form-encoded in,
+  303 out for the plain form.
   Do not break the second path — it is what keeps `/` script-free.
 
 ## Single sources of truth
@@ -112,20 +113,22 @@ would attach a share-alike obligation to the entry.
 - `lexicons/*.json` — schemas (authoritative)
 - `records.ts` — Zod for `pour`, `menu`, `recipe`, `venue`, `maker`, `defs`
 - `lexicon.ts` — legacy `palate` and `drinkLog`, being migrated onto `pour`
-- `client.ts`, `store.ts`, `publish.ts` — OAuth and writes
-- `session.ts` — the `atproto_did` cookie is a *claim*; `restore()` is the
-  authorisation. Anything billed or destructive gates on `restoredDid()`.
+- `auth.ts`, `paths.ts`, `publish.ts` — sign-in (`@bbthorson/atproto-cf-auth`)
+  and writes
+- `session.ts` — the `bsky_sid` cookie is an opaque id into a sealed
+  server-side store; `oauthSession()` is the authorisation. Anything billed or
+  destructive gates on `restoredDid()`.
 
 **Bindings come from `cloudflare:workers` via `src/lib/runtime.ts`, never from
 `locals.runtime.env`** — that getter throws in Astro v6+, so an optional chain
 does not protect you. It fails loudly in production and silently in dev.
 
-**`handleResolver` must stay set.** Unset, `NodeOAuthClient` builds an
-`AtprotoHandleResolverNode`, which wraps fetch in undici-based SSRF protection
-and reads `process.versions.undici`. workerd ships no undici, so from
-`@atproto/oauth-client-node` 0.5 the *constructor throws* — sign-in dies before
-it starts. Nothing in the suite catches this: the tests run with AT Protocol
-disabled, so the client is never built.
+**`SESSION_SECRET` is a Worker secret** (`wrangler secret put SESSION_SECRET`,
+32+ random characters) and seals everything the auth package stores. Unset on
+Workers, sign-in is disabled. The package runs on Web Crypto and `fetch` only,
+so it needs neither `@atproto/oauth-client-node` nor its undici-based handle
+resolver, which threw in the constructor on workerd. In development open the
+app at `http://127.0.0.1:9002`, not `localhost`.
 
 Records are signed by their authors and **never rewritten**. Reconciling an
 unclaimed reference to a later account is the app view's job.

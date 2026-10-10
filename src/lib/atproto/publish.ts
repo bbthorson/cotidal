@@ -6,25 +6,21 @@ import {
   type PalateRecord,
   type PourRecord,
 } from './records';
-import { getAtprotoClient } from './client';
+import type { OAuthSession } from '@bbthorson/atproto-cf-auth/server';
 import type { UserProfile } from '@/hooks/useDiscoveryQuiz';
 import { derivePalateRecord } from '../sensory';
 
 export async function publishPalateProfile(
-  did: string,
+  session: OAuthSession,
   profile: UserProfile
 ): Promise<{ uri: string; cid: string }> {
-  const client = getAtprotoClient();
-  if (!client) throw new Error('AT Protocol not configured');
-
-  const session = await client.restore(did);
   const agent = new Agent(session);
 
   // Try to load existing profile to preserve sensory updates
   let existing: PalateRecord | null = null;
   try {
     const response = await agent.com.atproto.repo.getRecord({
-      repo: did,
+      repo: session.did,
       collection: PALATE_COLLECTION,
       rkey: PALATE_RKEY,
     });
@@ -36,7 +32,7 @@ export async function publishPalateProfile(
   const record = derivePalateRecord(profile, existing);
 
   const response = await agent.com.atproto.repo.putRecord({
-    repo: did,
+    repo: session.did,
     collection: PALATE_COLLECTION,
     rkey: PALATE_RKEY,
     record,
@@ -47,22 +43,18 @@ export async function publishPalateProfile(
 
 
 export async function shareToFeed(
-  did: string,
+  session: OAuthSession,
   topDrink: string,
   quadrant: string,
   appUrl: string
 ): Promise<{ uri: string; cid: string }> {
-  const client = getAtprotoClient();
-  if (!client) throw new Error('AT Protocol not configured');
-
-  const session = await client.restore(did);
   const agent = new Agent(session);
 
   const text = `I just discovered my cocktail palate on The Crystal Coupe! My flavor profile lands in ${quadrant} and my top match is ${topDrink}. Discover yours:`;
   const linkText = appUrl;
 
   const response = await agent.com.atproto.repo.createRecord({
-    repo: did,
+    repo: session.did,
     collection: 'app.bsky.feed.post',
     record: {
       $type: 'app.bsky.feed.post',
@@ -88,16 +80,12 @@ export async function shareToFeed(
   return { uri: response.data.uri, cid: response.data.cid };
 }
 
-export async function getPalateProfile(did: string): Promise<PalateRecord | null> {
-  const client = getAtprotoClient();
-  if (!client) return null;
-
+export async function getPalateProfile(session: OAuthSession): Promise<PalateRecord | null> {
   try {
-    const session = await client.restore(did);
     const agent = new Agent(session);
 
     const response = await agent.com.atproto.repo.getRecord({
-      repo: did,
+      repo: session.did,
       collection: PALATE_COLLECTION,
       rkey: PALATE_RKEY,
     });
@@ -109,17 +97,13 @@ export async function getPalateProfile(did: string): Promise<PalateRecord | null
 }
 
 export async function publishRawPalateRecord(
-  did: string,
+  session: OAuthSession,
   record: PalateRecord
 ): Promise<{ uri: string; cid: string }> {
-  const client = getAtprotoClient();
-  if (!client) throw new Error('AT Protocol not configured');
-
-  const session = await client.restore(did);
   const agent = new Agent(session);
 
   const response = await agent.com.atproto.repo.putRecord({
-    repo: did,
+    repo: session.did,
     collection: PALATE_COLLECTION,
     rkey: PALATE_RKEY,
     record,
@@ -129,13 +113,9 @@ export async function publishRawPalateRecord(
 }
 
 export async function publishPour(
-  did: string,
+  session: OAuthSession,
   pour: Omit<PourRecord, '$type'>
 ): Promise<{ uri: string; cid: string }> {
-  const client = getAtprotoClient();
-  if (!client) throw new Error('AT Protocol not configured');
-
-  const session = await client.restore(did);
   const agent = new Agent(session);
 
   const record: PourRecord = {
@@ -144,7 +124,7 @@ export async function publishPour(
   };
 
   const response = await agent.com.atproto.repo.createRecord({
-    repo: did,
+    repo: session.did,
     collection: POUR_COLLECTION,
     record,
   });
@@ -152,16 +132,12 @@ export async function publishPour(
   return { uri: response.data.uri, cid: response.data.cid };
 }
 
-export async function getPours(did: string, limit?: number): Promise<PourRecord[]> {
-  const client = getAtprotoClient();
-  if (!client) return [];
-
+export async function getPours(session: OAuthSession, limit?: number): Promise<PourRecord[]> {
   try {
-    const session = await client.restore(did);
     const agent = new Agent(session);
 
     const response = await agent.com.atproto.repo.listRecords({
-      repo: did,
+      repo: session.did,
       collection: POUR_COLLECTION,
       limit: limit || 50,
       reverse: true, // Show newest first
