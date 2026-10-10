@@ -50,6 +50,8 @@ $$\Psi(I) = k \cdot I^n$$
 - For sucrose, the exponent is **expansive** ($n \approx 1.3 - 1.5$), meaning perceived sweetness grows faster than physical concentration.
 - For bitter compounds (e.g., gentian, quinine) and acids (citric, malic), the exponent is **linear or compressive** ($n \approx 1.0$).
 
+> **Not yet applied in code.** This section is background. The power law maps physical concentration to perceived intensity, and nothing in the app carries a concentration: drinks in `drinkDatabase` have map coordinates and flags, and ratings and gLMS intensities are already perceived. Its place is on the drink side, deriving a drink's position from the `stimulus` fields in `app.crystalcoupe.defs.json` (`residualSugarGpl`, `acidityPh`, `abv`, `astringencyIndex`) once those are populated, not inside the palate filter. Convert pH to an acid concentration before applying an exponent, and expect single-compound exponents to overstate a mixture.
+
 In untrained palates, sweetness centrally suppresses bitterness and sourness. Novices rely on sugar to mask astringency and ethanol burn. As expertise develops through exposure and cognitive chunking, consumers learn to analytically isolate molecular descriptors, acquiring hedonic affinity for unmasked bitters, high acidity, and tannic structures.
 
 ### 3.2 Mitigating the Self-Report Paradox
