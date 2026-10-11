@@ -27,10 +27,13 @@ const INITIAL_VARIANCE = 25;
 // strongest nudges in the bank (|d| = 4-5) place the user at the edge of the map.
 const EVIDENCE_SCALE = 2.5;
 
-// Variance of a single answer as evidence of position. Three agreeing answers
-// on an axis bring it under COMPLETION_THRESHOLD.
+// Variance of a single answer as evidence of position.
 const ANSWER_NOISE = 12;
-const COMPLETION_THRESHOLD = 3.5;
+
+// Stop once an axis is as certain as about six agreeing answers make it. With
+// the current bank, actual squared error levels off near 5 by then; asking
+// more buys little. Tuned by simulation against the real question bank.
+const COMPLETION_THRESHOLD = 6;
 const MIN_QUESTIONS = 4;
 export const MAX_QUESTIONS = 8;
 
