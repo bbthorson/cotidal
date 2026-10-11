@@ -129,3 +129,11 @@ test('Belief: a nudge of zero leaves that axis untouched', async () => {
   expect(belief.axes.x).toEqual(createInitialBelief().axes.x);
   expect(belief.axes.y.evidence).toHaveLength(1);
 });
+
+test('Belief: one answer does not claim to know more than it does', async () => {
+  // A single answer cannot disagree with anything, so its variance leans on
+  // how much answers typically scatter rather than reading as near-certain.
+  const one = answer([nudge(4)]);
+  expect(one.axes.x.variance).toBeGreaterThan(15);
+  expect(beliefToProfile(one).variance).toEqual({ x: one.axes.x.variance, y: one.axes.y.variance });
+});

@@ -59,6 +59,7 @@ export function derivePalateRecord(profile: UserProfile, existing?: PalateRecord
       dislikesBitter: profile.dislikesBitter,
       dislikesSmoke: profile.dislikesSmoke,
       dislikesAnise: profile.dislikesAnise,
+      variance: profile.variance,
     })
   );
 

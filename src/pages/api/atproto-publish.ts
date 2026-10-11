@@ -30,6 +30,7 @@ const ProfileSchema = z.object({
   dislikesBitter: z.boolean(),
   dislikesAnise: z.boolean(),
   vibeTags: z.record(z.string(), z.number()),
+  variance: z.object({ x: z.number().min(0), y: z.number().min(0) }).optional(),
 });
 
 export const POST: APIRoute = async ({ request }) => {

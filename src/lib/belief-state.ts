@@ -29,6 +29,13 @@ export const EVIDENCE_SCALE = 2.5;
 // Variance of a single answer as evidence of position.
 export const ANSWER_NOISE = 12;
 
+// How far answers typically disagree with the estimate (squared, in map
+// units), and how many answers' worth of weight that assumption carries
+// before the user's own answers take over. Tuned by simulation so reported
+// variance tracks actual squared error from the first answer.
+const TYPICAL_SCATTER = 40;
+const TYPICAL_SCATTER_WEIGHT = 2;
+
 // Stop once an axis is as certain as about six agreeing answers make it. With
 // the current bank, actual squared error levels off near 5 by then; asking
 // more buys little. Tuned by simulation against the real question bank.
@@ -70,7 +77,12 @@ export function axisFromEvidence(evidence: number[]): AxisBelief {
   const sum = evidence.reduce((a, z) => a + z, 0);
   const mean = sum / ANSWER_NOISE / precision;
 
-  const dispersion = evidence.reduce((a, z) => a + (z - mean) ** 2, 0) / n;
+  // One or two answers cannot disagree enough to show how much answers
+  // scatter, so the observed disagreement is pooled with a typical amount
+  // until enough answers arrive to speak for themselves.
+  const observed = evidence.reduce((a, z) => a + (z - mean) ** 2, 0);
+  const dispersion =
+    (TYPICAL_SCATTER * TYPICAL_SCATTER_WEIGHT + observed) / (TYPICAL_SCATTER_WEIGHT + n);
   const variance = Math.min(
     INITIAL_VARIANCE,
     (1 / precision) * Math.max(1, dispersion / ANSWER_NOISE)
@@ -186,5 +198,6 @@ export function beliefToProfile(state: BeliefState): UserProfile {
     dislikesBitter: state.filters.dislikesBitter ?? false,
     dislikesAnise: state.filters.dislikesAnise ?? false,
     vibeTags: state.vibeTags,
+    variance: { x: state.axes.x.variance, y: state.axes.y.variance },
   };
 }

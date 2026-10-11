@@ -96,6 +96,12 @@ export function regularizeCovariance(P: Matrix5x5): Matrix5x5 {
   return result;
 }
 
+// A quiz variance is trusted within [1, default]: below 1 one pour could never
+// move the dot, and above the default would claim to know less than nothing.
+function mapVariance(v: number | undefined, fallback: number): number {
+  return typeof v === 'number' && Number.isFinite(v) ? Math.max(1, Math.min(fallback, v)) : fallback;
+}
+
 /**
  * Initializes a new PalateState from initial quiz coordinates or defaults.
  */
@@ -105,6 +111,8 @@ export function createInitialPalateState(initial?: {
   dislikesBitter?: boolean;
   dislikesSmoke?: boolean;
   dislikesAnise?: boolean;
+  /** The quiz's variance on the two map axes; the default when absent. */
+  variance?: { x: number; y: number };
   phenotypes?: Phenotypes;
 }): PalateState {
   const crisp = Math.max(-10, Math.min(10, initial?.x ?? 0));
@@ -118,7 +126,11 @@ export function createInitialPalateState(initial?: {
 
   return {
     vector: { crisp, sweet, bitter, tannin, complexity },
-    covariance: diag(INITIAL_VARIANCES),
+    covariance: diag([
+      mapVariance(initial?.variance?.x, INITIAL_VARIANCES[0]),
+      mapVariance(initial?.variance?.y, INITIAL_VARIANCES[1]),
+      ...INITIAL_VARIANCES.slice(2),
+    ]),
     eventCount: 0,
     lastUpdate: new Date().toISOString(),
   };

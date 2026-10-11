@@ -66,6 +66,7 @@ function guestPrior(profile: UserProfile | null) {
     dislikesBitter: profile?.dislikesBitter ?? false,
     dislikesSmoke: profile?.dislikesSmoke ?? false,
     dislikesAnise: profile?.dislikesAnise ?? false,
+    variance: profile?.variance,
   });
 }
 

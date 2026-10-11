@@ -170,3 +170,17 @@ test('PalateState: each quiz aversion seeds the axis that penalises it', async (
   expect(updatePalateEKF(aniseAverse, anise, { hedonic: 5 }).kalmanGain[4]).not.toBe(0);
   expect(updatePalateEKF(aniseAverse, plain, { hedonic: 5 }).kalmanGain[4]).toBe(0);
 });
+
+test('PalateState: a confident quiz makes the first pour move the dot less', async () => {
+  const drink: Drink = { ...testDrink, x: 6, y: 6 };
+  const step = (variance?: { x: number; y: number }) => {
+    const prior = createInitialPalateState({ x: 0, y: 0, variance });
+    return Math.hypot(...Object.values(projectTo2D(applyPour(prior, drink, { hedonic: 9 }))));
+  };
+  // Profiles saved before the quiz kept its variance start at the default.
+  expect(step(undefined)).toBe(step({ x: 25, y: 25 }));
+  expect(step({ x: 4, y: 4 })).toBeLessThan(step({ x: 20, y: 20 }));
+
+  // Out-of-range values are clamped rather than trusted.
+  expect(getDiagonal(createInitialPalateState({ variance: { x: 0, y: 99 } }).covariance).slice(0, 2)).toEqual([1, 25]);
+});
