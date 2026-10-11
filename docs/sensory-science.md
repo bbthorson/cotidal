@@ -50,6 +50,8 @@ $$\Psi(I) = k \cdot I^n$$
 - For sucrose, the exponent is **expansive** ($n \approx 1.3 - 1.5$), meaning perceived sweetness grows faster than physical concentration.
 - For bitter compounds (e.g., gentian, quinine) and acids (citric, malic), the exponent is **linear or compressive** ($n \approx 1.0$).
 
+> **Not yet applied in code.** This section is background. The power law maps physical concentration to perceived intensity, and nothing in the app carries a concentration: drinks in `drinkDatabase` have map coordinates and flags, and ratings and gLMS intensities are already perceived. Its place is on the drink side, deriving a drink's position from the `stimulus` fields in `app.crystalcoupe.defs.json` (`residualSugarGpl`, `acidityPh`, `abv`, `astringencyIndex`) once those are populated, not inside the palate filter. Convert pH to an acid concentration before applying an exponent, and expect single-compound exponents to overstate a mixture.
+
 In untrained palates, sweetness centrally suppresses bitterness and sourness. Novices rely on sugar to mask astringency and ethanol burn. As expertise develops through exposure and cognitive chunking, consumers learn to analytically isolate molecular descriptors, acquiring hedonic affinity for unmasked bitters, high acidity, and tannic structures.
 
 ### 3.2 Mitigating the Self-Report Paradox
@@ -106,6 +108,16 @@ $$\mathbf{P}_{k|k-1} = \mathbf{P}_{k-1|k-1} + \mathbf{Q}$$
 **2. Measurement Residual & Jacobian**:
 $$\tilde{y}_k = z_k - h(\mathbf{\hat{x}}_{k|k-1}; \text{stimulus})$$
 $$\mathbf{H}_k = \left. \frac{\partial h}{\partial \mathbf{x}} \right|_{\mathbf{\hat{x}}_{k|k-1}}$$
+
+The measurement function predicts a 1–9 hedonic score from distance on the
+map, less a penalty for each tolerance the drink exceeds:
+$$h(\mathbf{x}) = 1 + 8 \cdot \operatorname{clamp}_{[0,1]}\!\left(1 - \frac{d}{28.28} - p_{\text{bitter}} - p_{\text{tannin}} - p_{\text{complexity}}\right)$$
+- $p_{\text{bitter}} = 0.25 \cdot (5 - \theta_{\text{bitter}})/5$ for a bitter drink when $\theta_{\text{bitter}} < 5$.
+- $p_{\text{tannin}} = 0.2 \cdot (4 - \theta_{\text{tannin}})/4$ for a smoky drink when $\theta_{\text{tannin}} < 4$.
+- $p_{\text{complexity}} = 0.2 \cdot (c - \theta_{\text{complexity}})/c$ when $\theta_{\text{complexity}} < c$, where the drink's demand $c = 2.5 + 2.5n$ and $n$ counts its smoke, anise and bitter flags.
+
+An axis that $h$ does not read has a zero Jacobian entry and so never learns;
+this is why each tolerance carries a penalty term.
 
 **3. Kalman Gain**:
 $$S_k = \mathbf{H}_k \mathbf{P}_{k|k-1} \mathbf{H}_k^T + R_k$$

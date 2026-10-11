@@ -1,10 +1,10 @@
 import type { QuestionOption } from './discovery-questions';
 import type { UserProfile } from '@/hooks/useDiscoveryQuiz';
-import { createInitialPalateState, type PalateState } from './palate-state';
 
 export interface AxisBelief {
-  mean: number;      // current estimate, bounded [-10, 10]
-  variance: number;  // uncertainty — starts at 25, converges toward 0
+  mean: number;       // current estimate, bounded [-10, 10]
+  variance: number;   // uncertainty — starts at 25, falls as answers agree
+  evidence: number[]; // where each answer placed the user on this axis
 }
 
 export interface FilterState {
@@ -21,15 +21,33 @@ export interface BeliefState {
 }
 
 const INITIAL_VARIANCE = 25;
-const COMPLETION_THRESHOLD = 3.5;
+
+// How far one answer places the user per unit of its authored nudge. The
+// strongest nudges in the bank (|d| = 4-5) place the user at the edge of the map.
+export const EVIDENCE_SCALE = 2.5;
+
+// Variance of a single answer as evidence of position.
+export const ANSWER_NOISE = 12;
+
+// How far answers typically disagree with the estimate (squared, in map
+// units), and how many answers' worth of weight that assumption carries
+// before the user's own answers take over. Tuned by simulation so reported
+// variance tracks actual squared error from the first answer.
+const TYPICAL_SCATTER = 40;
+const TYPICAL_SCATTER_WEIGHT = 2;
+
+// Stop once an axis is as certain as about six agreeing answers make it. With
+// the current bank, actual squared error levels off near 5 by then; asking
+// more buys little. Tuned by simulation against the real question bank.
+const COMPLETION_THRESHOLD = 6;
 const MIN_QUESTIONS = 4;
 export const MAX_QUESTIONS = 8;
 
 export function createInitialBelief(): BeliefState {
   return {
     axes: {
-      x: { mean: 0, variance: INITIAL_VARIANCE },
-      y: { mean: 0, variance: INITIAL_VARIANCE },
+      x: { mean: 0, variance: INITIAL_VARIANCE, evidence: [] },
+      y: { mean: 0, variance: INITIAL_VARIANCE, evidence: [] },
     },
     filters: {
       dislikesSmoke: null,
@@ -41,28 +59,54 @@ export function createInitialBelief(): BeliefState {
   };
 }
 
+/**
+ * Recomputes one axis from all of its evidence at once.
+ *
+ * The mean is the Gaussian posterior: a prior of 0 at INITIAL_VARIANCE and one
+ * observation per answer at ANSWER_NOISE, so the eighth answer moves the dot
+ * no more than the first. The posterior variance is then inflated by how far
+ * the answers disagree with it, so answers that contradict each other leave
+ * the axis uncertain rather than confidently centred. Working from the whole
+ * set rather than step by step makes the result independent of answer order.
+ */
+export function axisFromEvidence(evidence: number[]): AxisBelief {
+  const n = evidence.length;
+  if (n === 0) return { mean: 0, variance: INITIAL_VARIANCE, evidence: [] };
+
+  const precision = 1 / INITIAL_VARIANCE + n / ANSWER_NOISE;
+  const sum = evidence.reduce((a, z) => a + z, 0);
+  const mean = sum / ANSWER_NOISE / precision;
+
+  // One or two answers cannot disagree enough to show how much answers
+  // scatter, so the observed disagreement is pooled with a typical amount
+  // until enough answers arrive to speak for themselves.
+  const observed = evidence.reduce((a, z) => a + (z - mean) ** 2, 0);
+  const dispersion =
+    (TYPICAL_SCATTER * TYPICAL_SCATTER_WEIGHT + observed) / (TYPICAL_SCATTER_WEIGHT + n);
+  const variance = Math.min(
+    INITIAL_VARIANCE,
+    (1 / precision) * Math.max(1, dispersion / ANSWER_NOISE)
+  );
+
+  return {
+    mean: Math.max(-10, Math.min(10, mean)),
+    variance,
+    evidence: [...evidence],
+  };
+}
+
+function observe(axis: AxisBelief, nudge: number): AxisBelief {
+  if (nudge === 0) return axis;
+  const z = Math.max(-10, Math.min(10, nudge * EVIDENCE_SCALE));
+  return axisFromEvidence([...axis.evidence, z]);
+}
+
 export function updateBelief(state: BeliefState, option: QuestionOption): BeliefState {
-  const newAxes = { ...state.axes };
-
-  // Update x axis
-  if (option.dx !== 0) {
-    const prev = newAxes.x;
-    const shrink = Math.min(0.5, Math.abs(option.dx) / 8);
-    newAxes.x = {
-      mean: Math.max(-10, Math.min(10, prev.mean + option.dx)),
-      variance: prev.variance * (1 - shrink),
-    };
-  }
-
-  // Update y axis
-  if (option.dy !== 0) {
-    const prev = newAxes.y;
-    const shrink = Math.min(0.5, Math.abs(option.dy) / 8);
-    newAxes.y = {
-      mean: Math.max(-10, Math.min(10, prev.mean + option.dy)),
-      variance: prev.variance * (1 - shrink),
-    };
-  }
+  const newAxes = {
+    ...state.axes,
+    x: observe(state.axes.x, option.dx),
+    y: observe(state.axes.y, option.dy),
+  };
 
   // Update filters
   const newFilters = { ...state.filters };
@@ -154,21 +198,6 @@ export function beliefToProfile(state: BeliefState): UserProfile {
     dislikesBitter: state.filters.dislikesBitter ?? false,
     dislikesAnise: state.filters.dislikesAnise ?? false,
     vibeTags: state.vibeTags,
+    variance: { x: state.axes.x.variance, y: state.axes.y.variance },
   };
-}
-
-export function beliefToPalateState(state: BeliefState): PalateState {
-  const profile = beliefToProfile(state);
-  const palate = createInitialPalateState({
-    x: profile.x,
-    y: profile.y,
-    dislikesBitter: profile.dislikesBitter,
-  });
-  if (state.axes.x) {
-    palate.covariance[0][0] = Math.max(1.0, state.axes.x.variance);
-  }
-  if (state.axes.y) {
-    palate.covariance[1][1] = Math.max(1.0, state.axes.y.variance);
-  }
-  return palate;
 }

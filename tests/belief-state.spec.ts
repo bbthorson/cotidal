@@ -6,7 +6,7 @@ import {
   isComplete,
   getConfidenceProgress,
 } from '../src/lib/belief-state';
-import { questions } from '../src/lib/discovery-questions';
+import { questions, type QuestionOption } from '../src/lib/discovery-questions';
 
 /**
  * Coordinate and vibe-tag accumulation used to be checked by walking the UI,
@@ -86,4 +86,54 @@ test('Belief: Sommelier Triads apply repulsive vectors and resolve filters', asy
   belief = updateBelief(belief, option('triad_smoke_oak', 0));
   profile = beliefToProfile(belief);
   expect(profile.dislikesSmoke).toBe(true);
+});
+
+const nudge = (dx: number, dy = 0): QuestionOption => ({ text: `${dx},${dy}`, dx, dy });
+const answer = (opts: QuestionOption[]) => opts.reduce(updateBelief, createInitialBelief());
+
+test('Belief: agreeing answers build confidence, contradicting ones do not', async () => {
+  const agree = answer([nudge(4), nudge(4)]);
+  const contradict = answer([nudge(4), nudge(-4)]);
+
+  expect(agree.axes.x.variance).toBeLessThan(contradict.axes.x.variance);
+  // Two opposite answers say nothing reliable about where the user sits.
+  expect(contradict.axes.x.variance).toBeGreaterThanOrEqual(createInitialBelief().axes.x.variance);
+  expect(contradict.axes.x.mean).toBeCloseTo(0);
+});
+
+test('Belief: each further agreeing answer moves the dot less', async () => {
+  const steps: number[] = [];
+  let belief = createInitialBelief();
+  for (let i = 0; i < 4; i++) {
+    const before = belief.axes.x.mean;
+    belief = updateBelief(belief, nudge(3));
+    steps.push(belief.axes.x.mean - before);
+  }
+  for (let i = 1; i < steps.length; i++) expect(steps[i]).toBeLessThan(steps[i - 1]);
+  // A consistent run approaches its answers rather than pinning at the edge.
+  expect(belief.axes.x.mean).toBeLessThan(10);
+});
+
+test('Belief: the same answers in any order give the same belief', async () => {
+  const opts = [nudge(4, -2), nudge(-1, 3), nudge(2, 0), nudge(-3, 5)];
+  const forward = answer(opts);
+  const reversed = answer([...opts].reverse());
+  for (const axis of ['x', 'y'] as const) {
+    expect(reversed.axes[axis].mean).toBeCloseTo(forward.axes[axis].mean, 10);
+    expect(reversed.axes[axis].variance).toBeCloseTo(forward.axes[axis].variance, 10);
+  }
+});
+
+test('Belief: a nudge of zero leaves that axis untouched', async () => {
+  const belief = answer([nudge(0, 3)]);
+  expect(belief.axes.x).toEqual(createInitialBelief().axes.x);
+  expect(belief.axes.y.evidence).toHaveLength(1);
+});
+
+test('Belief: one answer does not claim to know more than it does', async () => {
+  // A single answer cannot disagree with anything, so its variance leans on
+  // how much answers typically scatter rather than reading as near-certain.
+  const one = answer([nudge(4)]);
+  expect(one.axes.x.variance).toBeGreaterThan(15);
+  expect(beliefToProfile(one).variance).toEqual({ x: one.axes.x.variance, y: one.axes.y.variance });
 });

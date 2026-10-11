@@ -96,6 +96,12 @@ export function regularizeCovariance(P: Matrix5x5): Matrix5x5 {
   return result;
 }
 
+// A quiz variance is trusted within [1, default]: below 1 one pour could never
+// move the dot, and above the default would claim to know less than nothing.
+function mapVariance(v: number | undefined, fallback: number): number {
+  return typeof v === 'number' && Number.isFinite(v) ? Math.max(1, Math.min(fallback, v)) : fallback;
+}
+
 /**
  * Initializes a new PalateState from initial quiz coordinates or defaults.
  */
@@ -103,17 +109,28 @@ export function createInitialPalateState(initial?: {
   x?: number;
   y?: number;
   dislikesBitter?: boolean;
+  dislikesSmoke?: boolean;
+  dislikesAnise?: boolean;
+  /** The quiz's variance on the two map axes; the default when absent. */
+  variance?: { x: number; y: number };
   phenotypes?: Phenotypes;
 }): PalateState {
   const crisp = Math.max(-10, Math.min(10, initial?.x ?? 0));
   const sweet = Math.max(-10, Math.min(10, initial?.y ?? 0));
+  // Each aversion seeds the axis that penalises it in predictHedonic. Smoke
+  // and bitterness have their own; anise has none, so it lowers complexity to
+  // what a plain drink asks for (complexityDemand with no layers).
   const bitter = initial?.dislikesBitter ? 2.0 : 5.0;
-  const tannin = 5.0;
-  const complexity = 4.0;
+  const tannin = initial?.dislikesSmoke ? 2.0 : 5.0;
+  const complexity = initial?.dislikesAnise ? 2.5 : 4.0;
 
   return {
     vector: { crisp, sweet, bitter, tannin, complexity },
-    covariance: diag(INITIAL_VARIANCES),
+    covariance: diag([
+      mapVariance(initial?.variance?.x, INITIAL_VARIANCES[0]),
+      mapVariance(initial?.variance?.y, INITIAL_VARIANCES[1]),
+      ...INITIAL_VARIANCES.slice(2),
+    ]),
     eventCount: 0,
     lastUpdate: new Date().toISOString(),
   };
@@ -210,6 +227,17 @@ export function normalizeObservation(
 }
 
 /**
+ * How much volatile discrimination a drink asks for, on the 0-10 scale of
+ * theta_complexity. Derived from the flags the drink already carries rather
+ * than stored, so the map stays the one place a drink is described: each of
+ * smoke, anise and bitterness is another layer to pick apart.
+ */
+export function complexityDemand(drink: Drink): number {
+  const layers = [drink.hasSmoke, drink.hasAnise, drink.isBitter].filter(Boolean).length;
+  return 2.5 + layers * 2.5;
+}
+
+/**
  * Evaluates the non-linear measurement function h(x) predicting expected hedonic response (1-9).
  */
 function predictHedonic(x: StateVector, drink: Drink): number {
@@ -232,7 +260,17 @@ function predictHedonic(x: StateVector, drink: Drink): number {
     tanninPenalty = ((4 - x.tannin) / 4) * 0.2;
   }
 
-  const affinity = Math.max(0, Math.min(1, baseMatch - bitterPenalty - tanninPenalty));
+  // Complexity penalty if the drink asks for more than the user discriminates
+  let complexityPenalty = 0;
+  const demand = complexityDemand(drink);
+  if (x.complexity < demand) {
+    complexityPenalty = ((demand - x.complexity) / demand) * 0.2;
+  }
+
+  const affinity = Math.max(
+    0,
+    Math.min(1, baseMatch - bitterPenalty - tanninPenalty - complexityPenalty)
+  );
   // Map 0..1 affinity to 1..9 hedonic scale
   return 1 + 8 * affinity;
 }

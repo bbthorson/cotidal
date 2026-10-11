@@ -60,7 +60,14 @@ function guestPrior(profile: UserProfile | null) {
   } catch {
     // Unreadable or blocked storage: start fresh.
   }
-  return createInitialPalateState({ x, y, dislikesBitter: profile?.dislikesBitter ?? false });
+  return createInitialPalateState({
+    x,
+    y,
+    dislikesBitter: profile?.dislikesBitter ?? false,
+    dislikesSmoke: profile?.dislikesSmoke ?? false,
+    dislikesAnise: profile?.dislikesAnise ?? false,
+    variance: profile?.variance,
+  });
 }
 
 /**

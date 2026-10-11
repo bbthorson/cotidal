@@ -64,16 +64,34 @@ the user.
 
 ### Psychophysical State & EKF — `src/lib/palate-state.ts`
 Models longitudinal taste preference drift via an Extended Kalman Filter (EKF).
-The 5D latent state vector ($\mathbf{x}_k \in \mathbb{R}^5$) tracks Rich-Crisp,
-Savory-Sweet, Acidity Sensitivity, Ethanol Tolerance, and Tannin Tolerance, accompanied
-by error covariance matrix ($\mathbf{P}_k$). Updates account for Stevens' Power Law,
-Sensory-Specific Satiety (SSS exponential volume decay), and circadian prandial
-ghrelin curves. Detailed psychophysics in `docs/sensory-science.md`.
+The 5D latent state vector ($\mathbf{x}_k \in \mathbb{R}^5$) is `StateVector`:
+Rich-Crisp, Savory-Sweet, Bitter Tolerance, Tannin Tolerance and Complexity,
+accompanied by error covariance matrix ($\mathbf{P}_k$). Observations are
+normalised for Sensory-Specific Satiety (SSS exponential volume decay) and
+prandial ghrelin before they reach the filter. Detailed psychophysics in
+`docs/sensory-science.md`; the order of the axes is also the order of
+`latentVector` in `app.crystalcoupe.palate.json`.
+
+An axis learns only if `predictHedonic` reads it — otherwise its Jacobian
+entry is zero and so is its gain. Every drink-side input to that function is
+derived from `Drink` (see `complexityDemand`), never stored alongside it.
+
+The dot on the map is not the filter's estimate: `applyPour` moves crisp/sweet
+by a capped, simpler rule and leaves the other three axes to the EKF.
 
 ### Elicitation — `belief-state.ts`, `question-selector.ts`, `useDiscoveryQuiz.ts`
-`belief-state` holds per-axis estimates and confidence; the selector picks the
-question that reduces the most uncertainty. **Only the first three questions
-are fixed** — never hard-code a path through the quiz in a test.
+`belief-state` holds per-axis estimates and confidence. Each answer is
+evidence of position (`EVIDENCE_SCALE` × its authored nudge), and an axis is
+recomputed from all its evidence at once, so the result does not depend on
+answer order and answers that disagree leave the axis uncertain. After the fixed
+openers, the selector asks the question with the most expected information
+about the user's position (`expectedGain`), plus `AVERSION_WEIGHT` per open
+aversion it could resolve. It does not score by expected drop in reported
+variance: that rewards questions whose likely answer agrees with the belief.
+**Only the first four questions (`CALIBRATION_IDS`) are fixed** — never
+hard-code a path through the quiz in a test. The quiz's x/y variance travels
+in `UserProfile.variance` and becomes the 5D starting covariance, so a
+confident quiz makes early pours move the dot less.
 `useBartenderChat` is entirely local canned copy, so the flow runs offline.
 What may call a model, and who sees the result, is `docs/generation.md`.
 

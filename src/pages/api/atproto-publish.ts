@@ -30,6 +30,7 @@ const ProfileSchema = z.object({
   dislikesBitter: z.boolean(),
   dislikesAnise: z.boolean(),
   vibeTags: z.record(z.string(), z.number()),
+  variance: z.object({ x: z.number().min(0), y: z.number().min(0) }).optional(),
 });
 
 export const POST: APIRoute = async ({ request }) => {
@@ -160,6 +161,8 @@ export const POST: APIRoute = async ({ request }) => {
             x: record.mapCoordinates.x,
             y: record.mapCoordinates.y,
             dislikesBitter: record.aversions.bitter,
+            dislikesSmoke: record.aversions.smoke,
+            dislikesAnise: record.aversions.anise,
           });
 
       const drink = drinkDatabase.find(d => d.name.toLowerCase() === drinkName.toLowerCase());
