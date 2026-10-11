@@ -103,13 +103,18 @@ export function createInitialPalateState(initial?: {
   x?: number;
   y?: number;
   dislikesBitter?: boolean;
+  dislikesSmoke?: boolean;
+  dislikesAnise?: boolean;
   phenotypes?: Phenotypes;
 }): PalateState {
   const crisp = Math.max(-10, Math.min(10, initial?.x ?? 0));
   const sweet = Math.max(-10, Math.min(10, initial?.y ?? 0));
+  // Each aversion seeds the axis that penalises it in predictHedonic. Smoke
+  // and bitterness have their own; anise has none, so it lowers complexity to
+  // what a plain drink asks for (complexityDemand with no layers).
   const bitter = initial?.dislikesBitter ? 2.0 : 5.0;
-  const tannin = 5.0;
-  const complexity = 4.0;
+  const tannin = initial?.dislikesSmoke ? 2.0 : 5.0;
+  const complexity = initial?.dislikesAnise ? 2.5 : 4.0;
 
   return {
     vector: { crisp, sweet, bitter, tannin, complexity },

@@ -155,3 +155,18 @@ test('PalateState: complexity learns from layered drinks and ignores plain ones'
   expect(plainPour.kalmanGain[4]).toBe(0);
   expect(plainPour.nextState.vector.complexity).toBe(before);
 });
+
+test('PalateState: each quiz aversion seeds the axis that penalises it', async () => {
+  const none = createInitialPalateState({ x: 0, y: 0 }).vector;
+  expect(createInitialPalateState({ dislikesBitter: true }).vector.bitter).toBeLessThan(none.bitter);
+  expect(createInitialPalateState({ dislikesSmoke: true }).vector.tannin).toBeLessThan(none.tannin);
+  expect(createInitialPalateState({ dislikesAnise: true }).vector.complexity).toBeLessThan(none.complexity);
+
+  // Someone who pushed anise away starts out penalised by an anise drink, and
+  // by nothing plain.
+  const aniseAverse = createInitialPalateState({ dislikesAnise: true });
+  const anise: Drink = { ...testDrink, x: 0, y: 0, hasAnise: true };
+  const plain: Drink = { ...testDrink, x: 0, y: 0 };
+  expect(updatePalateEKF(aniseAverse, anise, { hedonic: 5 }).kalmanGain[4]).not.toBe(0);
+  expect(updatePalateEKF(aniseAverse, plain, { hedonic: 5 }).kalmanGain[4]).toBe(0);
+});

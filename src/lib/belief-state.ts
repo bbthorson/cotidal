@@ -1,6 +1,5 @@
 import type { QuestionOption } from './discovery-questions';
 import type { UserProfile } from '@/hooks/useDiscoveryQuiz';
-import { createInitialPalateState, type PalateState } from './palate-state';
 
 export interface AxisBelief {
   mean: number;       // current estimate, bounded [-10, 10]
@@ -188,20 +187,4 @@ export function beliefToProfile(state: BeliefState): UserProfile {
     dislikesAnise: state.filters.dislikesAnise ?? false,
     vibeTags: state.vibeTags,
   };
-}
-
-export function beliefToPalateState(state: BeliefState): PalateState {
-  const profile = beliefToProfile(state);
-  const palate = createInitialPalateState({
-    x: profile.x,
-    y: profile.y,
-    dislikesBitter: profile.dislikesBitter,
-  });
-  if (state.axes.x) {
-    palate.covariance[0][0] = Math.max(1.0, state.axes.x.variance);
-  }
-  if (state.axes.y) {
-    palate.covariance[1][1] = Math.max(1.0, state.axes.y.variance);
-  }
-  return palate;
 }
