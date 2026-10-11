@@ -29,7 +29,6 @@ export interface Question {
   type?: 'narrative' | 'boolean' | 'image-grid' | 'triad';
   options: QuestionOption[];
   primaryAxis: 'x' | 'y';
-  informationGain: number;
   isAIGenerated?: boolean;
 }
 
@@ -58,7 +57,6 @@ export const questions: Question[] = [
     subtitle: "Tap the one you’d send back.",
     type: 'triad',
     primaryAxis: 'y',
-    informationGain: 8,
     options: [
       {
         text: "Sharp Citrus & Mineral",
@@ -92,7 +90,6 @@ export const questions: Question[] = [
     subtitle: "Tap the one you’d send back.",
     type: 'triad',
     primaryAxis: 'x',
-    informationGain: 8,
     options: [
       {
         text: "Alpine Roots & Dark Amaro",
@@ -129,7 +126,6 @@ export const questions: Question[] = [
     subtitle: "Tap the one you’d send back.",
     type: 'triad',
     primaryAxis: 'x',
-    informationGain: 8,
     options: [
       {
         text: "Charred Agave & Islay Peat",
@@ -166,7 +162,6 @@ export const questions: Question[] = [
     subtitle: "Tap the one you’d send back.",
     type: 'triad',
     primaryAxis: 'x',
-    informationGain: 7,
     options: [
       {
         text: "Undiluted & High-Proof",
@@ -202,7 +197,6 @@ export const questions: Question[] = [
     text: "How do you take your coffee?",
     subtitle: "Roast, acid, and how much sugar.",
     primaryAxis: 'x',
-    informationGain: 5,
     options: [
       {
         text: "Black or Espresso.",
@@ -228,7 +222,6 @@ export const questions: Question[] = [
     text: "Pick a finish to a perfect meal.",
     subtitle: "Something bright, or cocoa and cream.",
     primaryAxis: 'y',
-    informationGain: 8,
     options: [
       {
         text: "Lemon Tart (Zest)",
@@ -261,7 +254,6 @@ export const questions: Question[] = [
     text: "Do you enjoy the bite of Tonic water?",
     subtitle: "Botanical bitterness, gentian, and dry quinine",
     primaryAxis: 'y',
-    informationGain: 3,
     options: [
       {
         text: "Love the bite.",
@@ -289,7 +281,6 @@ export const questions: Question[] = [
     text: "Does the smell of a campfire allure you?",
     subtitle: "Peated Islay malts, mezcal embers, and charred wood",
     primaryAxis: 'y',
-    informationGain: 2,
     options: [
       {
         text: "Love it.",
@@ -318,7 +309,6 @@ export const questions: Question[] = [
     text: "Which flavor are you drawn to?",
     subtitle: "Alpine botanical licorice versus warm citrus peel",
     primaryAxis: 'y',
-    informationGain: 2,
     options: [
       {
         text: "Black Licorice (Anise)",
@@ -352,7 +342,6 @@ export const questions: Question[] = [
     text: "Fizzy or Still?",
     subtitle: "Aeration, highball carbonation, and liquid density",
     primaryAxis: 'x',
-    informationGain: 3,
     options: [
       {
         text: "Fizzy & Refreshing",
@@ -380,7 +369,6 @@ export const questions: Question[] = [
     text: "Shaken or Stirred?",
     subtitle: "How the liquid is chilled, diluted, and combined",
     primaryAxis: 'x',
-    informationGain: 4,
     options: [
       {
         text: "Shaken with vigor.",
@@ -408,7 +396,6 @@ export const questions: Question[] = [
     text: "What is your current climate vibe?",
     subtitle: "Thermal relief vs. inner hearth warmth",
     primaryAxis: 'x',
-    informationGain: 2,
     options: [
       {
         text: "Heatwave (Need ice)",
@@ -439,7 +426,6 @@ export const questions: Question[] = [
     text: "Choose your vessel.",
     subtitle: "Stemware keeps liquid cold; rocks glasses give tactile weight",
     primaryAxis: 'x',
-    informationGain: 1,
     options: [
       {
         text: "Stemmed & Elegant",
@@ -467,7 +453,6 @@ export const questions: Question[] = [
     text: "The finishing touch on the rim?",
     subtitle: "Aromatic perfume, mineral salinity, or naked unadorned spirit",
     primaryAxis: 'y',
-    informationGain: 3,
     options: [
       {
         text: "Expressed citrus twist.",
@@ -507,7 +492,6 @@ export const questions: Question[] = [
     text: "What is the pacing of your evening?",
     subtitle: "Setting the tempo of your glass",
     primaryAxis: 'x',
-    informationGain: 1,
     options: [
       {
         text: "Sipping slowly.",
@@ -535,7 +519,6 @@ export const questions: Question[] = [
     text: "What chapter of the evening is this?",
     subtitle: "The appetite-opening first drink vs. the final nightcap",
     primaryAxis: 'x',
-    informationGain: 3,
     options: [
       {
         text: "The Golden Hour (Aperitivo).",

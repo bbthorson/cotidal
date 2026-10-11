@@ -83,10 +83,11 @@ by a capped, simpler rule and leaves the other three axes to the EKF.
 `belief-state` holds per-axis estimates and confidence. Each answer is
 evidence of position (`EVIDENCE_SCALE` × its authored nudge), and an axis is
 recomputed from all its evidence at once, so the result does not depend on
-answer order and answers that disagree leave the axis uncertain. The selector
-targets the axis with the highest variance, then ranks by each question's
-hand-set `informationGain`; it does not yet compute expected uncertainty
-reduction. **Only the first four questions (`CALIBRATION_IDS`) are fixed** —
+answer order and answers that disagree leave the axis uncertain. After the fixed
+openers, the selector asks the question with the most expected information
+about the user's position (`expectedGain`), plus `AVERSION_WEIGHT` per open
+aversion it could resolve. It does not score by expected drop in reported
+variance: that rewards questions whose likely answer agrees with the belief. **Only the first four questions (`CALIBRATION_IDS`) are fixed** —
 never hard-code a path through the quiz in a test.
 `useBartenderChat` is entirely local canned copy, so the flow runs offline.
 What may call a model, and who sees the result, is `docs/generation.md`.

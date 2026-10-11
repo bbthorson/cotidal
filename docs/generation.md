@@ -15,7 +15,7 @@ It is the design.
 
 | Surface | Written by | Why |
 |---|---|---|
-| Quiz questions | `discovery-questions.ts` + `question-selector.ts` | The selector picks by uncertainty: the least certain axis first. A model would pick by vibe. |
+| Quiz questions | `discovery-questions.ts` + `question-selector.ts` | The selector picks by expected information about your position. A model would pick by vibe. |
 | Bartender reactions | `ENRICHED_FEEDBACK` in `conversation.ts` | Voice is brand. `docs/brand.md` governs it, not a system prompt. |
 | Quadrant names, marketing copy | `copy.ts`, `docs/brand.md` | One file to revise the voice in. |
 | Coordinate, scoring, ranking | `belief-state.ts`, `scoring.ts` | Reproducible. A taste map that moves when nothing changed is not a map. |

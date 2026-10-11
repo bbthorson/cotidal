@@ -24,10 +24,10 @@ const INITIAL_VARIANCE = 25;
 
 // How far one answer places the user per unit of its authored nudge. The
 // strongest nudges in the bank (|d| = 4-5) place the user at the edge of the map.
-const EVIDENCE_SCALE = 2.5;
+export const EVIDENCE_SCALE = 2.5;
 
 // Variance of a single answer as evidence of position.
-const ANSWER_NOISE = 12;
+export const ANSWER_NOISE = 12;
 
 // Stop once an axis is as certain as about six agreeing answers make it. With
 // the current bank, actual squared error levels off near 5 by then; asking
