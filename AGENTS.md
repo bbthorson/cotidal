@@ -86,11 +86,12 @@ recomputed from all its evidence at once, so the result does not depend on
 answer order and answers that disagree leave the axis uncertain. After the fixed
 openers, the selector asks the question with the most expected information
 about the user's position (`expectedGain`), plus `AVERSION_WEIGHT` per open
-aversion it could resolve. The quiz's x/y variance travels in
-`UserProfile.variance` and becomes the 5D starting covariance, so a confident
-quiz makes early pours move the dot less. It does not score by expected drop in reported
-variance: that rewards questions whose likely answer agrees with the belief. **Only the first four questions (`CALIBRATION_IDS`) are fixed** —
-never hard-code a path through the quiz in a test.
+aversion it could resolve. It does not score by expected drop in reported
+variance: that rewards questions whose likely answer agrees with the belief.
+**Only the first four questions (`CALIBRATION_IDS`) are fixed** — never
+hard-code a path through the quiz in a test. The quiz's x/y variance travels
+in `UserProfile.variance` and becomes the 5D starting covariance, so a
+confident quiz makes early pours move the dot less.
 `useBartenderChat` is entirely local canned copy, so the flow runs offline.
 What may call a model, and who sees the result, is `docs/generation.md`.
 
