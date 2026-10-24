@@ -2,6 +2,7 @@ import { questions, type Question, type QuestionCategory, type QuestionOption } 
 import {
   EVIDENCE_SCALE,
   ANSWER_NOISE,
+  PAIR_NOISE,
   type BeliefState,
   type FilterState,
 } from './belief-state';
@@ -77,9 +78,10 @@ export function expectedGain(belief: BeliefState, question: Question): number {
   };
   grid(0, { x: belief.axes.x.mean, y: belief.axes.y.mean }, 1);
 
+  const noise = question.type === 'pair' ? PAIR_NOISE : ANSWER_NOISE;
   const choice = (at: Record<Axis, number>) => {
     const logs = question.options.map((o) =>
-      used.reduce((sum, a) => sum - (evidenceFor(nudgeOn(o, a)) - at[a]) ** 2 / (2 * ANSWER_NOISE), 0)
+      used.reduce((sum, a) => sum - (evidenceFor(nudgeOn(o, a)) - at[a]) ** 2 / (2 * noise), 0)
     );
     const peak = Math.max(...logs);
     const w = logs.map((l) => Math.exp(l - peak));

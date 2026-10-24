@@ -6,7 +6,7 @@ import { publishPalate } from '@/lib/api-client';
 import {
   type BeliefState,
   createInitialBelief,
-  updateBelief,
+  answerQuestion,
   isComplete as beliefIsComplete,
   getConfidenceProgress,
   beliefToProfile,
@@ -141,7 +141,7 @@ export function useDiscoveryQuiz(onComplete: (profile: UserProfile) => void) {
     answeredIdsRef.current.add(currentQuestion.id);
     setAnsweredIdsState(new Set(answeredIdsRef.current));
 
-    const newBelief = updateBelief(belief, option);
+    const newBelief = answerQuestion(belief, currentQuestion, option);
 
     // Check if quiz is complete
     if (beliefIsComplete(newBelief)) {

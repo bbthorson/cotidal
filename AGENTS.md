@@ -89,7 +89,13 @@ about the user's position (`expectedGain`), plus `AVERSION_WEIGHT` per open
 aversion it could resolve. It does not score by expected drop in reported
 variance: that rewards questions whose likely answer agrees with the belief.
 **Only the first four questions (`CALIBRATION_IDS`) are fixed** — never
-hard-code a path through the quiz in a test. The quiz's x/y variance travels
+hard-code a path through the quiz in a test.
+A `pair` question is two options on one axis, and its answer goes through
+`answerQuestion` as a comparison — a logistic boundary at the pair's midpoint,
+the likelihood the selector's response model already implies — not as a
+position. `PAIR_NOISE` equals `ANSWER_NOISE` until data says comparative
+answers are steadier; by simulation that is what decides whether pairs earn
+their place (2D RMSE 3.31 → 3.28 at equal noise, → 2.93 at a quarter). The quiz's x/y variance travels
 in `UserProfile.variance` and becomes the 5D starting covariance, so a
 confident quiz makes early pours move the dot less.
 `useBartenderChat` is entirely local canned copy, so the flow runs offline.
@@ -204,9 +210,11 @@ interface; see `docs/brand.md`.
    only recurring behaviour in the product and has no front door.
 7. **Venue claim and menu publishing.** Handle-as-domain makes claiming and
    publishing the same act; the lexicons exist and nothing renders them.
-8. **Rework elicitation.** Swipes for breadth, forced-choice pairs for
-   precision, the 9-point hedonic for post-drink feedback. Never swipe on
-   drink *names* — that measures familiarity, not taste.
+8. **Rework elicitation.** Forced-choice pairs for precision *(landed; see
+   Elicitation)* and the 9-point hedonic for post-drink feedback *(landed in
+   `PourForm`)*. Still to do: swipes for breadth, and calibrating
+   `PAIR_NOISE` from pours. Never swipe on drink *names* — that measures
+   familiarity, not taste.
 9. **The Overlap.** First step shipped: `/p/<handle>` draws a coordinate at
    a public URL and, for a signed-in visitor, theirs beside it with the
    distance and three drinks (`src/lib/overlap.ts`). Next: two people in the
