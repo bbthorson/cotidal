@@ -139,6 +139,14 @@ at a public URL, openable by a friend against their own. Two dots and the
 distance between them. No graph traversal, no feed, no follows — and it tests
 whether the instinct is right before any of that is built.
 
+**Built:** `/p/<handle>` (or `/p/<did>`). It works cold — a stranger sees the
+dot, the region and the nearest drinks, then a way to find their own — so it
+is a destination, not a gated action. A signed-in visitor with a palate gets
+their dot beside it, the distance in words, and three drinks that lead with
+disagreement: one they'd order and you wouldn't, one the reverse, then one
+you'd both order. "Share to your feed" links here by DID, because a handle
+can change and a post is never rewritten.
+
 ## Not a route
 
 **"Understand the social value."** A page whose job is to argue that the

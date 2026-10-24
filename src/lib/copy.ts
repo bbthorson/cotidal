@@ -468,6 +468,56 @@ export const venuesCopy = {
     'Historical sightings and canonical specs awaiting domain reconciliation. When a venue proves its domain handle, its sightings light up retroactively.',
 } as const;
 
+/**
+ * `/p/<handle>` — someone's coordinate at a public URL, and, for a signed-in
+ * visitor, theirs beside it. Two dots and the distance between them.
+ */
+export const publicMap = {
+  eyebrow: 'A coordinate',
+  title: (name: string) => `@${name}`,
+  lands: 'Lands in',
+  pours: (n: number) => (n === 1 ? 'Moved by 1 pour' : `Moved by ${n} pours`),
+  quizOnly: 'From the questions alone',
+  them: 'Them',
+  you: 'You',
+  distanceLabel: 'Between you',
+  theirsLabel: 'They’d order, you wouldn’t',
+  yoursLabel: 'You’d order, they wouldn’t',
+  sharedLabel: 'One you’d both order',
+  nearLabel: 'Close to this coordinate',
+  selfNote:
+    'This is your public map. The palate record behind it already lives in your own repository; this page only draws it.',
+  linkLabel: 'Your link',
+  guestTitle: 'Where do you land?',
+  guestBody: 'Find your own coordinate, then sign in and open this link again to see the distance between you.',
+  guestCta: 'Find your coordinate',
+  memberNoPalateBody: 'Finish the questions and your coordinate will sit beside theirs here.',
+  noPalateTitle: 'No coordinate here yet.',
+  noPalateBody: 'This account exists, but it has not published a palate.',
+  notFoundTitle: 'Nobody by that name.',
+  notFoundBody: 'That handle does not resolve to an account.',
+  unavailableTitle: 'The record did not answer.',
+  unavailableBody: 'Their server did not respond in time. Try again in a moment.',
+  description: (name: string, region: string) => `@${name}’s palate lands in ${region}. Where does yours?`,
+  readEntry: 'Read the entry',
+  memberLink: 'Your public map',
+  axes: { rich: 'Rich', crisp: 'Crisp', sweet: 'Sweet', savory: 'Savory' },
+  plotLabel: (who: string) => `${who} on the palate map`,
+} as const;
+
+/**
+ * What a distance between two coordinates reads as. `under` is exclusive and
+ * the list is ascending; the map's diagonal is about 28.3, so the last band
+ * catches everything.
+ */
+export const distanceBands = [
+  { under: 2, text: 'Practically the same glass.' },
+  { under: 5, text: 'Neighbours. You’d trade sips.' },
+  { under: 9, text: 'Same bar, different stools.' },
+  { under: 14, text: 'Across the room from each other.' },
+  { under: Infinity, text: 'Opposite ends of the map.' },
+] as const;
+
 export const footer = {
   note: 'Built on the AT Protocol.',
   drinkResponsibly: 'Please drink responsibly.',

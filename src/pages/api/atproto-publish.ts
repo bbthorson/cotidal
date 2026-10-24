@@ -14,6 +14,7 @@ import { drinkDatabase } from '@/lib/data';
 import type { PalateRecord } from '@/lib/atproto/records';
 import type { LogDrinkOptions } from '@/lib/api-client';
 import { oauthSession } from '@/lib/atproto/session';
+import { publicMapPath } from '@/lib/atproto/paths';
 import {
   fromDynamicRecord,
   toDynamicRecord,
@@ -106,8 +107,17 @@ export const POST: APIRoute = async ({ request }) => {
     if (!topDrink || topDrink.length > 100) return new Response(JSON.stringify({ success: false, error: 'Invalid drink name' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
     if (!quadrant || quadrant.length > 50) return new Response(JSON.stringify({ success: false, error: 'Invalid quadrant' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
 
+    // The post links to the sharer's public map, by DID: a handle can change
+    // and a post is never rewritten, so the link has to outlive the handle.
+    let mapUrl: string;
     try {
-      const result = await shareToFeed(session, topDrink, quadrant, appUrl);
+      mapUrl = new URL(publicMapPath(session.did), appUrl).toString();
+    } catch {
+      return new Response(JSON.stringify({ success: false, error: 'Invalid app URL' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+    }
+
+    try {
+      const result = await shareToFeed(session, topDrink, quadrant, mapUrl);
       return new Response(JSON.stringify({ success: true, uri: result.uri }), { status: 200, headers: { 'Content-Type': 'application/json' } });
     } catch (e) {
       console.error('Failed to share to feed:', e);

@@ -6,8 +6,8 @@ is about the code.
 
 ## Rendering: keep the front door static
 
-`/` is pure Astro with **zero client JavaScript**. `/taste` is the only route
-that mounts a React island.
+`/` is pure Astro with **zero client JavaScript**, and so is `/p/<handle>`
+(a link sent to a stranger). `/taste` and `/log` mount React islands.
 
 The whole app was previously one `client:only` island, so nothing painted
 until ~860 KB of JavaScript had downloaded and hydrated — on every route,
@@ -148,6 +148,14 @@ so it needs neither `@atproto/oauth-client-node` nor its undici-based handle
 resolver, which threw in the constructor on workerd. In development open the
 app at `http://127.0.0.1:9002`, not `localhost`.
 
+`public-read.ts` reads *other people's* palates with no session, for
+`/p/<handle>` — handle → DID → document → PDS → record. It runs on a public
+route, so it fetches only `https:` hosts, time-boxes every lookup, and parses
+the record down to the fields the page draws. Its unit tests use a fake
+`fetch`; the route tests use a reserved TLD (`nobody.invalid`), which is
+refused before any network call. `publicMapPath` lives in `paths.ts` because
+the island links to it and must not import the server package.
+
 Records are signed by their authors and **never rewritten**. Reconciling an
 unclaimed reference to a later account is the app view's job.
 
@@ -199,8 +207,10 @@ interface; see `docs/brand.md`.
 8. **Rework elicitation.** Swipes for breadth, forced-choice pairs for
    precision, the 9-point hedonic for post-drink feedback. Never swipe on
    drink *names* — that measures familiarity, not taste.
-9. **The Overlap.** Two people in the same bar, conversation starters from
-   what their maps share. Discovery comes from the user's existing follow
+9. **The Overlap.** First step shipped: `/p/<handle>` draws a coordinate at
+   a public URL and, for a signed-in visitor, theirs beside it with the
+   distance and three drinks (`src/lib/overlap.ts`). Next: two people in the
+   same bar, conversation starters from what their maps share. Discovery comes from the user's existing follow
    graph, not a second one built here. Surface only the intersection; lead
    with disagreement about drinks.
 

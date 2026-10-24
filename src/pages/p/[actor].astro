@@ -1,0 +1,250 @@
+---
+import AppShell from '../../layouts/AppShell.astro';
+import PageTitle from '../../components/marketing/PageTitle.astro';
+import PalatePlot from '../../components/marketing/PalatePlot.astro';
+import { site, publicMap } from '../../lib/copy';
+import { formatCoordinate } from '../../lib/coordinate';
+import { quadrantFor } from '../../lib/quadrant';
+import { readPublicPalate } from '../../lib/atproto/public-read';
+import { publicMapPath } from '../../lib/atproto/paths';
+import { oauthSession } from '../../lib/atproto/session';
+import { getPalateProfile } from '../../lib/atproto/publish';
+import { compareMaps, nearestDrinks, type MapPoint } from '../../lib/overlap';
+import { loadRegister } from '../../lib/register.server';
+import type { Drink } from '../../lib/data';
+
+/**
+ * Someone's coordinate at a public URL: `/p/<handle>` or `/p/<did>`.
+ *
+ * The record is public in its author's repository, so the page needs no
+ * permission to draw it — only the lookups in `public-read.ts`. A signed-in
+ * visitor with a palate of their own gets their dot beside it and the
+ * distance between: two dots, no feed, no follows (docs/routes.md, Friends).
+ *
+ * Server-rendered with no island, like `/`: a link sent to a stranger paints
+ * before anything could hydrate.
+ */
+
+export const prerender = false;
+
+const result = await readPublicPalate(Astro.params.actor ?? '');
+
+const session = result.status === 'ok' ? await oauthSession(Astro.request) : null;
+const isSelf = !!session && result.status === 'ok' && session.did === result.actor.did;
+const viewerRecord = session && !isSelf ? await getPalateProfile(session) : null;
+
+const subject: MapPoint | null =
+  result.status === 'ok'
+    ? { x: result.palate.x, y: result.palate.y, aversions: result.palate.aversions }
+    : null;
+const viewer: MapPoint | null = viewerRecord?.mapCoordinates
+  ? {
+      x: viewerRecord.mapCoordinates.x,
+      y: viewerRecord.mapCoordinates.y,
+      aversions: {
+        smoke: !!viewerRecord.aversions?.smoke,
+        bitter: !!viewerRecord.aversions?.bitter,
+        anise: !!viewerRecord.aversions?.anise,
+      },
+    }
+  : null;
+
+const overlap = subject && viewer ? compareMaps(subject, viewer) : null;
+const near = subject && !overlap ? nearestDrinks(subject) : [];
+const register = subject ? await loadRegister() : {};
+const entryHref = (drink: Drink) => {
+  const entry = register[drink.name];
+  return entry ? `/drinks/${entry.slug}` : null;
+};
+const titleFor = (drink: Drink) => register[drink.name]?.title ?? drink.name;
+
+const name =
+  result.status === 'ok' || result.status === 'no-palate'
+    ? (result.actor.handle ?? result.actor.did)
+    : result.status === 'unavailable' && result.actor
+      ? (result.actor.handle ?? result.actor.did)
+      : null;
+
+const region = subject ? quadrantFor(subject.x, subject.y) : null;
+
+// Canonical by handle when it is verified; a DID link still works and
+// is what the feed share uses, because a handle can change and a post cannot.
+const selfLink =
+  isSelf && result.status === 'ok'
+    ? new URL(publicMapPath(result.actor.handle ?? result.actor.did), Astro.url).toString()
+    : null;
+
+if (result.status === 'invalid' || result.status === 'not-found') {
+  Astro.response.status = 404;
+} else if (result.status === 'no-palate') {
+  Astro.response.status = 404;
+} else if (result.status === 'unavailable') {
+  Astro.response.status = 503;
+  Astro.response.headers.set('Retry-After', '30');
+}
+
+// A page with the visitor's own dot on it is theirs alone; the bare map is
+// the same for everyone and may be cached briefly at the edge.
+Astro.response.headers.set(
+  'Cache-Control',
+  session ? 'private, no-store' : 'public, max-age=60, s-maxage=300'
+);
+
+const pageTitle = name ? `${publicMap.title(name)} · ${site.name}` : site.name;
+const description = name && region ? publicMap.description(name, region.name) : site.description;
+
+const marks = subject
+  ? [
+      { x: subject.x, y: subject.y, label: isSelf ? publicMap.you : publicMap.them, tone: 'primary' as const },
+      ...(viewer ? [{ x: viewer.x, y: viewer.y, label: publicMap.you, tone: 'secondary' as const }] : []),
+    ]
+  : [];
+
+const pairs: { label: string; drink: Drink }[] = overlap
+  ? [
+      { label: publicMap.theirsLabel, drink: overlap.theirs },
+      { label: publicMap.yoursLabel, drink: overlap.yours },
+      { label: publicMap.sharedLabel, drink: overlap.shared },
+    ].flatMap(({ label, drink }) => (drink ? [{ label, drink }] : []))
+  : [];
+
+const ctaClass =
+  'inline-flex min-h-13 w-full items-center justify-center border border-foreground bg-secondary px-8 font-condensed text-sm font-bold uppercase tracking-label text-secondary-foreground transition-colors hover:bg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background';
+---
+
+<AppShell title={pageTitle} description={description} currentPath="/p" width="standard">
+  {result.status === 'ok' && subject && region && name ? (
+    <article class="space-y-12" data-testid="public-map">
+      <PageTitle title={publicMap.title(name)} lede={region.gloss} ruled>
+        <div slot="eyebrow" class="flex items-center justify-center gap-2">
+          <span class="label-caps text-secondary">{publicMap.lands}</span>
+          <a
+            href={`/regions/${region.id}`}
+            class="label-caps border border-border px-2.5 py-0.5 text-primary transition-colors hover:border-primary"
+          >
+            {region.name}
+          </a>
+        </div>
+      </PageTitle>
+
+      <PalatePlot marks={marks} title={publicMap.plotLabel(publicMap.title(name))} />
+
+      <dl class="mx-auto grid max-w-md grid-cols-2 gap-x-6 gap-y-1 border-y border-border py-3 text-meta">
+        <dt class="label-caps text-muted-foreground">{isSelf ? publicMap.you : publicMap.them}</dt>
+        <dd class="text-right font-condensed tabular-nums text-foreground">
+          {formatCoordinate(subject.x, subject.y)}
+        </dd>
+        <dd class="col-span-2 pb-1 text-muted-foreground">
+          {result.palate.pours ? publicMap.pours(result.palate.pours) : publicMap.quizOnly}
+        </dd>
+        {viewer && (
+          <>
+            <dt class="label-caps text-muted-foreground">{publicMap.you}</dt>
+            <dd class="text-right font-condensed tabular-nums text-foreground">
+              {formatCoordinate(viewer.x, viewer.y)}
+            </dd>
+          </>
+        )}
+      </dl>
+
+      {overlap && (
+        <section class="space-y-6" data-testid="overlap">
+          <div class="text-center">
+            <span class="label-caps text-muted-foreground">{publicMap.distanceLabel}</span>
+            <p class="mt-1 font-serif text-title font-bold text-foreground">{overlap.description}</p>
+            <p class="mt-1 font-condensed text-meta tabular-nums text-muted-foreground">
+              {overlap.distance.toFixed(1)}
+            </p>
+          </div>
+          <ul class="divide-y divide-border border-y border-foreground">
+            {pairs.map(({ label, drink }) => {
+              const href = entryHref(drink);
+              return (
+                <li class="dot-leader py-3">
+                  <span class="label-caps text-muted-foreground">{label}</span>
+                  <span class="leader" aria-hidden="true" />
+                  {href ? (
+                    <a href={href} class="font-serif text-plate font-bold text-foreground transition-colors hover:text-primary">
+                      {titleFor(drink)}
+                    </a>
+                  ) : (
+                    <span class="font-serif text-plate font-bold text-foreground">{titleFor(drink)}</span>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      )}
+
+      {near.length > 0 && (
+        <section class="space-y-3">
+          <h2 class="label-caps border-b border-foreground pb-2 text-foreground">{publicMap.nearLabel}</h2>
+          <ul class="divide-y divide-border">
+            {near.map((drink) => {
+              const href = entryHref(drink);
+              return (
+                <li class="py-3">
+                  {href ? (
+                    <a href={href} class="font-serif text-plate font-bold text-foreground transition-colors hover:text-primary">
+                      {titleFor(drink)}
+                    </a>
+                  ) : (
+                    <span class="font-serif text-plate font-bold text-foreground">{titleFor(drink)}</span>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      )}
+
+      {isSelf && selfLink && (
+        <section class="space-y-2 border-l-2 border-primary pl-4">
+          <p class="font-serif text-ui italic text-foreground">{publicMap.selfNote}</p>
+          <label class="block">
+            <span class="label-caps text-muted-foreground">{publicMap.linkLabel}</span>
+            <input
+              type="text"
+              readonly
+              value={selfLink}
+              class="mt-1 w-full rounded-sm border border-border bg-card p-2.5 font-condensed text-meta text-foreground focus:border-primary focus:outline-none"
+            />
+          </label>
+        </section>
+      )}
+
+      {!isSelf && !viewer && (
+        <section class="mx-auto max-w-sm space-y-3 text-center" data-testid="public-map-cta">
+          <h2 class="font-serif text-plate font-bold text-foreground">{publicMap.guestTitle}</h2>
+          <p class="text-ui text-muted-foreground">
+            {session ? publicMap.memberNoPalateBody : publicMap.guestBody}
+          </p>
+          <a href="/taste" class={ctaClass}>{publicMap.guestCta}</a>
+        </section>
+      )}
+    </article>
+  ) : (
+    <article class="space-y-8 py-12 text-center" data-testid="public-map-empty">
+      <PageTitle
+        title={
+          result.status === 'no-palate'
+            ? publicMap.noPalateTitle
+            : result.status === 'unavailable'
+              ? publicMap.unavailableTitle
+              : publicMap.notFoundTitle
+        }
+        lede={
+          result.status === 'no-palate'
+            ? publicMap.noPalateBody
+            : result.status === 'unavailable'
+              ? publicMap.unavailableBody
+              : publicMap.notFoundBody
+        }
+      />
+      <div class="mx-auto max-w-sm">
+        <a href="/taste" class={ctaClass}>{publicMap.guestCta}</a>
+      </div>
+    </article>
+  )}
+</AppShell>
