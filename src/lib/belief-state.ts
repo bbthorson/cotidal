@@ -51,7 +51,7 @@ export interface Answer {
  * which was taken. Unlike `answers` this keeps every question, including
  * ones that carry no position, and the raw nudges rather than where the
  * current EVIDENCE_SCALE puts them — it is what gets logged
- * (app.crystalcoupe.elicitation) so the model can be re-fitted later.
+ * (app.cotidal.elicitation) so the model can be re-fitted later.
  */
 export interface QuizResponse {
   questionId: string;

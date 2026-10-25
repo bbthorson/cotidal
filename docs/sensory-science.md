@@ -1,6 +1,6 @@
 # Sensory Science and Psychophysical Preference Modeling
 
-The scientific foundation, chemosensory mechanics, and recursive state mathematics underlying The Crystal Coupe's preference engine.
+The scientific foundation, chemosensory mechanics, and recursive state mathematics underlying Cotidal's preference engine.
 
 ---
 
@@ -15,7 +15,7 @@ To model taste evolution mathematically, physical beverage stimuli are mapped vi
 2. **Structural & Tactile Intensity**: Rheological and somatosensory mouthfeel properties: viscosity, carbonation effervescence, astringency, and ethanol thermal irritation.
 3. **Retronasal Volatile Complexity**: Volatile Organic Compound (VOC) profiles categorized by olfactory receptors (esters, terpenes, aldehydes, phenols), moving from broad flavor categories to discrete molecular descriptors.
 
-The Crystal Coupe projects this space onto a two-dimensional user-facing coordinate system:
+Cotidal projects this space onto a two-dimensional user-facing coordinate system:
 - **$x \in [-10, 10]$**: Rich ($-10$) $\longleftrightarrow$ Crisp ($+10$) (Structural / Tactile axis)
 - **$y \in [-10, 10]$**: Savory ($-10$) $\longleftrightarrow$ Sweet ($+10$) (Valence axis)
 
@@ -50,12 +50,12 @@ $$\Psi(I) = k \cdot I^n$$
 - For sucrose, the exponent is **expansive** ($n \approx 1.3 - 1.5$), meaning perceived sweetness grows faster than physical concentration.
 - For bitter compounds (e.g., gentian, quinine) and acids (citric, malic), the exponent is **linear or compressive** ($n \approx 1.0$).
 
-> **Not yet applied in code.** This section is background. The power law maps physical concentration to perceived intensity, and nothing in the app carries a concentration: drinks in `drinkDatabase` have map coordinates and flags, and ratings and gLMS intensities are already perceived. Its place is on the drink side, deriving a drink's position from the `stimulus` fields in `app.crystalcoupe.defs.json` (`residualSugarGpl`, `acidityPh`, `abv`, `astringencyIndex`) once those are populated, not inside the palate filter. Convert pH to an acid concentration before applying an exponent, and expect single-compound exponents to overstate a mixture.
+> **Not yet applied in code.** This section is background. The power law maps physical concentration to perceived intensity, and nothing in the app carries a concentration: drinks in `drinkDatabase` have map coordinates and flags, and ratings and gLMS intensities are already perceived. Its place is on the drink side, deriving a drink's position from the `stimulus` fields in `app.cotidal.defs.json` (`residualSugarGpl`, `acidityPh`, `abv`, `astringencyIndex`) once those are populated, not inside the palate filter. Convert pH to an acid concentration before applying an exponent, and expect single-compound exponents to overstate a mixture.
 
 In untrained palates, sweetness centrally suppresses bitterness and sourness. Novices rely on sugar to mask astringency and ethanol burn. As expertise develops through exposure and cognitive chunking, consumers learn to analytically isolate molecular descriptors, acquiring hedonic affinity for unmasked bitters, high acidity, and tannic structures.
 
 ### 3.2 Mitigating the Self-Report Paradox
-Consumers frequently suffer from aspirational bias—claiming to prefer dry, bitter, or challenging drinks to signal sophistication. The Crystal Coupe bypasses this paradox by strictly decoupling:
+Consumers frequently suffer from aspirational bias—claiming to prefer dry, bitter, or challenging drinks to signal sophistication. Cotidal bypasses this paradox by strictly decoupling:
 1. **Objective Identification**: Captured via **Check-All-That-Apply (CATA)** arrays (binary verification of detected volatile notes without valence attachment).
 2. **Subjective Valuation**: Captured via continuous **gLMS** hedonic and intensity scales.
 
@@ -77,7 +77,7 @@ Ghrelin, the orexigenic peptide released during fasting, amplifies both the perc
 
 ## 5. Dynamic State Modeling: The Extended Kalman Filter
 
-To track longitudinal preference evolution across decentralized repositories, The Crystal Coupe implements an **Extended Kalman Filter (EKF)**.
+To track longitudinal preference evolution across decentralized repositories, Cotidal implements an **Extended Kalman Filter (EKF)**.
 
 ### 5.1 Latent State Vector $\mathbf{x}_k \in \mathbb{R}^5$
 $$\mathbf{x}_k = \begin{bmatrix} 

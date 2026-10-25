@@ -1,6 +1,6 @@
 # Design System Specification & Enforcement
 
-This document specifies the design system of **The Crystal Coupe** and details the technical enforcement mechanisms that prevent drift.
+This document specifies the design system of **Cotidal** and details the technical enforcement mechanisms that prevent drift.
 
 ---
 

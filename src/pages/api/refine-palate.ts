@@ -124,7 +124,7 @@ export const POST: APIRoute = async ({ request }) => {
 
   // 3. Model call
   try {
-    const systemPrompt = `You are the master sensory calibrator for The Crystal Coupe cocktail catalog.
+    const systemPrompt = `You are the master sensory calibrator for the Cotidal cocktail catalog.
 A member has submitted freeform taste notes, quirks, and dealbreakers.
 Evaluate how the user's notes adjust their coordinate:
 - deltaX: integer between -3 and +3 (negative pulls toward Rich/barrel/viscous, positive pulls toward Crisp/acid/carbonation).

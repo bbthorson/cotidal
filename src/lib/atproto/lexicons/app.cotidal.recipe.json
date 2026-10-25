@@ -1,6 +1,6 @@
 {
   "lexicon": 1,
-  "id": "app.crystalcoupe.recipe",
+  "id": "app.cotidal.recipe",
   "defs": {
     "main": {
       "type": "record",
@@ -41,11 +41,11 @@
             "type": "array",
             "description": "Who designed it. An adapter should credit the original author.",
             "maxLength": 10,
-            "items": { "type": "ref", "ref": "app.crystalcoupe.defs#credit" }
+            "items": { "type": "ref", "ref": "app.cotidal.defs#credit" }
           },
           "adaptedFrom": {
             "type": "ref",
-            "ref": "app.crystalcoupe.defs#entityRef",
+            "ref": "app.cotidal.defs#entityRef",
             "description": "The spec this riffs on, so lineage stays visible."
           },
           "coordinates": {
@@ -55,7 +55,7 @@
           },
           "stimulus": {
             "type": "ref",
-            "ref": "app.crystalcoupe.defs#stimulus",
+            "ref": "app.cotidal.defs#stimulus",
             "description": "Objective physiochemical and chemometric profile of this spec."
           },
           "createdAt": { "type": "string", "format": "datetime" },

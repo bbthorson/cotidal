@@ -1,6 +1,6 @@
 {
   "lexicon": 1,
-  "id": "app.crystalcoupe.menu",
+  "id": "app.cotidal.menu",
   "defs": {
     "main": {
       "type": "record",
@@ -12,7 +12,7 @@
         "properties": {
           "venue": {
             "type": "ref",
-            "ref": "app.crystalcoupe.defs#venueRef"
+            "ref": "app.cotidal.defs#venueRef"
           },
           "title": {
             "type": "string",
@@ -43,7 +43,7 @@
           },
           "document": {
             "type": "ref",
-            "ref": "app.crystalcoupe.defs#entityRef",
+            "ref": "app.cotidal.defs#entityRef",
             "description": "Pointer to the corresponding site.standard.document record if this menu is published as a Standard.site document."
           },
           "createdAt": { "type": "string", "format": "datetime" }
@@ -70,18 +70,18 @@
       "type": "object",
       "required": ["drink"],
       "properties": {
-        "drink": { "type": "ref", "ref": "app.crystalcoupe.defs#drinkRef" },
+        "drink": { "type": "ref", "ref": "app.cotidal.defs#drinkRef" },
         "description": {
           "type": "string",
           "description": "The menu's own words. Kept verbatim: it is the best signal for matching a house name to a flavour profile.",
           "maxLength": 1000,
           "maxGraphemes": 500
         },
-        "price": { "type": "ref", "ref": "app.crystalcoupe.defs#price" },
+        "price": { "type": "ref", "ref": "app.cotidal.defs#price" },
         "credits": {
           "type": "array",
           "maxLength": 10,
-          "items": { "type": "ref", "ref": "app.crystalcoupe.defs#credit" }
+          "items": { "type": "ref", "ref": "app.cotidal.defs#credit" }
         }
       }
     },

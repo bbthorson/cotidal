@@ -8,8 +8,7 @@
  */
 
 export const site = {
-  name: 'The Crystal Coupe',
-  mark: 'CC',
+  name: 'Cotidal',
   tagline: 'Every palate has a coordinate.',
   description:
     'Find the coordinate your taste actually sits on, and what to order once you know it.',
@@ -285,7 +284,7 @@ export const returnVisit = {
 /**
  * The one pour form and the one ledger, shared by the Log tab in /taste and
  * the return visit at /log. Ratings are the 9-point hedonic scale the pour
- * record stores (app.crystalcoupe.pour), so what you tap is what is written.
+ * record stores (app.cotidal.pour), so what you tap is what is written.
  */
 export const pour = {
   drinkLabel: 'What you’re drinking',
@@ -433,7 +432,7 @@ export const venuesCopy = {
     features: [
       'Handle-as-domain claim (attaboy.nyc)',
       'Canonical AT Protocol menu publishing',
-      'Directory listing on Crystal Coupe search',
+      'Directory listing on Cotidal search',
       'Patron sighting & pour aggregation ledger',
       'Recipe attribution & author credits',
     ],

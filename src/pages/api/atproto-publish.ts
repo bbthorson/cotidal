@@ -117,7 +117,7 @@ export const POST: APIRoute = async ({ request }) => {
   if (body.action === 'sharePalateToFeed') {
     const topDrink = body.topDrink as string;
     const quadrant = body.quadrant as string;
-    const appUrl = (body.appUrl as string) || 'https://crystalcoupe.app';
+    const appUrl = (body.appUrl as string) || 'https://cotidal.app';
 
     if (!topDrink || topDrink.length > 100) return new Response(JSON.stringify({ success: false, error: 'Invalid drink name' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
     if (!quadrant || quadrant.length > 50) return new Response(JSON.stringify({ success: false, error: 'Invalid quadrant' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
@@ -261,9 +261,9 @@ export const POST: APIRoute = async ({ request }) => {
 
       if (crosspostToFeed) {
         try {
-          const appUrl = (body.appUrl as string) || 'https://crystalcoupe.app';
+          const appUrl = (body.appUrl as string) || 'https://cotidal.app';
           const stars = '★'.repeat(Math.round(rating / 2)) + '☆'.repeat(5 - Math.round(rating / 2));
-          const postText = `Logged a ${rating.toFixed(1)}/10 ${drinkName} ${isHomePour ? '(Home Pour)' : `at ${finalLocation}`} on Crystal Coupe ${stars}`;
+          const postText = `Logged a ${rating.toFixed(1)}/10 ${drinkName} ${isHomePour ? '(Home Pour)' : `at ${finalLocation}`} on Cotidal ${stars}`;
           await shareToFeed(session, drinkName, postText, appUrl);
         } catch (e) {
           console.error('Failed to crosspost to feed:', e);

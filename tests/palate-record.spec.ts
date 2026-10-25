@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import {
+  LEGACY_PALATE_COLLECTION,
   PALATE_COLLECTION,
   PalateRecordSchema,
   decodeCoordinates,
@@ -11,12 +12,12 @@ import {
 import { derivePalateRecord } from '../src/lib/sensory';
 
 /**
- * `app.crystalcoupe.palate` on the wire. The AT Protocol data model has no
+ * `app.cotidal.palate` on the wire. The AT Protocol data model has no
  * floats, so every fractional quantity is stored as integer hundredths under
  * a name that says so; records written before that encoding still read.
  */
 
-const lexicon = JSON.parse(readFileSync('src/lib/atproto/lexicons/app.crystalcoupe.palate.json', 'utf8'));
+const lexicon = JSON.parse(readFileSync('src/lib/atproto/lexicons/app.cotidal.palate.json', 'utf8'));
 
 const palate: Palate = {
   $type: PALATE_COLLECTION,
@@ -130,4 +131,14 @@ test('Palate record: the lexicon and the Zod schema describe the same record', (
   };
   walk(lexicon.defs);
   expect(types).not.toContain('number');
+});
+
+test('Palate record: a palate from before the rename to Cotidal still reads', () => {
+  const old = { ...encodePalate(palate), $type: LEGACY_PALATE_COLLECTION };
+  const read = decodePalate(old)!;
+  expect(read).not.toBeNull();
+  expect(read.$type).toBe(PALATE_COLLECTION);
+  expect(read.mapCoordinates.x).toBeCloseTo(-4.24, 10);
+  // Written back, it goes under the current namespace.
+  expect(encodePalate(read).$type).toBe(PALATE_COLLECTION);
 });

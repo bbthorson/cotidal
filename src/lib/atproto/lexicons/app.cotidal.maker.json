@@ -1,6 +1,6 @@
 {
   "lexicon": 1,
-  "id": "app.crystalcoupe.maker",
+  "id": "app.cotidal.maker",
   "defs": {
     "main": {
       "type": "record",
@@ -16,13 +16,13 @@
             "type": "array",
             "description": "Works this person claims. Reception is read from these, never stored here.",
             "maxLength": 200,
-            "items": { "type": "ref", "ref": "app.crystalcoupe.defs#entityRef" }
+            "items": { "type": "ref", "ref": "app.cotidal.defs#entityRef" }
           },
           "venues": {
             "type": "array",
             "description": "Where they pour or have poured.",
             "maxLength": 50,
-            "items": { "type": "ref", "ref": "app.crystalcoupe.defs#entityRef" }
+            "items": { "type": "ref", "ref": "app.cotidal.defs#entityRef" }
           },
           "createdAt": { "type": "string", "format": "datetime" }
         }

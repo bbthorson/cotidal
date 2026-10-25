@@ -1,10 +1,10 @@
 {
   "lexicon": 1,
-  "id": "app.crystalcoupe.palate",
+  "id": "app.cotidal.palate",
   "defs": {
     "main": {
       "type": "record",
-      "description": "A user's psychophysical palate profile and dynamic preference state from The Crystal Coupe. The AT Protocol data model has no floats, so every fractional quantity is an integer in hundredths, named for it (`xHundredths: -420` is −4.20). Records written before this encoding carried `mapCoordinates.x`/`y`, `latentVector`, `covarianceDiagonal` and `vibeTags` as floats; readers accept both, writers emit only this one.",
+      "description": "A user's psychophysical palate profile and dynamic preference state from Cotidal. The AT Protocol data model has no floats, so every fractional quantity is an integer in hundredths, named for it (`xHundredths: -420` is −4.20). Records written before this encoding carried `mapCoordinates.x`/`y`, `latentVector`, `covarianceDiagonal` and `vibeTags` as floats; readers accept both, writers emit only this one.",
       "key": "literal:self",
       "record": {
         "type": "object",

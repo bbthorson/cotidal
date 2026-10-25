@@ -54,7 +54,7 @@ export async function getAuth(): Promise<BlueskyAuth | null> {
   const kv = await kvBinding(SESSION_KV_BINDING);
 
   return (auth = createBlueskyAuth({
-    appName: 'The Crystal Coupe',
+    appName: 'Cotidal',
     basePath: AUTH_BASE_PATH,
     redirectTo: '/taste',
     scope: 'atproto transition:generic',

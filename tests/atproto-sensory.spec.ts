@@ -65,7 +65,7 @@ test('AT Protocol: PourRecordSchema should validate pour records conforming to p
   const { PourRecordSchema } = await import('../src/lib/atproto/records');
 
   const validRecord = {
-    $type: 'app.crystalcoupe.pour' as const,
+    $type: 'app.cotidal.pour' as const,
     drink: { name: 'Manhattan', slug: 'manhattan' },
     venue: {
       entity: { name: 'The Nomad Bar' },
@@ -107,7 +107,7 @@ test('AT Protocol: PourRecordSchema should validate pour records conforming to p
 
   // Missing required drink or rating should fail
   const invalidRecord = {
-    $type: 'app.crystalcoupe.pour' as const,
+    $type: 'app.cotidal.pour' as const,
     createdAt: new Date().toISOString(),
   };
   expect(PourRecordSchema.safeParse(invalidRecord).success).toBe(false);

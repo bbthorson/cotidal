@@ -230,7 +230,7 @@ function ReturnVisitContent({ register }: { register: Register }) {
         setProfile(updated);
         localStorage.setItem('user_profile', JSON.stringify(updated));
         const guestPour: PourRecord = {
-          $type: 'app.crystalcoupe.pour',
+          $type: 'app.cotidal.pour',
           drink: { name: entry.drinkName, slug: slugifyDrink(entry.drinkName) },
           venue: entry.isHomePour ? undefined : { entity: { name: entry.venue } },
           rating: { hedonic: entry.hedonic, wouldOrderAgain: entry.hedonic >= 7 },

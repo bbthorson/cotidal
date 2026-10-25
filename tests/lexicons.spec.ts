@@ -44,7 +44,7 @@ test('Refs: a reference is complete without the thing being claimed', async () =
         name: 'Attaboy',
         domain: 'attaboy.nyc',
         did: 'did:plc:abc123',
-        uri: 'at://did:plc:abc123/app.crystalcoupe.venue/self',
+        uri: 'at://did:plc:abc123/app.cotidal.venue/self',
       },
     },
   };
@@ -65,11 +65,11 @@ test('Ratings: a pour rates the drink, and credits carry no score', async () => 
   // A credit has exactly two fields; there is nowhere to put a score on a
   // person, which is the property that keeps this from becoming Yelp for
   // bartenders.
-  const credit = lexicon('app.crystalcoupe.defs').defs.credit;
+  const credit = lexicon('app.cotidal.defs').defs.credit;
   expect(Object.keys(credit.properties).sort()).toEqual(['entity', 'role']);
 
   // Nor is there anywhere on a maker profile to store one.
-  const maker = lexicon('app.crystalcoupe.maker').defs.main.record.properties;
+  const maker = lexicon('app.cotidal.maker').defs.main.record.properties;
   for (const scoreish of ['rating', 'score', 'average', 'stars', 'reviews']) {
     expect(maker).not.toHaveProperty(scoreish);
   }
@@ -100,14 +100,14 @@ test('Menus: authority comes from the signing repo, not a field', async () => {
   expect(isVenueAuthored(MenuRecordSchema.parse(base), 'did:plc:bar')).toBe(true);
 
   // There is no `official` flag to forge.
-  const menu = lexicon('app.crystalcoupe.menu').defs.main.record.properties;
+  const menu = lexicon('app.cotidal.menu').defs.main.record.properties;
   for (const flag of ['official', 'isOfficial', 'verified']) {
     expect(menu).not.toHaveProperty(flag);
   }
 });
 
 test('Drinks: a category is unowned, a recipe is ownable', async () => {
-  const drinkRef = lexicon('app.crystalcoupe.defs').defs.drinkRef;
+  const drinkRef = lexicon('app.cotidal.defs').defs.drinkRef;
 
   // The folk category is a plain slug — no DID, no URI, nothing to claim.
   expect(drinkRef.properties.slug.type).toBe('string');
@@ -118,12 +118,12 @@ test('Drinks: a category is unowned, a recipe is ownable', async () => {
 });
 
 test('Locations: place vocabulary is borrowed, not reinvented', async () => {
-  const venueRef = lexicon('app.crystalcoupe.defs').defs.venueRef;
+  const venueRef = lexicon('app.cotidal.defs').defs.venueRef;
   expect(venueRef.properties.address.refs).toContain('community.lexicon.location.fsq');
 
   // We reference that namespace but must never define inside it.
   const ours = readdirSync(DIR).map((f) => f.replace('.json', ''));
-  expect(ours.every((id) => id.startsWith('app.crystalcoupe.'))).toBe(true);
+  expect(ours.every((id) => id.startsWith('app.cotidal.'))).toBe(true);
 });
 
 test('Psychophysics: palate records dynamicState and pour records CATA/gLMS', async () => {

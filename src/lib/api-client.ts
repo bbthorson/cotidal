@@ -138,7 +138,7 @@ export async function sharePalateToFeed(
   quadrant: string
 ): Promise<{ success: boolean; uri?: string; error?: string }> {
   try {
-    const appUrl = typeof window !== 'undefined' ? window.location.origin : 'https://crystalcoupe.app';
+    const appUrl = typeof window !== 'undefined' ? window.location.origin : 'https://cotidal.app';
     const res = await fetch('/api/atproto-publish', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -185,7 +185,7 @@ export async function logDrinkFeedback(
   }
 
   try {
-    const appUrl = typeof window !== 'undefined' ? window.location.origin : 'https://crystalcoupe.app';
+    const appUrl = typeof window !== 'undefined' ? window.location.origin : 'https://cotidal.app';
     const res = await fetch('/api/atproto-publish', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

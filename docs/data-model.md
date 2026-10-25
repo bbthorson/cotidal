@@ -1,6 +1,6 @@
 # Data model
 
-How The Crystal Coupe represents drinks, places, and people on the AT Protocol,
+How Cotidal represents drinks, places, and people on the AT Protocol,
 and why. Schemas live in `src/lib/atproto/lexicons/`; `npm run lexicons`
 validates them.
 
@@ -24,7 +24,7 @@ stays an unowned slug, and what a creator claims is their **spec**.
 
 ## Referencing things that have no account yet
 
-Every non-rater entity uses one shape, `app.crystalcoupe.defs#entityRef`:
+Every non-rater entity uses one shape, `app.cotidal.defs#entityRef`:
 
 ```jsonc
 {
@@ -47,7 +47,7 @@ bar that joins two years from now lights up every old log at once.
 
 The protocol supplies the verification primitive for free: **handle-as-domain**.
 A bar that proves `attaboy.nyc` *is* that bar. Publishing
-`app.crystalcoupe.venue` at rkey `self` is therefore the entire claim — no
+`app.cotidal.venue` at rkey `self` is therefore the entire claim — no
 approval step, no registry.
 
 ## Borrowed vocabulary
@@ -105,12 +105,18 @@ the recipe and are certainly not the person.
 
 ## Namespace
 
-`app.crystalcoupe.*` is a **placeholder**. NSID authority derives from
-ownership of the reversed domain, and `crystalcoupe.app` is not yet
-registered. Changing it means renaming the files in
-`src/lib/atproto/lexicons/` and updating the constants in
-`src/lib/atproto/records.ts`; `npm run lexicons` enforces that every schema
+The namespace is `app.cotidal.*`. NSID authority derives from ownership of
+the reversed domain, so it is real only once `cotidal.app` is registered —
+until then anyone holding that domain could publish schemas under it. If the
+domain ends up elsewhere (`cotidal.xyz` → `xyz.cotidal.*`), changing it means
+renaming the files in `src/lib/atproto/lexicons/` and updating the constants
+in `src/lib/atproto/records.ts`; `npm run lexicons` enforces that every schema
 sits under one namespace, so the rename cannot go half-done.
+
+Records written before the rename from The Crystal Coupe sit under
+`app.crystalcoupe.*`. They are never rewritten: the app still *reads* a palate
+or pours from there (`LEGACY_PALATE_COLLECTION`, `LEGACY_POUR_COLLECTION`) so
+nobody's map empties, and writes only under `app.cotidal.*`.
 
 **We can use `community.lexicon.*` types; we cannot define new ones under it.**
 Referencing their schemas is the entire point and needs no permission.
@@ -121,7 +127,7 @@ do not control.
 ## Psychophysical Preference Modeling
 
 Taste preferences are non-stationary, high-dimensional biological systems.
-Rather than treating a palate as a static coordinate, The Crystal Coupe models
+Rather than treating a palate as a static coordinate, Cotidal models
 a user's taste trajectory using an **Extended Kalman Filter (EKF)** over a
 five-dimensional latent preference space:
 
@@ -143,16 +149,16 @@ For full physiological and mathematical derivations, see **[docs/sensory-science
 
 | NSID | Key | Holder | Purpose |
 |---|---|---|---|
-| `app.crystalcoupe.palate` | `self` | Rater | 2D coordinates, 5D dynamic state vector $\mathbf{x}_k$, covariance $\mathbf{P}_k$, and phenotypes — every fractional value as integer hundredths |
-| `app.crystalcoupe.pour` | tid | Rater | Drink check-in with 9-point hedonic / gLMS, objective CATA tags, and SSS context |
-| `app.crystalcoupe.elicitation` | tid | Rater | The answers behind one completed quiz — what each question offered, which option was taken — kept to calibrate the response model against later pours |
-| `app.crystalcoupe.menu` | tid | Venue **or** patron | An immutable menu snapshot at a point in time |
-| `app.crystalcoupe.recipe` | tid | Author | An authored spec with technique, credits, and chemometric stimulus specs |
-| `app.crystalcoupe.venue` | `self` | Venue | A bar claiming itself via domain handle |
-| `app.crystalcoupe.maker` | `self` | Maker | A professional profile linking authored recipes |
-| `app.crystalcoupe.defs` | — | — | Shared types: `entityRef`, `venueRef`, `drinkRef`, `stimulus`, `credit`, `price` |
+| `app.cotidal.palate` | `self` | Rater | 2D coordinates, 5D dynamic state vector $\mathbf{x}_k$, covariance $\mathbf{P}_k$, and phenotypes — every fractional value as integer hundredths |
+| `app.cotidal.pour` | tid | Rater | Drink check-in with 9-point hedonic / gLMS, objective CATA tags, and SSS context |
+| `app.cotidal.elicitation` | tid | Rater | The answers behind one completed quiz — what each question offered, which option was taken — kept to calibrate the response model against later pours |
+| `app.cotidal.menu` | tid | Venue **or** patron | An immutable menu snapshot at a point in time |
+| `app.cotidal.recipe` | tid | Author | An authored spec with technique, credits, and chemometric stimulus specs |
+| `app.cotidal.venue` | `self` | Venue | A bar claiming itself via domain handle |
+| `app.cotidal.maker` | `self` | Maker | A professional profile linking authored recipes |
+| `app.cotidal.defs` | — | — | Shared types: `entityRef`, `venueRef`, `drinkRef`, `stimulus`, `credit`, `price` |
 
-`app.crystalcoupe.pour` provides the clean sensory observation record, fully superseding legacy drift heuristics.
+`app.cotidal.pour` provides the clean sensory observation record, fully superseding legacy drift heuristics.
 
 A guide for external apps, venues, and developers adopting these records
 is in **[docs/lexicon-adoption.md](lexicon-adoption.md)**.

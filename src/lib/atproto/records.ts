@@ -5,27 +5,37 @@
  * disagree, which is what stops the drift that produced two different
  * definitions of the old `drinkLog`.
  *
- * `app.crystalcoupe.palate`, `app.crystalcoupe.pour` and
- * `app.crystalcoupe.elicitation` live here.
+ * `app.cotidal.palate`, `app.cotidal.pour` and
+ * `app.cotidal.elicitation` live here.
  * The legacy `drinkLog` has been superseded by `pour`.
  */
 import { z } from 'zod';
 
-export const DEFS_LEXICON = 'app.crystalcoupe.defs';
-export const PALATE_COLLECTION = 'app.crystalcoupe.palate';
+export const DEFS_LEXICON = 'app.cotidal.defs';
+export const PALATE_COLLECTION = 'app.cotidal.palate';
 export const PALATE_RKEY = 'self';
-export const POUR_COLLECTION = 'app.crystalcoupe.pour';
-export const MENU_COLLECTION = 'app.crystalcoupe.menu';
-export const RECIPE_COLLECTION = 'app.crystalcoupe.recipe';
-export const VENUE_COLLECTION = 'app.crystalcoupe.venue';
-export const MAKER_COLLECTION = 'app.crystalcoupe.maker';
-export const ELICITATION_COLLECTION = 'app.crystalcoupe.elicitation';
+export const POUR_COLLECTION = 'app.cotidal.pour';
+export const MENU_COLLECTION = 'app.cotidal.menu';
+export const RECIPE_COLLECTION = 'app.cotidal.recipe';
+export const VENUE_COLLECTION = 'app.cotidal.venue';
+export const MAKER_COLLECTION = 'app.cotidal.maker';
+export const ELICITATION_COLLECTION = 'app.cotidal.elicitation';
+
+/**
+ * The namespace before the rename to Cotidal. Read-only: palates and pours
+ * written under it are still read (publish.ts, public-read.ts) so nobody's
+ * map empties, but nothing is written there and those records are never
+ * rewritten or deleted by the app. The next palate write lands under
+ * `app.cotidal.*`.
+ */
+export const LEGACY_PALATE_COLLECTION = 'app.crystalcoupe.palate';
+export const LEGACY_POUR_COLLECTION = 'app.crystalcoupe.pour';
 
 /** Records held at a fixed key, one per repo. */
 export const SELF_RKEY = 'self';
 
 // ---------------------------------------------------------------------------
-// Shared references (app.crystalcoupe.defs)
+// Shared references (app.cotidal.defs)
 // ---------------------------------------------------------------------------
 
 /**
@@ -94,7 +104,7 @@ export const PriceSchema = z.object({
 export type Price = z.infer<typeof PriceSchema>;
 
 // ---------------------------------------------------------------------------
-// app.crystalcoupe.palate
+// app.cotidal.palate
 // ---------------------------------------------------------------------------
 
 export const PhenotypesSchema = z.object({
@@ -141,7 +151,7 @@ export type Palate = z.infer<typeof PalateSchema>;
 const hundredths = z.number().int();
 const coordinateHundredths = hundredths.min(-1000).max(1000);
 
-/** `app.crystalcoupe.palate` as written to a repository: integers only. */
+/** `app.cotidal.palate` as written to a repository: integers only. */
 export const PalateRecordSchema = z.object({
   $type: z.literal(PALATE_COLLECTION),
   mapCoordinates: z.object({
@@ -210,11 +220,16 @@ export function decodeCoordinates(raw: unknown): { x: number; y: number } | null
 }
 
 /**
- * A palate record read from a repository, in either encoding, as the app
- * works with it. Records written before the hundredths encoding still read;
+ * A palate record read from a repository, in either encoding and under
+ * either namespace, as the app works with it. Records written before the hundredths encoding still read;
  * the next write migrates them. `null` for anything that is not a palate.
  */
-export function decodePalate(raw: unknown): Palate | null {
+export function decodePalate(input: unknown): Palate | null {
+  // A record from before the rename carries the old $type; its body is the same.
+  const raw =
+    input && typeof input === 'object' && (input as { $type?: unknown }).$type === LEGACY_PALATE_COLLECTION
+      ? { ...(input as object), $type: PALATE_COLLECTION }
+      : input;
   const current = PalateRecordSchema.safeParse(raw);
   if (current.success) {
     const r = current.data;
@@ -244,7 +259,7 @@ export function decodePalate(raw: unknown): Palate | null {
 }
 
 // ---------------------------------------------------------------------------
-// app.crystalcoupe.elicitation — the answers behind one completed quiz
+// app.cotidal.elicitation — the answers behind one completed quiz
 // ---------------------------------------------------------------------------
 
 /** Integers only: the AT Protocol data model has no floats. */
@@ -285,7 +300,7 @@ export const SensoryProfileSchema = z.object({
 export type SensoryProfile = z.infer<typeof SensoryProfileSchema>;
 
 // ---------------------------------------------------------------------------
-// app.crystalcoupe.pour
+// app.cotidal.pour
 // ---------------------------------------------------------------------------
 
 export const DEVIATIONS = [
@@ -344,7 +359,7 @@ export const PourRecordSchema = z.object({
 export type PourRecord = z.infer<typeof PourRecordSchema>;
 
 // ---------------------------------------------------------------------------
-// app.crystalcoupe.menu
+// app.cotidal.menu
 // ---------------------------------------------------------------------------
 
 export const MenuItemSchema = z.object({
@@ -394,7 +409,7 @@ export function isVenueAuthored(record: MenuRecord, signerDid: string): boolean 
 }
 
 // ---------------------------------------------------------------------------
-// app.crystalcoupe.recipe / venue / maker
+// app.cotidal.recipe / venue / maker
 // ---------------------------------------------------------------------------
 
 export const RecipeRecordSchema = z.object({

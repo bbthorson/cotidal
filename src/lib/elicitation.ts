@@ -6,7 +6,7 @@ import {
 } from './atproto/records';
 
 /**
- * A finished quiz's answers as an `app.crystalcoupe.elicitation` record.
+ * A finished quiz's answers as an `app.cotidal.elicitation` record.
  *
  * Nudges are stored in tenths because the AT Protocol data model has no
  * floats. Every bank nudge is a whole number; a generated question's nudge

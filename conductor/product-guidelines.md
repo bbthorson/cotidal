@@ -1,7 +1,7 @@
-# The Crystal Coupe: Product Guidelines
+# Cotidal: Product Guidelines
 
 ## Brand Identity & Voice
-- **Name:** The Crystal Coupe
+- **Name:** Cotidal
 - **Voice:** The AI Sommelier is **Witty & Sophisticated**. It speaks like a knowledgeable, slightly mystic friend who knows their way around a cellar but remains accessible and engaging.
 - **Mystic Framing:** The experience is framed as a **"Reading"** or **"Revealing"** of the user's palate. We use thematic vocabulary like "Aura," "Essence," and "Vibration" to describe flavor profiles.
 

@@ -7,13 +7,13 @@ import { toElicitationRecord } from '../src/lib/elicitation';
 import { ELICITATION_COLLECTION, ElicitationRecordSchema } from '../src/lib/atproto/records';
 
 /**
- * Logged answers (app.crystalcoupe.elicitation): what each question offered
+ * Logged answers (app.cotidal.elicitation): what each question offered
  * and which option was taken, so the response model can be calibrated later
  * against the same person's pours.
  */
 
 const lexicon = JSON.parse(
-  readFileSync('src/lib/atproto/lexicons/app.crystalcoupe.elicitation.json', 'utf8')
+  readFileSync('src/lib/atproto/lexicons/app.cotidal.elicitation.json', 'utf8')
 );
 
 /** Take option `pick(i)` at each step until the quiz has asked `n` questions. */

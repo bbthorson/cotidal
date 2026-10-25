@@ -1,6 +1,6 @@
 {
   "lexicon": 1,
-  "id": "app.crystalcoupe.venue",
+  "id": "app.cotidal.venue",
   "defs": {
     "main": {
       "type": "record",
@@ -23,12 +23,12 @@
           "website": { "type": "string", "format": "uri" },
           "currentMenu": {
             "type": "ref",
-            "ref": "app.crystalcoupe.defs#entityRef",
+            "ref": "app.cotidal.defs#entityRef",
             "description": "The menu record to treat as current. Menus are immutable, so this pointer is how a venue says which one is live."
           },
           "publication": {
             "type": "ref",
-            "ref": "app.crystalcoupe.defs#entityRef",
+            "ref": "app.cotidal.defs#entityRef",
             "description": "Pointer to the venue's site.standard.publication record (rkey `self`), connecting the venue to its Standard.site web presence."
           },
           "createdAt": { "type": "string", "format": "datetime" }

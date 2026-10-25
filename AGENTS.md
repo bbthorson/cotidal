@@ -1,4 +1,4 @@
-# Agent Context: The Crystal Coupe
+# Agent Context: Cotidal
 
 Architecture notes for anyone — human or agent — working in this codebase.
 Product reasoning lives in `docs/data-model.md` and `docs/brand.md`; this file
@@ -70,7 +70,7 @@ accompanied by error covariance matrix ($\mathbf{P}_k$). Observations are
 normalised for Sensory-Specific Satiety (SSS exponential volume decay) and
 prandial ghrelin before they reach the filter. Detailed psychophysics in
 `docs/sensory-science.md`; the order of the axes is also the order of
-`latentVector` in `app.crystalcoupe.palate.json`.
+`latentVector` in `app.cotidal.palate.json`.
 
 An axis learns only if `predictHedonic` reads it — otherwise its Jacobian
 entry is zero and so is its gain. Every drink-side input to that function is
@@ -106,7 +106,7 @@ questions. The selector's hot loop uses per-axis tables (`choiceTable`) so a
 tap costs tens of milliseconds; a test holds them equal to `choiceProbs`.
 Every answer is also kept as asked (`BeliefState.responses`: question id,
 the options' authored nudges, the index taken) and, when the quiz finishes,
-written as an `app.crystalcoupe.elicitation` record — one per quiz, never
+written as an `app.cotidal.elicitation` record — one per quiz, never
 edited. A guest's record waits in `localStorage` (`pending_elicitation`) until
 they sign in. Nudges are stored in tenths: the AT Protocol data model has no
 floats. `RESPONSE_MODEL` names the model that scored them; change it when the
@@ -218,8 +218,10 @@ interface; see `docs/brand.md`.
 
 ## Roadmap
 
-1. **Namespace.** `app.crystalcoupe.*` is a placeholder until a domain is
-   registered — NSID authority comes from the reversed domain.
+1. **Namespace.** `app.cotidal.*`, renamed from `app.crystalcoupe.*`. NSID
+   authority comes from the reversed domain, so it holds once `cotidal.app`
+   is registered. Old palates and pours are still read from the legacy
+   collections (`LEGACY_*_COLLECTION` in `records.ts`), never written.
 2. **Migrate `drinkLog` → `pour`** *(Completed)*. Clean-slate implementation
    with 5D EKF dynamic state, gLMS hedonic ratings, CATA volatile descriptors,
    and prandial satiety normalization. Legacy `drinkLog` replaced by `pour`.
@@ -240,7 +242,7 @@ interface; see `docs/brand.md`.
    publishing the same act; the lexicons exist and nothing renders them.
 8. **Rework elicitation.** Forced-choice pairs for precision *(landed; see
    Elicitation)* and the 9-point hedonic for post-drink feedback *(landed in
-   `PourForm`)*. Answers are logged *(landed: `app.crystalcoupe.elicitation`)*.
+   `PourForm`)*. Answers are logged *(landed: `app.cotidal.elicitation`)*.
    Still to do: swipes for breadth, and calibrating `NOISE_LEVELS`,
    `EVIDENCE_SCALE` and `PAIR_NOISE_SCALE` from those logs against pours. Never swipe on drink *names* — that measures
    familiarity, not taste.

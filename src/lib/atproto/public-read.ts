@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { isValidHandle, normalizeHandle } from '@bbthorson/atproto-cf-auth/server';
-import { PALATE_COLLECTION, PALATE_RKEY, decodeCoordinates } from './records';
+import { LEGACY_PALATE_COLLECTION, PALATE_COLLECTION, PALATE_RKEY, decodeCoordinates } from './records';
 
 /**
  * Reading someone else's palate, with no session.
@@ -40,7 +40,7 @@ const RESERVED_TLDS = new Set([
 ]);
 
 /**
- * The fields of `app.crystalcoupe.palate` this page uses, and nothing else.
+ * The fields of `app.cotidal.palate` this page uses, and nothing else.
  * The coordinate is read by `decodeCoordinates`, which accepts the record's
  * current hundredths encoding and the floats written before it.
  */
@@ -267,17 +267,20 @@ export async function readPublicPalate(
     }
     actor = { did, handle };
 
-    const recordUrl = new URL('/xrpc/com.atproto.repo.getRecord', doc.pds);
-    recordUrl.searchParams.set('repo', did);
-    recordUrl.searchParams.set('collection', PALATE_COLLECTION);
-    recordUrl.searchParams.set('rkey', PALATE_RKEY);
-    const { status, body } = await getJson(recordUrl, fetchImpl);
-    // A missing record is a 400 RecordNotFound from most PDSes.
-    if (status === 400 || status === 404) return { status: 'no-palate', actor };
-    const palate = toPalate((body as { value?: unknown } | null)?.value);
-    if (!palate) return { status: 'no-palate', actor };
-
-    return { status: 'ok', actor, palate };
+    // The current namespace first, then the one before the rename to Cotidal.
+    for (const collection of [PALATE_COLLECTION, LEGACY_PALATE_COLLECTION]) {
+      const recordUrl = new URL('/xrpc/com.atproto.repo.getRecord', doc.pds);
+      recordUrl.searchParams.set('repo', did);
+      recordUrl.searchParams.set('collection', collection);
+      recordUrl.searchParams.set('rkey', PALATE_RKEY);
+      const { status, body } = await getJson(recordUrl, fetchImpl);
+      // A missing record is a 400 RecordNotFound from most PDSes.
+      if (status === 400 || status === 404) continue;
+      if (!body) throw new Unavailable(`getRecord ${status}`);
+      const palate = toPalate((body as { value?: unknown }).value);
+      if (palate) return { status: 'ok', actor, palate };
+    }
+    return { status: 'no-palate', actor };
   } catch (e) {
     if (e instanceof Unavailable) return { status: 'unavailable', actor };
     console.error('readPublicPalate:', e);
