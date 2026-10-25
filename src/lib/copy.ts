@@ -421,102 +421,41 @@ export const pour = {
 } as const;
 
 export const venuesCopy = {
-  eyebrow: 'The Front Door',
-  title: 'The single source of truth for the bars that make culture.',
+  eyebrow: 'For bars',
+  title: 'A bar claims itself by publishing one record.',
   subtitle:
-    'Sync with Toast. Publish to your own domain and Google Maps. Guide guests by palate at the table, and turn your bar into a sovereign AT Protocol Space.',
-  doorsTitle: 'The Five Front Doors',
-  doors: [
+    'Prove your domain as your AT Protocol handle, publish a venue record from that account, and the bar is yours on the protocol. No approval queue, no registry, nothing for us to grant.',
+  todayTitle: 'What works today',
+  today: [
     {
-      label: 'Front Door I',
-      title: 'The Taste-Guided Table QR',
+      title: 'The venue record',
       description:
-        'No clunky PDFs or spreadsheet menus. Patrons scan a table coaster to browse drinks by flavor quadrant, see their personal palate match, and tap once to order on Toast.',
+        'app.cotidal.venue, held at rkey self in the bar’s own repository. The record is defined and any AT Protocol client can publish it. Cotidal does not read it yet.',
     },
     {
-      label: 'Front Door II',
-      title: 'Automated POS & 86 Sync',
+      title: 'Menus as posts',
       description:
-        'Pull menus, categories, and prices directly from Toast or Square. 86 an ingredient in your POS, and it immediately dims across the QR menu and your website.',
+        'app.cotidal.menu: a dated snapshot, re-published rather than edited, so a menu from March stays true about March. Defined; nothing here renders one yet.',
     },
     {
-      label: 'Front Door III',
-      title: 'Google Maps & Search Presence',
+      title: 'Pours that name the bar',
       description:
-        'Direct Google Business Profile integration updates your official menu link, hours, and structured items. Deep schema.org indexing makes every cocktail discoverable.',
-    },
-    {
-      label: 'Front Door IV',
-      title: 'Hosted Web & Custom Domain',
-      description:
-        'Replace slow, $30/month Squarespace sites with a blazingly fast, paper-styled website on your own domain (e.g. attaboy.nyc). Statically rendered with zero script bloat.',
-    },
-    {
-      label: 'Front Door V',
-      title: 'Bar as an AT Protocol Space',
-      description:
-        'Your physical location becomes a sovereign social anchor. Guests see mutuals who visited, compare table palate overlap, and sign pours into a decentralized guestbook.',
+        'A member’s pour records the bar by the name the drinker typed. When the bar later proves its domain, reconciling those pours to it is the app’s job — no one’s record is rewritten.',
     },
   ],
-  makerTitle: 'For Bartenders & Drink Designers',
-  makerSubtitle:
-    'The craft deserves more than an informal resume and uncredited cocktail specs.',
-  makerFeatures: [
-    {
-      label: 'The Living CV',
-      title: 'Portable Recipe & Adoption Ledger',
-      description:
-        'Claim your residency history and sign your authored specs. Track verified adoption across bars worldwide without degrading star ratings.',
-    },
-    {
-      label: 'The Back Bar',
-      title: 'Private Peer Community',
-      description:
-        'A gated network for verified cocktail makers to peer-review draft specs, exchange prep techniques, and coordinate guest shifts.',
-    },
+  laterTitle: 'Not built yet',
+  later: [
+    'Later: a page here that claims your venue and publishes your menu for you.',
+    'Later: what your patrons have logged at your bar, and where their palates sit on the map.',
+    'Later: your menu on your own domain, rendered from your own records.',
+    'Later: syncing the menu from your point-of-sale system.',
+    'Later: for bartenders, a profile that links the specs you wrote and counts where they are poured — adoption, never a score.',
   ],
-  tiersTitle: 'Plans & Capabilities',
-  freeTier: {
-    title: 'Venue Profile',
-    badge: 'Free Forever',
-    description:
-      'Everything required to claim your sovereign identity and publish on the open protocol.',
-    features: [
-      'Handle-as-domain claim (attaboy.nyc)',
-      'Canonical AT Protocol menu publishing',
-      'Directory listing on Cotidal search',
-      'Patron sighting & pour aggregation ledger',
-      'Recipe attribution & author credits',
-    ],
-  },
-  proTier: {
-    title: 'Branded Bar Suite',
-    badge: '$49 / month',
-    description:
-      'The full operating system connecting your POS, table QR, custom domain, and Google Maps.',
-    features: [
-      'Live Toast / Square / Clover bi-directional sync',
-      'Real-time 86 status automatic sync',
-      'Hosted custom domain website (attaboy.nyc)',
-      'Google Maps & Google Business Profile sync',
-      'Taste-guided Table QR with 1-tap Toast ordering',
-      'Palate Density demand analytics & dead-spot reports',
-      'Interactive AT Protocol Space & guestbook curation',
-      'Social specimen card & Instagram Story exporter',
-    ],
-  },
-  lookupEyebrow: 'Domain Verification',
-  lookupTitle: 'Claim your venue',
-  lookupDescription:
-    'Venues verify ownership through handle-as-domain (e.g. deathandco.com). Publishing an official venue record instantly reconciles all historical patron sightings to your account.',
-  domainPlaceholder: 'yourbar.com',
-  checkDomainCta: 'Preview venue sightings',
-  earlyAccessNotice:
-    'The B2B suite is currently accepting beverage programs for private beta onboarding. Claim your handle to reserve your domain.',
-  waitlistCta: 'Request early access',
-  seededTitle: 'The Anchor Register',
-  seededSubtitle:
-    'Historical sightings and canonical specs awaiting domain reconciliation. When a venue proves its domain handle, its sightings light up retroactively.',
+  examplesTitle: 'Example menus',
+  examplesSubtitle:
+    'Drinks from well-known bars, placed on the map by us to show what a published menu would carry. These bars have published nothing here and are not affiliated with Cotidal.',
+  exampleTag: 'Example',
+  examplesSpecs: (n: number) => `On the map (${n})`,
 } as const;
 
 /**
