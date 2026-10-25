@@ -1,0 +1,75 @@
+---
+import AppShell from '../layouts/AppShell.astro';
+import PageTitle from '../components/marketing/PageTitle.astro';
+import ConnectForm from '../components/marketing/ConnectForm.astro';
+import { account as copy, connect, nav, site } from '../lib/copy';
+import { accountFor } from '../lib/atproto/session';
+import { AUTH_BASE_PATH, START_OVER_PARAM, publicMapPath } from '../lib/atproto/paths';
+
+/**
+ * Who you are here, and the two things you can do about it: start over, or
+ * sign out. Server-rendered from the session cookie and free of client
+ * JavaScript — both actions are links and plain form posts. It is also where
+ * the header's "Account" goes from a prerendered page, which cannot know who
+ * is reading.
+ */
+export const prerender = false;
+
+const account = await accountFor(Astro.request, false);
+const handle = account.kind === 'member' ? account.handle : null;
+const actionClass =
+  'inline-flex min-h-11 items-center justify-center border border-foreground px-4 font-condensed text-xs font-bold uppercase tracking-label transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background';
+const linkClass =
+  'flex min-h-11 items-center justify-between border-b border-border font-condensed text-meta uppercase tracking-label text-foreground transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring';
+---
+
+<AppShell title={`${site.name} — ${copy.title}`} currentPath="/account" width="prose">
+  {
+    account.kind === 'member' ? (
+      <div class="space-y-12 pb-6">
+        <PageTitle eyebrow={handle ? copy.signedInAs : copy.signedIn} title={handle ? `@${handle}` : copy.title} />
+
+        <nav aria-label={copy.title} class="border-t border-foreground">
+          <a href="/taste" class={linkClass}>
+            {copy.links.map} <span aria-hidden="true">&rarr;</span>
+          </a>
+          <a href="/log" class={linkClass}>
+            {copy.links.log} <span aria-hidden="true">&rarr;</span>
+          </a>
+          <a href={publicMapPath(handle ?? account.did)} class={linkClass}>
+            {copy.links.public} <span aria-hidden="true">&rarr;</span>
+          </a>
+        </nav>
+
+        <section class="space-y-3">
+          <h2 class="font-serif text-title font-bold">{copy.startOverTitle}</h2>
+          <p class="text-ui text-muted-foreground">{copy.startOverBody}</p>
+          <a
+            href={`/taste?${START_OVER_PARAM}=1`}
+            class:list={[actionClass, 'bg-card text-foreground hover:bg-muted']}
+          >
+            {copy.startOverCta}
+          </a>
+        </section>
+
+        <section class="space-y-3">
+          <h2 class="font-serif text-title font-bold">{copy.signOutTitle}</h2>
+          <p class="text-ui text-muted-foreground">{copy.signOutBody}</p>
+          <form method="POST" action={`${AUTH_BASE_PATH}/logout`}>
+            <button
+              type="submit"
+              class:list={[actionClass, 'bg-secondary text-secondary-foreground hover:bg-primary']}
+            >
+              {nav.signOut}
+            </button>
+          </form>
+        </section>
+      </div>
+    ) : (
+      <div class="mx-auto max-w-sm space-y-6 pb-6">
+        <PageTitle title={copy.guestTitle} lede={connect.body} />
+        <ConnectForm enabled={account.kind === 'guest' && account.canSignIn} />
+      </div>
+    )
+  }
+</AppShell>
