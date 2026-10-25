@@ -21,12 +21,6 @@ the most uncertainty (`src/lib/question-selector.ts`, `src/lib/belief-state.ts`)
 
 The four quadrants are named in `docs/brand.md`.
 
-### Context
-
-Your taste does not change, but your situation does. Contexts (`usual`,
-`business`, `party`, `holiday`) re-weight what lights up around you — **your
-dot does not move**.
-
 ### The record
 
 Drinks you log are dated, signed entries in your repo. Menus are posts, venues

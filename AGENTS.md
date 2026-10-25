@@ -57,10 +57,7 @@ a string to `copy.ts` before rendering it.
 ### Palate map — `src/lib/data.ts`, `src/components/app/ResultsScreen.tsx`
 2D plane. Users and drinks both carry `x` (Rich −10 → Crisp +10) and `y`
 (Savory −10 → Sweet +10). Euclidean distance gives the raw match; `VibeTag`s
-sort within it; context re-weights on top.
-
-**Your dot stays put.** Changing context changes the map around the user, not
-the user.
+sort within it. The menu is one list ranked by that relevance alone.
 
 ### Psychophysical State & EKF — `src/lib/palate-state.ts`
 Models longitudinal taste preference drift via an Extended Kalman Filter (EKF).

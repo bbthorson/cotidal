@@ -164,15 +164,8 @@ export const reveal = {
 /** The menu that replaces the old results dashboard. */
 export const menu = {
   youAreIn: 'You are in',
-  /** Four drinking occasions, switched in one place rather than stacked. */
-  contexts: [
-    { id: 'usual', label: 'Usual', title: 'Your go-to' },
-    { id: 'party', label: 'Night out', title: 'For a night out' },
-    { id: 'business', label: 'Impress', title: 'Making an impression' },
-    { id: 'holiday', label: 'Holiday', title: 'Holiday warmth' },
-  ],
-  contextsLabel: 'Occasion',
   topPrefix: 'No. 1',
+  topTitle: 'Your go-to',
   keepTitle: 'Keep this coordinate',
   keepBody: 'Log pours and watch it move.',
   signedInAs: 'Signed in as',
