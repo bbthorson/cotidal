@@ -7,10 +7,10 @@
 GOOGLE_GENERATIVE_AI_API_KEY=
 
 # AT Protocol OAuth. Sign-in is disabled entirely unless this is truthy. It is
-# read at runtime by the server only (src/lib/atproto/auth.ts), so in
-# production it is a Worker variable, not a build variable.
-# (PUBLIC_ATPROTO_ENABLED is still accepted as an alias.)
-ATPROTO_ENABLED=
+# read at runtime by the server only (src/lib/atproto/auth.ts) and is already
+# on in wrangler.toml, so sign-in turns on locally once SESSION_SECRET is set.
+# Uncomment with an empty value to switch it off.
+# ATPROTO_ENABLED=
 # Seals sessions. Required on Workers (`wrangler secret put SESSION_SECRET`,
 # 32+ random characters); without it sign-in stays off. Open the app at
 # http://127.0.0.1:9002, not localhost: client_id and redirect_uri are derived

@@ -169,8 +169,9 @@ resolver, which threw in the constructor on workerd. In development open the
 app at `http://127.0.0.1:9002`, not `localhost`.
 
 **Whether sign-in is on is the server's answer, at runtime:**
-`signInEnabled()` in `auth.ts` — `ATPROTO_ENABLED` (or the older
-`PUBLIC_ATPROTO_ENABLED`) set as a *Worker variable*, plus `SESSION_SECRET`.
+`signInEnabled()` in `auth.ts` — `ATPROTO_ENABLED` under `[vars]` in
+`wrangler.toml` (not the dashboard: `wrangler deploy` replaces dashboard
+variables), plus the `SESSION_SECRET` secret.
 `/` renders from it, and `/taste` and `/log` pass it to their islands as a
 prop. Never read the flag from `import.meta.env` or in browser code: that is
 fixed at build time, and it once left `/` and the island saying "not enabled"
