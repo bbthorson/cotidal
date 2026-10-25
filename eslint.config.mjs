@@ -85,32 +85,14 @@ export default [
     },
   },
 
-  /**
-   * Token discipline is enforced strictly on everything written since the
-   * rules were written down, and reported as a warning elsewhere so the ~86
-   * pre-existing violations stay visible without blocking a commit.
-   */
+  // Token discipline, as an error on every page, layout and component.
   {
     files: [
       'src/pages/**/*.{astro,ts,tsx}',
       'src/layouts/**/*.{astro,ts,tsx}',
       'src/components/**/*.{astro,ts,tsx}',
     ],
-    ignores: [
-      'src/components/ui/**',
-    ],
     rules: { 'no-restricted-syntax': ['error', ...tokenRuleEntries] },
-  },
-
-  // Vendored shadcn/ui components: upstream code, kept close to source so it
-  // can be re-synced. Not held to the token rules.
-  {
-    files: ['src/components/ui/**'],
-    rules: {
-      'no-restricted-syntax': 'off',
-      '@typescript-eslint/no-explicit-any': 'off',
-      '@typescript-eslint/no-empty-object-type': 'off',
-    },
   },
 
   /**

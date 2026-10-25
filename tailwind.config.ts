@@ -152,22 +152,6 @@ export default {
         'glow': 'inset 0 0 0 1px hsl(41 29% 81%)',
       },
       keyframes: {
-        'accordion-down': {
-          from: {
-            height: '0',
-          },
-          to: {
-            height: 'var(--radix-accordion-content-height)',
-          },
-        },
-        'accordion-up': {
-          from: {
-            height: 'var(--radix-accordion-content-height)',
-          },
-          to: {
-            height: '0',
-          },
-        },
         // The one thing that moves on the reveal: the dot landing.
         land: {
           from: { opacity: '0', transform: 'translate(-50%, 50%) scale(2.4)' },
@@ -176,8 +160,6 @@ export default {
       },
       animation: {
         land: 'land 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) 0.35s both',
-        'accordion-down': 'accordion-down 0.2s ease-out',
-        'accordion-up': 'accordion-up 0.2s ease-out',
       },
     },
   },
