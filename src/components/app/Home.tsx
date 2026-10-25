@@ -6,6 +6,7 @@ import { SignInSheet } from '@/components/app/SignInSheet';
 import { AtprotoProvider, useAtprotoContext } from '@/components/app/AtprotoProvider';
 import { useDiscoveryQuiz, type UserProfile } from '@/hooks/useDiscoveryQuiz';
 import { flushPendingElicitation, getConnectedPalate, publishPalate } from '@/lib/api-client';
+import { clearProfile, forgetDevice, loadProfile, saveProfile } from '@/lib/device-store';
 import type { User } from '@/lib/data';
 import { SIGNED_OUT_PARAM, START_OVER_PARAM } from '@/lib/atproto/paths';
 import type { Register } from '@/lib/register';
@@ -24,9 +25,6 @@ function profileToUser(profile: UserProfile | null): User {
   };
 }
 
-/** What this device keeps of a palate. */
-const DEVICE_KEYS = ['user_profile', 'pending_elicitation'];
-
 /**
  * Take a one-off instruction from the URL and remove it, so a reload does not
  * repeat it. `true` when it was there.
@@ -40,28 +38,9 @@ function takeParam(name: string): boolean {
   return true;
 }
 
-/**
- * After a sign-out (the header's form lands here marked), forget this
- * device's copy of the palate: on a shared device the next person should not
- * find someone else's coordinate. It is still on their account.
- */
+/** After a sign-out (the header's form lands here marked), forget this device's copy (device-store.ts). */
 function forgetDeviceAfterSignOut(): void {
-  if (!takeParam(SIGNED_OUT_PARAM)) return;
-  try {
-    DEVICE_KEYS.forEach((key) => localStorage.removeItem(key));
-  } catch {
-    // Storage unavailable: nothing was kept.
-  }
-}
-
-function getInitialProfile(): UserProfile | null {
-  if (typeof window === 'undefined') return null;
-  try {
-    const saved = localStorage.getItem('user_profile');
-    return saved ? (JSON.parse(saved) as UserProfile) : null;
-  } catch {
-    return null;
-  }
+  if (takeParam(SIGNED_OUT_PARAM)) forgetDevice();
 }
 
 function wantsBrowse(): boolean {
@@ -70,8 +49,8 @@ function wantsBrowse(): boolean {
 }
 
 /**
- * The first visit is three beats (Flow Recommendations): the questions, the
- * reveal, then the menu. A returning visitor goes straight to the menu.
+ * The first visit is three beats (docs/design-system.md, "The first-visit
+ * flow"): the questions, the reveal, then the menu. A returning visitor goes straight to the menu.
  */
 type Screen = 'questionnaire' | 'reveal' | 'results';
 
@@ -79,11 +58,11 @@ function HomeContent({ register }: { register: Register }) {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(() => {
     // Before anything reads the device's palate.
     forgetDeviceAfterSignOut();
-    return getInitialProfile();
+    return loadProfile();
   });
   const [screen, setScreen] = useState<Screen>(() => {
     if (typeof window === 'undefined') return 'questionnaire';
-    return getInitialProfile() || wantsBrowse() ? 'results' : 'questionnaire';
+    return loadProfile() || wantsBrowse() ? 'results' : 'questionnaire';
   });
   const [signInOpen, setSignInOpen] = useState(false);
 
@@ -104,10 +83,10 @@ function HomeContent({ register }: { register: Register }) {
           if (startingOver.current) return;
           if (profile) {
             setUserProfile(profile);
-            localStorage.setItem('user_profile', JSON.stringify(profile));
+            saveProfile(profile);
             setScreen('results');
           } else {
-            const guest = getInitialProfile();
+            const guest = loadProfile();
             if (guest) {
               await publishPalate(guest);
               setUserProfile(guest);
@@ -147,7 +126,7 @@ function HomeContent({ register }: { register: Register }) {
 
   const handlePalateUpdated = useCallback((profile: UserProfile) => {
     setUserProfile(profile);
-    localStorage.setItem('user_profile', JSON.stringify(profile));
+    saveProfile(profile);
   }, []);
 
   /**
@@ -157,7 +136,7 @@ function HomeContent({ register }: { register: Register }) {
    */
   const reset = useCallback(() => {
     startingOver.current = true;
-    localStorage.removeItem('user_profile');
+    clearProfile();
     quiz.resetQuiz();
     setUserProfile(null);
     setScreen('questionnaire');

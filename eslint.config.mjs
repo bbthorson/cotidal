@@ -21,6 +21,36 @@ const ARBITRARY_VALUE = /(^|\s)-?[a-z][a-zA-Z-]*-\[[^\]]+\]/;
 /** A raw colour anywhere in a class string. */
 const RAW_COLOR = /#[0-9a-fA-F]{3,8}\b|\brgba?\(|\bhsla?\(/;
 
+/**
+ * A colour faded on the spot: `text-foreground/80`, `border-border/60`. Text is
+ * de-emphasised by size and weight, never opacity (docs/design-system.md), and
+ * a translucent rule or scrim is a named token in globals.css. Fractions such
+ * as `w-1/2` and `-translate-x-1/2` are not colours and do not match.
+ */
+const OPACITY_MODIFIER =
+  /(^|[\s:])(text|bg|border(-[trblxy])?|ring|ring-offset|outline|fill|stroke|divide|decoration|shadow|from|via|to|accent|caret|placeholder)-[a-z][a-z0-9-]*\/\d+(\s|$)/;
+
+/** A focus ring drawn by hand, which the base `:focus-visible` rule already draws. */
+const HAND_FOCUS = /focus-visible:(ring|outline)/;
+
+/** The primary button spelled out: forest with a terracotta hover. */
+const HAND_PRIMARY = /bg-secondary\b.*hover:bg-primary\b|hover:bg-primary\b.*bg-secondary\b/;
+
+/**
+ * The outline button spelled out: an ink edge that fills forest on hover.
+ * Unprefixed only — the header's account link takes this look from `lg` up,
+ * at the header's own compact size.
+ */
+const HAND_OUTLINE =
+  /(^|\s)border-foreground\b.*(^|\s)hover:bg-secondary\b|(^|\s)hover:bg-secondary\b.*(^|\s)border-foreground\b/;
+
+const COMPONENT_MESSAGE =
+  'Use the design system class, not its parts: focus is drawn once by ' +
+  '`:focus-visible` in globals.css (add focus-ring-inset or focus-ring-reveal ' +
+  'for a variant), and the primary button is `btn btn-primary` (or ' +
+  '`btn btn-reveal`, with `btn-lg` for the large size); the second action is ' +
+  '`btn btn-outline`.';
+
 const TOKEN_MESSAGE =
   'Use a design token, not a literal. Colours, sizes and shadows belong in ' +
   'globals.css / tailwind.config.ts — see docs/brand.md. If the token you ' +
@@ -43,6 +73,18 @@ const tokenRuleEntries = [
     selector: `TemplateElement[value.raw=/${ARBITRARY_VALUE.source}/]`,
     message: TOKEN_MESSAGE,
   },
+  {
+    selector: `Literal[value=/${OPACITY_MODIFIER.source}/]`,
+    message: TOKEN_MESSAGE,
+  },
+  {
+    selector: `TemplateElement[value.raw=/${OPACITY_MODIFIER.source}/]`,
+    message: TOKEN_MESSAGE,
+  },
+  ...[HAND_FOCUS, HAND_PRIMARY, HAND_OUTLINE].flatMap((pattern) => [
+    { selector: `Literal[value=/${pattern.source}/]`, message: COMPONENT_MESSAGE },
+    { selector: `TemplateElement[value.raw=/${pattern.source}/]`, message: COMPONENT_MESSAGE },
+  ]),
 ];
 
 export default [
@@ -85,32 +127,14 @@ export default [
     },
   },
 
-  /**
-   * Token discipline is enforced strictly on everything written since the
-   * rules were written down, and reported as a warning elsewhere so the ~86
-   * pre-existing violations stay visible without blocking a commit.
-   */
+  // Token discipline, as an error on every page, layout and component.
   {
     files: [
       'src/pages/**/*.{astro,ts,tsx}',
       'src/layouts/**/*.{astro,ts,tsx}',
       'src/components/**/*.{astro,ts,tsx}',
     ],
-    ignores: [
-      'src/components/ui/**',
-    ],
     rules: { 'no-restricted-syntax': ['error', ...tokenRuleEntries] },
-  },
-
-  // Vendored shadcn/ui components: upstream code, kept close to source so it
-  // can be re-synced. Not held to the token rules.
-  {
-    files: ['src/components/ui/**'],
-    rules: {
-      'no-restricted-syntax': 'off',
-      '@typescript-eslint/no-explicit-any': 'off',
-      '@typescript-eslint/no-empty-object-type': 'off',
-    },
   },
 
   /**

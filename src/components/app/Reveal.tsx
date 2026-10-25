@@ -13,7 +13,7 @@ interface RevealProps {
 }
 
 /**
- * The reveal (Flow Recommendations, R3). The one big move: the region's name,
+ * The reveal. The one big move: the region's name,
  * then the dot landing on the full square map. It is set on the ink ground —
  * evolution B, used only for reveals — so the warm secret reads differently
  * from the paper instrument around it.
@@ -57,14 +57,14 @@ export function Reveal({ x, y, onContinue, onRetake }: RevealProps) {
         <button
           type="button"
           onClick={onContinue}
-          className="min-h-13 w-full border border-reveal-foreground bg-reveal-foreground font-condensed text-sm font-bold uppercase tracking-label text-reveal transition-colors hover:bg-reveal-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-reveal-mark focus-visible:ring-offset-2 focus-visible:ring-offset-reveal"
+          className="btn btn-reveal btn-lg w-full"
         >
           {reveal.continue}
         </button>
         <button
           type="button"
           onClick={onRetake}
-          className="flex min-h-11 items-center px-2 font-condensed text-meta uppercase tracking-label text-reveal-muted transition-colors hover:text-reveal-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-reveal-mark"
+          className="flex min-h-11 items-center px-2 font-condensed text-meta uppercase tracking-label text-reveal-muted transition-colors hover:text-reveal-foreground focus-ring-reveal"
         >
           {reveal.retake}
         </button>

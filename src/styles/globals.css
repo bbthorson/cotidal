@@ -17,9 +17,6 @@
     --foreground: 148 20% 17%;
     /* Card: a whiter, brighter sheet laid on the paper */
     --card: 45 50% 97%;
-    --card-foreground: 148 20% 17%;
-    --popover: 45 50% 97%;
-    --popover-foreground: 148 20% 17%;
     /* Primary: terracotta. Reads on paper where amber did not. */
     --primary: 8 55% 40%;
     --primary-foreground: 45 50% 97%;
@@ -32,11 +29,8 @@
     --muted-foreground: 125 6% 39%;
     /* Accent: sage */
     --accent: 80 24% 76%;
-    --accent-foreground: 148 20% 17%;
     --destructive: 0 65% 42%;
-    --destructive-foreground: 45 50% 97%;
     --border: 41 29% 81%;
-    --input: 41 29% 81%;
     --ring: 8 55% 40%;
     /* Printed matter has square corners. Sheets, plates and buttons are 0;
        `rounded-sm` (2px) is the one exception, for inputs. */
@@ -54,20 +48,22 @@
     --reveal-mark: 9 55% 52%;
     /* Pale terracotta for the trace a moved dot leaves behind */
     --reveal-trace: 12 58% 78%;
+    /* Rules on the ink ground: the map's frame and a list's top rule, then the
+       lighter hairline for its axes and between rows */
+    --reveal-rule: var(--reveal-muted) / 0.45;
+    --reveal-hairline: var(--reveal-muted) / 0.28;
+    /* Paper ink, dimmed: drinks off your menu, and your mark's crosshair */
+    --reveal-dim: var(--reveal-foreground) / 0.58;
 
-    --chart-1: 8 55% 40%;
-    --chart-2: 140 22% 24%;
-    --chart-3: 37 76% 45%;
-    --chart-4: 80 24% 56%;
-    --chart-5: 10 45% 62%;
-    --sidebar-background: 45 50% 97%;
-    --sidebar-foreground: 148 20% 17%;
-    --sidebar-primary: 8 55% 40%;
-    --sidebar-primary-foreground: 45 50% 97%;
-    --sidebar-accent: 41 29% 88%;
-    --sidebar-accent-foreground: 148 20% 17%;
-    --sidebar-border: 41 29% 81%;
-    --sidebar-ring: 8 55% 40%;
+    /* The ink laid over the page behind a sheet */
+    --scrim: var(--foreground) / 0.55;
+
+    /* The cotidal chart (ChartFigure): the map's axes, the co-range rings, and
+       the crosshair that sits on the terracotta band */
+    --chart-axis: var(--foreground) / 0.2;
+    --chart-ring: var(--foreground) / 0.4;
+    --chart-cross: var(--card) / 0.7;
+
   }
 
   /* The previous obsidian palette, kept behind `.dark` so the inversion is
@@ -76,9 +72,6 @@
     --background: 220 15% 8%;
     --foreground: 35 30% 92%;
     --card: 220 12% 11%;
-    --card-foreground: 35 30% 92%;
-    --popover: 220 12% 11%;
-    --popover-foreground: 35 30% 92%;
     --primary: 36 72% 55%;
     --primary-foreground: 220 15% 8%;
     --secondary: 18 60% 52%;
@@ -86,24 +79,49 @@
     --muted: 220 10% 16%;
     --muted-foreground: 35 15% 58%;
     --accent: 36 50% 40%;
-    --accent-foreground: 35 30% 92%;
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
     --border: 220 10% 22%;
-    --input: 220 10% 22%;
     --ring: 36 72% 55%;
   }
 }
 
+@layer components {
+  /* Focus variants; the ring itself is the base rule at the end of this file.
+     Cells inside a frame — segmented controls, tabs, list rows — draw it
+     inside, where an outer ring would be clipped or cross a neighbour. */
+  .focus-ring-inset:focus-visible {
+    outline-offset: -2px;
+  }
+  /* On the reveal ground the ring is the lifted terracotta of your dot. */
+  .focus-ring-reveal:focus-visible {
+    outline-color: hsl(var(--reveal-mark));
+  }
+
+  /* Buttons. Square, condensed caps, an ink edge. `.btn` is the shape; a
+     colour class says what it is. Width and padding stay with the layout. */
+  .btn {
+    @apply inline-flex min-h-11 items-center justify-center border font-condensed text-xs font-bold uppercase tracking-label transition-colors;
+  }
+  /* The large size: a screen's main action, usually full width. */
+  .btn-lg {
+    @apply min-h-13 text-sm;
+  }
+  /* The primary action: forest, terracotta on hover. */
+  .btn-primary {
+    @apply border-foreground bg-secondary text-secondary-foreground hover:bg-primary disabled:bg-muted disabled:text-muted-foreground;
+  }
+  /* The second action beside or below a primary one: an ink edge on the
+     ground, filled forest on hover. */
+  .btn-outline {
+    @apply border-foreground bg-transparent text-foreground hover:bg-secondary hover:text-secondary-foreground disabled:border-border disabled:text-muted-foreground disabled:hover:bg-transparent;
+  }
+  /* The primary action on the reveal ground: paper on forest. */
+  .btn-reveal {
+    @apply border-reveal-foreground bg-reveal-foreground text-reveal hover:bg-reveal-muted focus-ring-reveal;
+  }
+}
+
 @layer utilities {
-  /* A panel lifted off the paper: a brighter sheet with a hairline edge.
-     Was a translucent white film, which is invisible on a light ground. */
-  .glass {
-    @apply border border-border bg-card;
-  }
-  .glass-dark {
-    @apply border border-border bg-card shadow-bar;
-  }
   /* Paper tooth. The same noise as before, read as grain rather than grime. */
   .bar-texture {
     position: relative;
@@ -165,22 +183,16 @@
      own, so the typography is defined once here rather than re-typed as
      arbitrary values in every page that renders a collection entry. */
   .prose-entry {
-    @apply font-serif text-base leading-relaxed text-foreground/75;
+    @apply font-serif text-base leading-relaxed text-muted-foreground;
   }
   .prose-entry > p + p {
     margin-top: 1.25rem;
   }
+  /* Foreign terms and titles: roman, in full ink against the grey-green. */
   .prose-entry em {
-    @apply not-italic text-foreground/80;
-  }
-
-  /* Thin editorial horizontal rule */
-  .editorial-rule {
-    height: 1px;
-    background: linear-gradient(to right, transparent, hsl(var(--border)), transparent);
+    @apply not-italic text-foreground;
   }
 }
-
 
 /* Focus mode. The quiz and the reveals are one-move screens on a phone, so
    the site header and footer step out of the way while they are showing.
@@ -196,21 +208,15 @@
   * {
     @apply border-border;
   }
+  /* Focus. Anything you can tab to shows the same terracotta ring, set off
+     from it by a gap of the ground it sits on. An outline rather than a
+     ring-* box-shadow, so it never replaces an element's own shadow. Fields
+     that mark focus with their border opt out with focus:outline-none. */
+  :focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
   body {
     @apply bg-background text-foreground;
   }
-}
-
-/* Animated typing indicator */
-.typing-dots .dot {
-  display: inline-block;
-  animation: dotPulse 1.4s ease-in-out infinite;
-  opacity: 0.2;
-}
-.typing-dots .dot:nth-child(2) { animation-delay: 0.2s; }
-.typing-dots .dot:nth-child(3) { animation-delay: 0.4s; }
-
-@keyframes dotPulse {
-  0%, 80%, 100% { opacity: 0.2; }
-  40% { opacity: 1; }
 }

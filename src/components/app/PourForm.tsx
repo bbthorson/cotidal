@@ -1,4 +1,4 @@
-import { useId, useState, type FormEvent, type ReactNode } from 'react';
+import { useId, useState, type SubmitEvent, type ReactNode } from 'react';
 import { drinkDatabase } from '@/lib/data';
 import {
   ASKED_INTENSITIES,
@@ -134,7 +134,7 @@ export function PourForm({
     return Object.keys(detail).length > 0 ? detail : undefined;
   };
 
-  const submit = (e: FormEvent) => {
+  const submit = (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!drinkName.trim()) return setLocalError(pour.needDrink);
     if (!isHomePour && !venue.trim()) return setLocalError(pour.needBar);
@@ -207,7 +207,7 @@ export function PourForm({
               aria-pressed={isHomePour === home}
               onClick={() => setIsHomePour(home)}
               className={cn(
-                'min-h-11 font-condensed text-xs font-semibold uppercase tracking-label transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring',
+                'min-h-11 font-condensed text-xs font-semibold uppercase tracking-label transition-colors focus-ring-inset',
                 home && 'border-l border-foreground',
                 isHomePour === home ? 'bg-secondary text-secondary-foreground' : 'bg-card text-foreground hover:bg-muted'
               )}
@@ -266,7 +266,7 @@ export function PourForm({
                 aria-label={`${n}: ${label}`}
                 onClick={() => setHedonic(n)}
                 className={cn(
-                  'min-h-11 font-condensed text-ui font-bold tabular-nums transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring',
+                  'min-h-11 font-condensed text-ui font-bold tabular-nums transition-colors focus-ring-inset',
                   i > 0 && 'border-l border-foreground',
                   active ? 'bg-primary text-primary-foreground' : 'bg-card text-foreground hover:bg-muted'
                 )}
@@ -436,7 +436,7 @@ export function PourForm({
           <button
             type="submit"
             disabled={submitting}
-            className="min-h-13 w-full border border-foreground bg-secondary font-condensed text-sm font-bold uppercase tracking-label text-secondary-foreground transition-colors hover:bg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-wait disabled:bg-muted disabled:text-muted-foreground"
+            className="btn btn-primary btn-lg w-full disabled:cursor-wait"
           >
             {submitting ? pour.submitting : pour.submit}
           </button>
@@ -481,7 +481,7 @@ function Tag({ active, onClick, children }: { active: boolean; onClick: () => vo
       aria-pressed={active}
       onClick={onClick}
       className={cn(
-        'min-h-9 border px-2.5 font-condensed text-xs uppercase tracking-label transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+        'min-h-9 border px-2.5 font-condensed text-xs uppercase tracking-label transition-colors',
         active
           ? 'border-secondary bg-secondary text-secondary-foreground'
           : 'border-border text-secondary hover:border-foreground'

@@ -187,7 +187,3 @@ export async function publishElicitation(
   });
   return { uri: response.data.uri, cid: response.data.cid };
 }
-
-// Backwards compatibility aliases
-export const publishDrinkLog = publishPour;
-export const getDrinkLogs = getPours;

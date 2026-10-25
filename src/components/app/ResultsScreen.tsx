@@ -12,7 +12,7 @@ import { useAtprotoContext } from './AtprotoProvider';
 import { MapThumb } from './CoordinateMap';
 import {
   explainDrinkMatch,
-  getConnectedDrinkLogs,
+  getConnectedPours,
   refinePalateWithAI,
   sharePalateToFeed,
 } from '@/lib/api-client';
@@ -37,10 +37,10 @@ type ScoredDrink = Drink & { score: number };
 const MENU_LENGTH = 8;
 
 /**
- * Your menu (Flow Recommendations, R4), which replaces the old results
- * dashboard. One list, ranked by relevance alone; the top pick is the one
- * sheet that is yours. The radar chart, the archetype and
- * the Oracle tab are retired: the region is the only identity.
+ * Your menu, which replaced the old results dashboard. One list, ranked by
+ * relevance alone; the top pick is the one sheet that is yours. The radar
+ * chart, the archetype and the Oracle tab are retired: the region is the
+ * only identity.
  */
 export function ResultsScreen({
   user,
@@ -58,7 +58,7 @@ export function ResultsScreen({
   const fetchHistory = useCallback(async () => {
     if (!isConnected) return;
     try {
-      setHistory(await getConnectedDrinkLogs(50));
+      setHistory(await getConnectedPours(50));
     } catch (e) {
       console.error('Failed to load tasted history:', e);
     }
@@ -187,7 +187,7 @@ export function ResultsScreen({
               <button
                 type="button"
                 onClick={onRequestSignIn}
-                className="min-h-11 shrink-0 border border-foreground bg-secondary px-3.5 font-condensed text-xs font-bold uppercase tracking-label text-secondary-foreground transition-colors hover:bg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                className="btn btn-primary shrink-0 px-3.5"
               >
                 {nav.signIn}
               </button>
@@ -412,7 +412,7 @@ function MemberTools({
           type="button"
           onClick={refine}
           disabled={refining || notes.trim().length < 2}
-          className="min-h-12 border border-foreground bg-transparent px-6 font-condensed text-meta font-semibold uppercase tracking-label text-foreground transition-colors hover:bg-secondary hover:text-secondary-foreground disabled:border-border disabled:text-muted-foreground disabled:hover:bg-transparent"
+          className="btn btn-outline px-6"
         >
           {refining ? menu.refining : menu.refineSubmit}
         </button>
@@ -446,7 +446,7 @@ function StartOver({ onConfirm }: { onConfirm: () => void }) {
             <button
               type="button"
               onClick={onConfirm}
-              className="min-h-11 border border-foreground bg-secondary px-4 font-condensed text-xs font-bold uppercase tracking-label text-secondary-foreground transition-colors hover:bg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              className="btn btn-primary px-4"
             >
               {account.startOverCta}
             </button>

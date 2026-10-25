@@ -45,17 +45,17 @@ export function CoordinateMap({ tone = 'paper', you, showAxes = false, className
     <div
       className={cn(
         'relative aspect-square w-full overflow-hidden border',
-        ink ? 'border-reveal-muted/50' : 'border-foreground bg-card',
+        ink ? 'border-reveal-rule' : 'border-foreground bg-card',
         className
       )}
     >
       <div
         aria-hidden="true"
-        className={cn('absolute bottom-0 left-1/2 top-0 w-px', ink ? 'bg-reveal-muted/30' : 'bg-border')}
+        className={cn('absolute bottom-0 left-1/2 top-0 w-px', ink ? 'bg-reveal-hairline' : 'bg-border')}
       />
       <div
         aria-hidden="true"
-        className={cn('absolute left-0 right-0 top-1/2 h-px', ink ? 'bg-reveal-muted/30' : 'bg-border')}
+        className={cn('absolute left-0 right-0 top-1/2 h-px', ink ? 'bg-reveal-hairline' : 'bg-border')}
       />
 
       {quadrants.map((q) => (
@@ -115,7 +115,7 @@ export function DrinkDot({
           ink
             ? filled
               ? 'h-2 w-2 bg-reveal-foreground'
-              : 'h-1.5 w-1.5 bg-reveal-foreground/55'
+              : 'h-1.5 w-1.5 bg-reveal-dim'
             : cn('h-1.75 w-1.75 border border-foreground', filled ? 'bg-foreground' : 'bg-card')
         )}
         style={at(x, y)}
@@ -165,7 +165,7 @@ export function DrinkSpot({
       aria-pressed={selected}
       onClick={onSelect}
       className={cn(
-        'group absolute flex h-6 w-6 -translate-x-1/2 translate-y-1/2 items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+        'group absolute flex h-6 w-6 -translate-x-1/2 translate-y-1/2 items-center justify-center rounded-full',
         selected && 'z-20'
       )}
       style={at(x, y)}
@@ -206,7 +206,7 @@ export function YouMark({
   label?: string;
 }) {
   const ink = tone === 'ink';
-  const cross = ink ? 'bg-reveal-foreground/60' : 'bg-foreground';
+  const cross = ink ? 'bg-reveal-dim' : 'bg-foreground';
   return (
     <span role="img" aria-label={label}>
       <span

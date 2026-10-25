@@ -2,12 +2,12 @@
 
 What the model is allowed to write, who gets to see it, and what it costs.
 The endpoints are `src/pages/api/explain-drink.ts` and
-`src/pages/api/archetype-drink.ts`; the provider binding is Cloudflare Workers AI (`env.AI`).
+`src/pages/api/refine-palate.ts`; the provider binding is Cloudflare Workers AI (`env.AI`).
 
 ## Authored by default, generated at the edges
 
 The instrument is deterministic. The quiz, the coordinate, the scoring, the
-quadrant names, the bartender's reactions — all of it is authored or computed,
+quadrant names, the copy around them — all of it is authored or computed,
 and none of it calls a model. That is not an interim state pending a budget.
 It is the design.
 
@@ -16,8 +16,7 @@ It is the design.
 | Surface | Written by | Why |
 |---|---|---|
 | Quiz questions | `discovery-questions.ts` + `question-selector.ts` | The selector picks by expected information about your position. A model would pick by vibe. |
-| Bartender reactions | `ENRICHED_FEEDBACK` in `conversation.ts` | Voice is brand. `docs/brand.md` governs it, not a system prompt. |
-| Quadrant names, marketing copy | `copy.ts`, `docs/brand.md` | One file to revise the voice in. |
+| Quadrant names, interface and marketing copy | `copy.ts`, `docs/brand.md` | Voice is brand, and one file to revise it in — not a system prompt. |
 | Coordinate, scoring, ranking | `belief-state.ts`, `scoring.ts` | Reproducible. A taste map that moves when nothing changed is not a map. |
 | **Why this drink suits you** | **Model** | The one place per-user prose beats a template. |
 
@@ -31,14 +30,14 @@ the suite must pass with no key.
 | Path | Route | Status |
 |---|---|---|
 | Drink explanation | `POST /api/explain-drink` | **Live.** Hero card on mount, drink card on expand. |
-| Drink archetyping | `POST /api/archetype-drink` | **Reachable, unused.** No UI calls it; `archetypeDrink()` in `api-client.ts` is exercised only by `tests/archetype-logic.spec.ts`. Gated and metered anyway — it spends the pricier call of the two. |
+| Palate refinement | `POST /api/refine-palate` | **Live, and an exception.** A member's free-text notes ("no peat, less sweet") on the menu. The model returns a nudge of up to ±3 on each axis, aversions and a two-sentence dossier; the fallback (`refinePalateFallback`) reads the same notes by keyword. Because the model's answer moves the coordinate, this route breaks the rule above — it produces a result rather than describing one. Unresolved. |
 | Adaptive questions | — | **Parked.** See [Parked work](#parked-work). |
 
 Every call site has a deterministic fallback and none of them can fail the
-caller: both routes catch and return usable copy, both clients catch and return
-usable copy. Keep it that way. **A model outage must be invisible.**
+caller: every route catches and returns usable content, and every client
+catches and returns usable content. Keep it that way. **A model outage must be invisible.**
 
-So both routes **always answer `200` with usable content**, and `400` is
+So every model route **always answers `200` with usable content**, and `400` is
 reserved for input that was malformed. A guest, a throttled member, a missing
 key and a failed call are all indistinguishable to the caller by design — which
 would also make them indistinguishable to us, so the reason travels in an
@@ -59,9 +58,9 @@ Cloudflare Workers AI natively, routed through Cloudflare AI Gateway. Inference 
 
 **The model is `@cf/meta/llama-3.3-70b-instruct-fp8-fast`**, pinned in `GENERATION_MODEL` in `src/lib/generation.ts`. Requests route through AI Gateway (`AI_GATEWAY_ID = 'crystal-coupe-gateway'`), providing automatic edge response caching, request logs, and routing metrics.
 
-For local development without bindings, credentials (`CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN`) can be passed via `.dev.vars` or environment variables. Without bindings or credentials (e.g. during offline test execution), both routes catch gracefully and return their deterministic fallback.
+For local development without bindings, credentials (`CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN`) can be passed via `.dev.vars` or environment variables. Without bindings or credentials (e.g. during offline test execution), every route catches gracefully and return their deterministic fallback.
 
-> Until a binding or key is configured, both routes run their catch branch on every
+> Until a binding or key is configured, every route runs its catch branch on every
 > request and serve the fallback. This is silent and looks like working
 > software.
 
@@ -73,15 +72,15 @@ only place a model id appears.
 **Generated prose is for signed-in users. Guests get the static fallback.**
 
 Guests are not degraded. `explain-drink.ts` already carries a written fallback
-— *"You lean crisp and sweet — a Negroni hits that sweet spot"* — that is
+(`explanationFallback` in `generation.ts`: *"You lean crisp and sweet — a
+Daiquiri sits right in that corner of the map"*) that is
 derived from the guest's actual coordinate and reads as intended copy, because
 it is. The guest experience stays complete: the quiz runs, the map renders, the
 recommendation is real. What signing in adds is prose written for them.
 
-This is the only place in the product where signing in currently buys anything.
-That is the argument for it. The profile living in the user's own repo is the
-product's whole thesis, and right now the app asks for an account while giving
-identical value with or without one.
+Beyond keeping the coordinate and pours in the member's own repository — the
+product's whole thesis — this is most of what signing in buys on `/taste`
+today. That is the argument for it.
 
 ### The gate must be proof, not a claim
 
@@ -101,8 +100,8 @@ session. It is not tolerable as the gate on a billed call, which would run
 first and bill regardless.
 
 **Gate on a restorable OAuth session.** `restoredDid()` and `oauthSession()` in
-`src/lib/atproto/session.ts` resolve the session and its tokens; both model
-routes call `restoredDid()` before spending anything, and `atproto-publish.ts`
+`src/lib/atproto/session.ts` resolve the session and its tokens; every model
+route calls `restoredDid()` before spending anything, and `atproto-publish.ts`
 passes the same session to the PDS writes in `publish.ts`.
 
 Sessions and authorization state live in KV (`ATPROTO_SESSIONS`, the
@@ -139,7 +138,7 @@ open. Some metering beats none.
 
 **The quota belongs to a DID, not an IP.** Generation is members-only, so by
 the time anything is metered the caller has proven an account — which is harder
-to rotate than an address. Order in both routes: validate → authenticate →
+to rotate than an address. Order in every route: validate → authenticate →
 meter → call. **Malformed and unauthenticated requests cost nothing and consume
 no quota.**
 
@@ -175,7 +174,7 @@ adaptive questions and validates the response — including a check that the
 options actually spread along the target axis, which is the hard part. It has
 **no call sites in `src/` or `tests/`**.
 
-It is parked, not abandoned: model-driven elicitation is roadmap item 5 in
+It is parked, not abandoned: model-driven elicitation is roadmap item 8 in
 `AGENTS.md` ("Rework elicitation"). It stays in the tree so that work does not
 start from nothing. Until then it is dead code by definition, and this section
 is what stops it reading as live.

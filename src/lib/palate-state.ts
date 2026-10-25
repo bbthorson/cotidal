@@ -518,6 +518,37 @@ export function applyPour(
   return next;
 }
 
+/**
+ * What a pour does to the vibe tags: a liked (7+) drink's tags each gain a
+ * quarter, up to 5. The server and a guest's device both apply this.
+ */
+export function vibeTagsAfterPour(
+  tags: Record<string, number>,
+  drink: Drink | undefined,
+  hedonic: number
+): Record<string, number> {
+  const next = { ...tags };
+  if (hedonic >= 7 && drink) {
+    for (const tag of drink.tags) next[tag] = Math.min(5.0, (next[tag] || 0) + 0.25);
+  }
+  return next;
+}
+
+/**
+ * "Too bitter", "too smoky" and "too anise" are aversions, not directions: they
+ * switch an aversion on, and nothing a pour says switches one off.
+ */
+export function aversionsAfterPour(
+  aversions: { smoke: boolean; bitter: boolean; anise: boolean },
+  deviations: readonly string[]
+): { smoke: boolean; bitter: boolean; anise: boolean } {
+  return {
+    smoke: aversions.smoke || deviations.includes('too-smoky'),
+    bitter: aversions.bitter || deviations.includes('too-bitter'),
+    anise: aversions.anise || deviations.includes('too-anise'),
+  };
+}
+
 function transpose(M: Matrix5x5): Matrix5x5 {
   const T: Matrix5x5 = [];
   for (let i = 0; i < 5; i++) {

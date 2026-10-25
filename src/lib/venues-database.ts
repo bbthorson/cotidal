@@ -1,5 +1,11 @@
 import type { VibeTag } from './data';
 
+/**
+ * Example menus for /bars: well-known bars' drinks, placed on the map by us to
+ * show what a published `app.cotidal.menu` would carry. Not sightings, and not
+ * published by the bars themselves.
+ */
+
 export type SeededMenuItem = {
   name: string;
   description: string;
@@ -28,7 +34,6 @@ export type SeededVenue = {
     lat: number;
     lng: number;
   };
-  claimStatus: 'unclaimed' | 'verified';
   summary: string;
   menu: SeededMenuItem[];
 };
@@ -46,7 +51,6 @@ export const venueDatabase: SeededVenue[] = [
     address: '134 Eldridge St, New York, NY 10002',
     website: 'https://attaboy.nyc',
     coordinates: { lat: 40.7188, lng: -73.9918 },
-    claimStatus: 'unclaimed',
     summary:
       'The legendary bespoke speakeasy in the former Milk & Honey space, founded by Michael McIlroy and Sam Ross.',
     menu: [
@@ -93,7 +97,6 @@ export const venueDatabase: SeededVenue[] = [
     address: '433 E 6th St, New York, NY 10009',
     website: 'https://deathandcompany.com',
     coordinates: { lat: 40.7259, lng: -73.9847 },
-    claimStatus: 'unclaimed',
     summary:
       'The foundational craft cocktail temple that redefined American beverage standards and modern classic recipes.',
     menu: [
@@ -140,7 +143,6 @@ export const venueDatabase: SeededVenue[] = [
     address: '531 Hudson St, New York, NY 10014',
     website: 'https://katanakitten.com',
     coordinates: { lat: 40.7354, lng: -74.0068 },
-    claimStatus: 'unclaimed',
     summary:
       'Japanese-American highball and izakaya bar directed by Masahiro Urushido, celebrated for surgical precision.',
     menu: [
@@ -187,7 +189,6 @@ export const venueDatabase: SeededVenue[] = [
     address: '115 Allen St, New York, NY 10002',
     website: 'https://doublechickenplease.com',
     coordinates: { lat: 40.7196, lng: -73.9902 },
-    claimStatus: 'unclaimed',
     summary:
       'GN Chan and Faye Chen’s culinary cocktail lounge, engineering deconstructed dishes into drinkable form.',
     menu: [
@@ -234,7 +235,6 @@ export const venueDatabase: SeededVenue[] = [
     address: '510 Hudson St, New York, NY 10014',
     website: 'https://employeesonlynyc.com',
     coordinates: { lat: 40.7337, lng: -74.0067 },
-    claimStatus: 'unclaimed',
     summary:
       'The seminal 2004 West Village industry retreat credited with reviving speakeasy hospitality and high-speed service.',
     menu: [
@@ -283,7 +283,6 @@ export const venueDatabase: SeededVenue[] = [
     address: 'Carlos Place, Mayfair, London W1K 2AL',
     website: 'https://www.the-connaught.co.uk/restaurants-bars/connaught-bar/',
     coordinates: { lat: 51.5098, lng: -0.1504 },
-    claimStatus: 'unclaimed',
     summary:
       'Agostino Perrone and Giorgio Bargiani’s five-star hotel bar renowned for the tableside Martini trolley.',
     menu: [
@@ -320,7 +319,6 @@ export const venueDatabase: SeededVenue[] = [
     address: '152 Old St, London EC1V 9BW',
     website: 'https://tayer-elementary.com',
     coordinates: { lat: 51.5256, lng: -0.0911 },
-    claimStatus: 'unclaimed',
     summary:
       'Monica Berg and Alex Kratena’s minimalist duality: draft cocktails upfront, hyper-seasonal culinary bar in the rear.',
     menu: [
@@ -357,7 +355,6 @@ export const venueDatabase: SeededVenue[] = [
     address: '12 Old Compton St, London W1D 4TQ',
     website: 'https://barswift.com',
     coordinates: { lat: 51.5133, lng: -0.1315 },
-    claimStatus: 'unclaimed',
     summary:
       'Mia Johansson and Bobby Hiddleston’s bustling Soho aperitivo bar upstairs and moody whisky den downstairs.',
     menu: [
@@ -396,7 +393,6 @@ export const venueDatabase: SeededVenue[] = [
     address: '214 Royal St, New Orleans, LA 70130',
     website: 'https://hotelmonteleone.com/entertainment/carousel-bar/',
     coordinates: { lat: 29.9546, lng: -90.0683 },
-    claimStatus: 'unclaimed',
     summary:
       'The historic 25-seat rotating carousel lounge inside Hotel Monteleone, birthplace of the Vieux Carré.',
     menu: [
@@ -423,7 +419,6 @@ export const venueDatabase: SeededVenue[] = [
     address: '813 Bienville St, New Orleans, LA 70112',
     website: 'https://www.arnaudsrestaurant.com/bars/french-75/',
     coordinates: { lat: 29.9555, lng: -90.0691 },
-    claimStatus: 'unclaimed',
     summary:
       'Chris Hannah’s James Beard Award-winning French Quarter institution celebrating Cognac tradition.',
     menu: [
@@ -452,7 +447,6 @@ export const venueDatabase: SeededVenue[] = [
     address: '650 Gough St, San Francisco, CA 94102',
     website: 'https://www.smugglerscovesf.com',
     coordinates: { lat: 37.7794, lng: -122.4232 },
-    claimStatus: 'unclaimed',
     summary:
       'Martin Cate’s world-renowned rum repository and historical tiki temple with over 700 rare rums.',
     menu: [
@@ -489,7 +483,6 @@ export const venueDatabase: SeededVenue[] = [
     address: '3010 20th St, San Francisco, CA 94110',
     website: 'https://trickdogbar.com',
     coordinates: { lat: 37.7592, lng: -122.4112 },
-    claimStatus: 'unclaimed',
     summary:
       'The Bon Vivants’ Mission powerhouse, famous for rotating themed menus that reshape industry packaging.',
     menu: [
@@ -518,7 +511,6 @@ export const venueDatabase: SeededVenue[] = [
     address: '1520 N Damen Ave, Chicago, IL 60622',
     website: 'https://www.theviolethour.com',
     coordinates: { lat: 41.9095, lng: -87.6778 },
-    claimStatus: 'unclaimed',
     summary:
       'Toby Maloney’s hidden velvet-draped cocktail sanctum that sparked the Midwestern mixology renaissance.',
     menu: [
@@ -557,7 +549,6 @@ export const venueDatabase: SeededVenue[] = [
     address: 'B1F, Efuro Building, 5-4-15 Ginza, Chuo-ku, Tokyo',
     website: 'http://www.barhighfive.com',
     coordinates: { lat: 35.6713, lng: 139.7635 },
-    claimStatus: 'unclaimed',
     summary:
       'Hidetsugu Ueno’s intimate Ginza sanctuary, famed for hand-carved ice diamonds and bespoke omakase cocktails.',
     menu: [
@@ -584,23 +575,3 @@ export const venueDatabase: SeededVenue[] = [
     ],
   },
 ];
-
-export function getVenueById(id: string): SeededVenue | undefined {
-  return venueDatabase.find((v) => v.id === id);
-}
-
-export function getVenueByDomain(domain: string): SeededVenue | undefined {
-  return venueDatabase.find((v) => v.domain.toLowerCase() === domain.toLowerCase());
-}
-
-export function searchVenues(query: string): SeededVenue[] {
-  const q = query.toLowerCase().trim();
-  if (!q) return venueDatabase;
-  return venueDatabase.filter(
-    (v) =>
-      v.name.toLowerCase().includes(q) ||
-      v.city.toLowerCase().includes(q) ||
-      v.domain.toLowerCase().includes(q) ||
-      v.neighborhood.toLowerCase().includes(q)
-  );
-}

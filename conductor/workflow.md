@@ -32,11 +32,7 @@ All tasks follow a strict lifecycle:
    - With the safety of passing tests, refactor the implementation code and the test code to improve clarity, remove duplication, and enhance performance without changing the external behavior.
    - Rerun tests to ensure they still pass after refactoring.
 
-6. **Verify Coverage:** Run coverage reports using the project's chosen tools. For example, in a Python project, this might look like:
-   ```bash
-   pytest --cov=app --cov-report=html
-   ```
-   Target: >80% coverage for new code. The specific tools and commands will vary by language and framework.
+6. **Verify Coverage:** This project has no coverage tool. Instead, check that the new behaviour has a test of its contract (AGENTS.md, Conventions): unit tests for order-independent logic, browser tests for routing, rendering and degradation.
 
 7. **Document Deviations:** If implementation differs from tech stack:
    - **STOP** implementation
@@ -97,7 +93,7 @@ All tasks follow a strict lifecycle:
 
         **Manual Verification Steps:**
         1.  **Start the development server with the command:** `npm run dev`
-        2.  **Open your browser to:** `http://localhost:3000`
+        2.  **Open your browser to:** `http://127.0.0.1:9002`
         3.  **Confirm that you see:** The new user profile page, with the user's name and email displayed correctly.
         ```
 
@@ -150,27 +146,21 @@ Before marking any task complete, verify:
 
 ## Development Commands
 
-**AI AGENT INSTRUCTION: This section should be adapted to the project's specific language, framework, and build tools.**
-
 ### Setup
 ```bash
-# Example: Commands to set up the development environment (e.g., install dependencies, configure database)
-# e.g., for a Node.js project: npm install
-# e.g., for a Go project: go mod tidy
+npm install
 ```
 
 ### Daily Development
 ```bash
-# Example: Commands for common daily tasks (e.g., start dev server, run tests, lint, format)
-# e.g., for a Node.js project: npm run dev, npm test, npm run lint
-# e.g., for a Go project: go run main.go, go test ./..., go fmt ./...
+npm run dev        # http://127.0.0.1:9002 (sign-in needs 127.0.0.1)
+npm run lint
 ```
 
 ### Before Committing
 ```bash
-# Example: Commands to run all pre-commit checks (e.g., format, lint, type check, run tests)
-# e.g., for a Node.js project: npm run check
-# e.g., for a Go project: make check (if a Makefile exists)
+npm run check                                # lint, lexicons, astro check, tsc
+npm run build && CI=1 npx playwright test    # the suite, as CI runs it
 ```
 
 ## Testing Requirements

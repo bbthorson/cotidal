@@ -43,15 +43,6 @@ test.describe('The gate', () => {
     expect(res.headers()[GENERATION_HEADER]).toBe('unauthenticated');
   });
 
-  test('the unused archetype route is gated too', async ({ request }) => {
-    const res = await request.post('/api/archetype-drink', {
-      data: { drinkName: 'Negroni' },
-    });
-
-    expect(res.status()).toBe(200);
-    expect(res.headers()[GENERATION_HEADER]).toBe('unauthenticated');
-  });
-
   test('the refine-palate route is gated for unauthenticated users', async ({ request }) => {
     const res = await request.post('/api/refine-palate', {
       data: {
@@ -79,13 +70,8 @@ test.describe('The gate', () => {
     });
     expect(badProfile.status()).toBe(400);
 
-    const badName = await request.post('/api/archetype-drink', {
-      data: { drinkName: '<script>alert(1)</script>' },
-    });
-    expect(badName.status()).toBe(400);
-
     // A rejection carries no generation outcome: nothing was decided about it.
-    expect(badName.headers()[GENERATION_HEADER]).toBeUndefined();
+    expect(badProfile.headers()[GENERATION_HEADER]).toBeUndefined();
   });
 });
 

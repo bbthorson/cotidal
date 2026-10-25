@@ -5,11 +5,11 @@ import { site, venuesCopy } from '../lib/copy';
 import { venueDatabase } from '../lib/venues-database';
 
 /**
- * The Supply Side: Venues and bars on the AT Protocol.
+ * The supply side: what a bar can do on the protocol today, and what is
+ * still to come, said as "Later:" (docs/brand.md, Claims). Reasoning in
+ * docs/venues.md and docs/routes.md.
  *
  * Statically rendered, zero client JavaScript.
- * Explains the B2B proposition: handle-as-domain claim, canonical menu publishing,
- * palate density analytics, and recipe syndication.
  */
 ---
 
@@ -21,196 +21,66 @@ import { venueDatabase } from '../lib/venues-database';
   <div class="space-y-16">
     <PageTitle eyebrow={venuesCopy.eyebrow} title={venuesCopy.title} lede={venuesCopy.subtitle} />
 
-    <!-- Five Front Doors Grid -->
     <section class="space-y-6">
       <div class="border-b border-foreground pb-2">
-        <h2 class="label-caps text-foreground">{venuesCopy.doorsTitle}</h2>
+        <h2 class="label-caps text-foreground">{venuesCopy.todayTitle}</h2>
       </div>
 
-      <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {venuesCopy.doors.map((door, idx) => (
-          <article class:list={[
-            "coaster border border-border bg-card p-6 transition-all hover:border-primary flex flex-col justify-between",
-            idx === 4 ? "md:col-span-2 lg:col-span-1" : ""
-          ]}>
-            <div>
-              <span class="label-caps text-secondary block mb-2">{door.label}</span>
-              <h3 class="font-serif text-lg font-bold text-foreground mb-3">
-                {door.title}
-              </h3>
-              <p class="font-serif text-sm leading-relaxed text-muted-foreground">
-                {door.description}
-              </p>
-            </div>
-          </article>
-        ))}
-      </div>
-    </section>
-
-    <!-- For Bartenders & Drink Designers -->
-    <section class="space-y-6">
-      <div class="border-b border-foreground pb-2">
-        <span class="label-caps text-primary block mb-1">Makers & Creators</span>
-        <h2 class="font-serif text-2xl font-bold text-foreground">{venuesCopy.makerTitle}</h2>
-        <p class="font-serif text-sm text-foreground/80 mt-1">{venuesCopy.makerSubtitle}</p>
-      </div>
-
-      <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-        {venuesCopy.makerFeatures.map((feat) => (
+      <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
+        {venuesCopy.today.map((item) => (
           <article class="coaster border border-border bg-card p-6">
-            <span class="label-caps text-secondary block mb-2">{feat.label}</span>
-            <h3 class="font-serif text-lg font-bold text-foreground mb-3">
-              {feat.title}
-            </h3>
-            <p class="font-serif text-sm leading-relaxed text-muted-foreground">
-              {feat.description}
-            </p>
+            <h3 class="font-serif text-lg font-bold text-foreground mb-3">{item.title}</h3>
+            <p class="font-serif text-sm leading-relaxed text-muted-foreground">{item.description}</p>
           </article>
         ))}
       </div>
     </section>
 
-    <!-- Plans & Capabilities (Free vs Pro) -->
     <section class="space-y-6">
       <div class="border-b border-foreground pb-2">
-        <h2 class="label-caps text-foreground">{venuesCopy.tiersTitle}</h2>
+        <h2 class="label-caps text-foreground">{venuesCopy.laterTitle}</h2>
       </div>
 
-      <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-        <!-- Free Tier -->
-        <article class="coaster border border-border bg-card p-6 flex flex-col justify-between space-y-6">
-          <div class="space-y-4">
-            <div class="flex items-center justify-between border-b border-border pb-3">
-              <div>
-                <span class="label-caps text-muted-foreground block">{venuesCopy.freeTier.title}</span>
-                <span class="font-condensed text-xs uppercase tracking-label text-foreground font-semibold">Open Protocol</span>
-              </div>
-              <span class="rounded-sm border border-border bg-background px-2.5 py-1 font-condensed text-3xs uppercase tracking-label text-muted-foreground">
-                {venuesCopy.freeTier.badge}
-              </span>
-            </div>
-            <p class="font-serif text-sm text-foreground/80">
-              {venuesCopy.freeTier.description}
-            </p>
-            <ul class="space-y-2 pt-2">
-              {venuesCopy.freeTier.features.map((feature) => (
-                <li class="flex items-start gap-2 font-serif text-xs text-muted-foreground">
-                  <span aria-hidden="true" class="text-secondary select-none font-bold">✓</span>
-                  <span>{feature}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </article>
-
-        <!-- Pro Tier -->
-        <article class="coaster border-2 border-primary bg-card p-6 flex flex-col justify-between space-y-6 shadow-bar">
-          <div class="space-y-4">
-            <div class="flex items-center justify-between border-b border-primary/40 pb-3">
-              <div>
-                <span class="label-caps text-primary block">{venuesCopy.proTier.title}</span>
-                <span class="font-condensed text-xs uppercase tracking-label text-foreground font-semibold">Hospitality OS</span>
-              </div>
-              <span class="rounded-sm border border-primary bg-primary/10 px-2.5 py-1 font-condensed text-xs uppercase tracking-label text-primary font-bold">
-                {venuesCopy.proTier.badge}
-              </span>
-            </div>
-            <p class="font-serif text-sm text-foreground/90">
-              {venuesCopy.proTier.description}
-            </p>
-            <ul class="space-y-2 pt-2">
-              {venuesCopy.proTier.features.map((feature) => (
-                <li class="flex items-start gap-2 font-serif text-xs text-foreground">
-                  <span aria-hidden="true" class="text-primary select-none font-bold">★</span>
-                  <span>{feature}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </article>
-      </div>
+      <ul class="space-y-3">
+        {venuesCopy.later.map((line) => (
+          <li class="font-serif text-sm leading-relaxed text-muted-foreground">{line}</li>
+        ))}
+      </ul>
     </section>
 
-    <!-- Seeded Anchor Venues -->
     <section class="space-y-6">
       <div class="border-b border-foreground pb-2">
-        <span class="label-caps text-primary block mb-1">Decentralized Corpus</span>
-        <h2 class="font-serif text-2xl font-bold text-foreground">{venuesCopy.seededTitle}</h2>
-        <p class="font-serif text-sm text-foreground/80 mt-1">{venuesCopy.seededSubtitle}</p>
+        <h2 class="font-serif text-2xl font-bold text-foreground">{venuesCopy.examplesTitle}</h2>
+        <p class="font-serif text-sm text-muted-foreground mt-1">{venuesCopy.examplesSubtitle}</p>
       </div>
 
       <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
         {venueDatabase.slice(0, 6).map((venue) => (
-          <article class="coaster border border-border bg-card p-6 flex flex-col justify-between space-y-4">
+          <article class="coaster border border-border bg-card p-6 space-y-4">
+            <div class="flex items-center justify-between border-b border-border pb-2">
+              <span class="font-mono text-xs text-primary font-semibold">{venue.domain}</span>
+              <span class="rounded-sm border border-border px-2 py-0.5 font-condensed text-3xs uppercase tracking-label text-muted-foreground">
+                {venuesCopy.exampleTag}
+              </span>
+            </div>
             <div>
-              <div class="flex items-center justify-between border-b border-border pb-2 mb-3">
-                <span class="font-mono text-xs text-primary font-semibold">{venue.domain}</span>
-                <span class="rounded-sm border border-border px-2 py-0.5 font-condensed text-3xs uppercase tracking-label text-muted-foreground">
-                  {venue.claimStatus}
-                </span>
-              </div>
               <h3 class="font-serif text-xl font-bold text-foreground mb-1">{venue.name}</h3>
               <p class="font-serif text-xs text-muted-foreground mb-3">{venue.neighborhood} · {venue.city}</p>
-              <p class="font-serif text-xs leading-relaxed text-foreground/80 mb-4">{venue.summary}</p>
-              
-              <div class="border-t border-border/60 pt-3">
-                <span class="label-caps text-secondary block mb-2">Mapped Specs ({venue.menu.length})</span>
-                <ul class="space-y-1.5 font-serif text-xs text-foreground/90">
-                  {venue.menu.map((item) => (
-                    <li class="flex items-center justify-between">
-                      <span class="font-medium">{item.name}</span>
-                      <span class="font-mono text-3xs text-muted-foreground">[{item.x > 0 ? `+${item.x}` : item.x}, {item.y > 0 ? `+${item.y}` : item.y}]</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+              <p class="font-serif text-xs leading-relaxed text-foreground">{venue.summary}</p>
             </div>
-            
-            <div class="pt-2">
-              <span class="block w-full text-center rounded-sm border border-border bg-background py-1.5 font-condensed text-3xs uppercase tracking-label text-muted-foreground">
-                Unclaimed Sighting · Proves with DNS
-              </span>
+            <div class="border-t border-border pt-3">
+              <span class="label-caps text-secondary block mb-2">{venuesCopy.examplesSpecs(venue.menu.length)}</span>
+              <ul class="space-y-1.5 font-serif text-xs text-foreground">
+                {venue.menu.map((item) => (
+                  <li class="flex items-center justify-between">
+                    <span class="font-medium">{item.name}</span>
+                    <span class="font-mono text-3xs text-muted-foreground">[{item.x > 0 ? `+${item.x}` : item.x}, {item.y > 0 ? `+${item.y}` : item.y}]</span>
+                  </li>
+                ))}
+              </ul>
             </div>
           </article>
         ))}
-      </div>
-    </section>
-
-    <!-- Domain Claim / Lookup Card -->
-    <section class="border border-border bg-card p-8 coaster space-y-6">
-      <div class="space-y-2">
-        <span class="label-caps text-primary block">{venuesCopy.lookupEyebrow}</span>
-        <h2 class="font-serif text-2xl font-bold text-foreground">
-          {venuesCopy.lookupTitle}
-        </h2>
-        <p class="font-serif text-sm leading-relaxed text-foreground/80">
-          {venuesCopy.lookupDescription}
-        </p>
-      </div>
-
-      <div class="space-y-4 pt-2">
-        <div class="flex flex-col sm:flex-row gap-3">
-          <input
-            type="text"
-            placeholder={venuesCopy.domainPlaceholder}
-            disabled
-            class="flex-1 rounded-sm border border-border bg-background px-4 py-2.5 font-serif text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
-            aria-label="Venue domain"
-          />
-          <button
-            type="button"
-            disabled
-            class="rounded-sm border border-foreground bg-primary px-5 py-2.5 font-condensed text-xs uppercase tracking-label text-primary-foreground opacity-90 cursor-not-allowed"
-          >
-            {venuesCopy.checkDomainCta}
-          </button>
-        </div>
-
-        <div class="border-t border-border/60 pt-4">
-          <p class="font-serif text-xs italic text-muted-foreground">
-            {venuesCopy.earlyAccessNotice}
-          </p>
-        </div>
       </div>
     </section>
   </div>

@@ -1,3 +1,10 @@
+> **Historical.** This is the brief the project started from. The product as
+> built is described in README.md, docs/brand.md and docs/routes.md; where they
+> disagree with this file, they are right. Notably: there is no Genkit (the
+> model is Cloudflare Workers AI, docs/generation.md), the quiz is adaptive
+> after four fixed openers rather than three fixed steps, and the map's y axis
+> runs Savory (−10) to Sweet (+10).
+
 # Initial Concept
 
 Cotidal is a Palate Companion application designed to help adventurous drinkers who don't know where to start by triangulating their taste preferences into a Palate Matrix and providing AI-powered recommendations.

@@ -252,8 +252,8 @@ export function createInitialBelief(): BeliefState {
 
 /**
  * Answer a question: the chosen option's position evidence, aversions and
- * vibe tags. The option is matched by identity, then by text, because the
- * chat flow can hand back an equal copy.
+ * vibe tags. The option is matched by identity, then by text, so an equal
+ * copy (one that has been serialised and read back) counts as the same answer.
  */
 export function answerQuestion(state: BeliefState, question: Question, option: QuestionOption): BeliefState {
   let chosen = question.options.indexOf(option);

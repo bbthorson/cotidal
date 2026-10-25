@@ -1,23 +1,25 @@
 # Technology Stack
 
+The current stack, kept in step with `package.json`. README.md has the same
+table with links; AGENTS.md has the architecture.
+
 ## Core Framework
-- **Framework:** Astro
+- **Framework:** Astro 7, server output, on Cloudflare Workers (`@astrojs/cloudflare`)
 - **Language:** TypeScript
-- **Runtime:** Node.js (>=20.0.0)
+- **Runtime:** Node.js >= 22 for tooling (`.nvmrc`); workerd in production
 
 ## Frontend & UI
-- **Styling:** Tailwind CSS
-- **Component Primitives:** Radix UI
-- **Icons:** Lucide React
-- **Animations:** Framer Motion
-- **Forms:** React Hook Form + Zod (Validation)
+- **Rendering:** static Astro for `/`, `/drinks`, `/regions/<id>` and `/p/<handle>`; React 19 islands on `/taste` and `/log` only
+- **Styling:** Tailwind CSS, tokens in `src/styles/globals.css` (docs/design-system.md)
+- **Component primitives:** `@radix-ui/react-dialog` (the sign-in sheet)
+- **Validation:** Zod
 
 ## AI & Data
-- **AI Framework:** Google Genkit (`genkit`, `@genkit-ai/google-genai`)
-- **External API:** TheCocktailDB API
-- **Local Data:** `src/lib/data.ts` (Static definitions)
+- **Model:** Cloudflare Workers AI through AI Gateway, one model id in `src/lib/generation.ts` (docs/generation.md)
+- **Identity and records:** AT Protocol (`@bbthorson/atproto-cf-auth`, `@atproto/api`), lexicons in `src/lib/atproto/lexicons/`
+- **Local data:** `src/lib/data.ts` (positions on the map), `src/content/drinks/` (register prose)
 
 ## Development Tools
-- **Package Manager:** pnpm
-- **Linting:** ESLint
-- **Testing:** Playwright (E2E)
+- **Package Manager:** npm (`package-lock.json`)
+- **Linting:** ESLint, including the design-token rules
+- **Testing:** Playwright (unit and browser), run against the preview build

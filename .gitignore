@@ -26,7 +26,6 @@ test-results/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-.pnpm-debug.log*
 
 # vercel
 .vercel
@@ -34,14 +33,12 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 
-.genkit/*
 .env*
 
 # astro & wrangler
 .astro/
 dist/
 .wrangler/
-.pnpm-store/
 
 # local secrets
 .dev.vars

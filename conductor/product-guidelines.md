@@ -1,3 +1,7 @@
+> **Superseded by docs/brand.md.** The "mystic", glassmorphism and
+> sage-and-terracotta-on-obsidian direction below was replaced by printed
+> matter: ink on warm paper, "cold instrument, warm secret". Kept for history.
+
 # Cotidal: Product Guidelines
 
 ## Brand Identity & Voice

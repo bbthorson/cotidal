@@ -2,14 +2,13 @@ import { test, expect } from '@playwright/test';
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { drinkDatabase } from '../src/lib/data';
-import { PALATE_ARCHETYPES } from '../src/lib/archetypes';
 import { quadrantIdFor, QUADRANT_ORDER } from '../src/lib/quadrant';
 
 /**
  * The recurring failure in this codebase is a second, hand-maintained copy of
- * something that drifts from the first, silently. Drink prose introduces two
- * more places for that to happen — content frontmatter and archetype
- * recommendations — so both join keys are checked here rather than trusted.
+ * something that drifts from the first, silently. Drink prose introduces one
+ * more place for that to happen — content frontmatter — so its join key is
+ * checked here rather than trusted.
  *
  * Frontmatter is read as text instead of through `astro:content` because that
  * module only resolves inside Astro's build; this runs anywhere.
@@ -78,18 +77,4 @@ test('Drink routes: mount no island', () => {
     const source = readFileSync(join(dir, file), 'utf8');
     expect(source, `${file} mounts an island`).not.toMatch(/client:(load|only|idle|visible|media)/);
   }
-});
-
-test('Archetypes: recommended drinks all exist in drinkDatabase', () => {
-  const names = new Set(drinkDatabase.map((d) => d.name));
-  const missing: string[] = [];
-
-  for (const archetype of Object.values(PALATE_ARCHETYPES)) {
-    for (const drink of archetype.recommendedDrinks) {
-      if (!names.has(drink)) missing.push(`${archetype.id} → ${drink}`);
-    }
-  }
-
-  expect(missing, `archetypes recommend drinks that are not on the map: ${missing.join(', ')}`)
-    .toHaveLength(0);
 });

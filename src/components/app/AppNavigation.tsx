@@ -33,7 +33,7 @@ export function AppNavigation({ activeTab, onTabChange }: AppNavigationProps) {
             onClick={() => onTabChange(tab)}
             aria-current={active ? 'page' : undefined}
             className={cn(
-              '-mt-px flex min-h-14 items-center justify-center border-t-3 font-condensed text-meta uppercase tracking-label transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring lg:mt-0 lg:min-h-12',
+              '-mt-px flex min-h-14 items-center justify-center border-t-3 font-condensed text-meta uppercase tracking-label transition-colors focus-ring-inset lg:mt-0 lg:min-h-12',
               active
                 ? 'border-primary font-bold text-foreground'
                 : 'border-transparent font-semibold text-muted-foreground hover:text-foreground'

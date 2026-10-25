@@ -98,25 +98,6 @@ export async function runWorkersAi(options: WorkersAiOptions): Promise<string | 
 }
 
 /**
- * Safely extract JSON from raw model output, handling fenced markdown blocks or raw JSON.
- */
-export function extractJson<T = unknown>(rawText: string): T | null {
-  try {
-    const fenced = rawText.match(/```(?:json)?\s*([\s\S]*?)```/);
-    if (fenced) {
-      return JSON.parse(fenced[1].trim()) as T;
-    }
-    const jsonMatch = rawText.match(/(\{[\s\S]*\}|\[[\s\S]*\])/);
-    if (jsonMatch) {
-      return JSON.parse(jsonMatch[0].trim()) as T;
-    }
-    return JSON.parse(rawText.trim()) as T;
-  } catch {
-    return null;
-  }
-}
-
-/**
  * Why a response says what it says. These routes always answer with usable
  * content — a model outage, a missing key, a guest, and a throttled member all
  * read as working software — so the reason travels in a header rather than in
@@ -153,14 +134,3 @@ export function explanationFallback(drinkName: string, profile: FallbackProfile)
   const palate = profile.y > 0 ? 'sweet' : 'savory';
   return `You lean ${axis} and ${palate} — a ${drinkName} sits right in that corner of the map.`;
 }
-
-/** The archetype route's contract: always a usable drink shape, never a failure. */
-export const ARCHETYPE_FALLBACK = {
-  x: 0,
-  y: 0,
-  hasSmoke: false,
-  hasAnise: false,
-  isBitter: false,
-  tags: ['classic'],
-  oracleReasoning: "Couldn't get a full read on this one, but it's a classic.",
-} as const;

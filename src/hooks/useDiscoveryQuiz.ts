@@ -3,6 +3,7 @@ import { drinkDatabase } from '@/lib/data';
 import { questions as questionPool, type Question, type QuestionOption } from '@/lib/discovery-questions';
 import { calculateDistance } from '@/lib/scoring';
 import { publishPalate, publishElicitation } from '@/lib/api-client';
+import { saveProfile } from '@/lib/device-store';
 import { toElicitationRecord } from '@/lib/elicitation';
 import {
   type BeliefState,
@@ -109,7 +110,7 @@ export function useDiscoveryQuiz(onComplete: (profile: UserProfile) => void) {
 
     rankedCandidates.sort((a, b) => b.score - a.score);
 
-    localStorage.setItem('user_profile', JSON.stringify(finalProfile));
+    saveProfile(finalProfile);
 
     // Automatically sync to AT Protocol if connected
     publishPalate(finalProfile).catch(e => {

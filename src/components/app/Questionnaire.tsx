@@ -24,7 +24,7 @@ interface QuestionnaireProps {
 const ROMAN_NUMERALS = ['I', 'II', 'III', 'IV', 'V', 'VI'];
 
 /**
- * One question per screen (Flow Recommendations, R2). The site header steps
+ * One question per screen. The site header steps
  * aside on a phone (`data-focus-mode`, see globals.css) and a focused bar
  * replaces it: back, an honest count, skip. The whole plate is the target;
  * the chosen plate takes the letterpress offset — struck through when the
@@ -61,7 +61,7 @@ export function Questionnaire({
           onClick={onBack}
           disabled={!canGoBack || isNavigating}
           aria-label={quiz.backLabel}
-          className="flex min-h-11 items-center px-2 font-condensed text-meta font-semibold uppercase tracking-label text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:invisible"
+          className="flex min-h-11 items-center px-2 font-condensed text-meta font-semibold uppercase tracking-label text-muted-foreground transition-colors hover:text-foreground disabled:invisible"
         >
           &larr; {quiz.back}
         </button>
@@ -72,7 +72,7 @@ export function Questionnaire({
           type="button"
           onClick={onExploreAsGuest}
           aria-label={quiz.skipLabel}
-          className="flex min-h-11 items-center px-2 font-condensed text-meta font-semibold uppercase tracking-label text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="flex min-h-11 items-center px-2 font-condensed text-meta font-semibold uppercase tracking-label text-muted-foreground transition-colors hover:text-foreground"
         >
           {quiz.skip}
         </button>
@@ -194,7 +194,6 @@ function QuestionStage({ question, isNavigating, canGoBack, onSelectOption, onBa
               className={cn(
                 'flex border bg-card p-4.5 text-left transition-colors duration-150',
                 isPair ? 'flex-col gap-2' : 'items-start gap-3.5',
-                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
                 isPicked ? 'border-foreground shadow-mcm' : 'border-border hover:border-primary'
               )}
             >

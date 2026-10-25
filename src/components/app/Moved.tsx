@@ -22,9 +22,9 @@ interface MovedProps {
 }
 
 /**
- * After a pour (Flow Recommendations, R6). The payoff of signing in, shown
- * every time: where you were, where you are, what changed on the menu. The
- * second and last use of the ink ground.
+ * After a pour, in /taste and /log. The payoff of logging, shown every time:
+ * where you were, where you are, what changed on the menu. The second and
+ * last use of the ink ground.
  */
 const same = (name: string) => name;
 
@@ -80,9 +80,9 @@ export function Moved({
       </CoordinateMap>
 
       {rows.length > 0 && (
-      <ul className="mt-4.5 border-t border-reveal-muted/40">
+      <ul className="mt-4.5 border-t border-reveal-rule">
         {rows.map((row) => (
-          <li key={row.name} className="dot-leader border-b border-reveal-muted/25 py-3">
+          <li key={row.name} className="dot-leader border-b border-reveal-hairline py-3">
             <span className="font-serif text-base font-bold">{row.name}</span>
             <span aria-hidden="true" className="leader leader-reveal" />
             <span className="font-condensed text-sm font-semibold tracking-widest text-reveal-muted">{row.note}</span>
@@ -94,7 +94,7 @@ export function Moved({
       <button
         type="button"
         onClick={onDone}
-        className="mt-auto min-h-13 w-full border border-reveal-foreground bg-reveal-foreground font-condensed text-sm font-bold uppercase tracking-label text-reveal transition-colors hover:bg-reveal-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-reveal-mark focus-visible:ring-offset-2 focus-visible:ring-offset-reveal lg:mt-8"
+        className="btn btn-reveal btn-lg mt-auto w-full lg:mt-8"
       >
         {backLabel}
       </button>

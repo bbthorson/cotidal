@@ -6,6 +6,7 @@ import { calculateDistance } from '@/lib/scoring';
 import { formatCoordinate } from '@/lib/coordinate';
 import type { PourRecord } from '@/lib/atproto/records';
 import { logDrinkFeedback, getConnectedPours, getConnectedPalate } from '@/lib/api-client';
+import { loadGuestState, loadProfile, saveGuestState, saveProfile } from '@/lib/device-store';
 import { returnVisit, pour } from '@/lib/copy';
 import { catalogSlug, type Register } from '@/lib/register';
 import type { UserProfile } from '@/hooks/useDiscoveryQuiz';
@@ -17,22 +18,13 @@ import { SignInSheet } from './SignInSheet';
 import {
   createInitialPalateState,
   applyPour,
+  aversionsAfterPour,
+  vibeTagsAfterPour,
   projectTo2D,
   fromDynamicRecord,
   toDynamicRecord,
 } from '@/lib/palate-state';
 
-function getInitialLocalProfile(): UserProfile | null {
-  if (typeof window === 'undefined') return null;
-  try {
-    const saved = localStorage.getItem('user_profile');
-    return saved ? (JSON.parse(saved) as UserProfile) : null;
-  } catch {
-    return null;
-  }
-}
-
-const GUEST_STATE_KEY = 'palate_state';
 
 /**
  * A guest's model state, kept on this device so steps shrink as pours
@@ -42,15 +34,15 @@ const GUEST_STATE_KEY = 'palate_state';
 function guestPrior(profile: UserProfile | null) {
   const x = profile?.x ?? 0;
   const y = profile?.y ?? 0;
-  try {
-    const saved = localStorage.getItem(GUEST_STATE_KEY);
-    if (saved) {
-      const state = fromDynamicRecord(JSON.parse(saved));
+  const saved = loadGuestState();
+  if (saved) {
+    try {
+      const state = fromDynamicRecord(saved);
       const at = projectTo2D(state);
       if (at.x === x && at.y === y) return state;
+    } catch {
+      // Unreadable: start fresh.
     }
-  } catch {
-    // Unreadable or blocked storage: start fresh.
   }
   return createInitialPalateState({
     x,
@@ -70,30 +62,29 @@ function guestShift(profile: UserProfile | null, entry: PourEntry): UserProfile 
   const drink = drinkDatabase.find((d) => d.name.toLowerCase() === entry.drinkName.toLowerCase());
   const next = applyPour(guestPrior(profile), drink, { hedonic: entry.hedonic, cata: entry.cata }, entry.deviations);
   const coords = projectTo2D(next);
-  try {
-    // Stored at the rounded coordinate so guestPrior recognises it next time.
-    const record = toDynamicRecord(next);
-    record.latentVector[0] = coords.x;
-    record.latentVector[1] = coords.y;
-    localStorage.setItem(GUEST_STATE_KEY, JSON.stringify(record));
-  } catch {
-    // The coordinate still moves; only the shrinking step is lost.
-  }
+  // Stored at the rounded coordinate so guestPrior recognises it next time.
+  // If it is not kept, the coordinate still moves; only the shrinking step is lost.
+  const record = toDynamicRecord(next);
+  record.latentVector[0] = coords.x;
+  record.latentVector[1] = coords.y;
+  saveGuestState(record);
 
-  const updatedVibeTags = { ...(profile?.vibeTags ?? {}) };
-  if (entry.hedonic >= 7 && drink) {
-    drink.tags.forEach((tag) => {
-      updatedVibeTags[tag] = Math.min(5.0, (updatedVibeTags[tag] || 0) + 0.25);
-    });
-  }
+  const aversions = aversionsAfterPour(
+    {
+      smoke: profile?.dislikesSmoke ?? false,
+      bitter: profile?.dislikesBitter ?? false,
+      anise: profile?.dislikesAnise ?? false,
+    },
+    entry.deviations
+  );
 
   return {
     x: coords.x,
     y: coords.y,
-    dislikesSmoke: (profile?.dislikesSmoke ?? false) || entry.deviations.includes('too-smoky'),
-    dislikesBitter: (profile?.dislikesBitter ?? false) || entry.deviations.includes('too-bitter'),
-    dislikesAnise: (profile?.dislikesAnise ?? false) || entry.deviations.includes('too-anise'),
-    vibeTags: updatedVibeTags,
+    dislikesSmoke: aversions.smoke,
+    dislikesBitter: aversions.bitter,
+    dislikesAnise: aversions.anise,
+    vibeTags: vibeTagsAfterPour(profile?.vibeTags ?? {}, drink, entry.hedonic),
   };
 }
 
@@ -111,7 +102,7 @@ interface LastPour {
 function ReturnVisitContent({ register, initialDrink }: { register: Register; initialDrink?: string }) {
   const { isConnected } = useAtprotoContext();
 
-  const [profile, setProfile] = useState<UserProfile | null>(getInitialLocalProfile);
+  const [profile, setProfile] = useState<UserProfile | null>(loadProfile);
   const [pours, setPours] = useState<PourRecord[]>([]);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -127,7 +118,7 @@ function ReturnVisitContent({ register, initialDrink }: { register: Register; in
         const [palateData, pourData] = await Promise.all([getConnectedPalate(), getConnectedPours(50)]);
         if (palateData) {
           setProfile(palateData);
-          localStorage.setItem('user_profile', JSON.stringify(palateData));
+          saveProfile(palateData);
         }
         setPours(pourData);
       } catch (err) {
@@ -136,7 +127,7 @@ function ReturnVisitContent({ register, initialDrink }: { register: Register; in
         setLoading(false);
       }
     } else {
-      const local = getInitialLocalProfile();
+      const local = loadProfile();
       if (local) setProfile(local);
     }
   }, [isConnected]);
@@ -186,7 +177,7 @@ function ReturnVisitContent({ register, initialDrink }: { register: Register; in
       vibeTags: {},
     };
     setProfile(neutral);
-    localStorage.setItem('user_profile', JSON.stringify(neutral));
+    saveProfile(neutral);
   };
 
   const handleSubmit = async (entry: PourEntry) => {
@@ -201,12 +192,12 @@ function ReturnVisitContent({ register, initialDrink }: { register: Register; in
           return;
         }
         setProfile(result.profile);
-        localStorage.setItem('user_profile', JSON.stringify(result.profile));
+        saveProfile(result.profile);
         await loadData();
       } else {
         const updated = guestShift(profile, entry);
         setProfile(updated);
-        localStorage.setItem('user_profile', JSON.stringify(updated));
+        saveProfile(updated);
         const guestPour: PourRecord = {
           $type: 'app.cotidal.pour',
           drink: { name: entry.drinkName, slug: catalogSlug(register, entry.drinkName) },
@@ -241,14 +232,14 @@ function ReturnVisitContent({ register, initialDrink }: { register: Register; in
         <div className="mt-8 flex flex-col gap-3">
           <a
             href="/taste"
-            className="inline-flex min-h-13 items-center justify-center border border-foreground bg-secondary px-6 font-condensed text-sm font-bold uppercase tracking-label text-secondary-foreground transition-colors hover:bg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            className="btn btn-primary btn-lg px-6"
           >
             {returnVisit.quizCta}
           </a>
           <button
             type="button"
             onClick={() => setSignInOpen(true)}
-            className="min-h-12 border border-foreground bg-transparent px-6 font-condensed text-meta font-semibold uppercase tracking-label text-foreground transition-colors hover:bg-secondary hover:text-secondary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="btn btn-outline px-6"
           >
             {returnVisit.signInCta}
           </button>

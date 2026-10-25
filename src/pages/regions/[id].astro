@@ -67,7 +67,7 @@ const otherRegions = QUADRANT_ORDER.filter((rId) => rId !== id).map((rId) =>
 
     <!-- Technical Anatomy & Chemistry Ledger -->
     <section class="border border-border bg-card p-6 md:p-8 rounded-sm shadow-bar space-y-6">
-      <div class="border-b border-border/60 pb-3 flex items-center justify-between">
+      <div class="border-b border-border pb-3 flex items-center justify-between">
         <span class="label-caps text-primary">Technical Anatomy</span>
         <span class="font-condensed text-3xs uppercase tracking-label text-muted-foreground">Formulation Spec</span>
       </div>
@@ -102,9 +102,9 @@ const otherRegions = QUADRANT_ORDER.filter((rId) => rId !== id).map((rId) =>
         </div>
       </div>
 
-      <div class="border-t border-border/60 pt-4">
+      <div class="border-t border-border pt-4">
         <span class="label-caps text-muted-foreground block mb-1">What This Order Signals</span>
-        <p class="font-serif text-sm italic text-foreground/90">
+        <p class="font-serif text-sm italic text-foreground">
           "{region.orderingProfile}"
         </p>
       </div>
@@ -133,7 +133,7 @@ const otherRegions = QUADRANT_ORDER.filter((rId) => rId !== id).map((rId) =>
             <li class="py-4 group">
               <a
                 href={`/drinks/${entry.id}`}
-                class="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-2 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
+                class="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-2"
               >
                 <div class="space-y-1 flex-1">
                   <div class="flex items-baseline gap-2">

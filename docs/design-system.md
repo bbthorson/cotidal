@@ -43,6 +43,19 @@ Forest laid as the stock, paper as the ink. Used **only** where the product reve
 | `--reveal-muted` | `80 24% 76%` | `#C6D1B2` | Labels (sage) |
 | `--reveal-mark` | `9 55% 52%` | `#C8543F` | Your dot |
 | `--reveal-trace` | `12 58% 78%` | `#E7B3A6` | Where your dot was |
+| `--reveal-rule` | `--reveal-muted` at 45% | — | The map's frame, a list's top rule |
+| `--reveal-hairline` | `--reveal-muted` at 28% | — | The map's axes, rules between rows |
+| `--reveal-dim` | `--reveal-foreground` at 58% | — | Drinks off your menu, your mark's crosshair |
+
+### Translucent tokens
+A colour that needs transparency gets a name here, in `globals.css`, rather than an opacity modifier (`/55`) where it is used.
+
+| Token | Value | Role |
+|---|---|---|
+| `--scrim` | `--foreground` at 55% | Laid over the page behind a sheet |
+| `--chart-axis` | `--foreground` at 20% | The map's axes on the cotidal chart (`ChartFigure`) |
+| `--chart-ring` | `--foreground` at 40% | Its co-range rings |
+| `--chart-cross` | `--card` at 70% | The crosshair on the terracotta band |
 
 ### Typography Tokens
 | Token | Font Family / Size | Tracking / Leading | Usage |
@@ -73,6 +86,20 @@ Fonts (`Base.astro`): Playfair Display 400, 400 italic and 700; PT Sans 400/700;
 
 ### Corners
 Radius is 0 for sheets, plates, buttons and tabs. `rounded-sm` (2px) is the one exception, for inputs. `rounded-full` stays for the dots on the map.
+
+### Focus
+Drawn once, by the base `:focus-visible` rule in `globals.css`: a 2px terracotta outline, 2px off the element. Nothing needs a class to get it. An outline rather than a `ring-*` box-shadow, so focusing the chosen option plate keeps its `shadow-mcm`.
+- `focus-ring-inset` — cells inside a frame (segmented controls, tabs, list rows), where an outer ring would be clipped or cross a neighbour.
+- `focus-ring-reveal` — on the reveal ground, in `--reveal-mark`.
+- Text fields mark focus with their border instead (`focus:border-primary focus:outline-none`).
+
+### Buttons
+`.btn` is the shape — square, ink edge, condensed bold caps, 44px tall; `.btn-lg` is the large size (52px, `text-sm`) for a screen's main action. A colour class says what it is:
+- `.btn-primary` — forest, terracotta on hover, muted when disabled.
+- `.btn-outline` — the second action beside or below a primary one: an ink edge on the ground, filled forest on hover.
+- `.btn-reveal` — paper on forest, for the reveal ground.
+
+Width and padding stay with the layout (`w-full`, `px-8`).
 
 ### Form & Component Patterns
 - **Dot Leader**: `.dot-leader` with `.leader` spacer for wine-list style alignments (`Name .......... Amount`).
@@ -122,7 +149,9 @@ To guarantee the design system never drifts, automated enforcement is active at 
 ### 1. ESLint Token Rules (`eslint.config.mjs`)
 - **Banned Arbitrary Values**: Rejects Tailwind brackets like `bg-[#hex]`, `text-[13px]`, `shadow-[...]`.
 - **Banned Raw Colors**: Rejects `#hex`, `rgba(...)`, `hsla(...)` in classes.
-- **Error Level**: Enforced strictly on `src/pages/`, `src/layouts/`, and `src/components/marketing/`.
+- **Banned Hand-Built Components**: Rejects a focus ring spelled out (`focus-visible:ring-*`, `focus-visible:outline-*`) a primary button spelled out (`bg-secondary` with `hover:bg-primary`), and an outline button spelled out (`border-foreground` with `hover:bg-secondary`); use the classes above.
+- **Banned Opacity Modifiers**: Rejects a colour faded where it is used (`text-foreground/80`, `border-border/60`). De-emphasise text with size and weight; give a translucent colour a token.
+- **Error Level**: Enforced as an error on `src/pages/`, `src/layouts/` and all of `src/components/`.
 
 ### 2. Copy Single Source of Truth (`src/lib/copy.ts`)
 - All user-facing strings live in `src/lib/copy.ts`.

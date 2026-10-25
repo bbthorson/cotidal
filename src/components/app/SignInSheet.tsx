@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useState, type SubmitEvent } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
 import { connect, nav } from '@/lib/copy';
 import { useAtprotoContext } from './AtprotoProvider';
@@ -9,7 +9,7 @@ interface SignInSheetProps {
 }
 
 /**
- * The one sign-in pattern (Flow Recommendations, R5). Opened from the menu's
+ * The one sign-in pattern. Opened from the menu's
  * "Keep this coordinate" prompt, from the header, and when a guest taps
  * "Log a pour". The landing page renders the same promise statically
  * (src/components/marketing/ConnectForm.astro) from the same copy.
@@ -21,7 +21,7 @@ export function SignInSheet({ open, onOpenChange }: SignInSheetProps) {
   const { isEnabled, connecting, error, connect: signIn } = useAtprotoContext();
   const [handle, setHandle] = useState('');
 
-  const submit = async (e: FormEvent) => {
+  const submit = async (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!handle.trim()) return;
     await signIn(handle.trim());
@@ -30,7 +30,7 @@ export function SignInSheet({ open, onOpenChange }: SignInSheetProps) {
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-50 bg-foreground/55 data-open:animate-in data-open:fade-in-0" />
+        <Dialog.Overlay className="fixed inset-0 z-50 bg-scrim data-open:animate-in data-open:fade-in-0" />
         <Dialog.Content className="fixed inset-x-0 bottom-0 z-50 flex max-h-dvh flex-col gap-4 overflow-y-auto border-t border-foreground bg-background px-6 pb-8 pt-3 text-foreground focus:outline-none data-open:animate-in data-open:fade-in-0 max-sm:data-open:slide-in-from-bottom sm:bottom-auto sm:left-1/2 sm:top-1/2 sm:w-full sm:max-w-md sm:-translate-x-1/2 sm:-translate-y-1/2 sm:border sm:pt-6 sm:shadow-mcm">
           <div aria-hidden="true" className="h-0.75 w-10 self-center bg-border sm:hidden" />
 
@@ -90,7 +90,7 @@ export function SignInSheet({ open, onOpenChange }: SignInSheetProps) {
               <button
                 type="submit"
                 disabled={connecting || !handle.trim()}
-                className="min-h-13 border border-foreground bg-secondary font-condensed text-sm font-bold uppercase tracking-label text-secondary-foreground transition-colors hover:bg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground"
+                className="btn btn-primary btn-lg disabled:cursor-not-allowed"
               >
                 {connecting ? connect.connecting : connect.submit}
               </button>
@@ -101,7 +101,7 @@ export function SignInSheet({ open, onOpenChange }: SignInSheetProps) {
             </p>
           )}
 
-          <Dialog.Close className="flex min-h-11 items-center self-center px-2 font-condensed text-meta uppercase tracking-label text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+          <Dialog.Close className="flex min-h-11 items-center self-center px-2 font-condensed text-meta uppercase tracking-label text-muted-foreground transition-colors hover:text-foreground">
             {connect.guest}
           </Dialog.Close>
         </Dialog.Content>

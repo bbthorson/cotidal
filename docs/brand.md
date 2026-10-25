@@ -147,10 +147,8 @@ state — none of which may be authored inside a component.
    missing entirely, so all three Google Fonts downloaded and none applied.
 
 Item 1 is enforced: `eslint.config.mjs` bans arbitrary Tailwind values and raw
-colours, as an error in `src/pages/`, `src/layouts/` and
-`src/components/marketing/`, and as a warning elsewhere so the pre-existing
-violations in `src/components/app/` stay visible without blocking a commit.
-Those ~38 remaining warnings are the last place raw colour still lives, and
-they are the reason `/taste` has not fully followed the palette across.
+colours, as an error in `src/pages/`, `src/layouts/` and every component. The
+app's components once carried ~38 hard-coded colours as warnings; they are
+tokens now, and none remain.
 
 Item 3 is still a convention.

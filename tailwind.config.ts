@@ -73,14 +73,7 @@ export default {
       colors: {
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',
-        card: {
-          DEFAULT: 'hsl(var(--card))',
-          foreground: 'hsl(var(--card-foreground))',
-        },
-        popover: {
-          DEFAULT: 'hsl(var(--popover))',
-          foreground: 'hsl(var(--popover-foreground))',
-        },
+        card: 'hsl(var(--card))',
         primary: {
           DEFAULT: 'hsl(var(--primary))',
           foreground: 'hsl(var(--primary-foreground))',
@@ -93,41 +86,26 @@ export default {
           DEFAULT: 'hsl(var(--muted))',
           foreground: 'hsl(var(--muted-foreground))',
         },
-        accent: {
-          DEFAULT: 'hsl(var(--accent))',
-          foreground: 'hsl(var(--accent-foreground))',
-        },
-        destructive: {
-          DEFAULT: 'hsl(var(--destructive))',
-          foreground: 'hsl(var(--destructive-foreground))',
-        },
+        accent: 'hsl(var(--accent))',
+        destructive: 'hsl(var(--destructive))',
         reveal: {
           DEFAULT: 'hsl(var(--reveal))',
           foreground: 'hsl(var(--reveal-foreground))',
           muted: 'hsl(var(--reveal-muted))',
           mark: 'hsl(var(--reveal-mark))',
           trace: 'hsl(var(--reveal-trace))',
+          rule: 'hsl(var(--reveal-rule))',
+          hairline: 'hsl(var(--reveal-hairline))',
+          dim: 'hsl(var(--reveal-dim))',
+        },
+        scrim: 'hsl(var(--scrim))',
+        chart: {
+          axis: 'hsl(var(--chart-axis))',
+          ring: 'hsl(var(--chart-ring))',
+          cross: 'hsl(var(--chart-cross))',
         },
         border: 'hsl(var(--border))',
-        input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',
-        chart: {
-          '1': 'hsl(var(--chart-1))',
-          '2': 'hsl(var(--chart-2))',
-          '3': 'hsl(var(--chart-3))',
-          '4': 'hsl(var(--chart-4))',
-          '5': 'hsl(var(--chart-5))',
-        },
-        sidebar: {
-          DEFAULT: 'hsl(var(--sidebar-background))',
-          foreground: 'hsl(var(--sidebar-foreground))',
-          primary: 'hsl(var(--sidebar-primary))',
-          'primary-foreground': 'hsl(var(--sidebar-primary-foreground))',
-          accent: 'hsl(var(--sidebar-accent))',
-          'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
-          border: 'hsl(var(--sidebar-border))',
-          ring: 'hsl(var(--sidebar-ring))',
-        },
       },
       // Square corners (docs/design-system.md, 04). Every named radius
       // resolves to 0 except `sm`, which is 2px and reserved for inputs;
@@ -152,22 +130,6 @@ export default {
         'glow': 'inset 0 0 0 1px hsl(41 29% 81%)',
       },
       keyframes: {
-        'accordion-down': {
-          from: {
-            height: '0',
-          },
-          to: {
-            height: 'var(--radix-accordion-content-height)',
-          },
-        },
-        'accordion-up': {
-          from: {
-            height: 'var(--radix-accordion-content-height)',
-          },
-          to: {
-            height: '0',
-          },
-        },
         // The one thing that moves on the reveal: the dot landing.
         land: {
           from: { opacity: '0', transform: 'translate(-50%, 50%) scale(2.4)' },
@@ -176,8 +138,6 @@ export default {
       },
       animation: {
         land: 'land 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) 0.35s both',
-        'accordion-down': 'accordion-down 0.2s ease-out',
-        'accordion-up': 'accordion-up 0.2s ease-out',
       },
     },
   },
