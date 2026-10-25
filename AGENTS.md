@@ -179,6 +179,17 @@ the record down to the fields the page draws. Its unit tests use a fake
 refused before any network call. `publicMapPath` lives in `paths.ts` because
 the island links to it and must not import the server package.
 
+**No floats in records.** The AT Protocol data model has none, and
+`@atproto/lex-data` treats one as an invalid value. Fractional quantities are
+stored as integer hundredths or tenths under a name that says so
+(`xHundredths`, `dxTenths`). The palate is held in memory as `Palate` (plain
+numbers) and converted only at the edge: `encodePalate` on every write,
+`decodePalate` / `decodeCoordinates` on every read, which also accept the
+float records written before the encoding. The palate and elicitation
+lexicons have tests that fail on a `number` type. `pour` and `defs` still
+declare `number` fields (abv, gLMS valence, prices): the same fix, not yet
+made.
+
 Records are signed by their authors and **never rewritten**. Reconciling an
 unclaimed reference to a later account is the app view's job.
 

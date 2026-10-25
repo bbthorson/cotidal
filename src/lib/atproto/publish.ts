@@ -5,7 +5,9 @@ import {
   PALATE_COLLECTION,
   PALATE_RKEY,
   POUR_COLLECTION,
-  type PalateRecord,
+  decodePalate,
+  encodePalate,
+  type Palate,
   type PourRecord,
 } from './records';
 import type { OAuthSession } from '@bbthorson/atproto-cf-auth/server';
@@ -19,19 +21,19 @@ export async function publishPalateProfile(
   const agent = new Agent(session);
 
   // Try to load existing profile to preserve sensory updates
-  let existing: PalateRecord | null = null;
+  let existing: Palate | null = null;
   try {
     const response = await agent.com.atproto.repo.getRecord({
       repo: session.did,
       collection: PALATE_COLLECTION,
       rkey: PALATE_RKEY,
     });
-    existing = response.data.value as PalateRecord;
+    existing = decodePalate(response.data.value);
   } catch {
     // Ignore error if record doesn't exist yet
   }
 
-  const record = derivePalateRecord(profile, existing);
+  const record = encodePalate(derivePalateRecord(profile, existing));
 
   const response = await agent.com.atproto.repo.putRecord({
     repo: session.did,
@@ -82,7 +84,8 @@ export async function shareToFeed(
   return { uri: response.data.uri, cid: response.data.cid };
 }
 
-export async function getPalateProfile(session: OAuthSession): Promise<PalateRecord | null> {
+/** The signed-in user's palate, decoded from either encoding. */
+export async function getPalateProfile(session: OAuthSession): Promise<Palate | null> {
   try {
     const agent = new Agent(session);
 
@@ -92,7 +95,7 @@ export async function getPalateProfile(session: OAuthSession): Promise<PalateRec
       rkey: PALATE_RKEY,
     });
 
-    return response.data.value as PalateRecord;
+    return decodePalate(response.data.value);
   } catch {
     return null;
   }
@@ -100,7 +103,7 @@ export async function getPalateProfile(session: OAuthSession): Promise<PalateRec
 
 export async function publishRawPalateRecord(
   session: OAuthSession,
-  record: PalateRecord
+  palate: Palate
 ): Promise<{ uri: string; cid: string }> {
   const agent = new Agent(session);
 
@@ -108,7 +111,7 @@ export async function publishRawPalateRecord(
     repo: session.did,
     collection: PALATE_COLLECTION,
     rkey: PALATE_RKEY,
-    record,
+    record: encodePalate(palate),
   });
 
   return { uri: response.data.uri, cid: response.data.cid };

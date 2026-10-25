@@ -97,6 +97,17 @@ export type Price = z.infer<typeof PriceSchema>;
 // app.crystalcoupe.palate
 // ---------------------------------------------------------------------------
 
+export const PhenotypesSchema = z.object({
+  tas2r38BitterSensitivity: z.enum(['non-taster', 'medium-taster', 'super-taster']).optional(),
+  trigeminalTolerance: z.enum(['low', 'moderate', 'high']).optional(),
+});
+export type Phenotypes = z.infer<typeof PhenotypesSchema>;
+
+/**
+ * The palate as the app works with it: plain numbers. This is never written
+ * as-is — the AT Protocol data model has no floats — but encoded by
+ * `encodePalate` into `PalateRecord`, the shape the lexicon describes.
+ */
 export const DynamicStateSchema = z.object({
   latentVector: z.array(z.number()),
   covarianceDiagonal: z.array(z.number()),
@@ -105,13 +116,13 @@ export const DynamicStateSchema = z.object({
 });
 export type DynamicState = z.infer<typeof DynamicStateSchema>;
 
-export const PhenotypesSchema = z.object({
-  tas2r38BitterSensitivity: z.enum(['non-taster', 'medium-taster', 'super-taster']).optional(),
-  trigeminalTolerance: z.enum(['low', 'moderate', 'high']).optional(),
+const AversionsSchema = z.object({
+  smoke: z.boolean(),
+  bitter: z.boolean(),
+  anise: z.boolean(),
 });
-export type Phenotypes = z.infer<typeof PhenotypesSchema>;
 
-export const PalateRecordSchema = z.object({
+export const PalateSchema = z.object({
   $type: z.literal(PALATE_COLLECTION),
   mapCoordinates: z.object({
     x: z.number().min(-10).max(10),
@@ -119,17 +130,118 @@ export const PalateRecordSchema = z.object({
   }),
   dynamicState: DynamicStateSchema,
   phenotypes: PhenotypesSchema,
-  aversions: z.object({
-    smoke: z.boolean(),
-    bitter: z.boolean(),
-    anise: z.boolean(),
-  }),
-  archetype: z.string().optional(),
+  aversions: AversionsSchema,
   vibeTags: z.record(z.string(), z.number()),
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime().optional(),
 });
+export type Palate = z.infer<typeof PalateSchema>;
+
+/** Every fractional quantity is stored as an integer count of hundredths. */
+const hundredths = z.number().int();
+const coordinateHundredths = hundredths.min(-1000).max(1000);
+
+/** `app.crystalcoupe.palate` as written to a repository: integers only. */
+export const PalateRecordSchema = z.object({
+  $type: z.literal(PALATE_COLLECTION),
+  mapCoordinates: z.object({
+    xHundredths: coordinateHundredths,
+    yHundredths: coordinateHundredths,
+  }),
+  dynamicState: z.object({
+    latentVectorHundredths: z.array(hundredths).length(5),
+    covarianceDiagonalHundredths: z.array(hundredths.min(0)).length(5),
+    eventCount: z.number().int().min(0),
+    lastUpdate: z.string().datetime().optional(),
+  }),
+  phenotypes: PhenotypesSchema,
+  aversions: AversionsSchema,
+  vibeTagsHundredths: z.record(z.string(), hundredths),
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime().optional(),
+});
 export type PalateRecord = z.infer<typeof PalateRecordSchema>;
+
+const toHundredths = (v: number) => Math.round(v * 100);
+const fromHundredths = (v: number) => v / 100;
+const clampCoordinate = (v: number) => Math.max(-1000, Math.min(1000, toHundredths(v)));
+
+/** The palate as a record a repository will accept. */
+export function encodePalate(palate: Palate): PalateRecord {
+  const { dynamicState: d } = palate;
+  return {
+    $type: PALATE_COLLECTION,
+    mapCoordinates: {
+      xHundredths: clampCoordinate(palate.mapCoordinates.x),
+      yHundredths: clampCoordinate(palate.mapCoordinates.y),
+    },
+    dynamicState: {
+      latentVectorHundredths: d.latentVector.map(toHundredths),
+      covarianceDiagonalHundredths: d.covarianceDiagonal.map((v) => Math.max(0, toHundredths(v))),
+      eventCount: d.eventCount,
+      ...(d.lastUpdate ? { lastUpdate: d.lastUpdate } : {}),
+    },
+    phenotypes: palate.phenotypes,
+    aversions: palate.aversions,
+    vibeTagsHundredths: Object.fromEntries(
+      Object.entries(palate.vibeTags).map(([tag, weight]) => [tag, toHundredths(weight)])
+    ),
+    createdAt: palate.createdAt,
+    ...(palate.updatedAt ? { updatedAt: palate.updatedAt } : {}),
+  };
+}
+
+/**
+ * Where a palate record puts its owner, in either encoding: hundredths, or
+ * the plain floats written before them. `null` when it is neither.
+ */
+export function decodeCoordinates(raw: unknown): { x: number; y: number } | null {
+  const c = (raw as { mapCoordinates?: Record<string, unknown> } | null)?.mapCoordinates;
+  if (!c || typeof c !== 'object') return null;
+  const point =
+    Number.isInteger(c.xHundredths) && Number.isInteger(c.yHundredths)
+      ? { x: fromHundredths(c.xHundredths as number), y: fromHundredths(c.yHundredths as number) }
+      : typeof c.x === 'number' && typeof c.y === 'number'
+        ? { x: c.x, y: c.y }
+        : null;
+  if (!point || !Number.isFinite(point.x) || !Number.isFinite(point.y)) return null;
+  if (Math.abs(point.x) > 10 || Math.abs(point.y) > 10) return null;
+  return point;
+}
+
+/**
+ * A palate record read from a repository, in either encoding, as the app
+ * works with it. Records written before the hundredths encoding still read;
+ * the next write migrates them. `null` for anything that is not a palate.
+ */
+export function decodePalate(raw: unknown): Palate | null {
+  const current = PalateRecordSchema.safeParse(raw);
+  if (current.success) {
+    const r = current.data;
+    return {
+      $type: PALATE_COLLECTION,
+      mapCoordinates: {
+        x: fromHundredths(r.mapCoordinates.xHundredths),
+        y: fromHundredths(r.mapCoordinates.yHundredths),
+      },
+      dynamicState: {
+        latentVector: r.dynamicState.latentVectorHundredths.map(fromHundredths),
+        covarianceDiagonal: r.dynamicState.covarianceDiagonalHundredths.map(fromHundredths),
+        eventCount: r.dynamicState.eventCount,
+        ...(r.dynamicState.lastUpdate ? { lastUpdate: r.dynamicState.lastUpdate } : {}),
+      },
+      phenotypes: r.phenotypes,
+      aversions: r.aversions,
+      vibeTags: Object.fromEntries(
+        Object.entries(r.vibeTagsHundredths).map(([tag, weight]) => [tag, fromHundredths(weight)])
+      ),
+      createdAt: r.createdAt,
+      ...(r.updatedAt ? { updatedAt: r.updatedAt } : {}),
+    };
+  }
+  const legacy = PalateSchema.safeParse(raw);
+  return legacy.success ? legacy.data : null;
+}
 
 // ---------------------------------------------------------------------------
 // app.crystalcoupe.elicitation — the answers behind one completed quiz

@@ -127,9 +127,12 @@ test('Locations: place vocabulary is borrowed, not reinvented', async () => {
 });
 
 test('Psychophysics: palate records dynamicState and pour records CATA/gLMS', async () => {
-  const { PalateRecordSchema, PALATE_COLLECTION } = await import('../src/lib/atproto/records');
+  const { PalateRecordSchema, PalateSchema, encodePalate, decodePalate, PALATE_COLLECTION } = await import(
+    '../src/lib/atproto/records'
+  );
 
-  const validPalate = {
+  // The palate as the app holds it: plain numbers.
+  const palate = {
     $type: PALATE_COLLECTION,
     mapCoordinates: { x: 2.5, y: -4.0 },
     dynamicState: {
@@ -150,7 +153,13 @@ test('Psychophysics: palate records dynamicState and pour records CATA/gLMS', as
     vibeTags: { citrus: 4, crushable: 3 },
     createdAt: new Date().toISOString(),
   };
-  expect(PalateRecordSchema.safeParse(validPalate).success).toBe(true);
+  expect(PalateSchema.safeParse(palate).success).toBe(true);
+  // As written to a repository it is integers only, and that is the record.
+  expect(PalateRecordSchema.safeParse(encodePalate(palate)).success).toBe(true);
+  // The float shape is no longer a valid record — but records written in it
+  // still read.
+  expect(PalateRecordSchema.safeParse(palate).success).toBe(false);
+  expect(decodePalate(palate)?.mapCoordinates).toEqual({ x: 2.5, y: -4.0 });
 
   const psychophysicalPour = {
     $type: POUR_COLLECTION,

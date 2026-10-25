@@ -13,7 +13,7 @@ import { derivePalateRecord } from '@/lib/sensory';
 import type { UserProfile } from '@/hooks/useDiscoveryQuiz';
 import { z } from 'zod';
 import { drinkDatabase } from '@/lib/data';
-import type { PalateRecord } from '@/lib/atproto/records';
+import type { Palate } from '@/lib/atproto/records';
 import type { LogDrinkOptions } from '@/lib/api-client';
 import { oauthSession } from '@/lib/atproto/session';
 import { publicMapPath } from '@/lib/atproto/paths';
@@ -217,7 +217,7 @@ export const POST: APIRoute = async ({ request }) => {
         anise: record.aversions.anise || deviations.includes('too-anise'),
       };
 
-      const updatedPalate: PalateRecord = {
+      const updatedPalate: Palate = {
         $type: record.$type,
         mapCoordinates: { x: coords.x, y: coords.y },
         dynamicState: toDynamicRecord(nextState),

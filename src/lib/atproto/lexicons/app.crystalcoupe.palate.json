@@ -4,27 +4,37 @@
   "defs": {
     "main": {
       "type": "record",
-      "description": "A user's psychophysical palate profile and dynamic preference state from The Crystal Coupe",
+      "description": "A user's psychophysical palate profile and dynamic preference state from The Crystal Coupe. The AT Protocol data model has no floats, so every fractional quantity is an integer in hundredths, named for it (`xHundredths: -420` is −4.20). Records written before this encoding carried `mapCoordinates.x`/`y`, `latentVector`, `covarianceDiagonal` and `vibeTags` as floats; readers accept both, writers emit only this one.",
       "key": "literal:self",
       "record": {
         "type": "object",
-        "required": ["mapCoordinates", "dynamicState", "phenotypes", "aversions", "vibeTags", "createdAt"],
+        "required": [
+          "mapCoordinates",
+          "dynamicState",
+          "phenotypes",
+          "aversions",
+          "vibeTagsHundredths",
+          "createdAt"
+        ],
         "properties": {
           "mapCoordinates": {
             "type": "object",
-            "required": ["x", "y"],
+            "required": [
+              "xHundredths",
+              "yHundredths"
+            ],
             "properties": {
-              "x": {
-                "type": "number",
-                "description": "Position on Rich(-10) to Crisp(+10) axis",
-                "minimum": -10,
-                "maximum": 10
+              "xHundredths": {
+                "type": "integer",
+                "minimum": -1000,
+                "maximum": 1000,
+                "description": "Position on the Rich (−10) to Crisp (+10) axis, in hundredths."
               },
-              "y": {
-                "type": "number",
-                "description": "Position on Savory(-10) to Sweet(+10) axis",
-                "minimum": -10,
-                "maximum": 10
+              "yHundredths": {
+                "type": "integer",
+                "minimum": -1000,
+                "maximum": 1000,
+                "description": "Position on the Savory (−10) to Sweet (+10) axis, in hundredths."
               }
             }
           },
@@ -40,16 +50,26 @@
           },
           "aversions": {
             "type": "object",
-            "required": ["smoke", "bitter", "anise"],
+            "required": [
+              "smoke",
+              "bitter",
+              "anise"
+            ],
             "properties": {
-              "smoke": { "type": "boolean" },
-              "bitter": { "type": "boolean" },
-              "anise": { "type": "boolean" }
+              "smoke": {
+                "type": "boolean"
+              },
+              "bitter": {
+                "type": "boolean"
+              },
+              "anise": {
+                "type": "boolean"
+              }
             }
           },
-          "vibeTags": {
+          "vibeTagsHundredths": {
             "type": "object",
-            "description": "Tag affinity scores from quiz responses and tasting history"
+            "description": "Tag affinity from quiz answers and tasting history: each key a vibe tag, each value an integer weight in hundredths."
           },
           "createdAt": {
             "type": "string",
@@ -64,17 +84,30 @@
     },
     "dynamicState": {
       "type": "object",
-      "required": ["latentVector", "covarianceDiagonal", "eventCount"],
+      "required": [
+        "latentVectorHundredths",
+        "covarianceDiagonalHundredths",
+        "eventCount"
+      ],
       "properties": {
-        "latentVector": {
+        "latentVectorHundredths": {
           "type": "array",
-          "items": { "type": "number" },
-          "description": "5-dimensional latent preference state: [x_crisp, y_sweet, theta_bitter, theta_tannin, theta_complexity]"
+          "minLength": 5,
+          "maxLength": 5,
+          "items": {
+            "type": "integer"
+          },
+          "description": "5-dimensional latent preference state, in hundredths: [x_crisp, y_sweet, theta_bitter, theta_tannin, theta_complexity]."
         },
-        "covarianceDiagonal": {
+        "covarianceDiagonalHundredths": {
           "type": "array",
-          "items": { "type": "number" },
-          "description": "Diagonal of EKF error covariance matrix P_k representing multidimensional uncertainty."
+          "minLength": 5,
+          "maxLength": 5,
+          "items": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "description": "Diagonal of the EKF error covariance P_k, in hundredths."
         },
         "eventCount": {
           "type": "integer",
@@ -92,12 +125,20 @@
       "properties": {
         "tas2r38BitterSensitivity": {
           "type": "string",
-          "knownValues": ["non-taster", "medium-taster", "super-taster"],
+          "knownValues": [
+            "non-taster",
+            "medium-taster",
+            "super-taster"
+          ],
           "description": "Bitter receptor expression density behavioral proxy."
         },
         "trigeminalTolerance": {
           "type": "string",
-          "knownValues": ["low", "moderate", "high"],
+          "knownValues": [
+            "low",
+            "moderate",
+            "high"
+          ],
           "description": "TRPV1 thermal / ethanol burn tolerance."
         }
       }

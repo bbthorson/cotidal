@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { isValidHandle, normalizeHandle } from '@bbthorson/atproto-cf-auth/server';
-import { PALATE_COLLECTION, PALATE_RKEY } from './records';
+import { PALATE_COLLECTION, PALATE_RKEY, decodeCoordinates } from './records';
 
 /**
  * Reading someone else's palate, with no session.
@@ -39,12 +39,12 @@ const RESERVED_TLDS = new Set([
   'test',
 ]);
 
-/** The fields of `app.crystalcoupe.palate` this page uses, and nothing else. */
+/**
+ * The fields of `app.crystalcoupe.palate` this page uses, and nothing else.
+ * The coordinate is read by `decodeCoordinates`, which accepts the record's
+ * current hundredths encoding and the floats written before it.
+ */
 const PublicPalateSchema = z.object({
-  mapCoordinates: z.object({
-    x: z.number().min(-10).max(10),
-    y: z.number().min(-10).max(10),
-  }),
   aversions: z
     .object({
       smoke: z.boolean().optional(),
@@ -213,12 +213,13 @@ async function resolveHandle(
 }
 
 function toPalate(value: unknown): PublicPalate | null {
+  const point = decodeCoordinates(value);
   const parsed = PublicPalateSchema.safeParse(value);
-  if (!parsed.success) return null;
+  if (!point || !parsed.success) return null;
   const r = parsed.data;
   return {
-    x: r.mapCoordinates.x,
-    y: r.mapCoordinates.y,
+    x: point.x,
+    y: point.y,
     aversions: {
       smoke: r.aversions?.smoke ?? false,
       bitter: r.aversions?.bitter ?? false,

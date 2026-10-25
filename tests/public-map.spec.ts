@@ -84,6 +84,22 @@ test('Public map: a handle resolves through its DID document to the palate recor
   expect(calls.some((c) => c.includes('collection=app.crystalcoupe.palate') && c.includes('rkey=self'))).toBe(true);
 });
 
+test('Public map: a record in the hundredths encoding reads the same as a legacy one', async () => {
+  // The fixture above is a legacy float record; this is the same palate as
+  // written now, coordinates in integer hundredths.
+  const current = {
+    ...palate,
+    mapCoordinates: { xHundredths: -420, yHundredths: -310 },
+    dynamicState: { latentVectorHundredths: [0, 0, 0, 0, 0], covarianceDiagonalHundredths: [100, 100, 100, 100, 100], eventCount: 3 },
+  };
+  const { fetch } = fakeFetch(world({ record: current }));
+  const result = await readPublicPalate('alice.bsky.social', { fetch, handleResolver: 'https://resolver.example.com' });
+  expect(result.status).toBe('ok');
+  if (result.status !== 'ok') return;
+  expect(result.palate).toMatchObject({ x: -4.2, y: -3.1, pours: 3 });
+  expect(result.palate.aversions.smoke).toBe(true);
+});
+
 test('Public map: a DID shows its handle only when the handle resolves back', async () => {
   const confirmed = await readPublicPalate(DID, {
     fetch: fakeFetch(world({ record: palate })).fetch,
