@@ -1,8 +1,12 @@
 import { questions, type Question, type QuestionCategory, type QuestionOption } from './discovery-questions';
 import {
-  EVIDENCE_SCALE,
-  ANSWER_NOISE,
-  PAIR_NOISE,
+  GRID,
+  NOISE_LEVELS,
+  TICKS,
+  choiceTable,
+  probsAt,
+  noiseScaleFor,
+  optionLocations,
   type BeliefState,
   type FilterState,
 } from './belief-state';
@@ -20,16 +24,9 @@ const CALIBRATION_IDS = [
 // competes with one that only sharpens the position. Tuned by simulation.
 export const AVERSION_WEIGHT = 0.25;
 
-type Axis = 'x' | 'y';
-const AXES: Axis[] = ['x', 'y'];
-
-function evidenceFor(nudge: number): number {
-  return Math.max(-10, Math.min(10, nudge * EVIDENCE_SCALE));
-}
-
-function nudgeOn(option: QuestionOption, axis: Axis): number {
-  return axis === 'x' ? option.dx : option.dy;
-}
+// Grid points carrying less posterior weight than this cannot change the
+// answer distribution measurably, and skipping them keeps selection cheap.
+const NEGLIGIBLE_WEIGHT = 1e-7;
 
 function resolvedAversions(belief: BeliefState, option: QuestionOption): number {
   const set = { ...option.filterFlags };
@@ -39,16 +36,10 @@ function resolvedAversions(belief: BeliefState, option: QuestionOption): number 
   ).length;
 }
 
-// Where the user might plausibly be on one axis, as offsets in standard
-// deviations with their weights (three-point Gauss-Hermite).
-const NODES: [number, number][] = [
-  [-Math.sqrt(3), 1 / 6],
-  [0, 2 / 3],
-  [Math.sqrt(3), 1 / 6],
-];
-
-function entropy(p: number[]): number {
-  return p.reduce((h, x) => (x > 0 ? h - x * Math.log(x) : h), 0);
+function entropy(p: ArrayLike<number>): number {
+  let h = 0;
+  for (let i = 0; i < p.length; i++) if (p[i] > 0) h -= p[i] * Math.log(p[i]);
+  return h;
 }
 
 /**
@@ -57,46 +48,59 @@ function entropy(p: number[]): number {
  *
  * The information part is the mutual information between the answer and the
  * user's position: how unpredictable the answer is overall, less how
- * unpredictable it would be if we knew where they sat. A user at a given
- * point picks each option with probability falling off with the distance to
- * where that option places them, at the noise of one answer.
+ * unpredictable it would be if we knew where they sat. Both are taken over
+ * the belief's posterior (position × noise level), with the response model
+ * belief-state scores answers by (`choiceProbs`), so a question is valued
+ * by exactly the update its answer will make.
  *
  * Scoring by expected drop in reported variance instead rewards questions
  * whose likely answer agrees with the current belief, which sharpens the
  * reported confidence without sharpening the estimate.
  */
 export function expectedGain(belief: BeliefState, question: Question): number {
-  const used = AXES.filter((a) => question.options.some((o) => nudgeOn(o, a) !== 0));
-  const points: { at: Record<Axis, number>; weight: number }[] = [];
-  const grid = (i: number, at: Record<Axis, number>, weight: number) => {
-    if (i === used.length) return void points.push({ at: { ...at }, weight });
-    const axis = used[i];
-    const { mean, variance } = belief.axes[axis];
-    for (const [offset, w] of NODES) {
-      grid(i + 1, { ...at, [axis]: mean + offset * Math.sqrt(variance) }, weight * w);
-    }
-  };
-  grid(0, { x: belief.axes.x.mean, y: belief.axes.y.mean }, 1);
-
-  const noise = question.type === 'pair' ? PAIR_NOISE : ANSWER_NOISE;
-  const choice = (at: Record<Axis, number>) => {
-    const logs = question.options.map((o) =>
-      used.reduce((sum, a) => sum - (evidenceFor(nudgeOn(o, a)) - at[a]) ** 2 / (2 * noise), 0)
-    );
-    const peak = Math.max(...logs);
-    const w = logs.map((l) => Math.exp(l - peak));
-    const total = w.reduce((a, x) => a + x, 0);
-    return w.map((x) => x / total);
-  };
+  const options = optionLocations(question);
+  const scale = noiseScaleFor(question);
+  const positional = options.some((o) => o.x !== null || o.y !== null);
 
   const marginal = question.options.map(() => 0);
   let conditional = 0;
-  for (const { at, weight } of points) {
-    const p = choice(at);
-    p.forEach((x, i) => (marginal[i] += weight * x));
-    conditional += weight * entropy(p);
+  let mass = 0;
+  if (positional) {
+    // Information about position, not about how noisy the answerer is: at
+    // each map point the answer distribution is averaged over noise levels
+    // before its entropy is taken.
+    const tables = NOISE_LEVELS.map(({ noise }) => choiceTable(options, noise * scale));
+    const n = TICKS.length;
+    const p = new Float64Array(options.length);
+    const at = new Float64Array(options.length);
+    for (let ix = 0; ix < n; ix++) {
+      for (let iy = 0; iy < n; iy++) {
+        const g = ix * n + iy;
+        let weight = 0;
+        p.fill(0);
+        for (let l = 0; l < tables.length; l++) {
+          const w = belief.posterior[l * GRID.length + g];
+          if (w < NEGLIGIBLE_WEIGHT) continue;
+          probsAt(tables[l], ix, iy, at);
+          for (let k = 0; k < p.length; k++) p[k] += w * at[k];
+          weight += w;
+        }
+        if (weight === 0) continue;
+        for (let k = 0; k < p.length; k++) {
+          marginal[k] += p[k];
+          p[k] /= weight;
+        }
+        conditional += weight * entropy(p);
+        mass += weight;
+      }
+    }
+  } else {
+    // No position evidence: every user answers alike, as far as the map goes.
+    marginal.fill(1 / question.options.length);
+    mass = 1;
   }
-  const information = entropy(marginal) - conditional;
+  for (let k = 0; k < marginal.length; k++) marginal[k] /= mass;
+  const information = positional ? Math.max(0, entropy(marginal) - conditional / mass) : 0;
 
   const aversions = question.options.reduce(
     (sum, o, i) => sum + marginal[i] * resolvedAversions(belief, o),

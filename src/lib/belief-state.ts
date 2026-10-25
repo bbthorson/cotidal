@@ -2,20 +2,32 @@ import type { Question, QuestionOption } from './discovery-questions';
 import type { UserProfile } from '@/hooks/useDiscoveryQuiz';
 
 /**
- * A forced-choice answer: of two options on one axis, the user took the one
- * whose evidence sits at `chose` over the one at `over`. It says which side of
- * their midpoint the user is on, not that the user is at `chose`.
+ * Where the quiz thinks the user sits, as an exact posterior over the map.
+ *
+ * The map is a grid (`GRID`, every half point from −10 to 10 on both axes).
+ * Each answer multiplies in the probability that a user at each point would
+ * have picked that option out of the ones offered — `choiceLogits`, the same
+ * response model `question-selector` uses to decide what to ask. Scoring with
+ * the model the questions were chosen under is the point: the previous
+ * update treated an answer as "the user is at this option", a Gaussian
+ * stand-in that by simulation discarded about a fifth of the accuracy the
+ * answers carried.
+ *
+ * How consistently people answer has not been measured, and the posterior
+ * is badly overconfident if it assumes too little noise. So the noise is
+ * inferred too: the posterior runs over position × `NOISE_LEVELS`, and
+ * answers that contradict each other shift weight toward a noisier answerer,
+ * which widens the estimate rather than pinning it between them.
+ *
+ * The posterior is recomputed from every answer at once, so the result does
+ * not depend on answer order. A two-option pair needs no special case: its
+ * likelihood is a logistic boundary at the pair's midpoint, which is what the
+ * response model gives for two options.
  */
-export interface Comparison {
-  chose: number;
-  over: number;
-}
 
 export interface AxisBelief {
-  mean: number;       // current estimate, bounded [-10, 10]
-  variance: number;   // uncertainty — starts at 25, falls as answers agree
-  evidence: number[]; // where each answer placed the user on this axis
-  comparisons: Comparison[]; // forced-choice pairs answered on this axis
+  mean: number;     // posterior mean, within [-10, 10]
+  variance: number; // posterior variance on this axis
 }
 
 export interface FilterState {
@@ -24,49 +36,190 @@ export interface FilterState {
   dislikesAnise: boolean | null;
 }
 
+/** Where each offered option places a user, on the axes the question uses. */
+export type OptionLocation = { x: number | null; y: number | null };
+
+export interface Answer {
+  options: OptionLocation[];
+  chosen: number;
+  /** Multiplies the answerer's noise level; 1 except for pairs. */
+  noiseScale: number;
+}
+
 export interface BeliefState {
-  axes: Record<string, AxisBelief>;
+  answers: Answer[];
+  /** Normalised weight of each `CELLS` entry: a grid point at a noise level. */
+  posterior: number[];
+  axes: Record<'x' | 'y', AxisBelief>;
   filters: FilterState;
   vibeTags: Record<string, number>;
   questionCount: number;
 }
 
-const INITIAL_VARIANCE = 25;
-
 // How far one answer places the user per unit of its authored nudge. The
 // strongest nudges in the bank (|d| = 4-5) place the user at the edge of the map.
 export const EVIDENCE_SCALE = 2.5;
 
-// Variance of a single answer as evidence of position.
+// The response model: a user at t, answering with noise s, picks each option
+// with probability ∝ exp(−|z − t|² / 2s), z being where the option places
+// them. s is not known per user, so the posterior carries these levels with
+// these prior weights and lets the answers choose. Simulated users at 1×, 2×
+// and 4× the base level are each estimated better than by the old update.
+// None of it is calibrated against real answers yet.
 export const ANSWER_NOISE = 12;
+export const NOISE_LEVELS: readonly { noise: number; prior: number }[] = [
+  { noise: ANSWER_NOISE, prior: 0.5 },
+  { noise: ANSWER_NOISE * 2, prior: 0.3 },
+  { noise: ANSWER_NOISE * 4, prior: 0.2 },
+];
 
-// The same noise for a forced-choice pair, in the selector's response model:
-// P(chose | t) = softmax of −(z − t)² / 2·PAIR_NOISE over the two options.
-// Comparative judgements are often argued to be less noisy than absolute
-// ones, but nothing here has measured that, so it starts equal. Pours are the
-// data that could calibrate it.
-export const PAIR_NOISE = ANSWER_NOISE;
+// A forced-choice pair's noise relative to other answers. Comparative
+// judgements are often argued to be steadier than absolute ones, but nothing
+// here has measured that, so it starts at 1. Pours are the data that could
+// calibrate it.
+export const PAIR_NOISE_SCALE = 1;
 
-// How far answers typically disagree with the estimate (squared, in map
-// units), and how many answers' worth of weight that assumption carries
-// before the user's own answers take over. Tuned by simulation so reported
-// variance tracks actual squared error from the first answer.
-const TYPICAL_SCATTER = 40;
-const TYPICAL_SCATTER_WEIGHT = 2;
+// The prior on each axis before any answer: centred, sd 5, cut off at the
+// edge of the map.
+const PRIOR_VARIANCE = 25;
 
-// Stop once an axis is as certain as about six agreeing answers make it. With
-// the current bank, actual squared error levels off near 5 by then; asking
-// more buys little. Tuned by simulation against the real question bank.
-const COMPLETION_THRESHOLD = 6;
+// Stop once both axes are this certain. Tuned by simulation against the bank
+// with users answering at 1×, 2× and 4× ANSWER_NOISE: at 5 the quiz is more
+// accurate than the old Gaussian update at every one of those levels and asks
+// slightly fewer questions. Lower buys accuracy for length (4 adds about
+// 0.7 questions for a few percent).
+const COMPLETION_THRESHOLD = 5;
 const MIN_QUESTIONS = 4;
 export const MAX_QUESTIONS = 8;
 
+const GRID_STEP = 0.5;
+
+/** The coordinates the grid takes on each axis. */
+export const TICKS: readonly number[] = Array.from(
+  { length: Math.round(20 / GRID_STEP) + 1 },
+  (_, i) => -10 + i * GRID_STEP
+);
+
+/** Every point of the map the posterior is kept on; index = ix·TICKS + iy. */
+export const GRID: readonly { x: number; y: number }[] = TICKS.flatMap((x) => TICKS.map((y) => ({ x, y })));
+
+/** What the posterior weighs: each grid point at each noise level; index = level·GRID + point. */
+export const CELLS: readonly { x: number; y: number; noise: number }[] = NOISE_LEVELS.flatMap(({ noise }) =>
+  GRID.map(({ x, y }) => ({ x, y, noise }))
+);
+
+const PRIOR_LOGS = NOISE_LEVELS.flatMap(({ prior }) =>
+  GRID.map(({ x, y }) => Math.log(prior) - (x * x + y * y) / (2 * PRIOR_VARIANCE))
+);
+
+const clampEvidence = (v: number) => Math.max(-10, Math.min(10, v));
+
+/** How this question's noise compares with the answerer's level. */
+export function noiseScaleFor(question: Question): number {
+  return question.type === 'pair' ? PAIR_NOISE_SCALE : 1;
+}
+
+/**
+ * Where each option places a user. An axis counts only if some option moves
+ * along it; on such an axis an option authored at 0 sits at the centre.
+ */
+export function optionLocations(question: Question): OptionLocation[] {
+  const usesX = question.options.some((o) => o.dx !== 0);
+  const usesY = question.options.some((o) => o.dy !== 0);
+  return question.options.map((o) => ({
+    x: usesX ? clampEvidence(o.dx * EVIDENCE_SCALE) : null,
+    y: usesY ? clampEvidence(o.dy * EVIDENCE_SCALE) : null,
+  }));
+}
+
+/**
+ * The response model, one axis at a time: an option's pull on a user at `t`.
+ * An option's weight is the product over axes, and its probability that
+ * weight over the sum of all the options' weights.
+ */
+function axisFactor(z: number | null, t: number, noise: number): number {
+  return z === null ? 1 : Math.exp(-((z - t) ** 2) / (2 * noise));
+}
+
+/** Probability of each option for a user at (x, y) answering with `noise`. */
+export function choiceProbs(options: OptionLocation[], noise: number, x: number, y: number): number[] {
+  const w = options.map((o) => axisFactor(o.x, x, noise) * axisFactor(o.y, y, noise));
+  const total = w.reduce((a, v) => a + v, 0);
+  return w.map((v) => v / total);
+}
+
+/**
+ * `choiceProbs` for every grid point at once. Because the model factors by
+ * axis, each option needs one row of factors per axis, and a grid point's
+ * probabilities are products from those rows — no exponentials in the loop
+ * over the grid, which is what keeps selection fast enough to run on tap.
+ */
+export interface ChoiceTable {
+  fx: Float64Array[];
+  fy: Float64Array[];
+}
+
+export function choiceTable(options: OptionLocation[], noise: number): ChoiceTable {
+  const row = (z: number | null) => Float64Array.from(TICKS, (t) => axisFactor(z, t, noise));
+  return { fx: options.map((o) => row(o.x)), fy: options.map((o) => row(o.y)) };
+}
+
+/** Fill `out` with the option probabilities at grid point (ix, iy); returns `out`. */
+export function probsAt(table: ChoiceTable, ix: number, iy: number, out: Float64Array): Float64Array {
+  let total = 0;
+  for (let k = 0; k < out.length; k++) {
+    out[k] = table.fx[k][ix] * table.fy[k][iy];
+    total += out[k];
+  }
+  for (let k = 0; k < out.length; k++) out[k] /= total;
+  return out;
+}
+
+const N = TICKS.length;
+
+function posteriorFrom(answers: Answer[]): number[] {
+  const logs = PRIOR_LOGS.slice();
+  for (const a of answers) {
+    const out = new Float64Array(a.options.length);
+    NOISE_LEVELS.forEach(({ noise }, l) => {
+      const table = choiceTable(a.options, noise * a.noiseScale);
+      for (let ix = 0; ix < N; ix++) {
+        for (let iy = 0; iy < N; iy++) {
+          logs[l * GRID.length + ix * N + iy] += Math.log(probsAt(table, ix, iy, out)[a.chosen]);
+        }
+      }
+    });
+  }
+  const peak = Math.max(...logs);
+  const weights = logs.map((l) => Math.exp(l - peak));
+  const total = weights.reduce((a, w) => a + w, 0);
+  return weights.map((w) => w / total);
+}
+
+function marginal(posterior: number[], axis: 'x' | 'y'): AxisBelief {
+  let first = 0;
+  let second = 0;
+  posterior.forEach((w, i) => {
+    const v = CELLS[i][axis];
+    first += w * v;
+    second += w * v * v;
+  });
+  return { mean: Math.max(-10, Math.min(10, first)), variance: Math.max(0, second - first * first) };
+}
+
+function fromAnswers(answers: Answer[]): Pick<BeliefState, 'answers' | 'posterior' | 'axes'> {
+  const posterior = posteriorFrom(answers);
+  return { answers, posterior, axes: { x: marginal(posterior, 'x'), y: marginal(posterior, 'y') } };
+}
+
+const PRIOR = fromAnswers([]);
+
+/** The prior's variance on each axis — what "no information yet" looks like. */
+export const INITIAL_VARIANCE = PRIOR.axes.x.variance;
+
 export function createInitialBelief(): BeliefState {
   return {
-    axes: {
-      x: { mean: 0, variance: INITIAL_VARIANCE, evidence: [], comparisons: [] },
-      y: { mean: 0, variance: INITIAL_VARIANCE, evidence: [], comparisons: [] },
-    },
+    ...PRIOR,
     filters: {
       dislikesSmoke: null,
       dislikesBitter: null,
@@ -78,141 +231,19 @@ export function createInitialBelief(): BeliefState {
 }
 
 /**
- * Recomputes one axis from all of its evidence at once.
- *
- * The mean is the Gaussian posterior: a prior of 0 at INITIAL_VARIANCE and one
- * observation per answer at ANSWER_NOISE, so the eighth answer moves the dot
- * no more than the first. The posterior variance is then inflated by how far
- * the answers disagree with it, so answers that contradict each other leave
- * the axis uncertain rather than confidently centred. Working from the whole
- * set rather than step by step makes the result independent of answer order.
- *
- * Forced-choice pairs are not positions, so they cannot join that average.
- * Each is a logistic boundary at the pair's midpoint — the likelihood the
- * selector's response model already implies for two options — multiplied
- * into the Gaussian on a grid. A product does not care about order either.
- */
-export function axisFromEvidence(evidence: number[], comparisons: Comparison[] = []): AxisBelief {
-  const base = gaussianFromEvidence(evidence);
-  if (comparisons.length === 0) {
-    return {
-      mean: Math.max(-10, Math.min(10, base.mean)),
-      variance: base.variance,
-      evidence: [...evidence],
-      comparisons: [],
-    };
-  }
-
-  const { mean, variance } = withComparisons(base, comparisons);
-  return {
-    mean: Math.max(-10, Math.min(10, mean)),
-    variance: Math.min(INITIAL_VARIANCE, variance),
-    evidence: [...evidence],
-    comparisons: [...comparisons],
-  };
-}
-
-function gaussianFromEvidence(evidence: number[]): { mean: number; variance: number } {
-  const n = evidence.length;
-  if (n === 0) return { mean: 0, variance: INITIAL_VARIANCE };
-
-  const precision = 1 / INITIAL_VARIANCE + n / ANSWER_NOISE;
-  const sum = evidence.reduce((a, z) => a + z, 0);
-  const mean = sum / ANSWER_NOISE / precision;
-
-  // One or two answers cannot disagree enough to show how much answers
-  // scatter, so the observed disagreement is pooled with a typical amount
-  // until enough answers arrive to speak for themselves.
-  const observed = evidence.reduce((a, z) => a + (z - mean) ** 2, 0);
-  const dispersion =
-    (TYPICAL_SCATTER * TYPICAL_SCATTER_WEIGHT + observed) / (TYPICAL_SCATTER_WEIGHT + n);
-  const variance = Math.min(
-    INITIAL_VARIANCE,
-    (1 / precision) * Math.max(1, dispersion / ANSWER_NOISE)
-  );
-  return { mean, variance };
-}
-
-const GRID_STEP = 0.05;
-
-/** log σ(v), without overflow for large |v|. */
-function logSigmoid(v: number): number {
-  return v >= 0 ? -Math.log1p(Math.exp(-v)) : v - Math.log1p(Math.exp(v));
-}
-
-/** Posterior moments of a Gaussian times each pair's logistic boundary, over the map. */
-function withComparisons(
-  prior: { mean: number; variance: number },
-  comparisons: Comparison[]
-): { mean: number; variance: number } {
-  const ts: number[] = [];
-  const logs: number[] = [];
-  for (let t = -10; t <= 10 + 1e-9; t += GRID_STEP) {
-    let l = -((t - prior.mean) ** 2) / (2 * prior.variance);
-    for (const { chose, over } of comparisons) {
-      const midpoint = (chose + over) / 2;
-      l += logSigmoid(((chose - over) * (t - midpoint)) / PAIR_NOISE);
-    }
-    ts.push(t);
-    logs.push(l);
-  }
-  const peak = Math.max(...logs);
-  let total = 0;
-  let first = 0;
-  let second = 0;
-  for (let i = 0; i < ts.length; i++) {
-    const w = Math.exp(logs[i] - peak);
-    total += w;
-    first += w * ts[i];
-    second += w * ts[i] * ts[i];
-  }
-  const mean = first / total;
-  return { mean, variance: Math.max(1e-6, second / total - mean * mean) };
-}
-
-const toEvidence = (nudge: number) => Math.max(-10, Math.min(10, nudge * EVIDENCE_SCALE));
-
-function observe(axis: AxisBelief, nudge: number): AxisBelief {
-  if (nudge === 0) return axis;
-  return axisFromEvidence([...axis.evidence, toEvidence(nudge)], axis.comparisons);
-}
-
-function compare(axis: AxisBelief, chose: number, over: number): AxisBelief {
-  if (chose === over) return axis;
-  return axisFromEvidence(axis.evidence, [
-    ...axis.comparisons,
-    { chose: toEvidence(chose), over: toEvidence(over) },
-  ]);
-}
-
-/**
- * Answer a question. A `pair` is read as a comparison between its two
- * options on each axis where they differ; every other type places the user
- * at the chosen option (`updateBelief`).
+ * Answer a question: the chosen option's position evidence, aversions and
+ * vibe tags. The option is matched by identity, then by text, because the
+ * chat flow can hand back an equal copy.
  */
 export function answerQuestion(state: BeliefState, question: Question, option: QuestionOption): BeliefState {
-  if (question.type !== 'pair' || question.options.length !== 2) return updateBelief(state, option);
-  const rejected = question.options.find((o) => o !== option);
-  if (!rejected) return updateBelief(state, option);
-  return applyOption(state, option, {
-    x: compare(state.axes.x, option.dx, rejected.dx),
-    y: compare(state.axes.y, option.dy, rejected.dy),
-  });
-}
+  let chosen = question.options.indexOf(option);
+  if (chosen < 0) chosen = question.options.findIndex((o) => o.text === option.text);
 
-export function updateBelief(state: BeliefState, option: QuestionOption): BeliefState {
-  return applyOption(state, option, {
-    x: observe(state.axes.x, option.dx),
-    y: observe(state.axes.y, option.dy),
-  });
-}
-
-function applyOption(
-  state: BeliefState,
-  option: QuestionOption,
-  axes: Record<'x' | 'y', AxisBelief>
-): BeliefState {
-  const newAxes = { ...state.axes, ...axes };
+  const options = optionLocations(question);
+  const informative = chosen >= 0 && options.some((o) => o.x !== null || o.y !== null);
+  const position = informative
+    ? fromAnswers([...state.answers, { options, chosen, noiseScale: noiseScaleFor(question) }])
+    : { answers: state.answers, posterior: state.posterior, axes: state.axes };
 
   // Update filters
   const newFilters = { ...state.filters };
@@ -236,7 +267,7 @@ function applyOption(
   }
 
   return {
-    axes: newAxes,
+    ...position,
     filters: newFilters,
     vibeTags: newVibeTags,
     questionCount: state.questionCount + 1,

@@ -80,22 +80,31 @@ The dot on the map is not the filter's estimate: `applyPour` moves crisp/sweet
 by a capped, simpler rule and leaves the other three axes to the EKF.
 
 ### Elicitation — `belief-state.ts`, `question-selector.ts`, `useDiscoveryQuiz.ts`
-`belief-state` holds per-axis estimates and confidence. Each answer is
-evidence of position (`EVIDENCE_SCALE` × its authored nudge), and an axis is
-recomputed from all its evidence at once, so the result does not depend on
-answer order and answers that disagree leave the axis uncertain. After the fixed
-openers, the selector asks the question with the most expected information
-about the user's position (`expectedGain`), plus `AVERSION_WEIGHT` per open
-aversion it could resolve. It does not score by expected drop in reported
-variance: that rewards questions whose likely answer agrees with the belief.
+`belief-state` holds an exact posterior over the map (a half-point grid)
+and over how noisy the answerer is (`NOISE_LEVELS`). Each answer multiplies in
+the probability that a user at each point would have picked that option from
+the ones offered — `choiceLogProbs`, the one response model, which the
+selector also uses — and the posterior is recomputed from all answers at
+once, so the result does not depend on answer order. Inferring the noise is
+what makes answers that disagree leave the axis uncertain; with a single
+fixed noise, contradictions read as confident "between the two", and
+simulated users noisier than assumed were estimated *worse* than by the old
+Gaussian stand-in. After the fixed openers, the selector asks the question
+with the most expected information about the user's *position* (noise
+averaged out, `expectedGain`), plus `AVERSION_WEIGHT` per open aversion it
+could resolve. It does not score by expected drop in reported variance: that
+rewards questions whose likely answer agrees with the belief.
 **Only the first four questions (`CALIBRATION_IDS`) are fixed** — never
 hard-code a path through the quiz in a test.
-A `pair` question is two options on one axis, and its answer goes through
-`answerQuestion` as a comparison — a logistic boundary at the pair's midpoint,
-the likelihood the selector's response model already implies — not as a
-position. `PAIR_NOISE` equals `ANSWER_NOISE` until data says comparative
-answers are steadier; by simulation that is what decides whether pairs earn
-their place (2D RMSE 3.31 → 3.28 at equal noise, → 2.93 at a quarter). The quiz's x/y variance travels
+A `pair` question is two options on one axis; under the response model its
+answer is a logistic boundary at the pair's midpoint, so it needs no special
+case. `PAIR_NOISE_SCALE` is 1 until data says comparative answers are
+steadier. None of the noise levels are calibrated against real answers.
+By simulation (2D RMSE, users at 1×/2×/4× `ANSWER_NOISE`): 3.34/3.44/4.17 with
+the old Gaussian update, 2.53/3.11/4.06 with this one, in slightly fewer
+questions. The selector's hot loop uses per-axis tables (`choiceTable`) so a
+tap costs tens of milliseconds; a test holds them equal to `choiceProbs`.
+The quiz's x/y variance travels
 in `UserProfile.variance` and becomes the 5D starting covariance, so a
 confident quiz makes early pours move the dot less.
 `useBartenderChat` is entirely local canned copy, so the flow runs offline.
@@ -213,7 +222,7 @@ interface; see `docs/brand.md`.
 8. **Rework elicitation.** Forced-choice pairs for precision *(landed; see
    Elicitation)* and the 9-point hedonic for post-drink feedback *(landed in
    `PourForm`)*. Still to do: swipes for breadth, and calibrating
-   `PAIR_NOISE` from pours. Never swipe on drink *names* — that measures
+   `NOISE_LEVELS` and `PAIR_NOISE_SCALE` from logged answers. Never swipe on drink *names* — that measures
    familiarity, not taste.
 9. **The Overlap.** First step shipped: `/p/<handle>` draws a coordinate at
    a public URL and, for a signed-in visitor, theirs beside it with the
