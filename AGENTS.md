@@ -323,5 +323,7 @@ interface; see `docs/brand.md`.
    first step into the follow graph. Waits on working sign-in, region pages
    and enough members to show it to. Reasoning and constraints:
    `docs/routes.md` § Friends.
+   **Coasters** (planned): the chart on a coaster, a member's QR code as
+   their profile, and first a four-sector chart. `docs/coasters.md`.
 
 Sequencing and the reasoning behind it: `docs/routes.md`.
