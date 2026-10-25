@@ -1,4 +1,4 @@
-import type { PourRecord, Deviation } from '@/lib/atproto/records';
+import type { PourRecord, Deviation, CataNote } from '@/lib/atproto/records';
 import type { Register } from '@/lib/register';
 import { pour } from '@/lib/copy';
 
@@ -76,7 +76,7 @@ export function PourLedger({ pours, register = {}, empty, loading = false }: Pou
                     key={desc}
                     className="border border-border px-2 py-0.5 font-condensed text-xs uppercase tracking-label text-secondary"
                   >
-                    {desc}
+                    {pour.cata[desc as CataNote] ?? desc}
                   </li>
                 ))}
               </ul>

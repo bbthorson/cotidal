@@ -152,15 +152,15 @@ await agent.api.com.atproto.repo.createRecord({
   collection: 'app.cotidal.pour',
   record: {
     $type: 'app.cotidal.pour',
-    drankAt: new Date().toISOString(),
     drink: {
       name: 'Penicillin',
       slug: 'penicillin',
       stimulus: {
-        abv: 18.5,
+        // Integers named for their unit: records carry no floats.
+        abvTenths: 185,            // 18.5%
         residualSugarGpl: 45,
-        acidityPh: 3.2,
-        astringencyIndex: 3,
+        acidityPhHundredths: 320,  // pH 3.20
+        astringencyIndexTenths: 30,
         matrixType: 'cocktail',
       },
       recipe: {
@@ -175,27 +175,23 @@ await agent.api.com.atproto.repo.createRecord({
       },
     },
     rating: {
-      wouldOrderAgain: true, // Binary hedonic quality metric
-      hedonicScale: 8,       // 1-9 Hedonic scale
-      glmsValence: 65,       // General Labeled Magnitude Scale (-100 to +100)
-      note: 'Perfect ginger heat and peaty aromatics.',
+      hedonic: 8,            // 1-9 hedonic scale
+      glmsValence: 65,       // gLMS liking, -100 to +100, whole points
+      wouldOrderAgain: true, // adoption, not approval
     },
-    perceivedIntensities: {
+    perceivedIntensities: {  // 0-100, whole points
       sweetness: 42,
       sourness: 68,
       bitterness: 28,
-      salinity: 5,
-      richness: 72,
-      cooling: 10,
-      burn: 54,
       astringency: 25,
     },
     deviations: ['too-sour'],
-    cata: ['peaty', 'citrus', 'spicy_heat', 'smoky'], // Check-All-That-Apply descriptors
+    cata: ['campfire-smoke', 'bright-citrus', 'baking-spice'], // ids from CATA, not labels
     context: {
-      volumeConsumedMl: 160,     // SSS (Sensory-Specific Satiety) calculation
-      fastingDurationHours: 3.5, // Circadian prandial ghrelin curve
+      volumeConsumedMl: 160,   // SSS (Sensory-Specific Satiety) calculation
+      fastingDurationHours: 3, // Circadian prandial ghrelin curve
     },
+    note: 'Perfect ginger heat and peaty aromatics.',
     createdAt: new Date().toISOString(),
   },
 });
@@ -251,10 +247,10 @@ Publish `app.cotidal.recipe` to establish the canonical spec:
   "method": "Shake vigorously with ice and strain into a chilled coupe.",
   "glassware": "Coupe",
   "stimulus": {
-    "abv": 21.0,
+    "abvTenths": 210,
     "residualSugarGpl": 65,
-    "acidityPh": 2.9,
-    "astringencyIndex": 2,
+    "acidityPhHundredths": 290,
+    "astringencyIndexTenths": 20,
     "matrixType": "cocktail"
   },
   "credits": [

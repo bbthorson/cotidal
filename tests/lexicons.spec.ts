@@ -168,15 +168,15 @@ test('Psychophysics: palate records dynamicState and pour records CATA/gLMS', as
       slug: 'daiquiri',
       stimulus: {
         matrixType: 'cocktail' as const,
-        abv: 22.5,
-        residualSugarGpl: 45.0,
-        acidityPh: 3.2,
-        astringencyIndex: 1.0,
+        abvTenths: 225,
+        residualSugarGpl: 45,
+        acidityPhHundredths: 320,
+        astringencyIndexTenths: 10,
       },
     },
     rating: {
       hedonic: 8,
-      glmsValence: 65.4,
+      glmsValence: 65,
       wouldOrderAgain: true,
     },
     perceivedIntensities: {
@@ -189,7 +189,7 @@ test('Psychophysics: palate records dynamicState and pour records CATA/gLMS', as
     cata: ['lime-peel', 'bright-citrus', 'sugarcane'],
     context: {
       volumeConsumedMl: 140,
-      fastingDurationHours: 2.5,
+      fastingDurationHours: 2,
     },
     createdAt: new Date().toISOString(),
   };

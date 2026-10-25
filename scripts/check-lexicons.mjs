@@ -11,6 +11,23 @@
  *   2. every `ref` resolves to a def that exists (local or in another file)
  *   3. every NSID sits under the namespace the app actually owns
  *   4. every collection the app writes to has a lexicon on disk
+ *   5. no lexicon uses `number`, which is not a Lexicon type: the AT Protocol
+ *      data model has no floats
+ *   6. every record lexicon has a Zod schema in `RECORD_SCHEMAS`, and the two
+ *      agree field by field: names, required, types, integer bounds, array
+ *      lengths, string limits and formats, and closed sets against
+ *      `knownValues`
+ *   7. the vocabularies the app writes (`DEVIATIONS`, `CATA`) are the pour
+ *      lexicon's `knownValues`
+ *   8. every file loads in `@atproto/lexicon`, the protocol's reference
+ *      parser, so a schema it would refuse never reaches a repository
+ *
+ * Checks 1–5 once said "the two disagree" and compared nothing between them;
+ * a pour lexicon with float fields and a route writing unchecked request
+ * bodies both passed. Check 6 is the comparison.
+ *
+ * It imports records.ts directly, which needs Node's built-in TypeScript type
+ * stripping (on by default from Node 22.18; .nvmrc pins 22.22).
  */
 import { readFileSync, readdirSync } from 'node:fs';
 import { join, basename } from 'node:path';
@@ -67,10 +84,177 @@ for (const [id, doc] of docs) {
   }
 }
 
-/** Collections the code writes to must have a schema on disk. */
-const source = readFileSync('src/lib/atproto/records.ts', 'utf8');
+/** Collections the code names (vocab.ts, records.ts) must have a schema on disk. */
+const source = ['records.ts', 'vocab.ts'].map((f) => readFileSync(`src/lib/atproto/${f}`, 'utf8')).join('\n');
 for (const [, nsid] of source.matchAll(/'(app\.cotidal\.[a-zA-Z.]+)'/g)) {
   if (!docs.has(nsid)) errors.push(`records.ts references "${nsid}" with no lexicon file`);
+}
+
+/** 5. `number` is not a Lexicon type. */
+const numbersIn = (node, path, out = []) => {
+  if (Array.isArray(node)) node.forEach((n, i) => numbersIn(n, `${path}[${i}]`, out));
+  else if (node && typeof node === 'object') {
+    if (node.type === 'number') out.push(path);
+    for (const [k, v] of Object.entries(node)) numbersIn(v, `${path}.${k}`, out);
+  }
+  return out;
+};
+for (const [id, doc] of docs) {
+  for (const path of numbersIn(doc.defs, id)) {
+    errors.push(`${path}: "number" is not a Lexicon type — store an integer named for its unit (e.g. xHundredths)`);
+  }
+}
+
+/** 6. Each record's Zod schema against its lexicon. */
+const { RECORD_SCHEMAS, STRING_LIMITS, DEVIATIONS, CATA, POUR_COLLECTION } = await import(
+  '../src/lib/atproto/records.ts'
+);
+
+const kind = (schema) => schema?._def?.typeName;
+
+/** Peel the wrappers that do not change a field's shape; report whether it was optional. */
+function unwrap(schema) {
+  let optional = false;
+  for (;;) {
+    const k = kind(schema);
+    if (k === 'ZodOptional') {
+      optional = true;
+      schema = schema._def.innerType;
+    } else if (k === 'ZodEffects' && !STRING_LIMITS.has(schema)) {
+      schema = schema._def.schema;
+    } else return { schema, optional };
+  }
+}
+
+const checksOf = (schema) => schema._def.checks ?? [];
+const check = (schema, name) => checksOf(schema).find((c) => c.kind === name);
+
+function resolve(ref, fromId) {
+  const [nsid, def = 'main'] = ref.startsWith('#') ? [fromId, ref.slice(1)] : ref.split('#');
+  return docs.get(nsid) ? { def: docs.get(nsid).defs[def], id: nsid } : null;
+}
+
+const same = (a, b) => JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
+const sorted = (a) => [...a].sort();
+
+function compare(lex, zod, path, fromId) {
+  const fail = (msg) => errors.push(`${path}: ${msg}`);
+  const { schema } = unwrap(zod);
+  const k = kind(schema);
+
+  switch (lex.type) {
+    case 'ref': {
+      if (lex.ref.split('#')[0] && EXTERNAL.some((p) => lex.ref.startsWith(p))) return;
+      const target = resolve(lex.ref, fromId);
+      if (!target?.def) return; // reported by the ref check above
+      return compare(target.def, schema, path, target.id);
+    }
+    case 'object': {
+      if (!lex.properties) {
+        // A property-less object is an open dictionary.
+        if (k !== 'ZodRecord') fail(`lexicon has an open object, Zod has ${k}`);
+        return;
+      }
+      if (k !== 'ZodObject') return fail(`lexicon has an object, Zod has ${k}`);
+      const shape = schema.shape;
+      const lexKeys = Object.keys(lex.properties);
+      const zodKeys = Object.keys(shape).filter((key) => key !== '$type');
+      for (const key of lexKeys) if (!(key in shape)) fail(`"${key}" is in the lexicon but not in Zod`);
+      for (const key of zodKeys) if (!lexKeys.includes(key)) fail(`"${key}" is in Zod but not in the lexicon`);
+      const required = lex.required ?? [];
+      for (const key of lexKeys.filter((key) => key in shape)) {
+        const optional = unwrap(shape[key]).optional;
+        if (required.includes(key) && optional) fail(`"${key}" is required by the lexicon, optional in Zod`);
+        if (!required.includes(key) && !optional) fail(`"${key}" is optional in the lexicon, required in Zod`);
+        compare(lex.properties[key], shape[key], `${path}.${key}`, fromId);
+      }
+      return;
+    }
+    case 'integer': {
+      if (k !== 'ZodNumber' || !check(schema, 'int')) return fail(`lexicon has an integer, Zod has ${k} without .int()`);
+      const min = check(schema, 'min');
+      const max = check(schema, 'max');
+      if (!same(lex.minimum, min?.value)) fail(`minimum: lexicon ${lex.minimum}, Zod ${min?.value}`);
+      if (!same(lex.maximum, max?.value)) fail(`maximum: lexicon ${lex.maximum}, Zod ${max?.value}`);
+      return;
+    }
+    case 'boolean':
+      if (k !== 'ZodBoolean') fail(`lexicon has a boolean, Zod has ${k}`);
+      return;
+    case 'string': {
+      if (k === 'ZodEnum') {
+        // A closed set in Zod must be exactly the lexicon's known values.
+        if (!same(sorted(schema._def.values), sorted(lex.knownValues ?? lex.enum ?? []))) {
+          fail(`Zod enum ${JSON.stringify(schema._def.values)} is not the lexicon's knownValues`);
+        }
+        return;
+      }
+      const limits = STRING_LIMITS.get(schema);
+      if (!limits) return fail(`lexicon has a string, Zod has ${k} not built with lexString()`);
+      for (const key of ['minLength', 'maxLength', 'maxGraphemes', 'format']) {
+        if (!same(lex[key], limits[key])) fail(`${key}: lexicon ${lex[key]}, Zod ${limits[key]}`);
+      }
+      return;
+    }
+    case 'array': {
+      if (k !== 'ZodArray') return fail(`lexicon has an array, Zod has ${k}`);
+      const exact = schema._def.exactLength?.value;
+      const min = exact ?? schema._def.minLength?.value;
+      const max = exact ?? schema._def.maxLength?.value;
+      if (!same(lex.minLength, min)) fail(`minLength: lexicon ${lex.minLength}, Zod ${min}`);
+      if (!same(lex.maxLength, max)) fail(`maxLength: lexicon ${lex.maxLength}, Zod ${max}`);
+      return compare(lex.items, schema._def.type, `${path}[]`, fromId);
+    }
+    case 'union':
+      // Borrowed vocabularies (community.lexicon.location.*): carried as-is, tagged by $type.
+      if (k !== 'ZodObject' || !('$type' in schema.shape)) fail(`lexicon has a union, Zod has ${k} without $type`);
+      return;
+    case 'blob':
+    case 'unknown':
+      return;
+    default:
+      return fail(`no comparison for lexicon type "${lex.type}"`);
+  }
+}
+
+for (const [id, doc] of docs) {
+  if (doc.defs.main?.type !== 'record') continue;
+  const zod = RECORD_SCHEMAS[id];
+  if (!zod) {
+    errors.push(`${id}: a record lexicon with no Zod schema in RECORD_SCHEMAS (records.ts)`);
+    continue;
+  }
+  const typeField = zod.shape?.$type;
+  if (kind(typeField) !== 'ZodLiteral' || typeField._def.value !== id) {
+    errors.push(`${id}: Zod $type is not the literal "${id}"`);
+  }
+  compare(doc.defs.main.record, zod, id, id);
+}
+for (const id of Object.keys(RECORD_SCHEMAS)) {
+  if (docs.get(id)?.defs.main?.type !== 'record') errors.push(`RECORD_SCHEMAS has "${id}", which is not a record lexicon`);
+}
+
+/**
+ * 8. The reference parser accepts every file. `parseLexiconDoc`, not
+ * `new Lexicons()`: the constructor loads anything, `"type": "foo"` included.
+ */
+const { parseLexiconDoc } = await import('@atproto/lexicon');
+for (const [id, doc] of docs) {
+  try {
+    parseLexiconDoc(doc);
+  } catch (e) {
+    const issues = Array.isArray(e.issues) ? e.issues : [];
+    const where = issues.map((i) => i.path?.join('.')).filter(Boolean).join(', ');
+    errors.push(`${id}: @atproto/lexicon refuses it${where ? ` at ${where}` : ''}`);
+  }
+}
+
+/** 7. The vocabularies written are the ones declared. */
+const pourProps = docs.get(POUR_COLLECTION)?.defs.main.record.properties ?? {};
+for (const [field, values] of [['deviations', DEVIATIONS], ['cata', CATA]]) {
+  if (!same(sorted(pourProps[field]?.items?.knownValues ?? []), sorted(values))) {
+    errors.push(`${POUR_COLLECTION}.${field}: knownValues are not ${field === 'cata' ? 'CATA' : 'DEVIATIONS'} in records.ts`);
+  }
 }
 
 if (errors.length) {

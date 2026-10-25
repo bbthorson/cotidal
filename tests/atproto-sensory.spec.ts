@@ -72,7 +72,7 @@ test('AT Protocol: PourRecordSchema should validate pour records conforming to p
     },
     rating: {
       hedonic: 8,
-      glmsValence: 68.5,
+      glmsValence: 68,
       wouldOrderAgain: true,
     },
     perceivedIntensities: {
@@ -82,7 +82,7 @@ test('AT Protocol: PourRecordSchema should validate pour records conforming to p
     cata: ['rye-spice', 'cherry', 'oak'],
     context: {
       volumeConsumedMl: 120,
-      fastingDurationHours: 1.5,
+      fastingDurationHours: 2,
     },
     note: 'Slightly sweet, but excellent rye selection.',
     createdAt: new Date().toISOString(),

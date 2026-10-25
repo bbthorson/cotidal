@@ -37,24 +37,53 @@
             "type": "array",
             "description": "Patron feedback on drink balance (e.g. too-sweet, not-sweet-enough, too-sour).",
             "maxLength": 10,
-            "items": { "type": "string", "maxLength": 32 }
+            "items": {
+              "type": "string",
+              "maxLength": 32,
+              "knownValues": [
+                "too-sweet",
+                "not-sweet-enough",
+                "too-sour",
+                "not-sour-enough",
+                "too-bitter",
+                "too-smoky",
+                "too-anise",
+                "too-rich",
+                "too-crisp",
+                "too-flat",
+                "too-fizzy"
+              ]
+            }
           },
           "cata": {
             "type": "array",
-            "description": "Check-All-That-Apply array for unbiased retronasal VOC categorization.",
+            "description": "Check-All-That-Apply array for unbiased retronasal VOC categorization. Stable ids, not display labels: the wording shown can change without splitting the data.",
             "maxLength": 20,
-            "items": { "type": "string", "maxLength": 32 }
+            "items": {
+              "type": "string",
+              "maxLength": 32,
+              "knownValues": [
+                "bright-citrus",
+                "lime-peel",
+                "stone-fruit",
+                "dark-cherry",
+                "campfire-smoke",
+                "botanical-herb",
+                "baking-spice",
+                "toasted-oak",
+                "floral-blossom",
+                "bittersweet-cocoa",
+                "briny-mineral",
+                "rich-velvet-body"
+              ]
+            }
           },
           "context": {
             "type": "ref",
             "ref": "#context",
             "description": "Transitory physiological and circadian state data for SSS and prandial normalization."
           },
-          "note": {
-            "type": "string",
-            "maxLength": 3000,
-            "maxGraphemes": 1000
-          },
+          "note": { "type": "string", "maxLength": 3000, "maxGraphemes": 1000 },
           "isHomePour": { "type": "boolean" },
           "createdAt": { "type": "string", "format": "datetime" }
         }
@@ -72,8 +101,8 @@
           "maximum": 9
         },
         "glmsValence": {
-          "type": "number",
-          "description": "Continuous bipolar gLMS liking score (-100 to +100).",
+          "type": "integer",
+          "description": "Bipolar gLMS liking score, −100 to +100, in whole points.",
           "minimum": -100,
           "maximum": 100
         },
@@ -85,13 +114,13 @@
     },
     "perceivedIntensities": {
       "type": "object",
-      "description": "0-100 gLMS scales mapping discrete structural/tactile vectors.",
+      "description": "0-100 gLMS scales mapping discrete structural/tactile vectors, in whole points.",
       "properties": {
-        "sweetness": { "type": "number", "minimum": 0, "maximum": 100 },
-        "sourness": { "type": "number", "minimum": 0, "maximum": 100 },
-        "bitterness": { "type": "number", "minimum": 0, "maximum": 100 },
-        "astringency": { "type": "number", "minimum": 0, "maximum": 100 },
-        "effervescence": { "type": "number", "minimum": 0, "maximum": 100 }
+        "sweetness": { "type": "integer", "minimum": 0, "maximum": 100 },
+        "sourness": { "type": "integer", "minimum": 0, "maximum": 100 },
+        "bitterness": { "type": "integer", "minimum": 0, "maximum": 100 },
+        "astringency": { "type": "integer", "minimum": 0, "maximum": 100 },
+        "effervescence": { "type": "integer", "minimum": 0, "maximum": 100 }
       }
     },
     "context": {
@@ -99,12 +128,14 @@
       "description": "Temporal and physiological state data for SSS and diurnal normalization.",
       "properties": {
         "volumeConsumedMl": {
-          "type": "number",
-          "description": "Estimated volume consumed in milliliters (for sensory-specific satiety decay)."
+          "type": "integer",
+          "minimum": 0,
+          "description": "Estimated volume consumed in whole milliliters (for sensory-specific satiety decay)."
         },
         "fastingDurationHours": {
-          "type": "number",
-          "description": "Hours since last substantial meal (for ghrelin / postprandial sweet reward weighting)."
+          "type": "integer",
+          "minimum": 0,
+          "description": "Whole hours since the last substantial meal (for ghrelin / postprandial sweet reward weighting)."
         }
       }
     }

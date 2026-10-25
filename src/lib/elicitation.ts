@@ -1,9 +1,6 @@
 import { RESPONSE_MODEL, type QuizResponse } from './belief-state';
-import {
-  ELICITATION_COLLECTION,
-  ElicitationRecordSchema,
-  type ElicitationRecord,
-} from './atproto/records';
+import { ELICITATION_COLLECTION } from './atproto/vocab';
+import { ElicitationRecordSchema, type ElicitationRecord } from './atproto/elicitation-record';
 
 /**
  * A finished quiz's answers as an `app.cotidal.elicitation` record.

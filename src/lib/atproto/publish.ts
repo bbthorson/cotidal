@@ -10,6 +10,8 @@ import {
   decodePalate,
   encodePalate,
   type Palate,
+  PourWriteSchema,
+  readPour,
   type PourRecord,
 } from './records';
 import type { OAuthSession } from '@bbthorson/atproto-cf-auth/server';
@@ -124,10 +126,9 @@ export async function publishPour(
 ): Promise<{ uri: string; cid: string }> {
   const agent = new Agent(session);
 
-  const record: PourRecord = {
-    $type: POUR_COLLECTION,
-    ...pour,
-  };
+  // The last check before a signed, unrewritable record: it says what its
+  // lexicon says, or it is not written.
+  const record = PourWriteSchema.parse({ ...pour, $type: POUR_COLLECTION });
 
   const response = await agent.com.atproto.repo.createRecord({
     repo: session.did,
@@ -154,7 +155,9 @@ export async function getPours(session: OAuthSession, limit?: number): Promise<P
           limit: max,
           reverse: true,
         });
-        return response.data.records.map((r) => r.value as PourRecord);
+        return response.data.records
+          .map((r) => readPour(r.value))
+          .filter((p): p is PourRecord => p !== null);
       } catch (e) {
         if (collection === POUR_COLLECTION) console.error('Failed to get pours:', e);
         return [];
@@ -163,7 +166,8 @@ export async function getPours(session: OAuthSession, limit?: number): Promise<P
   );
   return lists
     .flat()
-    .sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)))
+    // By instant, not by string: `+02:00` and `Z` order differently as text.
+    .sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))
     .slice(0, max);
 }
 

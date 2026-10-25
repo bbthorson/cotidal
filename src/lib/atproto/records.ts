@@ -1,38 +1,85 @@
 /**
  * Zod schemas for the record types described in `lexicons/*.json`.
  *
- * The JSON is authoritative — `npm run lexicons` fails the build when the two
- * disagree, which is what stops the drift that produced two different
- * definitions of the old `drinkLog`.
+ * The JSON is authoritative. `npm run lexicons` walks every record schema in
+ * `RECORD_SCHEMAS` against its lexicon, field by field — names, required,
+ * types, bounds, string limits, formats and known values — and fails when
+ * they disagree. That is what stops the drift that produced two different
+ * definitions of the old `drinkLog`. So a schema here says exactly what its
+ * lexicon says: no stricter, no looser.
  *
  * `app.cotidal.palate`, `app.cotidal.pour` and
  * `app.cotidal.elicitation` live here.
  * The legacy `drinkLog` has been superseded by `pour`.
  */
 import { z } from 'zod';
+// Relative imports name their `.ts` file: `npm run lexicons` loads these modules
+// with Node's own type stripping, which does not guess extensions.
+import { isAtUriString, isValidDid, isValidUri } from '@atproto/syntax';
+import { parseCidSafe } from '@atproto/lex-data';
+import {
+  CATA,
+  DEVIATIONS,
+  ELICITATION_COLLECTION,
+  LEGACY_PALATE_COLLECTION,
+  LEGACY_POUR_COLLECTION,
+  MAKER_COLLECTION,
+  MENU_COLLECTION,
+  PALATE_COLLECTION,
+  POUR_COLLECTION,
+  RECIPE_COLLECTION,
+  VENUE_COLLECTION,
+  cataId,
+} from './vocab.ts';
+import { datetime, lexString, registerFormat, writtenDatetime } from './lex-string.ts';
+import { ElicitationRecordSchema } from './elicitation-record.ts';
 
-export const DEFS_LEXICON = 'app.cotidal.defs';
-export const PALATE_COLLECTION = 'app.cotidal.palate';
-export const PALATE_RKEY = 'self';
-export const POUR_COLLECTION = 'app.cotidal.pour';
-export const MENU_COLLECTION = 'app.cotidal.menu';
-export const RECIPE_COLLECTION = 'app.cotidal.recipe';
-export const VENUE_COLLECTION = 'app.cotidal.venue';
-export const MAKER_COLLECTION = 'app.cotidal.maker';
-export const ELICITATION_COLLECTION = 'app.cotidal.elicitation';
+// Named, not `export *`: a dynamic import() of a transpiled module cannot see
+// star re-exports, and the tests import this module dynamically.
+export {
+  DEFS_LEXICON,
+  PALATE_COLLECTION,
+  PALATE_RKEY,
+  POUR_COLLECTION,
+  MENU_COLLECTION,
+  RECIPE_COLLECTION,
+  VENUE_COLLECTION,
+  MAKER_COLLECTION,
+  ELICITATION_COLLECTION,
+  LEGACY_PALATE_COLLECTION,
+  LEGACY_POUR_COLLECTION,
+  SELF_RKEY,
+  DEVIATIONS,
+  CATA,
+  cataId,
+  type Deviation,
+  type CataNote,
+} from './vocab.ts';
+export {
+  STRING_LIMITS,
+  utf8Length,
+  graphemeLength,
+  registerFormat,
+  lexString,
+  datetime,
+  writtenDatetime,
+  fitString,
+  type StringLimits,
+} from './lex-string.ts';
+export {
+  ElicitationOptionSchema,
+  ElicitationAnswerSchema,
+  ElicitationRecordSchema,
+  ElicitationWriteSchema,
+  type ElicitationAnswer,
+  type ElicitationRecord,
+} from './elicitation-record.ts';
 
-/**
- * The namespace before the rename to Cotidal. Read-only: palates and pours
- * written under it are still read (publish.ts, public-read.ts) so nobody's
- * map empties, but nothing is written there and those records are never
- * rewritten or deleted by the app. The next palate write lands under
- * `app.cotidal.*`.
- */
-export const LEGACY_PALATE_COLLECTION = 'app.crystalcoupe.palate';
-export const LEGACY_POUR_COLLECTION = 'app.crystalcoupe.pour';
-
-/** Records held at a fixed key, one per repo. */
-export const SELF_RKEY = 'self';
+// Formats the browser does not need, registered before any schema below uses them.
+registerFormat('did', (s) => isValidDid(s));
+registerFormat('at-uri', (s) => isAtUriString(s));
+registerFormat('cid', (s) => parseCidSafe(s) !== null);
+registerFormat('uri', (s) => isValidUri(s));
 
 // ---------------------------------------------------------------------------
 // Shared references (app.cotidal.defs)
@@ -45,11 +92,11 @@ export const SELF_RKEY = 'self';
  * somebody's signed record.
  */
 export const EntityRefSchema = z.object({
-  name: z.string().min(1).max(200),
-  uri: z.string().optional(),
-  cid: z.string().optional(),
-  did: z.string().optional(),
-  domain: z.string().max(253).optional(),
+  name: lexString({ maxLength: 200, maxGraphemes: 100 }),
+  uri: lexString({ format: 'at-uri' }).optional(),
+  cid: lexString({ format: 'cid' }).optional(),
+  did: lexString({ format: 'did' }).optional(),
+  domain: lexString({ maxLength: 253 }).optional(),
 });
 export type EntityRef = z.infer<typeof EntityRefSchema>;
 
@@ -68,12 +115,13 @@ export const VenueRefSchema = z.object({
 });
 export type VenueRef = z.infer<typeof VenueRefSchema>;
 
+/** Integers only, named for their unit: the AT Protocol has no floats. */
 export const StimulusSchema = z.object({
   matrixType: z.enum(['cocktail', 'wine', 'spirit', 'beer', 'tea', 'coffee', 'cider', 'non-alcoholic']).optional(),
-  abv: z.number().min(0).max(100).optional(),
-  residualSugarGpl: z.number().min(0).optional(),
-  acidityPh: z.number().min(1).max(14).optional(),
-  astringencyIndex: z.number().min(0).max(10).optional(),
+  abvTenths: z.number().int().min(0).max(1000).optional(),
+  residualSugarGpl: z.number().int().min(0).optional(),
+  acidityPhHundredths: z.number().int().min(100).max(1400).optional(),
+  astringencyIndexTenths: z.number().int().min(0).max(100).optional(),
 });
 export type Stimulus = z.infer<typeof StimulusSchema>;
 
@@ -82,8 +130,8 @@ export type Stimulus = z.infer<typeof StimulusSchema>;
  * catalog. A `recipe` is the authored, ownable formulation.
  */
 export const DrinkRefSchema = z.object({
-  name: z.string().min(1).max(200),
-  slug: z.string().max(64).optional(),
+  name: lexString({ maxLength: 200, maxGraphemes: 100 }),
+  slug: lexString({ maxLength: 64 }).optional(),
   recipe: EntityRefSchema.optional(),
   stimulus: StimulusSchema.optional(),
 });
@@ -99,7 +147,7 @@ export type Credit = z.infer<typeof CreditSchema>;
 export const PriceSchema = z.object({
   /** Minor units (cents), to avoid float rounding. */
   amount: z.number().int().min(0),
-  currency: z.string().length(3),
+  currency: lexString({ minLength: 3, maxLength: 3 }),
 });
 export type Price = z.infer<typeof PriceSchema>;
 
@@ -122,7 +170,7 @@ export const DynamicStateSchema = z.object({
   latentVector: z.array(z.number()),
   covarianceDiagonal: z.array(z.number()),
   eventCount: z.number().int().min(0),
-  lastUpdate: z.string().datetime().optional(),
+  lastUpdate: datetime().optional(),
 });
 export type DynamicState = z.infer<typeof DynamicStateSchema>;
 
@@ -142,8 +190,8 @@ export const PalateSchema = z.object({
   phenotypes: PhenotypesSchema,
   aversions: AversionsSchema,
   vibeTags: z.record(z.string(), z.number()),
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime().optional(),
+  createdAt: datetime(),
+  updatedAt: datetime().optional(),
 });
 export type Palate = z.infer<typeof PalateSchema>;
 
@@ -162,13 +210,13 @@ export const PalateRecordSchema = z.object({
     latentVectorHundredths: z.array(hundredths).length(5),
     covarianceDiagonalHundredths: z.array(hundredths.min(0)).length(5),
     eventCount: z.number().int().min(0),
-    lastUpdate: z.string().datetime().optional(),
+    lastUpdate: datetime().optional(),
   }),
   phenotypes: PhenotypesSchema,
   aversions: AversionsSchema,
   vibeTagsHundredths: z.record(z.string(), hundredths),
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime().optional(),
+  createdAt: datetime(),
+  updatedAt: datetime().optional(),
 });
 export type PalateRecord = z.infer<typeof PalateRecordSchema>;
 
@@ -258,37 +306,6 @@ export function decodePalate(input: unknown): Palate | null {
   return legacy.success ? legacy.data : null;
 }
 
-// ---------------------------------------------------------------------------
-// app.cotidal.elicitation — the answers behind one completed quiz
-// ---------------------------------------------------------------------------
-
-/** Integers only: the AT Protocol data model has no floats. */
-const tenths = z.number().int().min(-100).max(100);
-
-export const ElicitationOptionSchema = z.object({
-  dxTenths: tenths,
-  dyTenths: tenths,
-});
-
-export const ElicitationAnswerSchema = z
-  .object({
-    questionId: z.string().min(1).max(64),
-    kind: z.string().max(32).optional(),
-    generated: z.boolean().optional(),
-    options: z.array(ElicitationOptionSchema).min(1).max(6),
-    chosen: z.number().int().min(0).max(5),
-  })
-  .refine((a) => a.chosen < a.options.length, { message: 'chosen is not one of the options' });
-export type ElicitationAnswer = z.infer<typeof ElicitationAnswerSchema>;
-
-export const ElicitationRecordSchema = z.object({
-  $type: z.literal(ELICITATION_COLLECTION),
-  responseModel: z.string().min(1).max(64),
-  answers: z.array(ElicitationAnswerSchema).min(1).max(16),
-  createdAt: z.string().datetime(),
-});
-export type ElicitationRecord = z.infer<typeof ElicitationRecordSchema>;
-
 export const SensoryProfileSchema = z.object({
   bitter: z.number().min(0).max(5),
   sweet: z.number().min(0).max(5),
@@ -303,20 +320,11 @@ export type SensoryProfile = z.infer<typeof SensoryProfileSchema>;
 // app.cotidal.pour
 // ---------------------------------------------------------------------------
 
-export const DEVIATIONS = [
-  'too-sweet', 'not-sweet-enough',
-  'too-sour', 'not-sour-enough',
-  'too-bitter', 'too-smoky', 'too-anise',
-  'too-rich', 'too-crisp',
-  'too-flat', 'too-fizzy',
-] as const;
-export type Deviation = (typeof DEVIATIONS)[number];
-
 export const RatingSchema = z.object({
   /** 9-point hedonic scale: 1 dislike extremely, 5 neutral, 9 like extremely. */
   hedonic: z.number().int().min(1).max(9),
-  /** Continuous bipolar gLMS liking score (-100 to +100). */
-  glmsValence: z.number().min(-100).max(100).optional(),
+  /** Bipolar gLMS liking score, −100 to +100, in whole points. */
+  glmsValence: z.number().int().min(-100).max(100).optional(),
   /**
    * Adoption rather than approval. A recipe's reception is built from this —
    * "reordered by 61%" credits a designer without producing a score that
@@ -326,18 +334,19 @@ export const RatingSchema = z.object({
 });
 export type Rating = z.infer<typeof RatingSchema>;
 
+const intensity = z.number().int().min(0).max(100);
 export const PerceivedIntensitiesSchema = z.object({
-  sweetness: z.number().min(0).max(100).optional(),
-  sourness: z.number().min(0).max(100).optional(),
-  bitterness: z.number().min(0).max(100).optional(),
-  astringency: z.number().min(0).max(100).optional(),
-  effervescence: z.number().min(0).max(100).optional(),
+  sweetness: intensity.optional(),
+  sourness: intensity.optional(),
+  bitterness: intensity.optional(),
+  astringency: intensity.optional(),
+  effervescence: intensity.optional(),
 });
 export type PerceivedIntensities = z.infer<typeof PerceivedIntensitiesSchema>;
 
 export const PourContextSchema = z.object({
-  volumeConsumedMl: z.number().optional(),
-  fastingDurationHours: z.number().optional(),
+  volumeConsumedMl: z.number().int().min(0).optional(),
+  fastingDurationHours: z.number().int().min(0).optional(),
 });
 export type PourContext = z.infer<typeof PourContextSchema>;
 
@@ -349,14 +358,45 @@ export const PourRecordSchema = z.object({
   credits: z.array(CreditSchema).max(10).optional(),
   rating: RatingSchema,
   perceivedIntensities: PerceivedIntensitiesSchema.optional(),
-  deviations: z.array(z.string().max(32)).max(10).optional(),
-  cata: z.array(z.string().max(32)).max(20).optional(),
+  deviations: z.array(lexString({ maxLength: 32 })).max(10).optional(),
+  cata: z.array(lexString({ maxLength: 32 })).max(20).optional(),
   context: PourContextSchema.optional(),
-  note: z.string().max(3000).optional(),
+  note: lexString({ maxLength: 3000, maxGraphemes: 1000 }).optional(),
   isHomePour: z.boolean().optional(),
-  createdAt: z.string().datetime(),
+  createdAt: datetime(),
 });
 export type PourRecord = z.infer<typeof PourRecordSchema>;
+
+/** Note limits, for fitting free text before it is written. */
+export const POUR_NOTE_LIMITS = { maxLength: 3000, maxGraphemes: 1000 } as const;
+
+/**
+ * A pour this app is about to write. The lexicon's `knownValues` are open, so
+ * a reader accepts any deviation or note another client wrote; a writer here
+ * only writes the ones it knows.
+ */
+export const PourWriteSchema = PourRecordSchema.extend({
+  deviations: z.array(z.enum(DEVIATIONS)).max(10).optional(),
+  cata: z.array(z.enum(CATA)).max(20).optional(),
+  createdAt: writtenDatetime(),
+});
+
+/**
+ * A pour as read from a repository, or `null` when it is not one. Accepts the
+ * collection before the rename, and maps CATA labels stored before the ids.
+ * Anything can be written to a collection in someone's repo, so a pour is
+ * parsed before it is trusted, not cast.
+ */
+export function readPour(value: unknown): PourRecord | null {
+  const raw =
+    value && typeof value === 'object' && (value as { $type?: unknown }).$type === LEGACY_POUR_COLLECTION
+      ? { ...(value as object), $type: POUR_COLLECTION }
+      : value;
+  const parsed = PourRecordSchema.safeParse(raw);
+  if (!parsed.success) return null;
+  const pour = parsed.data;
+  return pour.cata ? { ...pour, cata: pour.cata.map(cataId) } : pour;
+}
 
 // ---------------------------------------------------------------------------
 // app.cotidal.menu
@@ -365,14 +405,14 @@ export type PourRecord = z.infer<typeof PourRecordSchema>;
 export const MenuItemSchema = z.object({
   drink: DrinkRefSchema,
   /** The menu's own words — the best signal for matching a house name. */
-  description: z.string().max(1000).optional(),
+  description: lexString({ maxLength: 1000, maxGraphemes: 500 }).optional(),
   price: PriceSchema.optional(),
   credits: z.array(CreditSchema).max(10).optional(),
 });
 export type MenuItem = z.infer<typeof MenuItemSchema>;
 
 export const MenuSectionSchema = z.object({
-  name: z.string().max(200).optional(),
+  name: lexString({ maxLength: 200, maxGraphemes: 100 }).optional(),
   items: z.array(MenuItemSchema).max(200),
 });
 
@@ -386,15 +426,15 @@ export const MenuCaptureSchema = z.object({
 export const MenuRecordSchema = z.object({
   $type: z.literal(MENU_COLLECTION),
   venue: VenueRefSchema,
-  title: z.string().max(200).optional(),
-  publishedAt: z.string().datetime(),
-  validFrom: z.string().datetime().optional(),
-  validUntil: z.string().datetime().optional(),
+  title: lexString({ maxLength: 200, maxGraphemes: 100 }).optional(),
+  publishedAt: datetime(),
+  validFrom: datetime().optional(),
+  validUntil: datetime().optional(),
   sections: z.array(MenuSectionSchema).max(40).optional(),
   capture: MenuCaptureSchema.optional(),
   /** Standard.site document pointer if published to a publication. */
   document: EntityRefSchema.optional(),
-  createdAt: z.string().datetime().optional(),
+  createdAt: datetime().optional(),
 });
 export type MenuRecord = z.infer<typeof MenuRecordSchema>;
 
@@ -414,22 +454,22 @@ export function isVenueAuthored(record: MenuRecord, signerDid: string): boolean 
 
 export const RecipeRecordSchema = z.object({
   $type: z.literal(RECIPE_COLLECTION),
-  name: z.string().min(1).max(200),
-  slug: z.string().max(64).optional(),
-  description: z.string().max(2000).optional(),
+  name: lexString({ maxLength: 200, maxGraphemes: 100 }),
+  slug: lexString({ maxLength: 64 }).optional(),
+  description: lexString({ maxLength: 2000, maxGraphemes: 1000 }).optional(),
   ingredients: z
     .array(
       z.object({
-        name: z.string().max(200),
-        amount: z.string().max(50).optional(),
+        name: lexString({ maxLength: 200 }),
+        amount: lexString({ maxLength: 50 }).optional(),
         optional: z.boolean().optional(),
       })
     )
     .max(40)
     .optional(),
-  method: z.string().max(4000).optional(),
-  glassware: z.string().max(100).optional(),
-  garnish: z.string().max(200).optional(),
+  method: lexString({ maxLength: 4000, maxGraphemes: 2000 }).optional(),
+  glassware: lexString({ maxLength: 100 }).optional(),
+  garnish: lexString({ maxLength: 200 }).optional(),
   credits: z.array(CreditSchema).max(10).optional(),
   adaptedFrom: EntityRefSchema.optional(),
   coordinates: z
@@ -439,22 +479,22 @@ export const RecipeRecordSchema = z.object({
     })
     .optional(),
   stimulus: StimulusSchema.optional(),
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime().optional(),
+  createdAt: datetime(),
+  updatedAt: datetime().optional(),
 });
 export type RecipeRecord = z.infer<typeof RecipeRecordSchema>;
 
 export const VenueRecordSchema = z.object({
   $type: z.literal(VENUE_COLLECTION),
-  name: z.string().min(1).max(200),
-  description: z.string().max(2000).optional(),
+  name: lexString({ maxLength: 200, maxGraphemes: 100 }),
+  description: lexString({ maxLength: 2000, maxGraphemes: 1000 }).optional(),
   location: LocationSchema.optional(),
-  website: z.string().optional(),
+  website: lexString({ format: 'uri' }).optional(),
   /** Menus are immutable, so a venue points at the one that is live. */
   currentMenu: EntityRefSchema.optional(),
   /** Standard.site publication pointer (site.standard.publication at rkey self). */
   publication: EntityRefSchema.optional(),
-  createdAt: z.string().datetime(),
+  createdAt: datetime(),
 });
 export type VenueRecord = z.infer<typeof VenueRecordSchema>;
 
@@ -465,10 +505,25 @@ export type VenueRecord = z.infer<typeof VenueRecordSchema>;
  */
 export const MakerRecordSchema = z.object({
   $type: z.literal(MAKER_COLLECTION),
-  displayName: z.string().min(1).max(200),
-  bio: z.string().max(2000).optional(),
+  displayName: lexString({ maxLength: 200, maxGraphemes: 100 }),
+  bio: lexString({ maxLength: 2000, maxGraphemes: 1000 }).optional(),
   recipes: z.array(EntityRefSchema).max(200).optional(),
   venues: z.array(EntityRefSchema).max(50).optional(),
-  createdAt: z.string().datetime(),
+  createdAt: datetime(),
 });
 export type MakerRecord = z.infer<typeof MakerRecordSchema>;
+
+/**
+ * Every record this app reads or writes, by collection. `npm run lexicons`
+ * compares each against its lexicon, so a record type is not finished until
+ * it is listed here.
+ */
+export const RECORD_SCHEMAS: Record<string, z.ZodTypeAny> = {
+  [PALATE_COLLECTION]: PalateRecordSchema,
+  [POUR_COLLECTION]: PourRecordSchema,
+  [ELICITATION_COLLECTION]: ElicitationRecordSchema,
+  [MENU_COLLECTION]: MenuRecordSchema,
+  [RECIPE_COLLECTION]: RecipeRecordSchema,
+  [VENUE_COLLECTION]: VenueRecordSchema,
+  [MAKER_COLLECTION]: MakerRecordSchema,
+};

@@ -18,25 +18,8 @@
         ],
         "properties": {
           "mapCoordinates": {
-            "type": "object",
-            "required": [
-              "xHundredths",
-              "yHundredths"
-            ],
-            "properties": {
-              "xHundredths": {
-                "type": "integer",
-                "minimum": -1000,
-                "maximum": 1000,
-                "description": "Position on the Rich (−10) to Crisp (+10) axis, in hundredths."
-              },
-              "yHundredths": {
-                "type": "integer",
-                "minimum": -1000,
-                "maximum": 1000,
-                "description": "Position on the Savory (−10) to Sweet (+10) axis, in hundredths."
-              }
-            }
+            "type": "ref",
+            "ref": "#mapCoordinates"
           },
           "dynamicState": {
             "type": "ref",
@@ -49,27 +32,12 @@
             "description": "Physiological sensitivity proxies (TAS2R38, TRPV1)."
           },
           "aversions": {
-            "type": "object",
-            "required": [
-              "smoke",
-              "bitter",
-              "anise"
-            ],
-            "properties": {
-              "smoke": {
-                "type": "boolean"
-              },
-              "bitter": {
-                "type": "boolean"
-              },
-              "anise": {
-                "type": "boolean"
-              }
-            }
+            "type": "ref",
+            "ref": "#aversions"
           },
           "vibeTagsHundredths": {
-            "type": "object",
-            "description": "Tag affinity from quiz answers and tasting history: each key a vibe tag, each value an integer weight in hundredths."
+            "type": "unknown",
+            "description": "Tag affinity from quiz answers and tasting history: an object whose keys are vibe tags and whose values are integer weights in hundredths. `unknown` because Lexicon has no open-dictionary type; an inline `object` is not valid there."
           },
           "createdAt": {
             "type": "string",
@@ -79,6 +47,48 @@
             "type": "string",
             "format": "datetime"
           }
+        }
+      }
+    },
+    "mapCoordinates": {
+      "type": "object",
+      "description": "Where the palate sits on the map, in hundredths.",
+      "required": [
+        "xHundredths",
+        "yHundredths"
+      ],
+      "properties": {
+        "xHundredths": {
+          "type": "integer",
+          "minimum": -1000,
+          "maximum": 1000,
+          "description": "Position on the Rich (−10) to Crisp (+10) axis, in hundredths."
+        },
+        "yHundredths": {
+          "type": "integer",
+          "minimum": -1000,
+          "maximum": 1000,
+          "description": "Position on the Savory (−10) to Sweet (+10) axis, in hundredths."
+        }
+      }
+    },
+    "aversions": {
+      "type": "object",
+      "description": "Hard filters: drinks with these never reach the menu.",
+      "required": [
+        "smoke",
+        "bitter",
+        "anise"
+      ],
+      "properties": {
+        "smoke": {
+          "type": "boolean"
+        },
+        "bitter": {
+          "type": "boolean"
+        },
+        "anise": {
+          "type": "boolean"
         }
       }
     },

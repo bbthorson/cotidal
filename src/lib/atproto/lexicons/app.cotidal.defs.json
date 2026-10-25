@@ -83,34 +83,34 @@
     },
     "stimulus": {
       "type": "object",
-      "description": "Objective physiochemical parameters of a liquid matrix.",
+      "description": "Objective physiochemical parameters of a liquid matrix. The AT Protocol data model has no floats, so fractional quantities are integers named for their unit.",
       "properties": {
         "matrixType": {
           "type": "string",
           "knownValues": ["cocktail", "wine", "spirit", "beer", "tea", "coffee", "cider", "non-alcoholic"]
         },
-        "abv": {
-          "type": "number",
+        "abvTenths": {
+          "type": "integer",
           "minimum": 0,
-          "maximum": 100,
-          "description": "Alcohol by volume percentage."
+          "maximum": 1000,
+          "description": "Alcohol by volume, in tenths of a percent (`225` is 22.5%)."
         },
         "residualSugarGpl": {
-          "type": "number",
+          "type": "integer",
           "minimum": 0,
-          "description": "Residual sugar measured in grams per liter (g/L)."
+          "description": "Residual sugar in whole grams per liter (g/L)."
         },
-        "acidityPh": {
-          "type": "number",
-          "minimum": 1,
-          "maximum": 14,
-          "description": "Acidity measured on the pH scale."
+        "acidityPhHundredths": {
+          "type": "integer",
+          "minimum": 100,
+          "maximum": 1400,
+          "description": "Acidity on the pH scale, in hundredths (`320` is pH 3.20)."
         },
-        "astringencyIndex": {
-          "type": "number",
+        "astringencyIndexTenths": {
+          "type": "integer",
           "minimum": 0,
-          "maximum": 10,
-          "description": "Index representing polyphenol / tannin density and salivary PRP precipitation potential."
+          "maximum": 100,
+          "description": "Polyphenol / tannin density and salivary PRP precipitation potential, 0–10 in tenths."
         }
       }
     },
