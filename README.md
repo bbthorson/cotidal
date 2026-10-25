@@ -56,6 +56,8 @@ build produces. CI (`ci.yml`) only lints, typechecks, builds and tests.
 - **`/regions/<id>`** — one page per region. Static.
 - **`/p/<handle>`** — someone's coordinate at a public URL, with yours beside
   it if you are signed in. Server-rendered, zero client JavaScript.
+- **`/account`** — who you are signed in as, starting over, and signing out.
+  Server-rendered, zero client JavaScript.
 - **`/bars`** — the placeholder for venues.
 
 Only `/taste` and `/log` mount islands. Keep it that way: `client:only` on the whole app previously meant ~860 KB of

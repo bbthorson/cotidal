@@ -183,16 +183,15 @@
      own, so the typography is defined once here rather than re-typed as
      arbitrary values in every page that renders a collection entry. */
   .prose-entry {
-    @apply font-serif text-base leading-relaxed text-foreground/75;
+    @apply font-serif text-base leading-relaxed text-muted-foreground;
   }
   .prose-entry > p + p {
     margin-top: 1.25rem;
   }
+  /* Foreign terms and titles: roman, in full ink against the grey-green. */
   .prose-entry em {
-    @apply not-italic text-foreground/80;
+    @apply not-italic text-foreground;
   }
-
-  /* Thin editorial horizontal rule */
 }
 
 /* Focus mode. The quiz and the reveals are one-move screens on a phone, so
