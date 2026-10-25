@@ -1,9 +1,9 @@
 ---
-import { quadrants } from '../../lib/copy';
+import { quadrants, sections } from '../../lib/copy';
 
 /**
  * The four regions as a wine-list index: name · leader · axis, the gloss on
- * the line below. The name opens the region page; the register link reaches
+ * the line below. The name opens the region page; the drinks link reaches
  * the same region's section of /drinks (asserted in landing-static.spec.ts).
  */
 ---
@@ -30,7 +30,7 @@ import { quadrants } from '../../lib/copy';
             href={`/drinks#${q.id}`}
             class="font-condensed text-xs uppercase tracking-label text-muted-foreground transition-colors hover:text-primary"
           >
-            In the register &rarr;
+            {sections.regionDrinks} &rarr;
           </a>
         </div>
       </li>

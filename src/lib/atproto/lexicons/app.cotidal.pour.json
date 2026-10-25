@@ -1,6 +1,6 @@
 {
   "lexicon": 1,
-  "id": "app.crystalcoupe.pour",
+  "id": "app.cotidal.pour",
   "defs": {
     "main": {
       "type": "record",
@@ -10,22 +10,22 @@
         "type": "object",
         "required": ["drink", "rating", "createdAt"],
         "properties": {
-          "drink": { "type": "ref", "ref": "app.crystalcoupe.defs#drinkRef" },
+          "drink": { "type": "ref", "ref": "app.cotidal.defs#drinkRef" },
           "venue": {
             "type": "ref",
-            "ref": "app.crystalcoupe.defs#venueRef",
+            "ref": "app.cotidal.defs#venueRef",
             "description": "Absent for a pour at home."
           },
           "menu": {
             "type": "ref",
-            "ref": "app.crystalcoupe.defs#entityRef",
+            "ref": "app.cotidal.defs#entityRef",
             "description": "The menu sighting this was ordered from, if any."
           },
           "credits": {
             "type": "array",
-            "description": "Attribution only — see app.crystalcoupe.defs#credit.",
+            "description": "Attribution only — see app.cotidal.defs#credit.",
             "maxLength": 10,
-            "items": { "type": "ref", "ref": "app.crystalcoupe.defs#credit" }
+            "items": { "type": "ref", "ref": "app.cotidal.defs#credit" }
           },
           "rating": { "type": "ref", "ref": "#rating" },
           "perceivedIntensities": {

@@ -8,8 +8,7 @@
  */
 
 export const site = {
-  name: 'The Crystal Coupe',
-  mark: 'CC',
+  name: 'Cotidal',
   tagline: 'Every palate has a coordinate.',
   description:
     'Find the coordinate your taste actually sits on, and what to order once you know it.',
@@ -19,7 +18,7 @@ export const nav = {
   skipToContent: 'Skip to content',
   home: 'Home',
   map: 'Palate Map',
-  register: 'The Register',
+  register: 'Drinks',
   regions: 'The Four Regions',
   signIn: 'Sign in',
   menu: 'Menu',
@@ -28,11 +27,11 @@ export const nav = {
 } as const;
 
 export const hero = {
-  edition: 'Specimen No. 1',
+  edition: '[0, 0] · Origin point',
   headline: 'Every palate has',
   headlineAccent: 'a coordinate.',
   body:
-    'Answer a few questions. A point appears. What surrounds it is what you should be ordering.',
+    'Answer a few questions. A point appears on the chart. What surrounds it is what you should be ordering next.',
   primaryCta: 'Find your coordinate',
   primaryCtaReturning: 'Return to your map',
   /** Stated under the one primary action, so the cost is known up front. */
@@ -40,7 +39,7 @@ export const hero = {
   /** The reading path: one tap away, never a second button. */
   readFirst: 'Read the four regions first',
   secondaryCta: 'Look at the map first',
-  registerCta: 'Explore the register',
+  registerCta: 'Open the rutter',
 } as const;
 
 /**
@@ -53,10 +52,10 @@ export const hero = {
  */
 export const quadrants = [
   {
-    id: 'ember',
-    name: 'The Ember',
+    id: 'deep',
+    name: 'The Deep',
     axis: 'Rich · Savory',
-    gloss: 'Bitter, aged, and unhurried. Drinks that argue back.',
+    gloss: 'Dark, bitter, and unhurried. Drinks that argue back.',
   },
   {
     id: 'salt-line',
@@ -65,18 +64,24 @@ export const quadrants = [
     gloss: 'Dry, mineral, and exact. Nothing hidden behind sugar.',
   },
   {
-    id: 'vault',
-    name: 'The Vault',
+    id: 'eddy',
+    name: 'The Eddy',
     axis: 'Rich · Sweet',
-    gloss: 'Dense and warm. The last drink of the night.',
+    gloss: 'Where the current slows and pools. Dense, warm, the last drink of the night.',
   },
   {
-    id: 'orchard',
-    name: 'The Orchard',
+    id: 'surf',
+    name: 'The Surf',
     axis: 'Crisp · Sweet',
-    gloss: 'Bright, fast, and built for company.',
+    gloss: 'Bright, aerated, fast, and built for company.',
   },
 ] as const;
+
+/**
+ * Region ids before the water vocabulary, kept only so their URLs redirect
+ * (`astro.config.mjs`). Nothing else may use them.
+ */
+export const formerQuadrantIds = { ember: 'deep', vault: 'eddy', orchard: 'surf' } as const;
 
 /**
  * Section labels. The page reads as a printed menu, and a menu names its
@@ -85,18 +90,30 @@ export const quadrants = [
  */
 export const sections = {
   map: 'The four regions',
+  mapLabel: 'The chart',
   /** The reveal. The hero withholds the axes; this is where they land. */
   mapNote: 'Two axes — rich to crisp, savory to sweet. Four regions between them.',
-  registerSpotlight: 'From the register',
-  registerSpotlightNote: 'Each entry separates what is on the record from what is merely told.',
-  principles: 'What you keep',
+  /**
+   * A rutter is a mariner's book of sailing directions. It is the section's
+   * name, not the link's: the header and links say "Drinks".
+   */
+  registerSpotlight: 'From the rutter',
+  registerSpotlightLabel: 'On the record',
+  registerSpotlightNote: 'Each entry separates what is on the record from what is only told.',
+  /** The register's premise, stated as the reader's benefit. */
+  registerCardLabel: 'Sourced, not repeated',
+  /** From a region to its section of /drinks. */
+  regionDrinks: 'Its drinks',
+  principles: 'Your logbook, not ours',
   connect: 'Sign in',
 } as const;
 
 export const connect = {
-  title: 'Keep this coordinate.',
+  title: 'Keep your coordinate.',
+  /** Landing page only; the in-app sheet goes straight from title to list. */
+  lede: 'A palate isn’t static. Neither is your map.',
   body:
-    'Your coordinate is written to your own account, not ours. Sign in to keep it, log what you drink, and watch it move.',
+    'What you want at 6 PM in July isn’t what you want at midnight in November. Sign in to keep your starting point, take it to the bar, and watch your coordinate drift as you log what you drink.',
   label: 'Your Bluesky handle',
   placeholder: 'you.bsky.social',
   submit: 'Sign in with Bluesky',
@@ -111,16 +128,16 @@ export const connect = {
    */
   buys: [
     {
-      title: 'It’s saved to your account',
-      body: 'Written to your own Bluesky repository. It stays yours if you leave.',
+      title: 'Take it to the bar',
+      body: 'Your coordinate follows you to any phone you sign in on. Pull up the drinks nearest you — or show the bartender the three closest instead of playing twenty questions.',
     },
     {
-      title: 'Log a pour, watch it move',
-      body: 'Rate what you drink; your coordinate and menu follow.',
+      title: 'Log a pour, track the drift',
+      body: 'Record what you drank, where, and whether it landed. Your coordinate is reckoned from every entry, so you can watch your taste drift with the seasons.',
     },
     {
-      title: 'Compare with friends',
-      body: 'Later: people you already follow who have a coordinate.',
+      title: 'Within hail',
+      body: 'Later: where the people you already follow sit on the chart. For now, send anyone your map’s link and see the distance between you.',
     },
   ],
 } as const;
@@ -215,22 +232,22 @@ export const moved = {
 
 export const principles = [
   {
-    icon: 'lock',
-    title: 'Yours, not ours',
+    icon: 'book',
+    title: 'A ship’s log, not a leaderboard',
     body:
-      'Your palate lives in your own repository on the AT Protocol. Delete our app tomorrow and the profile still belongs to you.',
+      'Every pour you log is a dated entry signed by you — where you were, what it was, whether it landed. Nobody is gamifying your bar tab or ranking your taste.',
   },
   {
-    icon: 'book',
-    title: 'A record, not a score',
+    icon: 'lock',
+    title: 'Stored in your own repository',
     body:
-      'Every drink you log is a dated entry signed by you — where you were, what it was, whether it landed. Nobody is being ranked.',
+      'Your coordinate, the answers behind it and every pour are written to your own Bluesky account on the AT Protocol — public there, and yours. Delete our app tomorrow and every entry stays with you.',
   },
   {
     icon: 'compass',
-    title: 'Portable by design',
+    title: 'An open record',
     body:
-      'The same coordinate works anywhere that speaks the protocol: another bar, another client, another app entirely.',
+      'Your coordinate is a published record, not a row in our database. Any app built on the protocol can read it — today, that is this one.',
   },
 ] as const;
 
@@ -240,11 +257,11 @@ export const principles = [
  * taste precisely should be the one that says which is which.
  */
 export const drinks = {
-  eyebrow: 'The register',
+  eyebrow: 'The rutter',
   title: 'What is actually known',
   intro:
-    'Most of what gets said about a cocktail is repetition. Each entry separates what is on the record from what is only told, gives the build, and places the drink on the map.',
-  navLabel: 'The register',
+    'Most of what gets said about a cocktail is repetition. Each entry in the rutter gives the build, places the drink on the chart, and separates what is on the record from what bartenders merely tell each other.',
+  navLabel: 'Drinks',
   backLabel: 'All drinks',
   coordinateLabel: 'Coordinate',
   buildLabel: 'The build',
@@ -285,7 +302,7 @@ export const returnVisit = {
 /**
  * The one pour form and the one ledger, shared by the Log tab in /taste and
  * the return visit at /log. Ratings are the 9-point hedonic scale the pour
- * record stores (app.crystalcoupe.pour), so what you tap is what is written.
+ * record stores (app.cotidal.pour), so what you tap is what is written.
  */
 export const pour = {
   drinkLabel: 'What you’re drinking',
@@ -433,7 +450,7 @@ export const venuesCopy = {
     features: [
       'Handle-as-domain claim (attaboy.nyc)',
       'Canonical AT Protocol menu publishing',
-      'Directory listing on Crystal Coupe search',
+      'Directory listing on Cotidal search',
       'Patron sighting & pour aggregation ledger',
       'Recipe attribution & author credits',
     ],
@@ -467,6 +484,56 @@ export const venuesCopy = {
   seededSubtitle:
     'Historical sightings and canonical specs awaiting domain reconciliation. When a venue proves its domain handle, its sightings light up retroactively.',
 } as const;
+
+/**
+ * `/p/<handle>` — someone's coordinate at a public URL, and, for a signed-in
+ * visitor, theirs beside it. Two dots and the distance between them.
+ */
+export const publicMap = {
+  eyebrow: 'A coordinate',
+  title: (name: string) => `@${name}`,
+  lands: 'Lands in',
+  pours: (n: number) => (n === 1 ? 'Moved by 1 pour' : `Moved by ${n} pours`),
+  quizOnly: 'From the questions alone',
+  them: 'Them',
+  you: 'You',
+  distanceLabel: 'Between you',
+  theirsLabel: 'They’d order, you wouldn’t',
+  yoursLabel: 'You’d order, they wouldn’t',
+  sharedLabel: 'One you’d both order',
+  nearLabel: 'Close to this coordinate',
+  selfNote:
+    'This is your public map. The palate record behind it already lives in your own repository; this page only draws it.',
+  linkLabel: 'Your link',
+  guestTitle: 'Where do you land?',
+  guestBody: 'Find your own coordinate, then sign in and open this link again to see the distance between you.',
+  guestCta: 'Find your coordinate',
+  memberNoPalateBody: 'Finish the questions and your coordinate will sit beside theirs here.',
+  noPalateTitle: 'No coordinate here yet.',
+  noPalateBody: 'This account exists, but it has not published a palate.',
+  notFoundTitle: 'Nobody by that name.',
+  notFoundBody: 'That handle does not resolve to an account.',
+  unavailableTitle: 'The record did not answer.',
+  unavailableBody: 'Their server did not respond in time. Try again in a moment.',
+  description: (name: string, region: string) => `@${name}’s palate lands in ${region}. Where does yours?`,
+  readEntry: 'Read the entry',
+  memberLink: 'Your public map',
+  axes: { rich: 'Rich', crisp: 'Crisp', sweet: 'Sweet', savory: 'Savory' },
+  plotLabel: (who: string) => `${who} on the palate map`,
+} as const;
+
+/**
+ * What a distance between two coordinates reads as. `under` is exclusive and
+ * the list is ascending; the map's diagonal is about 28.3, so the last band
+ * catches everything.
+ */
+export const distanceBands = [
+  { under: 2, text: 'Practically the same glass.' },
+  { under: 5, text: 'Neighbours. You’d trade sips.' },
+  { under: 9, text: 'Same bar, different stools.' },
+  { under: 14, text: 'Across the room from each other.' },
+  { under: Infinity, text: 'Opposite ends of the map.' },
+] as const;
 
 export const footer = {
   note: 'Built on the AT Protocol.',

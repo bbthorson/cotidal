@@ -40,7 +40,7 @@ This was the missing spine, and most of it already existed unconnected:
 same four regions and linked nowhere.
 
 **Now:** the four rows link to their section of the register
-(`/drinks#ember`). One edit, no new content, and the site's own vocabulary
+(`/drinks#deep`). One edit, no new content, and the site's own vocabulary
 finally leads somewhere. `tests/landing-static.spec.ts` asserts the two lists
 of ids still agree, because two hand-written copies of the same list is the
 drift this codebase keeps producing.
@@ -79,7 +79,7 @@ product can offer someone who is not a drinker.** It is also the cheapest to
 build, because the protocol does the hard part:
 
 - **Claiming is publishing.** A venue proves `attaboy.nyc` through
-  handle-as-domain and publishes `app.crystalcoupe.venue` at rkey `self`. That
+  handle-as-domain and publishes `app.cotidal.venue` at rkey `self`. That
   *is* the claim. No approval queue, no registry, nothing for us to
   administer — and nothing for us to be a chokepoint over.
 - **Menus are posts, never rows.** Re-published rather than edited, so version
@@ -117,7 +117,7 @@ a principled footnote. *Your palate is portable* is abstract. *Your palate is
 comparable to your friends'* is a reason.
 
 **Discovery comes from the graph, not from us.** The follows and followers a
-user already has are the friend list — check them for Crystal Coupe records and
+user already has are the friend list — check them for Cotidal records and
 surface the ones that have a palate. No invites, no separate social graph, no
 address book upload. The protocol means the graph is already there and already
 theirs; building a second one inside the app would be both redundant and a
@@ -139,6 +139,14 @@ at a public URL, openable by a friend against their own. Two dots and the
 distance between them. No graph traversal, no feed, no follows — and it tests
 whether the instinct is right before any of that is built.
 
+**Built:** `/p/<handle>` (or `/p/<did>`). It works cold — a stranger sees the
+dot, the region and the nearest drinks, then a way to find their own — so it
+is a destination, not a gated action. A signed-in visitor with a palate gets
+their dot beside it, the distance in words, and three drinks that lead with
+disagreement: one they'd order and you wouldn't, one the reverse, then one
+you'd both order. "Share to your feed" links here by DID, because a handle
+can change and a post is never rewritten.
+
 ## Not a route
 
 **"Understand the social value."** A page whose job is to argue that the
@@ -146,18 +154,16 @@ product is worth using is a symptom rather than a feature, and the Principles
 section already does that work in three blocks. Build the thing that
 demonstrates instead.
 
-## Open question: the name
+## The name: Cotidal
 
 If friends are discovered by scanning a user's follows for accounts that use
 this app, then the app's name becomes the thing people recognise in a handle,
-a record type, and a share link. `app.crystalcoupe.*` is already flagged as a
-placeholder pending a registered domain (`docs/data-model.md`), and the NSID
-namespace, the domain, and the social surface all want the same answer.
-
-**Decide the name before the namespace is load-bearing, not after.** Renaming
-is cheap while `npm run lexicons` is the only thing enforcing the namespace and
-expensive once records signed under it exist in other people's repositories —
-because those cannot be rewritten. That is the deadline.
+a record type, and a share link — so the name, the domain and the NSID
+namespace had to be one answer, decided before records signed under the
+namespace spread. **Cotidal**: cotidal lines join the points on a chart that
+share a phase, which is what the product finds between two palates. The
+namespace is `app.cotidal.*`, real once `cotidal.app` is registered
+(`docs/data-model.md`).
 
 ## Build order
 

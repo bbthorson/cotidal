@@ -1,4 +1,4 @@
-import type { PalateRecord, SensoryProfile } from './atproto/records';
+import type { Palate, SensoryProfile } from './atproto/records';
 import type { UserProfile } from '@/hooks/useDiscoveryQuiz';
 
 export interface ArchetypeDefinition {
@@ -81,16 +81,16 @@ export const PALATE_ARCHETYPES: Record<string, ArchetypeDefinition> = {
 };
 
 /**
- * Derives a 6-axis SensoryProfile (0-5 scale) from either PalateRecord or UserProfile
+ * Derives a 6-axis SensoryProfile (0-5 scale) from either Palate or UserProfile
  */
 export function extractSensoryProfile(
-  palate?: PalateRecord | UserProfile | null
+  palate?: Palate | UserProfile | null
 ): SensoryProfile {
   if (!palate) {
     return { bitter: 2.5, sweet: 2.5, sour: 2.5, spiritForward: 2.5, citrus: 2.5, herbal: 2.5 };
   }
 
-  // If PalateRecord with dynamicState exists
+  // If Palate with dynamicState exists
   if ('dynamicState' in palate && palate.dynamicState) {
     const v = palate.dynamicState.latentVector;
     const crisp = v[0] ?? 0;
@@ -128,7 +128,7 @@ export function extractSensoryProfile(
  * Calculates the dynamic archetype assignment based on 6-axis sensory profile
  */
 export function calculatePalateArchetype(
-  palate?: PalateRecord | UserProfile | null
+  palate?: Palate | UserProfile | null
 ): ArchetypeDefinition {
   const profile = extractSensoryProfile(palate);
 

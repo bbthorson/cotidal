@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { createInitialBelief, updateBelief } from '../src/lib/belief-state';
+import { createInitialBelief, answerQuestion } from '../src/lib/belief-state';
 import { selectNextQuestion, expectedGain } from '../src/lib/question-selector';
 import { questions, type Question } from '../src/lib/discovery-questions';
 
@@ -52,7 +52,7 @@ test('Selector: an axis already pinned down is worth less to ask about', async (
     { text: 'b', dx: 4, dy: 0 },
   ]);
   let sure = createInitialBelief();
-  for (let i = 0; i < 6; i++) sure = updateBelief(sure, { text: 'x', dx: 3, dy: 0 });
+  for (let i = 0; i < 6; i++) sure = answerQuestion(sure, onX, onX.options[1]);
   expect(expectedGain(sure, onX)).toBeLessThan(expectedGain(createInitialBelief(), onX));
 });
 
@@ -64,7 +64,7 @@ test('Selector: never repeats a question and runs out cleanly', async () => {
     expect(q).not.toBeNull();
     expect(asked.has(q!.id)).toBe(false);
     asked.add(q!.id);
-    belief = updateBelief(belief, q!.options[i % q!.options.length]);
+    belief = answerQuestion(belief, q!, q!.options[i % q!.options.length]);
   }
   expect(selectNextQuestion(belief, asked)).toBeNull();
 });

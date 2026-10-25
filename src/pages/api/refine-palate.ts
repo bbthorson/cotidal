@@ -2,6 +2,7 @@ import type { APIRoute } from 'astro';
 import { z } from 'zod';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { restoredDid } from '@/lib/atproto/session';
+import { regionName } from '@/lib/coordinate';
 import {
   generationHeaders,
   runWorkersAi,
@@ -71,16 +72,9 @@ export function refinePalateFallback(notes: string, current: z.infer<typeof User
     dislikesAnise,
   };
 
-  const quadrant =
-    updatedProfile.x > 0
-      ? updatedProfile.y > 0
-        ? 'The Orchard'
-        : 'The Salt Line'
-      : updatedProfile.y > 0
-        ? 'The Vault'
-        : 'The Ember';
+  const quadrant = regionName(updatedProfile.x, updatedProfile.y);
 
-  const dossier = `Sensory notes recorded. Your coordinate settles into ${quadrant}, calibrated with custom ingredient tolerances.`;
+  const dossier = `Sensory notes recorded. Your coordinate settles into ${quadrant}, adjusted for what you avoid.`;
 
   return { profile: updatedProfile, dossier };
 }
@@ -124,7 +118,7 @@ export const POST: APIRoute = async ({ request }) => {
 
   // 3. Model call
   try {
-    const systemPrompt = `You are the master sensory calibrator for The Crystal Coupe cocktail catalog.
+    const systemPrompt = `You are the master sensory calibrator for the Cotidal cocktail catalog.
 A member has submitted freeform taste notes, quirks, and dealbreakers.
 Evaluate how the user's notes adjust their coordinate:
 - deltaX: integer between -3 and +3 (negative pulls toward Rich/barrel/viscous, positive pulls toward Crisp/acid/carbonation).

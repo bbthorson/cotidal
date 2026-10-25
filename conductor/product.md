@@ -1,8 +1,8 @@
 # Initial Concept
 
-The Crystal Coupe is a Palate Companion application designed to help adventurous drinkers who don't know where to start by triangulating their taste preferences into a Palate Matrix and providing AI-powered recommendations.
+Cotidal is a Palate Companion application designed to help adventurous drinkers who don't know where to start by triangulating their taste preferences into a Palate Matrix and providing AI-powered recommendations.
 
-# The Crystal Coupe (Palate Companion)
+# Cotidal (Palate Companion)
 
 ## Product Vision
 A "Palate Companion" application designed to evolve with the user, acting as a persistent utility for understanding and exploring personal taste preferences with a touch of mystic guidance.

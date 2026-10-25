@@ -1,0 +1,82 @@
+{
+  "lexicon": 1,
+  "id": "app.cotidal.elicitation",
+  "defs": {
+    "main": {
+      "type": "record",
+      "description": "The answers behind one completed taste quiz, in the order given: what each question offered and which option the author chose. Written once and never edited; a retake is a new record. Kept so the response model that turns answers into a coordinate can be calibrated against what the same person later logs as pours. Every number is an integer.",
+      "key": "tid",
+      "record": {
+        "type": "object",
+        "required": ["responseModel", "answers", "createdAt"],
+        "properties": {
+          "responseModel": {
+            "type": "string",
+            "maxLength": 64,
+            "knownValues": ["softmax-grid-1"],
+            "description": "Which response model scored these answers when they were given. `softmax-grid-1`: a user picks each option with probability falling off with the squared distance from them to where the option places them (authored nudge × 2.5), noise inferred over three levels."
+          },
+          "answers": {
+            "type": "array",
+            "minLength": 1,
+            "maxLength": 16,
+            "items": { "type": "ref", "ref": "#answer" }
+          },
+          "createdAt": { "type": "string", "format": "datetime" }
+        }
+      }
+    },
+    "answer": {
+      "type": "object",
+      "required": ["questionId", "options", "chosen"],
+      "properties": {
+        "questionId": {
+          "type": "string",
+          "maxLength": 64,
+          "description": "The question's id in the app's bank, or a generated id when `generated` is true."
+        },
+        "kind": {
+          "type": "string",
+          "maxLength": 32,
+          "knownValues": ["triad", "pair", "single"],
+          "description": "`triad`: tap the one you'd send back. `pair`: two options on one axis. `single`: choose the one you'd have."
+        },
+        "generated": {
+          "type": "boolean",
+          "description": "True when the question was written for this session rather than taken from the bank."
+        },
+        "options": {
+          "type": "array",
+          "minLength": 1,
+          "maxLength": 6,
+          "description": "Every option offered, in the order shown, as authored at the time — the bank can change later, so the record carries what was actually asked.",
+          "items": { "type": "ref", "ref": "#option" }
+        },
+        "chosen": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 5,
+          "description": "Index into `options` of the one the author picked."
+        }
+      }
+    },
+    "option": {
+      "type": "object",
+      "required": ["dxTenths", "dyTenths"],
+      "properties": {
+        "dxTenths": {
+          "type": "integer",
+          "minimum": -100,
+          "maximum": 100,
+          "description": "The option's authored nudge toward Crisp (+) or Rich (−), in tenths."
+        },
+        "dyTenths": {
+          "type": "integer",
+          "minimum": -100,
+          "maximum": 100,
+          "description": "The option's authored nudge toward Sweet (+) or Savory (−), in tenths."
+        }
+      }
+    }
+  }
+}

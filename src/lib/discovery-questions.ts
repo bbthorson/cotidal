@@ -26,7 +26,11 @@ export interface Question {
   sectionNumber: string; // e.g. "01", "02", "03", "04"
   text: string;
   subtitle?: string;     // Sensory subtitle on the ledger card
-  type?: 'narrative' | 'boolean' | 'image-grid' | 'triad';
+  /**
+   * `triad`: tap the one you'd send back. `pair`: two options on one axis,
+   * read as a comparison rather than a position (belief-state.ts).
+   */
+  type?: 'narrative' | 'boolean' | 'image-grid' | 'triad' | 'pair';
   options: QuestionOption[];
   primaryAxis: 'x' | 'y';
   isAIGenerated?: boolean;
@@ -545,5 +549,170 @@ export const questions: Question[] = [
         feedback: "A slow, deep parting glass."
       }
     ]
-  }
+  },
+  // =========================================================================
+  // FORCED-CHOICE PAIRS (Precision: which side of a line, not where)
+  // =========================================================================
+  // Two options a few points apart on one axis, the other axis untouched. The
+  // answer is read as a comparison — which side of the pair's midpoint the
+  // user sits — not as a position (belief-state.ts, `answerQuestion`). The
+  // selector reaches for them once an estimate is near one of their
+  // midpoints, so the ladder is three overlapping pairs per axis. Sensations
+  // only, never drink names: a name measures familiarity, not taste.
+  {
+    id: 'pair_x_deep',
+    tier: 'context',
+    category: 'palate',
+    sectionNumber: '01',
+    text: "Two stirred drinks. Which one?",
+    subtitle: "Two glasses, close together. Go with your first instinct.",
+    type: 'pair',
+    primaryAxis: 'x',
+    options: [
+      {
+        text: "Velvet weight",
+        note: "Aged spirit, stirred long, coats the glass",
+        dx: -4,
+        dy: 0,
+        feedback: "Full weight, nothing to lighten it."
+      },
+      {
+        text: "Round, with a lift",
+        note: "Some body, but a twist of citrus keeps it moving",
+        dx: -1,
+        dy: 0,
+        feedback: "Weight, but with an edge of brightness."
+      }
+    ]
+  },
+  {
+    id: 'pair_x_middle',
+    tier: 'context',
+    category: 'palate',
+    sectionNumber: '01',
+    text: "Which glass would you rather be handed?",
+    subtitle: "Two glasses, close together. Go with your first instinct.",
+    type: 'pair',
+    primaryAxis: 'x',
+    options: [
+      {
+        text: "Warm and rounded",
+        note: "Barrel spice, soft edges, sipped slowly",
+        dx: -2,
+        dy: 0,
+        feedback: "Leaning toward warmth and weight."
+      },
+      {
+        text: "Cool and lifted",
+        note: "Fresh citrus, light body, a clean finish",
+        dx: 2,
+        dy: 0,
+        feedback: "Leaning toward lift and freshness."
+      }
+    ]
+  },
+  {
+    id: 'pair_x_bright',
+    tier: 'context',
+    category: 'palate',
+    sectionNumber: '01',
+    text: "Two shaken drinks. Which one?",
+    subtitle: "Two glasses, close together. Go with your first instinct.",
+    type: 'pair',
+    primaryAxis: 'x',
+    options: [
+      {
+        text: "Fresh, with some body",
+        note: "Citrus over a rounder base, bright but not sharp",
+        dx: 1,
+        dy: 0,
+        feedback: "Bright, with something to hold onto."
+      },
+      {
+        text: "Bracing and electric",
+        note: "Hard-shaken, high acid, cold enough to ache",
+        dx: 4,
+        dy: 0,
+        feedback: "As crisp as it comes."
+      }
+    ]
+  },
+  {
+    id: 'pair_y_dry',
+    tier: 'context',
+    category: 'palate',
+    sectionNumber: '01',
+    text: "Two dry drinks. Which one?",
+    subtitle: "Two glasses, close together. Go with your first instinct.",
+    type: 'pair',
+    primaryAxis: 'y',
+    options: [
+      {
+        text: "Bone dry and saline",
+        note: "Brine, bitter herbs, not a trace of sugar",
+        dx: 0,
+        dy: -4,
+        feedback: "Savory all the way down."
+      },
+      {
+        text: "Dry, with a little give",
+        note: "Mostly savory, a whisper of ripe fruit",
+        dx: 0,
+        dy: -1,
+        feedback: "Dry, but not austere."
+      }
+    ]
+  },
+  {
+    id: 'pair_y_middle',
+    tier: 'context',
+    category: 'palate',
+    sectionNumber: '01',
+    text: "Which would you rather sip?",
+    subtitle: "Two glasses, close together. Go with your first instinct.",
+    type: 'pair',
+    primaryAxis: 'y',
+    options: [
+      {
+        text: "Herbal and dry",
+        note: "Green herbs, mineral, a bitter finish",
+        dx: 0,
+        dy: -2,
+        feedback: "Leaning savory."
+      },
+      {
+        text: "Ripe and juicy",
+        note: "Stone fruit, a little honey, a soft finish",
+        dx: 0,
+        dy: 2,
+        feedback: "Leaning sweet."
+      }
+    ]
+  },
+  {
+    id: 'pair_y_lush',
+    tier: 'context',
+    category: 'palate',
+    sectionNumber: '01',
+    text: "Two sweeter drinks. Which one?",
+    subtitle: "Two glasses, close together. Go with your first instinct.",
+    type: 'pair',
+    primaryAxis: 'y',
+    options: [
+      {
+        text: "Fruit, kept in check",
+        note: "Ripe fruit balanced by acid, sweet but never sticky",
+        dx: 0,
+        dy: 1,
+        feedback: "Sweet, held in balance."
+      },
+      {
+        text: "Lush and dessert-sweet",
+        note: "Caramel, cream, the sweet end of the menu",
+        dx: 0,
+        dy: 4,
+        feedback: "The sweet end of the menu, gladly."
+      }
+    ]
+  },
 ];

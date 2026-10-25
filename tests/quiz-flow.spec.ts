@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { quadrants } from '../src/lib/copy';
 
 /**
  * Questionnaire flow contract:
@@ -52,7 +53,8 @@ test('Questionnaire: finishing the questions reveals a region before the menu', 
   }
 
   await expect(reveal).toBeVisible();
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText(/^The (Ember|Salt Line|Vault|Orchard)\.$/);
+  const names = quadrants.map((q) => q.name.replace(/^The /, '')).join('|');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText(new RegExp(`^The (${names})\\.$`));
   await page.getByRole('button', { name: /see what to order/i }).click();
 
   await expect(page.getByText('You are in')).toBeVisible();

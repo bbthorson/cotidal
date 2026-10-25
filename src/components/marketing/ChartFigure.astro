@@ -1,0 +1,66 @@
+---
+/**
+ * The one big move on the landing page: a cotidal chart.
+ *
+ * On a tide chart, cotidal lines radiate from an amphidrome — the one point
+ * where the tide does not rise — and join the places that reach high water
+ * at the same hour; the rings around it (co-range lines) join places with the
+ * same range. The palate map has the same shape: a zero point at its centre,
+ * and lines that join everyone who lands in the same phase. So the figure is
+ * that chart drawn over the map's axes, with one band between two cotidal
+ * lines filled — the water you share with the people at your phase — and the
+ * coordinate sitting in it, the same mark as on the map itself. The accent
+ * disc is the moon, which is what moves a tide.
+ *
+ * Geometry: rings are ellipses about (130, 98), tilted −8°; each cotidal line
+ * is a quadratic from the centre to the outer ring, its control point turned
+ * 16° ahead so the lines sweep the way an amphidromic system rotates. The
+ * filled band closes along the outer ring with the same ellipse (`A96 68 -8`),
+ * so its edge sits exactly on the stroke. Generated, then rounded to 0.1.
+ *
+ * Inline SVG, no island. Token classes, not colour attributes.
+ */
+---
+
+<figure class="mx-auto w-full max-w-sm">
+  <svg viewBox="0 0 260 184" class="w-full" fill="none" role="presentation">
+    <!-- The moon -->
+    <circle cx="58" cy="34" r="22" class="fill-accent" />
+
+    <!-- The band between the 0h and 2h lines: the one filled shape -->
+    <path d="M130 98 Q148.2 61.5 137.2 29.4 A96 68 -8 0 1 216.1 62.4 Q181.8 88.1 130 98 Z" class="fill-primary" />
+
+    <!-- The palate map's axes, running past the chart on both sides -->
+    <path d="M0 98 H260 M130 6 V178" class="stroke-foreground/20" stroke-width="1" />
+
+    <!-- Co-range rings -->
+    <ellipse cx="130" cy="98" rx="34" ry="24" transform="rotate(-8 130 98)" class="stroke-foreground/40" stroke-width="1" />
+    <ellipse cx="130" cy="98" rx="64" ry="45" transform="rotate(-8 130 98)" class="stroke-foreground/40" stroke-width="1" />
+    <ellipse cx="130" cy="98" rx="96" ry="68" transform="rotate(-8 130 98)" class="stroke-foreground" stroke-width="1.5" />
+
+    <!-- Cotidal lines, two hours apart -->
+    <path d="M130 98 Q148.2 61.5 137.2 29.4" class="stroke-foreground" stroke-width="1" />
+    <path d="M130 98 Q181.8 88.1 216.1 62.4" class="stroke-foreground" stroke-width="1" />
+    <path d="M130 98 Q163.6 124.6 208.9 131" class="stroke-foreground" stroke-width="1" />
+    <path d="M130 98 Q111.8 134.5 122.8 166.6" class="stroke-foreground" stroke-width="1" />
+    <path d="M130 98 Q78.2 107.9 43.9 133.6" class="stroke-foreground" stroke-width="1" />
+    <path d="M130 98 Q96.4 71.4 51.1 65" class="stroke-foreground" stroke-width="1" />
+
+    <!-- Hour of high water, as a cotidal chart labels its lines -->
+    <g class="fill-muted-foreground font-condensed" font-size="8" letter-spacing="0.5" text-anchor="middle" aria-hidden="true">
+      <text x="137.8" y="23.3">0h</text>
+      <text x="225.9" y="60.9">2h</text>
+      <text x="218.1" y="138.6">4h</text>
+      <text x="122.2" y="178.7">6h</text>
+      <text x="34.1" y="141.1">8h</text>
+      <text x="41.9" y="63.4">10h</text>
+    </g>
+
+    <!-- The amphidrome: the map's zero point -->
+    <circle cx="130" cy="98" r="2.5" class="fill-card stroke-foreground" stroke-width="1" />
+
+    <!-- The coordinate, sitting in the band -->
+    <path d="M168.3 47 V79 M152.3 63 H184.3" class="stroke-card/70" stroke-width="1" />
+    <circle cx="168.3" cy="63" r="4" class="fill-foreground" />
+  </svg>
+</figure>

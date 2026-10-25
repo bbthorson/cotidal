@@ -2,7 +2,8 @@ import { useMemo, useState, useEffect, useCallback } from 'react';
 import { drinkDatabase, type Drink, type User, type ContextType } from '@/lib/data';
 import { calculateContextScore, calculateWeightedRelevance } from '@/lib/scoring';
 import { quadrantFor } from '@/lib/quadrant';
-import { hero, menu, nav, pour, returnVisit } from '@/lib/copy';
+import { hero, menu, nav, pour, publicMap, returnVisit } from '@/lib/copy';
+import { publicMapPath } from '@/lib/atproto/paths';
 import type { Register } from '@/lib/register';
 import { PourForm, hedonicToRating, type PourEntry } from './PourForm';
 import { PourLedger } from './PourLedger';
@@ -560,6 +561,14 @@ function MemberTools({
         <span className="mr-auto text-meta text-muted-foreground">
           {menu.signedInAs} <span className="font-bold text-foreground">@{handle}</span>
         </span>
+        {handle && (
+          <a
+            href={publicMapPath(handle)}
+            className="inline-flex min-h-11 items-center font-condensed text-xs uppercase tracking-label text-secondary transition-colors hover:text-primary"
+          >
+            {publicMap.memberLink}
+          </a>
+        )}
         <button
           type="button"
           onClick={share}

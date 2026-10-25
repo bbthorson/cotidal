@@ -1,14 +1,37 @@
 import { Agent } from '@atproto/api';
 import {
+  ELICITATION_COLLECTION,
+  type ElicitationRecord,
   PALATE_COLLECTION,
   PALATE_RKEY,
   POUR_COLLECTION,
-  type PalateRecord,
+  LEGACY_PALATE_COLLECTION,
+  LEGACY_POUR_COLLECTION,
+  decodePalate,
+  encodePalate,
+  type Palate,
   type PourRecord,
 } from './records';
 import type { OAuthSession } from '@bbthorson/atproto-cf-auth/server';
 import type { UserProfile } from '@/hooks/useDiscoveryQuiz';
 import { derivePalateRecord } from '../sensory';
+
+/**
+ * The user's own palate record, from the current namespace or, failing that,
+ * the one before the rename. `null` when neither holds a palate.
+ */
+async function readOwnPalate(agent: Agent, did: string): Promise<Palate | null> {
+  for (const collection of [PALATE_COLLECTION, LEGACY_PALATE_COLLECTION]) {
+    try {
+      const response = await agent.com.atproto.repo.getRecord({ repo: did, collection, rkey: PALATE_RKEY });
+      const palate = decodePalate(response.data.value);
+      if (palate) return palate;
+    } catch {
+      // Not in this collection; try the next.
+    }
+  }
+  return null;
+}
 
 export async function publishPalateProfile(
   session: OAuthSession,
@@ -16,20 +39,10 @@ export async function publishPalateProfile(
 ): Promise<{ uri: string; cid: string }> {
   const agent = new Agent(session);
 
-  // Try to load existing profile to preserve sensory updates
-  let existing: PalateRecord | null = null;
-  try {
-    const response = await agent.com.atproto.repo.getRecord({
-      repo: session.did,
-      collection: PALATE_COLLECTION,
-      rkey: PALATE_RKEY,
-    });
-    existing = response.data.value as PalateRecord;
-  } catch {
-    // Ignore error if record doesn't exist yet
-  }
+  // Load the existing profile, if any, to preserve sensory updates.
+  const existing = await readOwnPalate(agent, session.did);
 
-  const record = derivePalateRecord(profile, existing);
+  const record = encodePalate(derivePalateRecord(profile, existing));
 
   const response = await agent.com.atproto.repo.putRecord({
     repo: session.did,
@@ -50,7 +63,7 @@ export async function shareToFeed(
 ): Promise<{ uri: string; cid: string }> {
   const agent = new Agent(session);
 
-  const text = `I just discovered my cocktail palate on The Crystal Coupe! My flavor profile lands in ${quadrant} and my top match is ${topDrink}. Discover yours:`;
+  const text = `My palate lands in ${quadrant} on Cotidal, and my top match is ${topDrink}. See how far yours is from mine:`;
   const linkText = appUrl;
 
   const response = await agent.com.atproto.repo.createRecord({
@@ -80,17 +93,10 @@ export async function shareToFeed(
   return { uri: response.data.uri, cid: response.data.cid };
 }
 
-export async function getPalateProfile(session: OAuthSession): Promise<PalateRecord | null> {
+/** The signed-in user's palate, decoded from either encoding or namespace. */
+export async function getPalateProfile(session: OAuthSession): Promise<Palate | null> {
   try {
-    const agent = new Agent(session);
-
-    const response = await agent.com.atproto.repo.getRecord({
-      repo: session.did,
-      collection: PALATE_COLLECTION,
-      rkey: PALATE_RKEY,
-    });
-
-    return response.data.value as PalateRecord;
+    return await readOwnPalate(new Agent(session), session.did);
   } catch {
     return null;
   }
@@ -98,7 +104,7 @@ export async function getPalateProfile(session: OAuthSession): Promise<PalateRec
 
 export async function publishRawPalateRecord(
   session: OAuthSession,
-  record: PalateRecord
+  palate: Palate
 ): Promise<{ uri: string; cid: string }> {
   const agent = new Agent(session);
 
@@ -106,7 +112,7 @@ export async function publishRawPalateRecord(
     repo: session.did,
     collection: PALATE_COLLECTION,
     rkey: PALATE_RKEY,
-    record,
+    record: encodePalate(palate),
   });
 
   return { uri: response.data.uri, cid: response.data.cid };
@@ -132,22 +138,50 @@ export async function publishPour(
   return { uri: response.data.uri, cid: response.data.cid };
 }
 
+/**
+ * The user's pours, newest first, from the current namespace and the one
+ * before the rename, so a ledger started before it keeps its history.
+ */
 export async function getPours(session: OAuthSession, limit?: number): Promise<PourRecord[]> {
-  try {
-    const agent = new Agent(session);
+  const agent = new Agent(session);
+  const max = limit || 50;
+  const lists = await Promise.all(
+    [POUR_COLLECTION, LEGACY_POUR_COLLECTION].map(async (collection) => {
+      try {
+        const response = await agent.com.atproto.repo.listRecords({
+          repo: session.did,
+          collection,
+          limit: max,
+          reverse: true,
+        });
+        return response.data.records.map((r) => r.value as PourRecord);
+      } catch (e) {
+        if (collection === POUR_COLLECTION) console.error('Failed to get pours:', e);
+        return [];
+      }
+    })
+  );
+  return lists
+    .flat()
+    .sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)))
+    .slice(0, max);
+}
 
-    const response = await agent.com.atproto.repo.listRecords({
-      repo: session.did,
-      collection: POUR_COLLECTION,
-      limit: limit || 50,
-      reverse: true, // Show newest first
-    });
-
-    return response.data.records.map((r) => r.value as PourRecord);
-  } catch (e) {
-    console.error('Failed to get pours:', e);
-    return [];
-  }
+/**
+ * A completed quiz's answers, as a new record. Never updated: a retake is
+ * another record, so the log keeps every quiz the author took.
+ */
+export async function publishElicitation(
+  session: OAuthSession,
+  record: ElicitationRecord
+): Promise<{ uri: string; cid: string }> {
+  const agent = new Agent(session);
+  const response = await agent.com.atproto.repo.createRecord({
+    repo: session.did,
+    collection: ELICITATION_COLLECTION,
+    record: { ...record, $type: ELICITATION_COLLECTION },
+  });
+  return { uri: response.data.uri, cid: response.data.cid };
 }
 
 // Backwards compatibility aliases

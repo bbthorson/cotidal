@@ -16,7 +16,7 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { join, basename } from 'node:path';
 
 const DIR = 'src/lib/atproto/lexicons';
-const NAMESPACE = 'app.crystalcoupe';
+const NAMESPACE = 'app.cotidal';
 
 /** Namespaces we reference but do not define; see docs/data-model.md. */
 const EXTERNAL = ['community.lexicon.', 'com.atproto.', 'app.bsky.', 'site.standard.'];
@@ -69,7 +69,7 @@ for (const [id, doc] of docs) {
 
 /** Collections the code writes to must have a schema on disk. */
 const source = readFileSync('src/lib/atproto/records.ts', 'utf8');
-for (const [, nsid] of source.matchAll(/'(app\.crystalcoupe\.[a-zA-Z.]+)'/g)) {
+for (const [, nsid] of source.matchAll(/'(app\.cotidal\.[a-zA-Z.]+)'/g)) {
   if (!docs.has(nsid)) errors.push(`records.ts references "${nsid}" with no lexicon file`);
 }
 

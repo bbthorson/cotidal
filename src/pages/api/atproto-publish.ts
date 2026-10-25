@@ -6,14 +6,17 @@ import {
   publishRawPalateRecord,
   publishPour,
   getPours,
+  publishElicitation,
 } from '@/lib/atproto/publish';
+import { ElicitationRecordSchema } from '@/lib/atproto/records';
 import { derivePalateRecord } from '@/lib/sensory';
 import type { UserProfile } from '@/hooks/useDiscoveryQuiz';
 import { z } from 'zod';
 import { drinkDatabase } from '@/lib/data';
-import type { PalateRecord } from '@/lib/atproto/records';
+import type { Palate } from '@/lib/atproto/records';
 import type { LogDrinkOptions } from '@/lib/api-client';
 import { oauthSession } from '@/lib/atproto/session';
+import { publicMapPath } from '@/lib/atproto/paths';
 import {
   fromDynamicRecord,
   toDynamicRecord,
@@ -98,16 +101,38 @@ export const POST: APIRoute = async ({ request }) => {
     }
   }
 
+  if (body.action === 'publishElicitation') {
+    const parsed = ElicitationRecordSchema.safeParse(body.record);
+    if (!parsed.success) return new Response(JSON.stringify({ success: false, error: 'Invalid answers' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+
+    try {
+      const result = await publishElicitation(session, parsed.data);
+      return new Response(JSON.stringify({ success: true, uri: result.uri }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+    } catch (e) {
+      console.error('Failed to publish answers:', e);
+      return new Response(JSON.stringify({ success: false, error: 'Failed to publish answers' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+    }
+  }
+
   if (body.action === 'sharePalateToFeed') {
     const topDrink = body.topDrink as string;
     const quadrant = body.quadrant as string;
-    const appUrl = (body.appUrl as string) || 'https://crystalcoupe.app';
+    const appUrl = (body.appUrl as string) || 'https://cotidal.app';
 
     if (!topDrink || topDrink.length > 100) return new Response(JSON.stringify({ success: false, error: 'Invalid drink name' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
     if (!quadrant || quadrant.length > 50) return new Response(JSON.stringify({ success: false, error: 'Invalid quadrant' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
 
+    // The post links to the sharer's public map, by DID: a handle can change
+    // and a post is never rewritten, so the link has to outlive the handle.
+    let mapUrl: string;
     try {
-      const result = await shareToFeed(session, topDrink, quadrant, appUrl);
+      mapUrl = new URL(publicMapPath(session.did), appUrl).toString();
+    } catch {
+      return new Response(JSON.stringify({ success: false, error: 'Invalid app URL' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+    }
+
+    try {
+      const result = await shareToFeed(session, topDrink, quadrant, mapUrl);
       return new Response(JSON.stringify({ success: true, uri: result.uri }), { status: 200, headers: { 'Content-Type': 'application/json' } });
     } catch (e) {
       console.error('Failed to share to feed:', e);
@@ -192,7 +217,7 @@ export const POST: APIRoute = async ({ request }) => {
         anise: record.aversions.anise || deviations.includes('too-anise'),
       };
 
-      const updatedPalate: PalateRecord = {
+      const updatedPalate: Palate = {
         $type: record.$type,
         mapCoordinates: { x: coords.x, y: coords.y },
         dynamicState: toDynamicRecord(nextState),
@@ -236,9 +261,9 @@ export const POST: APIRoute = async ({ request }) => {
 
       if (crosspostToFeed) {
         try {
-          const appUrl = (body.appUrl as string) || 'https://crystalcoupe.app';
+          const appUrl = (body.appUrl as string) || 'https://cotidal.app';
           const stars = '★'.repeat(Math.round(rating / 2)) + '☆'.repeat(5 - Math.round(rating / 2));
-          const postText = `Logged a ${rating.toFixed(1)}/10 ${drinkName} ${isHomePour ? '(Home Pour)' : `at ${finalLocation}`} on Crystal Coupe ${stars}`;
+          const postText = `Logged a ${rating.toFixed(1)}/10 ${drinkName} ${isHomePour ? '(Home Pour)' : `at ${finalLocation}`} on Cotidal ${stars}`;
           await shareToFeed(session, drinkName, postText, appUrl);
         } catch (e) {
           console.error('Failed to crosspost to feed:', e);

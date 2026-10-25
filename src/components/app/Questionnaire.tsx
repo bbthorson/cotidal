@@ -133,6 +133,9 @@ interface QuestionStageProps {
 function QuestionStage({ question, isNavigating, canGoBack, onSelectOption, onBack }: QuestionStageProps) {
   const [picked, setPicked] = useState<number | null>(null);
   const isElimination = question.type === 'triad';
+  // Two glasses side by side, even on a phone: the choice is a comparison,
+  // so the plates should be read together rather than down a list.
+  const isPair = question.type === 'pair' && question.options.length === 2;
   const category = QUESTION_CATEGORIES.find((c) => c.id === question.category);
 
   const pick = useCallback(
@@ -174,7 +177,11 @@ function QuestionStage({ question, isNavigating, canGoBack, onSelectOption, onBa
         {question.subtitle && <p className="text-ui text-muted-foreground">{question.subtitle}</p>}
       </div>
 
-      <div className="flex flex-col gap-3 px-6 pb-8 pt-7" role="group" aria-label="Answer options">
+      <div
+        className={cn('px-6 pb-8 pt-7', isPair ? 'grid grid-cols-2 gap-3' : 'flex flex-col gap-3')}
+        role="group"
+        aria-label="Answer options"
+      >
         {question.options.map((option, index) => {
           const isPicked = picked === index;
           return (
@@ -185,7 +192,8 @@ function QuestionStage({ question, isNavigating, canGoBack, onSelectOption, onBa
               disabled={isNavigating && !isPicked}
               aria-pressed={isPicked}
               className={cn(
-                'flex items-start gap-3.5 border bg-card p-4.5 text-left transition-colors duration-150',
+                'flex border bg-card p-4.5 text-left transition-colors duration-150',
+                isPair ? 'flex-col gap-2' : 'items-start gap-3.5',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
                 isPicked ? 'border-foreground shadow-mcm' : 'border-border hover:border-primary'
               )}

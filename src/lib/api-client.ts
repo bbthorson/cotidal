@@ -1,5 +1,5 @@
 import type { UserProfile } from '@/hooks/useDiscoveryQuiz';
-import type { PourRecord, PerceivedIntensities, PourContext } from '@/lib/atproto/records';
+import type { PourRecord, PerceivedIntensities, PourContext, ElicitationRecord } from '@/lib/atproto/records';
 
 export interface LogDrinkOptions {
   drinkName: string;
@@ -79,12 +79,66 @@ export async function publishPalate(profile: UserProfile): Promise<{ success: bo
   }
 }
 
+/** Where a finished quiz's answers wait until they reach the user's repository. */
+const PENDING_ANSWERS_KEY = 'pending_elicitation';
+
+async function postElicitation(record: ElicitationRecord): Promise<boolean> {
+  try {
+    const res = await fetch('/api/atproto-publish', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'publishElicitation', record }),
+    });
+    return !!(await res.json())?.success;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Log a finished quiz's answers. They are kept on this device until the
+ * write succeeds, so a guest's answers follow them when they sign in
+ * (`flushPendingElicitation`). Only the latest quiz waits; a retake as a
+ * guest replaces it.
+ */
+export async function publishElicitation(record: ElicitationRecord): Promise<boolean> {
+  try {
+    localStorage.setItem(PENDING_ANSWERS_KEY, JSON.stringify(record));
+  } catch {
+    // Storage unavailable: try the write anyway.
+  }
+  return flushPendingElicitation(record);
+}
+
+/** Publish answers left waiting on this device, if any; clears them on success. */
+export async function flushPendingElicitation(record?: ElicitationRecord): Promise<boolean> {
+  let pending = record ?? null;
+  if (!pending) {
+    try {
+      const raw = localStorage.getItem(PENDING_ANSWERS_KEY);
+      pending = raw ? (JSON.parse(raw) as ElicitationRecord) : null;
+    } catch {
+      pending = null;
+    }
+  }
+  if (!pending) return false;
+  const ok = await postElicitation(pending);
+  if (ok) {
+    try {
+      localStorage.removeItem(PENDING_ANSWERS_KEY);
+    } catch {
+      // Nothing to clear.
+    }
+  }
+  return ok;
+}
+
 export async function sharePalateToFeed(
   topDrink: string,
   quadrant: string
 ): Promise<{ success: boolean; uri?: string; error?: string }> {
   try {
-    const appUrl = typeof window !== 'undefined' ? window.location.origin : 'https://crystalcoupe.app';
+    const appUrl = typeof window !== 'undefined' ? window.location.origin : 'https://cotidal.app';
     const res = await fetch('/api/atproto-publish', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -131,7 +185,7 @@ export async function logDrinkFeedback(
   }
 
   try {
-    const appUrl = typeof window !== 'undefined' ? window.location.origin : 'https://crystalcoupe.app';
+    const appUrl = typeof window !== 'undefined' ? window.location.origin : 'https://cotidal.app';
     const res = await fetch('/api/atproto-publish', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

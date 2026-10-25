@@ -37,14 +37,33 @@ named rather than explained:
 
 | Quadrant | Axis | |
 |---|---|---|
-| **The Ember** | Rich · Savory | Bitter, aged, unhurried. Drinks that argue back. |
+| **The Deep** | Rich · Savory | Dark, bitter, unhurried. Drinks that argue back. |
 | **The Salt Line** | Crisp · Savory | Dry, mineral, exact. Nothing hidden behind sugar. |
-| **The Vault** | Rich · Sweet | Dense and warm. The last drink of the night. |
-| **The Orchard** | Crisp · Sweet | Bright, fast, built for company. |
+| **The Eddy** | Rich · Sweet | Where the current slows and pools. Dense, warm, the last drink of the night. |
+| **The Surf** | Crisp · Sweet | Bright, aerated, fast, built for company. |
 
-The naming is deliberately a little astrological: a coordinate you *have*, a
-place you belong, glossed but never justified. These names are a proposal —
-they live in `src/lib/copy.ts` and can be replaced in one file.
+The names are one vocabulary — water and motion, as on a chart — rather than
+the ember / vault / orchard set they replaced, which mixed fire, a room and a
+field. They are still a little astrological: a coordinate you *have*, a place
+you belong, glossed but never justified. They live in `src/lib/copy.ts` and
+can be replaced in one file; the ids are URLs, so a rename adds a redirect
+(`astro.config.mjs`, `formerQuadrantIds`).
+
+Chart words carry the brand — *the chart*, *drift*, *reckoned*, *within
+hail*, *the rutter* (a mariner's book of sailing directions) — but links and
+navigation use plain words ("Drinks", not "The Rutter"): a reader should never
+have to decode where a link goes.
+
+## Claims
+
+**The copy says only what the product does today.** A precise instrument that
+overstates itself has spent the one thing it sells. So: the register does not
+*verify* anything, it separates what is on the record from what is told;
+coordinates are placed, not computed from a recipe's proportions; a bartender
+cannot read "−4.2 · −3.1", but can read three drink names; and anything not
+built yet says **Later:** (comparing with the people you follow) rather than
+being described as if it were there. No other app reads these records yet, so
+"an open record" says *can*, and "today, that is this one".
 
 ## Palette
 
@@ -90,8 +109,27 @@ off the stock, and `shadow-mcm` is a hard letterpress offset in terracotta.
 - **Square corners.** Radius is used sparingly; a menu is not a card UI.
 - **Dot leaders** carry name → amount, the way a wine list does
   (`.dot-leader` with a `.leader` spacer in `globals.css`).
-- **One large move per screen.** On `/` it is the coupe figure; on a drink
+- **One large move per screen.** On `/` it is the cotidal chart; on a drink
   entry it is the title plate.
+
+## The mark and the figure
+
+Both are a **cotidal chart**: lines radiating from an amphidrome, the one point
+where the tide does not rise, joining the places that reach high water at the
+same hour. It is the name drawn literally, and it is the product's own
+geometry — a zero point at the centre of the map, and lines joining everyone
+at the same phase.
+
+- **The figure** (`ChartFigure.astro`, the landing page's one large move):
+  co-range rings and six cotidal lines labelled by hour, over the map's axes;
+  one band between two lines filled in terracotta, with the coordinate sitting
+  in it; the sage disc is the moon.
+- **The mark** (`Monogram.astro`, `public/icon.svg`, `favicon.ico`): the same
+  chart reduced to a letter — an open ring for the C, three cotidal lines, and
+  the one filled band, which is what keeps it legible at 16px.
+
+The coupe glass they replace belonged to the old name, and to the speakeasy
+register this document already warned about.
 
 ## Rules
 

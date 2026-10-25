@@ -1,6 +1,6 @@
 import type { Drink } from '@/lib/data';
 import type { UserProfile } from '@/hooks/useDiscoveryQuiz';
-import { PALATE_COLLECTION, type PalateRecord } from './atproto/records';
+import { PALATE_COLLECTION, type Palate } from './atproto/records';
 import { createInitialPalateState, toDynamicRecord } from './palate-state';
 
 export interface SensoryVector {
@@ -49,7 +49,7 @@ export function getDrinkSensoryVector(drink: Drink): SensoryVector {
   };
 }
 
-export function derivePalateRecord(profile: UserProfile, existing?: PalateRecord | null): PalateRecord {
+export function derivePalateRecord(profile: UserProfile, existing?: Palate | null): Palate {
   const now = new Date().toISOString();
   
   const dynamicState = existing?.dynamicState ?? toDynamicRecord(

@@ -1,0 +1,100 @@
+---
+import { publicMap } from '../../lib/copy';
+import { formatCoordinate } from '../../lib/coordinate';
+
+/**
+ * A palate map drawn as static SVG, so a shared link paints with no
+ * JavaScript. One or two marks; with two, a hairline joins them — the
+ * distance is the point of the page.
+ *
+ * x runs Rich (−10, left) to Crisp (+10, right); y runs Savory (−10, bottom)
+ * to Sweet (+10, top), the same orientation as `CoordinateMap`.
+ */
+
+interface Mark {
+  x: number;
+  y: number;
+  label: string;
+  tone: 'primary' | 'secondary';
+}
+
+interface Props {
+  marks: Mark[];
+  title: string;
+}
+
+const { marks, title } = Astro.props;
+
+const SIZE = 240;
+const PAD = 20;
+const span = SIZE - PAD * 2;
+const clamp = (v: number) => Math.max(-10, Math.min(10, v));
+const px = (x: number) => PAD + ((clamp(x) + 10) / 20) * span;
+const py = (y: number) => PAD + ((10 - clamp(y)) / 20) * span;
+
+const placed = marks.map((m) => ({ ...m, cx: px(m.x), cy: py(m.y) }));
+const [a, b] = placed;
+const mid = SIZE / 2;
+
+/** Keep a label inside the frame: flip it to the left of marks near the right edge. */
+const labelAnchor = (cx: number) => (cx > SIZE - 70 ? 'end' : 'start');
+const labelDx = (cx: number) => (cx > SIZE - 70 ? -9 : 9);
+---
+
+<figure class="mx-auto w-full max-w-md">
+  <svg
+    viewBox={`0 0 ${SIZE} ${SIZE}`}
+    role="img"
+    aria-label={title}
+    class="block h-auto w-full border border-foreground bg-card"
+  >
+    <title>{title}</title>
+    <line x1={mid} y1={PAD / 2} x2={mid} y2={SIZE - PAD / 2} class="stroke-border" stroke-width="1" />
+    <line x1={PAD / 2} y1={mid} x2={SIZE - PAD / 2} y2={mid} class="stroke-border" stroke-width="1" />
+
+    <g class="fill-muted-foreground font-condensed uppercase" font-size="7" letter-spacing="1" aria-hidden="true">
+      <text x={PAD / 2 + 2} y={mid - 4}>{publicMap.axes.rich}</text>
+      <text x={SIZE - PAD / 2 - 2} y={mid - 4} text-anchor="end">{publicMap.axes.crisp}</text>
+      <text x={mid + 4} y={PAD / 2 + 7}>{publicMap.axes.sweet}</text>
+      <text x={mid + 4} y={SIZE - PAD / 2 - 2}>{publicMap.axes.savory}</text>
+    </g>
+
+    {a && b && (
+      <line
+        x1={a.cx}
+        y1={a.cy}
+        x2={b.cx}
+        y2={b.cy}
+        class="stroke-foreground"
+        stroke-width="1"
+        stroke-dasharray="2 3"
+        data-testid="palate-distance-line"
+      />
+    )}
+
+    {placed.map((m) => (
+      <g data-testid="palate-mark" data-x={m.x} data-y={m.y}>
+        <circle
+          cx={m.cx}
+          cy={m.cy}
+          r="6"
+          class:list={[m.tone === 'primary' ? 'fill-primary' : 'fill-secondary', 'stroke-card']}
+          stroke-width="2"
+        />
+        <text
+          x={m.cx + labelDx(m.cx)}
+          y={m.cy + 3}
+          text-anchor={labelAnchor(m.cx)}
+          font-size="8"
+          class:list={['font-condensed uppercase', m.tone === 'primary' ? 'fill-primary' : 'fill-secondary']}
+          letter-spacing="1"
+        >
+          {m.label}
+        </text>
+      </g>
+    ))}
+  </svg>
+  <figcaption class="sr-only">
+    {placed.map((m) => `${m.label}: ${formatCoordinate(m.x, m.y)}`).join('; ')}
+  </figcaption>
+</figure>
