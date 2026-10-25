@@ -38,6 +38,7 @@ something that drifts from the first. Three had already happened:
 | Styling | `globals.css` tokens + `tailwind.config.ts` | `npm run lint` — arbitrary values and raw colours are an error in `pages/`, `layouts/` and `components/` |
 | Marketing copy | `src/lib/copy.ts` | *(convention)* |
 | Drink prose | `src/content/drinks/*.md` | `tests/drink-content.spec.ts` |
+| What the device keeps | `src/lib/device-store.ts` | *(convention)* — nothing else touches `localStorage` |
 
 Found in the wild, each silent:
 
@@ -110,7 +111,7 @@ tap costs tens of milliseconds; a test holds them equal to `choiceProbs`.
 Every answer is also kept as asked (`BeliefState.responses`: question id,
 the options' authored nudges, the index taken) and, when the quiz finishes,
 written as an `app.cotidal.elicitation` record — one per quiz, never
-edited. A guest's record waits in `localStorage` (`pending_elicitation`) until
+edited. A guest's record waits on the device (`device-store.ts`) until
 they sign in. Nudges are stored in tenths: the AT Protocol data model has no
 floats. `RESPONSE_MODEL` names the model that scored them; change it when the
 model changes, so old answers can be refitted under the model they were

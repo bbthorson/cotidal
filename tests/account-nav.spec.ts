@@ -64,11 +64,14 @@ test('Sign out: /taste forgets the coordinate on this device', async ({ page }) 
   await page.evaluate((p) => {
     localStorage.setItem('user_profile', JSON.stringify(p));
     localStorage.setItem('pending_elicitation', '{}');
+    localStorage.setItem('palate_state', '{}');
   }, profile);
 
   await page.goto(`/taste?${SIGNED_OUT_PARAM}=1`);
   await expect(page.getByText('Which glass do you push away first?')).toBeVisible();
-  expect(await page.evaluate(() => [localStorage.getItem('user_profile'), localStorage.getItem('pending_elicitation')])).toEqual([null, null]);
+  expect(
+    await page.evaluate(() => ['user_profile', 'pending_elicitation', 'palate_state'].map((k) => localStorage.getItem(k)))
+  ).toEqual([null, null, null]);
   // A reload does not do it again.
   expect(new URL(page.url()).searchParams.has(SIGNED_OUT_PARAM)).toBe(false);
 });

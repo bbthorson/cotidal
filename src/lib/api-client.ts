@@ -1,6 +1,7 @@
 import type { UserProfile } from '@/hooks/useDiscoveryQuiz';
 import type { PourRecord, PerceivedIntensities, ElicitationRecord } from '@/lib/atproto/records';
 import type { BaseSpirit, Glassware } from '@/lib/atproto/vocab';
+import { clearPendingAnswers, loadPendingAnswers, savePendingAnswers } from '@/lib/device-store';
 
 export interface LogDrinkOptions {
   drinkName: string;
@@ -50,9 +51,6 @@ export async function publishPalate(profile: UserProfile): Promise<{ success: bo
   }
 }
 
-/** Where a finished quiz's answers wait until they reach the user's repository. */
-const PENDING_ANSWERS_KEY = 'pending_elicitation';
-
 async function postElicitation(record: ElicitationRecord): Promise<boolean> {
   try {
     const res = await fetch('/api/atproto-publish', {
@@ -73,34 +71,16 @@ async function postElicitation(record: ElicitationRecord): Promise<boolean> {
  * guest replaces it.
  */
 export async function publishElicitation(record: ElicitationRecord): Promise<boolean> {
-  try {
-    localStorage.setItem(PENDING_ANSWERS_KEY, JSON.stringify(record));
-  } catch {
-    // Storage unavailable: try the write anyway.
-  }
+  savePendingAnswers(record);
   return flushPendingElicitation(record);
 }
 
 /** Publish answers left waiting on this device, if any; clears them on success. */
 export async function flushPendingElicitation(record?: ElicitationRecord): Promise<boolean> {
-  let pending = record ?? null;
-  if (!pending) {
-    try {
-      const raw = localStorage.getItem(PENDING_ANSWERS_KEY);
-      pending = raw ? (JSON.parse(raw) as ElicitationRecord) : null;
-    } catch {
-      pending = null;
-    }
-  }
+  const pending = record ?? loadPendingAnswers();
   if (!pending) return false;
   const ok = await postElicitation(pending);
-  if (ok) {
-    try {
-      localStorage.removeItem(PENDING_ANSWERS_KEY);
-    } catch {
-      // Nothing to clear.
-    }
-  }
+  if (ok) clearPendingAnswers();
   return ok;
 }
 
