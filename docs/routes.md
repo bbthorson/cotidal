@@ -147,6 +147,57 @@ disagreement: one they'd order and you wouldn't, one the reverse, then one
 you'd both order. "Share to your feed" links here by DID, because a handle
 can change and a post is never rewritten.
 
+### Next: the region badge
+
+The first step into the graph, before any page that lists friends. A member
+taps "Show my region on Bluesky", and anyone who subscribes to Cotidal's
+labeler sees "The Salt Line" as a badge on that member's profile and posts —
+inside Bluesky, where their follows already are. Nobody else sees anything.
+
+A labeler is how Bluesky lets any account publish signed tags about
+accounts or posts; clients show the tags of the labelers a user has chosen.
+Most are for moderation, but opt-in badge labelers (pronouns and the like)
+are common. Cotidal would declare four values, one per region id (`deep`,
+`salt-line`, `eddy`, `surf`), shown as badges, never as warnings, each with a
+description that points to `/regions/<id>`. Members are signed in with their
+Bluesky identity already, so the opt-in is a button, not the like-a-post
+ritual those labelers use.
+
+Why it fits:
+
+- **It is the graph, not a copy of it.** A mutual's badge is seen where the
+  follow already exists. Nothing is built inside the app to hold it.
+- **It works alone** (constraint 1): one badge is a complete thing, with no
+  empty friends page behind it.
+- **It compares, never ranks** (constraint 2): a region is a place on the map,
+  not a score.
+- **It publishes nothing new**: the region is already public in the palate
+  record. The badge shows it where people are.
+
+Constraints on building it:
+
+1. **Opt-in, with an off switch that works as well as the on switch.** A
+   label is Cotidal's signed statement about someone, and they cannot delete
+   it themselves. Turning it off publishes a retraction (a negation label).
+   Signing out does not leave a badge behind.
+2. **Relabel only when the region changes.** Pours move the dot. Crossing
+   into another region retracts the old badge and issues the new one; moving
+   within a region changes nothing.
+3. **The service is the work.** A labeler needs its own account, a signing
+   key and a `#atproto_labeler` service in its DID document, an
+   `app.bsky.labeler.service` record declaring the four values, and the
+   `com.atproto.label.queryLabels` and `subscribeLabels` endpoints. The
+   latter is a long-lived stream — on Workers, a Durable Object. Ozone,
+   Bluesky's open-source labeling service, does all of it but is a full app to
+   run.
+4. **Reach is earned.** Only subscribers see badges, and most people
+   subscribe to few labelers, so each badge is also an invitation to
+   subscribe. That is the bet.
+
+It waits on three things, in order: sign-in working in production, region
+pages worth landing on, and enough members that a badge has someone to show
+it to.
+
 ## Not a route
 
 **"Understand the social value."** A page whose job is to argue that the
@@ -176,4 +227,5 @@ namespace is `app.cotidal.*`, real once `cotidal.app` is registered
 5. **Venue claim and menu publishing.** The supply side, and the first thing
    this product offers a non-drinker.
 6. **Menu capture.** The patron half of the same corpus.
-7. **Friends**, discovered through the existing follow graph.
+7. **Friends**, discovered through the existing follow graph — starting with
+   the region badge (above), the first step that needs no friends page.
