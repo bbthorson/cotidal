@@ -3,7 +3,7 @@ import AppShell from '../layouts/AppShell.astro';
 import ConnectForm from '../components/marketing/ConnectForm.astro';
 import QuadrantGrid from '../components/marketing/QuadrantGrid.astro';
 import Principles from '../components/marketing/Principles.astro';
-import CoupeFigure from '../components/marketing/CoupeFigure.astro';
+import ChartFigure from '../components/marketing/ChartFigure.astro';
 import { hero, connect, drinks, sections } from '../lib/copy';
 
 /**
@@ -12,7 +12,7 @@ import { hero, connect, drinks, sections } from '../lib/copy';
  * form post (see src/pages/api/auth/atproto/login.ts).
  *
  * Laid out as a printed specimen and menu — hairline rules, one section per idea,
- * and the coupe as the single large move. See docs/brand.md.
+ * and the cotidal chart as the single large move. See docs/brand.md.
  */
 
 const atprotoEnabled = !!(
@@ -37,8 +37,8 @@ const error = errorParam ? (errorCodes[errorParam] ?? errorCodes.authorize_faile
 ---
 
 <AppShell currentPath="/" width="standard">
-  <!-- Hero. One move (the coupe) and one action. The deck sits above the
-       figure so the coupe is the last beat before the call to action. -->
+  <!-- Hero. One move (the chart) and one action. The deck sits above the
+       figure so the chart is the last beat before the call to action. -->
   <section class="pb-14 pt-10 text-center md:pb-20 md:pt-16">
     <p class="label-caps mb-3.5">{hero.edition}</p>
 
@@ -54,7 +54,7 @@ const error = errorParam ? (errorCodes[errorParam] ?? errorCodes.authorize_faile
     </p>
 
     <div class="mx-auto mt-7 max-w-xs md:mt-12 md:max-w-sm">
-      <CoupeFigure />
+      <ChartFigure />
     </div>
 
     <div class="mx-auto mt-7 flex max-w-sm flex-col items-center md:mt-10">

@@ -189,7 +189,7 @@ export function DrinkSpot({
 
 /**
  * Your dot: terracotta, a ring in the ground colour, and an ink crosshair —
- * the same mark as the coupe figure on the landing page. It does not pulse.
+ * the same mark as the coordinate on the landing page's chart figure. It does not pulse.
  * `land` animates it in once, which is the only motion on the reveal.
  */
 export function YouMark({

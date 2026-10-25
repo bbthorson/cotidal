@@ -1,31 +1,24 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
+  <!-- The Cotidal mark (src/components/marketing/Monogram.astro), heavier for a tab. -->
   <style>
     :root {
-      --coupe-stroke: #9E3E30;
+      --mark: #9E3E30;
     }
     @media (prefers-color-scheme: dark) {
       :root {
-        --coupe-stroke: #D85640;
+        --mark: #D85640;
       }
     }
-    .monogram-stroke {
-      stroke: var(--coupe-stroke);
+    .mark-stroke {
+      stroke: var(--mark);
+    }
+    .mark-fill {
+      fill: var(--mark);
     }
   </style>
-  <rect
-    x="24"
-    y="2"
-    width="31"
-    height="31"
-    transform="rotate(45 24 2)"
-    class="monogram-stroke"
-    stroke="#9E3E30"
-    stroke-width="2.5"
-    stroke-linejoin="round"
-  />
-  <!-- A coupe reduced to three strokes. -->
-  <path d="M17 19 Q24 28 31 19" class="monogram-stroke" stroke="#9E3E30" stroke-width="2.5" stroke-linecap="round" />
-  <path d="M16 19 H32" class="monogram-stroke" stroke="#9E3E30" stroke-width="2.5" stroke-linecap="round" />
-  <path d="M24 28 V33" class="monogram-stroke" stroke="#9E3E30" stroke-width="2.5" stroke-linecap="round" />
-  <path d="M19 33.5 H29" class="monogram-stroke" stroke="#9E3E30" stroke-width="2.5" stroke-linecap="round" />
+  <path d="M24 24 Q16.12 18.69 5 24 A19 19 0 0 1 24 5 Q29.31 16.12 24 24 Z" class="mark-fill" fill="#9E3E30" />
+  <path d="M38.12 36.71 A19 19 0 1 1 38.12 11.29" class="mark-stroke" stroke="#9E3E30" stroke-width="3" stroke-linecap="round" />
+  <path d="M24 24 Q18.69 31.88 24 43" class="mark-stroke" stroke="#9E3E30" stroke-width="3" stroke-linecap="round" />
+  <path d="M24 24 Q16.12 18.69 5 24" class="mark-stroke" stroke="#9E3E30" stroke-width="3" stroke-linecap="round" />
+  <path d="M24 24 Q29.31 16.12 24 5" class="mark-stroke" stroke="#9E3E30" stroke-width="3" stroke-linecap="round" />
 </svg>

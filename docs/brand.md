@@ -109,8 +109,27 @@ off the stock, and `shadow-mcm` is a hard letterpress offset in terracotta.
 - **Square corners.** Radius is used sparingly; a menu is not a card UI.
 - **Dot leaders** carry name → amount, the way a wine list does
   (`.dot-leader` with a `.leader` spacer in `globals.css`).
-- **One large move per screen.** On `/` it is the coupe figure; on a drink
+- **One large move per screen.** On `/` it is the cotidal chart; on a drink
   entry it is the title plate.
+
+## The mark and the figure
+
+Both are a **cotidal chart**: lines radiating from an amphidrome, the one point
+where the tide does not rise, joining the places that reach high water at the
+same hour. It is the name drawn literally, and it is the product's own
+geometry — a zero point at the centre of the map, and lines joining everyone
+at the same phase.
+
+- **The figure** (`ChartFigure.astro`, the landing page's one large move):
+  co-range rings and six cotidal lines labelled by hour, over the map's axes;
+  one band between two lines filled in terracotta, with the coordinate sitting
+  in it; the sage disc is the moon.
+- **The mark** (`Monogram.astro`, `public/icon.svg`, `favicon.ico`): the same
+  chart reduced to a letter — an open ring for the C, three cotidal lines, and
+  the one filled band, which is what keeps it legible at 16px.
+
+The coupe glass they replace belonged to the old name, and to the speakeasy
+register this document already warned about.
 
 ## Rules
 

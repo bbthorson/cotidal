@@ -9,7 +9,7 @@ This document specifies the design system of **Cotidal** and details the technic
 The visual voice is an empirical, printed specimen catalog rather than a dim speakeasy:
 - **Paper Ground**: Everything is ink on warm stock, not a glowing obsidian screen.
 - **Restraint Over Ornamentation**: 1px hairline rules, generous whitespace, square edges, and dot leaders.
-- **One Large Move Per Screen**: On `/`, it is the geometric `CoupeFigure`. On `/drinks`, it is the title plate.
+- **One Large Move Per Screen**: On `/`, it is the cotidal chart, `ChartFigure`. On `/drinks`, it is the title plate.
 - **Zero Client JavaScript on Reading Routes**: The homepage (`/`) and register (`/drinks`, `/drinks/[slug]`) are pure static Astro.
 
 ---
