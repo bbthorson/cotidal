@@ -79,10 +79,6 @@ test('AT Protocol: PourRecordSchema should validate pour records conforming to p
       bitterness: 30,
     },
     cata: ['rye-spice', 'cherry', 'oak'],
-    context: {
-      volumeConsumedMl: 120,
-      fastingDurationHours: 2,
-    },
     note: 'Slightly sweet, but excellent rye selection.',
     createdAt: new Date().toISOString(),
   };

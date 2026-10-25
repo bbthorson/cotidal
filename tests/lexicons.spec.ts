@@ -187,10 +187,6 @@ test('Psychophysics: palate records dynamicState and pour records CATA/gLMS', as
       effervescence: 0,
     },
     cata: ['lime-peel', 'bright-citrus', 'sugarcane'],
-    context: {
-      volumeConsumedMl: 140,
-      fastingDurationHours: 2,
-    },
     createdAt: new Date().toISOString(),
   };
   expect(PourRecordSchema.safeParse(psychophysicalPour).success).toBe(true);

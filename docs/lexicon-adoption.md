@@ -44,7 +44,7 @@ bad for everyone:
 | NSID | Key | Role |
 |---|---|---|
 | `app.cotidal.palate` | `self` | Drinker's 2D coordinate, dynamic psychophysical state (EKF), aversions and vibe tags |
-| `app.cotidal.pour` | `tid` | Drink check-in with gLMS ratings, VOC CATA tags, perceived intensities, and prandial context |
+| `app.cotidal.pour` | `tid` | Drink check-in with hedonic and gLMS ratings, CATA notes, perceived intensities, and what was served (spirit, glass, garnish) |
 | `app.cotidal.menu` | `tid` | Signed menu snapshot with sections, items, and coordinates |
 | `app.cotidal.recipe` | `tid` | Authored formulation, specs, technique, physical stimulus, and creator credits |
 | `app.cotidal.venue` | `self` | Venue profile, location, current menu pointer, and publication link |
@@ -191,10 +191,8 @@ await agent.api.com.atproto.repo.createRecord({
     },
     deviations: ['too-sour'],
     cata: ['campfire-smoke', 'bright-citrus', 'baking-spice'], // ids from CATA, not labels
-    context: {
-      volumeConsumedMl: 160,   // SSS (Sensory-Specific Satiety) calculation
-      fastingDurationHours: 3, // Circadian prandial ghrelin curve
-    },
+    // Volume drunk and time since eating feed the filter on the device and
+    // are never part of the record.
     note: 'Perfect ginger heat and peaty aromatics.',
     createdAt: new Date().toISOString(),
   },

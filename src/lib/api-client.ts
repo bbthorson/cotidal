@@ -1,5 +1,5 @@
 import type { UserProfile } from '@/hooks/useDiscoveryQuiz';
-import type { PourRecord, PerceivedIntensities, PourContext, ElicitationRecord } from '@/lib/atproto/records';
+import type { PourRecord, PerceivedIntensities, ElicitationRecord } from '@/lib/atproto/records';
 import type { BaseSpirit, Glassware } from '@/lib/atproto/vocab';
 
 export interface LogDrinkOptions {
@@ -12,7 +12,6 @@ export interface LogDrinkOptions {
   venue?: { name: string; lat?: number; lng?: number };
   perceivedIntensities?: PerceivedIntensities;
   cata?: string[];
-  context?: PourContext;
   glassware?: Glassware;
   garnish?: string;
   deviations?: string[];

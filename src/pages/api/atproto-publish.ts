@@ -207,7 +207,6 @@ export const POST: APIRoute = async ({ request }) => {
       cata: options.cata && options.cata.length > 0 ? options.cata.map(cataId) : undefined,
       glassware,
       garnish: garnish?.trim() ? fitString(garnish.trim(), 200) : undefined,
-      context: options.context,
       note: note ? fitString(note, POUR_NOTE_LIMITS.maxLength, POUR_NOTE_LIMITS.maxGraphemes) : undefined,
       isHomePour: !!isHomePour,
       createdAt: new Date().toISOString(),
@@ -239,7 +238,6 @@ export const POST: APIRoute = async ({ request }) => {
         glmsValence: pourRecord.rating.glmsValence,
         perceivedIntensities: pourRecord.perceivedIntensities,
         cata: pourRecord.cata,
-        context: pourRecord.context,
       };
 
       const nextState = applyPour(priorState, drink, observation, deviations);

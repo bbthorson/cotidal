@@ -89,11 +89,6 @@
             "maxLength": 200,
             "description": "As served, in the drinker's words."
           },
-          "context": {
-            "type": "ref",
-            "ref": "#context",
-            "description": "Transitory physiological and circadian state data for SSS and prandial normalization."
-          },
           "note": { "type": "string", "maxLength": 3000, "maxGraphemes": 1000 },
           "isHomePour": { "type": "boolean" },
           "createdAt": { "type": "string", "format": "datetime" }
@@ -137,22 +132,6 @@
           "minimum": 0,
           "maximum": 100,
           "description": "Ethanol burn and warmth (trigeminal), what a menu calls spirit-forward."
-        }
-      }
-    },
-    "context": {
-      "type": "object",
-      "description": "Temporal and physiological state data for SSS and diurnal normalization.",
-      "properties": {
-        "volumeConsumedMl": {
-          "type": "integer",
-          "minimum": 0,
-          "description": "Estimated volume consumed in whole milliliters (for sensory-specific satiety decay)."
-        },
-        "fastingDurationHours": {
-          "type": "integer",
-          "minimum": 0,
-          "description": "Whole hours since the last substantial meal (for ghrelin / postprandial sweet reward weighting)."
         }
       }
     }

@@ -68,7 +68,9 @@ The 5D latent state vector ($\mathbf{x}_k \in \mathbb{R}^5$) is `StateVector`:
 Rich-Crisp, Savory-Sweet, Bitter Tolerance, Tannin Tolerance and Complexity,
 accompanied by error covariance matrix ($\mathbf{P}_k$). Observations are
 normalised for Sensory-Specific Satiety (SSS exponential volume decay) and
-prandial ghrelin before they reach the filter. Detailed psychophysics in
+prandial ghrelin before they reach the filter. Those two inputs — volume
+drunk and hours since eating (`PourContext`) — stay on the device: they are
+not in the pour lexicon and the log route does not accept them. Detailed psychophysics in
 `docs/sensory-science.md`; the order of the axes is also the order of
 `latentVector` in `app.cotidal.palate.json`.
 

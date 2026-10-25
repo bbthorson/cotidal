@@ -32,7 +32,6 @@ test('Pour: no floats — the AT Protocol data model has none', () => {
   expect(PourWriteSchema.safeParse({ ...base, rating: { hedonic: 7, glmsValence: 65 } }).success).toBe(true);
   expect(PourWriteSchema.safeParse({ ...base, rating: { hedonic: 7, glmsValence: 65.4 } }).success).toBe(false);
   expect(PourWriteSchema.safeParse({ ...base, perceivedIntensities: { sweetness: 55.5 } }).success).toBe(false);
-  expect(PourWriteSchema.safeParse({ ...base, context: { fastingDurationHours: 2.5 } }).success).toBe(false);
 });
 
 test('Lexicons: no file uses "number", which is not a Lexicon type', () => {
@@ -112,4 +111,13 @@ test('Pour: intensities are gLMS points, and alcohol heat is one of them', () =>
   expect(PourWriteSchema.safeParse({ ...base, perceivedIntensities: { alcoholHeat: 101 } }).success).toBe(false);
   // The 0–5 profile it replaces is not a field.
   expect(readPour({ ...base, sensoryProfile: { bitter: 2.5 } })).not.toHaveProperty('sensoryProfile');
+});
+
+test('Pour: how much was drunk and when they ate stay on the device', () => {
+  const lexicon = JSON.parse(readFileSync('src/lib/atproto/lexicons/app.cotidal.pour.json', 'utf8'));
+  expect(lexicon.defs.main.record.properties).not.toHaveProperty('context');
+  expect(lexicon.defs).not.toHaveProperty('context');
+  // Sent anyway by an old page or another client, it is dropped before the write.
+  const written = PourWriteSchema.parse({ ...base, context: { volumeConsumedMl: 300, fastingDurationHours: 6 } });
+  expect(written).not.toHaveProperty('context');
 });

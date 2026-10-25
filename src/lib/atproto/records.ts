@@ -355,12 +355,6 @@ export const PerceivedIntensitiesSchema = z.object({
 });
 export type PerceivedIntensities = z.infer<typeof PerceivedIntensitiesSchema>;
 
-export const PourContextSchema = z.object({
-  volumeConsumedMl: z.number().int().min(0).optional(),
-  fastingDurationHours: z.number().int().min(0).optional(),
-});
-export type PourContext = z.infer<typeof PourContextSchema>;
-
 export const PourRecordSchema = z.object({
   $type: z.literal(POUR_COLLECTION),
   drink: DrinkRefSchema,
@@ -373,7 +367,6 @@ export const PourRecordSchema = z.object({
   cata: z.array(lexString({ maxLength: 32 })).max(20).optional(),
   glassware: lexString({ maxLength: 100 }).optional(),
   garnish: lexString({ maxLength: 200 }).optional(),
-  context: PourContextSchema.optional(),
   note: lexString({ maxLength: 3000, maxGraphemes: 1000 }).optional(),
   isHomePour: z.boolean().optional(),
   createdAt: datetime(),
