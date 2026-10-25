@@ -24,7 +24,7 @@ interface QuestionnaireProps {
 const ROMAN_NUMERALS = ['I', 'II', 'III', 'IV', 'V', 'VI'];
 
 /**
- * One question per screen (Flow Recommendations, R2). The site header steps
+ * One question per screen. The site header steps
  * aside on a phone (`data-focus-mode`, see globals.css) and a focused bar
  * replaces it: back, an honest count, skip. The whole plate is the target;
  * the chosen plate takes the letterpress offset — struck through when the

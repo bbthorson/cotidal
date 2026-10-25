@@ -39,8 +39,8 @@ function wantsBrowse(): boolean {
 }
 
 /**
- * The first visit is three beats (Flow Recommendations): the questions, the
- * reveal, then the menu. A returning visitor goes straight to the menu.
+ * The first visit is three beats (docs/design-system.md, "The first-visit
+ * flow"): the questions, the reveal, then the menu. A returning visitor goes straight to the menu.
  */
 type Screen = 'questionnaire' | 'reveal' | 'results';
 

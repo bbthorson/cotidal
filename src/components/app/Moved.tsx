@@ -22,9 +22,9 @@ interface MovedProps {
 }
 
 /**
- * After a pour (Flow Recommendations, R6). The payoff of signing in, shown
- * every time: where you were, where you are, what changed on the menu. The
- * second and last use of the ink ground.
+ * After a pour, in /taste and /log. The payoff of logging, shown every time:
+ * where you were, where you are, what changed on the menu. The second and
+ * last use of the ink ground.
  */
 const same = (name: string) => name;
 

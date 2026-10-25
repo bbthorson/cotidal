@@ -9,7 +9,7 @@ interface SignInSheetProps {
 }
 
 /**
- * The one sign-in pattern (Flow Recommendations, R5). Opened from the menu's
+ * The one sign-in pattern. Opened from the menu's
  * "Keep this coordinate" prompt, from the header, and when a guest taps
  * "Log a pour". The landing page renders the same promise statically
  * (src/components/marketing/ConnectForm.astro) from the same copy.

@@ -48,10 +48,10 @@ interface PourMoved {
 }
 
 /**
- * Your menu (Flow Recommendations, R4), which replaces the old results
- * dashboard. One list, ranked by relevance alone; the top pick is the one
- * sheet that is yours. The radar chart, the archetype and
- * the Oracle tab are retired: the region is the only identity.
+ * Your menu, which replaced the old results dashboard. One list, ranked by
+ * relevance alone; the top pick is the one sheet that is yours. The radar
+ * chart, the archetype and the Oracle tab are retired: the region is the
+ * only identity.
  */
 export function ResultsScreen({
   user,

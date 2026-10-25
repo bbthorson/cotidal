@@ -13,7 +13,7 @@ interface RevealProps {
 }
 
 /**
- * The reveal (Flow Recommendations, R3). The one big move: the region's name,
+ * The reveal. The one big move: the region's name,
  * then the dot landing on the full square map. It is set on the ink ground —
  * evolution B, used only for reveals — so the warm secret reads differently
  * from the paper instrument around it.

@@ -11,7 +11,8 @@ import {
   type FilterState,
 } from './belief-state';
 
-// The 4 Sommelier Triads: Negative Elimination cold start
+// The fixed openers, asked in this order. These four are the only fixed part
+// of the quiz; after them every question is chosen by expected information.
 const CALIBRATION_IDS = [
   'triad_sugar_texture',
   'triad_bitter_botanical',
