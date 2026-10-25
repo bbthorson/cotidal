@@ -30,24 +30,23 @@ something that drifts from the first. Three had already happened:
 | Layer | Truth | How drift is caught |
 |---|---|---|
 | Records | `src/lib/atproto/lexicons/*.json` | `npm run lexicons` |
-| Styling | `globals.css` tokens + `tailwind.config.ts` | `npm run lint` — arbitrary values and raw colours are an error in `pages/`, `layouts/` and `components/marketing/` |
+| Styling | `globals.css` tokens + `tailwind.config.ts` | `npm run lint` — arbitrary values and raw colours are an error in `pages/`, `layouts/` and `components/` |
 | Marketing copy | `src/lib/copy.ts` | *(convention)* |
 | Drink prose | `src/content/drinks/*.md` | `tests/drink-content.spec.ts` |
 
 Found in the wild, each silent:
 
-- `lexicon.ts` and `drinkLog.json` described different records — the Zod
-  schema had six fields the lexicon did not, and made a required field
-  optional.
+- The Zod schema and the lexicon for the pour's predecessor described
+  different records — the Zod had six fields the lexicon did not, and made a
+  required field optional.
 - `text-2xs` / `text-3xs` were used 41 times and defined nowhere, so those
   elements rendered at inherited size.
 - `font-body` / `font-serif` / `font-condensed` pointed at `--font-*`
   variables that did not exist, so all three Google Fonts loaded and none
   applied.
-
-- Six of the `recommendedDrinks` in `archetypes.ts` named drinks that were not
-  in `drinkDatabase` at all, so the `agave-smoke` archetype recommended four
-  drinks the app could neither map nor score.
+- Six drinks recommended by the quiz archetypes (since retired) were not in
+  `drinkDatabase` at all, so one archetype recommended four drinks the app
+  could neither map nor score.
 
 Add a field to a lexicon before using it, a token before styling with it, and
 a string to `copy.ts` before rendering it.
@@ -82,7 +81,7 @@ by a capped, simpler rule and leaves the other three axes to the EKF.
 `belief-state` holds an exact posterior over the map (a half-point grid)
 and over how noisy the answerer is (`NOISE_LEVELS`). Each answer multiplies in
 the probability that a user at each point would have picked that option from
-the ones offered — `choiceLogProbs`, the one response model, which the
+the ones offered — `choiceProbs`, the one response model, which the
 selector also uses — and the posterior is recomputed from all answers at
 once, so the result does not depend on answer order. Inferring the noise is
 what makes answers that disagree leave the axis uncertain; with a single
@@ -114,7 +113,7 @@ asked under.
 The quiz's x/y variance travels
 in `UserProfile.variance` and becomes the 5D starting covariance, so a
 confident quiz makes early pours move the dot less.
-`useBartenderChat` is entirely local canned copy, so the flow runs offline.
+Nothing in the quiz calls a model, so the flow runs offline.
 What may call a model, and who sees the result, is `docs/generation.md`.
 
 ### Drink prose — `src/content/drinks/`, `src/content.config.ts`
@@ -264,19 +263,19 @@ interface; see `docs/brand.md`.
 2. **Migrate `drinkLog` → `pour`** *(Completed)*. Clean-slate implementation
    with 5D EKF dynamic state, gLMS hedonic ratings, CATA volatile descriptors,
    and prandial satiety normalization. Legacy `drinkLog` replaced by `pour`.
-3. **Carry the palette into `/taste`.** The inversion onto paper landed on `/`
-   and `/drinks`; the app route still has ~38 hard-coded colours in
-   `src/components/app/`, which the token rule reports as warnings rather than
-   errors. Until those are tokens, that route is paper chrome over components
-   that assume a dark ground.
+3. **Carry the palette into `/taste`** *(Completed)*. The app's components
+   are on tokens too: the token rule is an error across `src/components/`, and
+   nothing violates it.
 4. **Menu capture.** Photograph a menu, get a recommendation, no account
    required — value before signup, and it builds the venue/menu corpus as a
    byproduct.
-5. **Region pages** (`/regions/<id>`). The landing page's four regions now
-   link into `/drinks`; a real page per region is the reading path proper.
-   Content-led — same sourcing discipline as `src/content/drinks/`.
+5. **Region pages** (`/regions/<id>`). A first page per region exists, with
+   its prose in `src/lib/regions.ts`, linked from the landing page and
+   `/p/<handle>`. Still to do: hold that prose to the sourcing discipline of
+   `src/content/drinks/` — it cites nothing yet.
 6. **The return visit.** Logging a pour and watching the point move is the
-   only recurring behaviour in the product and has no front door.
+   only recurring behaviour in the product. Its front door is `/log`
+   (`ReturnVisit.tsx`), in the site navigation.
 7. **Venue claim and menu publishing.** Handle-as-domain makes claiming and
    publishing the same act; the lexicons exist and nothing renders them.
 8. **Rework elicitation.** Forced-choice pairs for precision *(landed; see
