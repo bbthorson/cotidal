@@ -60,7 +60,7 @@ const reference = z.object({
   title: z.string(),
   author: z.string().optional(),
   year: z.number().int().min(1700).max(2100).optional(),
-  url: z.string().url().optional(),
+  url: z.url().optional(),
 });
 
 const drinks = defineCollection({

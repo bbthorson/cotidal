@@ -1,4 +1,4 @@
-import { useId, useState, type FormEvent, type ReactNode } from 'react';
+import { useId, useState, type SubmitEvent, type ReactNode } from 'react';
 import { drinkDatabase } from '@/lib/data';
 import {
   ASKED_INTENSITIES,
@@ -134,7 +134,7 @@ export function PourForm({
     return Object.keys(detail).length > 0 ? detail : undefined;
   };
 
-  const submit = (e: FormEvent) => {
+  const submit = (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!drinkName.trim()) return setLocalError(pour.needDrink);
     if (!isHomePour && !venue.trim()) return setLocalError(pour.needBar);

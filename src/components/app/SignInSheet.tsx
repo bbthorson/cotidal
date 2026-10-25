@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useState, type SubmitEvent } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
 import { connect, nav } from '@/lib/copy';
 import { useAtprotoContext } from './AtprotoProvider';
@@ -21,7 +21,7 @@ export function SignInSheet({ open, onOpenChange }: SignInSheetProps) {
   const { isEnabled, connecting, error, connect: signIn } = useAtprotoContext();
   const [handle, setHandle] = useState('');
 
-  const submit = async (e: FormEvent) => {
+  const submit = async (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!handle.trim()) return;
     await signIn(handle.trim());
