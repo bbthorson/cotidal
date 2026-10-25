@@ -45,11 +45,12 @@ bad for everyone:
 |---|---|---|
 | `app.cotidal.palate` | `self` | Drinker's 2D coordinate, dynamic psychophysical state (EKF), aversions and vibe tags |
 | `app.cotidal.pour` | `tid` | Drink check-in with hedonic and gLMS ratings, CATA notes, perceived intensities, and what was served (spirit, glass, garnish) |
+| `app.cotidal.elicitation` | `tid` | The answers behind one completed quiz: what each question offered and which option was taken |
 | `app.cotidal.menu` | `tid` | Signed menu snapshot with sections, items, and coordinates |
 | `app.cotidal.recipe` | `tid` | Authored formulation, specs, technique, physical stimulus, and creator credits |
 | `app.cotidal.venue` | `self` | Venue profile, location, current menu pointer, and publication link |
 | `app.cotidal.maker` | `self` | Professional portfolio linking authored recipes |
-| `app.cotidal.defs` | — | Shared types: `stimulus`, `entityRef`, `venueRef`, `drinkRef`, `price` |
+| `app.cotidal.defs` | — | Shared types: `stimulus`, `entityRef`, `venueRef`, `drinkRef`, `credit`, `price` |
 
 ---
 
@@ -87,7 +88,7 @@ under a verified domain handle (`attaboy.nyc`) *is* the claim:
     "name": "Attaboy NYC",
     "uri": "at://did:plc:venue123/site.standard.publication/self"
   },
-  "createdAt": "2026-09-25T18:00:00Z"
+  "createdAt": "2026-09-25T18:00:00.000Z"
 }
 ```
 
@@ -95,12 +96,13 @@ under a verified domain handle (`attaboy.nyc`) *is* the claim:
 Menus are published at a `tid` key whenever the cocktail list changes:
 
 ```ts
-import { BskyAgent } from '@atproto/api';
+import { Agent } from '@atproto/api';
 
-const agent = new BskyAgent({ service: 'https://bsky.social' });
-// ... authenticate as venue ...
+// `session` is the venue's OAuth session (@atproto/oauth-client, or any
+// client that yields one). Cotidal itself uses @bbthorson/atproto-cf-auth.
+const agent = new Agent(session);
 
-await agent.api.com.atproto.repo.createRecord({
+await agent.com.atproto.repo.createRecord({
   repo: venueDid,
   collection: 'app.cotidal.menu',
   record: {
@@ -151,7 +153,7 @@ maintain ownership of their taste history.
 When a user orders a drink, write `app.cotidal.pour` to **their** repository:
 
 ```ts
-await agent.api.com.atproto.repo.createRecord({
+await agent.com.atproto.repo.createRecord({
   repo: userDid,
   collection: 'app.cotidal.pour',
   record: {
@@ -314,16 +316,20 @@ developer can read, index, or write to these collections.
 
 #### Reading records permissionlessly (XRPC)
 
-You can read records directly from any public relay or AppView without an account:
+Records live on the author's PDS, and any PDS serves its public records
+without an account. Bluesky's AppView indexes only `app.bsky.*`, so resolve the
+author's PDS first — handle → DID → DID document → its `#atproto_pds` service,
+as `src/lib/atproto/public-read.ts` does for `/p/<handle>`:
 
 ```ts
 import { AtpAgent } from '@atproto/api';
 
-const agent = new AtpAgent({ service: 'https://public.api.bsky.app' });
+// pdsUrl: the serviceEndpoint of the venue's #atproto_pds, from its DID document.
+const agent = new AtpAgent({ service: pdsUrl });
 
 // Fetch a bar's current menu
-const venueRecord = await agent.api.com.atproto.repo.getRecord({
-  repo: 'attaboy.nyc',
+const venueRecord = await agent.com.atproto.repo.getRecord({
+  repo: venueDid,
   collection: 'app.cotidal.venue',
   rkey: 'self',
 });
@@ -338,9 +344,7 @@ const currentMenuUri = venueRecord.data.value.currentMenu?.uri;
 To index new pours, menus, and recipes in real time across the entire network:
 
 ```ts
-// Pseudocode for a firehose consumer
-import { Subscription } from '@atproto/xrpc-server';
-
+// Pseudocode for a firehose consumer (@atproto/sync's Firehose is one way in).
 // Subscribe to com.atproto.sync.subscribeRepos
 // Filter commits where collection starts with 'app.cotidal.'
 for await (const evt of firehose) {
