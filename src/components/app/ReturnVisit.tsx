@@ -239,7 +239,7 @@ function ReturnVisitContent({ register, initialDrink }: { register: Register; in
           <button
             type="button"
             onClick={() => setSignInOpen(true)}
-            className="min-h-12 border border-foreground bg-transparent px-6 font-condensed text-meta font-semibold uppercase tracking-label text-foreground transition-colors hover:bg-secondary hover:text-secondary-foreground"
+            className="btn btn-outline px-6"
           >
             {returnVisit.signInCta}
           </button>

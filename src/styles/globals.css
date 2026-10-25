@@ -110,6 +110,11 @@
   .btn-primary {
     @apply border-foreground bg-secondary text-secondary-foreground hover:bg-primary disabled:bg-muted disabled:text-muted-foreground;
   }
+  /* The second action beside or below a primary one: an ink edge on the
+     ground, filled forest on hover. */
+  .btn-outline {
+    @apply border-foreground bg-transparent text-foreground hover:bg-secondary hover:text-secondary-foreground disabled:border-border disabled:text-muted-foreground disabled:hover:bg-transparent;
+  }
   /* The primary action on the reveal ground: paper on forest. */
   .btn-reveal {
     @apply border-reveal-foreground bg-reveal-foreground text-reveal hover:bg-reveal-muted focus-ring-reveal;

@@ -96,6 +96,7 @@ Drawn once, by the base `:focus-visible` rule in `globals.css`: a 2px terracotta
 ### Buttons
 `.btn` is the shape — square, ink edge, condensed bold caps, 44px tall; `.btn-lg` is the large size (52px, `text-sm`) for a screen's main action. A colour class says what it is:
 - `.btn-primary` — forest, terracotta on hover, muted when disabled.
+- `.btn-outline` — the second action beside or below a primary one: an ink edge on the ground, filled forest on hover.
 - `.btn-reveal` — paper on forest, for the reveal ground.
 
 Width and padding stay with the layout (`w-full`, `px-8`).
@@ -148,7 +149,7 @@ To guarantee the design system never drifts, automated enforcement is active at 
 ### 1. ESLint Token Rules (`eslint.config.mjs`)
 - **Banned Arbitrary Values**: Rejects Tailwind brackets like `bg-[#hex]`, `text-[13px]`, `shadow-[...]`.
 - **Banned Raw Colors**: Rejects `#hex`, `rgba(...)`, `hsla(...)` in classes.
-- **Banned Hand-Built Components**: Rejects a focus ring spelled out (`focus-visible:ring-*`, `focus-visible:outline-*`) and a primary button spelled out (`bg-secondary` with `hover:bg-primary`); use the classes above.
+- **Banned Hand-Built Components**: Rejects a focus ring spelled out (`focus-visible:ring-*`, `focus-visible:outline-*`) a primary button spelled out (`bg-secondary` with `hover:bg-primary`), and an outline button spelled out (`border-foreground` with `hover:bg-secondary`); use the classes above.
 - **Banned Opacity Modifiers**: Rejects a colour faded where it is used (`text-foreground/80`, `border-border/60`). De-emphasise text with size and weight; give a translucent colour a token.
 - **Error Level**: Enforced as an error on `src/pages/`, `src/layouts/` and all of `src/components/`.
 

@@ -36,11 +36,20 @@ const HAND_FOCUS = /focus-visible:(ring|outline)/;
 /** The primary button spelled out: forest with a terracotta hover. */
 const HAND_PRIMARY = /bg-secondary\b.*hover:bg-primary\b|hover:bg-primary\b.*bg-secondary\b/;
 
+/**
+ * The outline button spelled out: an ink edge that fills forest on hover.
+ * Unprefixed only — the header's account link takes this look from `lg` up,
+ * at the header's own compact size.
+ */
+const HAND_OUTLINE =
+  /(^|\s)border-foreground\b.*(^|\s)hover:bg-secondary\b|(^|\s)hover:bg-secondary\b.*(^|\s)border-foreground\b/;
+
 const COMPONENT_MESSAGE =
   'Use the design system class, not its parts: focus is drawn once by ' +
   '`:focus-visible` in globals.css (add focus-ring-inset or focus-ring-reveal ' +
   'for a variant), and the primary button is `btn btn-primary` (or ' +
-  '`btn btn-reveal`, with `btn-lg` for the large size).';
+  '`btn btn-reveal`, with `btn-lg` for the large size); the second action is ' +
+  '`btn btn-outline`.';
 
 const TOKEN_MESSAGE =
   'Use a design token, not a literal. Colours, sizes and shadows belong in ' +
@@ -72,7 +81,7 @@ const tokenRuleEntries = [
     selector: `TemplateElement[value.raw=/${OPACITY_MODIFIER.source}/]`,
     message: TOKEN_MESSAGE,
   },
-  ...[HAND_FOCUS, HAND_PRIMARY].flatMap((pattern) => [
+  ...[HAND_FOCUS, HAND_PRIMARY, HAND_OUTLINE].flatMap((pattern) => [
     { selector: `Literal[value=/${pattern.source}/]`, message: COMPONENT_MESSAGE },
     { selector: `TemplateElement[value.raw=/${pattern.source}/]`, message: COMPONENT_MESSAGE },
   ]),

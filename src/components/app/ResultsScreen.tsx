@@ -412,7 +412,7 @@ function MemberTools({
           type="button"
           onClick={refine}
           disabled={refining || notes.trim().length < 2}
-          className="min-h-12 border border-foreground bg-transparent px-6 font-condensed text-meta font-semibold uppercase tracking-label text-foreground transition-colors hover:bg-secondary hover:text-secondary-foreground disabled:border-border disabled:text-muted-foreground disabled:hover:bg-transparent"
+          className="btn btn-outline px-6"
         >
           {refining ? menu.refining : menu.refineSubmit}
         </button>
