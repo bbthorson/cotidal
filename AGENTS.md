@@ -291,5 +291,10 @@ interface; see `docs/brand.md`.
    same bar, conversation starters from what their maps share. Discovery comes from the user's existing follow
    graph, not a second one built here. Surface only the intersection; lead
    with disagreement about drinks.
+   **Region badge** (planned): an opt-in Bluesky label showing a member's
+   region on their profile to anyone who subscribes to Cotidal's labeler — the
+   first step into the follow graph. Waits on working sign-in, region pages
+   and enough members to show it to. Reasoning and constraints:
+   `docs/routes.md` § Friends.
 
 Sequencing and the reasoning behind it: `docs/routes.md`.
