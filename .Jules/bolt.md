@@ -1,3 +1,0 @@
-## 2025-01-03 - Event Listener Thrashing in React Effects
-**Learning:** Passing unstable callbacks (defined inline or without `useCallback`) to `useEffect` hooks that manage global event listeners (like `window.addEventListener`) causes the listener to be removed and re-added on every render. This "thrashing" is unnecessary work for the browser.
-**Action:** Use the `useLatestCallback` pattern (storing the callback in a `useRef`) inside the child component. This allows the effect to have stable dependencies (zero deps or just static ones) so the event listener is bound only once on mount and cleaned up on unmount, regardless of how often the parent re-renders or updates the callback prop.
