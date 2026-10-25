@@ -45,11 +45,12 @@ finally leads somewhere. `tests/landing-static.spec.ts` asserts the two lists
 of ids still agree, because two hand-written copies of the same list is the
 drift this codebase keeps producing.
 
-**Next:** `/regions/<id>` as a real page — what the region is, what ordering
-from it says about you, the drinks that live there and the ingredients they
-share. That is a content job before it is a code job, and it wants the same
-sourcing discipline as `src/content/drinks/` (`AGENTS.md`): written from
-primary sources, not paraphrased from one reference.
+**Then:** `/regions/<id>` as a page of its own — what the region is, what
+ordering from it says about you, the drinks that live there and the
+ingredients they share. A first version exists (`src/pages/regions/[id].astro`,
+prose in `src/lib/regions.ts`), and the landing page and `/p/<handle>` link to
+it. What it still lacks is the sourcing discipline of `src/content/drinks/`
+(`AGENTS.md`): its prose cites nothing yet.
 
 The reading path is the third door. Today a visitor may take the quiz or look
 at the map; both ask to measure them. Some people want to read first, and they
@@ -62,10 +63,11 @@ again on Thursday* — and the thing that would is already built and has no fron
 door: logging a pour and watching the point move.
 
 **The loop is: drink → log → the map changes.** That is the entire premise of a
-taste profile that lives in a repository and accumulates. It is currently
-reachable only from inside the results screen, which means the product's one
-recurring behaviour is also its best-hidden one. "Your map, and what moved it"
-is a route.
+taste profile that lives in a repository and accumulates. It used to be
+reachable only from inside the results screen, which made the product's one
+recurring behaviour also its best-hidden one. "Your map, and what moved it"
+is now a route: `/log`, in the site navigation, where a guest can log on this
+device and a member to their repository.
 
 ## The supply side
 
@@ -110,8 +112,8 @@ first.
 
 The strategic bet, and deliberately not next.
 
-Sign-in currently buys nothing: guests and members get an identical product,
-which is a poor trade to ask for. Friends is the first feature that genuinely
+Sign-in buys little beyond keeping your record in your own repository: guests
+and members get nearly the same product, which is a poor trade to ask for. Friends is the first feature that genuinely
 requires identity, and the one that makes AT Protocol load-bearing rather than
 a principled footnote. *Your palate is portable* is abstract. *Your palate is
 comparable to your friends'* is a reason.
@@ -219,11 +221,13 @@ namespace is `app.cotidal.*`, real once `cotidal.app` is registered
 ## Build order
 
 1. **Region links.** Done — the reading path exists.
-2. **Region pages** (`/regions/<id>`). Content-led; the highest-value thing a
-   stranger can be given.
+2. **Region pages** (`/regions/<id>`). A first version is up; sourcing its
+   prose is the rest. Content-led; the highest-value thing a stranger can be
+   given.
 3. **Close the generative surface** (`docs/generation.md`) — before any route
    is promoted, because promotion means traffic.
-4. **The return visit.** Give the log-and-watch-it-move loop a front door.
+4. **The return visit.** Done — `/log` is the log-and-watch-it-move loop's
+   front door.
 5. **Venue claim and menu publishing.** The supply side, and the first thing
    this product offers a non-drinker.
 6. **Menu capture.** The patron half of the same corpus.

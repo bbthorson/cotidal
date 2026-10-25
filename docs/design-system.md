@@ -121,7 +121,7 @@ To guarantee the design system never drifts, automated enforcement is active at 
 ### 1. ESLint Token Rules (`eslint.config.mjs`)
 - **Banned Arbitrary Values**: Rejects Tailwind brackets like `bg-[#hex]`, `text-[13px]`, `shadow-[...]`.
 - **Banned Raw Colors**: Rejects `#hex`, `rgba(...)`, `hsla(...)` in classes.
-- **Error Level**: Enforced strictly on `src/pages/`, `src/layouts/`, and `src/components/marketing/`.
+- **Error Level**: Enforced as an error on `src/pages/`, `src/layouts/` and all of `src/components/`.
 
 ### 2. Copy Single Source of Truth (`src/lib/copy.ts`)
 - All user-facing strings live in `src/lib/copy.ts`.
