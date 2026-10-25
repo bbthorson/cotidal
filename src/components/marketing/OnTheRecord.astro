@@ -1,0 +1,87 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { drinks as copy } from '../../lib/copy';
+
+type Sourced = CollectionEntry<'drinks'>['data'] | CollectionEntry<'regions'>['data'];
+
+interface Props {
+  documented: Sourced['documented'];
+  claimed: Sourced['claimed'];
+  sources: Sourced['sources'];
+}
+
+/**
+ * The three closing sections of every sourced page — what is on the record,
+ * what is only told, and where it comes from. Drinks and regions share the
+ * format (`src/content.config.ts`), so they share this too.
+ */
+const { documented, claimed, sources } = Astro.props;
+---
+
+<!-- On the record -->
+<section class="pb-12">
+  <h2 class="label-caps border-b border-foreground pb-2 text-foreground">
+    {copy.documentedLabel}
+  </h2>
+  <ul>
+    {
+      documented.map((item) => (
+        <li class="menu-row py-4 first:border-t-0">
+          <p class="font-serif text-sm leading-relaxed text-foreground">{item.claim}</p>
+          <p class="label-caps mt-2 text-secondary">{item.source}</p>
+        </li>
+      ))
+    }
+  </ul>
+</section>
+
+<!-- Claimed, not established -->
+{
+  claimed.length > 0 && (
+    <section class="pb-12">
+      <h2 class="label-caps border-b border-foreground pb-2 text-foreground">
+        {copy.claimedLabel}
+      </h2>
+      <ul>
+        {claimed.map((item) => (
+          <li class="menu-row py-4 first:border-t-0">
+            <p class="font-serif text-sm italic leading-relaxed text-muted-foreground">
+              {item.claim}
+            </p>
+            <p class="mt-2 border-l-2 border-primary pl-3 font-serif text-xs leading-relaxed text-muted-foreground">
+              {item.note}
+            </p>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )
+}
+
+<!-- Sources -->
+<section class="pb-12">
+  <h2 class="label-caps border-b border-foreground pb-2 text-foreground">
+    {copy.sourcesLabel}
+  </h2>
+  <ul class="mt-3 space-y-2">
+    {
+      sources.map((s) => (
+        <li class="font-serif text-xs leading-relaxed text-muted-foreground">
+          {s.url ? (
+            <a
+              href={s.url}
+              rel="noopener noreferrer"
+              class="text-foreground underline underline-offset-4 transition-colors hover:text-primary"
+            >
+              {s.title}
+            </a>
+          ) : (
+            <span class="text-foreground">{s.title}</span>
+          )}
+          {s.author && <span> · {s.author}</span>}
+          {s.year && <span class="tabular-nums"> · {s.year}</span>}
+        </li>
+      ))
+    }
+  </ul>
+</section>

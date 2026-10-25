@@ -44,7 +44,7 @@ const ingredient = z.object({
   optional: z.boolean().default(false),
 });
 
-/** Something with a citation behind it. */
+/** Something with a citation behind it. Shared by drinks and regions. */
 const attested = z.object({
   claim: z.string(),
   source: z.string(),
@@ -85,4 +85,23 @@ const drinks = defineCollection({
   }),
 });
 
-export const collections = { drinks };
+/**
+ * Region entries — the prose behind `/regions/<id>`.
+ *
+ * The filename is the region id, and must be one of `quadrants` in `src/lib/copy.ts`
+ * (`tests/region-content.spec.ts`). Name, axis and gloss are not repeated
+ * here, and neither is anything the page can derive: which drinks live in a
+ * region comes from the map, and what they share from their own entries'
+ * ingredient lists. What is left is prose, held to the same rule as a drink:
+ * nothing published without something on the record.
+ */
+const regions = defineCollection({
+  loader: glob({ pattern: '**/*.md', base: './src/content/regions' }),
+  schema: z.object({
+    documented: z.array(attested).min(1),
+    claimed: z.array(asserted).default([]),
+    sources: z.array(reference).min(1),
+  }),
+});
+
+export const collections = { drinks, regions };
