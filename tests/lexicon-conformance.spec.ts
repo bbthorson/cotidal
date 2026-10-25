@@ -102,6 +102,8 @@ test('Records: Zod and @atproto/lexicon agree on what is valid', () => {
     [PALATE_COLLECTION, { ...palate, mapCoordinates: { xHundredths: 1001, yHundredths: 0 } }],
     [PALATE_COLLECTION, { ...palate, mapCoordinates: { xHundredths: 1.5, yHundredths: 0 } }],
     [PALATE_COLLECTION, { ...palate, vibeTagWeights: [{ tag: 'classic', weightHundredths: 1.5 }] }],
+    // Past Number.MAX_SAFE_INTEGER, still an integer: Zod 4's `.int()` would refuse it.
+    [PALATE_COLLECTION, { ...palate, dynamicState: { ...palate.dynamicState, eventCount: 2 ** 60 } }],
     [ELICITATION_COLLECTION, answers],
     [ELICITATION_COLLECTION, { ...answers, answers: [] }],
     [POUR_COLLECTION, pour],
@@ -127,5 +129,5 @@ test('Records: Zod and @atproto/lexicon agree on what is valid', () => {
     expect(ours, `${nsid} ${JSON.stringify(value).slice(0, 120)}`).toBe(valid(nsid, value));
   }
   // The cases are not all one answer.
-  expect(cases.filter(([n, v]) => valid(n, v)).length).toBe(4);
+  expect(cases.filter(([n, v]) => valid(n, v)).length).toBe(5);
 });

@@ -1,6 +1,6 @@
 /**
- * Lexicon strings in Zod: limits counted the way the lexicon counts them, and
- * formats checked by the protocol's reference implementation.
+ * Lexicon strings and integers in Zod: limits counted the way the lexicon
+ * counts them, and formats checked by the protocol's reference implementation.
  */
 import { z } from 'zod';
 import { isDatetimeString, isDatetimeStringLenient } from '@atproto/syntax';
@@ -19,7 +19,7 @@ export interface StringLimits {
 }
 
 /** What each `lexString` was built with, for the lexicon checker to compare. */
-export const STRING_LIMITS = new WeakMap<z.ZodTypeAny, StringLimits>();
+export const STRING_LIMITS = new WeakMap<z.ZodType, StringLimits>();
 
 const encoder = new TextEncoder();
 export const utf8Length = (s: string) => encoder.encode(s).length;
@@ -63,24 +63,34 @@ export function lexString(limits: StringLimits = {}) {
   // A format with no check would pass everything: fail when the schema is built instead.
   const formatCheck = limits.format ? FORMATS[limits.format] : undefined;
   if (limits.format && !formatCheck) throw new Error(`lexString: no check registered for format "${limits.format}"`);
-  const schema = z.string().superRefine((value, ctx) => {
-    const bytes = utf8Length(value);
-    if (limits.minLength !== undefined && bytes < limits.minLength) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, message: `shorter than ${limits.minLength} bytes` });
+  const schema = z.string().check((ctx) => {
+    const fail = (message: string) => ctx.issues.push({ code: 'custom', message, input: ctx.value });
+    const bytes = utf8Length(ctx.value);
+    if (limits.minLength !== undefined && bytes < limits.minLength) fail(`shorter than ${limits.minLength} bytes`);
+    if (limits.maxLength !== undefined && bytes > limits.maxLength) fail(`longer than ${limits.maxLength} bytes`);
+    if (limits.maxGraphemes !== undefined && graphemeLength(ctx.value) > limits.maxGraphemes) {
+      fail(`longer than ${limits.maxGraphemes} characters`);
     }
-    if (limits.maxLength !== undefined && bytes > limits.maxLength) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, message: `longer than ${limits.maxLength} bytes` });
-    }
-    if (limits.maxGraphemes !== undefined && graphemeLength(value) > limits.maxGraphemes) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, message: `longer than ${limits.maxGraphemes} characters` });
-    }
-    if (formatCheck && !formatCheck(value)) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, message: `not a valid ${limits.format}` });
-    }
+    if (formatCheck && !formatCheck(ctx.value)) fail(`not a valid ${limits.format}`);
   });
+  // `.check()` returns a new schema, so this is the instance a record's shape holds.
   STRING_LIMITS.set(schema, limits);
   return schema;
 }
+
+/**
+ * A lexicon integer: any value `Number.isInteger` accepts, as the reference
+ * validator (`@atproto/lexicon`) and the data model (`@atproto/lex-data`)
+ * do. Not Zod's `.int()`, which since Zod 4 also refuses anything past
+ * `Number.MAX_SAFE_INTEGER` — a record another client wrote with a large
+ * count would read there and be dropped here. Bounds chain as usual
+ * (`lexInteger().min(0)`); the lexicon checker finds the integer by this
+ * check, which every chained copy keeps.
+ */
+export const isLexInteger: z.core.CheckFn<number> = (ctx) => {
+  if (!Number.isInteger(ctx.value)) ctx.issues.push({ code: 'invalid_type', expected: 'int', input: ctx.value });
+};
+export const lexInteger = () => z.number().check(isLexInteger);
 
 export const datetime = () => lexString({ format: 'datetime' });
 
@@ -92,7 +102,7 @@ export const datetime = () => lexString({ format: 'datetime' });
  * add to the variety.
  */
 export const writtenDatetime = () =>
-  z.string().refine((s) => isDatetimeString(s), { message: 'not a strict atproto datetime' });
+  z.string().refine((s) => isDatetimeString(s), { error: 'not a strict atproto datetime' });
 
 /**
  * Cut a string to fit a lexicon's limits, on a character boundary, so free

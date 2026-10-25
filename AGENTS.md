@@ -223,7 +223,9 @@ float records written before the encoding. No lexicon may declare a
 **Each record's Zod schema says exactly what its lexicon says.** Strings are
 built with `lexString()`, which counts UTF-8 bytes and graphemes as the
 lexicon does, and checks formats with `@atproto/syntax` — the protocol's
-reference implementation, never a look-alike regex. `npm run lexicons`
+reference implementation, never a look-alike regex. Integers are
+`lexInteger()`, not `.int()`, which since Zod 4 refuses anything past
+`Number.MAX_SAFE_INTEGER` that the reference validator accepts. `npm run lexicons`
 compares every schema in `RECORD_SCHEMAS` with its lexicon field by field and
 parses every file with `@atproto/lexicon`'s `parseLexiconDoc` (not
 `new Lexicons()`, which accepts anything). `tests/lexicon-conformance.spec.ts`

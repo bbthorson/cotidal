@@ -6,10 +6,10 @@
  */
 import { z } from 'zod';
 import { ELICITATION_COLLECTION } from './vocab.ts';
-import { datetime, lexString, writtenDatetime } from './lex-string.ts';
+import { datetime, lexInteger, lexString, writtenDatetime } from './lex-string.ts';
 
 /** Integers only: the AT Protocol data model has no floats. */
-const tenths = z.number().int().min(-100).max(100);
+const tenths = lexInteger().min(-100).max(100);
 
 export const ElicitationOptionSchema = z.object({
   dxTenths: tenths,
@@ -22,9 +22,12 @@ export const ElicitationAnswerSchema = z
     kind: lexString({ maxLength: 32 }).optional(),
     generated: z.boolean().optional(),
     options: z.array(ElicitationOptionSchema).min(1).max(6),
-    chosen: z.number().int().min(0).max(5),
+    chosen: lexInteger().min(0).max(5),
   })
-  .refine((a) => a.chosen < a.options.length, { message: 'chosen is not one of the options' });
+  // A refinement in Zod 4 is a check on the object, not a wrapper around it,
+  // so `.shape` still reads and the lexicon checker compares it as an object.
+  // It runs only once every field has parsed.
+  .refine((a) => a.chosen < a.options.length, { error: 'chosen is not one of the options' });
 export type ElicitationAnswer = z.infer<typeof ElicitationAnswerSchema>;
 
 export const ElicitationRecordSchema = z.object({
