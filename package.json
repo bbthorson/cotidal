@@ -2,7 +2,7 @@
   "name": "crystal-coupe",
   "version": "0.1.0",
   "private": true,
-  "packageManager": "pnpm@10.32.1",
+  "packageManager": "npm@10.9.7",
   "scripts": {
     "dev": "ASTRO_TELEMETRY_DISABLED=1 astro dev --port 9002",
     "build": "ASTRO_TELEMETRY_DISABLED=1 astro build",

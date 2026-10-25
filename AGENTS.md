@@ -240,7 +240,9 @@ unclaimed reference to a later account is the app view's job.
   session gate, per-DID limiter, deterministic fallback, `x-generation` header.
   A new one inherits all four (`docs/generation.md`).
 - Mock model boundaries in tests. The suite must pass with no API key.
-- `npm` is the package manager — `package-lock.json` is the lockfile.
+- `npm` is the package manager — `package-lock.json` is the lockfile, and
+  `packageManager` in `package.json` pins the npm that Cloudflare's Workers
+  Builds installs (the one bundled with `.nvmrc`'s Node).
 - In Claude Code on the web, `.claude/hooks/session-start.sh` installs
   dependencies and sets the env vars the suite needs there. Run the suite the
   way CI does, against the preview build: `npm run build && CI=1 npx
