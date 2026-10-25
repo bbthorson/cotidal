@@ -38,8 +38,8 @@ landing figure, the monogram where it can, and every coaster.
 Build this first: it needs no bar, and it is the Overlap's way into the
 world.
 
-- A coaster drawn from a member's palate: their dot in their region's band,
-  with a QR code at the amphidrome (the centre point).
+- A coaster drawn from a member's palate: their region's band filled, with
+  a QR code at the amphidrome (the centre point).
 - **The QR code is their profile.** It encodes the public URL of their map,
   so one code is both the thing you print and the way someone sees who you
   are. Scanned by a stranger, it shows the map, as `/p/<handle>`
