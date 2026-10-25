@@ -287,6 +287,30 @@ export const drinks = {
   emptyQuadrant: 'Nothing written up here yet.',
 } as const;
 
+/**
+ * `/regions/<id>`. The prose of each region lives in `src/content/regions/`;
+ * these are the parts that are the same for all four, and they describe what
+ * the product does rather than what a region means.
+ */
+export const regionPage = {
+  backLabel: 'The four regions',
+  orderingLabel: 'What it says about you',
+  /** `axis` is a quadrant's axis label, e.g. "Rich · Savory". */
+  ordering: (name: string, axis: string) =>
+    `Your coordinate lands in ${name} when your answers lean ${axis
+      .toLowerCase()
+      .replace(' · ', ' and ')}. That is all it records: a position, worked out from the options you chose — not a type, and not a judgement of you. The menu ranks every drink by its distance from that point, so the nearer you sit to the drinks below, the sooner it reaches for them. Log what you actually drink and the point can move, across a border if that is where your pours take it.`,
+  drinksLabel: 'The drinks here',
+  /** Under the list: how a drink came to be in it. */
+  placedNote:
+    'A drink is here because the chart places it here. Places are set by hand, not computed from a recipe’s proportions.',
+  sharedLabel: 'What they share',
+  sharedNote: (total: number) =>
+    `Counted from the ingredients of the ${total} drinks written up here; an ingredient given as alternatives counts toward each. Wines, beers and spirits served alone list what they are made from, and share nothing on this list.`,
+  sharedCount: (count: number, total: number) => `${count} of ${total}`,
+  otherLabel: 'The other three',
+} as const;
+
 export const returnVisit = {
   eyebrow: 'The Return Visit',
   title: 'Your map, and what moved it.',

@@ -1,199 +1,161 @@
 ---
-import { getCollection } from 'astro:content';
+import { getCollection, getEntry, render } from 'astro:content';
 import type { GetStaticPaths } from 'astro';
 import AppShell from '../../layouts/AppShell.astro';
 import PageTitle from '../../components/marketing/PageTitle.astro';
-import { site, sections } from '../../lib/copy';
+import OnTheRecord from '../../components/marketing/OnTheRecord.astro';
+import { site, sections, quadrants, regionPage as copy } from '../../lib/copy';
 import { drinkDatabase } from '../../lib/data';
+import { sharedIngredients } from '../../lib/ingredients';
 import { QUADRANT_ORDER, quadrantIdFor, type QuadrantId } from '../../lib/quadrant';
-import { getRegionDetail } from '../../lib/regions';
 
+/** Static, like `/drinks`. No island, no client JavaScript. */
 export const prerender = true;
 
-export const getStaticPaths = (() => {
-  return QUADRANT_ORDER.map((id) => ({
-    params: { id },
-  }));
-}) satisfies GetStaticPaths;
+/** The ids are URLs, linked from `/`, `/drinks#<id>` and `/p/<handle>`. */
+export const getStaticPaths = (() => QUADRANT_ORDER.map((id) => ({ params: { id } }))) satisfies GetStaticPaths;
 
 const { id } = Astro.params as { id: QuadrantId };
-const region = getRegionDetail(id);
+const region = quadrants.find((q) => q.id === id)!;
 
-// Query drinks belonging to this quadrant
-const allEntries = await getCollection('drinks');
-const placedDrinks = allEntries
-  .map((entry) => {
-    const drink = drinkDatabase.find((d) => d.name === entry.data.name);
-    return drink ? { entry, drink } : null;
+/**
+ * The prose, from `src/content/regions/<id>.md`. A region without an entry
+ * still has a page — everything below the prose is derived — and
+ * `tests/region-content.spec.ts` is what insists all four are written.
+ */
+const entry = await getEntry('regions', id);
+const Content = entry ? (await render(entry)).Content : null;
+
+/** Which drinks live here is the map's answer, never the entry's. */
+const placed = (await getCollection('drinks'))
+  .map((drinkEntry) => {
+    const drink = drinkDatabase.find((d) => d.name === drinkEntry.data.name);
+    return drink ? { entry: drinkEntry, drink } : null;
   })
   .filter((v): v is NonNullable<typeof v> => v !== null)
   .filter(({ drink }) => quadrantIdFor(drink.x, drink.y) === id)
   .sort((a, b) => a.entry.data.title.localeCompare(b.entry.data.title));
 
-const otherRegions = QUADRANT_ORDER.filter((rId) => rId !== id).map((rId) =>
-  getRegionDetail(rId)
-);
+const shared = sharedIngredients(placed.map(({ entry }) => entry.data));
+const others = quadrants.filter((q) => q.id !== id);
 ---
 
 <AppShell
   title={`${region.name} · ${site.name}`}
   description={region.gloss}
   currentPath={`/regions/${region.id}`}
-  backLink={{ href: '/#regions', label: 'The Four Regions' }}
-  width="standard"
+  backLink={{ href: '/#regions', label: copy.backLabel }}
+  width="prose"
 >
-  <article class="space-y-16">
-    <PageTitle title={region.name} lede={region.gloss} ruled>
-      <div slot="eyebrow" class="flex items-center justify-center gap-2">
-        <span class="label-caps border border-border px-2.5 py-0.5 text-secondary">
-          {region.axis}
-        </span>
-        <span class="font-condensed text-3xs uppercase tracking-label text-muted-foreground">
-          {region.coordinateRange}
-        </span>
-      </div>
-    </PageTitle>
+  <article>
+    <PageTitle eyebrow={region.axis} title={region.name} lede={region.gloss} ruled />
 
-    <!-- Character & Sensory Stance -->
-    <section class="space-y-6">
-      <h2 class="label-caps border-b border-foreground pb-2 text-foreground">Sensory Stance</h2>
-      <p class="font-serif text-base leading-relaxed text-foreground md:text-lg">
-        {region.character}
-      </p>
-      <p class="font-serif text-base leading-relaxed text-muted-foreground md:text-lg">
-        {region.philosophy}
+    <!-- What the region is -->
+    {
+      Content && (
+        <div class="prose-entry py-12">
+          <Content />
+        </div>
+      )
+    }
+
+    <!-- What ordering from it says about you -->
+    <section class="pb-12">
+      <h2 class="label-caps border-b border-foreground pb-2 text-foreground">
+        {copy.orderingLabel}
+      </h2>
+      <p class="mt-4 font-serif text-sm leading-relaxed text-foreground">
+        {copy.ordering(region.name, region.axis)}
       </p>
     </section>
 
-    <!-- Technical Anatomy & Chemistry Ledger -->
-    <section class="border border-border bg-card p-6 md:p-8 rounded-sm shadow-bar space-y-6">
-      <div class="border-b border-border pb-3 flex items-center justify-between">
-        <span class="label-caps text-primary">Technical Anatomy</span>
-        <span class="font-condensed text-3xs uppercase tracking-label text-muted-foreground">Formulation Spec</span>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div class="space-y-2">
-          <span class="label-caps text-muted-foreground block">Foundation Spirits</span>
-          <p class="font-serif text-sm text-foreground">
-            {region.chemistry.baseSpirits.join(' · ')}
-          </p>
-        </div>
-
-        <div class="space-y-2">
-          <span class="label-caps text-muted-foreground block">Key Flavor Compounds</span>
-          <p class="font-serif text-sm text-foreground">
-            {region.chemistry.flavorCompounds.join(' · ')}
-          </p>
-        </div>
-
-        <div class="space-y-2">
-          <span class="label-caps text-muted-foreground block">Method & Dilution</span>
-          <p class="font-serif text-sm text-foreground">
-            {region.chemistry.technique}
-          </p>
-        </div>
-
-        <div class="space-y-2">
-          <span class="label-caps text-muted-foreground block">Canonical Glassware</span>
-          <p class="font-serif text-sm text-foreground">
-            {region.chemistry.glassware}
-          </p>
-        </div>
-      </div>
-
-      <div class="border-t border-border pt-4">
-        <span class="label-caps text-muted-foreground block mb-1">What This Order Signals</span>
-        <p class="font-serif text-sm italic text-foreground">
-          "{region.orderingProfile}"
-        </p>
-      </div>
-    </section>
-
-    <!-- Canonical Specimens in the Rutter -->
-    <section class="space-y-6">
+    <!-- The drinks that live there -->
+    <section class="pb-12">
       <div class="flex items-baseline justify-between border-b border-foreground pb-2">
-        <div class="flex items-baseline gap-3">
-          <span class="label-caps text-primary">Specimens</span>
-          <h2 class="font-serif text-xl font-bold text-foreground">
-            Catalogued Drinks in {region.name}
-          </h2>
-        </div>
+        <h2 class="label-caps text-foreground">{copy.drinksLabel}</h2>
         <a
           href={`/drinks#${region.id}`}
-          class="font-condensed text-xs uppercase tracking-label text-muted-foreground hover:text-primary transition-colors"
+          class="label-caps text-muted-foreground transition-colors hover:text-primary"
         >
           {sections.regionDrinks} &rarr;
         </a>
       </div>
-
-      {placedDrinks.length > 0 ? (
-        <ul class="divide-y divide-border">
-          {placedDrinks.map(({ entry, drink }) => (
-            <li class="py-4 group">
-              <a
-                href={`/drinks/${entry.id}`}
-                class="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-2"
-              >
-                <div class="space-y-1 flex-1">
-                  <div class="flex items-baseline gap-2">
-                    <span class="font-serif text-lg font-bold text-foreground group-hover:text-primary transition-colors">
-                      {entry.data.title}
-                    </span>
-                    <span class="label-caps text-muted-foreground">
-                      {entry.data.family}
-                    </span>
-                  </div>
-                  <p class="font-serif text-xs italic text-muted-foreground line-clamp-1">
-                    {entry.data.summary}
-                  </p>
-                </div>
-
-                <div class="flex items-center gap-3 shrink-0">
-                  <span class="font-condensed text-xs tabular-nums text-primary border border-border px-2 py-0.5 rounded-sm">
-                    {drink.x > 0 ? '+' : ''}{drink.x}, {drink.y > 0 ? '+' : ''}{drink.y}
+      <ul class="border-b border-border">
+        {
+          placed.map(({ entry: drinkEntry, drink }) => (
+            <li class="menu-row first:border-t-0">
+              <a href={`/drinks/${drinkEntry.id}`} class="group block py-3">
+                <span class="dot-leader">
+                  <span class="font-serif text-base font-bold text-foreground transition-colors group-hover:text-primary">
+                    {drinkEntry.data.title}
                   </span>
-                  <span class="font-condensed text-xs uppercase tracking-label text-muted-foreground group-hover:text-foreground transition-colors">
-                    Read spec &rarr;
+                  <span class="leader" aria-hidden="true" />
+                  <span class="label-caps shrink-0 tabular-nums">
+                    {drink.x > 0 ? '+' : ''}
+                    {drink.x}, {drink.y > 0 ? '+' : ''}
+                    {drink.y}
                   </span>
-                </div>
+                </span>
               </a>
             </li>
-          ))}
-        </ul>
-      ) : (
-        <p class="font-serif text-sm italic text-muted-foreground py-4">
-          No drinks catalogued in this region yet.
-        </p>
-      )}
+          ))
+        }
+      </ul>
+      <p class="mt-3 font-serif text-xs italic leading-relaxed text-muted-foreground">
+        {copy.placedNote}
+      </p>
     </section>
 
-    <!-- Other Regions Footer Navigation -->
-    <section class="border-t border-foreground pt-12 space-y-6">
-      <span class="label-caps text-muted-foreground block text-center">
-        Explore Other Regions
-      </span>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {otherRegions.map((other) => (
-          <a
-            href={`/regions/${other.id}`}
-            class="group border border-border bg-card p-4 rounded-sm hover:border-primary hover:shadow-bar transition-all flex flex-col justify-between"
-          >
-            <div>
-              <span class="label-caps text-secondary block mb-1">{other.axis}</span>
-              <h3 class="font-serif text-base font-bold text-foreground group-hover:text-primary transition-colors">
-                {other.name}
-              </h3>
-              <p class="font-serif text-xs italic text-muted-foreground mt-1 line-clamp-2">
-                {other.gloss}
-              </p>
-            </div>
-            <span class="font-condensed text-3xs uppercase tracking-label text-primary mt-3 block">
-              Explore &rarr;
-            </span>
-          </a>
-        ))}
-      </div>
-    </section>
+    <!-- The ingredients they share -->
+    {
+      shared.length > 0 && (
+        <section class="pb-12">
+          <h2 class="label-caps border-b border-foreground pb-2 text-foreground">
+            {copy.sharedLabel}
+          </h2>
+          <ul class="border-b border-border">
+            {shared.map((ingredient) => (
+              <li class="menu-row dot-leader py-2.5 first:border-t-0">
+                <span class="font-serif text-sm text-foreground">{ingredient.name}</span>
+                <span class="leader" aria-hidden="true" />
+                <span class="shrink-0 font-condensed text-sm tabular-nums text-secondary">
+                  {copy.sharedCount(ingredient.count, placed.length)}
+                </span>
+              </li>
+            ))}
+          </ul>
+          <p class="mt-3 font-serif text-xs italic leading-relaxed text-muted-foreground">
+            {copy.sharedNote(placed.length)}
+          </p>
+        </section>
+      )
+    }
+
+    {entry && <OnTheRecord {...entry.data} />}
+
+    <!-- The other three -->
+    <nav aria-label={copy.otherLabel} class="border-t border-foreground pt-10 pb-4">
+      <p class="label-caps text-center">{copy.otherLabel}</p>
+      <ul class="mt-4 border-b border-border">
+        {
+          others.map((other) => (
+            <li class="menu-row first:border-t-0">
+              <a href={`/regions/${other.id}`} class="group block py-3">
+                <span class="dot-leader">
+                  <span class="font-serif text-base font-bold text-foreground transition-colors group-hover:text-primary">
+                    {other.name}
+                  </span>
+                  <span class="leader" aria-hidden="true" />
+                  <span class="label-caps shrink-0">{other.axis}</span>
+                </span>
+                <p class="mt-1 font-serif text-xs italic leading-relaxed text-muted-foreground">
+                  {other.gloss}
+                </p>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
   </article>
 </AppShell>

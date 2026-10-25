@@ -38,6 +38,7 @@ something that drifts from the first. Three had already happened:
 | Styling | `globals.css` tokens + `tailwind.config.ts` | `npm run lint` — arbitrary values and raw colours are an error in `pages/`, `layouts/` and `components/` |
 | Marketing copy | `src/lib/copy.ts` | *(convention)* |
 | Drink prose | `src/content/drinks/*.md` | `tests/drink-content.spec.ts` |
+| Region prose | `src/content/regions/*.md` | `tests/region-content.spec.ts` |
 | What the device keeps | `src/lib/device-store.ts` | *(convention)* — nothing else touches `localStorage` |
 
 Found in the wild, each silent:
@@ -148,6 +149,24 @@ enum in `src/content.config.ts`; extend it there before using a new value. Then:
 npm run typecheck   # the frontmatter schema is checked at build time
 npx playwright test tests/drink-content.spec.ts
 ```
+
+### Region prose — `src/content/regions/`, `src/pages/regions/[id].astro`
+`/regions/<id>`, prerendered and script-free. Same format as a drink
+(`documented` required, `claimed`, `sources`), one entry per region, and the
+filename is the id — which is a URL: the landing page, `/drinks#<id>` and
+`/p/<handle>` link to it. Never rename one; a rename adds a redirect
+(`formerQuadrantIds`).
+
+The entry holds only prose. Name, axis and gloss come from `quadrants` in
+`copy.ts`; the drinks come from the map; what they share is counted from the
+drink entries' ingredient lists through the vocabulary in
+`src/lib/ingredients.ts`; "what it says about you" is one template in
+`copy.ts` that describes what the product does with a coordinate, not what
+the region means. A region is Cotidal's construct, so nothing documented can
+be about the region itself — the record is about its drinks and their
+ingredients, and the claims about *you* go under `claimed`, with why.
+Prose names drinks by linking them, and the test fails if a linked drink is
+placed in another region.
 
 Wikipedia is a fine index for finding the primary sources. It is not itself a
 source: follow it out to the bar manual, the newspaper, or the archive, cite
@@ -279,10 +298,9 @@ interface; see `docs/brand.md`.
 4. **Menu capture.** Photograph a menu, get a recommendation, no account
    required — value before signup, and it builds the venue/menu corpus as a
    byproduct.
-5. **Region pages** (`/regions/<id>`). A first page per region exists, with
-   its prose in `src/lib/regions.ts`, linked from the landing page and
-   `/p/<handle>`. Still to do: hold that prose to the sourcing discipline of
-   `src/content/drinks/` — it cites nothing yet.
+5. **Region pages** (`/regions/<id>`) *(Completed)*. Sourced prose in
+   `src/content/regions/`, linked from the landing page, `/drinks` and
+   `/p/<handle>`; see Region prose.
 6. **The return visit.** Logging a pour and watching the point move is the
    only recurring behaviour in the product. Its front door is `/log`
    (`ReturnVisit.tsx`), in the site navigation.

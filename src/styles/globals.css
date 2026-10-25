@@ -192,6 +192,10 @@
   .prose-entry em {
     @apply not-italic text-foreground;
   }
+  /* A region's prose names its drinks by linking them. */
+  .prose-entry a {
+    @apply text-foreground underline underline-offset-4 transition-colors hover:text-primary;
+  }
 }
 
 /* Focus mode. The quiz and the reveals are one-move screens on a phone, so

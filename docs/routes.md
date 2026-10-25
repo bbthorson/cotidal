@@ -47,10 +47,21 @@ drift this codebase keeps producing.
 
 **Then:** `/regions/<id>` as a page of its own — what the region is, what
 ordering from it says about you, the drinks that live there and the
-ingredients they share. A first version exists (`src/pages/regions/[id].astro`,
-prose in `src/lib/regions.ts`), and the landing page and `/p/<handle>` link to
-it. What it still lacks is the sourcing discipline of `src/content/drinks/`
-(`AGENTS.md`): its prose cites nothing yet.
+ingredients they share. Done, and the four parts come from four places:
+
+- **What it is** is prose in `src/content/regions/<id>.md`, a content
+  collection held to the drinks' format — what is on the record, what is
+  only told, and the sources.
+- **What it says about you** is one template in `copy.ts`, the same for all
+  four: your answers leaned this way, the menu ranks by distance, a pour can
+  move the point. That is what the product does. Anything more — bitter
+  drinkers' character, sweet as a beginner's palate — is listed as claimed,
+  with the reason it is not on the record.
+- **The drinks** come from the map, as on `/drinks`.
+- **What they share** is counted from those drinks' own ingredient lists
+  (`src/lib/ingredients.ts`), so it cannot disagree with them. The first
+  version hand-listed ingredients and named drinks that the map placed in
+  other regions.
 
 The reading path is the third door. Today a visitor may take the quiz or look
 at the map; both ask to measure them. Some people want to read first, and they
@@ -221,9 +232,8 @@ namespace is `app.cotidal.*`, real once `cotidal.app` is registered
 ## Build order
 
 1. **Region links.** Done — the reading path exists.
-2. **Region pages** (`/regions/<id>`). A first version is up; sourcing its
-   prose is the rest. Content-led; the highest-value thing a stranger can be
-   given.
+2. **Region pages** (`/regions/<id>`). Done — sourced, and derived from the
+   map and the register wherever they can be.
 3. **Close the generative surface** (`docs/generation.md`) — before any route
    is promoted, because promotion means traffic.
 4. **The return visit.** Done — `/log` is the log-and-watch-it-move loop's

@@ -72,8 +72,9 @@ test('Landing: each region links to its dedicated region page', async ({ page })
   for (const id of QUADRANT_ORDER) {
     expect(landing, `no landing link to /regions/${id}`).toContain(`/regions/${id}`);
     const regionPage = await (await page.request.get(`/regions/${id}`)).text();
-    expect(regionPage).toContain('Sensory Stance');
-    expect(regionPage).toContain('Technical Anatomy');
+    const name = quadrants.find((q) => q.id === id)!.name;
+    expect(regionPage, `/regions/${id} does not name its region`).toContain(name);
+    expect(regionPage, `/regions/${id} does not link its drinks`).toContain(`/drinks#${id}`);
   }
 });
 
