@@ -1,4 +1,7 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type APIRequestContext } from '@playwright/test';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { connect } from '../src/lib/copy';
 
 /**
  * Replaces the old Firebase anonymous-sign-in test: there is no Firebase in
@@ -50,6 +53,52 @@ test('Auth: client metadata is served for OAuth discovery', async ({ request }) 
     // Not configured in this environment.
     expect([404, 500, 503]).toContain(res.status());
   }
+});
+
+/**
+ * Whether the server will run a sign-in, asked without touching the network:
+ * a handle that cannot be valid is refused with 400 before any lookup when
+ * sign-in is on, and the route answers 503 `not_configured` when it is off.
+ */
+async function serverSignInEnabled(request: APIRequestContext): Promise<boolean> {
+  const res = await request.post('/api/auth/atproto/login', { data: { handle: 'x' } });
+  return res.status() !== 503;
+}
+
+/*
+ * The page and the server used to read the on/off switch from two places —
+ * a build-time variable inlined into `/` and the island, and a runtime one on
+ * the Worker — so setting it in only one left a form that posted to a route
+ * that refused it, or no form at all in front of a route that worked.
+ * Whatever this environment is configured as, the three must agree.
+ */
+test('Auth: the landing form is offered exactly when the server will sign in', async ({ request }) => {
+  const enabled = await serverSignInEnabled(request);
+  const html = await (await request.get('/')).text();
+  expect(html.includes('action="/api/auth/atproto/login"')).toBe(enabled);
+  expect(html.includes(connect.disabled)).toBe(!enabled);
+});
+
+test('Auth: the sign-in sheet on /taste agrees with the server', async ({ page, request }) => {
+  const enabled = await serverSignInEnabled(request);
+  await page.goto('/taste?signin=1');
+  const dialog = page.getByRole('dialog');
+  await expect(dialog).toBeVisible();
+  if (enabled) {
+    await expect(dialog.getByPlaceholder(connect.placeholder)).toBeVisible();
+  } else {
+    await expect(dialog.getByText(connect.disabled)).toBeVisible();
+  }
+});
+
+test('Auth: no browser code decides for itself whether sign-in is on', () => {
+  // Anything the browser reads was fixed when the site was built.
+  const dir = join(process.cwd(), 'dist', 'client', '_astro');
+  test.skip(!existsSync(dir), 'needs a build (npm run build)');
+  const offenders = readdirSync(dir)
+    .filter((f) => f.endsWith('.js'))
+    .filter((f) => readFileSync(join(dir, f), 'utf8').includes('ATPROTO_ENABLED'));
+  expect(offenders).toEqual([]);
 });
 
 /*

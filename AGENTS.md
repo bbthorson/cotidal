@@ -171,6 +171,15 @@ so it needs neither `@atproto/oauth-client-node` nor its undici-based handle
 resolver, which threw in the constructor on workerd. In development open the
 app at `http://127.0.0.1:9002`, not `localhost`.
 
+**Whether sign-in is on is the server's answer, at runtime:**
+`signInEnabled()` in `auth.ts` — `ATPROTO_ENABLED` (or the older
+`PUBLIC_ATPROTO_ENABLED`) set as a *Worker variable*, plus `SESSION_SECRET`.
+`/` renders from it, and `/taste` and `/log` pass it to their islands as a
+prop. Never read the flag from `import.meta.env` or in browser code: that is
+fixed at build time, and it once left `/` and the island saying "not enabled"
+in front of a server that would have signed people in.
+`tests/auth-endpoint.spec.ts` holds the three to one answer.
+
 `public-read.ts` reads *other people's* palates with no session, for
 `/p/<handle>` — handle → DID → document → PDS → record. It runs on a public
 route, so it fetches only `https:` hosts, time-boxes every lookup, and parses

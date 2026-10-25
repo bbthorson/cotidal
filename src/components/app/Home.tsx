@@ -155,9 +155,15 @@ function HomeContent({ register }: { register: Register }) {
   );
 }
 
-export default function Home({ register }: { register: Register }) {
+export default function Home({
+  register,
+  signInEnabled,
+}: {
+  register: Register;
+  signInEnabled: boolean;
+}) {
   return (
-    <AtprotoProvider>
+    <AtprotoProvider enabled={signInEnabled}>
       <HomeContent register={register} />
     </AtprotoProvider>
   );

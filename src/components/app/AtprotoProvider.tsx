@@ -7,8 +7,15 @@ type AtprotoContextType = ReturnType<typeof useAtproto>;
 
 const AtprotoContext = createContext<AtprotoContextType | null>(null);
 
-export function AtprotoProvider({ children }: { children: React.ReactNode }) {
-  const atproto = useAtproto();
+export function AtprotoProvider({
+  enabled,
+  children,
+}: {
+  /** From `signInEnabled()`, rendered by the page that mounts the island. */
+  enabled: boolean;
+  children: React.ReactNode;
+}) {
+  const atproto = useAtproto(enabled);
 
   return (
     <AtprotoContext.Provider value={atproto}>

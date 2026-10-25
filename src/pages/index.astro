@@ -5,19 +5,20 @@ import QuadrantGrid from '../components/marketing/QuadrantGrid.astro';
 import Principles from '../components/marketing/Principles.astro';
 import ChartFigure from '../components/marketing/ChartFigure.astro';
 import { hero, connect, drinks, sections } from '../lib/copy';
+import { signInEnabled } from '../lib/atproto/auth';
 
 /**
  * The landing page ships zero JavaScript. Everything interactive lives at
  * /taste, which is where the React island is mounted. Sign-in is a plain
- * form post (see src/pages/api/auth/atproto/login.ts).
+ * form post (see src/pages/api/auth/atproto/[...route].ts).
  *
  * Laid out as a printed specimen and menu — hairline rules, one section per idea,
  * and the cotidal chart as the single large move. See docs/brand.md.
  */
 
-const atprotoEnabled = !!(
-  import.meta.env.PUBLIC_ATPROTO_ENABLED ?? import.meta.env.ATPROTO_ENABLED
-);
+// The server's runtime answer, the same one the login route acts on — not a
+// build-time variable, which is what let the two disagree.
+const atprotoEnabled = await signInEnabled();
 
 const errorCodes: Record<string, string> = {
   not_configured: 'Sign-in is not configured right now.',
