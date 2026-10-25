@@ -80,9 +80,9 @@ export function Moved({
       </CoordinateMap>
 
       {rows.length > 0 && (
-      <ul className="mt-4.5 border-t border-reveal-muted/40">
+      <ul className="mt-4.5 border-t border-reveal-rule">
         {rows.map((row) => (
-          <li key={row.name} className="dot-leader border-b border-reveal-muted/25 py-3">
+          <li key={row.name} className="dot-leader border-b border-reveal-hairline py-3">
             <span className="font-serif text-base font-bold">{row.name}</span>
             <span aria-hidden="true" className="leader leader-reveal" />
             <span className="font-condensed text-sm font-semibold tracking-widest text-reveal-muted">{row.note}</span>

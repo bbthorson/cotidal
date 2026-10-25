@@ -21,6 +21,15 @@ const ARBITRARY_VALUE = /(^|\s)-?[a-z][a-zA-Z-]*-\[[^\]]+\]/;
 /** A raw colour anywhere in a class string. */
 const RAW_COLOR = /#[0-9a-fA-F]{3,8}\b|\brgba?\(|\bhsla?\(/;
 
+/**
+ * A colour faded on the spot: `text-foreground/80`, `border-border/60`. Text is
+ * de-emphasised by size and weight, never opacity (docs/design-system.md), and
+ * a translucent rule or scrim is a named token in globals.css. Fractions such
+ * as `w-1/2` and `-translate-x-1/2` are not colours and do not match.
+ */
+const OPACITY_MODIFIER =
+  /(^|[\s:])(text|bg|border(-[trblxy])?|ring|ring-offset|outline|fill|stroke|divide|decoration|shadow|from|via|to|accent|caret|placeholder)-[a-z][a-z0-9-]*\/\d+(\s|$)/;
+
 const TOKEN_MESSAGE =
   'Use a design token, not a literal. Colours, sizes and shadows belong in ' +
   'globals.css / tailwind.config.ts — see docs/brand.md. If the token you ' +
@@ -41,6 +50,14 @@ const tokenRuleEntries = [
   },
   {
     selector: `TemplateElement[value.raw=/${ARBITRARY_VALUE.source}/]`,
+    message: TOKEN_MESSAGE,
+  },
+  {
+    selector: `Literal[value=/${OPACITY_MODIFIER.source}/]`,
+    message: TOKEN_MESSAGE,
+  },
+  {
+    selector: `TemplateElement[value.raw=/${OPACITY_MODIFIER.source}/]`,
     message: TOKEN_MESSAGE,
   },
 ];

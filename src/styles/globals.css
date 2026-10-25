@@ -48,6 +48,21 @@
     --reveal-mark: 9 55% 52%;
     /* Pale terracotta for the trace a moved dot leaves behind */
     --reveal-trace: 12 58% 78%;
+    /* Rules on the ink ground: the map's frame and a list's top rule, then the
+       lighter hairline for its axes and between rows */
+    --reveal-rule: var(--reveal-muted) / 0.45;
+    --reveal-hairline: var(--reveal-muted) / 0.28;
+    /* Paper ink, dimmed: drinks off your menu, and your mark's crosshair */
+    --reveal-dim: var(--reveal-foreground) / 0.58;
+
+    /* The ink laid over the page behind a sheet */
+    --scrim: var(--foreground) / 0.55;
+
+    /* The cotidal chart (ChartFigure): the map's axes, the co-range rings, and
+       the crosshair that sits on the terracotta band */
+    --chart-axis: var(--foreground) / 0.2;
+    --chart-ring: var(--foreground) / 0.4;
+    --chart-cross: var(--card) / 0.7;
 
   }
 

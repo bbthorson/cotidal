@@ -43,6 +43,19 @@ Forest laid as the stock, paper as the ink. Used **only** where the product reve
 | `--reveal-muted` | `80 24% 76%` | `#C6D1B2` | Labels (sage) |
 | `--reveal-mark` | `9 55% 52%` | `#C8543F` | Your dot |
 | `--reveal-trace` | `12 58% 78%` | `#E7B3A6` | Where your dot was |
+| `--reveal-rule` | `--reveal-muted` at 45% | — | The map's frame, a list's top rule |
+| `--reveal-hairline` | `--reveal-muted` at 28% | — | The map's axes, rules between rows |
+| `--reveal-dim` | `--reveal-foreground` at 58% | — | Drinks off your menu, your mark's crosshair |
+
+### Translucent tokens
+A colour that needs transparency gets a name here, in `globals.css`, rather than an opacity modifier (`/55`) where it is used.
+
+| Token | Value | Role |
+|---|---|---|
+| `--scrim` | `--foreground` at 55% | Laid over the page behind a sheet |
+| `--chart-axis` | `--foreground` at 20% | The map's axes on the cotidal chart (`ChartFigure`) |
+| `--chart-ring` | `--foreground` at 40% | Its co-range rings |
+| `--chart-cross` | `--card` at 70% | The crosshair on the terracotta band |
 
 ### Typography Tokens
 | Token | Font Family / Size | Tracking / Leading | Usage |
@@ -122,6 +135,7 @@ To guarantee the design system never drifts, automated enforcement is active at 
 ### 1. ESLint Token Rules (`eslint.config.mjs`)
 - **Banned Arbitrary Values**: Rejects Tailwind brackets like `bg-[#hex]`, `text-[13px]`, `shadow-[...]`.
 - **Banned Raw Colors**: Rejects `#hex`, `rgba(...)`, `hsla(...)` in classes.
+- **Banned Opacity Modifiers**: Rejects a colour faded where it is used (`text-foreground/80`, `border-border/60`). De-emphasise text with size and weight; give a translucent colour a token.
 - **Error Level**: Enforced as an error on `src/pages/`, `src/layouts/` and all of `src/components/`.
 
 ### 2. Copy Single Source of Truth (`src/lib/copy.ts`)

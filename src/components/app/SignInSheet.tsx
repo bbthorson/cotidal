@@ -30,7 +30,7 @@ export function SignInSheet({ open, onOpenChange }: SignInSheetProps) {
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-50 bg-foreground/55 data-open:animate-in data-open:fade-in-0" />
+        <Dialog.Overlay className="fixed inset-0 z-50 bg-scrim data-open:animate-in data-open:fade-in-0" />
         <Dialog.Content className="fixed inset-x-0 bottom-0 z-50 flex max-h-dvh flex-col gap-4 overflow-y-auto border-t border-foreground bg-background px-6 pb-8 pt-3 text-foreground focus:outline-none data-open:animate-in data-open:fade-in-0 max-sm:data-open:slide-in-from-bottom sm:bottom-auto sm:left-1/2 sm:top-1/2 sm:w-full sm:max-w-md sm:-translate-x-1/2 sm:-translate-y-1/2 sm:border sm:pt-6 sm:shadow-mcm">
           <div aria-hidden="true" className="h-0.75 w-10 self-center bg-border sm:hidden" />
 
