@@ -197,13 +197,6 @@ export const menu = {
   signedInAs: 'Signed in as',
   share: 'Share to your feed',
   shared: 'Shared',
-  refineTitle: 'Tell us what you avoid',
-  refineBody:
-    'Anything you avoid, crave or swear by. Your coordinate moves to match, and the change is written to your account.',
-  refinePlaceholder: 'Red wine gives me headaches. I love a dry martini. Nothing that tastes of licorice.',
-  refineSubmit: 'Move my coordinate',
-  refining: 'Moving…',
-  refineResult: 'What changed',
   startOver: 'Start over',
   startOverCancel: 'Keep it',
   empty: 'Nothing on the map fits these limits yet.',

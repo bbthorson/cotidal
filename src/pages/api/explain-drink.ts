@@ -11,9 +11,8 @@ import {
 } from '@/lib/generation';
 
 /**
- * Why this drink suits you — the one place per-user prose beats a template
- * (docs/generation.md). One of two live generative routes; the other is
- * refine-palate.
+ * Why this drink suits you — the one place per-user prose beats a template,
+ * and the only live generative route (docs/generation.md).
  *
  * Order matters: validate, authenticate, meter, then call the model. A
  * malformed or unauthenticated request must cost nothing and consume no

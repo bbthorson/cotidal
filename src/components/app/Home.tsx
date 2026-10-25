@@ -124,11 +124,6 @@ function HomeContent({ register }: { register: Register }) {
 
   const quiz = useDiscoveryQuiz(handleQuizComplete);
 
-  const handlePalateUpdated = useCallback((profile: UserProfile) => {
-    setUserProfile(profile);
-    saveProfile(profile);
-  }, []);
-
   /**
    * Retake the questions. Finishing them replaces the coordinate here and on
    * the account, and restarts the filter (derivePalateRecord); pours already
@@ -161,7 +156,6 @@ function HomeContent({ register }: { register: Register }) {
         hasCoordinate={!!userProfile}
         vibeTags={userProfile?.vibeTags || {}}
         register={register}
-        onPalateUpdated={handlePalateUpdated}
         onRequestSignIn={() => setSignInOpen(true)}
         onStartOver={reset}
       />
