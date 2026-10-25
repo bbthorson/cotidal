@@ -13,8 +13,8 @@ export type Quadrant = (typeof quadrants)[number];
 
 /** Sign of x (Rich −10 → Crisp +10) and y (Savory −10 → Sweet +10). */
 const BY_SIGN: Record<'crisp' | 'rich', Record<'sweet' | 'savory', QuadrantId>> = {
-  rich: { savory: 'ember', sweet: 'vault' },
-  crisp: { savory: 'salt-line', sweet: 'orchard' },
+  rich: { savory: 'deep', sweet: 'eddy' },
+  crisp: { savory: 'salt-line', sweet: 'surf' },
 };
 
 /**

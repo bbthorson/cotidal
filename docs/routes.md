@@ -40,7 +40,7 @@ This was the missing spine, and most of it already existed unconnected:
 same four regions and linked nowhere.
 
 **Now:** the four rows link to their section of the register
-(`/drinks#ember`). One edit, no new content, and the site's own vocabulary
+(`/drinks#deep`). One edit, no new content, and the site's own vocabulary
 finally leads somewhere. `tests/landing-static.spec.ts` asserts the two lists
 of ids still agree, because two hand-written copies of the same list is the
 drift this codebase keeps producing.

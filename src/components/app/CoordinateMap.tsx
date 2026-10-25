@@ -6,8 +6,8 @@ import { cn } from '@/lib/utils';
 
 /**
  * The map and the coordinate, drawn to the design system (06):
- * sweet top, savory bottom; rich left, crisp right. Vault top-left, Orchard
- * top-right, Ember bottom-left, Salt Line bottom-right.
+ * sweet top, savory bottom; rich left, crisp right. Eddy top-left, Surf
+ * top-right, Deep bottom-left, Salt Line bottom-right.
  *
  * Two tones. `paper` is the instrument; `ink` is the reveal ground, used only
  * when the product reveals something (the coordinate landing, or moving).
@@ -16,9 +16,9 @@ import { cn } from '@/lib/utils';
 export type MapTone = 'paper' | 'ink';
 
 const CORNER: Record<QuadrantId, string> = {
-  vault: 'left-2 top-2',
-  orchard: 'right-2 top-2',
-  ember: 'left-2 bottom-2',
+  eddy: 'left-2 top-2',
+  surf: 'right-2 top-2',
+  deep: 'left-2 bottom-2',
   'salt-line': 'right-2 bottom-2',
 };
 

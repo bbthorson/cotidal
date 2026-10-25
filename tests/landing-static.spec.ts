@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { QUADRANT_ORDER } from '../src/lib/quadrant';
+import { quadrants, formerQuadrantIds, nav as nav_ } from '../src/lib/copy';
 
 /**
  * The landing page is the app's front door and must stay free of client
@@ -43,8 +44,8 @@ test('Landing: hero and quadrants are server-rendered', async ({ page }) => {
   const html = await response.text();
 
   expect(html).toContain('Every palate has');
-  for (const quadrant of ['The Ember', 'The Salt Line', 'The Vault', 'The Orchard']) {
-    expect(html).toContain(quadrant);
+  for (const { name } of quadrants) {
+    expect(html).toContain(name);
   }
   expect(html).not.toMatch(/triangulat/i);
 });
@@ -73,6 +74,14 @@ test('Landing: each region links to its dedicated region page', async ({ page })
     const regionPage = await (await page.request.get(`/regions/${id}`)).text();
     expect(regionPage).toContain('Sensory Stance');
     expect(regionPage).toContain('Technical Anatomy');
+  }
+});
+
+test('Regions: the pages from before the water names redirect to their successors', async ({ request }) => {
+  for (const [from, to] of Object.entries(formerQuadrantIds)) {
+    const res = await request.get(`/regions/${from}`, { maxRedirects: 0 });
+    expect(res.status(), from).toBe(301);
+    expect(new URL(res.headers()['location'], 'http://x').pathname).toBe(`/regions/${to}`);
   }
 });
 
@@ -127,7 +136,7 @@ test('Header: on a phone the destinations fold under "Menu", without JavaScript'
   await expect(nav).toBeHidden();
   await page.locator('header summary').click();
   await expect(nav).toBeVisible();
-  await expect(nav.getByRole('link', { name: /the register/i })).toBeVisible();
+  await expect(nav.getByRole('link', { name: nav_.register, exact: true })).toBeVisible();
   await context.close();
 });
 

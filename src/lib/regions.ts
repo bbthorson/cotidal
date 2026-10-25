@@ -1,10 +1,12 @@
 import type { QuadrantId } from './quadrant';
+import { quadrants } from './copy';
 
-export interface RegionDetail {
-  id: QuadrantId;
-  name: string;
-  axis: string;
-  gloss: string;
+/**
+ * The long-form page for each region. Name, axis and gloss are not repeated
+ * here: they come from `quadrants` in copy.ts, the one place a region is
+ * named (`getRegionDetail` joins them).
+ */
+interface RegionProse {
   coordinateRange: string;
   character: string;
   philosophy: string;
@@ -17,15 +19,13 @@ export interface RegionDetail {
   orderingProfile: string;
 }
 
-export const REGION_DETAILS: Record<QuadrantId, RegionDetail> = {
-  ember: {
-    id: 'ember',
-    name: 'The Ember',
-    axis: 'Rich · Savory',
-    gloss: 'Bitter, aged, and unhurried. Drinks that argue back.',
+export type RegionDetail = RegionProse & (typeof quadrants)[number];
+
+const REGION_PROSE: Record<QuadrantId, RegionProse> = {
+  deep: {
     coordinateRange: 'x: −10 → 0, y: −10 → 0',
     character:
-      'The quadrant of friction and patience. Drinks in The Ember do not flatter the palate or disguise their proof behind sugar; they lean into wood tannins, bitter roots, aromatic botanicals, and oxidative fortified wines.',
+      'The quadrant of friction and patience. Drinks in The Deep do not flatter the palate or disguise their proof behind sugar; they lean into wood tannins, bitter roots, aromatic botanicals, and oxidative fortified wines.',
     philosophy:
       'A Negroni, a Sazerac, or a Boulevardier is not a thirst-quencher; it is an argument. This region is home to the digestif and the nightcap that requires twenty minutes of sitting as melting ice gradually unlocks spirit oils and cinchona bitterness. The drinker who lives here values structure over sweetness and understands that bitterness is a flavor that rewards repeat encounters.',
     chemistry: {
@@ -38,10 +38,6 @@ export const REGION_DETAILS: Record<QuadrantId, RegionDetail> = {
       'You are comfortable with spirits that bite back. You order for contemplation rather than refreshment, preferring drinks that evolve as they reach room temperature.',
   },
   'salt-line': {
-    id: 'salt-line',
-    name: 'The Salt Line',
-    axis: 'Crisp · Savory',
-    gloss: 'Dry, mineral, and exact. Nothing hidden behind sugar.',
     coordinateRange: 'x: 0 → +10, y: −10 → 0',
     character:
       'The territory of razor-sharp precision and mineral clarity. The Salt Line strip-mines sugar out of the equation, leaving spirit botanicals, dry vermouth, saline tension, and cold effervescence completely exposed.',
@@ -56,16 +52,12 @@ export const REGION_DETAILS: Record<QuadrantId, RegionDetail> = {
     orderingProfile:
       'You seek focus, cleanliness, and sharpness. You value drinks structured like architectural blueprints: dry, cold, bracing, and free of cloying distractions.',
   },
-  vault: {
-    id: 'vault',
-    name: 'The Vault',
-    axis: 'Rich · Sweet',
-    gloss: 'Dense and warm. The last drink of the night.',
+  eddy: {
     coordinateRange: 'x: −10 → 0, y: 0 → +10',
     character:
-      'The territory of indulgence, gravity, and velvety warmth. The Vault brings together spirit weight, roasted sugars, espresso extractions, and emulsified textures.',
+      'The territory of indulgence, gravity, and velvety warmth. The Eddy brings together spirit weight, roasted sugars, espresso extractions, and emulsified textures.',
     philosophy:
-      'Where The Salt Line is an architectural draft, The Vault is velvet curtains. Drinks here—like the Espresso Martini, the Brandy Alexander, and the heavier variations of the Old Fashioned—are designed as conclusions. They use dark demerara, cacao, vanilla, and egg whites to wrap spirit proof in luxurious mouthfeel without tipping into cloying syrup.',
+      'Where The Salt Line is an architectural draft, The Eddy is velvet curtains. Drinks here—like the Espresso Martini, the Brandy Alexander, and the heavier variations of the Old Fashioned—are designed as conclusions. They use dark demerara, cacao, vanilla, and egg whites to wrap spirit proof in luxurious mouthfeel without tipping into cloying syrup.',
     chemistry: {
       baseSpirits: ['Bourbon Whiskey', 'Cognac & Brandy', 'Aged Dark Rum', 'Coffee Liqueurs'],
       flavorCompounds: ['Roasted Coffee Oils', 'Dark Demerara', 'Vanillin', 'Theobromine (Cacao)', 'Nutmeg', 'Cream'],
@@ -75,14 +67,10 @@ export const REGION_DETAILS: Record<QuadrantId, RegionDetail> = {
     orderingProfile:
       'You appreciate decadence and texture. Cocktails are an evening ritual, a dessert, or a comforting finish after a long meal.',
   },
-  orchard: {
-    id: 'orchard',
-    name: 'The Orchard',
-    axis: 'Crisp · Sweet',
-    gloss: 'Bright, fast, and built for company.',
+  surf: {
     coordinateRange: 'x: 0 → +10, y: 0 → +10',
     character:
-      'The quadrant of kinetic energy, celebration, and balanced brightness. The Orchard balances freshly pressed citrus acids against pure cane syrup, aromatic herbal liqueurs, and carbonation.',
+      'The quadrant of kinetic energy, celebration, and balanced brightness. The Surf balances freshly pressed citrus acids against pure cane syrup, aromatic herbal liqueurs, and carbonation.',
     philosophy:
       'The Daiquiri, the Margarita, and the Last Word demonstrate that a cocktail can be accessible and cheerful while remaining rigorously balanced. Acidity from freshly hand-pressed lime or lemon juice produces salivary tension, immediately answered by sugar and fruit aromatics. These drinks are built to be served ice-cold and finished before dilution degrades their lift.',
     chemistry: {
@@ -97,5 +85,6 @@ export const REGION_DETAILS: Record<QuadrantId, RegionDetail> = {
 };
 
 export function getRegionDetail(id: QuadrantId): RegionDetail {
-  return REGION_DETAILS[id] ?? REGION_DETAILS.ember;
+  const quadrant = quadrants.find((q) => q.id === id) ?? quadrants[0];
+  return { ...REGION_PROSE[quadrant.id], ...quadrant };
 }

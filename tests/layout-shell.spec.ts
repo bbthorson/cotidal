@@ -6,7 +6,7 @@ import { test, expect } from '@playwright/test';
  * position and height on nearly every route; footers were pasted per page and
  * missing from three. This asserts the shell stays the one owner.
  */
-const routes = ['/', '/drinks', '/drinks/20th-century', '/regions/ember', '/bars', '/taste', '/log'];
+const routes = ['/', '/drinks', '/drinks/20th-century', '/regions/deep', '/bars', '/taste', '/log'];
 
 test('Layout: header sits in the same place on every route', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 900 });

@@ -47,7 +47,7 @@ Point-of-sale systems track dollar volume and pour costs; they cannot explain
 
 Aggregating anonymous patron coordinates yields sensory analytics:
 - **Palate Density Mapping:** See the flavor distribution of actual guests
-  (e.g., *"52% of your logged patrons sit in The Ember (Rich & Savory), but only
+  (e.g., *"52% of your logged patrons sit in The Deep (Rich & Savory), but only
   15% of your cocktail list addresses that quadrant"*).
 - **Dead-spot detection:** Identify unmet neighborhood demand (e.g., *"20% of
   scans search for dry, low-ABV options that are absent from your current menu"*).

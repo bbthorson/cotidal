@@ -3,7 +3,7 @@ import { getCollection } from 'astro:content';
 import type { GetStaticPaths } from 'astro';
 import AppShell from '../../layouts/AppShell.astro';
 import PageTitle from '../../components/marketing/PageTitle.astro';
-import { site } from '../../lib/copy';
+import { site, sections } from '../../lib/copy';
 import { drinkDatabase } from '../../lib/data';
 import { QUADRANT_ORDER, quadrantIdFor, type QuadrantId } from '../../lib/quadrant';
 import { getRegionDetail } from '../../lib/regions';
@@ -110,7 +110,7 @@ const otherRegions = QUADRANT_ORDER.filter((rId) => rId !== id).map((rId) =>
       </div>
     </section>
 
-    <!-- Canonical Specimens in the Register -->
+    <!-- Canonical Specimens in the Rutter -->
     <section class="space-y-6">
       <div class="flex items-baseline justify-between border-b border-foreground pb-2">
         <div class="flex items-baseline gap-3">
@@ -123,7 +123,7 @@ const otherRegions = QUADRANT_ORDER.filter((rId) => rId !== id).map((rId) =>
           href={`/drinks#${region.id}`}
           class="font-condensed text-xs uppercase tracking-label text-muted-foreground hover:text-primary transition-colors"
         >
-          View in register &rarr;
+          {sections.regionDrinks} &rarr;
         </a>
       </div>
 

@@ -132,7 +132,7 @@ reference, so no entry inherits a share-alike licence.
 
 `/drinks` groups entries under the four regions, and each section carries its
 quadrant `id` as an anchor because the landing page links into them
-(`/drinks#ember`). Those are two hand-written lists of the same ids;
+(`/drinks#deep`). Those are two hand-written lists of the same ids;
 `tests/landing-static.spec.ts` asserts they still agree.
 
 **To add an entry**, create `src/content/drinks/<slug>.md`. The filename is the

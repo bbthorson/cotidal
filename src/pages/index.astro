@@ -80,7 +80,7 @@ const error = errorParam ? (errorCodes[errorParam] ?? errorCodes.authorize_faile
       <h2 class="font-serif text-xl font-bold text-foreground">
         {sections.map}
       </h2>
-      <span class="label-caps text-secondary">Grid Index</span>
+      <span class="label-caps text-secondary">{sections.mapLabel}</span>
     </div>
     <p class="mb-4 mt-3 font-serif text-sm italic text-muted-foreground">
       {sections.mapNote}
@@ -108,13 +108,13 @@ const error = errorParam ? (errorCodes[errorParam] ?? errorCodes.authorize_faile
       <h2 class="font-serif text-xl font-bold text-foreground">
         {sections.registerSpotlight}
       </h2>
-      <span class="label-caps text-secondary">Documented</span>
+      <span class="label-caps text-secondary">{sections.registerSpotlightLabel}</span>
     </div>
     <p class="mb-5 mt-3 font-serif text-sm italic text-muted-foreground">
       {sections.registerSpotlightNote}
     </p>
     <div class="border border-border bg-card p-5 shadow-bar md:p-8">
-      <span class="label-caps block text-secondary">Primary Source Discipline</span>
+      <span class="label-caps block text-secondary">{sections.registerCardLabel}</span>
       <h3 class="mt-2 font-serif text-xl font-bold text-foreground">
         {drinks.title}
       </h3>
@@ -137,6 +137,7 @@ const error = errorParam ? (errorCodes[errorParam] ?? errorCodes.authorize_faile
     </h2>
     <div class="max-w-md">
       <h3 class="font-serif text-title font-bold text-foreground">{connect.title}</h3>
+      <p class="mt-1 font-serif text-prose italic text-foreground">{connect.lede}</p>
       <p class="mt-2 font-serif text-prose text-muted-foreground">
         {connect.body}
       </p>

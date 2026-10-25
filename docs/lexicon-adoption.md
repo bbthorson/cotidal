@@ -126,7 +126,7 @@ await agent.api.com.atproto.repo.createRecord({
               name: 'Penicillin (Original Spec)',
               uri: 'at://did:plc:samross/app.cotidal.recipe/3l9876543210',
             },
-            coordinates: { x: -3, y: -2 }, // Rich & Savory (The Ember)
+            coordinates: { x: -3, y: -2 }, // Rich & Savory (The Deep)
           },
         ],
       },
