@@ -2,20 +2,17 @@ import { useMemo, useState, useEffect, useCallback } from 'react';
 import { drinkDatabase, type Drink, type User } from '@/lib/data';
 import { calculateWeightedRelevance } from '@/lib/scoring';
 import { quadrantFor } from '@/lib/quadrant';
-import { hero, menu, nav, pour, publicMap, returnVisit } from '@/lib/copy';
+import { account, hero, menu, nav, publicMap } from '@/lib/copy';
 import { publicMapPath } from '@/lib/atproto/paths';
+import { accountHref, logPathFor } from '@/lib/site-nav';
 import type { Register } from '@/lib/register';
-import { PourForm, toLogOptions, type PourEntry } from './PourForm';
-import { PourLedger } from './PourLedger';
 import { MapTab } from './MapTab';
 import { AppNavigation, type ActiveTab } from './AppNavigation';
 import { useAtprotoContext } from './AtprotoProvider';
 import { MapThumb } from './CoordinateMap';
-import { Moved } from './Moved';
 import {
   explainDrinkMatch,
   getConnectedDrinkLogs,
-  logDrinkFeedback,
   refinePalateWithAI,
   sharePalateToFeed,
 } from '@/lib/api-client';
@@ -39,14 +36,6 @@ type ScoredDrink = Drink & { score: number };
 /** The menu: the top pick and seven more. */
 const MENU_LENGTH = 8;
 
-interface PourMoved {
-  from: { x: number; y: number };
-  drinkName: string;
-  hedonic: number;
-  /** The go-to menu before the pour, by name. */
-  before: string[];
-}
-
 /**
  * Your menu (Flow Recommendations, R4), which replaces the old results
  * dashboard. One list, ranked by relevance alone; the top pick is the one
@@ -62,44 +51,22 @@ export function ResultsScreen({
   onRequestSignIn,
   onStartOver,
 }: ResultsScreenProps) {
-  const { isEnabled, isConnected, handle, disconnect } = useAtprotoContext();
+  const { isEnabled, isConnected, handle } = useAtprotoContext();
   const [activeTab, setActiveTab] = useState<ActiveTab>('menu');
-  const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
   const [history, setHistory] = useState<PourRecord[]>([]);
-  const [loadingHistory, setLoadingHistory] = useState(false);
-  const [pourMoved, setPourMoved] = useState<PourMoved | null>(null);
-  /** A drink chosen with "Log this" on the Map tab, to open the form on. */
-  const [logDraft, setLogDraft] = useState<string | null>(null);
-  const [logging, setLogging] = useState(false);
-  const [logError, setLogError] = useState<string | null>(null);
 
   const fetchHistory = useCallback(async () => {
     if (!isConnected) return;
-    setLoadingHistory(true);
     try {
       setHistory(await getConnectedDrinkLogs(50));
     } catch (e) {
       console.error('Failed to load tasted history:', e);
-    } finally {
-      setLoadingHistory(false);
     }
   }, [isConnected]);
 
   useEffect(() => {
     fetchHistory();
   }, [fetchHistory]);
-
-  const recentVenues = useMemo(
-    () =>
-      Array.from(
-        new Set(
-          history
-            .map((h) => (h.isHomePour ? 'Home Pour' : h.venue?.entity?.name))
-            .filter((loc): loc is string => !!loc && loc.trim().length > 0)
-        )
-      ),
-    [history]
-  );
 
   // Filter, then score by weighted relevance (coordinate, vibe, history, venue).
   const baseScored = useMemo(() => {
@@ -129,10 +96,11 @@ export function ResultsScreen({
           { x: user.x, y: user.y, vibeTags: vibeTags || null },
           drink,
           logs,
-          selectedLocation
+          // No venue chosen on this page: the venue term is for /log's form.
+          null
         ),
       }));
-  }, [user, vibeTags, history, selectedLocation]);
+  }, [user, vibeTags, history]);
 
   // The menu ranks by relevance alone.
   const goTo = useMemo(
@@ -152,75 +120,18 @@ export function ResultsScreen({
   const region = quadrantFor(user.x, user.y);
 
   const changeTab = (tab: ActiveTab) => {
-    // Logging needs an account. A guest gets the one sign-in sheet instead.
-    if (tab === 'log' && isEnabled && !isConnected) {
-      onRequestSignIn();
-      return;
-    }
     setActiveTab(tab);
     window.scrollTo(0, 0);
   };
-
-  const handleLog = async (entry: PourEntry) => {
-    setLogging(true);
-    setLogError(null);
-    try {
-      const result = await logDrinkFeedback(toLogOptions(entry));
-      if (result.success && result.profile) {
-        setLogDraft(null);
-        setPourMoved({
-          from: { x: user.x, y: user.y },
-          drinkName: entry.drinkName,
-          hedonic: entry.hedonic,
-          before: goTo.map((d) => d.name),
-        });
-        onPalateUpdated?.(result.profile);
-        fetchHistory();
-      } else {
-        setLogError(result.error || pour.failed);
-      }
-    } catch {
-      setLogError(pour.failed);
-    } finally {
-      setLogging(false);
-    }
-  };
-
-  if (pourMoved) {
-    const after = goTo.map((d) => d.name);
-    const index = after.findIndex((n) => n.toLowerCase() === pourMoved.drinkName.toLowerCase());
-    const newcomer =
-      after.find(
-        (n) => !pourMoved.before.includes(n) && n.toLowerCase() !== pourMoved.drinkName.toLowerCase()
-      ) ?? null;
-    return (
-      <Moved
-        from={pourMoved.from}
-        to={{ x: user.x, y: user.y }}
-        drinkName={pourMoved.drinkName}
-        scoreLabel={pour.scoreOf(pourMoved.hedonic)}
-        menuChange={{ rank: index >= 0 ? index + 1 : null, newcomer }}
-        displayName={displayName}
-        onDone={() => {
-          setPourMoved(null);
-          setActiveTab('menu');
-        }}
-      />
-    );
-  }
 
   const top = goTo[0];
   const rest = goTo.slice(1);
 
   return (
-    <div className="mx-auto max-w-xl pb-28 pt-5 motion-safe:animate-in motion-safe:fade-in lg:pb-0 lg:pt-8">
+    <div className="mx-auto max-w-xl pb-6 pt-5 motion-safe:animate-in motion-safe:fade-in lg:pb-0 lg:pt-8">
       <AppNavigation
         activeTab={activeTab}
-        onTabChange={(tab) => {
-          // The bottom bar always opens a fresh form; "Log this" sets a drink.
-          setLogDraft(null);
-          changeTab(tab);
-        }}
+        onTabChange={changeTab}
       />
 
       {/* Where you are: region name, and the 2:1 thumbnail with your dot */}
@@ -291,19 +202,10 @@ export function ResultsScreen({
               topName={top ? displayName(top.name) : ''}
               regionName={region.name}
               onPalateUpdated={onPalateUpdated}
-              onSignOut={disconnect}
             />
           )}
 
-          <div className="mt-10 border-t border-border pt-4 text-center">
-            <button
-              type="button"
-              onClick={onStartOver}
-              className="min-h-11 px-4 font-condensed text-meta uppercase tracking-label text-muted-foreground underline decoration-primary underline-offset-4 transition-colors hover:text-primary"
-            >
-              {menu.startOver}
-            </button>
-          </div>
+          <StartOver onConfirm={onStartOver} />
         </div>
       )}
 
@@ -315,51 +217,11 @@ export function ResultsScreen({
             closeness={closeness}
             pours={history}
             register={register}
-            onLog={(drinkName) => {
-              setLogDraft(drinkName);
-              changeTab('log');
-            }}
+            onLog={(drinkName) => window.location.assign(logPathFor(drinkName))}
           />
         </div>
       )}
 
-      {activeTab === 'log' && (
-        <div className="mt-8 space-y-10 motion-safe:animate-in motion-safe:fade-in">
-          <section>
-            <h2 className="mb-4 border-b border-foreground pb-1.5 font-serif text-xl font-bold">{returnVisit.logTitle}</h2>
-            <PourForm
-              key={logDraft ?? 'menu'}
-              suggestions={goTo.map((d) => d.name)}
-              labelFor={displayName}
-              initialDrink={logDraft ?? goTo[0]?.name}
-              venue={selectedLocation ?? ''}
-              onVenueChange={(v) => setSelectedLocation(v || null)}
-              recentVenues={recentVenues.filter((v) => v !== 'Home Pour')}
-              isMember={isConnected}
-              submitting={logging}
-              error={logError}
-              onSubmit={handleLog}
-              submitSlot={
-                isConnected ? undefined : (
-                  <button
-                    type="button"
-                    onClick={onRequestSignIn}
-                    className="min-h-13 w-full border border-foreground bg-secondary font-condensed text-sm font-bold uppercase tracking-label text-secondary-foreground transition-colors hover:bg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                  >
-                    {pour.signInToLog}
-                  </button>
-                )
-              }
-            />
-          </section>
-          {isConnected && (
-            <section>
-              <h2 className="mb-1 font-serif text-xl font-bold">{returnVisit.ledgerTitle}</h2>
-              <PourLedger pours={history} register={register} empty={returnVisit.ledgerEmpty} loading={loadingHistory} />
-            </section>
-          )}
-        </div>
-      )}
     </div>
   );
 }
@@ -452,7 +314,6 @@ function MemberTools({
   topName,
   regionName,
   onPalateUpdated,
-  onSignOut,
 }: {
   user: User;
   vibeTags: Record<string, number>;
@@ -460,7 +321,6 @@ function MemberTools({
   topName: string;
   regionName: string;
   onPalateUpdated?: (profile: UserProfile) => void;
-  onSignOut: () => void;
 }) {
   const [notes, setNotes] = useState('');
   const [refining, setRefining] = useState(false);
@@ -523,13 +383,13 @@ function MemberTools({
         >
           {shareState === 'shared' ? menu.shared : menu.share}
         </button>
-        <button
-          type="button"
-          onClick={onSignOut}
-          className="min-h-11 font-condensed text-xs uppercase tracking-label text-muted-foreground transition-colors hover:text-foreground"
+        {/* Sign out lives in the header and on /account: a form post, no script needed. */}
+        <a
+          href={accountHref}
+          className="inline-flex min-h-11 items-center font-condensed text-xs uppercase tracking-label text-muted-foreground transition-colors hover:text-foreground"
         >
-          {menu.signOut}
-        </button>
+          {nav.account}
+        </a>
         {shareError && (
           <p role="alert" className="w-full text-meta text-destructive">
             {shareError}
@@ -563,6 +423,43 @@ function MemberTools({
           </div>
         )}
       </section>
+    </div>
+  );
+}
+
+/**
+ * Start over, in two steps: the first says what it does, the second does it.
+ * A coordinate built from a quiz and a ledger of pours is not something to
+ * lose to a stray tap. The words are /account's, so the two cannot disagree.
+ */
+function StartOver({ onConfirm }: { onConfirm: () => void }) {
+  const [confirming, setConfirming] = useState(false);
+  const quiet =
+    'min-h-11 px-4 font-condensed text-meta uppercase tracking-label text-muted-foreground underline decoration-primary underline-offset-4 transition-colors hover:text-primary';
+
+  return (
+    <div className="mt-10 border-t border-border pt-4 text-center">
+      {confirming ? (
+        <div role="group" aria-label={menu.startOver} className="mx-auto flex max-w-sm flex-col items-center gap-3">
+          <p className="text-ui text-muted-foreground">{account.startOverBody}</p>
+          <div className="flex flex-wrap justify-center gap-2">
+            <button
+              type="button"
+              onClick={onConfirm}
+              className="min-h-11 border border-foreground bg-secondary px-4 font-condensed text-xs font-bold uppercase tracking-label text-secondary-foreground transition-colors hover:bg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            >
+              {account.startOverCta}
+            </button>
+            <button type="button" onClick={() => setConfirming(false)} className={quiet}>
+              {menu.startOverCancel}
+            </button>
+          </div>
+        </div>
+      ) : (
+        <button type="button" onClick={() => setConfirming(true)} className={quiet}>
+          {menu.startOver}
+        </button>
+      )}
     </div>
   );
 }

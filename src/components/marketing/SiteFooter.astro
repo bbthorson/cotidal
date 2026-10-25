@@ -1,6 +1,6 @@
 ---
 import { nav, footer } from '../../lib/copy';
-import { destinations, signIn, isCurrent } from '../../lib/site-nav';
+import { destinations, isCurrent } from '../../lib/site-nav';
 
 interface Props {
   currentPath?: string;
@@ -8,28 +8,33 @@ interface Props {
 
 const { currentPath = '/' } = Astro.props;
 
+// The reading pages; the app and the account live in the header (site-nav.ts).
 const links = [
   { href: '/', label: nav.home, active: currentPath === '/' },
-  ...destinations.map((d) => ({ href: d.href, label: d.label, active: isCurrent(currentPath, d.match) })),
-  { href: signIn.href, label: signIn.label, active: false },
+  ...destinations
+    .filter((d) => !d.app)
+    .map((d) => ({ href: d.href, label: d.label, active: isCurrent(currentPath, d.match) })),
 ];
 ---
 
 <footer class="border-t border-foreground pt-8 text-center">
-  <div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 font-condensed text-xs uppercase tracking-label text-muted-foreground">
-    {links.map((link, i) => (
-      <>
-        {i > 0 && <span aria-hidden="true" class="text-border">·</span>}
-        <a
-          href={link.href}
-          aria-current={link.active ? 'page' : undefined}
-          class:list={[link.active ? 'font-bold text-foreground' : 'transition-colors hover:text-primary']}
-        >
-          {link.label}
-        </a>
-      </>
+  <nav
+    aria-label={nav.footer}
+    class="flex flex-wrap items-center justify-center gap-x-5 gap-y-1 font-condensed text-xs uppercase tracking-label text-muted-foreground"
+  >
+    {links.map((link) => (
+      <a
+        href={link.href}
+        aria-current={link.active ? 'page' : undefined}
+        class:list={[
+          'flex min-h-11 items-center',
+          link.active ? 'font-bold text-foreground' : 'transition-colors hover:text-primary',
+        ]}
+      >
+        {link.label}
+      </a>
     ))}
-  </div>
+  </nav>
 
   <div class="mt-5 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 font-condensed text-3xs uppercase tracking-label text-muted-foreground">
     <span>{footer.note}</span>

@@ -15,6 +15,8 @@ import { signInEnabled } from '../lib/atproto/auth';
 
 const register = await loadRegister();
 const authEnabled = await signInEnabled();
+// "Log this" on the /taste map arrives with the drink (logPathFor in site-nav.ts).
+const initialDrink = Astro.url.searchParams.get('drink')?.trim().slice(0, 200) || undefined;
 ---
 
 <AppShell
@@ -22,5 +24,5 @@ const authEnabled = await signInEnabled();
   currentPath="/log"
   width="standard"
 >
-  <ReturnVisit client:load register={register} signInEnabled={authEnabled} />
+  <ReturnVisit client:load register={register} signInEnabled={authEnabled} initialDrink={initialDrink} />
 </AppShell>

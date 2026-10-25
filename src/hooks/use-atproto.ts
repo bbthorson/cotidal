@@ -12,7 +12,6 @@ interface AtprotoState {
   connecting: boolean;
   error: string | null;
   connect: (handle: string) => Promise<void>;
-  disconnect: () => void;
 }
 
 /**
@@ -75,14 +74,6 @@ export function useAtproto(isAtprotoEnabled: boolean): AtprotoState {
     [auth, isAtprotoEnabled]
   );
 
-  const disconnect = useCallback(() => {
-    setDid(null);
-    setHandle(null);
-    setError(null);
-    auth.signOut().catch(() => {
-      // The cookie is cleared server-side; a failed request leaves nothing to undo locally.
-    });
-  }, [auth]);
 
   return {
     isEnabled: isAtprotoEnabled,
@@ -93,6 +84,5 @@ export function useAtproto(isAtprotoEnabled: boolean): AtprotoState {
     connecting,
     error,
     connect,
-    disconnect,
   };
 }

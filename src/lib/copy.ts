@@ -23,9 +23,33 @@ export const nav = {
   register: 'Drinks',
   regions: 'The Four Regions',
   signIn: 'Sign in',
+  signOut: 'Sign out',
+  /** The header's account link where the page cannot know who is reading (prerendered). */
+  account: 'Account',
   menu: 'Menu',
+  footer: 'Site',
   log: 'Log a Pour',
   bars: 'For Bars',
+} as const;
+
+/** /account: who you are here, and the two things you can do about it. */
+export const account = {
+  title: 'Your account',
+  signedInAs: 'Signed in as',
+  /** When the session has no handle, only a DID. */
+  signedIn: 'Signed in',
+  links: {
+    map: 'Your coordinate',
+    log: 'Your pours',
+    public: 'Your public map',
+  },
+  startOverTitle: 'Start over',
+  startOverBody:
+    'Retake the questions for a new coordinate. It replaces the one on your account; the pours you have logged stay in your ledger.',
+  startOverCta: 'Retake the questions',
+  signOutTitle: 'Sign out',
+  signOutBody: 'Signing out also clears your coordinate from this device. It stays on your account.',
+  guestTitle: 'Sign in to keep your coordinate.',
 } as const;
 
 export const hero = {
@@ -173,7 +197,6 @@ export const menu = {
   signedInAs: 'Signed in as',
   share: 'Share to your feed',
   shared: 'Shared',
-  signOut: 'Sign out',
   refineTitle: 'Tell us what you avoid',
   refineBody:
     'Anything you avoid, crave or swear by. Your coordinate moves to match, and the change is written to your account.',
@@ -182,8 +205,9 @@ export const menu = {
   refining: 'Moving…',
   refineResult: 'What changed',
   startOver: 'Start over',
+  startOverCancel: 'Keep it',
   empty: 'Nothing on the map fits these limits yet.',
-  tabs: { menu: 'Menu', map: 'Map', log: 'Log a pour' },
+  tabs: { menu: 'Menu', map: 'Map' },
   tabsLabel: 'Your coordinate',
 } as const;
 

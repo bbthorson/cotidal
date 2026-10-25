@@ -13,3 +13,13 @@ export const AUTH_BASE_PATH = '/api/auth/atproto';
 export function publicMapPath(actor: string): string {
   return `/p/${actor}`;
 }
+
+/**
+ * Where a form sign-out lands, and the marker the island looks for there to
+ * clear this device's copy of the coordinate (Home.tsx).
+ */
+export const SIGNED_OUT_PARAM = 'signed_out';
+export const signedOutPath = `/taste?${SIGNED_OUT_PARAM}=1`;
+
+/** Asks /taste to start the questions over (from /account). */
+export const START_OVER_PARAM = 'startover';
