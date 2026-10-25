@@ -9,7 +9,7 @@ import {
   publishElicitation,
 } from '@/lib/atproto/publish';
 import {
-  ElicitationRecordSchema,
+  ElicitationWriteSchema,
   PourWriteSchema,
   POUR_COLLECTION,
   POUR_NOTE_LIMITS,
@@ -109,7 +109,7 @@ export const POST: APIRoute = async ({ request }) => {
   }
 
   if (body.action === 'publishElicitation') {
-    const parsed = ElicitationRecordSchema.safeParse(body.record);
+    const parsed = ElicitationWriteSchema.safeParse(body.record);
     if (!parsed.success) return new Response(JSON.stringify({ success: false, error: 'Invalid answers' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
 
     try {

@@ -114,7 +114,9 @@ test('Palate record: the lexicon and the Zod schema describe the same record', (
   expect(Object.keys(main.properties).sort()).toEqual(
     Object.keys(PalateRecordSchema.shape).filter((k) => k !== '$type').sort()
   );
-  expect(Object.keys(main.properties.mapCoordinates.properties).sort()).toEqual(['xHundredths', 'yHundredths']);
+  // Objects nest by ref: an inline object property is not valid Lexicon.
+  expect(main.properties.mapCoordinates).toEqual({ type: 'ref', ref: '#mapCoordinates' });
+  expect(Object.keys(lexicon.defs.mapCoordinates.properties).sort()).toEqual(['xHundredths', 'yHundredths']);
   expect(Object.keys(dynamic.properties).sort()).toEqual(
     Object.keys(PalateRecordSchema.shape.dynamicState.shape).sort()
   );

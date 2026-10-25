@@ -1,6 +1,7 @@
 import { useId, useState, type FormEvent, type ReactNode } from 'react';
 import { drinkDatabase } from '@/lib/data';
-import { CATA, DEVIATIONS, type CataNote, type SensoryProfile } from '@/lib/atproto/records';
+import { CATA, DEVIATIONS, type CataNote } from '@/lib/atproto/vocab';
+import type { SensoryProfile } from '@/lib/atproto/records';
 import { pour } from '@/lib/copy';
 import { cn } from '@/lib/utils';
 

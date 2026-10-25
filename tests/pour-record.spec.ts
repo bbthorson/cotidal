@@ -74,10 +74,6 @@ test('Strings: free text is cut to fit on a character boundary', () => {
   expect(fitString('short', 3000, 1000)).toBe('short');
 });
 
-test('Datetimes: an explicit offset is as valid as Z', () => {
-  expect(PourRecordSchema.safeParse({ ...base, createdAt: '2026-10-25T20:00:00+02:00' }).success).toBe(true);
-  expect(PourRecordSchema.safeParse({ ...base, createdAt: 'yesterday' }).success).toBe(false);
-});
 
 test('Read: a pour is parsed, not cast', () => {
   expect(readPour({ ...base })).not.toBeNull();

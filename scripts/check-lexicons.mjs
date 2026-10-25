@@ -19,6 +19,8 @@
  *      `knownValues`
  *   7. the vocabularies the app writes (`DEVIATIONS`, `CATA`) are the pour
  *      lexicon's `knownValues`
+ *   8. every file loads in `@atproto/lexicon`, the protocol's reference
+ *      parser, so a schema it would refuse never reaches a repository
  *
  * Checks 1–5 once said "the two disagree" and compared nothing between them;
  * a pour lexicon with float fields and a route writing unchecked request
@@ -82,8 +84,8 @@ for (const [id, doc] of docs) {
   }
 }
 
-/** Collections the code writes to must have a schema on disk. */
-const source = readFileSync('src/lib/atproto/records.ts', 'utf8');
+/** Collections the code names (vocab.ts, records.ts) must have a schema on disk. */
+const source = ['records.ts', 'vocab.ts'].map((f) => readFileSync(`src/lib/atproto/${f}`, 'utf8')).join('\n');
 for (const [, nsid] of source.matchAll(/'(app\.cotidal\.[a-zA-Z.]+)'/g)) {
   if (!docs.has(nsid)) errors.push(`records.ts references "${nsid}" with no lexicon file`);
 }
@@ -230,6 +232,21 @@ for (const [id, doc] of docs) {
 }
 for (const id of Object.keys(RECORD_SCHEMAS)) {
   if (docs.get(id)?.defs.main?.type !== 'record') errors.push(`RECORD_SCHEMAS has "${id}", which is not a record lexicon`);
+}
+
+/**
+ * 8. The reference parser accepts every file. `parseLexiconDoc`, not
+ * `new Lexicons()`: the constructor loads anything, `"type": "foo"` included.
+ */
+const { parseLexiconDoc } = await import('@atproto/lexicon');
+for (const [id, doc] of docs) {
+  try {
+    parseLexiconDoc(doc);
+  } catch (e) {
+    const issues = Array.isArray(e.issues) ? e.issues : [];
+    const where = issues.map((i) => i.path?.join('.')).filter(Boolean).join(', ');
+    errors.push(`${id}: @atproto/lexicon refuses it${where ? ` at ${where}` : ''}`);
+  }
 }
 
 /** 7. The vocabularies written are the ones declared. */

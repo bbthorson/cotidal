@@ -189,8 +189,25 @@ float records written before the encoding. No lexicon may declare a
 
 **Each record's Zod schema says exactly what its lexicon says.** Strings are
 built with `lexString()`, which counts UTF-8 bytes and graphemes as the
-lexicon does. `npm run lexicons` compares every schema in `RECORD_SCHEMAS`
-with its lexicon field by field. Writes go through the schema: a pour is
+lexicon does, and checks formats with `@atproto/syntax` — the protocol's
+reference implementation, never a look-alike regex. `npm run lexicons`
+compares every schema in `RECORD_SCHEMAS` with its lexicon field by field and
+parses every file with `@atproto/lexicon`'s `parseLexiconDoc` (not
+`new Lexicons()`, which accepts anything). `tests/lexicon-conformance.spec.ts`
+runs Zod and the reference validator over the same records.
+
+**Datetimes** follow https://atproto.com/specs/lexicon#datetime. Reads accept
+what the reference reader accepts (it is lenient); writes must be strict
+(`writtenDatetime`), and are generated with `new Date().toISOString()` —
+milliseconds and `Z`, the preferred form. Compare datetimes as instants, not
+strings.
+
+**Objects nest by `ref`, never inline.** A property of `"type": "object"` is
+not valid Lexicon; give it a named def. An open dictionary is `unknown`.
+
+The browser loads `vocab.ts` (names and vocabularies) and
+`elicitation-record.ts`, never `records.ts`: the validators that only the
+server needs (`@atproto/lex-data`, for CIDs) are registered there. Writes go through the schema: a pour is
 validated (`PourWriteSchema`) before the palate or the pour is written, and
 reads are parsed (`readPour`) rather than cast. Vocabularies the app writes
 (`DEVIATIONS`, `CATA`) are stable ids declared as `knownValues`; the words

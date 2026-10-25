@@ -166,7 +166,8 @@ export async function getPours(session: OAuthSession, limit?: number): Promise<P
   );
   return lists
     .flat()
-    .sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)))
+    // By instant, not by string: `+02:00` and `Z` order differently as text.
+    .sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))
     .slice(0, max);
 }
 

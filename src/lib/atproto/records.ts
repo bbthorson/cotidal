@@ -13,116 +13,73 @@
  * The legacy `drinkLog` has been superseded by `pour`.
  */
 import { z } from 'zod';
+// Relative imports name their `.ts` file: `npm run lexicons` loads these modules
+// with Node's own type stripping, which does not guess extensions.
+import { isAtUriString, isValidDid, isValidUri } from '@atproto/syntax';
+import { parseCidSafe } from '@atproto/lex-data';
+import {
+  CATA,
+  DEVIATIONS,
+  ELICITATION_COLLECTION,
+  LEGACY_PALATE_COLLECTION,
+  LEGACY_POUR_COLLECTION,
+  MAKER_COLLECTION,
+  MENU_COLLECTION,
+  PALATE_COLLECTION,
+  POUR_COLLECTION,
+  RECIPE_COLLECTION,
+  VENUE_COLLECTION,
+  cataId,
+} from './vocab.ts';
+import { datetime, lexString, registerFormat, writtenDatetime } from './lex-string.ts';
+import { ElicitationRecordSchema } from './elicitation-record.ts';
 
-export const DEFS_LEXICON = 'app.cotidal.defs';
-export const PALATE_COLLECTION = 'app.cotidal.palate';
-export const PALATE_RKEY = 'self';
-export const POUR_COLLECTION = 'app.cotidal.pour';
-export const MENU_COLLECTION = 'app.cotidal.menu';
-export const RECIPE_COLLECTION = 'app.cotidal.recipe';
-export const VENUE_COLLECTION = 'app.cotidal.venue';
-export const MAKER_COLLECTION = 'app.cotidal.maker';
-export const ELICITATION_COLLECTION = 'app.cotidal.elicitation';
+// Named, not `export *`: a dynamic import() of a transpiled module cannot see
+// star re-exports, and the tests import this module dynamically.
+export {
+  DEFS_LEXICON,
+  PALATE_COLLECTION,
+  PALATE_RKEY,
+  POUR_COLLECTION,
+  MENU_COLLECTION,
+  RECIPE_COLLECTION,
+  VENUE_COLLECTION,
+  MAKER_COLLECTION,
+  ELICITATION_COLLECTION,
+  LEGACY_PALATE_COLLECTION,
+  LEGACY_POUR_COLLECTION,
+  SELF_RKEY,
+  DEVIATIONS,
+  CATA,
+  cataId,
+  type Deviation,
+  type CataNote,
+} from './vocab.ts';
+export {
+  STRING_LIMITS,
+  utf8Length,
+  graphemeLength,
+  registerFormat,
+  lexString,
+  datetime,
+  writtenDatetime,
+  fitString,
+  type StringLimits,
+} from './lex-string.ts';
+export {
+  ElicitationOptionSchema,
+  ElicitationAnswerSchema,
+  ElicitationRecordSchema,
+  ElicitationWriteSchema,
+  type ElicitationAnswer,
+  type ElicitationRecord,
+} from './elicitation-record.ts';
 
-/**
- * The namespace before the rename to Cotidal. Read-only: palates and pours
- * written under it are still read (publish.ts, public-read.ts) so nobody's
- * map empties, but nothing is written there and those records are never
- * rewritten or deleted by the app. The next palate write lands under
- * `app.cotidal.*`.
- */
-export const LEGACY_PALATE_COLLECTION = 'app.crystalcoupe.palate';
-export const LEGACY_POUR_COLLECTION = 'app.crystalcoupe.pour';
-
-/** Records held at a fixed key, one per repo. */
-export const SELF_RKEY = 'self';
-
-// ---------------------------------------------------------------------------
-// Lexicon strings
-// ---------------------------------------------------------------------------
-
-/**
- * A lexicon string's limits. `maxLength` counts UTF-8 bytes and
- * `maxGraphemes` user-perceived characters — neither is what `.length` or
- * Zod's `.max()` count (UTF-16 code units), so a note in emoji or a
- * non-Latin script could pass those and still break the record's limits.
- */
-export interface StringLimits {
-  minLength?: number;
-  maxLength?: number;
-  maxGraphemes?: number;
-  format?: 'datetime' | 'did' | 'at-uri' | 'cid' | 'uri';
-}
-
-/** What each `lexString` was built with, for the lexicon checker to compare. */
-export const STRING_LIMITS = new WeakMap<z.ZodTypeAny, StringLimits>();
-
-const encoder = new TextEncoder();
-export const utf8Length = (s: string) => encoder.encode(s).length;
-
-const segmenter =
-  typeof Intl !== 'undefined' && 'Segmenter' in Intl
-    ? new Intl.Segmenter(undefined, { granularity: 'grapheme' })
-    : null;
-const graphemes = (s: string): string[] =>
-  segmenter ? Array.from(segmenter.segment(s), (g) => g.segment) : Array.from(s);
-export const graphemeLength = (s: string) => graphemes(s).length;
-
-/**
- * Datetimes as the AT Protocol writes them: RFC 3339 with an explicit offset.
- * `Z` and `+02:00` are both valid. Zod's bare `.datetime()` refuses the second,
- * which would drop a valid record written by another client.
- */
-const DATETIME = z.string().datetime({ offset: true });
-
-const FORMATS: Record<NonNullable<StringLimits['format']>, (s: string) => boolean> = {
-  datetime: (s) => DATETIME.safeParse(s).success,
-  did: (s) => /^did:[a-z]+:[a-zA-Z0-9._:%-]*[a-zA-Z0-9._-]$/.test(s),
-  'at-uri': (s) => /^at:\/\/[^\s/]+(\/[^\s]*)?$/.test(s),
-  cid: (s) => /^[a-zA-Z0-9+/=]{8,256}$/.test(s),
-  uri: (s) => /^[a-z][a-z0-9+.-]*:\S+$/i.test(s),
-};
-
-/** A string checked the way its lexicon defines it. */
-export function lexString(limits: StringLimits = {}) {
-  const schema = z.string().superRefine((value, ctx) => {
-    const bytes = utf8Length(value);
-    if (limits.minLength !== undefined && bytes < limits.minLength) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, message: `shorter than ${limits.minLength} bytes` });
-    }
-    if (limits.maxLength !== undefined && bytes > limits.maxLength) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, message: `longer than ${limits.maxLength} bytes` });
-    }
-    if (limits.maxGraphemes !== undefined && graphemeLength(value) > limits.maxGraphemes) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, message: `longer than ${limits.maxGraphemes} characters` });
-    }
-    if (limits.format && !FORMATS[limits.format](value)) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, message: `not a valid ${limits.format}` });
-    }
-  });
-  STRING_LIMITS.set(schema, limits);
-  return schema;
-}
-
-const datetime = () => lexString({ format: 'datetime' });
-
-/**
- * Cut a string to fit a lexicon's limits, on a character boundary, so free
- * text is kept rather than refused. Bytes and graphemes are both honoured.
- */
-export function fitString(value: string, maxLength: number, maxGraphemes?: number): string {
-  let out = '';
-  let bytes = 0;
-  let count = 0;
-  for (const g of graphemes(value)) {
-    const size = utf8Length(g);
-    if (bytes + size > maxLength || (maxGraphemes !== undefined && count + 1 > maxGraphemes)) break;
-    out += g;
-    bytes += size;
-    count += 1;
-  }
-  return out;
-}
+// Formats the browser does not need, registered before any schema below uses them.
+registerFormat('did', (s) => isValidDid(s));
+registerFormat('at-uri', (s) => isAtUriString(s));
+registerFormat('cid', (s) => parseCidSafe(s) !== null);
+registerFormat('uri', (s) => isValidUri(s));
 
 // ---------------------------------------------------------------------------
 // Shared references (app.cotidal.defs)
@@ -349,37 +306,6 @@ export function decodePalate(input: unknown): Palate | null {
   return legacy.success ? legacy.data : null;
 }
 
-// ---------------------------------------------------------------------------
-// app.cotidal.elicitation — the answers behind one completed quiz
-// ---------------------------------------------------------------------------
-
-/** Integers only: the AT Protocol data model has no floats. */
-const tenths = z.number().int().min(-100).max(100);
-
-export const ElicitationOptionSchema = z.object({
-  dxTenths: tenths,
-  dyTenths: tenths,
-});
-
-export const ElicitationAnswerSchema = z
-  .object({
-    questionId: lexString({ maxLength: 64 }),
-    kind: lexString({ maxLength: 32 }).optional(),
-    generated: z.boolean().optional(),
-    options: z.array(ElicitationOptionSchema).min(1).max(6),
-    chosen: z.number().int().min(0).max(5),
-  })
-  .refine((a) => a.chosen < a.options.length, { message: 'chosen is not one of the options' });
-export type ElicitationAnswer = z.infer<typeof ElicitationAnswerSchema>;
-
-export const ElicitationRecordSchema = z.object({
-  $type: z.literal(ELICITATION_COLLECTION),
-  responseModel: lexString({ maxLength: 64 }),
-  answers: z.array(ElicitationAnswerSchema).min(1).max(16),
-  createdAt: datetime(),
-});
-export type ElicitationRecord = z.infer<typeof ElicitationRecordSchema>;
-
 export const SensoryProfileSchema = z.object({
   bitter: z.number().min(0).max(5),
   sweet: z.number().min(0).max(5),
@@ -393,38 +319,6 @@ export type SensoryProfile = z.infer<typeof SensoryProfileSchema>;
 // ---------------------------------------------------------------------------
 // app.cotidal.pour
 // ---------------------------------------------------------------------------
-
-export const DEVIATIONS = [
-  'too-sweet', 'not-sweet-enough',
-  'too-sour', 'not-sour-enough',
-  'too-bitter', 'too-smoky', 'too-anise',
-  'too-rich', 'too-crisp',
-  'too-flat', 'too-fizzy',
-] as const;
-export type Deviation = (typeof DEVIATIONS)[number];
-
-/**
- * Check-all-that-apply notes, as stored. Stable ids rather than the labels
- * shown (`pour.cata` in copy.ts), so rewording a label does not split the
- * data. Each id is its label slugified, which is also how a pour written
- * before the ids — when the label itself was stored — is read back.
- */
-export const CATA = [
-  'bright-citrus', 'lime-peel', 'stone-fruit', 'dark-cherry',
-  'campfire-smoke', 'botanical-herb', 'baking-spice', 'toasted-oak',
-  'floral-blossom', 'bittersweet-cocoa', 'briny-mineral', 'rich-velvet-body',
-] as const;
-export type CataNote = (typeof CATA)[number];
-
-const slugify = (s: string) =>
-  s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-
-/** A stored note as its id: an id stays, a pre-id label maps, anything else is kept as written. */
-export function cataId(note: string): string {
-  if ((CATA as readonly string[]).includes(note)) return note;
-  const slug = slugify(note);
-  return (CATA as readonly string[]).includes(slug) ? slug : note;
-}
 
 export const RatingSchema = z.object({
   /** 9-point hedonic scale: 1 dislike extremely, 5 neutral, 9 like extremely. */
@@ -484,6 +378,7 @@ export const POUR_NOTE_LIMITS = { maxLength: 3000, maxGraphemes: 1000 } as const
 export const PourWriteSchema = PourRecordSchema.extend({
   deviations: z.array(z.enum(DEVIATIONS)).max(10).optional(),
   cata: z.array(z.enum(CATA)).max(20).optional(),
+  createdAt: writtenDatetime(),
 });
 
 /**
