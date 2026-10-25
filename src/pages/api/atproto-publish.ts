@@ -30,6 +30,8 @@ import {
   fromDynamicRecord,
   toDynamicRecord,
   applyPour,
+  aversionsAfterPour,
+  vibeTagsAfterPour,
   projectTo2D,
   createInitialPalateState,
   type TastingObservation,
@@ -245,19 +247,8 @@ export const POST: APIRoute = async ({ request }) => {
       const nextState = applyPour(priorState, drink, observation, deviations);
       const coords = projectTo2D(nextState);
 
-      const updatedVibeTags = { ...(record.vibeTags as Record<string, number> || {}) };
-      if (hedonicScale >= 7 && drink) {
-        drink.tags.forEach(tag => {
-          updatedVibeTags[tag] = Math.min(5.0, (updatedVibeTags[tag] || 0) + 0.25);
-        });
-      }
-
-      // "Too bitter", "too smoky" and "too anise" are aversions, not directions.
-      const aversions = {
-        smoke: record.aversions.smoke || deviations.includes('too-smoky'),
-        bitter: record.aversions.bitter || deviations.includes('too-bitter'),
-        anise: record.aversions.anise || deviations.includes('too-anise'),
-      };
+      const updatedVibeTags = vibeTagsAfterPour((record.vibeTags as Record<string, number>) || {}, drink, hedonicScale);
+      const aversions = aversionsAfterPour(record.aversions, deviations);
 
       const updatedPalate: Palate = {
         $type: record.$type,

@@ -17,6 +17,8 @@ import { SignInSheet } from './SignInSheet';
 import {
   createInitialPalateState,
   applyPour,
+  aversionsAfterPour,
+  vibeTagsAfterPour,
   projectTo2D,
   fromDynamicRecord,
   toDynamicRecord,
@@ -80,20 +82,22 @@ function guestShift(profile: UserProfile | null, entry: PourEntry): UserProfile 
     // The coordinate still moves; only the shrinking step is lost.
   }
 
-  const updatedVibeTags = { ...(profile?.vibeTags ?? {}) };
-  if (entry.hedonic >= 7 && drink) {
-    drink.tags.forEach((tag) => {
-      updatedVibeTags[tag] = Math.min(5.0, (updatedVibeTags[tag] || 0) + 0.25);
-    });
-  }
+  const aversions = aversionsAfterPour(
+    {
+      smoke: profile?.dislikesSmoke ?? false,
+      bitter: profile?.dislikesBitter ?? false,
+      anise: profile?.dislikesAnise ?? false,
+    },
+    entry.deviations
+  );
 
   return {
     x: coords.x,
     y: coords.y,
-    dislikesSmoke: (profile?.dislikesSmoke ?? false) || entry.deviations.includes('too-smoky'),
-    dislikesBitter: (profile?.dislikesBitter ?? false) || entry.deviations.includes('too-bitter'),
-    dislikesAnise: (profile?.dislikesAnise ?? false) || entry.deviations.includes('too-anise'),
-    vibeTags: updatedVibeTags,
+    dislikesSmoke: aversions.smoke,
+    dislikesBitter: aversions.bitter,
+    dislikesAnise: aversions.anise,
+    vibeTags: vibeTagsAfterPour(profile?.vibeTags ?? {}, drink, entry.hedonic),
   };
 }
 

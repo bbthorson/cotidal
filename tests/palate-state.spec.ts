@@ -8,6 +8,8 @@ import {
   projectTo2D,
   getPalateConfidence,
   getDiagonal,
+  vibeTagsAfterPour,
+  aversionsAfterPour,
 } from '../src/lib/palate-state';
 import type { Drink } from '../src/lib/data';
 
@@ -183,4 +185,23 @@ test('PalateState: a confident quiz makes the first pour move the dot less', asy
 
   // Out-of-range values are clamped rather than trusted.
   expect(getDiagonal(createInitialPalateState({ variance: { x: 0, y: 99 } }).covariance).slice(0, 2)).toEqual([1, 25]);
+});
+
+test('PalateState: only a liked pour weighs its tags, capped at 5', async () => {
+  const tags = testDrink.tags;
+  const liked = vibeTagsAfterPour({ [tags[0]]: 4.9 }, testDrink, 7);
+  expect(liked[tags[0]]).toBe(5);
+  for (const tag of tags.slice(1)) expect(liked[tag]).toBe(0.25);
+  expect(vibeTagsAfterPour({}, testDrink, 6)).toEqual({});
+  expect(vibeTagsAfterPour({}, undefined, 9)).toEqual({});
+});
+
+test('PalateState: "too" deviations switch aversions on and never off', async () => {
+  const none = { smoke: false, bitter: false, anise: false };
+  expect(aversionsAfterPour(none, ['too-smoky', 'too-anise', 'too-sweet'])).toEqual({
+    smoke: true,
+    bitter: false,
+    anise: true,
+  });
+  expect(aversionsAfterPour({ ...none, bitter: true }, [])).toEqual({ ...none, bitter: true });
 });
