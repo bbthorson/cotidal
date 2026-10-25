@@ -40,9 +40,9 @@ world.
 
 - A coaster drawn from a member's palate: their dot in their region's band,
   with a QR code at the amphidrome (the centre point).
-- **The QR code is their profile.** It encodes the public URL of their map
-  (`/p/<handle>`), so one code is both the thing you print and the way someone
-  sees who you are. Scanned by a stranger, it shows the map, as `/p/<handle>`
+- **The QR code is their profile.** It encodes the public URL of their map,
+  so one code is both the thing you print and the way someone sees who you
+  are. Scanned by a stranger, it shows the map, as `/p/<handle>`
   does today. Scanned by a signed-in member, it shows both coordinates, the
   distance and three drinks (`src/lib/overlap.ts`) — two people at the same bar
   comparing coasters.
@@ -50,9 +50,11 @@ world.
   the member's own map, so the coaster and the phone are the same object.
 - The code must work with no app installed, so it is a plain `https:` URL and
   the page it opens stays script-free like `/p/<handle>`.
-- Open question: handles can change; DIDs do not. A printed code that should
-  outlive a handle change needs a DID-based path that resolves to the current
-  handle (or `/p/<handle>` accepting a DID and redirecting).
+- **The code encodes the DID, never the handle:** `publicMapPath(did)`, i.e.
+  `/p/<did>`. Handles can change; DIDs do not, and a printed code cannot be
+  reissued. The route already accepts a DID and points its canonical link at
+  the verified handle — the feed share relies on this for the same reason.
+  Keep that path working: a printed coaster is a permanent link into it.
 - Rendering the QR on the server keeps `/p/<handle>` script-free; do not ship
   a client QR library to it.
 
