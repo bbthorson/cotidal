@@ -33,7 +33,7 @@ import {
   VENUE_COLLECTION,
   cataId,
 } from './vocab.ts';
-import { datetime, lexString, registerFormat, writtenDatetime } from './lex-string.ts';
+import { datetime, lexInteger, lexString, registerFormat, writtenDatetime } from './lex-string.ts';
 import { ElicitationRecordSchema } from './elicitation-record.ts';
 
 // Named, not `export *`: a dynamic import() of a transpiled module cannot see
@@ -72,6 +72,8 @@ export {
   graphemeLength,
   registerFormat,
   lexString,
+  isLexInteger,
+  lexInteger,
   datetime,
   writtenDatetime,
   fitString,
@@ -117,7 +119,7 @@ export type EntityRef = z.infer<typeof EntityRefSchema>;
  * meant. Kept permissive: these shapes are governed by the Lexicon Community
  * and should be verified against the source before being tightened.
  */
-export const LocationSchema = z.object({ $type: z.string() }).passthrough();
+export const LocationSchema = z.looseObject({ $type: z.string() });
 export type Location = z.infer<typeof LocationSchema>;
 
 export const VenueRefSchema = z.object({
@@ -129,10 +131,10 @@ export type VenueRef = z.infer<typeof VenueRefSchema>;
 /** Integers only, named for their unit: the AT Protocol has no floats. */
 export const StimulusSchema = z.object({
   matrixType: z.enum(['cocktail', 'wine', 'spirit', 'beer', 'tea', 'coffee', 'cider', 'non-alcoholic']).optional(),
-  abvTenths: z.number().int().min(0).max(1000).optional(),
-  residualSugarGpl: z.number().int().min(0).optional(),
-  acidityPhHundredths: z.number().int().min(100).max(1400).optional(),
-  astringencyIndexTenths: z.number().int().min(0).max(100).optional(),
+  abvTenths: lexInteger().min(0).max(1000).optional(),
+  residualSugarGpl: lexInteger().min(0).optional(),
+  acidityPhHundredths: lexInteger().min(100).max(1400).optional(),
+  astringencyIndexTenths: lexInteger().min(0).max(100).optional(),
 });
 export type Stimulus = z.infer<typeof StimulusSchema>;
 
@@ -158,7 +160,7 @@ export type Credit = z.infer<typeof CreditSchema>;
 
 export const PriceSchema = z.object({
   /** Minor units (cents), to avoid float rounding. */
-  amount: z.number().int().min(0),
+  amount: lexInteger().min(0),
   currency: lexString({ minLength: 3, maxLength: 3 }),
 });
 export type Price = z.infer<typeof PriceSchema>;
@@ -175,7 +177,7 @@ export type Price = z.infer<typeof PriceSchema>;
 export const DynamicStateSchema = z.object({
   latentVector: z.array(z.number()),
   covarianceDiagonal: z.array(z.number()),
-  eventCount: z.number().int().min(0),
+  eventCount: lexInteger().min(0),
   lastUpdate: datetime().optional(),
 });
 export type DynamicState = z.infer<typeof DynamicStateSchema>;
@@ -201,7 +203,7 @@ export const PalateSchema = z.object({
 export type Palate = z.infer<typeof PalateSchema>;
 
 /** Every fractional quantity is stored as an integer count of hundredths. */
-const hundredths = z.number().int();
+const hundredths = lexInteger();
 const coordinateHundredths = hundredths.min(-1000).max(1000);
 
 /** `app.cotidal.palate` as written to a repository: integers only. */
@@ -214,7 +216,7 @@ export const PalateRecordSchema = z.object({
   dynamicState: z.object({
     latentVectorHundredths: z.array(hundredths).length(5),
     covarianceDiagonalHundredths: z.array(hundredths.min(0)).length(5),
-    eventCount: z.number().int().min(0),
+    eventCount: lexInteger().min(0),
     lastUpdate: datetime().optional(),
   }),
   aversions: AversionsSchema,
@@ -332,9 +334,9 @@ export function decodePalate(input: unknown): Palate | null {
 
 export const RatingSchema = z.object({
   /** 9-point hedonic scale: 1 dislike extremely, 5 neutral, 9 like extremely. */
-  hedonic: z.number().int().min(1).max(9),
+  hedonic: lexInteger().min(1).max(9),
   /** Bipolar gLMS liking score, −100 to +100, in whole points. */
-  glmsValence: z.number().int().min(-100).max(100).optional(),
+  glmsValence: lexInteger().min(-100).max(100).optional(),
   /**
    * Adoption rather than approval. A recipe's reception is built from this —
    * "reordered by 61%" credits a designer without producing a score that
@@ -344,7 +346,7 @@ export const RatingSchema = z.object({
 });
 export type Rating = z.infer<typeof RatingSchema>;
 
-const intensity = z.number().int().min(0).max(100);
+const intensity = lexInteger().min(0).max(100);
 export const PerceivedIntensitiesSchema = z.object({
   sweetness: intensity.optional(),
   sourness: intensity.optional(),
@@ -428,7 +430,7 @@ export const MenuSectionSchema = z.object({
 export const MenuCaptureSchema = z.object({
   method: z.enum(['photo', 'manual', 'import']),
   photo: z.unknown().optional(),
-  confidence: z.number().int().min(0).max(100).optional(),
+  confidence: lexInteger().min(0).max(100).optional(),
 });
 
 export const MenuRecordSchema = z.object({
@@ -482,8 +484,8 @@ export const RecipeRecordSchema = z.object({
   adaptedFrom: EntityRefSchema.optional(),
   coordinates: z
     .object({
-      xHundredths: z.number().int().min(-1000).max(1000),
-      yHundredths: z.number().int().min(-1000).max(1000),
+      xHundredths: lexInteger().min(-1000).max(1000),
+      yHundredths: lexInteger().min(-1000).max(1000),
     })
     .optional(),
   stimulus: StimulusSchema.optional(),
@@ -526,7 +528,7 @@ export type MakerRecord = z.infer<typeof MakerRecordSchema>;
  * compares each against its lexicon, so a record type is not finished until
  * it is listed here.
  */
-export const RECORD_SCHEMAS: Record<string, z.ZodTypeAny> = {
+export const RECORD_SCHEMAS: Record<string, z.ZodObject> = {
   [PALATE_COLLECTION]: PalateRecordSchema,
   [POUR_COLLECTION]: PourRecordSchema,
   [ELICITATION_COLLECTION]: ElicitationRecordSchema,
