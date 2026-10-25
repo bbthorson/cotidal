@@ -1,9 +1,8 @@
 # Generation
 
 What the model is allowed to write, who gets to see it, and what it costs.
-The endpoints are `src/pages/api/explain-drink.ts`,
-`src/pages/api/refine-palate.ts` and `src/pages/api/archetype-drink.ts`; the
-provider binding is Cloudflare Workers AI (`env.AI`).
+The endpoints are `src/pages/api/explain-drink.ts` and
+`src/pages/api/refine-palate.ts`; the provider binding is Cloudflare Workers AI (`env.AI`).
 
 ## Authored by default, generated at the edges
 
@@ -32,7 +31,6 @@ the suite must pass with no key.
 |---|---|---|
 | Drink explanation | `POST /api/explain-drink` | **Live.** Hero card on mount, drink card on expand. |
 | Palate refinement | `POST /api/refine-palate` | **Live, and an exception.** A member's free-text notes ("no peat, less sweet") on the menu. The model returns a nudge of up to ±3 on each axis, aversions and a two-sentence dossier; the fallback (`refinePalateFallback`) reads the same notes by keyword. Because the model's answer moves the coordinate, this route breaks the rule above — it produces a result rather than describing one. Unresolved. |
-| Drink archetyping | `POST /api/archetype-drink` | **Reachable, unused.** No UI calls it; `archetypeDrink()` in `api-client.ts` is exercised only by `tests/archetype-logic.spec.ts`. Gated and metered anyway — it spends the pricier call of the two. |
 | Adaptive questions | — | **Parked.** See [Parked work](#parked-work). |
 
 Every call site has a deterministic fallback and none of them can fail the
