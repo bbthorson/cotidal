@@ -58,6 +58,21 @@ world.
 - Rendering the QR on the server keeps `/p/<handle>` script-free; do not ship
   a client QR library to it.
 
+Decided:
+
+- **Print the band, not the dot.** The dot moves with every pour; a printed
+  one goes stale, and enough pours can carry it into another region. The
+  coaster shows the member's region band only. The exact coordinate is on the
+  live page the code opens.
+- **Members only.** A guest has no DID, so there is nothing permanent for the
+  code to point at. Making a coaster is something you keep by signing in.
+- **Opt in.** `/p/<did>` is already public, but a code in someone's hand at a
+  bar ties that person to their account for anyone nearby with a phone.
+  "Make my code" is a deliberate act, never a default.
+- **No tracking in the link.** The URL is bare `/p/<did>`: no `?ref=coaster`.
+  A query string is permanent once printed, and it would tell the page that a
+  scan happened in person. Measure scans some other way, later, if at all.
+
 ## Later
 
 - **Region coasters.** Four designs, one per region, each with that region's
