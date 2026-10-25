@@ -145,6 +145,7 @@ For full physiological and mathematical derivations, see **[docs/sensory-science
 |---|---|---|---|
 | `app.crystalcoupe.palate` | `self` | Rater | 2D coordinates, 5D dynamic state vector $\mathbf{x}_k$, covariance $\mathbf{P}_k$, and phenotypes |
 | `app.crystalcoupe.pour` | tid | Rater | Drink check-in with 9-point hedonic / gLMS, objective CATA tags, and SSS context |
+| `app.crystalcoupe.elicitation` | tid | Rater | The answers behind one completed quiz — what each question offered, which option was taken — kept to calibrate the response model against later pours |
 | `app.crystalcoupe.menu` | tid | Venue **or** patron | An immutable menu snapshot at a point in time |
 | `app.crystalcoupe.recipe` | tid | Author | An authored spec with technique, credits, and chemometric stimulus specs |
 | `app.crystalcoupe.venue` | `self` | Venue | A bar claiming itself via domain handle |

@@ -6,7 +6,9 @@ import {
   publishRawPalateRecord,
   publishPour,
   getPours,
+  publishElicitation,
 } from '@/lib/atproto/publish';
+import { ElicitationRecordSchema } from '@/lib/atproto/records';
 import { derivePalateRecord } from '@/lib/sensory';
 import type { UserProfile } from '@/hooks/useDiscoveryQuiz';
 import { z } from 'zod';
@@ -96,6 +98,19 @@ export const POST: APIRoute = async ({ request }) => {
     } catch (e) {
       console.error('Failed to publish palate:', e);
       return new Response(JSON.stringify({ success: false, error: 'Failed to publish profile' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+    }
+  }
+
+  if (body.action === 'publishElicitation') {
+    const parsed = ElicitationRecordSchema.safeParse(body.record);
+    if (!parsed.success) return new Response(JSON.stringify({ success: false, error: 'Invalid answers' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+
+    try {
+      const result = await publishElicitation(session, parsed.data);
+      return new Response(JSON.stringify({ success: true, uri: result.uri }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+    } catch (e) {
+      console.error('Failed to publish answers:', e);
+      return new Response(JSON.stringify({ success: false, error: 'Failed to publish answers' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
     }
   }
 

@@ -112,7 +112,7 @@ export const connect = {
   buys: [
     {
       title: 'It’s saved to your account',
-      body: 'Written to your own Bluesky repository. It stays yours if you leave.',
+      body: 'Your coordinate and the answers behind it, written to your own Bluesky repository. It stays yours if you leave.',
     },
     {
       title: 'Log a pour, watch it move',

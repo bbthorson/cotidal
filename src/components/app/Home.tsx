@@ -5,7 +5,7 @@ import { Reveal } from '@/components/app/Reveal';
 import { SignInSheet } from '@/components/app/SignInSheet';
 import { AtprotoProvider, useAtprotoContext } from '@/components/app/AtprotoProvider';
 import { useDiscoveryQuiz, type UserProfile } from '@/hooks/useDiscoveryQuiz';
-import { getConnectedPalate, publishPalate } from '@/lib/api-client';
+import { flushPendingElicitation, getConnectedPalate, publishPalate } from '@/lib/api-client';
 import type { User } from '@/lib/data';
 import type { Register } from '@/lib/register';
 
@@ -56,6 +56,8 @@ function HomeContent({ register }: { register: Register }) {
 
   useEffect(() => {
     if (isConnected) {
+      // Answers from a quiz finished before signing in.
+      void flushPendingElicitation();
       getConnectedPalate()
         .then(async (profile) => {
           if (profile) {

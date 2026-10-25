@@ -104,6 +104,14 @@ By simulation (2D RMSE, users at 1×/2×/4× `ANSWER_NOISE`): 3.34/3.44/4.17 wit
 the old Gaussian update, 2.53/3.11/4.06 with this one, in slightly fewer
 questions. The selector's hot loop uses per-axis tables (`choiceTable`) so a
 tap costs tens of milliseconds; a test holds them equal to `choiceProbs`.
+Every answer is also kept as asked (`BeliefState.responses`: question id,
+the options' authored nudges, the index taken) and, when the quiz finishes,
+written as an `app.crystalcoupe.elicitation` record — one per quiz, never
+edited. A guest's record waits in `localStorage` (`pending_elicitation`) until
+they sign in. Nudges are stored in tenths: the AT Protocol data model has no
+floats. `RESPONSE_MODEL` names the model that scored them; change it when the
+model changes, so old answers can be refitted under the model they were
+asked under.
 The quiz's x/y variance travels
 in `UserProfile.variance` and becomes the 5D starting covariance, so a
 confident quiz makes early pours move the dot less.
@@ -144,7 +152,7 @@ would attach a share-alike obligation to the entry.
 
 ### AT Protocol — `src/lib/atproto/`
 - `lexicons/*.json` — schemas (authoritative)
-- `records.ts` — Zod for `pour`, `menu`, `recipe`, `venue`, `maker`, `defs`
+- `records.ts` — Zod for `pour`, `menu`, `recipe`, `venue`, `maker`, `elicitation`, `defs`
 - `lexicon.ts` — legacy `palate` and `drinkLog`, being migrated onto `pour`
 - `auth.ts`, `paths.ts`, `publish.ts` — sign-in (`@bbthorson/atproto-cf-auth`)
   and writes
@@ -221,8 +229,9 @@ interface; see `docs/brand.md`.
    publishing the same act; the lexicons exist and nothing renders them.
 8. **Rework elicitation.** Forced-choice pairs for precision *(landed; see
    Elicitation)* and the 9-point hedonic for post-drink feedback *(landed in
-   `PourForm`)*. Still to do: swipes for breadth, and calibrating
-   `NOISE_LEVELS` and `PAIR_NOISE_SCALE` from logged answers. Never swipe on drink *names* — that measures
+   `PourForm`)*. Answers are logged *(landed: `app.crystalcoupe.elicitation`)*.
+   Still to do: swipes for breadth, and calibrating `NOISE_LEVELS`,
+   `EVIDENCE_SCALE` and `PAIR_NOISE_SCALE` from those logs against pours. Never swipe on drink *names* — that measures
    familiarity, not taste.
 9. **The Overlap.** First step shipped: `/p/<handle>` draws a coordinate at
    a public URL and, for a signed-in visitor, theirs beside it with the

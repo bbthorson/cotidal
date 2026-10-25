@@ -1,5 +1,7 @@
 import { Agent } from '@atproto/api';
 import {
+  ELICITATION_COLLECTION,
+  type ElicitationRecord,
   PALATE_COLLECTION,
   PALATE_RKEY,
   POUR_COLLECTION,
@@ -148,6 +150,23 @@ export async function getPours(session: OAuthSession, limit?: number): Promise<P
     console.error('Failed to get pours:', e);
     return [];
   }
+}
+
+/**
+ * A completed quiz's answers, as a new record. Never updated: a retake is
+ * another record, so the log keeps every quiz the author took.
+ */
+export async function publishElicitation(
+  session: OAuthSession,
+  record: ElicitationRecord
+): Promise<{ uri: string; cid: string }> {
+  const agent = new Agent(session);
+  const response = await agent.com.atproto.repo.createRecord({
+    repo: session.did,
+    collection: ELICITATION_COLLECTION,
+    record: { ...record, $type: ELICITATION_COLLECTION },
+  });
+  return { uri: response.data.uri, cid: response.data.cid };
 }
 
 // Backwards compatibility aliases

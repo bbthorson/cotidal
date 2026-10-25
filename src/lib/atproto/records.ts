@@ -5,7 +5,8 @@
  * disagree, which is what stops the drift that produced two different
  * definitions of the old `drinkLog`.
  *
- * `app.crystalcoupe.palate` and `app.crystalcoupe.pour` live here.
+ * `app.crystalcoupe.palate`, `app.crystalcoupe.pour` and
+ * `app.crystalcoupe.elicitation` live here.
  * The legacy `drinkLog` has been superseded by `pour`.
  */
 import { z } from 'zod';
@@ -18,6 +19,7 @@ export const MENU_COLLECTION = 'app.crystalcoupe.menu';
 export const RECIPE_COLLECTION = 'app.crystalcoupe.recipe';
 export const VENUE_COLLECTION = 'app.crystalcoupe.venue';
 export const MAKER_COLLECTION = 'app.crystalcoupe.maker';
+export const ELICITATION_COLLECTION = 'app.crystalcoupe.elicitation';
 
 /** Records held at a fixed key, one per repo. */
 export const SELF_RKEY = 'self';
@@ -128,6 +130,37 @@ export const PalateRecordSchema = z.object({
   updatedAt: z.string().datetime().optional(),
 });
 export type PalateRecord = z.infer<typeof PalateRecordSchema>;
+
+// ---------------------------------------------------------------------------
+// app.crystalcoupe.elicitation — the answers behind one completed quiz
+// ---------------------------------------------------------------------------
+
+/** Integers only: the AT Protocol data model has no floats. */
+const tenths = z.number().int().min(-100).max(100);
+
+export const ElicitationOptionSchema = z.object({
+  dxTenths: tenths,
+  dyTenths: tenths,
+});
+
+export const ElicitationAnswerSchema = z
+  .object({
+    questionId: z.string().min(1).max(64),
+    kind: z.string().max(32).optional(),
+    generated: z.boolean().optional(),
+    options: z.array(ElicitationOptionSchema).min(1).max(6),
+    chosen: z.number().int().min(0).max(5),
+  })
+  .refine((a) => a.chosen < a.options.length, { message: 'chosen is not one of the options' });
+export type ElicitationAnswer = z.infer<typeof ElicitationAnswerSchema>;
+
+export const ElicitationRecordSchema = z.object({
+  $type: z.literal(ELICITATION_COLLECTION),
+  responseModel: z.string().min(1).max(64),
+  answers: z.array(ElicitationAnswerSchema).min(1).max(16),
+  createdAt: z.string().datetime(),
+});
+export type ElicitationRecord = z.infer<typeof ElicitationRecordSchema>;
 
 export const SensoryProfileSchema = z.object({
   bitter: z.number().min(0).max(5),

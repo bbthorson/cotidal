@@ -2,7 +2,8 @@ import { useState, useCallback, useRef } from 'react';
 import { drinkDatabase } from '@/lib/data';
 import { questions as questionPool, type Question, type QuestionOption } from '@/lib/discovery-questions';
 import { calculateDistance } from '@/lib/scoring';
-import { publishPalate } from '@/lib/api-client';
+import { publishPalate, publishElicitation } from '@/lib/api-client';
+import { toElicitationRecord } from '@/lib/elicitation';
 import {
   type BeliefState,
   createInitialBelief,
@@ -78,7 +79,8 @@ export function useDiscoveryQuiz(onComplete: (profile: UserProfile) => void) {
   const tierLabel = currentQuestion ? getTierLabel(currentQuestion) : 'The Details';
   const categoryLabel = currentQuestion ? getCategoryLabel(currentQuestion.category) : 'The Palate';
 
-  const finishQuiz = useCallback((finalProfile: UserProfile) => {
+  const finishQuiz = useCallback((finalBelief: BeliefState) => {
+    const finalProfile = beliefToProfile(finalBelief);
     const candidates = drinkDatabase.filter(d => {
       if (finalProfile.dislikesSmoke && d.hasSmoke) return false;
       if (finalProfile.dislikesBitter && d.isBitter) return false;
@@ -114,6 +116,12 @@ export function useDiscoveryQuiz(onComplete: (profile: UserProfile) => void) {
       console.warn("Failed to auto-publish to AT Protocol:", e);
     });
 
+    // The answers behind the coordinate, so the response model can later be
+    // calibrated against this person's pours. Kept on the device until a
+    // write succeeds, which for a guest is after they sign in.
+    const answers = toElicitationRecord(finalBelief.responses);
+    if (answers) void publishElicitation(answers);
+
     onComplete(finalProfile);
   }, [onComplete]);
 
@@ -147,7 +155,7 @@ export function useDiscoveryQuiz(onComplete: (profile: UserProfile) => void) {
     if (beliefIsComplete(newBelief)) {
       setBelief(newBelief);
       setTimeout(() => {
-        finishQuiz(beliefToProfile(newBelief));
+        finishQuiz(newBelief);
       }, ADVANCE_MS);
       return { prevTier, newTier: prevTier, tierChanged: false, isComplete: true, needsAIQuestion: false, beliefState: newBelief };
     }
@@ -158,7 +166,7 @@ export function useDiscoveryQuiz(onComplete: (profile: UserProfile) => void) {
     if (!nextQuestion) {
       setBelief(newBelief);
       setTimeout(() => {
-        finishQuiz(beliefToProfile(newBelief));
+        finishQuiz(newBelief);
       }, ADVANCE_MS);
       return { prevTier, newTier: prevTier, tierChanged: false, isComplete: true, needsAIQuestion: false, beliefState: newBelief };
     }
@@ -202,7 +210,7 @@ export function useDiscoveryQuiz(onComplete: (profile: UserProfile) => void) {
       setIsNavigating(false);
     } else {
       // No more questions — force completion
-      finishQuiz(beliefToProfile(belief));
+      finishQuiz(belief);
     }
   }, [belief, finishQuiz]);
 

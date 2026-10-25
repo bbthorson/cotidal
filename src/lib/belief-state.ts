@@ -46,8 +46,24 @@ export interface Answer {
   noiseScale: number;
 }
 
+/**
+ * One answered question as it was asked: the options' authored nudges and
+ * which was taken. Unlike `answers` this keeps every question, including
+ * ones that carry no position, and the raw nudges rather than where the
+ * current EVIDENCE_SCALE puts them — it is what gets logged
+ * (app.crystalcoupe.elicitation) so the model can be re-fitted later.
+ */
+export interface QuizResponse {
+  questionId: string;
+  kind: 'triad' | 'pair' | 'single';
+  generated: boolean;
+  options: { dx: number; dy: number }[];
+  chosen: number;
+}
+
 export interface BeliefState {
   answers: Answer[];
+  responses: QuizResponse[];
   /** Normalised weight of each `CELLS` entry: a grid point at a noise level. */
   posterior: number[];
   axes: Record<'x' | 'y', AxisBelief>;
@@ -55,6 +71,9 @@ export interface BeliefState {
   vibeTags: Record<string, number>;
   questionCount: number;
 }
+
+/** Names the model below in logged answers; change it when the model changes. */
+export const RESPONSE_MODEL = 'softmax-grid-1';
 
 // How far one answer places the user per unit of its authored nudge. The
 // strongest nudges in the bank (|d| = 4-5) place the user at the edge of the map.
@@ -220,6 +239,7 @@ export const INITIAL_VARIANCE = PRIOR.axes.x.variance;
 export function createInitialBelief(): BeliefState {
   return {
     ...PRIOR,
+    responses: [],
     filters: {
       dislikesSmoke: null,
       dislikesBitter: null,
@@ -266,8 +286,23 @@ export function answerQuestion(state: BeliefState, question: Question, option: Q
     });
   }
 
+  const responses: QuizResponse[] =
+    chosen < 0
+      ? state.responses
+      : [
+          ...state.responses,
+          {
+            questionId: question.id,
+            kind: question.type === 'triad' || question.type === 'pair' ? question.type : 'single',
+            generated: !!question.isAIGenerated,
+            options: question.options.map(({ dx, dy }) => ({ dx, dy })),
+            chosen,
+          },
+        ];
+
   return {
     ...position,
+    responses,
     filters: newFilters,
     vibeTags: newVibeTags,
     questionCount: state.questionCount + 1,
