@@ -85,6 +85,37 @@
   }
 }
 
+@layer components {
+  /* Focus variants; the ring itself is the base rule at the end of this file.
+     Cells inside a frame — segmented controls, tabs, list rows — draw it
+     inside, where an outer ring would be clipped or cross a neighbour. */
+  .focus-ring-inset:focus-visible {
+    outline-offset: -2px;
+  }
+  /* On the reveal ground the ring is the lifted terracotta of your dot. */
+  .focus-ring-reveal:focus-visible {
+    outline-color: hsl(var(--reveal-mark));
+  }
+
+  /* Buttons. Square, condensed caps, an ink edge. `.btn` is the shape; a
+     colour class says what it is. Width and padding stay with the layout. */
+  .btn {
+    @apply inline-flex min-h-11 items-center justify-center border font-condensed text-xs font-bold uppercase tracking-label transition-colors;
+  }
+  /* The large size: a screen's main action, usually full width. */
+  .btn-lg {
+    @apply min-h-13 text-sm;
+  }
+  /* The primary action: forest, terracotta on hover. */
+  .btn-primary {
+    @apply border-foreground bg-secondary text-secondary-foreground hover:bg-primary disabled:bg-muted disabled:text-muted-foreground;
+  }
+  /* The primary action on the reveal ground: paper on forest. */
+  .btn-reveal {
+    @apply border-reveal-foreground bg-reveal-foreground text-reveal hover:bg-reveal-muted focus-ring-reveal;
+  }
+}
+
 @layer utilities {
   /* Paper tooth. The same noise as before, read as grain rather than grime. */
   .bar-texture {
@@ -172,6 +203,14 @@
 @layer base {
   * {
     @apply border-border;
+  }
+  /* Focus. Anything you can tab to shows the same terracotta ring, set off
+     from it by a gap of the ground it sits on. An outline rather than a
+     ring-* box-shadow, so it never replaces an element's own shadow. Fields
+     that mark focus with their border opt out with focus:outline-none. */
+  :focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
   }
   body {
     @apply bg-background text-foreground;

@@ -94,7 +94,7 @@ export function Moved({
       <button
         type="button"
         onClick={onDone}
-        className="mt-auto min-h-13 w-full border border-reveal-foreground bg-reveal-foreground font-condensed text-sm font-bold uppercase tracking-label text-reveal transition-colors hover:bg-reveal-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-reveal-mark focus-visible:ring-offset-2 focus-visible:ring-offset-reveal lg:mt-8"
+        className="btn btn-reveal btn-lg mt-auto w-full lg:mt-8"
       >
         {backLabel}
       </button>

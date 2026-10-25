@@ -165,7 +165,7 @@ export function DrinkSpot({
       aria-pressed={selected}
       onClick={onSelect}
       className={cn(
-        'group absolute flex h-6 w-6 -translate-x-1/2 translate-y-1/2 items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+        'group absolute flex h-6 w-6 -translate-x-1/2 translate-y-1/2 items-center justify-center rounded-full',
         selected && 'z-20'
       )}
       style={at(x, y)}

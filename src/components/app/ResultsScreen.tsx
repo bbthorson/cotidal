@@ -187,7 +187,7 @@ export function ResultsScreen({
               <button
                 type="button"
                 onClick={onRequestSignIn}
-                className="min-h-11 shrink-0 border border-foreground bg-secondary px-3.5 font-condensed text-xs font-bold uppercase tracking-label text-secondary-foreground transition-colors hover:bg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                className="btn btn-primary shrink-0 px-3.5"
               >
                 {nav.signIn}
               </button>
@@ -446,7 +446,7 @@ function StartOver({ onConfirm }: { onConfirm: () => void }) {
             <button
               type="button"
               onClick={onConfirm}
-              className="min-h-11 border border-foreground bg-secondary px-4 font-condensed text-xs font-bold uppercase tracking-label text-secondary-foreground transition-colors hover:bg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              className="btn btn-primary px-4"
             >
               {account.startOverCta}
             </button>

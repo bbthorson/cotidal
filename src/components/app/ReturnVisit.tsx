@@ -232,14 +232,14 @@ function ReturnVisitContent({ register, initialDrink }: { register: Register; in
         <div className="mt-8 flex flex-col gap-3">
           <a
             href="/taste"
-            className="inline-flex min-h-13 items-center justify-center border border-foreground bg-secondary px-6 font-condensed text-sm font-bold uppercase tracking-label text-secondary-foreground transition-colors hover:bg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            className="btn btn-primary btn-lg px-6"
           >
             {returnVisit.quizCta}
           </a>
           <button
             type="button"
             onClick={() => setSignInOpen(true)}
-            className="min-h-12 border border-foreground bg-transparent px-6 font-condensed text-meta font-semibold uppercase tracking-label text-foreground transition-colors hover:bg-secondary hover:text-secondary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="min-h-12 border border-foreground bg-transparent px-6 font-condensed text-meta font-semibold uppercase tracking-label text-foreground transition-colors hover:bg-secondary hover:text-secondary-foreground"
           >
             {returnVisit.signInCta}
           </button>

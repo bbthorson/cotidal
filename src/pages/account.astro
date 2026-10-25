@@ -17,10 +17,8 @@ export const prerender = false;
 
 const account = await accountFor(Astro.request, false);
 const handle = account.kind === 'member' ? account.handle : null;
-const actionClass =
-  'inline-flex min-h-11 items-center justify-center border border-foreground px-4 font-condensed text-xs font-bold uppercase tracking-label transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background';
 const linkClass =
-  'flex min-h-11 items-center justify-between border-b border-border font-condensed text-meta uppercase tracking-label text-foreground transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring';
+  'flex min-h-11 items-center justify-between border-b border-border font-condensed text-meta uppercase tracking-label text-foreground transition-colors hover:text-primary';
 ---
 
 <AppShell title={`${site.name} — ${copy.title}`} currentPath="/account" width="prose">
@@ -46,7 +44,7 @@ const linkClass =
           <p class="text-ui text-muted-foreground">{copy.startOverBody}</p>
           <a
             href={`/taste?${START_OVER_PARAM}=1`}
-            class:list={[actionClass, 'bg-card text-foreground hover:bg-muted']}
+            class="btn border-foreground bg-card px-4 text-foreground hover:bg-muted"
           >
             {copy.startOverCta}
           </a>
@@ -58,7 +56,7 @@ const linkClass =
           <form method="POST" action={`${AUTH_BASE_PATH}/logout`}>
             <button
               type="submit"
-              class:list={[actionClass, 'bg-secondary text-secondary-foreground hover:bg-primary']}
+              class="btn btn-primary px-4"
             >
               {nav.signOut}
             </button>

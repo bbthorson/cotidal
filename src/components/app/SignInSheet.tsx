@@ -90,7 +90,7 @@ export function SignInSheet({ open, onOpenChange }: SignInSheetProps) {
               <button
                 type="submit"
                 disabled={connecting || !handle.trim()}
-                className="min-h-13 border border-foreground bg-secondary font-condensed text-sm font-bold uppercase tracking-label text-secondary-foreground transition-colors hover:bg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground"
+                className="btn btn-primary btn-lg disabled:cursor-not-allowed"
               >
                 {connecting ? connect.connecting : connect.submit}
               </button>
@@ -101,7 +101,7 @@ export function SignInSheet({ open, onOpenChange }: SignInSheetProps) {
             </p>
           )}
 
-          <Dialog.Close className="flex min-h-11 items-center self-center px-2 font-condensed text-meta uppercase tracking-label text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+          <Dialog.Close className="flex min-h-11 items-center self-center px-2 font-condensed text-meta uppercase tracking-label text-muted-foreground transition-colors hover:text-foreground">
             {connect.guest}
           </Dialog.Close>
         </Dialog.Content>

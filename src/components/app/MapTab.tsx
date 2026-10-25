@@ -132,7 +132,7 @@ export function MapTab({ you, menu, closeness, pours, register, onLog }: MapTabP
               setSelected(null);
             }}
             className={cn(
-              'min-h-11 font-condensed text-xs font-semibold uppercase tracking-wider transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring',
+              'min-h-11 font-condensed text-xs font-semibold uppercase tracking-wider transition-colors focus-ring-inset',
               i > 0 && 'border-l border-foreground',
               lens === l.id ? 'bg-secondary text-secondary-foreground' : 'bg-card text-foreground hover:bg-muted'
             )}
@@ -211,7 +211,7 @@ export function MapTab({ you, menu, closeness, pours, register, onLog }: MapTabP
                     type="button"
                     onClick={() => choose(d.name)}
                     aria-pressed={selected === d.name}
-                    className="dot-leader min-h-11 w-full py-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+                    className="dot-leader min-h-11 w-full py-3 text-left focus-ring-inset"
                   >
                     {lens !== 'pours' && (
                       <span className="w-5.5 shrink-0 font-condensed text-meta tabular-nums text-muted-foreground">{i + 1}</span>
@@ -282,7 +282,7 @@ function DrinkPanel({
         <button
           type="button"
           onClick={onClose}
-          className="-my-2 -mr-2 flex min-h-11 items-center px-2 font-condensed text-xs uppercase tracking-label text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="-my-2 -mr-2 flex min-h-11 items-center px-2 font-condensed text-xs uppercase tracking-label text-muted-foreground hover:text-foreground"
         >
           {mapTab.close}
         </button>
@@ -327,7 +327,7 @@ function DrinkPanel({
         <button
           type="button"
           onClick={onLog}
-          className="min-h-11 border border-foreground bg-secondary px-5 font-condensed text-xs font-bold uppercase tracking-label text-secondary-foreground transition-colors hover:bg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          className="btn btn-primary px-5"
         >
           {mapTab.logThis}
         </button>

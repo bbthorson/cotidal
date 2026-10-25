@@ -30,6 +30,18 @@ const RAW_COLOR = /#[0-9a-fA-F]{3,8}\b|\brgba?\(|\bhsla?\(/;
 const OPACITY_MODIFIER =
   /(^|[\s:])(text|bg|border(-[trblxy])?|ring|ring-offset|outline|fill|stroke|divide|decoration|shadow|from|via|to|accent|caret|placeholder)-[a-z][a-z0-9-]*\/\d+(\s|$)/;
 
+/** A focus ring drawn by hand, which the base `:focus-visible` rule already draws. */
+const HAND_FOCUS = /focus-visible:(ring|outline)/;
+
+/** The primary button spelled out: forest with a terracotta hover. */
+const HAND_PRIMARY = /bg-secondary\b.*hover:bg-primary\b|hover:bg-primary\b.*bg-secondary\b/;
+
+const COMPONENT_MESSAGE =
+  'Use the design system class, not its parts: focus is drawn once by ' +
+  '`:focus-visible` in globals.css (add focus-ring-inset or focus-ring-reveal ' +
+  'for a variant), and the primary button is `btn btn-primary` (or ' +
+  '`btn btn-reveal`, with `btn-lg` for the large size).';
+
 const TOKEN_MESSAGE =
   'Use a design token, not a literal. Colours, sizes and shadows belong in ' +
   'globals.css / tailwind.config.ts — see docs/brand.md. If the token you ' +
@@ -60,6 +72,10 @@ const tokenRuleEntries = [
     selector: `TemplateElement[value.raw=/${OPACITY_MODIFIER.source}/]`,
     message: TOKEN_MESSAGE,
   },
+  ...[HAND_FOCUS, HAND_PRIMARY].flatMap((pattern) => [
+    { selector: `Literal[value=/${pattern.source}/]`, message: COMPONENT_MESSAGE },
+    { selector: `TemplateElement[value.raw=/${pattern.source}/]`, message: COMPONENT_MESSAGE },
+  ]),
 ];
 
 export default [
