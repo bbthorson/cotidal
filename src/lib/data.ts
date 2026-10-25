@@ -1,4 +1,7 @@
-export type VibeTag = 'bold' | 'classic' | 'visual' | 'social' | 'comfort' | 'complex' | 'sweet' | 'messy' | 'polarizing' | 'prestige' | 'warm' | 'spice' | 'crushable';
+import { VIBE_TAGS } from './atproto/vocab';
+
+/** Declared once, in vocab.ts, because the palate lexicon lists them as `knownValues`. */
+export type VibeTag = (typeof VIBE_TAGS)[number];
 
 export type User = {
   x: number;

@@ -1,29 +1,22 @@
 import type { UserProfile } from '@/hooks/useDiscoveryQuiz';
-import type { PourRecord, PerceivedIntensities, PourContext, ElicitationRecord } from '@/lib/atproto/records';
+import type { PourRecord, PerceivedIntensities, ElicitationRecord } from '@/lib/atproto/records';
+import type { BaseSpirit, Glassware } from '@/lib/atproto/vocab';
 
 export interface LogDrinkOptions {
   drinkName: string;
   rating: number;
   glmsValence?: number;
-  baseSpirit?: string;
+  baseSpirit?: BaseSpirit;
   isHomePour?: boolean;
   location?: string;
   venue?: { name: string; lat?: number; lng?: number };
   perceivedIntensities?: PerceivedIntensities;
   cata?: string[];
-  context?: PourContext;
-  sensoryProfile?: {
-    bitter: number;
-    sweet: number;
-    sour: number;
-    spiritForward: number;
-    citrus: number;
-    herbal: number;
-  };
-  glassware?: string;
+  glassware?: Glassware;
   garnish?: string;
   deviations?: string[];
   note?: string;
+  /** Only when the drinker was asked; never inferred from the rating. */
   wouldOrderAgain?: boolean;
   crosspostToFeed?: boolean;
 }

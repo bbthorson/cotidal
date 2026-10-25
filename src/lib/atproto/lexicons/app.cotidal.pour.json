@@ -31,7 +31,7 @@
           "perceivedIntensities": {
             "type": "ref",
             "ref": "#perceivedIntensities",
-            "description": "0-100 gLMS scales for discrete structural/tactile vectors."
+            "description": "How strong each quality was, on the generalized Labeled Magnitude Scale. Only the qualities the drinker rated are present."
           },
           "deviations": {
             "type": "array",
@@ -78,10 +78,16 @@
               ]
             }
           },
-          "context": {
-            "type": "ref",
-            "ref": "#context",
-            "description": "Transitory physiological and circadian state data for SSS and prandial normalization."
+          "glassware": {
+            "type": "string",
+            "maxLength": 100,
+            "knownValues": ["coupe", "nick-and-nora", "rocks", "highball", "martini", "tiki-mug"],
+            "description": "The glass it was served in."
+          },
+          "garnish": {
+            "type": "string",
+            "maxLength": 200,
+            "description": "As served, in the drinker's words."
           },
           "note": { "type": "string", "maxLength": 3000, "maxGraphemes": 1000 },
           "isHomePour": { "type": "boolean" },
@@ -108,34 +114,24 @@
         },
         "wouldOrderAgain": {
           "type": "boolean",
-          "description": "Adoption rather than approval. Used to gauge recipe reception without personal scoring."
+          "description": "Adoption rather than approval: present only when the drinker was asked. Used to gauge recipe reception without personal scoring."
         }
       }
     },
     "perceivedIntensities": {
       "type": "object",
-      "description": "0-100 gLMS scales mapping discrete structural/tactile vectors, in whole points.",
+      "description": "Perceived intensity on the generalized Labeled Magnitude Scale (gLMS), 0-100 in whole points. Anchors, rounded from Bartoshuk et al.: barely detectable 1, weak 6, moderate 17, strong 35, very strong 53, strongest imaginable sensation of any kind 100. An absent quality was not rated, which is not the same as 0.",
       "properties": {
         "sweetness": { "type": "integer", "minimum": 0, "maximum": 100 },
         "sourness": { "type": "integer", "minimum": 0, "maximum": 100 },
         "bitterness": { "type": "integer", "minimum": 0, "maximum": 100 },
         "astringency": { "type": "integer", "minimum": 0, "maximum": 100 },
-        "effervescence": { "type": "integer", "minimum": 0, "maximum": 100 }
-      }
-    },
-    "context": {
-      "type": "object",
-      "description": "Temporal and physiological state data for SSS and diurnal normalization.",
-      "properties": {
-        "volumeConsumedMl": {
+        "effervescence": { "type": "integer", "minimum": 0, "maximum": 100 },
+        "alcoholHeat": {
           "type": "integer",
           "minimum": 0,
-          "description": "Estimated volume consumed in whole milliliters (for sensory-specific satiety decay)."
-        },
-        "fastingDurationHours": {
-          "type": "integer",
-          "minimum": 0,
-          "description": "Whole hours since the last substantial meal (for ghrelin / postprandial sweet reward weighting)."
+          "maximum": 100,
+          "description": "Ethanol burn and warmth (trigeminal), what a menu calls spirit-forward."
         }
       }
     }

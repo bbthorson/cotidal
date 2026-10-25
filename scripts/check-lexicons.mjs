@@ -17,8 +17,9 @@
  *      agree field by field: names, required, types, integer bounds, array
  *      lengths, string limits and formats, and closed sets against
  *      `knownValues`
- *   7. the vocabularies the app writes (`DEVIATIONS`, `CATA`) are the pour
- *      lexicon's `knownValues`
+ *   7. every vocabulary the app writes (vocab.ts: `DEVIATIONS`, `CATA`,
+ *      `GLASSWARE`, `BASE_SPIRITS`, `VIBE_TAGS`) is the `knownValues` of each
+ *      field that declares it
  *   8. every file loads in `@atproto/lexicon`, the protocol's reference
  *      parser, so a schema it would refuse never reaches a repository
  *
@@ -106,9 +107,8 @@ for (const [id, doc] of docs) {
 }
 
 /** 6. Each record's Zod schema against its lexicon. */
-const { RECORD_SCHEMAS, STRING_LIMITS, DEVIATIONS, CATA, POUR_COLLECTION } = await import(
-  '../src/lib/atproto/records.ts'
-);
+const { RECORD_SCHEMAS, STRING_LIMITS } = await import('../src/lib/atproto/records.ts');
+const VOCAB = await import('../src/lib/atproto/vocab.ts');
 
 const kind = (schema) => schema?._def?.typeName;
 
@@ -249,11 +249,20 @@ for (const [id, doc] of docs) {
   }
 }
 
-/** 7. The vocabularies written are the ones declared. */
-const pourProps = docs.get(POUR_COLLECTION)?.defs.main.record.properties ?? {};
-for (const [field, values] of [['deviations', DEVIATIONS], ['cata', CATA]]) {
-  if (!same(sorted(pourProps[field]?.items?.knownValues ?? []), sorted(values))) {
-    errors.push(`${POUR_COLLECTION}.${field}: knownValues are not ${field === 'cata' ? 'CATA' : 'DEVIATIONS'} in records.ts`);
+/** 7. The vocabularies written are the ones declared, wherever they are declared. */
+const VOCABULARIES = [
+  ['app.cotidal.pour', ['defs', 'main', 'record', 'properties', 'deviations', 'items'], 'DEVIATIONS'],
+  ['app.cotidal.pour', ['defs', 'main', 'record', 'properties', 'cata', 'items'], 'CATA'],
+  ['app.cotidal.pour', ['defs', 'main', 'record', 'properties', 'glassware'], 'GLASSWARE'],
+  ['app.cotidal.recipe', ['defs', 'main', 'record', 'properties', 'glassware'], 'GLASSWARE'],
+  ['app.cotidal.defs', ['defs', 'drinkRef', 'properties', 'baseSpirit'], 'BASE_SPIRITS'],
+  ['app.cotidal.palate', ['defs', 'vibeTagWeight', 'properties', 'tag'], 'VIBE_TAGS'],
+];
+for (const [id, path, name] of VOCABULARIES) {
+  const field = path.reduce((node, key) => node?.[key], docs.get(id));
+  if (!field) errors.push(`${id}: no field at ${path.join('.')} for ${name}`);
+  else if (!same(sorted(field.knownValues ?? []), sorted(VOCAB[name]))) {
+    errors.push(`${id} ${path.slice(-2).join('.')}: knownValues are not ${name} in vocab.ts`);
   }
 }
 

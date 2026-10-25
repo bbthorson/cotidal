@@ -25,9 +25,8 @@ test('AT Protocol: derivePalateRecord should correctly build structured dynamic 
   expect(record.dynamicState.covarianceDiagonal.length).toBe(5);
   expect(record.dynamicState.eventCount).toBe(0);
 
-  // Assert phenotypes
-  expect(record.phenotypes.tas2r38BitterSensitivity).toBe('medium-taster');
-  expect(record.phenotypes.trigeminalTolerance).toBe('moderate');
+  // No phenotypes: a genetic label guessed from one answer is not the app's to publish.
+  expect(record).not.toHaveProperty('phenotypes');
 
   // Assert aversions
   expect(record.aversions.smoke).toBe(true);
@@ -80,10 +79,6 @@ test('AT Protocol: PourRecordSchema should validate pour records conforming to p
       bitterness: 30,
     },
     cata: ['rye-spice', 'cherry', 'oak'],
-    context: {
-      volumeConsumedMl: 120,
-      fastingDurationHours: 2,
-    },
     note: 'Slightly sweet, but excellent rye selection.',
     createdAt: new Date().toISOString(),
   };

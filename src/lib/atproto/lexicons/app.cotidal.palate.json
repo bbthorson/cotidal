@@ -4,16 +4,15 @@
   "defs": {
     "main": {
       "type": "record",
-      "description": "A user's psychophysical palate profile and dynamic preference state from Cotidal. The AT Protocol data model has no floats, so every fractional quantity is an integer in hundredths, named for it (`xHundredths: -420` is −4.20). Records written before this encoding carried `mapCoordinates.x`/`y`, `latentVector`, `covarianceDiagonal` and `vibeTags` as floats; readers accept both, writers emit only this one.",
+      "description": "A user's psychophysical palate profile and dynamic preference state from Cotidal. The AT Protocol data model has no floats, so every fractional quantity is an integer in hundredths, named for it (`xHundredths: -420` is −4.20). Records written before this encoding carried `mapCoordinates.x`/`y`, `latentVector`, `covarianceDiagonal` and `vibeTags` as floats, and records written before `vibeTagWeights` carried `vibeTagsHundredths` as an object and a `phenotypes` guess; readers accept all three, writers emit only this one.",
       "key": "literal:self",
       "record": {
         "type": "object",
         "required": [
           "mapCoordinates",
           "dynamicState",
-          "phenotypes",
           "aversions",
-          "vibeTagsHundredths",
+          "vibeTagWeights",
           "createdAt"
         ],
         "properties": {
@@ -26,18 +25,18 @@
             "ref": "#dynamicState",
             "description": "Computed Extended Kalman Filter state vector and error covariance."
           },
-          "phenotypes": {
-            "type": "ref",
-            "ref": "#phenotypes",
-            "description": "Physiological sensitivity proxies (TAS2R38, TRPV1)."
-          },
           "aversions": {
             "type": "ref",
             "ref": "#aversions"
           },
-          "vibeTagsHundredths": {
-            "type": "unknown",
-            "description": "Tag affinity from quiz answers and tasting history: an object whose keys are vibe tags and whose values are integer weights in hundredths. `unknown` because Lexicon has no open-dictionary type; an inline `object` is not valid there."
+          "vibeTagWeights": {
+            "type": "array",
+            "description": "Tag affinity from quiz answers and tasting history, one entry per tag.",
+            "maxLength": 32,
+            "items": {
+              "type": "ref",
+              "ref": "#vibeTagWeight"
+            }
           },
           "createdAt": {
             "type": "string",
@@ -130,26 +129,35 @@
         }
       }
     },
-    "phenotypes": {
+    "vibeTagWeight": {
       "type": "object",
+      "required": [
+        "tag",
+        "weightHundredths"
+      ],
       "properties": {
-        "tas2r38BitterSensitivity": {
+        "tag": {
           "type": "string",
+          "maxLength": 32,
           "knownValues": [
-            "non-taster",
-            "medium-taster",
-            "super-taster"
-          ],
-          "description": "Bitter receptor expression density behavioral proxy."
+            "bold",
+            "classic",
+            "visual",
+            "social",
+            "comfort",
+            "complex",
+            "sweet",
+            "messy",
+            "polarizing",
+            "prestige",
+            "warm",
+            "spice",
+            "crushable"
+          ]
         },
-        "trigeminalTolerance": {
-          "type": "string",
-          "knownValues": [
-            "low",
-            "moderate",
-            "high"
-          ],
-          "description": "TRPV1 thermal / ethanol burn tolerance."
+        "weightHundredths": {
+          "type": "integer",
+          "description": "Affinity for the tag, in hundredths."
         }
       }
     }

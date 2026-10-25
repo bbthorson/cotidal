@@ -1,8 +1,19 @@
 import { useId, useState, type FormEvent, type ReactNode } from 'react';
 import { drinkDatabase } from '@/lib/data';
-import { CATA, DEVIATIONS, type CataNote } from '@/lib/atproto/vocab';
-import type { SensoryProfile } from '@/lib/atproto/records';
+import {
+  ASKED_INTENSITIES,
+  BASE_SPIRITS,
+  CATA,
+  DEVIATIONS,
+  GLASSWARE,
+  GLMS_ANCHORS,
+  type AskedIntensity,
+  type BaseSpirit,
+  type CataNote,
+  type Glassware,
+} from '@/lib/atproto/vocab';
 import { pour } from '@/lib/copy';
+import type { LogDrinkOptions } from '@/lib/api-client';
 import { cn } from '@/lib/utils';
 
 export type Deviation = (typeof DEVIATIONS)[number];
@@ -17,11 +28,13 @@ export interface PourEntry {
   cata?: CataNote[];
   note: string;
   crosspost: boolean;
+  /** Only what the drinker set: an untouched field is absent, never a default. */
   detail?: {
-    baseSpirit: string;
-    glassware: string;
-    garnish: string;
-    sensory?: SensoryProfile;
+    baseSpirit?: BaseSpirit;
+    glassware?: Glassware;
+    garnish?: string;
+    /** gLMS, 0–100 (`perceivedIntensities` on the pour). */
+    intensities?: Partial<Record<AskedIntensity, number>>;
   };
 }
 
@@ -31,9 +44,30 @@ export interface PourEntry {
  */
 export const hedonicToRating = (hedonic: number) => (hedonic - 1) * 1.25;
 
-const BASE_SPIRITS = ['Bourbon', 'Rye', 'Scotch', 'Gin', 'Rum', 'Tequila', 'Mezcal', 'Vodka', 'Cognac / Brandy', 'Amaro / Aperitif', 'Non-alcoholic'];
-const GLASSES = ['Coupe', 'Nick & Nora', 'Rocks', 'Highball', 'Martini', 'Tiki mug'];
-const SENSORY_AXES = ['bitter', 'sweet', 'sour', 'spiritForward', 'citrus', 'herbal'] as const;
+/** What the log route is sent for an entry. One mapping, for /taste and /log alike. */
+export function toLogOptions(entry: PourEntry): LogDrinkOptions {
+  return {
+    drinkName: entry.drinkName,
+    rating: hedonicToRating(entry.hedonic),
+    isHomePour: entry.isHomePour,
+    location: entry.isHomePour ? 'Home Pour' : entry.venue,
+    venue: entry.isHomePour ? undefined : { name: entry.venue },
+    deviations: entry.deviations,
+    cata: entry.cata,
+    note: entry.note || undefined,
+    crosspostToFeed: entry.crosspost,
+    baseSpirit: entry.detail?.baseSpirit,
+    glassware: entry.detail?.glassware,
+    garnish: entry.detail?.garnish,
+    perceivedIntensities: entry.detail?.intensities,
+  };
+}
+
+/** The gLMS word for a position on the scale: the highest anchor at or below it. */
+export function glmsWord(value: number): string {
+  const anchor = [...GLMS_ANCHORS].reverse().find((a) => value >= a.at);
+  return anchor ? pour.glms[anchor.id] : pour.glmsNone;
+}
 
 export const CATA_OPTIONS = CATA;
 
@@ -83,19 +117,22 @@ export function PourForm({
   const [cata, setCata] = useState<CataNote[]>([]);
   const [note, setNote] = useState('');
   const [crosspost, setCrosspost] = useState(false);
-  const [baseSpirit, setBaseSpirit] = useState(BASE_SPIRITS[0]);
-  const [glassware, setGlassware] = useState(GLASSES[0]);
+  const [baseSpirit, setBaseSpirit] = useState<BaseSpirit | ''>('');
+  const [glassware, setGlassware] = useState<Glassware | ''>('');
   const [garnish, setGarnish] = useState('');
-  const [sensoryOn, setSensoryOn] = useState(false);
-  const [sensory, setSensory] = useState<SensoryProfile>({
-    bitter: 2.5,
-    sweet: 2.5,
-    sour: 2.5,
-    spiritForward: 3,
-    citrus: 2.5,
-    herbal: 2,
-  });
+  const [intensities, setIntensities] = useState<Partial<Record<AskedIntensity, number>>>({});
   const [localError, setLocalError] = useState<string | null>(null);
+
+  /** The detail fields the drinker set, or nothing. */
+  const chosenDetail = (): PourEntry['detail'] => {
+    const detail: NonNullable<PourEntry['detail']> = {
+      ...(baseSpirit ? { baseSpirit } : {}),
+      ...(glassware ? { glassware } : {}),
+      ...(garnish.trim() ? { garnish: garnish.trim() } : {}),
+      ...(Object.keys(intensities).length > 0 ? { intensities } : {}),
+    };
+    return Object.keys(detail).length > 0 ? detail : undefined;
+  };
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
@@ -111,13 +148,16 @@ export function PourForm({
       cata: cata.length > 0 ? cata : undefined,
       note: note.trim(),
       crosspost: isMember && crosspost,
-      detail: isMember
-        ? { baseSpirit, glassware, garnish: garnish.trim(), sensory: sensoryOn ? sensory : undefined }
-        : undefined,
+      detail: isMember ? chosenDetail() : undefined,
     });
     setDeviations([]);
     setCata([]);
     setNote('');
+    // Detail belongs to the drink just logged, not the next one.
+    setBaseSpirit('');
+    setGlassware('');
+    setGarnish('');
+    setIntensities({});
   };
 
   const shownError = localError ?? error;
@@ -309,8 +349,18 @@ export function PourForm({
           </summary>
           <div className="flex flex-col gap-5 pb-5 pt-1">
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <SelectField label={pour.spiritLabel} value={baseSpirit} options={BASE_SPIRITS} onChange={setBaseSpirit} />
-              <SelectField label={pour.glassLabel} value={glassware} options={GLASSES} onChange={setGlassware} />
+              <SelectField
+                label={pour.spiritLabel}
+                value={baseSpirit}
+                options={BASE_SPIRITS.map((v) => ({ value: v, label: pour.spirits[v] }))}
+                onChange={(v) => setBaseSpirit(v as BaseSpirit | '')}
+              />
+              <SelectField
+                label={pour.glassLabel}
+                value={glassware}
+                options={GLASSWARE.map((v) => ({ value: v, label: pour.glasses[v] }))}
+                onChange={(v) => setGlassware(v as Glassware | '')}
+              />
             </div>
             <div className="flex flex-col gap-2">
               <FieldLabel htmlFor={`${id}-garnish`}>{pour.garnishLabel}</FieldLabel>
@@ -323,37 +373,48 @@ export function PourForm({
                 className={inputClass}
               />
             </div>
-            <label className="flex min-h-11 cursor-pointer items-center gap-3 text-ui">
-              <input
-                type="checkbox"
-                checked={sensoryOn}
-                onChange={(e) => setSensoryOn(e.target.checked)}
-                className="h-4 w-4 cursor-pointer accent-secondary"
-              />
-              {pour.sensoryLabel}
-            </label>
-            {sensoryOn && (
-              <div className="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
-                {SENSORY_AXES.map((axis) => (
-                  <label key={axis} className="flex flex-col gap-1">
-                    <span className="dot-leader text-meta">
-                      <span>{pour.sensory[axis]}</span>
-                      <span aria-hidden="true" className="leader" />
-                      <span className="font-condensed font-bold tabular-nums">{sensory[axis].toFixed(1)}</span>
-                    </span>
-                    <input
-                      type="range"
-                      min={0}
-                      max={5}
-                      step={0.5}
-                      value={sensory[axis]}
-                      onChange={(e) => setSensory((prev) => ({ ...prev, [axis]: parseFloat(e.target.value) }))}
-                      className="w-full cursor-pointer accent-secondary"
-                    />
-                  </label>
-                ))}
+            {/* gLMS: position on a line with labelled anchors. Untouched means not rated, not zero. */}
+            <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-0.5">
+                <FieldLabel as="span">{pour.intensityLabel}</FieldLabel>
+                <span className="text-meta text-muted-foreground">{pour.intensityHint}</span>
               </div>
-            )}
+              <datalist id={`${id}-glms`}>
+                {GLMS_ANCHORS.map((a) => (
+                  <option key={a.id} value={a.at} label={pour.glms[a.id]} />
+                ))}
+              </datalist>
+              <div className="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
+                {ASKED_INTENSITIES.map((quality) => {
+                  const value = intensities[quality];
+                  const word = value === undefined ? pour.notRated : glmsWord(value);
+                  return (
+                    <label key={quality} className="flex flex-col gap-1">
+                      <span className="dot-leader text-meta">
+                        <span>{pour.intensities[quality]}</span>
+                        <span aria-hidden="true" className="leader" />
+                        <span className={cn('font-condensed font-bold', value === undefined && 'text-muted-foreground')}>
+                          {word}
+                        </span>
+                      </span>
+                      <input
+                        type="range"
+                        min={0}
+                        max={100}
+                        step={1}
+                        list={`${id}-glms`}
+                        value={value ?? 0}
+                        aria-valuetext={word}
+                        onChange={(e) =>
+                          setIntensities((prev) => ({ ...prev, [quality]: Number(e.target.value) }))
+                        }
+                        className={cn('w-full cursor-pointer accent-secondary', value === undefined && 'opacity-50')}
+                      />
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
           </div>
         </details>
       )}
@@ -431,6 +492,7 @@ function Tag({ active, onClick, children }: { active: boolean; onClick: () => vo
   );
 }
 
+/** A select that starts on nothing: the empty choice records nothing. */
 function SelectField({
   label,
   value,
@@ -439,16 +501,17 @@ function SelectField({
 }: {
   label: string;
   value: string;
-  options: string[];
+  options: { value: string; label: string }[];
   onChange: (value: string) => void;
 }) {
   return (
     <label className="flex flex-col gap-2">
       <span className="font-condensed text-xs uppercase tracking-label text-muted-foreground">{label}</span>
       <select value={value} onChange={(e) => onChange(e.target.value)} className={inputClass}>
+        <option value="">{pour.notSet}</option>
         {options.map((o) => (
-          <option key={o} value={o}>
-            {o}
+          <option key={o.value} value={o.value}>
+            {o.label}
           </option>
         ))}
       </select>

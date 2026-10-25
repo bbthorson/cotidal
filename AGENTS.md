@@ -65,7 +65,9 @@ The 5D latent state vector ($\mathbf{x}_k \in \mathbb{R}^5$) is `StateVector`:
 Rich-Crisp, Savory-Sweet, Bitter Tolerance, Tannin Tolerance and Complexity,
 accompanied by error covariance matrix ($\mathbf{P}_k$). Observations are
 normalised for Sensory-Specific Satiety (SSS exponential volume decay) and
-prandial ghrelin before they reach the filter. Detailed psychophysics in
+prandial ghrelin before they reach the filter. Those two inputs — volume
+drunk and hours since eating (`PourContext`) — stay on the device: they are
+not in the pour lexicon and the log route does not accept them. Detailed psychophysics in
 `docs/sensory-science.md`; the order of the axes is also the order of
 `latentVector` in `app.cotidal.palate.json`.
 
@@ -211,6 +213,13 @@ strings.
 
 **Objects nest by `ref`, never inline.** A property of `"type": "object"` is
 not valid Lexicon; give it a named def. An open dictionary is `unknown`.
+
+**A record holds what its author said, nothing inferred in their name.**
+An untouched form field is absent, not a default; "would order again" is
+written only when it was asked; and the palate carries no `phenotypes` (a
+genetic label guessed from one quiz answer, removed). Derived values belong in
+the app, recomputed from the record — never stored as if the user had said
+them.
 
 The browser loads `vocab.ts` (names and vocabularies) and
 `elicitation-record.ts`, never `records.ts`: the validators that only the

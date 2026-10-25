@@ -14,7 +14,19 @@
  */
 
 import type { Drink } from './data';
-import type { DynamicState, Phenotypes, PourContext, PerceivedIntensities } from './atproto/records';
+import type { DynamicState, PerceivedIntensities } from './atproto/records';
+
+/**
+ * The drinker's state at the pour, for satiety and appetite normalisation.
+ * Kept on the device and never written to a record: how much someone has
+ * drunk and when they last ate is not for a public repository.
+ */
+export interface PourContext {
+  /** Estimated volume consumed, in millilitres (sensory-specific satiety decay). */
+  volumeConsumedMl?: number;
+  /** Hours since the last substantial meal (prandial ghrelin weighting). */
+  fastingDurationHours?: number;
+}
 
 export interface StateVector {
   crisp: number;      // x: -10 to 10
@@ -113,7 +125,6 @@ export function createInitialPalateState(initial?: {
   dislikesAnise?: boolean;
   /** The quiz's variance on the two map axes; the default when absent. */
   variance?: { x: number; y: number };
-  phenotypes?: Phenotypes;
 }): PalateState {
   const crisp = Math.max(-10, Math.min(10, initial?.x ?? 0));
   const sweet = Math.max(-10, Math.min(10, initial?.y ?? 0));

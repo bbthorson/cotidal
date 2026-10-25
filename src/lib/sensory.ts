@@ -63,11 +63,6 @@ export function derivePalateRecord(profile: UserProfile, existing?: Palate | nul
     })
   );
 
-  const phenotypes = existing?.phenotypes ?? {
-    tas2r38BitterSensitivity: profile.dislikesBitter ? 'super-taster' : 'medium-taster',
-    trigeminalTolerance: 'moderate',
-  };
-
   return {
     $type: PALATE_COLLECTION,
     mapCoordinates: {
@@ -75,7 +70,6 @@ export function derivePalateRecord(profile: UserProfile, existing?: Palate | nul
       y: profile.y,
     },
     dynamicState,
-    phenotypes,
     aversions: {
       smoke: profile.dislikesSmoke,
       bitter: profile.dislikesBitter,

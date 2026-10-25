@@ -43,8 +43,8 @@ bad for everyone:
 
 | NSID | Key | Role |
 |---|---|---|
-| `app.cotidal.palate` | `self` | Drinker's 2D coordinate, dynamic psychophysical state (EKF), and genetic phenotypes |
-| `app.cotidal.pour` | `tid` | Drink check-in with gLMS ratings, VOC CATA tags, perceived intensities, and prandial context |
+| `app.cotidal.palate` | `self` | Drinker's 2D coordinate, dynamic psychophysical state (EKF), aversions and vibe tags |
+| `app.cotidal.pour` | `tid` | Drink check-in with hedonic and gLMS ratings, CATA notes, perceived intensities, and what was served (spirit, glass, garnish) |
 | `app.cotidal.menu` | `tid` | Signed menu snapshot with sections, items, and coordinates |
 | `app.cotidal.recipe` | `tid` | Authored formulation, specs, technique, physical stimulus, and creator credits |
 | `app.cotidal.venue` | `self` | Venue profile, location, current menu pointer, and publication link |
@@ -119,14 +119,18 @@ await agent.api.com.atproto.repo.createRecord({
         name: 'House Signatures',
         items: [
           {
-            name: 'Penicillin',
+            drink: {
+              name: 'Penicillin',
+              slug: 'penicillin',
+              baseSpirit: 'scotch',
+              recipe: {
+                name: 'Penicillin (Original Spec)',
+                uri: 'at://did:plc:samross/app.cotidal.recipe/3l9876543210',
+              },
+            },
             description: 'Blended scotch, fresh lemon, honey-ginger syrup, Islay float',
             price: { amount: 2200, currency: 'USD' },
-            recipe: {
-              name: 'Penicillin (Original Spec)',
-              uri: 'at://did:plc:samross/app.cotidal.recipe/3l9876543210',
-            },
-            coordinates: { x: -3, y: -2 }, // Rich & Savory (The Deep)
+            // No coordinates: where a drink sits on the map is the app view's to compute.
           },
         ],
       },
@@ -187,10 +191,8 @@ await agent.api.com.atproto.repo.createRecord({
     },
     deviations: ['too-sour'],
     cata: ['campfire-smoke', 'bright-citrus', 'baking-spice'], // ids from CATA, not labels
-    context: {
-      volumeConsumedMl: 160,   // SSS (Sensory-Specific Satiety) calculation
-      fastingDurationHours: 3, // Circadian prandial ghrelin curve
-    },
+    // Volume drunk and time since eating feed the filter on the device and
+    // are never part of the record.
     note: 'Perfect ginger heat and peaty aromatics.',
     createdAt: new Date().toISOString(),
   },
@@ -205,20 +207,23 @@ The preference state is modeled as an Extended Kalman Filter (EKF) tracking 5 la
 // app.cotidal.palate at rkey: self
 {
   "$type": "app.cotidal.palate",
-  "mapCoordinates": { "x": -4.2, "y": -2.1 },
+  // Integers only: every fractional value is in hundredths (-420 is -4.20).
+  "mapCoordinates": { "xHundredths": -420, "yHundredths": -210 },
   "dynamicState": {
-    // Latent vector: [RichCrisp, SavorySweet, AciditySensitivity, EthanolTolerance, TanninTolerance]
-    "latentVector": [-4.2, -2.1, 0.45, 0.65, 0.50],
-    // Diagonal error covariance matrix P_k (uncertainty trace)
-    "covarianceDiagonal": [0.12, 0.15, 0.08, 0.09, 0.14],
+    // Latent vector: [RichCrisp, SavorySweet, BitterTolerance, TanninTolerance, Complexity]
+    "latentVectorHundredths": [-420, -210, 450, 650, 500],
+    // Diagonal of the error covariance P_k (uncertainty)
+    "covarianceDiagonalHundredths": [12, 15, 8, 9, 14],
     "eventCount": 18,
-    "lastUpdate": "2026-09-25T18:00:00Z"
+    "lastUpdate": "2026-09-25T18:00:00.000Z"
   },
-  "phenotypes": {
-    "tas2r38BitterSensitivity": "medium",
-    "trigeminalTolerance": "high"
-  },
-  "updatedAt": "2026-09-25T18:00:00Z"
+  "aversions": { "smoke": false, "bitter": false, "anise": true },
+  "vibeTagWeights": [
+    { "tag": "classic", "weightHundredths": 225 },
+    { "tag": "complex", "weightHundredths": 100 }
+  ],
+  "createdAt": "2026-09-01T18:00:00.000Z",
+  "updatedAt": "2026-09-25T18:00:00.000Z"
 }
 ```
 
@@ -245,7 +250,7 @@ Publish `app.cotidal.recipe` to establish the canonical spec:
     { "name": "Fresh lemon juice", "amount": "0.75 oz" }
   ],
   "method": "Shake vigorously with ice and strain into a chilled coupe.",
-  "glassware": "Coupe",
+  "glassware": "coupe",
   "stimulus": {
     "abvTenths": 210,
     "residualSugarGpl": 65,
@@ -259,8 +264,8 @@ Publish `app.cotidal.recipe` to establish the canonical spec:
       "role": "author"
     }
   ],
-  "coordinates": { "x": 4, "y": 1 }, // Crisp & Balanced
-  "createdAt": "2026-09-25T18:00:00Z"
+  "coordinates": { "xHundredths": 400, "yHundredths": 100 }, // Crisp & Balanced
+  "createdAt": "2026-09-25T18:00:00.000Z"
 }
 ```
 
@@ -302,10 +307,10 @@ developer can read, index, or write to these collections.
      - *"Seasonal spring menu drops"*
 5. **AI Sommelier & Concierge Agents:**
    - An AI agent can read a diner's public `app.cotidal.palate` record
-     to know their exact psychophysical latent state (e.g., ethanol tolerance,
-     acidity sensitivity), genetic phenotypes (`tas2r38BitterSensitivity: "high"`,
-     `trigeminalTolerance: "low"`), and flavor stance before making a dinner pairing
-     recommendation.
+     to know their psychophysical latent state (bitter and tannin tolerance,
+     appetite for complexity), their aversions, and their flavor stance before
+     making a dinner pairing recommendation. It carries no genetic claims: a
+     taste phenotype is not something one quiz answer can establish.
 
 #### Reading records permissionlessly (XRPC)
 

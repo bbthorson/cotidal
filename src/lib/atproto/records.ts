@@ -18,8 +18,10 @@ import { z } from 'zod';
 import { isAtUriString, isValidDid, isValidUri } from '@atproto/syntax';
 import { parseCidSafe } from '@atproto/lex-data';
 import {
+  BASE_SPIRITS,
   CATA,
   DEVIATIONS,
+  GLASSWARE,
   ELICITATION_COLLECTION,
   LEGACY_PALATE_COLLECTION,
   LEGACY_POUR_COLLECTION,
@@ -52,8 +54,17 @@ export {
   DEVIATIONS,
   CATA,
   cataId,
+  BASE_SPIRITS,
+  GLASSWARE,
+  VIBE_TAGS,
+  GLMS_ANCHORS,
+  ASKED_INTENSITIES,
   type Deviation,
   type CataNote,
+  type BaseSpirit,
+  type Glassware,
+  type GlmsAnchor,
+  type AskedIntensity,
 } from './vocab.ts';
 export {
   STRING_LIMITS,
@@ -132,6 +143,7 @@ export type Stimulus = z.infer<typeof StimulusSchema>;
 export const DrinkRefSchema = z.object({
   name: lexString({ maxLength: 200, maxGraphemes: 100 }),
   slug: lexString({ maxLength: 64 }).optional(),
+  baseSpirit: lexString({ maxLength: 32 }).optional(),
   recipe: EntityRefSchema.optional(),
   stimulus: StimulusSchema.optional(),
 });
@@ -154,12 +166,6 @@ export type Price = z.infer<typeof PriceSchema>;
 // ---------------------------------------------------------------------------
 // app.cotidal.palate
 // ---------------------------------------------------------------------------
-
-export const PhenotypesSchema = z.object({
-  tas2r38BitterSensitivity: z.enum(['non-taster', 'medium-taster', 'super-taster']).optional(),
-  trigeminalTolerance: z.enum(['low', 'moderate', 'high']).optional(),
-});
-export type Phenotypes = z.infer<typeof PhenotypesSchema>;
 
 /**
  * The palate as the app works with it: plain numbers. This is never written
@@ -187,7 +193,6 @@ export const PalateSchema = z.object({
     y: z.number().min(-10).max(10),
   }),
   dynamicState: DynamicStateSchema,
-  phenotypes: PhenotypesSchema,
   aversions: AversionsSchema,
   vibeTags: z.record(z.string(), z.number()),
   createdAt: datetime(),
@@ -212,13 +217,22 @@ export const PalateRecordSchema = z.object({
     eventCount: z.number().int().min(0),
     lastUpdate: datetime().optional(),
   }),
-  phenotypes: PhenotypesSchema,
   aversions: AversionsSchema,
-  vibeTagsHundredths: z.record(z.string(), hundredths),
+  vibeTagWeights: z
+    .array(z.object({ tag: lexString({ maxLength: 32 }), weightHundredths: hundredths }))
+    .max(32),
   createdAt: datetime(),
   updatedAt: datetime().optional(),
 });
 export type PalateRecord = z.infer<typeof PalateRecordSchema>;
+
+/**
+ * The hundredths encoding before `vibeTagWeights`: tags as an open object,
+ * which Lexicon cannot describe. Read, never written.
+ */
+const PreviousPalateRecordSchema = PalateRecordSchema.omit({ vibeTagWeights: true }).extend({
+  vibeTagsHundredths: z.record(z.string(), hundredths),
+});
 
 const toHundredths = (v: number) => Math.round(v * 100);
 const fromHundredths = (v: number) => v / 100;
@@ -239,11 +253,12 @@ export function encodePalate(palate: Palate): PalateRecord {
       eventCount: d.eventCount,
       ...(d.lastUpdate ? { lastUpdate: d.lastUpdate } : {}),
     },
-    phenotypes: palate.phenotypes,
     aversions: palate.aversions,
-    vibeTagsHundredths: Object.fromEntries(
-      Object.entries(palate.vibeTags).map(([tag, weight]) => [tag, toHundredths(weight)])
-    ),
+    // One entry per tag, in a stable order so an unchanged palate writes the same bytes.
+    vibeTagWeights: Object.entries(palate.vibeTags)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .slice(0, 32)
+      .map(([tag, weight]) => ({ tag, weightHundredths: toHundredths(weight) })),
     createdAt: palate.createdAt,
     ...(palate.updatedAt ? { updatedAt: palate.updatedAt } : {}),
   };
@@ -268,8 +283,9 @@ export function decodeCoordinates(raw: unknown): { x: number; y: number } | null
 }
 
 /**
- * A palate record read from a repository, in either encoding and under
- * either namespace, as the app works with it. Records written before the hundredths encoding still read;
+ * A palate record read from a repository, in any encoding it has been written
+ * in and under either namespace, as the app works with it. A `phenotypes`
+ * field on an older record is ignored. Records written before the hundredths encoding still read;
  * the next write migrates them. `null` for anything that is not a palate.
  */
 export function decodePalate(input: unknown): Palate | null {
@@ -279,8 +295,13 @@ export function decodePalate(input: unknown): Palate | null {
       ? { ...(input as object), $type: PALATE_COLLECTION }
       : input;
   const current = PalateRecordSchema.safeParse(raw);
-  if (current.success) {
-    const r = current.data;
+  const previous = current.success ? null : PreviousPalateRecordSchema.safeParse(raw);
+  if (current.success || previous?.success) {
+    const r = current.success ? current.data : previous!.data!;
+    const weights: [string, number][] =
+      'vibeTagWeights' in r
+        ? r.vibeTagWeights.map((w) => [w.tag, w.weightHundredths])
+        : Object.entries(r.vibeTagsHundredths);
     return {
       $type: PALATE_COLLECTION,
       mapCoordinates: {
@@ -293,11 +314,8 @@ export function decodePalate(input: unknown): Palate | null {
         eventCount: r.dynamicState.eventCount,
         ...(r.dynamicState.lastUpdate ? { lastUpdate: r.dynamicState.lastUpdate } : {}),
       },
-      phenotypes: r.phenotypes,
       aversions: r.aversions,
-      vibeTags: Object.fromEntries(
-        Object.entries(r.vibeTagsHundredths).map(([tag, weight]) => [tag, fromHundredths(weight)])
-      ),
+      vibeTags: Object.fromEntries(weights.map(([tag, weight]) => [tag, fromHundredths(weight)])),
       createdAt: r.createdAt,
       ...(r.updatedAt ? { updatedAt: r.updatedAt } : {}),
     };
@@ -306,15 +324,7 @@ export function decodePalate(input: unknown): Palate | null {
   return legacy.success ? legacy.data : null;
 }
 
-export const SensoryProfileSchema = z.object({
-  bitter: z.number().min(0).max(5),
-  sweet: z.number().min(0).max(5),
-  sour: z.number().min(0).max(5),
-  spiritForward: z.number().min(0).max(5),
-  citrus: z.number().min(0).max(5),
-  herbal: z.number().min(0).max(5),
-});
-export type SensoryProfile = z.infer<typeof SensoryProfileSchema>;
+
 
 // ---------------------------------------------------------------------------
 // app.cotidal.pour
@@ -341,14 +351,9 @@ export const PerceivedIntensitiesSchema = z.object({
   bitterness: intensity.optional(),
   astringency: intensity.optional(),
   effervescence: intensity.optional(),
+  alcoholHeat: intensity.optional(),
 });
 export type PerceivedIntensities = z.infer<typeof PerceivedIntensitiesSchema>;
-
-export const PourContextSchema = z.object({
-  volumeConsumedMl: z.number().int().min(0).optional(),
-  fastingDurationHours: z.number().int().min(0).optional(),
-});
-export type PourContext = z.infer<typeof PourContextSchema>;
 
 export const PourRecordSchema = z.object({
   $type: z.literal(POUR_COLLECTION),
@@ -360,7 +365,8 @@ export const PourRecordSchema = z.object({
   perceivedIntensities: PerceivedIntensitiesSchema.optional(),
   deviations: z.array(lexString({ maxLength: 32 })).max(10).optional(),
   cata: z.array(lexString({ maxLength: 32 })).max(20).optional(),
-  context: PourContextSchema.optional(),
+  glassware: lexString({ maxLength: 100 }).optional(),
+  garnish: lexString({ maxLength: 200 }).optional(),
   note: lexString({ maxLength: 3000, maxGraphemes: 1000 }).optional(),
   isHomePour: z.boolean().optional(),
   createdAt: datetime(),
@@ -376,8 +382,10 @@ export const POUR_NOTE_LIMITS = { maxLength: 3000, maxGraphemes: 1000 } as const
  * only writes the ones it knows.
  */
 export const PourWriteSchema = PourRecordSchema.extend({
+  drink: DrinkRefSchema.extend({ baseSpirit: z.enum(BASE_SPIRITS).optional() }),
   deviations: z.array(z.enum(DEVIATIONS)).max(10).optional(),
   cata: z.array(z.enum(CATA)).max(20).optional(),
+  glassware: z.enum(GLASSWARE).optional(),
   createdAt: writtenDatetime(),
 });
 
@@ -474,8 +482,8 @@ export const RecipeRecordSchema = z.object({
   adaptedFrom: EntityRefSchema.optional(),
   coordinates: z
     .object({
-      x: z.number().int().min(-10).max(10),
-      y: z.number().int().min(-10).max(10),
+      xHundredths: z.number().int().min(-1000).max(1000),
+      yHundredths: z.number().int().min(-1000).max(1000),
     })
     .optional(),
   stimulus: StimulusSchema.optional(),

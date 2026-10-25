@@ -7,6 +7,8 @@
  * vocabulary (see AGENTS.md); they are deliberately absent from this file.
  */
 
+import type { AskedIntensity, BaseSpirit, Glassware, GlmsAnchor } from './atproto/vocab';
+
 export const site = {
   name: 'Cotidal',
   tagline: 'Every palate has a coordinate.',
@@ -344,15 +346,51 @@ export const pour = {
   glassLabel: 'Glass',
   garnishLabel: 'Garnish',
   garnishPlaceholder: 'Orange peel, brandied cherry',
-  sensoryLabel: 'How it tasted, 0 to 5',
-  sensory: {
-    bitter: 'Bitter',
-    sweet: 'Sweet',
-    sour: 'Sour',
-    spiritForward: 'Spirit-forward',
-    citrus: 'Citrus',
-    herbal: 'Herbal',
-  },
+  /** The select's empty choice: nothing is recorded until something is picked. */
+  notSet: '—',
+  /** Base spirits by stored id (`BASE_SPIRITS` in vocab.ts). */
+  spirits: {
+    bourbon: 'Bourbon',
+    rye: 'Rye',
+    scotch: 'Scotch',
+    gin: 'Gin',
+    rum: 'Rum',
+    tequila: 'Tequila',
+    mezcal: 'Mezcal',
+    vodka: 'Vodka',
+    brandy: 'Cognac / Brandy',
+    amaro: 'Amaro / Aperitif',
+    'non-alcoholic': 'Non-alcoholic',
+  } satisfies Record<BaseSpirit, string>,
+  /** Glasses by stored id (`GLASSWARE` in vocab.ts). */
+  glasses: {
+    coupe: 'Coupe',
+    'nick-and-nora': 'Nick & Nora',
+    rocks: 'Rocks',
+    highball: 'Highball',
+    martini: 'Martini',
+    'tiki-mug': 'Tiki mug',
+  } satisfies Record<Glassware, string>,
+  intensityLabel: 'How strong it tasted',
+  intensityHint: 'Only the ones you move are kept.',
+  intensities: {
+    sweetness: 'Sweet',
+    sourness: 'Sour',
+    bitterness: 'Bitter',
+    alcoholHeat: 'Alcohol heat',
+  } satisfies Record<AskedIntensity, string>,
+  notRated: 'Not rated',
+  /** Below the scale's first anchor. */
+  glmsNone: 'None',
+  /** The gLMS anchors (`GLMS_ANCHORS` in vocab.ts), as the scale words them. */
+  glms: {
+    'barely-detectable': 'Barely detectable',
+    weak: 'Weak',
+    moderate: 'Moderate',
+    strong: 'Strong',
+    'very-strong': 'Very strong',
+    'strongest-imaginable': 'Strongest imaginable',
+  } satisfies Record<GlmsAnchor, string>,
   cataLabel: 'What you noticed',
   /**
    * Check-all-that-apply aroma and flavour notes, by the id a pour stores

@@ -78,7 +78,6 @@ test('Records: Zod and @atproto/lexicon agree on what is valid', () => {
     $type: PALATE_COLLECTION,
     mapCoordinates: { x: 2.5, y: -4 },
     dynamicState: { latentVector: [2.5, -4, 6, 5, 7], covarianceDiagonal: [3, 2, 4, 4, 3], eventCount: 3 },
-    phenotypes: {},
     aversions: { smoke: false, bitter: true, anise: false },
     vibeTags: { classic: 1.25 },
     createdAt: '2026-10-25T20:00:00.000Z',
@@ -102,9 +101,20 @@ test('Records: Zod and @atproto/lexicon agree on what is valid', () => {
     [PALATE_COLLECTION, palate],
     [PALATE_COLLECTION, { ...palate, mapCoordinates: { xHundredths: 1001, yHundredths: 0 } }],
     [PALATE_COLLECTION, { ...palate, mapCoordinates: { xHundredths: 1.5, yHundredths: 0 } }],
+    [PALATE_COLLECTION, { ...palate, vibeTagWeights: [{ tag: 'classic', weightHundredths: 1.5 }] }],
     [ELICITATION_COLLECTION, answers],
     [ELICITATION_COLLECTION, { ...answers, answers: [] }],
     [POUR_COLLECTION, pour],
+    [
+      POUR_COLLECTION,
+      {
+        ...pour,
+        drink: { name: 'Old Fashioned', baseSpirit: 'rye' },
+        glassware: 'rocks',
+        garnish: 'Orange peel',
+        perceivedIntensities: { bitterness: 17, alcoholHeat: 53 },
+      },
+    ],
     [POUR_COLLECTION, { ...pour, rating: { hedonic: 10 } }],
     [POUR_COLLECTION, { ...pour, rating: { hedonic: 7, glmsValence: 40.5 } }],
     [POUR_COLLECTION, { ...pour, note: '👩‍👩‍👧‍👦'.repeat(121) }], // > 3000 bytes
@@ -117,5 +127,5 @@ test('Records: Zod and @atproto/lexicon agree on what is valid', () => {
     expect(ours, `${nsid} ${JSON.stringify(value).slice(0, 120)}`).toBe(valid(nsid, value));
   }
   // The cases are not all one answer.
-  expect(cases.filter(([n, v]) => valid(n, v)).length).toBe(3);
+  expect(cases.filter(([n, v]) => valid(n, v)).length).toBe(4);
 });

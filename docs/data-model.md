@@ -143,14 +143,19 @@ pass through biological normalizers before updating the filter:
 2. **Prandial & Circadian Ghrelin Weighting**: Normalization for fasting vs. postprandial sweet reward amplification.
 3. **Decoupling CATA from Hedonics**: Uncoupling objective detection (Check-All-That-Apply arrays) from subjective liking to eliminate aspirational reporting bias.
 
+The inputs to the first two — volume drunk and hours since eating — stay on
+the device. They are not part of `app.cotidal.pour`: a record is public and
+permanent, and how much someone drank and when they ate is not the app's to
+publish.
+
 For full physiological and mathematical derivations, see **[docs/sensory-science.md](sensory-science.md)**.
 
 ## Records
 
 | NSID | Key | Holder | Purpose |
 |---|---|---|---|
-| `app.cotidal.palate` | `self` | Rater | 2D coordinates, 5D dynamic state vector $\mathbf{x}_k$, covariance $\mathbf{P}_k$, and phenotypes — every fractional value as integer hundredths |
-| `app.cotidal.pour` | tid | Rater | Drink check-in with 9-point hedonic / gLMS, objective CATA tags, and SSS context |
+| `app.cotidal.palate` | `self` | Rater | 2D coordinates, 5D dynamic state vector $\mathbf{x}_k$, covariance $\mathbf{P}_k$, aversions and vibe tags — every fractional value as integer hundredths |
+| `app.cotidal.pour` | tid | Rater | Drink check-in with 9-point hedonic / gLMS, objective CATA tags, and what was served |
 | `app.cotidal.elicitation` | tid | Rater | The answers behind one completed quiz — what each question offered, which option was taken — kept to calibrate the response model against later pours |
 | `app.cotidal.menu` | tid | Venue **or** patron | An immutable menu snapshot at a point in time |
 | `app.cotidal.recipe` | tid | Author | An authored spec with technique, credits, and chemometric stimulus specs |
