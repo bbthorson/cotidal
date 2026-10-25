@@ -20,6 +20,8 @@ import { derivePalateRecord } from '@/lib/sensory';
 import type { UserProfile } from '@/hooks/useDiscoveryQuiz';
 import { z } from 'zod';
 import { drinkDatabase } from '@/lib/data';
+import { catalogSlug } from '@/lib/register';
+import { loadRegister } from '@/lib/register.server';
 import type { Palate } from '@/lib/atproto/records';
 import type { LogDrinkOptions } from '@/lib/api-client';
 import { oauthSession } from '@/lib/atproto/session';
@@ -165,13 +167,12 @@ export const POST: APIRoute = async ({ request }) => {
     const {
       drinkName,
       rating = 5.0,
-      baseSpirit: _baseSpirit,
+      baseSpirit,
       isHomePour = false,
       location,
       venue,
-      sensoryProfile: _sensoryProfile,
-      glassware: _glassware,
-      garnish: _garnish,
+      glassware,
+      garnish,
       deviations = [],
       note,
       crosspostToFeed = false,
@@ -191,17 +192,21 @@ export const POST: APIRoute = async ({ request }) => {
       $type: POUR_COLLECTION,
       drink: {
         name: name(drinkName),
-        slug: drink?.name ? drink.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') : undefined,
+        slug: catalogSlug(await loadRegister(), drinkName),
+        baseSpirit,
       },
       venue: isHomePour ? undefined : { entity: { name: name(finalLocation) } },
       rating: {
         hedonic: hedonicScale,
         glmsValence: options.glmsValence,
-        wouldOrderAgain: options.wouldOrderAgain ?? (rating >= 7.0),
+        // Recorded only when the drinker was asked: a guess from the rating is not their answer.
+        wouldOrderAgain: options.wouldOrderAgain,
       },
       perceivedIntensities: options.perceivedIntensities,
       deviations: deviations.length > 0 ? deviations : undefined,
       cata: options.cata && options.cata.length > 0 ? options.cata.map(cataId) : undefined,
+      glassware,
+      garnish: garnish?.trim() ? fitString(garnish.trim(), 200) : undefined,
       context: options.context,
       note: note ? fitString(note, POUR_NOTE_LIMITS.maxLength, POUR_NOTE_LIMITS.maxGraphemes) : undefined,
       isHomePour: !!isHomePour,
@@ -258,10 +263,6 @@ export const POST: APIRoute = async ({ request }) => {
         $type: record.$type,
         mapCoordinates: { x: coords.x, y: coords.y },
         dynamicState: toDynamicRecord(nextState),
-        phenotypes: record.phenotypes || {
-          tas2r38BitterSensitivity: record.aversions.bitter ? 'super-taster' : 'medium-taster',
-          trigeminalTolerance: 'moderate',
-        },
         aversions,
         vibeTags: updatedVibeTags,
         createdAt: record.createdAt,

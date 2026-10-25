@@ -14,7 +14,7 @@
  */
 
 import type { Drink } from './data';
-import type { DynamicState, Phenotypes, PourContext, PerceivedIntensities } from './atproto/records';
+import type { DynamicState, PourContext, PerceivedIntensities } from './atproto/records';
 
 export interface StateVector {
   crisp: number;      // x: -10 to 10
@@ -113,7 +113,6 @@ export function createInitialPalateState(initial?: {
   dislikesAnise?: boolean;
   /** The quiz's variance on the two map axes; the default when absent. */
   variance?: { x: number; y: number };
-  phenotypes?: Phenotypes;
 }): PalateState {
   const crisp = Math.max(-10, Math.min(10, initial?.x ?? 0));
   const sweet = Math.max(-10, Math.min(10, initial?.y ?? 0));

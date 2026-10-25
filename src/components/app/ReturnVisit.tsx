@@ -7,11 +7,11 @@ import { formatCoordinate } from '@/lib/coordinate';
 import type { PourRecord } from '@/lib/atproto/records';
 import { logDrinkFeedback, getConnectedPours, getConnectedPalate } from '@/lib/api-client';
 import { returnVisit, pour } from '@/lib/copy';
-import type { Register } from '@/lib/register';
+import { catalogSlug, type Register } from '@/lib/register';
 import type { UserProfile } from '@/hooks/useDiscoveryQuiz';
 import { MapThumb } from './CoordinateMap';
 import { Moved } from './Moved';
-import { PourForm, hedonicToRating, type PourEntry } from './PourForm';
+import { PourForm, toLogOptions, type PourEntry } from './PourForm';
 import { PourLedger } from './PourLedger';
 import { SignInSheet } from './SignInSheet';
 import {
@@ -21,14 +21,6 @@ import {
   fromDynamicRecord,
   toDynamicRecord,
 } from '@/lib/palate-state';
-
-function slugifyDrink(name: string): string {
-  return name
-    .toLowerCase()
-    .replace(/['"]/g, '')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/(^-|-$)/g, '');
-}
 
 function getInitialLocalProfile(): UserProfile | null {
   if (typeof window === 'undefined') return null;
@@ -203,21 +195,7 @@ function ReturnVisitContent({ register }: { register: Register }) {
     const from = { x, y };
     try {
       if (isConnected) {
-        const result = await logDrinkFeedback({
-          drinkName: entry.drinkName,
-          rating: hedonicToRating(entry.hedonic),
-          isHomePour: entry.isHomePour,
-          location: entry.isHomePour ? 'Home Pour' : entry.venue,
-          venue: entry.isHomePour ? undefined : { name: entry.venue },
-          deviations: entry.deviations,
-          cata: entry.cata,
-          note: entry.note || undefined,
-          crosspostToFeed: entry.crosspost,
-          baseSpirit: entry.detail?.baseSpirit,
-          glassware: entry.detail?.glassware,
-          garnish: entry.detail?.garnish || undefined,
-          sensoryProfile: entry.detail?.sensory,
-        });
+        const result = await logDrinkFeedback(toLogOptions(entry));
         if (!result.success || !result.profile) {
           setError(result.error || pour.failed);
           return;
@@ -231,9 +209,9 @@ function ReturnVisitContent({ register }: { register: Register }) {
         localStorage.setItem('user_profile', JSON.stringify(updated));
         const guestPour: PourRecord = {
           $type: 'app.cotidal.pour',
-          drink: { name: entry.drinkName, slug: slugifyDrink(entry.drinkName) },
+          drink: { name: entry.drinkName, slug: catalogSlug(register, entry.drinkName) },
           venue: entry.isHomePour ? undefined : { entity: { name: entry.venue } },
-          rating: { hedonic: entry.hedonic, wouldOrderAgain: entry.hedonic >= 7 },
+          rating: { hedonic: entry.hedonic },
           deviations: entry.deviations.length > 0 ? entry.deviations : undefined,
           cata: entry.cata && entry.cata.length > 0 ? entry.cata : undefined,
           note: entry.note || undefined,

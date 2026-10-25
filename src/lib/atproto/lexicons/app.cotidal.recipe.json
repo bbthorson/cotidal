@@ -10,32 +10,24 @@
         "type": "object",
         "required": ["name", "createdAt"],
         "properties": {
-          "name": {
-            "type": "string",
-            "maxLength": 200,
-            "maxGraphemes": 100
-          },
+          "name": { "type": "string", "maxLength": 200, "maxGraphemes": 100 },
           "slug": {
             "type": "string",
             "description": "Folk category this belongs to, if any, e.g. `sour`. Unowned.",
             "maxLength": 64
           },
-          "description": {
-            "type": "string",
-            "maxLength": 2000,
-            "maxGraphemes": 1000
-          },
+          "description": { "type": "string", "maxLength": 2000, "maxGraphemes": 1000 },
           "ingredients": {
             "type": "array",
             "maxLength": 40,
             "items": { "type": "ref", "ref": "#ingredient" }
           },
-          "method": {
+          "method": { "type": "string", "maxLength": 4000, "maxGraphemes": 2000 },
+          "glassware": {
             "type": "string",
-            "maxLength": 4000,
-            "maxGraphemes": 2000
+            "maxLength": 100,
+            "knownValues": ["coupe", "nick-and-nora", "rocks", "highball", "martini", "tiki-mug"]
           },
-          "glassware": { "type": "string", "maxLength": 100 },
           "garnish": { "type": "string", "maxLength": 200 },
           "credits": {
             "type": "array",
@@ -74,19 +66,20 @@
     },
     "coordinates": {
       "type": "object",
-      "required": ["x", "y"],
+      "description": "Where the spec sits on the map, in hundredths, as on the palate (`xHundredths: -420` is −4.20).",
+      "required": ["xHundredths", "yHundredths"],
       "properties": {
-        "x": {
+        "xHundredths": {
           "type": "integer",
-          "description": "Rich (-10) to Crisp (+10).",
-          "minimum": -10,
-          "maximum": 10
+          "description": "Rich (−10) to Crisp (+10), in hundredths.",
+          "minimum": -1000,
+          "maximum": 1000
         },
-        "y": {
+        "yHundredths": {
           "type": "integer",
-          "description": "Savory (-10) to Sweet (+10).",
-          "minimum": -10,
-          "maximum": 10
+          "description": "Savory (−10) to Sweet (+10), in hundredths.",
+          "minimum": -1000,
+          "maximum": 1000
         }
       }
     }

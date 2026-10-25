@@ -17,7 +17,8 @@
             "refs": [
               "community.lexicon.location.address",
               "community.lexicon.location.geo",
-              "community.lexicon.location.fsq"
+              "community.lexicon.location.fsq",
+              "community.lexicon.location.hthree"
             ]
           },
           "website": { "type": "string", "format": "uri" },

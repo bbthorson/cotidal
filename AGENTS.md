@@ -205,6 +205,13 @@ strings.
 **Objects nest by `ref`, never inline.** A property of `"type": "object"` is
 not valid Lexicon; give it a named def. An open dictionary is `unknown`.
 
+**A record holds what its author said, nothing inferred in their name.**
+An untouched form field is absent, not a default; "would order again" is
+written only when it was asked; and the palate carries no `phenotypes` (a
+genetic label guessed from one quiz answer, removed). Derived values belong in
+the app, recomputed from the record — never stored as if the user had said
+them.
+
 The browser loads `vocab.ts` (names and vocabularies) and
 `elicitation-record.ts`, never `records.ts`: the validators that only the
 server needs (`@atproto/lex-data`, for CIDs) are registered there. Writes go through the schema: a pour is

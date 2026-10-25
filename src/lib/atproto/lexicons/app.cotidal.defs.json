@@ -66,8 +66,26 @@
         },
         "slug": {
           "type": "string",
-          "description": "Canonical catalog key for the folk category, e.g. `negroni`. Unowned by design.",
+          "description": "Canonical catalog key for the folk category: the drink's entry in the app's register (`/drinks/<slug>`), e.g. `negroni`. Absent when the drink has no entry. Unowned by design.",
           "maxLength": 64
+        },
+        "baseSpirit": {
+          "type": "string",
+          "maxLength": 32,
+          "knownValues": [
+            "bourbon",
+            "rye",
+            "scotch",
+            "gin",
+            "rum",
+            "tequila",
+            "mezcal",
+            "vodka",
+            "brandy",
+            "amaro",
+            "non-alcoholic"
+          ],
+          "description": "The spirit the drink is built on, as the drinker or the menu named it."
         },
         "recipe": {
           "type": "ref",

@@ -28,7 +28,6 @@ const palate: Palate = {
     eventCount: 3,
     lastUpdate: '2026-10-25T12:00:00.000Z',
   },
-  phenotypes: { tas2r38BitterSensitivity: 'medium-taster', trigeminalTolerance: 'moderate' },
   aversions: { smoke: true, bitter: false, anise: false },
   // A pour adds 0.25 to each tag of a liked drink.
   vibeTags: { crushable: 2.25, social: 1, bold: 0.75 },
@@ -83,7 +82,6 @@ test('Palate record: a record written with floats still reads', () => {
     $type: PALATE_COLLECTION,
     mapCoordinates: { x: -4.2, y: 3.1 },
     dynamicState: { latentVector: [-4.2, 3.1, 5, 5, 5], covarianceDiagonal: [25, 25, 16, 16, 16], eventCount: 0 },
-    phenotypes: {},
     aversions: { smoke: false, bitter: false, anise: false },
     vibeTags: { classic: 1.25 },
     createdAt: '2026-09-01T00:00:00.000Z',
@@ -143,4 +141,31 @@ test('Palate record: a palate from before the rename to Cotidal still reads', ()
   expect(read.mapCoordinates.x).toBeCloseTo(-4.24, 10);
   // Written back, it goes under the current namespace.
   expect(encodePalate(read).$type).toBe(PALATE_COLLECTION);
+});
+
+test('Palate record: vibe tags are a list of pairs, in a stable order', () => {
+  const record = encodePalate(palate);
+  expect(record.vibeTagWeights).toEqual([
+    { tag: 'bold', weightHundredths: 75 },
+    { tag: 'crushable', weightHundredths: 225 },
+    { tag: 'social', weightHundredths: 100 },
+  ]);
+  expect(record).not.toHaveProperty('vibeTagsHundredths');
+  expect(record).not.toHaveProperty('phenotypes');
+  expect(decodePalate(record)?.vibeTags).toEqual(palate.vibeTags);
+});
+
+test('Palate record: one written with tags as an object, and a phenotypes guess, still reads', () => {
+  const { vibeTagWeights: _, ...rest } = encodePalate(palate);
+  const previous = {
+    ...rest,
+    vibeTagsHundredths: { crushable: 225, social: 100, bold: 75 },
+    phenotypes: { tas2r38BitterSensitivity: 'super-taster', trigeminalTolerance: 'moderate' },
+  };
+  expect(PalateRecordSchema.safeParse(previous).success).toBe(false);
+  const read = decodePalate(previous)!;
+  expect(read.vibeTags).toEqual(palate.vibeTags);
+  expect(read).not.toHaveProperty('phenotypes');
+  // The next write is the current encoding.
+  expect(PalateRecordSchema.safeParse(encodePalate(read)).success).toBe(true);
 });

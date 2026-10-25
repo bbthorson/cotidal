@@ -96,3 +96,20 @@ test('Read: notes stored as labels, before the ids, read back as ids', () => {
   ];
   expect(stored.map(cataId)).toEqual([...CATA]);
 });
+
+test('Pour: spirit and glass are stored as ids, and only those the app declares', () => {
+  const served = { ...base, drink: { name: 'Old Fashioned', baseSpirit: 'rye' }, glassware: 'rocks', garnish: 'Orange peel' };
+  expect(PourWriteSchema.safeParse(served).success).toBe(true);
+  expect(PourWriteSchema.safeParse({ ...served, drink: { name: 'Old Fashioned', baseSpirit: 'Rye' } }).success).toBe(false);
+  expect(PourWriteSchema.safeParse({ ...served, glassware: 'Rocks' }).success).toBe(false);
+  // Another client's glass still reads.
+  expect(PourRecordSchema.safeParse({ ...served, glassware: 'snifter' }).success).toBe(true);
+});
+
+test('Pour: intensities are gLMS points, and alcohol heat is one of them', () => {
+  const rated = { ...base, perceivedIntensities: { sweetness: 17, alcoholHeat: 53 } };
+  expect(PourWriteSchema.safeParse(rated).success).toBe(true);
+  expect(PourWriteSchema.safeParse({ ...base, perceivedIntensities: { alcoholHeat: 101 } }).success).toBe(false);
+  // The 0–5 profile it replaces is not a field.
+  expect(readPour({ ...base, sensoryProfile: { bitter: 2.5 } })).not.toHaveProperty('sensoryProfile');
+});

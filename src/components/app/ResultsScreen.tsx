@@ -5,7 +5,7 @@ import { quadrantFor } from '@/lib/quadrant';
 import { hero, menu, nav, pour, publicMap, returnVisit } from '@/lib/copy';
 import { publicMapPath } from '@/lib/atproto/paths';
 import type { Register } from '@/lib/register';
-import { PourForm, hedonicToRating, type PourEntry } from './PourForm';
+import { PourForm, toLogOptions, type PourEntry } from './PourForm';
 import { PourLedger } from './PourLedger';
 import { MapTab } from './MapTab';
 import { AppNavigation, type ActiveTab } from './AppNavigation';
@@ -171,21 +171,7 @@ export function ResultsScreen({
     setLogging(true);
     setLogError(null);
     try {
-      const result = await logDrinkFeedback({
-        drinkName: entry.drinkName,
-        rating: hedonicToRating(entry.hedonic),
-        isHomePour: entry.isHomePour,
-        location: entry.isHomePour ? 'Home Pour' : entry.venue,
-        venue: entry.isHomePour ? undefined : { name: entry.venue },
-        deviations: entry.deviations,
-        cata: entry.cata,
-        note: entry.note || undefined,
-        crosspostToFeed: entry.crosspost,
-        baseSpirit: entry.detail?.baseSpirit,
-        glassware: entry.detail?.glassware,
-        garnish: entry.detail?.garnish || undefined,
-        sensoryProfile: entry.detail?.sensory,
-      });
+      const result = await logDrinkFeedback(toLogOptions(entry));
       if (result.success && result.profile) {
         setLogDraft(null);
         setPourMoved({

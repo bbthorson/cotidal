@@ -58,3 +58,40 @@ export function cataId(note: string): string {
   const slug = slugify(note);
   return (CATA as readonly string[]).includes(slug) ? slug : note;
 }
+
+/** A drink's base spirit, as stored on `drinkRef.baseSpirit`. Labels: `pour.spirits` in copy.ts. */
+export const BASE_SPIRITS = [
+  'bourbon', 'rye', 'scotch', 'gin', 'rum', 'tequila',
+  'mezcal', 'vodka', 'brandy', 'amaro', 'non-alcoholic',
+] as const;
+export type BaseSpirit = (typeof BASE_SPIRITS)[number];
+
+/** The glass, as stored on a pour or a recipe. Labels: `pour.glasses` in copy.ts. */
+export const GLASSWARE = ['coupe', 'nick-and-nora', 'rocks', 'highball', 'martini', 'tiki-mug'] as const;
+export type Glassware = (typeof GLASSWARE)[number];
+
+/** Tags a drink carries and a palate weighs (`vibeTagWeights`). */
+export const VIBE_TAGS = [
+  'bold', 'classic', 'visual', 'social', 'comfort', 'complex', 'sweet',
+  'messy', 'polarizing', 'prestige', 'warm', 'spice', 'crushable',
+] as const;
+
+/**
+ * The anchors of the generalized Labeled Magnitude Scale, where a pour's
+ * perceived intensities are placed (0–100, whole points). Positions are the
+ * published ones (Bartoshuk et al.) rounded to integers: 1.4, 6, 17, 34.7,
+ * 52.5, 100. Labels: `pour.glms` in copy.ts.
+ */
+export const GLMS_ANCHORS = [
+  { id: 'barely-detectable', at: 1 },
+  { id: 'weak', at: 6 },
+  { id: 'moderate', at: 17 },
+  { id: 'strong', at: 35 },
+  { id: 'very-strong', at: 53 },
+  { id: 'strongest-imaginable', at: 100 },
+] as const;
+export type GlmsAnchor = (typeof GLMS_ANCHORS)[number]['id'];
+
+/** The intensities the pour form asks for, in order. All are fields of `perceivedIntensities`. */
+export const ASKED_INTENSITIES = ['sweetness', 'sourness', 'bitterness', 'alcoholHeat'] as const;
+export type AskedIntensity = (typeof ASKED_INTENSITIES)[number];

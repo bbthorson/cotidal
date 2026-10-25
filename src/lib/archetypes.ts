@@ -1,4 +1,4 @@
-import type { Palate, SensoryProfile } from './atproto/records';
+import type { Palate } from './atproto/records';
 import type { UserProfile } from '@/hooks/useDiscoveryQuiz';
 
 export interface ArchetypeDefinition {
@@ -79,6 +79,16 @@ export const PALATE_ARCHETYPES: Record<string, ArchetypeDefinition> = {
     colorHex: '#e5b85a', // Alchemist Gold
   },
 };
+
+/** A palate read as six 0–5 axes, for matching archetypes. Derived, never stored. */
+export interface SensoryProfile {
+  bitter: number;
+  sweet: number;
+  sour: number;
+  spiritForward: number;
+  citrus: number;
+  herbal: number;
+}
 
 /**
  * Derives a 6-axis SensoryProfile (0-5 scale) from either Palate or UserProfile
