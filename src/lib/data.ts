@@ -8,8 +8,6 @@ export type User = {
   vibeTags?: Record<string, number>;
 };
 
-export type ContextType = "usual" | "business" | "party" | "holiday";
-
 export type Drink = {
     name: string;
     type: "Cocktail" | "Wine" | "Beer" | "Spirit";

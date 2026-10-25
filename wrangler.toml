@@ -8,6 +8,16 @@ compatibility_flags = ["nodejs_compat"]
 [ai]
 binding = "AI"
 
+# Sign-in's switch (src/lib/atproto/auth.ts, `signInEnabled()`), read by the
+# server at runtime. It lives here rather than in the dashboard because
+# `wrangler deploy` replaces the Worker's plain-text variables with this
+# file's on every deploy, so one set only in the dashboard is gone by the next
+# release. Secrets are not affected. Sign-in also needs `SESSION_SECRET`;
+# without it this switch does nothing, which is what keeps local previews and
+# CI signed out.
+[vars]
+ATPROTO_ENABLED = "true"
+
 # Sign-in sessions and OAuth state (src/lib/atproto/auth.ts), kept by
 # @bbthorson/atproto-cf-auth and sealed with the `SESSION_SECRET` Worker secret
 # (`wrangler secret put SESSION_SECRET`, 32+ random characters). Without this

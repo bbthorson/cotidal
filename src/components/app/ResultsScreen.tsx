@@ -1,6 +1,6 @@
 import { useMemo, useState, useEffect, useCallback } from 'react';
-import { drinkDatabase, type Drink, type User, type ContextType } from '@/lib/data';
-import { calculateContextScore, calculateWeightedRelevance } from '@/lib/scoring';
+import { drinkDatabase, type Drink, type User } from '@/lib/data';
+import { calculateWeightedRelevance } from '@/lib/scoring';
 import { quadrantFor } from '@/lib/quadrant';
 import { hero, menu, nav, pour, publicMap, returnVisit } from '@/lib/copy';
 import { publicMapPath } from '@/lib/atproto/paths';
@@ -36,7 +36,7 @@ interface ResultsScreenProps {
 
 type ScoredDrink = Drink & { score: number };
 
-/** One menu per occasion: the top pick and seven more. */
+/** The menu: the top pick and seven more. */
 const MENU_LENGTH = 8;
 
 interface PourMoved {
@@ -49,8 +49,8 @@ interface PourMoved {
 
 /**
  * Your menu (Flow Recommendations, R4), which replaces the old results
- * dashboard. One list, with the four occasions switched in one place; the
- * top pick is the one sheet that is yours. The radar chart, the archetype and
+ * dashboard. One list, ranked by relevance alone; the top pick is the one
+ * sheet that is yours. The radar chart, the archetype and
  * the Oracle tab are retired: the region is the only identity.
  */
 export function ResultsScreen({
@@ -64,7 +64,6 @@ export function ResultsScreen({
 }: ResultsScreenProps) {
   const { isEnabled, isConnected, handle, disconnect } = useAtprotoContext();
   const [activeTab, setActiveTab] = useState<ActiveTab>('menu');
-  const [context, setContext] = useState<ContextType>('usual');
   const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
   const [history, setHistory] = useState<PourRecord[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
@@ -135,24 +134,19 @@ export function ResultsScreen({
       }));
   }, [user, vibeTags, history, selectedLocation]);
 
-  const menuFor = useCallback(
-    (ctx: ContextType): ScoredDrink[] =>
+  // The menu ranks by relevance alone.
+  const goTo = useMemo(
+    (): ScoredDrink[] =>
       baseScored
-        .map(({ drink, relevance }) => ({
-          ...drink,
-          score: Math.round(Math.max(0, Math.min(100, relevance + calculateContextScore(drink, ctx) * 2))),
-        }))
+        .map(({ drink, relevance }) => ({ ...drink, score: relevance }))
         .sort((a, b) => b.score - a.score)
         .slice(0, MENU_LENGTH),
     [baseScored]
   );
-
-  const current = useMemo(() => menuFor(context), [menuFor, context]);
   const closeness = useMemo(
     () => Object.fromEntries(baseScored.map(({ drink, relevance }) => [drink.name, relevance])),
     [baseScored]
   );
-  const goTo = useMemo(() => menuFor('usual'), [menuFor]);
 
   const displayName = useCallback((name: string) => register[name]?.title ?? name, [register]);
   const region = quadrantFor(user.x, user.y);
@@ -229,9 +223,8 @@ export function ResultsScreen({
     );
   }
 
-  const top = current[0];
-  const rest = current.slice(1);
-  const contextTitle = menu.contexts.find((c) => c.id === context)?.title ?? '';
+  const top = goTo[0];
+  const rest = goTo.slice(1);
 
   return (
     <div className="mx-auto max-w-xl pb-28 pt-5 motion-safe:animate-in motion-safe:fade-in lg:pb-0 lg:pt-8">
@@ -265,40 +258,9 @@ export function ResultsScreen({
 
       {activeTab === 'menu' && (
         <div className="motion-safe:animate-in motion-safe:fade-in">
-          {/* The four occasions, switched in one place */}
-          <div
-            role="group"
-            aria-label={menu.contextsLabel}
-            className="mt-4.5 grid grid-cols-4 border border-foreground"
-          >
-            {menu.contexts.map((c, i) => {
-              const active = c.id === context;
-              return (
-                <button
-                  key={c.id}
-                  type="button"
-                  aria-pressed={active}
-                  onClick={() => setContext(c.id as ContextType)}
-                  className={cn(
-                    'min-h-11 px-1 font-condensed text-xs font-semibold uppercase tracking-wider transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring',
-                    i > 0 && 'border-l border-foreground',
-                    active ? 'bg-secondary text-secondary-foreground' : 'bg-card text-foreground hover:bg-muted'
-                  )}
-                >
-                  {c.label}
-                </button>
-              );
-            })}
-          </div>
-
           {top ? (
             <>
-              <TopPick
-                drink={top}
-                title={contextTitle}
-                entry={register[top.name]}
-                user={user}
-              />
+              <TopPick drink={top} entry={register[top.name]} user={user} />
               <ol className="mt-5.5 border-t border-foreground">
                 {rest.map((d, i) => (
                   <li key={d.name} className="dot-leader border-b border-border py-3">
@@ -363,7 +325,7 @@ export function ResultsScreen({
         <div className="mt-4.5 motion-safe:animate-in motion-safe:fade-in">
           <MapTab
             you={hasCoordinate ? { x: user.x, y: user.y } : null}
-            menu={current.map((d) => d.name)}
+            menu={goTo.map((d) => d.name)}
             closeness={closeness}
             pours={history}
             register={register}
@@ -443,12 +405,10 @@ function DrinkName({
  */
 function TopPick({
   drink,
-  title,
   entry,
   user,
 }: {
   drink: ScoredDrink;
-  title: string;
   entry?: Register[string];
   user: User;
 }) {
@@ -475,7 +435,7 @@ function TopPick({
     <div className="mt-5 flex flex-col gap-2.5 border border-foreground bg-card p-4.5 shadow-mcm">
       <div className="flex items-baseline justify-between">
         <span className="font-condensed text-xs font-semibold uppercase tracking-label text-secondary">
-          {menu.topPrefix} · {title}
+          {menu.topPrefix} · {menu.topTitle}
         </span>
         <span className="font-condensed text-base font-bold tabular-nums" aria-label={`Closeness ${drink.score}`}>
           {drink.score}

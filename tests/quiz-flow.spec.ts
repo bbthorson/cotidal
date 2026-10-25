@@ -61,16 +61,22 @@ test('Questionnaire: finishing the questions reveals a region before the menu', 
   await expect(page.getByRole('navigation', { name: 'Your coordinate' })).toBeVisible();
 });
 
-test('Menu: one list, with the four occasions switched in one place', async ({ page }) => {
+test('Menu: one ranked list, with no occasion switch', async ({ page }) => {
   await page.goto('/taste?browse=1');
 
-  const occasions = page.getByRole('group', { name: 'Occasion' });
-  await expect(occasions.getByRole('button')).toHaveCount(4);
-  await expect(occasions.getByRole('button', { name: 'Usual' })).toHaveAttribute('aria-pressed', 'true');
   await expect(page.getByText(/No\. 1 · Your go-to/)).toBeVisible();
+  // The occasion tabs are gone; the menu ranks by closeness alone.
+  await expect(page.getByRole('group', { name: 'Occasion' })).toHaveCount(0);
+  for (const label of ['Usual', 'Night out', 'Impress', 'Holiday']) {
+    await expect(page.getByRole('button', { name: label, exact: true })).toHaveCount(0);
+  }
 
-  await occasions.getByRole('button', { name: 'Impress' }).click();
-  await expect(page.getByText(/No\. 1 · Making an impression/)).toBeVisible();
+  // Top pick plus the numbered rest, scored from highest to lowest.
+  const scores = await page.getByLabel(/^Closeness \d+$/).evaluateAll((els) =>
+    els.map((el) => Number(el.textContent))
+  );
+  expect(scores.length).toBeGreaterThan(1);
+  expect(scores).toEqual([...scores].sort((a, b) => b - a));
 
   // Menu · Map · Log a pour — the Palate and Oracle tabs are gone.
   const tabs = page.getByRole('navigation', { name: 'Your coordinate' });

@@ -3,6 +3,7 @@ import AppShell from '../layouts/AppShell.astro';
 import ReturnVisit from '../components/app/ReturnVisit';
 import { site, returnVisit } from '../lib/copy';
 import { loadRegister } from '../lib/register.server';
+import { signInEnabled } from '../lib/atproto/auth';
 
 /**
  * The return visit: "Your map, and what moved it."
@@ -13,6 +14,7 @@ import { loadRegister } from '../lib/register.server';
  */
 
 const register = await loadRegister();
+const authEnabled = await signInEnabled();
 ---
 
 <AppShell
@@ -20,5 +22,5 @@ const register = await loadRegister();
   currentPath="/log"
   width="standard"
 >
-  <ReturnVisit client:load register={register} />
+  <ReturnVisit client:load register={register} signInEnabled={authEnabled} />
 </AppShell>

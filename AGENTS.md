@@ -57,10 +57,7 @@ a string to `copy.ts` before rendering it.
 ### Palate map — `src/lib/data.ts`, `src/components/app/ResultsScreen.tsx`
 2D plane. Users and drinks both carry `x` (Rich −10 → Crisp +10) and `y`
 (Savory −10 → Sweet +10). Euclidean distance gives the raw match; `VibeTag`s
-sort within it; context re-weights on top.
-
-**Your dot stays put.** Changing context changes the map around the user, not
-the user.
+sort within it. The menu is one list ranked by that relevance alone.
 
 ### Psychophysical State & EKF — `src/lib/palate-state.ts`
 Models longitudinal taste preference drift via an Extended Kalman Filter (EKF).
@@ -170,6 +167,16 @@ Workers, sign-in is disabled. The package runs on Web Crypto and `fetch` only,
 so it needs neither `@atproto/oauth-client-node` nor its undici-based handle
 resolver, which threw in the constructor on workerd. In development open the
 app at `http://127.0.0.1:9002`, not `localhost`.
+
+**Whether sign-in is on is the server's answer, at runtime:**
+`signInEnabled()` in `auth.ts` — `ATPROTO_ENABLED` under `[vars]` in
+`wrangler.toml` (not the dashboard: `wrangler deploy` replaces dashboard
+variables), plus the `SESSION_SECRET` secret.
+`/` renders from it, and `/taste` and `/log` pass it to their islands as a
+prop. Never read the flag from `import.meta.env` or in browser code: that is
+fixed at build time, and it once left `/` and the island saying "not enabled"
+in front of a server that would have signed people in.
+`tests/auth-endpoint.spec.ts` holds the three to one answer.
 
 `public-read.ts` reads *other people's* palates with no session, for
 `/p/<handle>` — handle → DID → document → PDS → record. It runs on a public

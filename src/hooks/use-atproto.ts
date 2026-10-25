@@ -2,10 +2,6 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { AUTH_ERROR_MESSAGES, createAuthClient, takeAuthError } from '@bbthorson/atproto-cf-auth/client';
 import { AUTH_BASE_PATH } from '@/lib/atproto/paths';
 
-const isAtprotoEnabled = typeof process !== 'undefined'
-  ? !!(process.env?.PUBLIC_ATPROTO_ENABLED || process.env?.ATPROTO_ENABLED || process.env?.NEXT_PUBLIC_ATPROTO_ENABLED)
-  : !!(import.meta.env?.PUBLIC_ATPROTO_ENABLED || import.meta.env?.NEXT_PUBLIC_ATPROTO_ENABLED);
-
 
 interface AtprotoState {
   isEnabled: boolean;
@@ -19,7 +15,12 @@ interface AtprotoState {
   disconnect: () => void;
 }
 
-export function useAtproto(): AtprotoState {
+/**
+ * `isEnabled` is the server's answer (`signInEnabled()` in
+ * src/lib/atproto/auth.ts), passed down from the page as a prop. The browser
+ * cannot work it out for itself: anything it reads was fixed at build time.
+ */
+export function useAtproto(isAtprotoEnabled: boolean): AtprotoState {
   const auth = useMemo(() => createAuthClient({ basePath: AUTH_BASE_PATH }), []);
   const [did, setDid] = useState<string | null>(null);
   const [handle, setHandle] = useState<string | null>(null);
@@ -56,7 +57,7 @@ export function useAtproto(): AtprotoState {
     return () => {
       cancelled = true;
     };
-  }, [auth]);
+  }, [auth, isAtprotoEnabled]);
 
   const connect = useCallback(
     async (inputHandle: string) => {
@@ -71,7 +72,7 @@ export function useAtproto(): AtprotoState {
         setConnecting(false);
       }
     },
-    [auth]
+    [auth, isAtprotoEnabled]
   );
 
   const disconnect = useCallback(() => {

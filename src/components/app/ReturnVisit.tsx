@@ -372,9 +372,15 @@ function ReturnVisitContent({ register }: { register: Register }) {
   );
 }
 
-export default function ReturnVisit({ register }: { register: Register }) {
+export default function ReturnVisit({
+  register,
+  signInEnabled,
+}: {
+  register: Register;
+  signInEnabled: boolean;
+}) {
   return (
-    <AtprotoProvider>
+    <AtprotoProvider enabled={signInEnabled}>
       <ReturnVisitContent register={register} />
     </AtprotoProvider>
   );

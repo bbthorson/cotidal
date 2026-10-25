@@ -22,12 +22,19 @@ const DEV_SECRET = 'crystal-coupe-local-development-secret-not-for-production';
 
 let auth: BlueskyAuth | null | undefined;
 
-function enabled(): boolean {
-  return !!(
-    process.env.PUBLIC_ATPROTO_ENABLED ||
-    process.env.ATPROTO_ENABLED ||
-    process.env.NEXT_PUBLIC_ATPROTO_ENABLED
-  );
+/**
+ * The switch, read at runtime and only here. It used to be read three ways —
+ * `import.meta.env` on `/` and in the island (inlined when the site is built)
+ * and `process.env` on the server (read on the Worker) — so a variable set in
+ * one place but not the other left the page and the server disagreeing about
+ * whether sign-in existed. Pages now ask `signInEnabled()` instead.
+ *
+ * `PUBLIC_ATPROTO_ENABLED` is still accepted because deployments already set
+ * it; the prefix no longer means anything.
+ */
+function enabled(env: Record<string, unknown> | undefined): boolean {
+  const read = (name: string) => (env?.[name] as string | undefined) ?? process.env[name];
+  return !!(read('ATPROTO_ENABLED') || read('PUBLIC_ATPROTO_ENABLED'));
 }
 
 /**
@@ -39,9 +46,9 @@ function enabled(): boolean {
  */
 export async function getAuth(): Promise<BlueskyAuth | null> {
   if (auth !== undefined) return auth;
-  if (!enabled()) return (auth = null);
 
   const env = await workersEnv();
+  if (!enabled(env)) return (auth = null);
   const secret =
     (env?.SESSION_SECRET as string | undefined) ??
     process.env.SESSION_SECRET ??
@@ -64,6 +71,15 @@ export async function getAuth(): Promise<BlueskyAuth | null> {
       ? { handleResolver: process.env.ATPROTO_HANDLE_RESOLVER }
       : {}),
   }));
+}
+
+/**
+ * Whether sign-in is on: switched on *and* able to seal sessions. The one
+ * answer `/`, `/taste` and `/log` render from, so the form is offered exactly
+ * when the login route will accept it.
+ */
+export async function signInEnabled(): Promise<boolean> {
+  return (await getAuth()) !== null;
 }
 
 /** Test seam: forget the cached instance. */

@@ -6,12 +6,16 @@
 # it deliberately rather than discovering it later.
 GOOGLE_GENERATIVE_AI_API_KEY=
 
-# AT Protocol OAuth. Sign-in is disabled entirely unless this is truthy.
-ATPROTO_ENABLED=
-PUBLIC_ATPROTO_ENABLED=
-# Production only: the hosted client metadata URL. Absent, the client runs in
-# loopback development mode against http://127.0.0.1:9002.
-ATPROTO_CLIENT_ID=
+# AT Protocol OAuth. Sign-in is disabled entirely unless this is truthy. It is
+# read at runtime by the server only (src/lib/atproto/auth.ts) and is already
+# on in wrangler.toml, so sign-in turns on locally once SESSION_SECRET is set.
+# Uncomment with an empty value to switch it off.
+# ATPROTO_ENABLED=
+# Seals sessions. Required on Workers (`wrangler secret put SESSION_SECRET`,
+# 32+ random characters); without it sign-in stays off. Open the app at
+# http://127.0.0.1:9002, not localhost: client_id and redirect_uri are derived
+# from the request's origin.
+SESSION_SECRET=
 # Optional. Handles resolve over HTTP because the Node resolver needs undici,
 # which workerd does not ship. Defaults to https://public.api.bsky.app.
 ATPROTO_HANDLE_RESOLVER=
