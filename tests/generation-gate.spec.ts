@@ -43,21 +43,6 @@ test.describe('The gate', () => {
     expect(res.headers()[GENERATION_HEADER]).toBe('unauthenticated');
   });
 
-  test('the refine-palate route is gated for unauthenticated users', async ({ request }) => {
-    const res = await request.post('/api/refine-palate', {
-      data: {
-        notes: 'I prefer dry, gin-based drinks with no sugar and no anise.',
-        currentProfile: { x: 0, y: 0, dislikesSmoke: false, dislikesBitter: false, dislikesAnise: false },
-      },
-    });
-
-    expect(res.status()).toBe(200);
-    expect(res.headers()[GENERATION_HEADER]).toBe('unauthenticated');
-    const { profile: updated, dossier } = await res.json();
-    expect(updated.dislikesAnise).toBe(true);
-    expect(dossier).toBeDefined();
-  });
-
   test('malformed input is rejected before anything is spent', async ({ request }) => {
     const badJson = await request.post('/api/explain-drink', {
       headers: { 'Content-Type': 'application/json' },

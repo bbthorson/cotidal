@@ -1,8 +1,8 @@
 # Generation
 
 What the model is allowed to write, who gets to see it, and what it costs.
-The endpoints are `src/pages/api/explain-drink.ts` and
-`src/pages/api/refine-palate.ts`; the provider binding is Cloudflare Workers AI (`env.AI`).
+The endpoint is `src/pages/api/explain-drink.ts`; the provider binding is
+Cloudflare Workers AI (`env.AI`).
 
 ## Authored by default, generated at the edges
 
@@ -30,8 +30,8 @@ the suite must pass with no key.
 | Path | Route | Status |
 |---|---|---|
 | Drink explanation | `POST /api/explain-drink` | **Live.** Hero card on mount, drink card on expand. |
-| Palate refinement | `POST /api/refine-palate` | **Live, and an exception.** A member's free-text notes ("no peat, less sweet") on the menu. The model returns a nudge of up to ±3 on each axis, aversions and a two-sentence dossier; the fallback (`refinePalateFallback`) reads the same notes by keyword. Because the model's answer moves the coordinate, this route breaks the rule above — it produces a result rather than describing one. Unresolved. |
 | Adaptive questions | — | **Parked.** See [Parked work](#parked-work). |
+| Palate refinement | — | **Removed for launch.** See [Parked work](#parked-work). |
 
 Every call site has a deterministic fallback and none of them can fail the
 caller: every route catches and returns usable content, and every client
@@ -184,6 +184,23 @@ does not separate the axes teaches the belief state nothing while costing a
 call, and the parser already refuses those (`spread < 2`). Restoring the
 feature without restoring `validateAIQuestion` would be strictly worse than the
 fixed question bank.
+
+### Palate refinement
+
+"Tell us what you avoid" was a notes box on the menu for members: free text
+("no peat, less sweet") sent to `POST /api/refine-palate`, where the model
+returned a nudge on each axis, aversions and a two-sentence reply, and the
+coordinate moved to match. It was removed for launch; it is in git history
+(the route, `refinePalateWithAI`, and the section in `ResultsScreen`).
+
+It had two problems to solve before it returns. **It broke the rule above:**
+the model's answer moved the coordinate — it produced a result rather than
+describing one. And it did not hold the model to the ±3 it asked for. Pours
+already move the palate without a model, and "what was off" already sets
+aversions. If it returns, either deterministic rules move the coordinate and
+the model only writes the reply, or the model chooses from fixed options
+(a decision model such as Cloudflare's Clef) whose answers are bounded by
+construction.
 
 ## Rules
 

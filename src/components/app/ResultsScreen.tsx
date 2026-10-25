@@ -13,11 +13,9 @@ import { MapThumb } from './CoordinateMap';
 import {
   explainDrinkMatch,
   getConnectedPours,
-  refinePalateWithAI,
   sharePalateToFeed,
 } from '@/lib/api-client';
 import { cn } from '@/lib/utils';
-import type { UserProfile } from '@/hooks/useDiscoveryQuiz';
 import type { PourRecord } from '@/lib/atproto/records';
 
 interface ResultsScreenProps {
@@ -26,7 +24,6 @@ interface ResultsScreenProps {
   hasCoordinate: boolean;
   vibeTags?: Record<string, number>;
   register: Register;
-  onPalateUpdated?: (profile: UserProfile) => void;
   onRequestSignIn: () => void;
   onStartOver: () => void;
 }
@@ -47,7 +44,6 @@ export function ResultsScreen({
   hasCoordinate,
   vibeTags,
   register,
-  onPalateUpdated,
   onRequestSignIn,
   onStartOver,
 }: ResultsScreenProps) {
@@ -196,12 +192,9 @@ export function ResultsScreen({
 
           {isConnected && (
             <MemberTools
-              user={user}
-              vibeTags={vibeTags || {}}
               handle={handle}
               topName={top ? displayName(top.name) : ''}
               regionName={region.name}
-              onPalateUpdated={onPalateUpdated}
             />
           )}
 
@@ -306,48 +299,18 @@ function TopPick({
   );
 }
 
-/** For signed-in members: who you are, sharing, and "tell us what you avoid". */
+/** For signed-in members: who you are, your public map, and sharing. */
 function MemberTools({
-  user,
-  vibeTags,
   handle,
   topName,
   regionName,
-  onPalateUpdated,
 }: {
-  user: User;
-  vibeTags: Record<string, number>;
   handle: string | null;
   topName: string;
   regionName: string;
-  onPalateUpdated?: (profile: UserProfile) => void;
 }) {
-  const [notes, setNotes] = useState('');
-  const [refining, setRefining] = useState(false);
-  const [result, setResult] = useState<string | null>(null);
   const [shareState, setShareState] = useState<'idle' | 'sharing' | 'shared'>('idle');
   const [shareError, setShareError] = useState<string | null>(null);
-
-  const refine = async () => {
-    if (notes.trim().length < 2 || refining) return;
-    setRefining(true);
-    try {
-      const response = await refinePalateWithAI(notes, {
-        x: user.x,
-        y: user.y,
-        dislikesSmoke: user.filters.includes('noSmoke'),
-        dislikesBitter: user.filters.includes('noBitter'),
-        dislikesAnise: user.filters.includes('noAnise'),
-        vibeTags,
-      });
-      setResult(response.dossier);
-      onPalateUpdated?.(response.profile);
-    } catch (err) {
-      console.error('Failed to refine palate:', err);
-    } finally {
-      setRefining(false);
-    }
-  };
 
   const share = async () => {
     setShareState('sharing');
@@ -396,33 +359,6 @@ function MemberTools({
           </p>
         )}
       </div>
-
-      <section className="space-y-3">
-        <h2 className="border-b border-foreground pb-1.5 font-serif text-xl font-bold">{menu.refineTitle}</h2>
-        <p className="text-ui text-muted-foreground">{menu.refineBody}</p>
-        <textarea
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
-          placeholder={menu.refinePlaceholder}
-          rows={3}
-          aria-label={menu.refineTitle}
-          className="w-full resize-none rounded-sm border border-border bg-card p-3.5 font-body text-base text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
-        />
-        <button
-          type="button"
-          onClick={refine}
-          disabled={refining || notes.trim().length < 2}
-          className="btn btn-outline px-6"
-        >
-          {refining ? menu.refining : menu.refineSubmit}
-        </button>
-        {result && (
-          <div className="border-l-2 border-primary pl-4">
-            <span className="label-caps text-primary">{menu.refineResult}</span>
-            <p className="mt-1 font-serif text-ui italic">{result}</p>
-          </div>
-        )}
-      </section>
     </div>
   );
 }
