@@ -78,6 +78,8 @@ export const POST: APIRoute = async ({ request }) => {
     }
   }
 
+  // `getConnectedDrinkLogs` and `logs` are the names a page loaded before the
+  // rename to pours still sends and reads.
   if (body.action === 'getConnectedDrinkLogs' || body.action === 'getConnectedPours') {
     if (!session) return new Response(JSON.stringify({ logs: [], pours: [] }), { status: 200, headers: { 'Content-Type': 'application/json' } });
     try {

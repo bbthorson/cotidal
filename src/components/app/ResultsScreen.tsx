@@ -14,7 +14,7 @@ import { MapThumb } from './CoordinateMap';
 import { Moved } from './Moved';
 import {
   explainDrinkMatch,
-  getConnectedDrinkLogs,
+  getConnectedPours,
   logDrinkFeedback,
   refinePalateWithAI,
   sharePalateToFeed,
@@ -77,7 +77,7 @@ export function ResultsScreen({
     if (!isConnected) return;
     setLoadingHistory(true);
     try {
-      setHistory(await getConnectedDrinkLogs(50));
+      setHistory(await getConnectedPours(50));
     } catch (e) {
       console.error('Failed to load tasted history:', e);
     } finally {

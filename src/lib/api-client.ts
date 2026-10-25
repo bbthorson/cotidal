@@ -158,25 +158,8 @@ export async function getConnectedPalate(): Promise<UserProfile | null> {
 }
 
 export async function logDrinkFeedback(
-  drinkNameOrOptions: string | LogDrinkOptions,
-  locationArg?: string,
-  ratingArg?: number,
-  deviationsArg?: string[],
-  noteArg?: string
+  options: LogDrinkOptions
 ): Promise<{ success: boolean; profile?: UserProfile; uri?: string; error?: string }> {
-  let options: LogDrinkOptions;
-  if (typeof drinkNameOrOptions === 'object') {
-    options = drinkNameOrOptions;
-  } else {
-    options = {
-      drinkName: drinkNameOrOptions,
-      location: locationArg || '',
-      rating: ratingArg ?? 5.0,
-      deviations: deviationsArg || [],
-      note: noteArg,
-    };
-  }
-
   try {
     const appUrl = typeof window !== 'undefined' ? window.location.origin : 'https://cotidal.app';
     const res = await fetch('/api/atproto-publish', {
@@ -198,13 +181,11 @@ export async function getConnectedPours(limit?: number): Promise<PourRecord[]> {
       body: JSON.stringify({ action: 'getConnectedPours', limit }),
     });
     const data = await res.json();
-    return data.pours ?? data.logs ?? [];
+    return data.pours ?? [];
   } catch {
     return [];
   }
 }
-
-export const getConnectedDrinkLogs = getConnectedPours;
 
 export async function refinePalateWithAI(
   notes: string,
