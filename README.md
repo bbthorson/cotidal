@@ -15,9 +15,10 @@ The profile is written to **your own** AT Protocol repository, not ours.
 
 ### The coordinate
 
-A short adaptive conversation places you on the map. Only the first three
-questions are fixed; after that the selector picks whichever question reduces
-the most uncertainty (`src/lib/question-selector.ts`, `src/lib/belief-state.ts`).
+A short adaptive quiz places you on the map. Only the first four questions
+are fixed; after that the selector asks whichever question carries the most
+expected information about your position (`src/lib/question-selector.ts`,
+`src/lib/belief-state.ts`).
 
 The four quadrants are named in `docs/brand.md`.
 
@@ -35,7 +36,7 @@ than to people. The reasoning is in **[docs/data-model.md](docs/data-model.md)**
 | Hosting | [Cloudflare](https://developers.cloudflare.com/workers/) (`@astrojs/cloudflare`) |
 | UI | [React 19](https://react.dev/) islands, [Radix](https://www.radix-ui.com/), [Tailwind](https://tailwindcss.com/) |
 | Identity | [AT Protocol](https://atproto.com/) OAuth (`@bbthorson/atproto-cf-auth`) |
-| Drink data | [TheCocktailDB](https://www.thecocktaildb.com/) |
+| Drink data | `src/lib/data.ts` (positions on the map), `src/content/drinks/` (the register's prose) |
 | Model | [Cloudflare Workers AI](https://developers.cloudflare.com/workers-ai/) + [AI Gateway](https://developers.cloudflare.com/ai-gateway/) |
 
 Deploys are handled by Cloudflare's own Git integration — it builds and
@@ -48,11 +49,16 @@ build produces. CI (`ci.yml`) only lints, typechecks, builds and tests.
 
 - **`/`** — the landing page. Pure Astro, **zero client JavaScript**; sign-in
   is a plain form post that works without it.
-- **`/taste`** — the interactive app. The only route that mounts an island.
+- **`/taste`** — the quiz, the reveal and your menu. A React island.
+- **`/log`** — log a pour and watch the coordinate move. A React island.
 - **`/drinks`** — the register: what is actually known about a drink, separated
   from what is only repeated about it. Static, zero client JavaScript.
+- **`/regions/<id>`** — one page per region. Static.
+- **`/p/<handle>`** — someone's coordinate at a public URL, with yours beside
+  it if you are signed in. Server-rendered, zero client JavaScript.
+- **`/bars`** — the placeholder for venues.
 
-Keep it that way: `client:only` on the whole app previously meant ~860 KB of
+Only `/taste` and `/log` mount islands. Keep it that way: `client:only` on the whole app previously meant ~860 KB of
 JavaScript had to download and hydrate before anything painted at all,
 including on the landing page. `tests/landing-static.spec.ts` guards it.
 
@@ -60,7 +66,7 @@ including on the landing page. `tests/landing-static.spec.ts` guards it.
 
 ```bash
 npm install
-npm run dev        # http://localhost:9002
+npm run dev        # open http://127.0.0.1:9002 — sign-in needs 127.0.0.1, not localhost
 ```
 
 ### Scripts
@@ -69,26 +75,32 @@ npm run dev        # http://localhost:9002
 npm run build      # production build
 npm run typecheck  # lexicons + astro check + tsc
 npm run lexicons   # validate lexicon schemas and their refs
-npx playwright test
+npm run check      # lint + typecheck
+npm run build && CI=1 npx playwright test   # the suite, as CI runs it
 ```
 
-The suite needs no model key: `useBartenderChat` serves canned copy and model
+Run the suite against the preview build, as above: with `CI` set, Playwright
+serves `npm run preview`. Against `npm run dev`, React 19's development build
+on workerd breaks server rendering and about a third of the suite fails.
+
+The suite needs no model key: nothing in the quiz calls a model, and model
 boundaries are mocked. In sandboxes without a matching browser, set
-`PLAYWRIGHT_CHROMIUM_PATH`, `PLAYWRIGHT_NO_SANDBOX`, and
-`PLAYWRIGHT_SKIP_WEBSERVER`.
+`PLAYWRIGHT_CHROMIUM_PATH` and `PLAYWRIGHT_NO_SANDBOX`; set
+`PLAYWRIGHT_SKIP_WEBSERVER` to test against a server you started yourself.
 
 **Running the suite from an AI coding agent:** Astro 7 detects agent
-environments and starts the dev server in the *background* automatically
-(`astro dev` → `am-i-vibing`). Playwright starts `npm run dev` and waits for a
-long-lived process, so it sees the server exit immediately and reports
-"webServer exited early" — the tests never run. Set `ASTRO_DEV_BACKGROUND=0` to
-force the foreground:
+environments and starts `astro dev` and `astro preview` in the *background*.
+Playwright waits for a long-lived process, so it sees the server exit
+immediately and reports "webServer exited early" — the tests never run. Setting
+`ASTRO_DEV_BACKGROUND` and `ASTRO_PREVIEW_BACKGROUND` (to any value) turns that
+detection off:
 
 ```bash
-ASTRO_DEV_BACKGROUND=0 npx playwright test
+ASTRO_DEV_BACKGROUND=1 ASTRO_PREVIEW_BACKGROUND=1 CI=1 npx playwright test
 ```
 
-This does not affect CI or a normal terminal, where no agent is detected.
+In Claude Code on the web, `.claude/hooks/session-start.sh` sets both. This
+does not affect CI or a normal terminal, where no agent is detected.
 
 ## Docs
 
@@ -98,10 +110,16 @@ This does not affect CI or a normal terminal, where no agent is detected.
   venues, apps, and creators adopt `app.cotidal.*`
 - **[docs/brand.md](docs/brand.md)** — voice, palette, and the rules that keep
   styling out of components
+- **[docs/design-system.md](docs/design-system.md)** — the tokens, component
+  patterns and how the rules are enforced
 - **[docs/generation.md](docs/generation.md)** — what the model may write, who
   sees it, and why the bill is set by the rate limiter rather than the model
 - **[docs/routes.md](docs/routes.md)** — what each surface promises, which
   routes work for a stranger, and the order to build them in
+- **[docs/sensory-science.md](docs/sensory-science.md)** — the psychophysics
+  and the Kalman filter behind a pour moving the palate
+- **[docs/venues.md](docs/venues.md)** — the supply side: bars publishing
+  menus to the protocol
 - **[AGENTS.md](AGENTS.md)** — architecture notes for contributors
 
 ## License
