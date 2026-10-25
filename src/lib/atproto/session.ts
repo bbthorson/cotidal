@@ -26,3 +26,30 @@ export async function oauthSession(request: Request): Promise<OAuthSession | nul
 export async function restoredDid(request: Request): Promise<string | null> {
   return (await oauthSession(request))?.did ?? null;
 }
+
+/**
+ * Who the page is being rendered for, as the header and /account show it.
+ *
+ * - `member`: a signed-in visitor, read from the session cookie (no token
+ *   refresh: rendering a page is not a reason to call the PDS).
+ * - `guest`: nobody signed in. `canSignIn` is false when sign-in is off here.
+ * - `unknown`: the page was prerendered at build time, before any visitor, so
+ *   it cannot know and must not guess (`/drinks`, `/regions/*`).
+ */
+export type Account =
+  | { kind: 'member'; did: string; handle: string | null }
+  | { kind: 'guest'; canSignIn: boolean }
+  | { kind: 'unknown' };
+
+export async function accountFor(request: Request, prerendered: boolean): Promise<Account> {
+  if (prerendered) return { kind: 'unknown' };
+  const auth = await getAuth();
+  if (!auth) return { kind: 'guest', canSignIn: false };
+  try {
+    const user = await auth.getUser(request);
+    if (user) return { kind: 'member', did: user.did, handle: user.handle ?? null };
+  } catch {
+    // An unreadable session is no session.
+  }
+  return { kind: 'guest', canSignIn: true };
+}

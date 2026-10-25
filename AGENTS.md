@@ -16,6 +16,11 @@ landing page included. Astro was being used as a slower Next.js.
 - Prefer `.astro` for anything without state. Reach for an island only when
   something genuinely needs to be interactive, and scope it tightly.
 - Prefer `client:load` over `client:only` so the shell server-renders.
+- The header's account control is server truth: `@handle` and a Sign out
+  form for a member, Sign in for a guest, a neutral Account link on a
+  prerendered page that cannot know. `/account` is script-free too. Signing
+  out lands on `/taste?signed_out=1`, where the island clears the device's
+  copy of the palate.
 - Never add an island to `/`. `tests/landing-static.spec.ts` fails if you do.
 - Sign-in is `@bbthorson/atproto-cf-auth`, content-negotiated at
   `/api/auth/atproto/login`: JSON in, JSON out for the island; form-encoded in,

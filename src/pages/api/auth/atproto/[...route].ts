@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { AUTH_ERROR_MESSAGES, AUTH_ERROR_PARAM } from '@bbthorson/atproto-cf-auth/server';
 import { getAuth } from '../../../../lib/atproto/auth';
+import { isFormSignOut, toSignedOut } from '../../../../lib/atproto/sign-out';
 
 /**
  * `@bbthorson/atproto-cf-auth` serves everything under this path:
@@ -37,5 +38,7 @@ export const ALL: APIRoute = async ({ request }) => {
     }
     return notConfigured(request);
   }
-  return (await auth.handle(request)) ?? new Response('Not found', { status: 404 });
+  const response = await auth.handle(request);
+  if (!response) return new Response('Not found', { status: 404 });
+  return isFormSignOut(request, response) ? toSignedOut(response) : response;
 };

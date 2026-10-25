@@ -2,6 +2,7 @@
 import Base from './Base.astro';
 import SiteHeader from '../components/marketing/SiteHeader.astro';
 import SiteFooter from '../components/marketing/SiteFooter.astro';
+import { accountFor } from '../lib/atproto/session';
 
 interface Props {
   title?: string;
@@ -9,9 +10,14 @@ interface Props {
   currentPath: string;
   backLink?: { href: string; label: string };
   width?: 'prose' | 'standard' | 'wide';
+  /** The page pins a bar to the bottom of a phone (/taste): keep the footer clear of it. */
+  bottomBar?: boolean;
 }
 
-const { title, description, currentPath, backLink, width = 'standard' } = Astro.props;
+const { title, description, currentPath, backLink, width = 'standard', bottomBar = false } = Astro.props;
+
+// Read here once, so every route's header tells the truth about who is signed in.
+const account = await accountFor(Astro.request, Astro.isPrerendered);
 
 /**
  * The header and footer sit in one fixed band on every route; `width` sizes
@@ -28,7 +34,7 @@ const widthClass = {
 <Base title={title} description={description}>
   <div class="bar-texture min-h-screen bg-background text-foreground">
     <div data-site-chrome class="mx-auto w-full max-w-5xl px-6 pt-5 md:pt-14">
-      <SiteHeader currentPath={currentPath} />
+      <SiteHeader currentPath={currentPath} account={account} />
     </div>
 
     <div class:list={['mx-auto w-full px-6', widthClass]}>
@@ -45,7 +51,10 @@ const widthClass = {
       <slot />
     </div>
 
-    <div data-site-chrome class="mx-auto w-full max-w-5xl px-6 pb-10 pt-16 md:pb-14">
+    <div
+      data-site-chrome
+      class:list={['mx-auto w-full max-w-5xl px-6 pt-16 md:pb-14', bottomBar ? 'pb-28 lg:pb-14' : 'pb-10']}
+    >
       <SiteFooter currentPath={currentPath} />
     </div>
   </div>

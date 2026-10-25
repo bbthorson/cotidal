@@ -112,7 +112,7 @@ interface LastPour {
  * what moved you. Logging ends on the same "your coordinate moved" screen as
  * the Log tab in /taste — the one recurring behaviour, given a face.
  */
-function ReturnVisitContent({ register }: { register: Register }) {
+function ReturnVisitContent({ register, initialDrink }: { register: Register; initialDrink?: string }) {
   const { isConnected } = useAtprotoContext();
 
   const [profile, setProfile] = useState<UserProfile | null>(getInitialLocalProfile);
@@ -330,7 +330,7 @@ function ReturnVisitContent({ register }: { register: Register }) {
           suggestions={nearest}
           suggestionsLabel={pour.nearLabel}
           labelFor={(name) => register[name]?.title ?? name}
-          initialDrink={nearest[0]}
+          initialDrink={initialDrink ?? nearest[0]}
           venue={venue}
           onVenueChange={setVenue}
           recentVenues={recentVenues}
@@ -357,13 +357,16 @@ function ReturnVisitContent({ register }: { register: Register }) {
 export default function ReturnVisit({
   register,
   signInEnabled,
+  initialDrink,
 }: {
   register: Register;
   signInEnabled: boolean;
+  /** The drink to open the form on, from `/log?drink=`. */
+  initialDrink?: string;
 }) {
   return (
     <AtprotoProvider enabled={signInEnabled}>
-      <ReturnVisitContent register={register} />
+      <ReturnVisitContent register={register} initialDrink={initialDrink} />
     </AtprotoProvider>
   );
 }

@@ -87,18 +87,19 @@ Radius is 0 for sheets, plates, buttons and tabs. `rounded-sm` (2px) is the one 
 
 ## 3. Navigation System
 
-Navigation is unified across the entire site through `<SiteHeader.astro>`:
+Navigation is unified across the entire site through `<SiteHeader.astro>` and `<SiteFooter.astro>`, both rendered from one list (`destinations` in `src/lib/site-nav.ts`):
 1. **Zero Client JavaScript**: Rendered as semantic HTML `<header>` and `<nav aria-label="Main Navigation">`.
-2. **Unified Destinations**:
-   - **Palate Map** (`/taste`)
-   - **The Register** (`/drinks`)
-   - **The Four Regions** (`/#regions`)
-   - **Sign In** (`/#connect`)
-3. **Active State Indicators**: Routes are identified via `currentPath` and styled with `bg-secondary text-secondary-foreground shadow-bar`.
-4. **Sub-Route Navigation**: In `/drinks/[slug]`, the header supports a semantic `backLink` while retaining global site navigation.
-5. **Phones**: the header collapses to wordmark · Sign in · Menu. "Menu" is a `<details>` that opens the same `<nav>` through `peer-open`, so `/` still ships no JavaScript.
-6. **Focus mode**: any element marked `data-focus-mode` (the quiz, the reveal, the after-a-pour screen) hides the site header and footer below `lg` (`globals.css`, pure CSS so nothing flashes before hydration).
-7. **In-App Controls**: In `/taste`, `<AppNavigation />` is Menu · Map · Log a pour — a bar along the bottom of a phone, a ruled strip above the content from `lg`.
+2. **Destinations** (header): Palate Map (`/taste`), Log a Pour (`/log`), Drinks (`/drinks`), The Four Regions (`/#regions`), For Bars (`/bars`).
+3. **The account control** (header) says what the server knows (`accountFor` in `session.ts`, read once in `AppShell`):
+   - a member sees `@handle`, which opens `/account`, and **Sign out** — a plain form post that answers with a redirect, like sign-in, so it needs no script;
+   - a guest sees **Sign in**;
+   - a prerendered page (`/drinks`, `/regions/*`) was built before anyone visited, so it says **Account** (`/account`) rather than guess.
+4. **Footer**: the reading pages only — Home, Drinks, The Four Regions, For Bars. The app destinations and the account are always in the header.
+5. **Active State Indicators**: Routes are identified via `currentPath` and styled with `bg-secondary text-secondary-foreground shadow-bar`.
+6. **Sub-Route Navigation**: In `/drinks/[slug]`, the header supports a semantic `backLink` while retaining global site navigation.
+7. **Phones**: the header collapses to wordmark · account · Menu. "Menu" is a `<details>` that opens the same `<nav>` through `peer-open`, so `/` still ships no JavaScript; a member's Sign out sits at the foot of it.
+8. **Focus mode**: any element marked `data-focus-mode` (the quiz, the reveal, the after-a-pour screen) hides the site header and footer below `lg` (`globals.css`, pure CSS so nothing flashes before hydration).
+9. **In-App Controls**: In `/taste`, `<AppNavigation />` is Menu · Map — a bar along the bottom of a phone (the footer clears it: `AppShell`'s `bottomBar`), a ruled strip above the content from `lg`. Logging a pour is `/log`, not a tab; "Log this" on the map opens `/log?drink=…`.
 
 ## The first-visit flow (`/taste`)
 

@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { quadrants } from '../src/lib/copy';
+import { quadrants, returnVisit } from '../src/lib/copy';
 
 /**
  * Questionnaire flow contract:
@@ -78,12 +78,12 @@ test('Menu: one ranked list, with no occasion switch', async ({ page }) => {
   expect(scores.length).toBeGreaterThan(1);
   expect(scores).toEqual([...scores].sort((a, b) => b - a));
 
-  // Menu · Map · Log a pour — the Palate and Oracle tabs are gone.
+  // Menu · Map. Logging a pour is /log, in the header — not a third tab.
   const tabs = page.getByRole('navigation', { name: 'Your coordinate' });
-  await expect(tabs.getByRole('button')).toHaveText(['Menu', 'Map', 'Log a pour']);
+  await expect(tabs.getByRole('button')).toHaveText(['Menu', 'Map']);
 });
 
-test('Map: tap a drink, then "Log this" opens the form on that drink', async ({ page }) => {
+test('Map: tap a drink, then "Log this" opens /log on that drink', async ({ page }) => {
   await page.goto('/taste?browse=1');
   await page.getByRole('navigation', { name: 'Your coordinate' }).getByRole('button', { name: 'Map' }).click();
 
@@ -97,12 +97,19 @@ test('Map: tap a drink, then "Log this" opens the form on that drink', async ({ 
   await first.getByRole('button').click();
   await expect(page.getByText('Closeness')).toBeVisible();
 
-  await page.getByRole('button', { name: 'Log this' }).click();
-  await expect(page.getByRole('heading', { name: 'Log a pour' })).toBeVisible();
-  await expect(page.getByLabel('What you’re drinking')).toHaveValue(new RegExp(drink.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').slice(0, 6)));
-
   // Your pours lens says plainly when there is nothing yet.
-  await page.getByRole('navigation', { name: 'Your coordinate' }).getByRole('button', { name: 'Map' }).click();
   await lenses.getByRole('button', { name: 'Your pours' }).click();
   await expect(page.getByText('Nothing poured yet.', { exact: false })).toBeVisible();
+  await lenses.getByRole('button', { name: 'Everything' }).click();
+  await first.getByRole('button').click();
+
+  await page.getByRole('button', { name: 'Log this' }).click();
+  await expect(page).toHaveURL(/\/log\?drink=/);
+  // A guest with no coordinate starts from the cold state; the drink waits.
+  const asGuest = page.getByRole('button', { name: returnVisit.guestCta });
+  const form = page.getByRole('heading', { name: returnVisit.logTitle });
+  await expect(asGuest.or(form)).toBeVisible();
+  if (await asGuest.isVisible()) await asGuest.click();
+  await expect(form).toBeVisible();
+  await expect(page.getByLabel('What you’re drinking')).toHaveValue(new RegExp(drink.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').slice(0, 6)));
 });

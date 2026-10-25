@@ -49,10 +49,17 @@ export function getDrinkSensoryVector(drink: Drink): SensoryVector {
   };
 }
 
+/**
+ * The palate record for a coordinate the questions produced. A palate
+ * published from the quiz starts the filter over from that coordinate: it
+ * used to keep the account's previous filter state, so after a retake the
+ * dot sat in the new place and the next pour pulled it back toward the old
+ * one. Only `createdAt` carries over; pours already logged stay in the ledger.
+ */
 export function derivePalateRecord(profile: UserProfile, existing?: Palate | null): Palate {
   const now = new Date().toISOString();
-  
-  const dynamicState = existing?.dynamicState ?? toDynamicRecord(
+
+  const dynamicState = toDynamicRecord(
     createInitialPalateState({
       x: profile.x,
       y: profile.y,

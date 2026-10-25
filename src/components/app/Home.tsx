@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { ResultsScreen } from '@/components/app/ResultsScreen';
 import { Questionnaire } from '@/components/app/Questionnaire';
 import { Reveal } from '@/components/app/Reveal';
@@ -7,6 +7,7 @@ import { AtprotoProvider, useAtprotoContext } from '@/components/app/AtprotoProv
 import { useDiscoveryQuiz, type UserProfile } from '@/hooks/useDiscoveryQuiz';
 import { flushPendingElicitation, getConnectedPalate, publishPalate } from '@/lib/api-client';
 import type { User } from '@/lib/data';
+import { SIGNED_OUT_PARAM, START_OVER_PARAM } from '@/lib/atproto/paths';
 import type { Register } from '@/lib/register';
 
 function profileToUser(profile: UserProfile | null): User {
@@ -21,6 +22,36 @@ function profileToUser(profile: UserProfile | null): User {
     filters,
     dislikesAnise: profile.dislikesAnise,
   };
+}
+
+/** What this device keeps of a palate. */
+const DEVICE_KEYS = ['user_profile', 'pending_elicitation'];
+
+/**
+ * Take a one-off instruction from the URL and remove it, so a reload does not
+ * repeat it. `true` when it was there.
+ */
+function takeParam(name: string): boolean {
+  if (typeof window === 'undefined') return false;
+  const url = new URL(window.location.href);
+  if (!url.searchParams.has(name)) return false;
+  url.searchParams.delete(name);
+  window.history.replaceState({}, '', url.pathname + url.search);
+  return true;
+}
+
+/**
+ * After a sign-out (the header's form lands here marked), forget this
+ * device's copy of the palate: on a shared device the next person should not
+ * find someone else's coordinate. It is still on their account.
+ */
+function forgetDeviceAfterSignOut(): void {
+  if (!takeParam(SIGNED_OUT_PARAM)) return;
+  try {
+    DEVICE_KEYS.forEach((key) => localStorage.removeItem(key));
+  } catch {
+    // Storage unavailable: nothing was kept.
+  }
 }
 
 function getInitialProfile(): UserProfile | null {
@@ -45,7 +76,11 @@ function wantsBrowse(): boolean {
 type Screen = 'questionnaire' | 'reveal' | 'results';
 
 function HomeContent({ register }: { register: Register }) {
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(getInitialProfile);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(() => {
+    // Before anything reads the device's palate.
+    forgetDeviceAfterSignOut();
+    return getInitialProfile();
+  });
   const [screen, setScreen] = useState<Screen>(() => {
     if (typeof window === 'undefined') return 'questionnaire';
     return getInitialProfile() || wantsBrowse() ? 'results' : 'questionnaire';
@@ -53,6 +88,12 @@ function HomeContent({ register }: { register: Register }) {
   const [signInOpen, setSignInOpen] = useState(false);
 
   const { isConnected } = useAtprotoContext();
+  /**
+   * Set while someone is retaking the questions, until they finish. The
+   * palate on their account is the one being replaced, so it must not be
+   * restored over the questionnaire in the meantime.
+   */
+  const startingOver = useRef(false);
 
   useEffect(() => {
     if (isConnected) {
@@ -60,6 +101,7 @@ function HomeContent({ register }: { register: Register }) {
       void flushPendingElicitation();
       getConnectedPalate()
         .then(async (profile) => {
+          if (startingOver.current) return;
           if (profile) {
             setUserProfile(profile);
             localStorage.setItem('user_profile', JSON.stringify(profile));
@@ -95,6 +137,8 @@ function HomeContent({ register }: { register: Register }) {
   }, [screen]);
 
   const handleQuizComplete = useCallback((profile: UserProfile) => {
+    // The quiz has published the new palate (useDiscoveryQuiz).
+    startingOver.current = false;
     setUserProfile(profile);
     setScreen('reveal');
   }, []);
@@ -106,12 +150,23 @@ function HomeContent({ register }: { register: Register }) {
     localStorage.setItem('user_profile', JSON.stringify(profile));
   }, []);
 
+  /**
+   * Retake the questions. Finishing them replaces the coordinate here and on
+   * the account, and restarts the filter (derivePalateRecord); pours already
+   * logged stay in the ledger. Leaving partway changes nothing on the account.
+   */
   const reset = useCallback(() => {
+    startingOver.current = true;
     localStorage.removeItem('user_profile');
     quiz.resetQuiz();
     setUserProfile(null);
     setScreen('questionnaire');
   }, [quiz]);
+
+  // "Retake the questions" on /account lands here.
+  useEffect(() => {
+    if (takeParam(START_OVER_PARAM)) reset();
+  }, [reset]);
 
   const finalUser = useMemo(() => profileToUser(userProfile), [userProfile]);
 
