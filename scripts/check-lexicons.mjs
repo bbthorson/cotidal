@@ -107,27 +107,32 @@ for (const [id, doc] of docs) {
 }
 
 /** 6. Each record's Zod schema against its lexicon. */
-const { RECORD_SCHEMAS, STRING_LIMITS } = await import('../src/lib/atproto/records.ts');
+const { RECORD_SCHEMAS, STRING_LIMITS, isLexInteger } = await import('../src/lib/atproto/records.ts');
 const VOCAB = await import('../src/lib/atproto/vocab.ts');
 
-const kind = (schema) => schema?._def?.typeName;
+/*
+ * Zod 4 keeps a schema's definition at `_zod.def`: `type` names the kind
+ * ('object', 'string', 'optional', ...) and `checks` lists what chained
+ * methods added, each with its own `_zod.def` (`check: 'greater_than'`,
+ * `value`, `inclusive`, ...). A refinement is one of those checks, not a
+ * wrapper around the schema as Zod 3's ZodEffects was, so nothing needs
+ * peeling but `.optional()`.
+ */
+const defOf = (schema) => schema?._zod?.def;
+const kind = (schema) => defOf(schema)?.type;
 
 /** Peel the wrappers that do not change a field's shape; report whether it was optional. */
 function unwrap(schema) {
   let optional = false;
-  for (;;) {
-    const k = kind(schema);
-    if (k === 'ZodOptional') {
-      optional = true;
-      schema = schema._def.innerType;
-    } else if (k === 'ZodEffects' && !STRING_LIMITS.has(schema)) {
-      schema = schema._def.schema;
-    } else return { schema, optional };
+  while (kind(schema) === 'optional') {
+    optional = true;
+    schema = defOf(schema).innerType;
   }
+  return { schema, optional };
 }
 
-const checksOf = (schema) => schema._def.checks ?? [];
-const check = (schema, name) => checksOf(schema).find((c) => c.kind === name);
+const checksOf = (schema) => defOf(schema).checks ?? [];
+const check = (schema, name) => checksOf(schema).find((c) => c._zod.def.check === name)?._zod.def;
 
 function resolve(ref, fromId) {
   const [nsid, def = 'main'] = ref.startsWith('#') ? [fromId, ref.slice(1)] : ref.split('#');
@@ -152,10 +157,10 @@ function compare(lex, zod, path, fromId) {
     case 'object': {
       if (!lex.properties) {
         // A property-less object is an open dictionary.
-        if (k !== 'ZodRecord') fail(`lexicon has an open object, Zod has ${k}`);
+        if (k !== 'record') fail(`lexicon has an open object, Zod has ${k}`);
         return;
       }
-      if (k !== 'ZodObject') return fail(`lexicon has an object, Zod has ${k}`);
+      if (k !== 'object') return fail(`lexicon has an object, Zod has ${k}`);
       const shape = schema.shape;
       const lexKeys = Object.keys(lex.properties);
       const zodKeys = Object.keys(shape).filter((key) => key !== '$type');
@@ -171,21 +176,27 @@ function compare(lex, zod, path, fromId) {
       return;
     }
     case 'integer': {
-      if (k !== 'ZodNumber' || !check(schema, 'int')) return fail(`lexicon has an integer, Zod has ${k} without .int()`);
-      const min = check(schema, 'min');
-      const max = check(schema, 'max');
+      // `lexInteger()`, not `.int()`: the lexicon's integers are not capped at 2^53.
+      if (k !== 'number' || !checksOf(schema).some((c) => c._zod.check === isLexInteger)) {
+        return fail(`lexicon has an integer, Zod has ${k} not built with lexInteger()`);
+      }
+      const min = check(schema, 'greater_than');
+      const max = check(schema, 'less_than');
+      if (min && !min.inclusive) fail(`minimum: the lexicon's is inclusive, Zod's .gt() is not`);
+      if (max && !max.inclusive) fail(`maximum: the lexicon's is inclusive, Zod's .lt() is not`);
       if (!same(lex.minimum, min?.value)) fail(`minimum: lexicon ${lex.minimum}, Zod ${min?.value}`);
       if (!same(lex.maximum, max?.value)) fail(`maximum: lexicon ${lex.maximum}, Zod ${max?.value}`);
       return;
     }
     case 'boolean':
-      if (k !== 'ZodBoolean') fail(`lexicon has a boolean, Zod has ${k}`);
+      if (k !== 'boolean') fail(`lexicon has a boolean, Zod has ${k}`);
       return;
     case 'string': {
-      if (k === 'ZodEnum') {
+      if (k === 'enum') {
         // A closed set in Zod must be exactly the lexicon's known values.
-        if (!same(sorted(schema._def.values), sorted(lex.knownValues ?? lex.enum ?? []))) {
-          fail(`Zod enum ${JSON.stringify(schema._def.values)} is not the lexicon's knownValues`);
+        const values = Object.values(defOf(schema).entries);
+        if (!same(sorted(values), sorted(lex.knownValues ?? lex.enum ?? []))) {
+          fail(`Zod enum ${JSON.stringify(values)} is not the lexicon's knownValues`);
         }
         return;
       }
@@ -197,17 +208,17 @@ function compare(lex, zod, path, fromId) {
       return;
     }
     case 'array': {
-      if (k !== 'ZodArray') return fail(`lexicon has an array, Zod has ${k}`);
-      const exact = schema._def.exactLength?.value;
-      const min = exact ?? schema._def.minLength?.value;
-      const max = exact ?? schema._def.maxLength?.value;
+      if (k !== 'array') return fail(`lexicon has an array, Zod has ${k}`);
+      const exact = check(schema, 'length_equals')?.length;
+      const min = exact ?? check(schema, 'min_length')?.minimum;
+      const max = exact ?? check(schema, 'max_length')?.maximum;
       if (!same(lex.minLength, min)) fail(`minLength: lexicon ${lex.minLength}, Zod ${min}`);
       if (!same(lex.maxLength, max)) fail(`maxLength: lexicon ${lex.maxLength}, Zod ${max}`);
-      return compare(lex.items, schema._def.type, `${path}[]`, fromId);
+      return compare(lex.items, defOf(schema).element, `${path}[]`, fromId);
     }
     case 'union':
       // Borrowed vocabularies (community.lexicon.location.*): carried as-is, tagged by $type.
-      if (k !== 'ZodObject' || !('$type' in schema.shape)) fail(`lexicon has a union, Zod has ${k} without $type`);
+      if (k !== 'object' || !('$type' in schema.shape)) fail(`lexicon has a union, Zod has ${k} without $type`);
       return;
     case 'blob':
     case 'unknown':
@@ -225,7 +236,7 @@ for (const [id, doc] of docs) {
     continue;
   }
   const typeField = zod.shape?.$type;
-  if (kind(typeField) !== 'ZodLiteral' || typeField._def.value !== id) {
+  if (kind(typeField) !== 'literal' || !same(defOf(typeField).values, [id])) {
     errors.push(`${id}: Zod $type is not the literal "${id}"`);
   }
   compare(doc.defs.main.record, zod, id, id);

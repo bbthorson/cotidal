@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { isValidHandle, normalizeHandle } from '@bbthorson/atproto-cf-auth/server';
 import { LEGACY_PALATE_COLLECTION, PALATE_COLLECTION, PALATE_RKEY, decodeCoordinates } from './records';
+import { lexInteger } from './lex-string';
 
 /**
  * Reading someone else's palate, with no session.
@@ -53,7 +54,7 @@ const PublicPalateSchema = z.object({
     })
     .partial()
     .optional(),
-  dynamicState: z.object({ eventCount: z.number().int().min(0) }).partial().optional(),
+  dynamicState: z.object({ eventCount: lexInteger().min(0) }).partial().optional(),
   updatedAt: z.string().optional(),
   createdAt: z.string().optional(),
 });
