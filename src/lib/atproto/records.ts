@@ -1,9 +1,12 @@
 /**
  * Zod schemas for the record types described in `lexicons/*.json`.
  *
- * The JSON is authoritative — `npm run lexicons` fails the build when the two
- * disagree, which is what stops the drift that produced two different
- * definitions of the old `drinkLog`.
+ * The JSON is authoritative. `npm run lexicons` walks every record schema in
+ * `RECORD_SCHEMAS` against its lexicon, field by field — names, required,
+ * types, bounds, string limits, formats and known values — and fails when
+ * they disagree. That is what stops the drift that produced two different
+ * definitions of the old `drinkLog`. So a schema here says exactly what its
+ * lexicon says: no stricter, no looser.
  *
  * `app.cotidal.palate`, `app.cotidal.pour` and
  * `app.cotidal.elicitation` live here.
@@ -35,6 +38,93 @@ export const LEGACY_POUR_COLLECTION = 'app.crystalcoupe.pour';
 export const SELF_RKEY = 'self';
 
 // ---------------------------------------------------------------------------
+// Lexicon strings
+// ---------------------------------------------------------------------------
+
+/**
+ * A lexicon string's limits. `maxLength` counts UTF-8 bytes and
+ * `maxGraphemes` user-perceived characters — neither is what `.length` or
+ * Zod's `.max()` count (UTF-16 code units), so a note in emoji or a
+ * non-Latin script could pass those and still break the record's limits.
+ */
+export interface StringLimits {
+  minLength?: number;
+  maxLength?: number;
+  maxGraphemes?: number;
+  format?: 'datetime' | 'did' | 'at-uri' | 'cid' | 'uri';
+}
+
+/** What each `lexString` was built with, for the lexicon checker to compare. */
+export const STRING_LIMITS = new WeakMap<z.ZodTypeAny, StringLimits>();
+
+const encoder = new TextEncoder();
+export const utf8Length = (s: string) => encoder.encode(s).length;
+
+const segmenter =
+  typeof Intl !== 'undefined' && 'Segmenter' in Intl
+    ? new Intl.Segmenter(undefined, { granularity: 'grapheme' })
+    : null;
+const graphemes = (s: string): string[] =>
+  segmenter ? Array.from(segmenter.segment(s), (g) => g.segment) : Array.from(s);
+export const graphemeLength = (s: string) => graphemes(s).length;
+
+/**
+ * Datetimes as the AT Protocol writes them: RFC 3339 with an explicit offset.
+ * `Z` and `+02:00` are both valid. Zod's bare `.datetime()` refuses the second,
+ * which would drop a valid record written by another client.
+ */
+const DATETIME = z.string().datetime({ offset: true });
+
+const FORMATS: Record<NonNullable<StringLimits['format']>, (s: string) => boolean> = {
+  datetime: (s) => DATETIME.safeParse(s).success,
+  did: (s) => /^did:[a-z]+:[a-zA-Z0-9._:%-]*[a-zA-Z0-9._-]$/.test(s),
+  'at-uri': (s) => /^at:\/\/[^\s/]+(\/[^\s]*)?$/.test(s),
+  cid: (s) => /^[a-zA-Z0-9+/=]{8,256}$/.test(s),
+  uri: (s) => /^[a-z][a-z0-9+.-]*:\S+$/i.test(s),
+};
+
+/** A string checked the way its lexicon defines it. */
+export function lexString(limits: StringLimits = {}) {
+  const schema = z.string().superRefine((value, ctx) => {
+    const bytes = utf8Length(value);
+    if (limits.minLength !== undefined && bytes < limits.minLength) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: `shorter than ${limits.minLength} bytes` });
+    }
+    if (limits.maxLength !== undefined && bytes > limits.maxLength) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: `longer than ${limits.maxLength} bytes` });
+    }
+    if (limits.maxGraphemes !== undefined && graphemeLength(value) > limits.maxGraphemes) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: `longer than ${limits.maxGraphemes} characters` });
+    }
+    if (limits.format && !FORMATS[limits.format](value)) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: `not a valid ${limits.format}` });
+    }
+  });
+  STRING_LIMITS.set(schema, limits);
+  return schema;
+}
+
+const datetime = () => lexString({ format: 'datetime' });
+
+/**
+ * Cut a string to fit a lexicon's limits, on a character boundary, so free
+ * text is kept rather than refused. Bytes and graphemes are both honoured.
+ */
+export function fitString(value: string, maxLength: number, maxGraphemes?: number): string {
+  let out = '';
+  let bytes = 0;
+  let count = 0;
+  for (const g of graphemes(value)) {
+    const size = utf8Length(g);
+    if (bytes + size > maxLength || (maxGraphemes !== undefined && count + 1 > maxGraphemes)) break;
+    out += g;
+    bytes += size;
+    count += 1;
+  }
+  return out;
+}
+
+// ---------------------------------------------------------------------------
 // Shared references (app.cotidal.defs)
 // ---------------------------------------------------------------------------
 
@@ -45,11 +135,11 @@ export const SELF_RKEY = 'self';
  * somebody's signed record.
  */
 export const EntityRefSchema = z.object({
-  name: z.string().min(1).max(200),
-  uri: z.string().optional(),
-  cid: z.string().optional(),
-  did: z.string().optional(),
-  domain: z.string().max(253).optional(),
+  name: lexString({ maxLength: 200, maxGraphemes: 100 }),
+  uri: lexString({ format: 'at-uri' }).optional(),
+  cid: lexString({ format: 'cid' }).optional(),
+  did: lexString({ format: 'did' }).optional(),
+  domain: lexString({ maxLength: 253 }).optional(),
 });
 export type EntityRef = z.infer<typeof EntityRefSchema>;
 
@@ -68,12 +158,13 @@ export const VenueRefSchema = z.object({
 });
 export type VenueRef = z.infer<typeof VenueRefSchema>;
 
+/** Integers only, named for their unit: the AT Protocol has no floats. */
 export const StimulusSchema = z.object({
   matrixType: z.enum(['cocktail', 'wine', 'spirit', 'beer', 'tea', 'coffee', 'cider', 'non-alcoholic']).optional(),
-  abv: z.number().min(0).max(100).optional(),
-  residualSugarGpl: z.number().min(0).optional(),
-  acidityPh: z.number().min(1).max(14).optional(),
-  astringencyIndex: z.number().min(0).max(10).optional(),
+  abvTenths: z.number().int().min(0).max(1000).optional(),
+  residualSugarGpl: z.number().int().min(0).optional(),
+  acidityPhHundredths: z.number().int().min(100).max(1400).optional(),
+  astringencyIndexTenths: z.number().int().min(0).max(100).optional(),
 });
 export type Stimulus = z.infer<typeof StimulusSchema>;
 
@@ -82,8 +173,8 @@ export type Stimulus = z.infer<typeof StimulusSchema>;
  * catalog. A `recipe` is the authored, ownable formulation.
  */
 export const DrinkRefSchema = z.object({
-  name: z.string().min(1).max(200),
-  slug: z.string().max(64).optional(),
+  name: lexString({ maxLength: 200, maxGraphemes: 100 }),
+  slug: lexString({ maxLength: 64 }).optional(),
   recipe: EntityRefSchema.optional(),
   stimulus: StimulusSchema.optional(),
 });
@@ -99,7 +190,7 @@ export type Credit = z.infer<typeof CreditSchema>;
 export const PriceSchema = z.object({
   /** Minor units (cents), to avoid float rounding. */
   amount: z.number().int().min(0),
-  currency: z.string().length(3),
+  currency: lexString({ minLength: 3, maxLength: 3 }),
 });
 export type Price = z.infer<typeof PriceSchema>;
 
@@ -122,7 +213,7 @@ export const DynamicStateSchema = z.object({
   latentVector: z.array(z.number()),
   covarianceDiagonal: z.array(z.number()),
   eventCount: z.number().int().min(0),
-  lastUpdate: z.string().datetime().optional(),
+  lastUpdate: datetime().optional(),
 });
 export type DynamicState = z.infer<typeof DynamicStateSchema>;
 
@@ -142,8 +233,8 @@ export const PalateSchema = z.object({
   phenotypes: PhenotypesSchema,
   aversions: AversionsSchema,
   vibeTags: z.record(z.string(), z.number()),
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime().optional(),
+  createdAt: datetime(),
+  updatedAt: datetime().optional(),
 });
 export type Palate = z.infer<typeof PalateSchema>;
 
@@ -162,13 +253,13 @@ export const PalateRecordSchema = z.object({
     latentVectorHundredths: z.array(hundredths).length(5),
     covarianceDiagonalHundredths: z.array(hundredths.min(0)).length(5),
     eventCount: z.number().int().min(0),
-    lastUpdate: z.string().datetime().optional(),
+    lastUpdate: datetime().optional(),
   }),
   phenotypes: PhenotypesSchema,
   aversions: AversionsSchema,
   vibeTagsHundredths: z.record(z.string(), hundredths),
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime().optional(),
+  createdAt: datetime(),
+  updatedAt: datetime().optional(),
 });
 export type PalateRecord = z.infer<typeof PalateRecordSchema>;
 
@@ -272,8 +363,8 @@ export const ElicitationOptionSchema = z.object({
 
 export const ElicitationAnswerSchema = z
   .object({
-    questionId: z.string().min(1).max(64),
-    kind: z.string().max(32).optional(),
+    questionId: lexString({ maxLength: 64 }),
+    kind: lexString({ maxLength: 32 }).optional(),
     generated: z.boolean().optional(),
     options: z.array(ElicitationOptionSchema).min(1).max(6),
     chosen: z.number().int().min(0).max(5),
@@ -283,9 +374,9 @@ export type ElicitationAnswer = z.infer<typeof ElicitationAnswerSchema>;
 
 export const ElicitationRecordSchema = z.object({
   $type: z.literal(ELICITATION_COLLECTION),
-  responseModel: z.string().min(1).max(64),
+  responseModel: lexString({ maxLength: 64 }),
   answers: z.array(ElicitationAnswerSchema).min(1).max(16),
-  createdAt: z.string().datetime(),
+  createdAt: datetime(),
 });
 export type ElicitationRecord = z.infer<typeof ElicitationRecordSchema>;
 
@@ -312,11 +403,34 @@ export const DEVIATIONS = [
 ] as const;
 export type Deviation = (typeof DEVIATIONS)[number];
 
+/**
+ * Check-all-that-apply notes, as stored. Stable ids rather than the labels
+ * shown (`pour.cata` in copy.ts), so rewording a label does not split the
+ * data. Each id is its label slugified, which is also how a pour written
+ * before the ids — when the label itself was stored — is read back.
+ */
+export const CATA = [
+  'bright-citrus', 'lime-peel', 'stone-fruit', 'dark-cherry',
+  'campfire-smoke', 'botanical-herb', 'baking-spice', 'toasted-oak',
+  'floral-blossom', 'bittersweet-cocoa', 'briny-mineral', 'rich-velvet-body',
+] as const;
+export type CataNote = (typeof CATA)[number];
+
+const slugify = (s: string) =>
+  s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+
+/** A stored note as its id: an id stays, a pre-id label maps, anything else is kept as written. */
+export function cataId(note: string): string {
+  if ((CATA as readonly string[]).includes(note)) return note;
+  const slug = slugify(note);
+  return (CATA as readonly string[]).includes(slug) ? slug : note;
+}
+
 export const RatingSchema = z.object({
   /** 9-point hedonic scale: 1 dislike extremely, 5 neutral, 9 like extremely. */
   hedonic: z.number().int().min(1).max(9),
-  /** Continuous bipolar gLMS liking score (-100 to +100). */
-  glmsValence: z.number().min(-100).max(100).optional(),
+  /** Bipolar gLMS liking score, −100 to +100, in whole points. */
+  glmsValence: z.number().int().min(-100).max(100).optional(),
   /**
    * Adoption rather than approval. A recipe's reception is built from this —
    * "reordered by 61%" credits a designer without producing a score that
@@ -326,18 +440,19 @@ export const RatingSchema = z.object({
 });
 export type Rating = z.infer<typeof RatingSchema>;
 
+const intensity = z.number().int().min(0).max(100);
 export const PerceivedIntensitiesSchema = z.object({
-  sweetness: z.number().min(0).max(100).optional(),
-  sourness: z.number().min(0).max(100).optional(),
-  bitterness: z.number().min(0).max(100).optional(),
-  astringency: z.number().min(0).max(100).optional(),
-  effervescence: z.number().min(0).max(100).optional(),
+  sweetness: intensity.optional(),
+  sourness: intensity.optional(),
+  bitterness: intensity.optional(),
+  astringency: intensity.optional(),
+  effervescence: intensity.optional(),
 });
 export type PerceivedIntensities = z.infer<typeof PerceivedIntensitiesSchema>;
 
 export const PourContextSchema = z.object({
-  volumeConsumedMl: z.number().optional(),
-  fastingDurationHours: z.number().optional(),
+  volumeConsumedMl: z.number().int().min(0).optional(),
+  fastingDurationHours: z.number().int().min(0).optional(),
 });
 export type PourContext = z.infer<typeof PourContextSchema>;
 
@@ -349,14 +464,44 @@ export const PourRecordSchema = z.object({
   credits: z.array(CreditSchema).max(10).optional(),
   rating: RatingSchema,
   perceivedIntensities: PerceivedIntensitiesSchema.optional(),
-  deviations: z.array(z.string().max(32)).max(10).optional(),
-  cata: z.array(z.string().max(32)).max(20).optional(),
+  deviations: z.array(lexString({ maxLength: 32 })).max(10).optional(),
+  cata: z.array(lexString({ maxLength: 32 })).max(20).optional(),
   context: PourContextSchema.optional(),
-  note: z.string().max(3000).optional(),
+  note: lexString({ maxLength: 3000, maxGraphemes: 1000 }).optional(),
   isHomePour: z.boolean().optional(),
-  createdAt: z.string().datetime(),
+  createdAt: datetime(),
 });
 export type PourRecord = z.infer<typeof PourRecordSchema>;
+
+/** Note limits, for fitting free text before it is written. */
+export const POUR_NOTE_LIMITS = { maxLength: 3000, maxGraphemes: 1000 } as const;
+
+/**
+ * A pour this app is about to write. The lexicon's `knownValues` are open, so
+ * a reader accepts any deviation or note another client wrote; a writer here
+ * only writes the ones it knows.
+ */
+export const PourWriteSchema = PourRecordSchema.extend({
+  deviations: z.array(z.enum(DEVIATIONS)).max(10).optional(),
+  cata: z.array(z.enum(CATA)).max(20).optional(),
+});
+
+/**
+ * A pour as read from a repository, or `null` when it is not one. Accepts the
+ * collection before the rename, and maps CATA labels stored before the ids.
+ * Anything can be written to a collection in someone's repo, so a pour is
+ * parsed before it is trusted, not cast.
+ */
+export function readPour(value: unknown): PourRecord | null {
+  const raw =
+    value && typeof value === 'object' && (value as { $type?: unknown }).$type === LEGACY_POUR_COLLECTION
+      ? { ...(value as object), $type: POUR_COLLECTION }
+      : value;
+  const parsed = PourRecordSchema.safeParse(raw);
+  if (!parsed.success) return null;
+  const pour = parsed.data;
+  return pour.cata ? { ...pour, cata: pour.cata.map(cataId) } : pour;
+}
 
 // ---------------------------------------------------------------------------
 // app.cotidal.menu
@@ -365,14 +510,14 @@ export type PourRecord = z.infer<typeof PourRecordSchema>;
 export const MenuItemSchema = z.object({
   drink: DrinkRefSchema,
   /** The menu's own words — the best signal for matching a house name. */
-  description: z.string().max(1000).optional(),
+  description: lexString({ maxLength: 1000, maxGraphemes: 500 }).optional(),
   price: PriceSchema.optional(),
   credits: z.array(CreditSchema).max(10).optional(),
 });
 export type MenuItem = z.infer<typeof MenuItemSchema>;
 
 export const MenuSectionSchema = z.object({
-  name: z.string().max(200).optional(),
+  name: lexString({ maxLength: 200, maxGraphemes: 100 }).optional(),
   items: z.array(MenuItemSchema).max(200),
 });
 
@@ -386,15 +531,15 @@ export const MenuCaptureSchema = z.object({
 export const MenuRecordSchema = z.object({
   $type: z.literal(MENU_COLLECTION),
   venue: VenueRefSchema,
-  title: z.string().max(200).optional(),
-  publishedAt: z.string().datetime(),
-  validFrom: z.string().datetime().optional(),
-  validUntil: z.string().datetime().optional(),
+  title: lexString({ maxLength: 200, maxGraphemes: 100 }).optional(),
+  publishedAt: datetime(),
+  validFrom: datetime().optional(),
+  validUntil: datetime().optional(),
   sections: z.array(MenuSectionSchema).max(40).optional(),
   capture: MenuCaptureSchema.optional(),
   /** Standard.site document pointer if published to a publication. */
   document: EntityRefSchema.optional(),
-  createdAt: z.string().datetime().optional(),
+  createdAt: datetime().optional(),
 });
 export type MenuRecord = z.infer<typeof MenuRecordSchema>;
 
@@ -414,22 +559,22 @@ export function isVenueAuthored(record: MenuRecord, signerDid: string): boolean 
 
 export const RecipeRecordSchema = z.object({
   $type: z.literal(RECIPE_COLLECTION),
-  name: z.string().min(1).max(200),
-  slug: z.string().max(64).optional(),
-  description: z.string().max(2000).optional(),
+  name: lexString({ maxLength: 200, maxGraphemes: 100 }),
+  slug: lexString({ maxLength: 64 }).optional(),
+  description: lexString({ maxLength: 2000, maxGraphemes: 1000 }).optional(),
   ingredients: z
     .array(
       z.object({
-        name: z.string().max(200),
-        amount: z.string().max(50).optional(),
+        name: lexString({ maxLength: 200 }),
+        amount: lexString({ maxLength: 50 }).optional(),
         optional: z.boolean().optional(),
       })
     )
     .max(40)
     .optional(),
-  method: z.string().max(4000).optional(),
-  glassware: z.string().max(100).optional(),
-  garnish: z.string().max(200).optional(),
+  method: lexString({ maxLength: 4000, maxGraphemes: 2000 }).optional(),
+  glassware: lexString({ maxLength: 100 }).optional(),
+  garnish: lexString({ maxLength: 200 }).optional(),
   credits: z.array(CreditSchema).max(10).optional(),
   adaptedFrom: EntityRefSchema.optional(),
   coordinates: z
@@ -439,22 +584,22 @@ export const RecipeRecordSchema = z.object({
     })
     .optional(),
   stimulus: StimulusSchema.optional(),
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime().optional(),
+  createdAt: datetime(),
+  updatedAt: datetime().optional(),
 });
 export type RecipeRecord = z.infer<typeof RecipeRecordSchema>;
 
 export const VenueRecordSchema = z.object({
   $type: z.literal(VENUE_COLLECTION),
-  name: z.string().min(1).max(200),
-  description: z.string().max(2000).optional(),
+  name: lexString({ maxLength: 200, maxGraphemes: 100 }),
+  description: lexString({ maxLength: 2000, maxGraphemes: 1000 }).optional(),
   location: LocationSchema.optional(),
-  website: z.string().optional(),
+  website: lexString({ format: 'uri' }).optional(),
   /** Menus are immutable, so a venue points at the one that is live. */
   currentMenu: EntityRefSchema.optional(),
   /** Standard.site publication pointer (site.standard.publication at rkey self). */
   publication: EntityRefSchema.optional(),
-  createdAt: z.string().datetime(),
+  createdAt: datetime(),
 });
 export type VenueRecord = z.infer<typeof VenueRecordSchema>;
 
@@ -465,10 +610,25 @@ export type VenueRecord = z.infer<typeof VenueRecordSchema>;
  */
 export const MakerRecordSchema = z.object({
   $type: z.literal(MAKER_COLLECTION),
-  displayName: z.string().min(1).max(200),
-  bio: z.string().max(2000).optional(),
+  displayName: lexString({ maxLength: 200, maxGraphemes: 100 }),
+  bio: lexString({ maxLength: 2000, maxGraphemes: 1000 }).optional(),
   recipes: z.array(EntityRefSchema).max(200).optional(),
   venues: z.array(EntityRefSchema).max(50).optional(),
-  createdAt: z.string().datetime(),
+  createdAt: datetime(),
 });
 export type MakerRecord = z.infer<typeof MakerRecordSchema>;
+
+/**
+ * Every record this app reads or writes, by collection. `npm run lexicons`
+ * compares each against its lexicon, so a record type is not finished until
+ * it is listed here.
+ */
+export const RECORD_SCHEMAS: Record<string, z.ZodTypeAny> = {
+  [PALATE_COLLECTION]: PalateRecordSchema,
+  [POUR_COLLECTION]: PourRecordSchema,
+  [ELICITATION_COLLECTION]: ElicitationRecordSchema,
+  [MENU_COLLECTION]: MenuRecordSchema,
+  [RECIPE_COLLECTION]: RecipeRecordSchema,
+  [VENUE_COLLECTION]: VenueRecordSchema,
+  [MAKER_COLLECTION]: MakerRecordSchema,
+};

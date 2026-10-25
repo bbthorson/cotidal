@@ -153,7 +153,6 @@ would attach a share-alike obligation to the entry.
 ### AT Protocol — `src/lib/atproto/`
 - `lexicons/*.json` — schemas (authoritative)
 - `records.ts` — Zod for `pour`, `menu`, `recipe`, `venue`, `maker`, `elicitation`, `defs`
-- `lexicon.ts` — legacy `palate` and `drinkLog`, being migrated onto `pour`
 - `auth.ts`, `paths.ts`, `publish.ts` — sign-in (`@bbthorson/atproto-cf-auth`)
   and writes
 - `session.ts` — the `bsky_sid` cookie is an opaque id into a sealed
@@ -185,10 +184,17 @@ stored as integer hundredths or tenths under a name that says so
 (`xHundredths`, `dxTenths`). The palate is held in memory as `Palate` (plain
 numbers) and converted only at the edge: `encodePalate` on every write,
 `decodePalate` / `decodeCoordinates` on every read, which also accept the
-float records written before the encoding. The palate and elicitation
-lexicons have tests that fail on a `number` type. `pour` and `defs` still
-declare `number` fields (abv, gLMS valence, prices): the same fix, not yet
-made.
+float records written before the encoding. No lexicon may declare a
+`number` — it is not a Lexicon type — and `npm run lexicons` fails on one.
+
+**Each record's Zod schema says exactly what its lexicon says.** Strings are
+built with `lexString()`, which counts UTF-8 bytes and graphemes as the
+lexicon does. `npm run lexicons` compares every schema in `RECORD_SCHEMAS`
+with its lexicon field by field. Writes go through the schema: a pour is
+validated (`PourWriteSchema`) before the palate or the pour is written, and
+reads are parsed (`readPour`) rather than cast. Vocabularies the app writes
+(`DEVIATIONS`, `CATA`) are stable ids declared as `knownValues`; the words
+shown for them live in `copy.ts`.
 
 Records are signed by their authors and **never rewritten**. Reconciling an
 unclaimed reference to a later account is the app view's job.

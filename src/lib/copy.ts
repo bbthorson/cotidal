@@ -361,21 +361,24 @@ export const pour = {
     herbal: 'Herbal',
   },
   cataLabel: 'What you noticed',
-  /** Check-all-that-apply aroma and flavour notes. Stored as written. */
-  cata: [
-    'Bright Citrus',
-    'Lime Peel',
-    'Stone Fruit',
-    'Dark Cherry',
-    'Campfire Smoke',
-    'Botanical Herb',
-    'Baking Spice',
-    'Toasted Oak',
-    'Floral Blossom',
-    'Bittersweet Cocoa',
-    'Briny Mineral',
-    'Rich Velvet Body',
-  ],
+  /**
+   * Check-all-that-apply aroma and flavour notes, by the id a pour stores
+   * (`CATA` in records.ts). Reword a label freely; never rename a key.
+   */
+  cata: {
+    'bright-citrus': 'Bright Citrus',
+    'lime-peel': 'Lime Peel',
+    'stone-fruit': 'Stone Fruit',
+    'dark-cherry': 'Dark Cherry',
+    'campfire-smoke': 'Campfire Smoke',
+    'botanical-herb': 'Botanical Herb',
+    'baking-spice': 'Baking Spice',
+    'toasted-oak': 'Toasted Oak',
+    'floral-blossom': 'Floral Blossom',
+    'bittersweet-cocoa': 'Bittersweet Cocoa',
+    'briny-mineral': 'Briny Mineral',
+    'rich-velvet-body': 'Rich Velvet Body',
+  },
   crosspost: 'Also post it to your Bluesky feed',
   submit: 'Log this pour',
   submitting: 'Logging…',

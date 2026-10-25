@@ -1,6 +1,6 @@
 import { useId, useState, type FormEvent, type ReactNode } from 'react';
 import { drinkDatabase } from '@/lib/data';
-import { DEVIATIONS, type SensoryProfile } from '@/lib/atproto/records';
+import { CATA, DEVIATIONS, type CataNote, type SensoryProfile } from '@/lib/atproto/records';
 import { pour } from '@/lib/copy';
 import { cn } from '@/lib/utils';
 
@@ -13,7 +13,7 @@ export interface PourEntry {
   isHomePour: boolean;
   venue: string;
   deviations: Deviation[];
-  cata?: string[];
+  cata?: CataNote[];
   note: string;
   crosspost: boolean;
   detail?: {
@@ -34,7 +34,7 @@ const BASE_SPIRITS = ['Bourbon', 'Rye', 'Scotch', 'Gin', 'Rum', 'Tequila', 'Mezc
 const GLASSES = ['Coupe', 'Nick & Nora', 'Rocks', 'Highball', 'Martini', 'Tiki mug'];
 const SENSORY_AXES = ['bitter', 'sweet', 'sour', 'spiritForward', 'citrus', 'herbal'] as const;
 
-export const CATA_OPTIONS = pour.cata;
+export const CATA_OPTIONS = CATA;
 
 interface PourFormProps {
   /** Quick picks shown under the drink field, e.g. the top of your menu. */
@@ -79,7 +79,7 @@ export function PourForm({
   const [isHomePour, setIsHomePour] = useState(false);
   const [hedonic, setHedonic] = useState(7);
   const [deviations, setDeviations] = useState<Deviation[]>([]);
-  const [cata, setCata] = useState<string[]>([]);
+  const [cata, setCata] = useState<CataNote[]>([]);
   const [note, setNote] = useState('');
   const [crosspost, setCrosspost] = useState(false);
   const [baseSpirit, setBaseSpirit] = useState(BASE_SPIRITS[0]);
@@ -276,7 +276,7 @@ export function PourForm({
                 active={active}
                 onClick={() => setCata((prev) => (active ? prev.filter((c) => c !== item) : [...prev, item]))}
               >
-                {item}
+                {pour.cata[item]}
               </Tag>
             );
           })}

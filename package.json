@@ -8,7 +8,7 @@
     "build": "ASTRO_TELEMETRY_DISABLED=1 astro build",
     "preview": "ASTRO_TELEMETRY_DISABLED=1 astro preview --port 9002",
     "typecheck": "npm run lexicons && ASTRO_TELEMETRY_DISABLED=1 astro check && tsc --noEmit",
-    "lexicons": "node scripts/check-lexicons.mjs",
+    "lexicons": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/check-lexicons.mjs",
     "lint": "eslint .",
     "check": "npm run lint && npm run typecheck"
   },

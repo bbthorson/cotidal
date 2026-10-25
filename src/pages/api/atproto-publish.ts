@@ -8,7 +8,14 @@ import {
   getPours,
   publishElicitation,
 } from '@/lib/atproto/publish';
-import { ElicitationRecordSchema } from '@/lib/atproto/records';
+import {
+  ElicitationRecordSchema,
+  PourWriteSchema,
+  POUR_COLLECTION,
+  POUR_NOTE_LIMITS,
+  cataId,
+  fitString,
+} from '@/lib/atproto/records';
 import { derivePalateRecord } from '@/lib/sensory';
 import type { UserProfile } from '@/hooks/useDiscoveryQuiz';
 import { z } from 'zod';
@@ -172,6 +179,38 @@ export const POST: APIRoute = async ({ request }) => {
 
     const hedonicScale = Math.max(1, Math.min(9, Math.round(rating * 0.8 + 1)));
     const finalLocation = isHomePour ? 'Home Pour' : (venue?.name || location || 'Unknown Venue');
+    const drink = drinkDatabase.find(d => d.name.toLowerCase() === drinkName.toLowerCase());
+
+    // The pour is built and checked against its lexicon before anything is
+    // written: the palate is written first, and a pour refused after it would
+    // leave the map moved by a drink that was never logged. Free text is cut
+    // to fit rather than refused; anything else that does not fit is a 400.
+    // Notes arrive as labels from a page loaded before CATA ids existed.
+    const name = (s: string) => fitString(s, 200, 100);
+    const pourCheck = PourWriteSchema.safeParse({
+      $type: POUR_COLLECTION,
+      drink: {
+        name: name(drinkName),
+        slug: drink?.name ? drink.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') : undefined,
+      },
+      venue: isHomePour ? undefined : { entity: { name: name(finalLocation) } },
+      rating: {
+        hedonic: hedonicScale,
+        glmsValence: options.glmsValence,
+        wouldOrderAgain: options.wouldOrderAgain ?? (rating >= 7.0),
+      },
+      perceivedIntensities: options.perceivedIntensities,
+      deviations: deviations.length > 0 ? deviations : undefined,
+      cata: options.cata && options.cata.length > 0 ? options.cata.map(cataId) : undefined,
+      context: options.context,
+      note: note ? fitString(note, POUR_NOTE_LIMITS.maxLength, POUR_NOTE_LIMITS.maxGraphemes) : undefined,
+      isHomePour: !!isHomePour,
+      createdAt: new Date().toISOString(),
+    });
+    if (!pourCheck.success) {
+      return new Response(JSON.stringify({ success: false, error: 'Invalid pour' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+    }
+    const pourRecord = pourCheck.data;
 
     try {
       let record = await getPalateProfile(session);
@@ -190,14 +229,12 @@ export const POST: APIRoute = async ({ request }) => {
             dislikesAnise: record.aversions.anise,
           });
 
-      const drink = drinkDatabase.find(d => d.name.toLowerCase() === drinkName.toLowerCase());
-
       const observation: TastingObservation = {
         hedonic: hedonicScale,
-        glmsValence: options.glmsValence,
-        perceivedIntensities: options.perceivedIntensities,
-        cata: options.cata,
-        context: options.context,
+        glmsValence: pourRecord.rating.glmsValence,
+        perceivedIntensities: pourRecord.perceivedIntensities,
+        cata: pourRecord.cata,
+        context: pourRecord.context,
       };
 
       const nextState = applyPour(priorState, drink, observation, deviations);
@@ -233,31 +270,7 @@ export const POST: APIRoute = async ({ request }) => {
 
       await publishRawPalateRecord(session, updatedPalate);
 
-      const pourRes = await publishPour(session, {
-        drink: {
-          name: drinkName,
-          slug: drink?.name ? drink.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') : undefined,
-        },
-        venue: isHomePour
-          ? undefined
-          : {
-              entity: {
-                name: venue?.name || location || 'Unknown Venue',
-              },
-            },
-        rating: {
-          hedonic: hedonicScale,
-          glmsValence: options.glmsValence,
-          wouldOrderAgain: options.wouldOrderAgain ?? (rating >= 7.0),
-        },
-        perceivedIntensities: options.perceivedIntensities,
-        deviations: deviations.length > 0 ? deviations : undefined,
-        cata: options.cata && options.cata.length > 0 ? options.cata : undefined,
-        context: options.context,
-        note: note ? note.slice(0, 3000) : undefined,
-        isHomePour: !!isHomePour,
-        createdAt: new Date().toISOString(),
-      });
+      const pourRes = await publishPour(session, pourRecord);
 
       if (crosspostToFeed) {
         try {
