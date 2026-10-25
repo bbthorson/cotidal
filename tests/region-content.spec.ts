@@ -46,6 +46,14 @@ test('Region content: every entry is named for a region', () => {
   }
 });
 
+test('Region content: all four regions are written', () => {
+  // The page renders without an entry — everything but the prose is derived —
+  // so a missing one would not break the build. It would only be empty.
+  for (const id of QUADRANT_ORDER) {
+    expect(regions.map((r) => r.id), `no src/content/regions/${id}.md`).toContain(id);
+  }
+});
+
 test('Region content: no entry is published without something on the record', () => {
   for (const region of regions) {
     expect(region.documentedCount, `${region.file} has no documented claims`).toBeGreaterThan(0);
