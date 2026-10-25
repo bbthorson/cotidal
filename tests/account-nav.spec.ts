@@ -69,11 +69,13 @@ test('Sign out: /taste forgets the coordinate on this device', async ({ page }) 
 
   await page.goto(`/taste?${SIGNED_OUT_PARAM}=1`);
   await expect(page.getByText('Which glass do you push away first?')).toBeVisible();
-  expect(
-    await page.evaluate(() => ['user_profile', 'pending_elicitation', 'palate_state'].map((k) => localStorage.getItem(k)))
-  ).toEqual([null, null, null]);
+  // The question is server-rendered, so it shows before the island hydrates
+  // and acts on the marker: wait for that, rather than reading once.
+  await expect
+    .poll(() => page.evaluate(() => ['user_profile', 'pending_elicitation', 'palate_state'].map((k) => localStorage.getItem(k))))
+    .toEqual([null, null, null]);
   // A reload does not do it again.
-  expect(new URL(page.url()).searchParams.has(SIGNED_OUT_PARAM)).toBe(false);
+  await expect.poll(() => new URL(page.url()).searchParams.has(SIGNED_OUT_PARAM)).toBe(false);
 });
 
 test('Start over: two steps on the menu, and Keep it changes nothing', async ({ page }) => {
@@ -98,7 +100,8 @@ test('Start over: /account sends you to the questions', async ({ page }) => {
   await page.evaluate((p) => localStorage.setItem('user_profile', JSON.stringify(p)), profile);
   await page.goto(`/taste?${START_OVER_PARAM}=1`);
   await expect(page.getByText('Which glass do you push away first?')).toBeVisible();
-  expect(new URL(page.url()).searchParams.has(START_OVER_PARAM)).toBe(false);
+  // Server-rendered before hydration removes the marker; wait for it.
+  await expect.poll(() => new URL(page.url()).searchParams.has(START_OVER_PARAM)).toBe(false);
 });
 
 test('Start over: a retake restarts the filter instead of keeping the old one', () => {
