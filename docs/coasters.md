@@ -86,6 +86,28 @@ starts the conversation, and the page it opens leads to the questions. Public
 and cached; server-rendered rather than prerendered only so the code can use
 the request's origin. Placing each region's drinks on the rings is still to do.
 
+## The code's look
+
+The first pass is a plain QR code on a card-coloured square over the chart,
+and it looks bad. The aim is a pattern that is the member's own — a drink on
+the coaster, say. Three ways to get there, cheapest first:
+
+- **A standard QR code, styled.** At error correction `H` a QR code still
+  scans with about 30% of it covered, which is room for a drink glyph at the
+  centre, round modules instead of squares, and the brand's inks. Any phone
+  camera still reads it, so it keeps "works with no app installed". Try this
+  first.
+- **The pattern is the code.** A custom mark (as Spotify Codes do) drawn from
+  the coordinate or the member's drinks: the most distinctive, but a phone
+  camera cannot read it, so scanning would need Cotidal's own scanner — which
+  breaks the no-app rule. Workable only as decoration beside a small plain
+  code.
+- **NFC in the coaster.** Tap to open; no visible code at all. Costs per
+  unit, so it belongs with print.
+
+The coaster's chart is a first pass too: stretched to fill the disc, labels
+inside the ring, no moon.
+
 ## Later
 
 - **Venue coasters.** A bar's menu placed on the chart, with a QR code to its
