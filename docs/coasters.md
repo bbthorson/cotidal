@@ -1,6 +1,6 @@
 # Coasters
 
-Not built. Notes for when it is.
+The four-sector chart is built; the coasters are notes for later.
 
 The logo is a cotidal circle, the landing chart is a circle, and a bar coaster
 is a circle. A coaster carrying the chart is the product's mark in the place
@@ -8,9 +8,9 @@ the product is used, and eventually something Cotidal can offer bars.
 
 ## First: four sectors, not six
 
-The landing chart (`src/components/marketing/ChartFigure.astro`) draws a
+The landing chart (`src/components/marketing/ChartFigure.astro`) drew a
 12-hour tide with six cotidal lines two hours apart, over the map's two axes.
-So it shows six sectors and four quadrants at once, and they do not line up:
+So it showed six sectors and four quadrants at once, and they did not line up:
 the filled band (0h–2h) covers only part of the top-right quadrant. Anyone who
 reads the sectors as categories will expect six regions. The monogram
 (`Monogram.astro`) has three lines, so there is no single count yet.
@@ -20,18 +20,15 @@ model; six regions would be arbitrary angular slices, and would cost new
 region prose, `quadrants` in `copy.ts`, `formerQuadrantIds` redirects and
 tests.
 
-- Redraw the chart with four cotidal lines three hours apart (0h / 3h / 6h /
-  9h), still an honest semidiurnal tide. Each sector is one region, and the
-  filled band reads as *your region* — the meaning `/regions/<id>` already has.
-- The cotidal lines curve and the axes are straight, so they only meet at the
-  centre and the rim. Either start each line along an axis and let it sweep
-  away, or drop the axis lines and let the cotidal lines be the boundaries.
-- Bring the monogram to four lines (or four sectors) at the same time.
-
-**Pull the geometry into one module first.** The chart's ellipses and curves
-are hand-placed numbers in one `.astro` file. A coaster renderer would be a
-second copy — the drift AGENTS.md warns about. One module, read by the
-landing figure, the monogram where it can, and every coaster.
+*Done.* The landing chart has four cotidal lines three hours apart (0h /
+3h / 6h / 9h), drawn from `src/lib/chart-geometry.ts`. Each line leaves the
+centre along an axis and sweeps toward the ring, so a band is exactly a
+region near the centre and leans a little past the axis at the rim — the
+cost of curved lines over straight axes. `SECTORS` names each band by its
+region, which is what the coaster fills. `tests/chart-geometry.spec.ts`
+holds the generator to the six-line figure it replaced and fails if the
+sector count stops matching the regions. The monogram already read as four
+(three lines and the C's opening), so only its comment changed.
 
 ## The personal coaster is the user's QR code
 
