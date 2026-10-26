@@ -1,6 +1,12 @@
-import { createBlueskyAuth, kvStore, memoryStore, type BlueskyAuth } from '@bbthorson/atproto-cf-auth/server';
+import {
+  createBlueskyAuth,
+  durableObjectLock,
+  kvStore,
+  memoryStore,
+  type BlueskyAuth,
+} from '@bbthorson/atproto-cf-auth/server';
 import { AUTH_BASE_PATH } from './paths';
-import { kvBinding, workersEnv } from '../runtime';
+import { durableObjectBinding, kvBinding, workersEnv } from '../runtime';
 
 /**
  * Sign-in, sessions and OAuth state are `@bbthorson/atproto-cf-auth`'s job.
@@ -15,6 +21,15 @@ import { kvBinding, workersEnv } from '../runtime';
 
 /** The KV namespace for sessions, declared in `wrangler.toml`. */
 export const SESSION_KV_BINDING = 'ATPROTO_SESSIONS';
+
+/**
+ * The Durable Object that serialises each member's session restores across
+ * isolates, declared in `wrangler.toml` and exported by `src/worker.ts`.
+ * `/log` restores twice at once (palate and pours); without this, two isolates
+ * can both refresh the same one-use token and the loser signs the member out.
+ * Off Workers it is absent, and the package locks within the process instead.
+ */
+export const AUTH_LOCK_BINDING = 'AUTH_LOCK';
 
 
 /** Used only off-platform, where there is no secret to configure and nothing to protect. */
@@ -59,6 +74,7 @@ export async function getAuth(): Promise<BlueskyAuth | null> {
   }
 
   const kv = await kvBinding(SESSION_KV_BINDING);
+  const lock = await durableObjectBinding(AUTH_LOCK_BINDING);
 
   return (auth = createBlueskyAuth({
     appName: 'Cotidal',
@@ -66,6 +82,7 @@ export async function getAuth(): Promise<BlueskyAuth | null> {
     redirectTo: '/taste',
     scope: 'atproto transition:generic',
     store: kv ? kvStore(kv) : memoryStore(),
+    ...(lock ? { requestLock: durableObjectLock(lock) } : {}),
     secret,
     ...(process.env.ATPROTO_HANDLE_RESOLVER
       ? { handleResolver: process.env.ATPROTO_HANDLE_RESOLVER }

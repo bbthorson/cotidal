@@ -193,6 +193,13 @@ so it needs neither `@atproto/oauth-client-node` nor its undici-based handle
 resolver, which threw in the constructor on workerd. In development open the
 app at `http://127.0.0.1:9002`, not `localhost`.
 
+**Each member's session restores queue at one Durable Object** (`AUTH_LOCK`,
+the package's `AuthLock`), because a refresh token can be used once: two
+isolates refreshing the same session at once sign the member out, and `/log`
+restores twice in parallel. The class is exported by `src/worker.ts`, which is
+`main` in `wrangler.toml` and otherwise only re-exports Astro's handler. Off
+Workers the binding is absent and the package locks within the process.
+
 **Whether sign-in is on is the server's answer, at runtime:**
 `signInEnabled()` in `auth.ts` — `ATPROTO_ENABLED` under `[vars]` in
 `wrangler.toml` (not the dashboard: `wrangler deploy` replaces dashboard
