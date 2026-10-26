@@ -17,8 +17,9 @@ to paste.
 | `rank_menu` | A menu's items ordered by distance; avoided flavours flagged and sunk, unknown drinks returned as unplaced |
 | `compare_palates` | Two coordinates: the distance, a drink each would order, one they'd share |
 | `search_drinks` | A drink someone names → the name the map knows it by |
+| `draft_pour` | A link to `/log` with the pour filled in, for the person to confirm |
 
-Every tool reads public records the way `/p/<handle>` does
+Every tool but `draft_pour` reads public records the way `/p/<handle>` does
 (`public-read.ts`), so none needs sign-in, and every answer is computed by
 the same functions the page draws from (`src/lib/mcp/tools.ts` over
 `overlap.ts`). The assistant on the other end is the only model involved,
@@ -33,15 +34,34 @@ unplaced item is honest. The assistant can call `search_drinks` first.
 The endpoint is stateless — no MCP session, a new server per request, plain
 JSON answers — because nothing streams and nothing is kept.
 
-## Not yet: write
+## Drafting a pour: the person confirms in the app
 
-Logging a pour from a chat needs the assistant to act as the member, which
-means `/mcp` becomes an OAuth authorization server for the assistant
+`draft_pour` writes nothing. It returns `/log?draft=1&…` with what the person
+said (drink, where, what was off, tasting notes, a note), and the form opens
+on it; they check it, tap the rating and log it as any other pour, through
+the same `logPour`. The draft lives only in the link (`src/lib/pour-draft.ts`),
+so there is nothing to store, sign in for or protect.
+
+- **No rating.** The rating moves the coordinate, and a model mapping "it was
+  fine" onto the 9-point scale is guessing in their name. The tool has no
+  field for it, and a drafted form starts with none selected and will not
+  log until one is tapped. (An ordinary form still starts at 7.)
+- **Only what the form shows.** Unknown fault and note ids are dropped, a bar
+  is dropped for a pour at home, and text is cut to the form's limits. The
+  member-only detail fields and cross-posting stay their own choices.
+- **Once.** After it is logged the draft leaves the form's state and the URL,
+  so the form that comes back, or a reload, cannot offer it again.
+
+## Not yet: writing from a chat
+
+Drafting covers logging for now. If the extra step proves to be friction,
+writing directly needs the assistant to act as the member, which means
+`/mcp` becomes an OAuth authorization server for the assistant
 (`@cloudflare/workers-oauth-provider`), handing sign-in to the existing
-Bluesky flow. It also needs two things from `@bbthorson/atproto-cf-auth`: a
-way to restore a session from a DID rather than a cookie, and a lock that
-holds across isolates, since parallel tool calls racing a token refresh
-would sign the member out everywhere.
+Bluesky flow. It also needs a way, in `@bbthorson/atproto-cf-auth`, to
+restore a session from a DID rather than a cookie. The lock that keeps
+parallel restores from racing a token refresh is already there (0.2.0,
+`AUTH_LOCK`).
 
 The rules the write path must keep:
 

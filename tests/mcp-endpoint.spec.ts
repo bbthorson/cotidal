@@ -35,7 +35,7 @@ test('MCP endpoint: lists the read-only tools', async ({ request }) => {
   const body = await rpc(request, 'tools/list');
   const tools = body.result?.tools as { name: string; annotations?: { readOnlyHint?: boolean } }[];
   expect(tools.map((t) => t.name).sort()).toEqual(
-    ['compare_palates', 'get_palate', 'rank_menu', 'recommend_drinks', 'search_drinks'].sort()
+    ["compare_palates", "draft_pour", "get_palate", "rank_menu", "recommend_drinks", "search_drinks"].sort()
   );
   for (const tool of tools) expect(tool.annotations?.readOnlyHint).toBe(true);
 });
@@ -80,7 +80,7 @@ test('MCP endpoint: a client asking for an event stream is never sent the page',
     data: { jsonrpc: '2.0', id: 1, method: 'tools/list', params: {} },
   });
   expect(post.status()).toBe(200);
-  expect((await post.json()).result.tools.length).toBe(5);
+  expect((await post.json()).result.tools.length).toBe(6);
 });
 
 test('Assistants page: the address, the steps and what it cannot do', async ({ request }) => {
@@ -90,4 +90,16 @@ test('Assistants page: the address, the steps and what it cannot do', async ({ r
   expect(html).toContain('/mcp');
   expect(html).toContain(assistants.steps[1]);
   expect(html).toContain(assistants.readOnlyTitle);
+});
+
+test('MCP endpoint: drafting a pour returns a link and writes nothing', async ({ request }) => {
+  const body = await rpc(request, 'tools/call', {
+    name: 'draft_pour',
+    arguments: { drink: 'negroni', bar: 'Dante', whatWasOff: ['too-bitter'], rating: 9 },
+  });
+  expect(body.result?.isError).toBeFalsy();
+  const url = new URL(body.result?.structuredContent.url);
+  expect(url.pathname).toBe('/log');
+  expect(url.searchParams.get('drink')).toBe('Negroni');
+  expect(url.searchParams.has('rating')).toBe(false);
 });

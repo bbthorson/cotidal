@@ -222,8 +222,10 @@ the island links to it and must not import the server package.
 assistants as MCP tools: read a palate, recommend, rank a menu, compare two,
 search drinks. Stateless and read-only; the tools are plain functions over
 `readPublicPalate` and `overlap.ts`, so they give the answers `/p/<handle>`
-gives. Their descriptions are interface copy and live in `copy.ts`. Writing
-from a chat is planned, not built: `docs/mcp.md`.
+gives. Their descriptions are interface copy and live in `copy.ts`.
+A pour is logged from a chat by drafting, not writing: `draft_pour` returns a
+`/log?draft=1` link (`src/lib/pour-draft.ts`) that opens the form filled in,
+with no rating, and the member taps one and logs it (`docs/mcp.md`).
 
 **No floats in records.** The AT Protocol data model has none, and
 `@atproto/lex-data` treats one as an invalid value. Fractional quantities are

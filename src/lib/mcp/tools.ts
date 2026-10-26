@@ -7,6 +7,7 @@ import { mcp } from '../copy';
 import { publicMapPath } from '../atproto/paths';
 import type { PublicPalateResult } from '../atproto/public-read';
 import type { Register } from '../register';
+import { cleanDraft, draftPath, type PourDraft } from '../pour-draft';
 
 /**
  * What the `/mcp` tools answer, as plain functions.
@@ -284,4 +285,43 @@ export function searchDrinks(query: string, ctx: ToolContext, limit = 10): ToolR
     .map((d) => summarize(d, ctx));
   if (drinks.length === 0) return { ok: false, message: mcp.noMatches(query) };
   return { ok: true, data: { drinks } };
+}
+
+export interface DraftResult {
+  /** Opens the pour form with the draft in it. */
+  url: string;
+  draft: PourDraft;
+  /** Whether the drink is on the map, and so can move the coordinate. */
+  onMap: boolean;
+  message: string;
+}
+
+/**
+ * A pour for the person to confirm in Cotidal: a link, never a write. The
+ * drink is given its map name when it has one, so the form and the ledger
+ * join it to the map; anything else is kept as they said it.
+ */
+export function draftPour(
+  input: { drink: string; atHome?: boolean; bar?: string; whatWasOff?: string[]; notes?: string[]; note?: string },
+  ctx: ToolContext
+): ToolResult<DraftResult> {
+  const onMap = matchDrink(input.drink);
+  const draft = cleanDraft({
+    drink: onMap?.name ?? input.drink,
+    atHome: input.atHome,
+    bar: input.bar,
+    deviations: input.whatWasOff,
+    cata: input.notes,
+    note: input.note,
+  });
+  if (!draft) return { ok: false, message: mcp.noDrink };
+  return {
+    ok: true,
+    data: {
+      url: new URL(draftPath(draft), ctx.origin).toString(),
+      draft,
+      onMap: !!onMap,
+      message: mcp.draftReady,
+    },
+  };
 }
