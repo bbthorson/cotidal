@@ -1,0 +1,55 @@
+---
+import AppShell from '../layouts/AppShell.astro';
+import PageTitle from '../components/marketing/PageTitle.astro';
+import { assistants as copy, site } from '../lib/copy';
+import { accountFor } from '../lib/atproto/session';
+
+/**
+ * How to reach your palate from a chat assistant: the `/mcp` address, where
+ * to paste it, and what it can and cannot do. A browser opening `/mcp`
+ * itself is shown this page too (src/pages/mcp.ts).
+ *
+ * Server-rendered for the address, which is this host's, and a member's
+ * handle in the example question. No client JavaScript: the address is text
+ * to select, not a copy button.
+ */
+export const prerender = false;
+
+const address = new URL('/mcp', Astro.url).toString();
+const account = await accountFor(Astro.request, false);
+const handle = account.kind === 'member' ? account.handle : null;
+---
+
+<AppShell title={`${site.name} — ${copy.eyebrow}`} currentPath="/assistants" width="prose">
+  <div class="space-y-12 pb-6">
+    <PageTitle eyebrow={copy.eyebrow} title={copy.title} lede={copy.lede} />
+
+    <section class="space-y-3">
+      <h2 class="label-caps text-foreground">{copy.urlLabel}</h2>
+      <p class="select-all break-all border border-foreground bg-card p-4 font-code text-ui text-foreground" data-testid="mcp-address">
+        {address}
+      </p>
+    </section>
+
+    <section class="space-y-3">
+      <h2 class="font-serif text-title font-bold">{copy.stepsTitle}</h2>
+      <ol class="list-decimal space-y-2 pl-6 text-ui text-foreground">
+        {copy.steps.map((step) => <li>{step}</li>)}
+      </ol>
+      <p class="text-ui text-muted-foreground">{copy.otherClients}</p>
+    </section>
+
+    <section class="space-y-3">
+      <h2 class="font-serif text-title font-bold">{copy.canTitle}</h2>
+      <ul class="list-disc space-y-2 pl-6 text-ui text-foreground">
+        {copy.can.map((line) => <li>{line}</li>)}
+      </ul>
+      <p class="text-ui text-muted-foreground">{handle ? copy.askWith(handle) : copy.askWithGuest}</p>
+    </section>
+
+    <section class="space-y-3">
+      <h2 class="font-serif text-title font-bold">{copy.readOnlyTitle}</h2>
+      <p class="text-ui text-muted-foreground">{copy.readOnly}</p>
+    </section>
+  </div>
+</AppShell>

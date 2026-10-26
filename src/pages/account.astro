@@ -2,7 +2,7 @@
 import AppShell from '../layouts/AppShell.astro';
 import PageTitle from '../components/marketing/PageTitle.astro';
 import ConnectForm from '../components/marketing/ConnectForm.astro';
-import { account as copy, connect, nav, site } from '../lib/copy';
+import { account as copy, assistants, connect, nav, site } from '../lib/copy';
 import { accountFor } from '../lib/atproto/session';
 import { AUTH_BASE_PATH, START_OVER_PARAM, publicMapPath } from '../lib/atproto/paths';
 
@@ -38,6 +38,14 @@ const linkClass =
             {copy.links.public} <span aria-hidden="true">&rarr;</span>
           </a>
         </nav>
+
+        <section class="space-y-3">
+          <h2 class="font-serif text-title font-bold">{assistants.accountTitle}</h2>
+          <p class="text-ui text-muted-foreground">{assistants.accountBody}</p>
+          <a href="/assistants" class="btn btn-outline px-4">
+            {assistants.accountCta}
+          </a>
+        </section>
 
         <section class="space-y-3">
           <h2 class="font-serif text-title font-bold">{copy.startOverTitle}</h2>

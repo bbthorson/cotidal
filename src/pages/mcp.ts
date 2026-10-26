@@ -14,7 +14,19 @@ import { loadRegister } from '@/lib/register.server';
 
 export const prerender = false;
 
-const handle: APIRoute = async ({ request }) => {
+/**
+ * A person who opens the address in a browser gets the page explaining it,
+ * at the same URL, so the address bar still shows what to paste. An MCP
+ * client asks for JSON or an event stream and never for HTML.
+ */
+function isBrowser(request: Request): boolean {
+  const accept = request.headers.get('accept') ?? '';
+  return request.method === 'GET' && accept.includes('text/html') && !accept.includes('text/event-stream');
+}
+
+const handle: APIRoute = async ({ request, rewrite }) => {
+  if (isBrowser(request)) return rewrite('/assistants');
+
   const server = createMcpServer({
     readPalate: (actor) => readPublicPalate(actor),
     register: await loadRegister(),
