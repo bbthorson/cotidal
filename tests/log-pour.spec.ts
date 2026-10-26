@@ -1,5 +1,7 @@
 import { test, expect } from '@playwright/test';
-import { buildPour, logPour, palateAfterPour, type PourStore } from '../src/lib/pours.server';
+import { buildPour, logPour, palateAfterPour, pourPostText, type PourStore } from '../src/lib/pours.server';
+import { feedPostRecord } from '../src/lib/atproto/publish';
+import { graphemeLength } from '../src/lib/atproto/lex-string';
 import type { Palate, PourRecord } from '../src/lib/atproto/records';
 import type { LogDrinkOptions } from '../src/lib/api-client';
 import { calculateDistance } from '../src/lib/scoring';
@@ -24,8 +26,13 @@ const palate = (x: number, y: number): Palate => ({
 
 function fakeStore(prior: Palate | null, fail: Partial<Record<keyof PourStore, boolean>> = {}) {
   const writes: string[] = [];
-  const state = { palate: null as Palate | null, pour: null as PourRecord | null, shared: null as string | null };
+  const state = {
+    palate: null as Palate | null,
+    pour: null as PourRecord | null,
+    shared: null as { text: string; url: string } | null,
+  };
   const store: PourStore = {
+    did: 'did:plc:x',
     async readPalate() {
       if (fail.readPalate) throw new Error('PDS down');
       return prior;
@@ -41,10 +48,10 @@ function fakeStore(prior: Palate | null, fail: Partial<Record<keyof PourStore, b
       state.pour = p;
       return { uri: 'at://did:plc:x/app.cotidal.pour/1' };
     },
-    async share(_drink, text) {
+    async share(text, url) {
       if (fail.share) throw new Error('feed down');
       writes.push('share');
-      state.shared = text;
+      state.shared = { text, url };
     },
   };
   return { store, writes, state };
@@ -144,4 +151,46 @@ test('Log pour: a drink not on the map is logged, but cannot move the coordinate
   const next = palateAfterPour(palate(2, 3), built.pour);
   expect(next.mapCoordinates).toEqual({ x: 2, y: 3 });
   expect(next.dynamicState?.eventCount).toBe(0);
+});
+
+const postFor = (options: Partial<LogDrinkOptions>) => {
+  const built = buildPour({ drinkName: 'Negroni', ...options }, register);
+  if (!built.ok) throw new Error(built.error);
+  return pourPostText(built.pour);
+};
+
+test('Feed post: a pour is posted in the form’s own words, not as a palate share', async () => {
+  const { store, writes, state } = fakeStore(palate(0, 0));
+  // 8.75 is what the form sends for "Like very much", 8 of 9.
+  await logPour(store, { drinkName: 'Negroni', rating: 8.75, venue: { name: 'Attaboy' }, crosspostToFeed: true }, context);
+  expect(writes).toEqual(['palate', 'pour', 'share']);
+  expect(state.shared?.text).toBe('Negroni at Attaboy: Like very much (8 of 9). Logged on Cotidal:');
+  // The post that went out before this read "My palate lands in Logged a 8.8/10 Negroni…".
+  expect(state.shared?.text).not.toContain('My palate lands in');
+  expect(state.shared?.url).toBe('https://cotidal.example/p/did:plc:x');
+});
+
+test('Feed post: at home, at a bar, and at a bar with no name', () => {
+  expect(postFor({ rating: 10, isHomePour: true })).toBe('Negroni, poured at home: Like extremely (9 of 9). Logged on Cotidal:');
+  expect(postFor({ rating: 0, location: 'Dante' })).toBe('Negroni at Dante: Dislike extremely (1 of 9). Logged on Cotidal:');
+  expect(postFor({ rating: 5 })).toBe('Negroni: Neither (5 of 9). Logged on Cotidal:');
+});
+
+test('Feed post: long names are cut to fit, and the link survives whole', () => {
+  const url = 'https://cotidal.example/p/did:plc:abcdefghijklmnopqrstuvwx';
+  const text = postFor({ drinkName: 'N'.repeat(400), venue: { name: 'V'.repeat(400) } });
+  const record = feedPostRecord(text, url);
+  expect(graphemeLength(record.text)).toBeLessThanOrEqual(300);
+  expect(record.text.endsWith(` ${url}`)).toBe(true);
+  const bytes = new TextEncoder().encode(record.text);
+  const { byteStart, byteEnd } = record.facets[0].index;
+  expect(new TextDecoder().decode(bytes.slice(byteStart, byteEnd))).toBe(url);
+});
+
+test('Feed post: the link facet counts bytes, not characters', () => {
+  const url = 'https://cotidal.example/p/did:plc:x';
+  const record = feedPostRecord('Négroni at Café Ñ 🍸:', url);
+  const bytes = new TextEncoder().encode(record.text);
+  const { byteStart, byteEnd } = record.facets[0].index;
+  expect(new TextDecoder().decode(bytes.slice(byteStart, byteEnd))).toBe(url);
 });

@@ -588,6 +588,18 @@ export const mcp = {
   flavours: { smoke: 'smoke', bitter: 'bitterness', anise: 'anise' },
 } as const;
 
+/**
+ * Posts written to the member's own Bluesky feed, at their request. Each is
+ * followed by a link to their public map.
+ */
+export const feedPost = {
+  palate: (region: string, topDrink: string) =>
+    `My palate lands in ${region} on Cotidal, and my top match is ${topDrink}. See how far yours is from mine:`,
+  /** In the pour form's own words: the hedonic label and its point on the 9-point scale. */
+  pour: (drink: string, where: { atHome: boolean; venue: string | null }, hedonic: number) =>
+    `${drink}${where.atHome ? ', poured at home' : where.venue ? ` at ${where.venue}` : ''}: ${pour.hedonic[hedonic - 1]} (${pour.scoreOf(hedonic)}). Logged on Cotidal:`,
+} as const;
+
 /** Coasters: a member's code, and one per region (docs/coasters.md). */
 export const coaster = {
   makeCode: 'Make my code',

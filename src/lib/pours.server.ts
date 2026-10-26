@@ -13,7 +13,9 @@ import {
   type Palate,
   type PourRecord,
 } from '@/lib/atproto/records';
-import { getPalateProfile, publishPour, publishRawPalateRecord, shareToFeed } from '@/lib/atproto/publish';
+import { getPalateProfile, postToFeed, publishPour, publishRawPalateRecord } from '@/lib/atproto/publish';
+import { publicMapPath } from '@/lib/atproto/paths';
+import { feedPost } from '@/lib/copy';
 import {
   fromDynamicRecord,
   toDynamicRecord,
@@ -45,9 +47,10 @@ export interface BuiltPour {
   hedonic: number;
   drink: Drink | undefined;
   deviations: string[];
-  /** Where it was drunk, as the cross-post names it. */
-  location: string;
 }
+
+/** What the record names as the venue when a bar pour was given none. */
+export const UNKNOWN_VENUE = 'Unknown Venue';
 
 export type BuildResult = { ok: true; pour: BuiltPour } | { ok: false; error: string };
 
@@ -84,7 +87,7 @@ export function buildPour(
   } = options;
 
   const hedonic = Math.max(1, Math.min(9, Math.round(rating * 0.8 + 1)));
-  const finalLocation = isHomePour ? 'Home Pour' : (venue?.name || location || 'Unknown Venue');
+  const finalLocation = isHomePour ? 'Home Pour' : (venue?.name || location || UNKNOWN_VENUE);
   const drink = drinkDatabase.find((d) => d.name.toLowerCase() === drinkName.toLowerCase());
 
   // Notes arrive as labels from a page loaded before CATA ids existed.
@@ -114,7 +117,7 @@ export function buildPour(
   });
   if (!check.success) return { ok: false, error: 'Invalid pour' };
 
-  return { ok: true, pour: { record: check.data, hedonic, drink, deviations, location: finalLocation } };
+  return { ok: true, pour: { record: check.data, hedonic, drink, deviations } };
 }
 
 /** The palate a pour leaves behind. `prior` is `null` for someone with no palate yet. */
@@ -159,20 +162,38 @@ export function palateAfterPour(prior: Palate | null, pour: BuiltPour, now: Date
 
 /** The member's repository, as far as logging a pour needs it. */
 export interface PourStore {
+  /** Whose repository: the feed post links to their public map by it. */
+  did: string;
   readPalate(): Promise<Palate | null>;
   writePalate(palate: Palate): Promise<unknown>;
   writePour(pour: PourRecord): Promise<{ uri: string }>;
-  /** A post on the member's feed; `appUrl` is the link it carries. */
-  share(drinkName: string, text: string, appUrl: string): Promise<unknown>;
+  /** A post on the member's feed: `text`, then `url` as a link. */
+  share(text: string, url: string): Promise<unknown>;
 }
 
 export function sessionStore(session: OAuthSession): PourStore {
   return {
+    did: session.did,
     readPalate: () => getPalateProfile(session),
     writePalate: (palate) => publishRawPalateRecord(session, palate),
     writePour: (pour) => publishPour(session, pour),
-    share: (drinkName, text, appUrl) => shareToFeed(session, drinkName, text, appUrl),
+    share: (text, url) => postToFeed(session, text, url),
   };
+}
+
+/**
+ * The feed post for a pour, from the record as written: the drink and venue
+ * names already cut to fit, and the hedonic point that was tapped rather
+ * than a rating converted back from it.
+ */
+export function pourPostText(pour: BuiltPour): string {
+  const { record } = pour;
+  const venue = record.venue?.entity.name;
+  return feedPost.pour(
+    record.drink.name,
+    { atHome: !!record.isHomePour, venue: venue && venue !== UNKNOWN_VENUE ? venue : null },
+    pour.hedonic
+  );
 }
 
 export type LogPourResult =
@@ -198,13 +219,10 @@ export async function logPour(
     await store.writePalate(palate);
     const written = await store.writePour(pour.record);
 
-    // `buildPour` has checked `drinkName`; the rest is as sent.
-    const { drinkName, rating = 5.0, isHomePour, crosspostToFeed } = options as LogDrinkOptions;
-    if (crosspostToFeed) {
+    if (options?.crosspostToFeed) {
+      // By DID, as the palate share links: a handle can change and a post is never rewritten.
       try {
-        const stars = '★'.repeat(Math.round(rating / 2)) + '☆'.repeat(5 - Math.round(rating / 2));
-        const postText = `Logged a ${rating.toFixed(1)}/10 ${drinkName} ${isHomePour ? '(Home Pour)' : `at ${pour.location}`} on Cotidal ${stars}`;
-        await store.share(drinkName, postText, context.appUrl);
+        await store.share(pourPostText(pour), new URL(publicMapPath(store.did), context.appUrl).toString());
       } catch (e) {
         console.error('Failed to crosspost to feed:', e);
       }
