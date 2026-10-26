@@ -1,6 +1,7 @@
 # Coasters
 
-Not built. Notes for when it is.
+The four-sector chart, the member's coaster and the region coasters are
+built. Venue coasters and print are notes for later.
 
 The logo is a cotidal circle, the landing chart is a circle, and a bar coaster
 is a circle. A coaster carrying the chart is the product's mark in the place
@@ -8,9 +9,9 @@ the product is used, and eventually something Cotidal can offer bars.
 
 ## First: four sectors, not six
 
-The landing chart (`src/components/marketing/ChartFigure.astro`) draws a
+The landing chart (`src/components/marketing/ChartFigure.astro`) drew a
 12-hour tide with six cotidal lines two hours apart, over the map's two axes.
-So it shows six sectors and four quadrants at once, and they do not line up:
+So it showed six sectors and four quadrants at once, and they did not line up:
 the filled band (0h–2h) covers only part of the top-right quadrant. Anyone who
 reads the sectors as categories will expect six regions. The monogram
 (`Monogram.astro`) has three lines, so there is no single count yet.
@@ -20,23 +21,21 @@ model; six regions would be arbitrary angular slices, and would cost new
 region prose, `quadrants` in `copy.ts`, `formerQuadrantIds` redirects and
 tests.
 
-- Redraw the chart with four cotidal lines three hours apart (0h / 3h / 6h /
-  9h), still an honest semidiurnal tide. Each sector is one region, and the
-  filled band reads as *your region* — the meaning `/regions/<id>` already has.
-- The cotidal lines curve and the axes are straight, so they only meet at the
-  centre and the rim. Either start each line along an axis and let it sweep
-  away, or drop the axis lines and let the cotidal lines be the boundaries.
-- Bring the monogram to four lines (or four sectors) at the same time.
-
-**Pull the geometry into one module first.** The chart's ellipses and curves
-are hand-placed numbers in one `.astro` file. A coaster renderer would be a
-second copy — the drift AGENTS.md warns about. One module, read by the
-landing figure, the monogram where it can, and every coaster.
+*Done.* The landing chart has four cotidal lines three hours apart (0h /
+3h / 6h / 9h), drawn from `src/lib/chart-geometry.ts`. Each line leaves the
+centre along an axis and sweeps toward the ring, so a band is exactly a
+region near the centre and leans a little past the axis at the rim — the
+cost of curved lines over straight axes. `SECTORS` names each band by its
+region, which is what the coaster fills. `tests/chart-geometry.spec.ts`
+holds the generator to the six-line figure it replaced and fails if the
+sector count stops matching the regions. The monogram already read as four
+(three lines and the C's opening), so only its comment changed.
 
 ## The personal coaster is the user's QR code
 
-Build this first: it needs no bar, and it is the Overlap's way into the
-world.
+*Built* at `/p/<did>/code` (`src/pages/p/[actor]/code.astro`), drawn by
+`Coaster.astro`, with the URL and the code in `src/lib/coaster.ts`. It needs
+no bar, and it is the Overlap's way into the world.
 
 - A coaster drawn from a member's palate: their region's band filled, with
   a QR code at the amphidrome (the centre point).
@@ -46,8 +45,9 @@ world.
   does today. Scanned by a signed-in member, it shows both coordinates, the
   distance and three drinks (`src/lib/overlap.ts`) — two people at the same bar
   comparing coasters.
-- It should be on screen too, not only in print: a "show my code" view on
-  the member's own map, so the coaster and the phone are the same object.
+- It is on screen, not only in print: "Make my code", under the link on the
+  member's own map, opens it, so the coaster and the phone are the same
+  object. Anyone else asking for that page gets a 404.
 - The code must work with no app installed, so it is a plain `https:` URL and
   the page it opens stays script-free like `/p/<handle>`.
 - **The code encodes the DID, never the handle:** `publicMapPath(did)`, i.e.
@@ -73,11 +73,43 @@ Decided:
   A query string is permanent once printed, and it would tell the page that a
   scan happened in person. Measure scans some other way, later, if at all.
 
+**The origin is the request's.** The site has no fixed domain yet, so the
+code says whichever host served the page. Before anything is printed, the
+code must carry the permanent domain — a printed `workers.dev` link outlives
+the move.
+
+## Region coasters
+
+*Built* at `/regions/<id>/coaster`, linked from each region page. The region's
+band is filled and the code opens the region's page: "which one did you get?"
+starts the conversation, and the page it opens leads to the questions. Public
+and cached; server-rendered rather than prerendered only so the code can use
+the request's origin. Placing each region's drinks on the rings is still to do.
+
+## The code's look
+
+The first pass is a plain QR code on a card-coloured square over the chart,
+and it looks bad. The aim is a pattern that is the member's own — a drink on
+the coaster, say. Three ways to get there, cheapest first:
+
+- **A standard QR code, styled.** At error correction `H` a QR code still
+  scans with about 30% of it covered, which is room for a drink glyph at the
+  centre, round modules instead of squares, and the brand's inks. Any phone
+  camera still reads it, so it keeps "works with no app installed". Try this
+  first.
+- **The pattern is the code.** A custom mark (as Spotify Codes do) drawn from
+  the coordinate or the member's drinks: the most distinctive, but a phone
+  camera cannot read it, so scanning would need Cotidal's own scanner — which
+  breaks the no-app rule. Workable only as decoration beside a small plain
+  code.
+- **NFC in the coaster.** Tap to open; no visible code at all. Costs per
+  unit, so it belongs with print.
+
+The coaster's chart is a first pass too: stretched to fill the disc, labels
+inside the ring, no moon.
+
 ## Later
 
-- **Region coasters.** Four designs, one per region, each with that region's
-  drinks placed on the rings. A bar can stock all four; "which one did you
-  get?" starts the conversation.
 - **Venue coasters.** A bar's menu placed on the chart, with a QR code to its
   published menu. Waits on menu capture and venue claim (roadmap 4 and 7,
   `docs/venues.md`).

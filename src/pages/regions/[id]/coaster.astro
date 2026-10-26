@@ -1,0 +1,41 @@
+---
+import AppShell from '../../../layouts/AppShell.astro';
+import PageTitle from '../../../components/marketing/PageTitle.astro';
+import Coaster from '../../../components/marketing/Coaster.astro';
+import { site, coaster, quadrants } from '../../../lib/copy';
+import { QUADRANT_ORDER, type QuadrantId } from '../../../lib/quadrant';
+import { regionCodeUrl } from '../../../lib/coaster';
+
+/**
+ * A region's coaster: its band, and a code that opens the region's page
+ * (docs/coasters.md). Server-rendered rather than prerendered because the
+ * code carries an absolute URL and the site has no fixed domain yet; the page
+ * is the same for everyone, so it caches at the edge. No island.
+ */
+
+export const prerender = false;
+
+const id = Astro.params.id as QuadrantId;
+if (!QUADRANT_ORDER.includes(id)) {
+  return new Response(null, { status: 404 });
+}
+const region = quadrants.find((q) => q.id === id)!;
+const href = regionCodeUrl(Astro.url.origin, id);
+
+Astro.response.headers.set('Cache-Control', 'public, max-age=300, s-maxage=3600');
+---
+
+<AppShell
+  title={`${coaster.regionTitle(region.name)} · ${site.name}`}
+  description={coaster.regionLede}
+  currentPath={`/regions/${id}`}
+  backLink={{ href: `/regions/${id}`, label: coaster.backToRegion(region.name) }}
+  width="standard"
+>
+  <article class="space-y-10 pb-12">
+    <PageTitle eyebrow={region.axis} title={coaster.regionTitle(region.name)} lede={coaster.regionLede} />
+    <div class="mx-auto w-full max-w-sm">
+      <Coaster region={id} href={href} title={coaster.regionLabel(region.name)} />
+    </div>
+  </article>
+</AppShell>

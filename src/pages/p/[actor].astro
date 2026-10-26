@@ -2,7 +2,7 @@
 import AppShell from '../../layouts/AppShell.astro';
 import PageTitle from '../../components/marketing/PageTitle.astro';
 import PalatePlot from '../../components/marketing/PalatePlot.astro';
-import { site, publicMap } from '../../lib/copy';
+import { site, publicMap, coaster } from '../../lib/copy';
 import { formatCoordinate } from '../../lib/coordinate';
 import { quadrantFor } from '../../lib/quadrant';
 import { readPublicPalate } from '../../lib/atproto/public-read';
@@ -11,6 +11,7 @@ import { oauthSession } from '../../lib/atproto/session';
 import { getPalateProfile } from '../../lib/atproto/publish';
 import { compareMaps, nearestDrinks, type MapPoint } from '../../lib/overlap';
 import { loadRegister } from '../../lib/register.server';
+import { coasterPath } from '../../lib/coaster';
 import type { Drink } from '../../lib/data';
 
 /**
@@ -211,6 +212,12 @@ const ctaClass =
               class="mt-1 w-full rounded-sm border border-border bg-card p-2.5 font-condensed text-meta text-foreground focus:border-primary focus:outline-none"
             />
           </label>
+          <p class="pt-2 font-serif text-ui text-muted-foreground">
+            {coaster.makeCodeNote}{' '}
+            <a href={coasterPath(result.actor.did)} class="text-primary underline underline-offset-4" data-testid="make-code">
+              {coaster.makeCode}
+            </a>
+          </p>
         </section>
       )}
 

@@ -96,7 +96,8 @@ test('Shared ingredients: every group still matches a drink', () => {
 
 test('Region routes: mount no island', () => {
   const dir = join(process.cwd(), 'src/pages/regions');
-  for (const file of readdirSync(dir)) {
+  for (const file of readdirSync(dir, { recursive: true, encoding: 'utf8' })) {
+    if (!file.endsWith('.astro')) continue;
     const source = readFileSync(join(dir, file), 'utf8');
     expect(source, `${file} mounts an island`).not.toMatch(/client:(load|only|idle|visible|media)/);
   }

@@ -1,0 +1,50 @@
+---
+import AppShell from '../../../layouts/AppShell.astro';
+import PageTitle from '../../../components/marketing/PageTitle.astro';
+import Coaster from '../../../components/marketing/Coaster.astro';
+import { site, coaster } from '../../../lib/copy';
+import { quadrantIdFor } from '../../../lib/quadrant';
+import { readPublicPalate } from '../../../lib/atproto/public-read';
+import { publicMapPath } from '../../../lib/atproto/paths';
+import { oauthSession } from '../../../lib/atproto/session';
+import { memberCodeUrl } from '../../../lib/coaster';
+
+/**
+ * A member's coaster: their region's band and a code that opens their map
+ * (docs/coasters.md). Shown only to the member — making a code is something
+ * they choose to do, from their own map — and to anyone else it does not
+ * exist. Server-rendered with no island, like `/p/<handle>`.
+ */
+
+export const prerender = false;
+
+const result = await readPublicPalate(Astro.params.actor ?? '');
+const session = result.status === 'ok' ? await oauthSession(Astro.request) : null;
+const isSelf = !!session && result.status === 'ok' && session.did === result.actor.did;
+
+Astro.response.headers.set('Cache-Control', 'private, no-store');
+
+if (!isSelf || result.status !== 'ok') {
+  return new Response(null, { status: 404, headers: { 'Cache-Control': 'private, no-store' } });
+}
+
+const { did, handle } = result.actor;
+const name = handle ?? did;
+const region = quadrantIdFor(result.palate.x, result.palate.y);
+const href = memberCodeUrl(Astro.url.origin, did);
+---
+
+<AppShell
+  title={`${coaster.memberTitle} · ${site.name}`}
+  description={coaster.memberLede}
+  currentPath="/p"
+  backLink={{ href: publicMapPath(name), label: coaster.backToMap }}
+  width="standard"
+>
+  <article class="space-y-10 pb-12">
+    <PageTitle title={coaster.memberTitle} lede={coaster.memberLede} />
+    <div class="mx-auto w-full max-w-sm">
+      <Coaster region={region} href={href} title={coaster.memberLabel(name)} />
+    </div>
+  </article>
+</AppShell>
