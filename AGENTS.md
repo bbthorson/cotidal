@@ -193,6 +193,13 @@ so it needs neither `@atproto/oauth-client-node` nor its undici-based handle
 resolver, which threw in the constructor on workerd. In development open the
 app at `http://127.0.0.1:9002`, not `localhost`.
 
+**Each member's session restores queue at one Durable Object** (`AUTH_LOCK`,
+the package's `AuthLock`), because a refresh token can be used once: two
+isolates refreshing the same session at once sign the member out, and `/log`
+restores twice in parallel. The class is exported by `src/worker.ts`, which is
+`main` in `wrangler.toml` and otherwise only re-exports Astro's handler. Off
+Workers the binding is absent and the package locks within the process.
+
 **Whether sign-in is on is the server's answer, at runtime:**
 `signInEnabled()` in `auth.ts` — `ATPROTO_ENABLED` under `[vars]` in
 `wrangler.toml` (not the dashboard: `wrangler deploy` replaces dashboard
@@ -215,8 +222,10 @@ the island links to it and must not import the server package.
 assistants as MCP tools: read a palate, recommend, rank a menu, compare two,
 search drinks. Stateless and read-only; the tools are plain functions over
 `readPublicPalate` and `overlap.ts`, so they give the answers `/p/<handle>`
-gives. Their descriptions are interface copy and live in `copy.ts`. Writing
-from a chat is planned, not built: `docs/mcp.md`.
+gives. Their descriptions are interface copy and live in `copy.ts`.
+A pour is logged from a chat by drafting, not writing: `draft_pour` returns a
+`/log?draft=1` link (`src/lib/pour-draft.ts`) that opens the form filled in,
+with no rating, and the member taps one and logs it (`docs/mcp.md`).
 
 **No floats in records.** The AT Protocol data model has none, and
 `@atproto/lex-data` treats one as an invalid value. Fractional quantities are

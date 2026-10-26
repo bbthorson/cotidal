@@ -7,9 +7,9 @@ import { loadRegister } from '@/lib/register.server';
 /**
  * The palate map as an MCP server, for chat assistants: add
  * `https://<host>/mcp` as a custom connector. Streamable HTTP, stateless and
- * read-only — every tool reads public records the way `/p/<handle>` does, so
- * it needs no sign-in. Writing (logging a pour) waits on the assistant being
- * able to sign in as the member; see docs/mcp.md.
+ * writing nothing: the tools read public records the way `/p/<handle>` does,
+ * so they need no sign-in, and a pour is only drafted, as a link the member
+ * opens to log it themselves (`draft_pour`); see docs/mcp.md.
  */
 
 export const prerender = false;

@@ -4,6 +4,7 @@ import ReturnVisit from '../components/app/ReturnVisit';
 import { site, returnVisit } from '../lib/copy';
 import { loadRegister } from '../lib/register.server';
 import { signInEnabled } from '../lib/atproto/auth';
+import { parseDraft } from '../lib/pour-draft';
 
 /**
  * The return visit: "Your map, and what moved it."
@@ -17,6 +18,8 @@ const register = await loadRegister();
 const authEnabled = await signInEnabled();
 // "Log this" on the /taste map arrives with the drink (logPathFor in site-nav.ts).
 const initialDrink = Astro.url.searchParams.get('drink')?.trim().slice(0, 200) || undefined;
+// A pour drafted in a chat (`draft_pour` on /mcp), to confirm here (pour-draft.ts).
+const initialDraft = parseDraft(Astro.url.searchParams) ?? undefined;
 ---
 
 <AppShell
@@ -24,5 +27,5 @@ const initialDrink = Astro.url.searchParams.get('drink')?.trim().slice(0, 200) |
   currentPath="/log"
   width="standard"
 >
-  <ReturnVisit client:load register={register} signInEnabled={authEnabled} initialDrink={initialDrink} />
+  <ReturnVisit client:load register={register} signInEnabled={authEnabled} initialDrink={initialDrink} initialDraft={initialDraft} />
 </AppShell>

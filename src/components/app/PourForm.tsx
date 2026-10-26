@@ -14,6 +14,7 @@ import {
 } from '@/lib/atproto/vocab';
 import { pour } from '@/lib/copy';
 import type { LogDrinkOptions } from '@/lib/api-client';
+import type { PourDraft } from '@/lib/pour-draft';
 import { cn } from '@/lib/utils';
 
 export type Deviation = (typeof DEVIATIONS)[number];
@@ -78,6 +79,12 @@ interface PourFormProps {
   /** The printed name for a drink (the register's title), if tidier. */
   labelFor?: (name: string) => string;
   initialDrink?: string;
+  /**
+   * A pour drafted elsewhere (a chat assistant, `/log?draft=1`), to check and
+   * confirm. It fills what it carries and leaves the rating unset: the
+   * drinker taps it, and the form will not log until they do.
+   */
+  draft?: PourDraft;
   /** Controlled, so the menu in /taste can re-weight by where you are. */
   venue: string;
   onVenueChange: (venue: string) => void;
@@ -100,6 +107,7 @@ export function PourForm({
   suggestionsLabel = pour.suggestionsLabel,
   labelFor = (name) => name,
   initialDrink = '',
+  draft,
   venue,
   onVenueChange,
   recentVenues = [],
@@ -110,12 +118,13 @@ export function PourForm({
   submitSlot,
 }: PourFormProps) {
   const id = useId();
-  const [drinkName, setDrinkName] = useState(initialDrink);
-  const [isHomePour, setIsHomePour] = useState(false);
-  const [hedonic, setHedonic] = useState(7);
-  const [deviations, setDeviations] = useState<Deviation[]>([]);
-  const [cata, setCata] = useState<CataNote[]>([]);
-  const [note, setNote] = useState('');
+  const [drinkName, setDrinkName] = useState(draft?.drink ?? initialDrink);
+  const [isHomePour, setIsHomePour] = useState(draft?.atHome ?? false);
+  // `null` until tapped, for a draft only: what was said in a chat is not a rating.
+  const [hedonic, setHedonic] = useState<number | null>(draft ? null : 7);
+  const [deviations, setDeviations] = useState<Deviation[]>(draft?.deviations ?? []);
+  const [cata, setCata] = useState<CataNote[]>(draft?.cata ?? []);
+  const [note, setNote] = useState(draft?.note ?? '');
   const [crosspost, setCrosspost] = useState(false);
   const [baseSpirit, setBaseSpirit] = useState<BaseSpirit | ''>('');
   const [glassware, setGlassware] = useState<Glassware | ''>('');
@@ -138,6 +147,7 @@ export function PourForm({
     e.preventDefault();
     if (!drinkName.trim()) return setLocalError(pour.needDrink);
     if (!isHomePour && !venue.trim()) return setLocalError(pour.needBar);
+    if (hedonic === null) return setLocalError(pour.needRating);
     setLocalError(null);
     onSubmit({
       drinkName: drinkName.trim(),
@@ -164,6 +174,12 @@ export function PourForm({
 
   return (
     <form onSubmit={submit} className="flex flex-col gap-6">
+      {draft && (
+        <p className="border-l-2 border-secondary pl-3 text-ui text-foreground" data-testid="pour-draft-note">
+          {pour.draftNote}
+        </p>
+      )}
+
       {/* The drink */}
       <div className="flex flex-col gap-2">
         <FieldLabel htmlFor={`${id}-drink`}>{pour.drinkLabel}</FieldLabel>
@@ -249,8 +265,11 @@ export function PourForm({
       <div className="flex flex-col gap-2">
         <div className="flex items-baseline justify-between">
           <FieldLabel as="span">{pour.ratingLabel}</FieldLabel>
-          <span className="font-serif text-ui italic text-foreground" aria-live="polite">
-            {pour.hedonic[hedonic - 1]}
+          <span
+            className={cn('font-serif text-ui italic', hedonic === null ? 'text-primary' : 'text-foreground')}
+            aria-live="polite"
+          >
+            {hedonic === null ? pour.tapRating : pour.hedonic[hedonic - 1]}
           </span>
         </div>
         <div role="radiogroup" aria-label={pour.ratingLabel} className="grid grid-cols-9 border border-foreground">

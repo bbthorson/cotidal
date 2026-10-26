@@ -18,7 +18,7 @@
     "@atproto/api": "^0.20.42",
     "@atproto/lex-data": "^0.1.8",
     "@atproto/syntax": "^0.7.7",
-    "@bbthorson/atproto-cf-auth": "^0.1.0",
+    "@bbthorson/atproto-cf-auth": "^0.2.0",
     "@modelcontextprotocol/sdk": "^1.32.1",
     "@radix-ui/react-dialog": "^1.1.6",
     "astro": "^7.2.9",

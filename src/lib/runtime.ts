@@ -27,6 +27,12 @@ export interface RateLimiterBinding {
   limit(options: { key: string }): Promise<{ success: boolean }>;
 }
 
+/** The subset of a Durable Object namespace we use: enough for `durableObjectLock`. */
+export interface DurableObjectNamespace {
+  idFromName(name: string): unknown;
+  get(id: never): { fetch(input: string, init?: RequestInit): Promise<Response> };
+}
+
 /** The subset of Cloudflare's Workers AI interface we use. */
 export interface AiBinding {
   run(
@@ -65,6 +71,10 @@ export function kvBinding(name: string): Promise<KVNamespace | undefined> {
 
 export function rateLimiterBinding(name: string): Promise<RateLimiterBinding | undefined> {
   return bindingWith<RateLimiterBinding>(name, 'limit');
+}
+
+export function durableObjectBinding(name: string): Promise<DurableObjectNamespace | undefined> {
+  return bindingWith<DurableObjectNamespace>(name, 'idFromName');
 }
 
 export function aiBinding(name = 'AI'): Promise<AiBinding | undefined> {

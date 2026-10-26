@@ -2,8 +2,11 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import { z } from 'zod';
 import { mcp } from '../copy';
+import { CATA, DEVIATIONS } from '../atproto/vocab';
+import { DRAFT_LIMITS } from '../pour-draft';
 import {
   comparePalates,
+  draftPour,
   getPalate,
   rankMenu,
   recommendDrinks,
@@ -88,6 +91,25 @@ export function createMcpServer(ctx: ToolContext): McpServer {
       annotations: readOnly,
     },
     async ({ handle, other }) => answer(await comparePalates(handle, other, ctx))
+  );
+
+  server.registerTool(
+    'draft_pour',
+    {
+      title: t.draftPour.title,
+      description: t.draftPour.description,
+      inputSchema: {
+        drink: z.string().trim().min(1).max(DRAFT_LIMITS.drink).describe(t.draftPour.drink),
+        atHome: z.boolean().optional().describe(t.draftPour.atHome),
+        bar: z.string().trim().max(DRAFT_LIMITS.bar).optional().describe(t.draftPour.bar),
+        whatWasOff: z.array(z.enum(DEVIATIONS)).max(DEVIATIONS.length).optional().describe(t.draftPour.whatWasOff),
+        notes: z.array(z.enum(CATA)).max(CATA.length).optional().describe(t.draftPour.notes),
+        note: z.string().trim().max(DRAFT_LIMITS.note).optional().describe(t.draftPour.note),
+      },
+      // It writes nothing: the link does nothing until the person logs it.
+      annotations: { readOnlyHint: true, openWorldHint: false },
+    },
+    async (input) => answer(draftPour(input, ctx))
   );
 
   server.registerTool(

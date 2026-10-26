@@ -457,6 +457,11 @@ export const pour = {
   signInToLog: 'Sign in to log a pour',
   needDrink: 'Name the drink first.',
   needBar: 'Name the bar, or choose “At home”.',
+  needRating: 'Tap how it landed first.',
+  /** Shown where a rating would be until one is tapped, on a drafted pour. */
+  tapRating: 'Tap one',
+  draftNote:
+    'Drafted in your chat. Check each field and tap how it landed; nothing is saved until you log it.',
   failed: 'That pour did not save. Try again.',
   home: 'Home',
 } as const;
@@ -558,12 +563,13 @@ export const assistants = {
     'What to order from a menu you paste in.',
     'How far your map is from a friend’s.',
     'Where a drink sits on the map.',
+    'To draft a pour you had, for you to log here.',
   ],
   askWith: (handle: string) => `Ask with your handle: “What does Cotidal say I should order? I’m @${handle}.”`,
   askWithGuest: 'Ask with your Bluesky handle: “What does Cotidal say I should order? I’m @you.bsky.social.”',
-  readOnlyTitle: 'It only reads',
+  readOnlyTitle: 'Only you log',
   readOnly:
-    'The assistant reads the same public coordinate anyone can open at your public map. It cannot log a pour, retake the questions or change your map.',
+    'The assistant reads the same public coordinate anyone can open at your public map. It can draft a pour, as a link to the form here, but only you log it: you check it, tap how it landed, and press the button. It cannot retake the questions or change your map.',
   /** On /account. */
   accountTitle: 'Use it in a chatbot',
   accountBody: 'Ask Claude, or another chat assistant, what to order with your coordinate.',
@@ -578,7 +584,7 @@ export const assistants = {
 export const mcp = {
   name: 'cotidal',
   instructions:
-    'Cotidal places a person’s taste in drinks on a map: x runs Rich (−10) to Crisp (+10), y runs Savory (−10) to Sweet (+10). Each person’s palate is a public record on their Bluesky account, read by handle. Drinks are recommended by how close they sit to that coordinate, never by a score of the person. Use search_drinks to turn a drink someone names into the name Cotidal knows it by. Everything here is read-only: nothing you call changes anyone’s map.',
+    'Cotidal places a person’s taste in drinks on a map: x runs Rich (−10) to Crisp (+10), y runs Savory (−10) to Sweet (+10). Each person’s palate is a public record on their Bluesky account, read by handle. Drinks are recommended by how close they sit to that coordinate, never by a score of the person. Use search_drinks to turn a drink someone names into the name Cotidal knows it by. Nothing you call changes anyone’s map: to log a pour, draft_pour returns a link the person opens to check it, rate it and log it themselves.',
   tools: {
     getPalate: {
       title: 'Read a palate',
@@ -605,6 +611,17 @@ export const mcp = {
         'Put two people’s coordinates side by side: how far apart they are, a drink each would order that the other would not, and one they would both order. This compares maps; it never ranks the people on them.',
       other: 'The second person’s Bluesky handle or DID.',
     },
+    draftPour: {
+      title: 'Draft a pour',
+      description:
+        'Draft a drink the person had, for them to log in Cotidal. Returns a link to the pour form, filled in with what they told you; they check it, tap how much they liked it, and log it. Nothing is saved until they do. There is no rating here on purpose: never estimate one or say it was recorded. Include only what they said: no guessed bar, notes or faults.',
+      drink: 'The drink, as Cotidal names it if it is on the map (use search_drinks), otherwise as they said it.',
+      atHome: 'They made it at home.',
+      bar: 'Where they had it, if they said.',
+      whatWasOff: 'Faults they named, as these ids.',
+      notes: 'What they tasted in it, as these ids.',
+      note: 'Anything else they said about it, in their words.',
+    },
     searchDrinks: {
       title: 'Search drinks',
       description:
@@ -617,6 +634,8 @@ export const mcp = {
   invalid: (input: string) => `“${input}” is not a Bluesky handle or DID.`,
   unavailable: (name: string) => `${name}’s server did not respond in time. Try again in a moment.`,
   noMatches: (query: string) => `No drink on the map matches “${query}”.`,
+  noDrink: 'A draft needs the drink’s name.',
+  draftReady: 'Drafted. Nothing is logged yet: they open the link, tap how much they liked it, and log it.',
   unplaced: 'Not on the Cotidal map, so it cannot be placed.',
   avoids: (flavours: string[]) => `Has ${flavours.join(' and ')}, which they avoid.`,
   flavours: { smoke: 'smoke', bitter: 'bitterness', anise: 'anise' },

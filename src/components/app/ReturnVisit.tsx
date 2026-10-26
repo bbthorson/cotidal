@@ -13,6 +13,7 @@ import type { UserProfile } from '@/hooks/useDiscoveryQuiz';
 import { MapThumb } from './CoordinateMap';
 import { Moved } from './Moved';
 import { PourForm, toLogOptions, type PourEntry } from './PourForm';
+import { withoutDraft, type PourDraft } from '@/lib/pour-draft';
 import { PourLedger } from './PourLedger';
 import { SignInSheet } from './SignInSheet';
 import {
@@ -99,7 +100,15 @@ interface LastPour {
  * what moved you. Logging ends on the same "your coordinate moved" screen as
  * the Log tab in /taste — the one recurring behaviour, given a face.
  */
-function ReturnVisitContent({ register, initialDrink }: { register: Register; initialDrink?: string }) {
+function ReturnVisitContent({
+  register,
+  initialDrink,
+  initialDraft,
+}: {
+  register: Register;
+  initialDrink?: string;
+  initialDraft?: PourDraft;
+}) {
   const { isConnected } = useAtprotoContext();
 
   const [profile, setProfile] = useState<UserProfile | null>(loadProfile);
@@ -107,7 +116,10 @@ function ReturnVisitContent({ register, initialDrink }: { register: Register; in
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [venue, setVenue] = useState('');
+  const [venue, setVenue] = useState(initialDraft?.bar ?? '');
+  // Kept until it is logged, then gone from state and the URL: the form
+  // remounts after the "moved" screen, and must not offer the same pour twice.
+  const [draft, setDraft] = useState(initialDraft);
   const [lastPour, setLastPour] = useState<LastPour | null>(null);
   const [signInOpen, setSignInOpen] = useState(false);
 
@@ -210,6 +222,10 @@ function ReturnVisitContent({ register, initialDrink }: { register: Register; in
           createdAt: new Date().toISOString(),
         };
         setPours((prev) => [guestPour, ...prev]);
+      }
+      if (draft) {
+        setDraft(undefined);
+        window.history.replaceState(null, '', withoutDraft(new URL(window.location.href)));
       }
       setLastPour({ from, drinkName: entry.drinkName, hedonic: entry.hedonic });
     } catch (err) {
@@ -318,6 +334,7 @@ function ReturnVisitContent({ register, initialDrink }: { register: Register; in
           suggestionsLabel={pour.nearLabel}
           labelFor={(name) => register[name]?.title ?? name}
           initialDrink={initialDrink ?? nearest[0]}
+          draft={draft}
           venue={venue}
           onVenueChange={setVenue}
           recentVenues={recentVenues}
@@ -345,15 +362,18 @@ export default function ReturnVisit({
   register,
   signInEnabled,
   initialDrink,
+  initialDraft,
 }: {
   register: Register;
   signInEnabled: boolean;
   /** The drink to open the form on, from `/log?drink=`. */
   initialDrink?: string;
+  /** A pour drafted in a chat, from `/log?draft=1` (src/lib/pour-draft.ts). */
+  initialDraft?: PourDraft;
 }) {
   return (
     <AtprotoProvider enabled={signInEnabled}>
-      <ReturnVisitContent register={register} initialDrink={initialDrink} />
+      <ReturnVisitContent register={register} initialDrink={initialDrink} initialDraft={initialDraft} />
     </AtprotoProvider>
   );
 }
