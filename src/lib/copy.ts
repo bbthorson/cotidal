@@ -537,6 +537,40 @@ export const publicMap = {
 } as const;
 
 /**
+ * `/assistants` — how to reach your palate from a chatbot. Also what a
+ * browser sees at `/mcp`, the address the chatbot is given.
+ */
+export const assistants = {
+  eyebrow: 'In your chatbot',
+  title: 'Ask about your palate anywhere.',
+  lede: 'Add Cotidal to Claude, or any chat assistant that takes an MCP server, and ask it what to order with your coordinate in hand.',
+  urlLabel: 'The address to add',
+  stepsTitle: 'In Claude',
+  steps: [
+    'Open Settings, then Connectors.',
+    'Choose Add custom connector.',
+    'Name it Cotidal and paste the address above.',
+  ],
+  otherClients: 'Other assistants that accept an MCP server URL take the same address.',
+  canTitle: 'What you can ask',
+  can: [
+    'Where your palate lands, and what is closest to it.',
+    'What to order from a menu you paste in.',
+    'How far your map is from a friend’s.',
+    'Where a drink sits on the map.',
+  ],
+  askWith: (handle: string) => `Ask with your handle: “What does Cotidal say I should order? I’m @${handle}.”`,
+  askWithGuest: 'Ask with your Bluesky handle: “What does Cotidal say I should order? I’m @you.bsky.social.”',
+  readOnlyTitle: 'It only reads',
+  readOnly:
+    'The assistant reads the same public coordinate anyone can open at your public map. It cannot log a pour, retake the questions or change your map.',
+  /** On /account. */
+  accountTitle: 'Use it in a chatbot',
+  accountBody: 'Ask Claude, or another chat assistant, what to order with your coordinate.',
+  accountCta: 'Set it up',
+} as const;
+
+/**
  * `/mcp` — the palate map as tools a chat assistant can call. Read-only: these
  * descriptions are read by the assistant, and through it by the person, so
  * they are interface copy like any other. Failures reuse `publicMap`'s words.
