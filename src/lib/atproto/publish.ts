@@ -17,6 +17,12 @@ import {
 import type { OAuthSession } from '@bbthorson/atproto-cf-auth/server';
 import type { UserProfile } from '@/hooks/useDiscoveryQuiz';
 import { derivePalateRecord } from '../sensory';
+import { feedPost } from '../copy';
+import { fitString, graphemeLength, utf8Length } from './lex-string';
+
+/** `app.bsky.feed.post#text`: 300 graphemes, 3000 bytes. */
+const POST_MAX_GRAPHEMES = 300;
+const POST_MAX_BYTES = 3000;
 
 /**
  * The user's own palate record, from the current namespace or, failing that,
@@ -57,42 +63,55 @@ export async function publishPalateProfile(
 }
 
 
+/**
+ * A post: `text`, then `url` as a link. The text is cut to fit Bluesky's 300
+ * graphemes with the link, never the link itself.
+ */
+export function feedPostRecord(text: string, url: string, now: Date = new Date()) {
+  const body = fitString(
+    text,
+    POST_MAX_BYTES - utf8Length(url) - 1,
+    POST_MAX_GRAPHEMES - graphemeLength(url) - 1
+  ).trimEnd();
+  const prefix = `${body} `;
+  return {
+    $type: 'app.bsky.feed.post',
+    text: `${prefix}${url}`,
+    facets: [
+      {
+        index: {
+          byteStart: utf8Length(prefix),
+          byteEnd: utf8Length(prefix + url),
+        },
+        features: [{ $type: 'app.bsky.richtext.facet#link', uri: url }],
+      },
+    ],
+    createdAt: now.toISOString(),
+  };
+}
+
+/** A post on the member's own feed. */
+export async function postToFeed(
+  session: OAuthSession,
+  text: string,
+  url: string
+): Promise<{ uri: string; cid: string }> {
+  const response = await new Agent(session).com.atproto.repo.createRecord({
+    repo: session.did,
+    collection: 'app.bsky.feed.post',
+    record: feedPostRecord(text, url),
+  });
+  return { uri: response.data.uri, cid: response.data.cid };
+}
+
+/** The palate, shared from the menu: where it lands and the top drink, linking `mapUrl`. */
 export async function shareToFeed(
   session: OAuthSession,
   topDrink: string,
   quadrant: string,
-  appUrl: string
+  mapUrl: string
 ): Promise<{ uri: string; cid: string }> {
-  const agent = new Agent(session);
-
-  const text = `My palate lands in ${quadrant} on Cotidal, and my top match is ${topDrink}. See how far yours is from mine:`;
-  const linkText = appUrl;
-
-  const response = await agent.com.atproto.repo.createRecord({
-    repo: session.did,
-    collection: 'app.bsky.feed.post',
-    record: {
-      $type: 'app.bsky.feed.post',
-      text: `${text} ${linkText}`,
-      facets: [
-        {
-          index: {
-            byteStart: new TextEncoder().encode(text + ' ').byteLength,
-            byteEnd: new TextEncoder().encode(text + ' ' + linkText).byteLength,
-          },
-          features: [
-            {
-              $type: 'app.bsky.richtext.facet#link',
-              uri: appUrl,
-            },
-          ],
-        },
-      ],
-      createdAt: new Date().toISOString(),
-    },
-  });
-
-  return { uri: response.data.uri, cid: response.data.cid };
+  return postToFeed(session, feedPost.palate(quadrant, topDrink), mapUrl);
 }
 
 /** The signed-in user's palate, decoded from either encoding or namespace. */
