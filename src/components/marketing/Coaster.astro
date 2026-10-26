@@ -1,0 +1,79 @@
+---
+import { band, cotidalLine, labelPoint, COTIDAL_LINES, SECTORS, RINGS, CENTRE, TILT } from '../../lib/chart-geometry';
+import { qrPath } from '../../lib/coaster';
+import type { QuadrantId } from '../../lib/quadrant';
+
+/**
+ * A coaster: the landing page's cotidal chart on a disc, with one region's
+ * band filled and a QR code at the amphidrome (docs/coasters.md). No dot —
+ * a coordinate moves with every pour and a coaster does not; the exact point
+ * is on the page the code opens.
+ *
+ * Geometry comes from `src/lib/chart-geometry.ts`, the same as the landing
+ * figure. The code is drawn server-side as one path, so no script ships.
+ * Not yet sized for print.
+ */
+
+interface Props {
+  region: QuadrantId;
+  /** What the code encodes: an absolute URL. */
+  href: string;
+  /** The accessible name of the drawing. */
+  title: string;
+}
+
+const { region, href, title } = Astro.props;
+
+const R = 118;
+const { from, to } = SECTORS[region];
+const filled = band(from, to);
+const lines = COTIDAL_LINES.map(({ hour, param }) => ({ hour, d: cotidalLine(param).d, label: labelPoint(param) }));
+const rotate = `rotate(${TILT} ${CENTRE.x} ${CENTRE.y})`;
+
+// The code sits on a quiet square of card two modules wide on every side.
+const qr = qrPath(href);
+const QR = 62;
+const unit = QR / qr.size;
+const quiet = 2 * unit;
+const qrX = CENTRE.x - QR / 2;
+const qrY = CENTRE.y - QR / 2;
+const clipId = `coaster-${region}`;
+---
+
+<svg
+  viewBox={`${CENTRE.x - R - 2} ${CENTRE.y - R - 2} ${2 * R + 4} ${2 * R + 4}`}
+  class="w-full"
+  fill="none"
+  role="img"
+  aria-label={title}
+  data-testid="coaster"
+  data-code={href}
+>
+  <defs>
+    <clipPath id={clipId}><circle cx={CENTRE.x} cy={CENTRE.y} r={R} /></clipPath>
+  </defs>
+
+  <circle cx={CENTRE.x} cy={CENTRE.y} r={R} class="fill-card stroke-foreground" stroke-width="1.5" />
+
+  <g clip-path={`url(#${clipId})`}>
+    <circle cx="58" cy="34" r="22" class="fill-accent" />
+    <path d={filled} class="fill-primary" />
+    <path d={`M${CENTRE.x - R} ${CENTRE.y} H${CENTRE.x + R} M${CENTRE.x} ${CENTRE.y - R} V${CENTRE.y + R}`} class="stroke-chart-axis" stroke-width="1" />
+    {RINGS.slice(0, -1).map(({ rx, ry }) => (
+      <ellipse cx={CENTRE.x} cy={CENTRE.y} rx={rx} ry={ry} transform={rotate} class="stroke-chart-ring" stroke-width="1" />
+    ))}
+    <ellipse cx={CENTRE.x} cy={CENTRE.y} rx={RINGS[2].rx} ry={RINGS[2].ry} transform={rotate} class="stroke-foreground" stroke-width="1.5" />
+    {lines.map(({ d }) => <path d={d} class="stroke-foreground" stroke-width="1" />)}
+    <g class="fill-muted-foreground font-condensed" font-size="8" letter-spacing="0.5" text-anchor="middle" aria-hidden="true">
+      {lines.map(({ hour, label }) => <text x={label.x} y={label.y}>{hour}h</text>)}
+    </g>
+  </g>
+
+  <rect x={qrX - quiet} y={qrY - quiet} width={QR + 2 * quiet} height={QR + 2 * quiet} rx="2" class="fill-card" />
+  <path
+    d={qr.d}
+    transform={`translate(${qrX} ${qrY}) scale(${unit})`}
+    class="fill-foreground"
+    shape-rendering="crispEdges"
+  />
+</svg>

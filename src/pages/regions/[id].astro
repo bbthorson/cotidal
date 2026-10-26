@@ -4,7 +4,8 @@ import type { GetStaticPaths } from 'astro';
 import AppShell from '../../layouts/AppShell.astro';
 import PageTitle from '../../components/marketing/PageTitle.astro';
 import OnTheRecord from '../../components/marketing/OnTheRecord.astro';
-import { site, sections, quadrants, regionPage as copy } from '../../lib/copy';
+import { site, sections, quadrants, regionPage as copy, coaster } from '../../lib/copy';
+import { regionCoasterPath } from '../../lib/coaster';
 import { drinkDatabase } from '../../lib/data';
 import { sharedIngredients } from '../../lib/ingredients';
 import { QUADRANT_ORDER, quadrantIdFor, type QuadrantId } from '../../lib/quadrant';
@@ -132,6 +133,12 @@ const others = quadrants.filter((q) => q.id !== id);
     }
 
     {entry && <OnTheRecord {...entry.data} />}
+
+    <p class="pb-10 text-center font-serif text-ui">
+      <a href={regionCoasterPath(region.id)} class="text-primary underline underline-offset-4" data-testid="region-coaster-link">
+        {coaster.regionLink}
+      </a>
+    </p>
 
     <!-- The other three -->
     <nav aria-label={copy.otherLabel} class="border-t border-foreground pt-10 pb-4">

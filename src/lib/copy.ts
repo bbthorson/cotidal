@@ -536,6 +536,22 @@ export const publicMap = {
   plotLabel: (who: string) => `${who} on the palate map`,
 } as const;
 
+/** Coasters: a member's code, and one per region (docs/coasters.md). */
+export const coaster = {
+  makeCode: 'Make my code',
+  makeCodeNote: 'A coaster with your region on it and a code that opens this map.',
+  memberTitle: 'Your code',
+  memberLede:
+    'Scan it and it opens your map. It points at your account rather than your handle, so it keeps working if your handle changes.',
+  memberLabel: (name: string) => `A coaster for @${name}: their region, and a code that opens their map`,
+  backToMap: 'Back to your map',
+  regionLink: 'This region’s coaster',
+  regionTitle: (region: string) => `${region}, on a coaster`,
+  regionLede: 'Scan the code to read about the region, then find where you land.',
+  regionLabel: (region: string) => `A coaster for ${region}, with a code that opens its page`,
+  backToRegion: (region: string) => `Back to ${region}`,
+} as const;
+
 /**
  * What a distance between two coordinates reads as. `under` is exclusive and
  * the list is ascending; the map's diagonal is about 28.3, so the last band

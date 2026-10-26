@@ -1,6 +1,7 @@
 # Coasters
 
-The four-sector chart is built; the coasters are notes for later.
+The four-sector chart, the member's coaster and the region coasters are
+built. Venue coasters and print are notes for later.
 
 The logo is a cotidal circle, the landing chart is a circle, and a bar coaster
 is a circle. A coaster carrying the chart is the product's mark in the place
@@ -32,8 +33,9 @@ sector count stops matching the regions. The monogram already read as four
 
 ## The personal coaster is the user's QR code
 
-Build this first: it needs no bar, and it is the Overlap's way into the
-world.
+*Built* at `/p/<did>/code` (`src/pages/p/[actor]/code.astro`), drawn by
+`Coaster.astro`, with the URL and the code in `src/lib/coaster.ts`. It needs
+no bar, and it is the Overlap's way into the world.
 
 - A coaster drawn from a member's palate: their region's band filled, with
   a QR code at the amphidrome (the centre point).
@@ -43,8 +45,9 @@ world.
   does today. Scanned by a signed-in member, it shows both coordinates, the
   distance and three drinks (`src/lib/overlap.ts`) — two people at the same bar
   comparing coasters.
-- It should be on screen too, not only in print: a "show my code" view on
-  the member's own map, so the coaster and the phone are the same object.
+- It is on screen, not only in print: "Make my code", under the link on the
+  member's own map, opens it, so the coaster and the phone are the same
+  object. Anyone else asking for that page gets a 404.
 - The code must work with no app installed, so it is a plain `https:` URL and
   the page it opens stays script-free like `/p/<handle>`.
 - **The code encodes the DID, never the handle:** `publicMapPath(did)`, i.e.
@@ -70,11 +73,21 @@ Decided:
   A query string is permanent once printed, and it would tell the page that a
   scan happened in person. Measure scans some other way, later, if at all.
 
+**The origin is the request's.** The site has no fixed domain yet, so the
+code says whichever host served the page. Before anything is printed, the
+code must carry the permanent domain — a printed `workers.dev` link outlives
+the move.
+
+## Region coasters
+
+*Built* at `/regions/<id>/coaster`, linked from each region page. The region's
+band is filled and the code opens the region's page: "which one did you get?"
+starts the conversation, and the page it opens leads to the questions. Public
+and cached; server-rendered rather than prerendered only so the code can use
+the request's origin. Placing each region's drinks on the rings is still to do.
+
 ## Later
 
-- **Region coasters.** Four designs, one per region, each with that region's
-  drinks placed on the rings. A bar can stock all four; "which one did you
-  get?" starts the conversation.
 - **Venue coasters.** A bar's menu placed on the chart, with a QR code to its
   published menu. Waits on menu capture and venue claim (roadmap 4 and 7,
   `docs/venues.md`).
