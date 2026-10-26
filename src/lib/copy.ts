@@ -536,6 +536,58 @@ export const publicMap = {
   plotLabel: (who: string) => `${who} on the palate map`,
 } as const;
 
+/**
+ * `/mcp` — the palate map as tools a chat assistant can call. Read-only: these
+ * descriptions are read by the assistant, and through it by the person, so
+ * they are interface copy like any other. Failures reuse `publicMap`'s words.
+ */
+export const mcp = {
+  name: 'cotidal',
+  instructions:
+    'Cotidal places a person’s taste in drinks on a map: x runs Rich (−10) to Crisp (+10), y runs Savory (−10) to Sweet (+10). Each person’s palate is a public record on their Bluesky account, read by handle. Drinks are recommended by how close they sit to that coordinate, never by a score of the person. Use search_drinks to turn a drink someone names into the name Cotidal knows it by. Everything here is read-only: nothing you call changes anyone’s map.',
+  tools: {
+    getPalate: {
+      title: 'Read a palate',
+      description:
+        'Read where someone’s taste lands on the Cotidal map, by Bluesky handle or DID: their coordinate, region, the flavours they avoid, how many pours have moved it, and the drinks closest to it.',
+      handle: 'A Bluesky handle (alice.bsky.social, @alice) or a DID.',
+    },
+    recommend: {
+      title: 'Recommend drinks',
+      description:
+        'The drinks on the Cotidal map closest to someone’s coordinate, nearest first, leaving out anything with a flavour they avoid.',
+      count: 'How many drinks to return.',
+      type: 'Only drinks of this kind.',
+    },
+    rankMenu: {
+      title: 'Rank a menu',
+      description:
+        'Order the drinks on a menu by how close each sits to someone’s coordinate. Pass the drink names as they appear on the menu, one per item. Items Cotidal cannot place are returned as unplaced rather than guessed at, and drinks with a flavour the person avoids are flagged, not dropped.',
+      items: 'Drink names from the menu, one per item.',
+    },
+    compare: {
+      title: 'Compare two palates',
+      description:
+        'Put two people’s coordinates side by side: how far apart they are, a drink each would order that the other would not, and one they would both order. This compares maps; it never ranks the people on them.',
+      other: 'The second person’s Bluesky handle or DID.',
+    },
+    searchDrinks: {
+      title: 'Search drinks',
+      description:
+        'Find drinks on the Cotidal map by name, with where each sits and the region it lands in.',
+      query: 'Part of a drink’s name.',
+    },
+  },
+  noPalate: (name: string) => `@${name} has an account, but has not published a palate yet.`,
+  notFound: (input: string) => `“${input}” does not resolve to an account.`,
+  invalid: (input: string) => `“${input}” is not a Bluesky handle or DID.`,
+  unavailable: (name: string) => `${name}’s server did not respond in time. Try again in a moment.`,
+  noMatches: (query: string) => `No drink on the map matches “${query}”.`,
+  unplaced: 'Not on the Cotidal map, so it cannot be placed.',
+  avoids: (flavours: string[]) => `Has ${flavours.join(' and ')}, which they avoid.`,
+  flavours: { smoke: 'smoke', bitter: 'bitterness', anise: 'anise' },
+} as const;
+
 /** Coasters: a member's code, and one per region (docs/coasters.md). */
 export const coaster = {
   makeCode: 'Make my code',

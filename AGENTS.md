@@ -211,6 +211,13 @@ the record down to the fields the page draws. Its unit tests use a fake
 refused before any network call. `publicMapPath` lives in `paths.ts` because
 the island links to it and must not import the server package.
 
+`/mcp` (`src/pages/mcp.ts`, `src/lib/mcp/`) offers the same reads to chat
+assistants as MCP tools: read a palate, recommend, rank a menu, compare two,
+search drinks. Stateless and read-only; the tools are plain functions over
+`readPublicPalate` and `overlap.ts`, so they give the answers `/p/<handle>`
+gives. Their descriptions are interface copy and live in `copy.ts`. Writing
+from a chat is planned, not built: `docs/mcp.md`.
+
 **No floats in records.** The AT Protocol data model has none, and
 `@atproto/lex-data` treats one as an invalid value. Fractional quantities are
 stored as integer hundredths or tenths under a name that says so
