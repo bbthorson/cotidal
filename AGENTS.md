@@ -257,7 +257,9 @@ them.
 The browser loads `vocab.ts` (names and vocabularies) and
 `elicitation-record.ts`, never `records.ts`: the validators that only the
 server needs (`@atproto/lex-data`, for CIDs) are registered there. Writes go through the schema: a pour is
-validated (`PourWriteSchema`) before the palate or the pour is written, and
+validated (`PourWriteSchema`) before the palate or the pour is written —
+by `logPour` in `src/lib/pours.server.ts`, the one pipeline every caller
+uses (`tests/log-pour.spec.ts` holds the order of writes) — and
 reads are parsed (`readPour`) rather than cast. Vocabularies the app writes
 (`DEVIATIONS`, `CATA`) are stable ids declared as `knownValues`; the words
 shown for them live in `copy.ts`.

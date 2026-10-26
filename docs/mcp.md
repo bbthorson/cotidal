@@ -45,8 +45,9 @@ The rules the write path must keep:
 - **A record holds what its author said.** The rating is required and asked
   for, never estimated by the assistant; every other field is absent unless
   the member said it, and "would order again" is written only when asked.
-- **One pipeline.** The pour logic in `api/atproto-publish.ts` moves into a
-  shared module first, so the page and the assistant cannot drift.
+- **One pipeline.** Logging a pour is `logPour` in `src/lib/pours.server.ts`,
+  which the page's route already calls; the assistant's tool calls it too,
+  through the same `PourStore`, so the two cannot drift.
 - **`PourContext` stays on the device.** Volume drunk and hours since eating
   are not accepted here either.
 - **No quiz over chat.** Elicitation records are scored under a named

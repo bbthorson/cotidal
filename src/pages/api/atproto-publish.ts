@@ -3,39 +3,17 @@ import {
   publishPalateProfile,
   shareToFeed,
   getPalateProfile,
-  publishRawPalateRecord,
-  publishPour,
   getPours,
   publishElicitation,
 } from '@/lib/atproto/publish';
-import {
-  ElicitationWriteSchema,
-  PourWriteSchema,
-  POUR_COLLECTION,
-  POUR_NOTE_LIMITS,
-  cataId,
-  fitString,
-} from '@/lib/atproto/records';
-import { derivePalateRecord } from '@/lib/sensory';
+import { ElicitationWriteSchema } from '@/lib/atproto/records';
 import type { UserProfile } from '@/hooks/useDiscoveryQuiz';
 import { z } from 'zod';
-import { drinkDatabase } from '@/lib/data';
-import { catalogSlug } from '@/lib/register';
 import { loadRegister } from '@/lib/register.server';
-import type { Palate } from '@/lib/atproto/records';
 import type { LogDrinkOptions } from '@/lib/api-client';
 import { oauthSession } from '@/lib/atproto/session';
 import { publicMapPath } from '@/lib/atproto/paths';
-import {
-  fromDynamicRecord,
-  toDynamicRecord,
-  applyPour,
-  aversionsAfterPour,
-  vibeTagsAfterPour,
-  projectTo2D,
-  createInitialPalateState,
-  type TastingObservation,
-} from '@/lib/palate-state';
+import { logPour, sessionStore } from '@/lib/pours.server';
 
 const ProfileSchema = z.object({
   x: z.number().min(-10).max(10),
@@ -154,145 +132,20 @@ export const POST: APIRoute = async ({ request }) => {
   }
 
   if (body.action === 'logDrinkFeedback') {
-    // Request body: every field is unvalidated, hence Partial. The guard
-    // below plus the defaults in the destructure are what make it safe.
-    const options = body.options as Partial<LogDrinkOptions> | undefined;
-    if (!options || typeof options !== 'object') {
-      return new Response(JSON.stringify({ success: false, error: 'Invalid options' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
-    }
-
-    // `drinkName` was previously read through an `as any` and used unguarded
-    // in three places, so a request without one wrote a record with an
-    // undefined name rather than being rejected here.
-    if (typeof options.drinkName !== 'string' || !options.drinkName.trim()) {
-      return new Response(JSON.stringify({ success: false, error: 'drinkName is required' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
-    }
-
-    const {
-      drinkName,
-      rating = 5.0,
-      baseSpirit,
-      isHomePour = false,
-      location,
-      venue,
-      glassware,
-      garnish,
-      deviations = [],
-      note,
-      crosspostToFeed = false,
-    } = options;
-
-    const hedonicScale = Math.max(1, Math.min(9, Math.round(rating * 0.8 + 1)));
-    const finalLocation = isHomePour ? 'Home Pour' : (venue?.name || location || 'Unknown Venue');
-    const drink = drinkDatabase.find(d => d.name.toLowerCase() === drinkName.toLowerCase());
-
-    // The pour is built and checked against its lexicon before anything is
-    // written: the palate is written first, and a pour refused after it would
-    // leave the map moved by a drink that was never logged. Free text is cut
-    // to fit rather than refused; anything else that does not fit is a 400.
-    // Notes arrive as labels from a page loaded before CATA ids existed.
-    const name = (s: string) => fitString(s, 200, 100);
-    const pourCheck = PourWriteSchema.safeParse({
-      $type: POUR_COLLECTION,
-      drink: {
-        name: name(drinkName),
-        slug: catalogSlug(await loadRegister(), drinkName),
-        baseSpirit,
-      },
-      venue: isHomePour ? undefined : { entity: { name: name(finalLocation) } },
-      rating: {
-        hedonic: hedonicScale,
-        glmsValence: options.glmsValence,
-        // Recorded only when the drinker was asked: a guess from the rating is not their answer.
-        wouldOrderAgain: options.wouldOrderAgain,
-      },
-      perceivedIntensities: options.perceivedIntensities,
-      deviations: deviations.length > 0 ? deviations : undefined,
-      cata: options.cata && options.cata.length > 0 ? options.cata.map(cataId) : undefined,
-      glassware,
-      garnish: garnish?.trim() ? fitString(garnish.trim(), 200) : undefined,
-      note: note ? fitString(note, POUR_NOTE_LIMITS.maxLength, POUR_NOTE_LIMITS.maxGraphemes) : undefined,
-      isHomePour: !!isHomePour,
-      createdAt: new Date().toISOString(),
+    // Request body: every field is unvalidated, hence Partial; `logPour`
+    // checks it before anything is written (src/lib/pours.server.ts).
+    const result = await logPour(sessionStore(session), body.options as Partial<LogDrinkOptions> | undefined, {
+      register: await loadRegister(),
+      appUrl: (body.appUrl as string) || 'https://cotidal.app',
     });
-    if (!pourCheck.success) {
-      return new Response(JSON.stringify({ success: false, error: 'Invalid pour' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+    if (!result.ok) {
+      return new Response(JSON.stringify({ success: false, error: result.error }), { status: result.status, headers: { 'Content-Type': 'application/json' } });
     }
-    const pourRecord = pourCheck.data;
-
-    try {
-      let record = await getPalateProfile(session);
-      if (!record) {
-        const dummyProfile: UserProfile = { x: 0, y: 0, dislikesSmoke: false, dislikesBitter: false, dislikesAnise: false, vibeTags: {} };
-        record = derivePalateRecord(dummyProfile, null);
-      }
-
-      const priorState = record.dynamicState
-        ? fromDynamicRecord(record.dynamicState)
-        : createInitialPalateState({
-            x: record.mapCoordinates.x,
-            y: record.mapCoordinates.y,
-            dislikesBitter: record.aversions.bitter,
-            dislikesSmoke: record.aversions.smoke,
-            dislikesAnise: record.aversions.anise,
-          });
-
-      const observation: TastingObservation = {
-        hedonic: hedonicScale,
-        glmsValence: pourRecord.rating.glmsValence,
-        perceivedIntensities: pourRecord.perceivedIntensities,
-        cata: pourRecord.cata,
-      };
-
-      const nextState = applyPour(priorState, drink, observation, deviations);
-      const coords = projectTo2D(nextState);
-
-      const updatedVibeTags = vibeTagsAfterPour((record.vibeTags as Record<string, number>) || {}, drink, hedonicScale);
-      const aversions = aversionsAfterPour(record.aversions, deviations);
-
-      const updatedPalate: Palate = {
-        $type: record.$type,
-        mapCoordinates: { x: coords.x, y: coords.y },
-        dynamicState: toDynamicRecord(nextState),
-        aversions,
-        vibeTags: updatedVibeTags,
-        createdAt: record.createdAt,
-        updatedAt: new Date().toISOString(),
-      };
-
-      await publishRawPalateRecord(session, updatedPalate);
-
-      const pourRes = await publishPour(session, pourRecord);
-
-      if (crosspostToFeed) {
-        try {
-          const appUrl = (body.appUrl as string) || 'https://cotidal.app';
-          const stars = '★'.repeat(Math.round(rating / 2)) + '☆'.repeat(5 - Math.round(rating / 2));
-          const postText = `Logged a ${rating.toFixed(1)}/10 ${drinkName} ${isHomePour ? '(Home Pour)' : `at ${finalLocation}`} on Cotidal ${stars}`;
-          await shareToFeed(session, drinkName, postText, appUrl);
-        } catch (e) {
-          console.error('Failed to crosspost to feed:', e);
-        }
-      }
-
-      const mappedProfile: UserProfile = {
-        x: coords.x,
-        y: coords.y,
-        dislikesSmoke: aversions.smoke,
-        dislikesBitter: aversions.bitter,
-        dislikesAnise: aversions.anise,
-        vibeTags: updatedVibeTags,
-      };
-
-      return new Response(JSON.stringify({
-        success: true,
-        profile: mappedProfile,
-        uri: pourRes.uri
-      }), { status: 200, headers: { 'Content-Type': 'application/json' } });
-    } catch (e) {
-      console.error('Failed to log drink feedback:', e);
-      return new Response(JSON.stringify({ success: false, error: 'Failed to process feedback' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
-    }
+    return new Response(JSON.stringify({
+      success: true,
+      profile: result.profile,
+      uri: result.uri
+    }), { status: 200, headers: { 'Content-Type': 'application/json' } });
   }
 
   return new Response(JSON.stringify({ success: false, error: 'Unknown action' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
