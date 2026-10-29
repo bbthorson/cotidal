@@ -126,7 +126,7 @@ Navigation is unified across the entire site through `<SiteHeader.astro>` and `<
 6. **Sub-Route Navigation**: In `/drinks/[slug]`, the header supports a semantic `backLink` while retaining global site navigation.
 7. **Phones**: the header collapses to wordmark · account · Menu. "Menu" is a `<details>` that opens the same `<nav>` through `peer-open`, so `/` still ships no JavaScript; a member's Sign out sits at the foot of it.
 8. **Focus mode**: any element marked `data-focus-mode` (the quiz, the reveal, the after-a-pour screen) hides the site header and footer below `lg` (`globals.css`, pure CSS so nothing flashes before hydration).
-9. **The app bar** (`AppBar.astro`): **Radio · Compass · Log** along the foot of a phone on the app pages (`AppShell`'s `bottomBar`) — listen, navigate, record. Plain links, no script; hidden in focus mode and from `lg`, where the header carries the same destinations. A card pinned above it (Compass's drink card) uses the `tabbar` spacing token.
+9. **The app bar** (`AppBar.astro`): **Radio · Compass · Log** along the foot of a phone on the app pages (`AppShell`'s `bottomBar`) — listen, navigate, record. Plain links, no script; hidden in focus mode and from `lg`, where the header carries the same destinations. A card pinned above it (the drink card) uses the `tabbar` spacing token.
 10. **Pick a drink** (`PickButton.astro`): choosing what to have is the one thing you *do*, not a place, so it is a floating button rather than a tab — above the app bar on a phone, in the corner from `lg`. It opens the harbour. Not drawn on the harbour, while a drink card is open, or in focus mode.
 11. **No page titles on screen in the app.** The app bar already says which tab you are on, so Radio and Log name themselves for screen readers only (`sr-only` `h1`) and open on their content.
 
@@ -154,18 +154,20 @@ Pours as they go out, newest first, kept like a radio log: grouped by day, the t
 
 ## Log (`/log`, `ReturnVisit.tsx`)
 
-Yours: where you are (region and coordinate, linked to the region and to Compass), what the log adds up to (pours, bars, since, best so far), the ledger, and the account. The rating form shows only while rating something — a drink handed over ("Log this", a pick, a chat's draft) or "Log one directly" — and closes once the pour is logged.
+Yours — personal details, so the map lives here: the chart, then what the log adds up to (pours, bars, since, best so far), the ledger, and the account. The rating form shows only while rating something — a drink handed over ("Log this", a pick, a chat's draft) or "Log one directly" — and closes once the pour is logged.
 
-## Compass (`Chart.tsx`, `/taste`)
-
-One screen: the square map, a title block under its frame, then your menu. It replaced two tabs, Menu and Map, which mostly repeated each other and each re-stated where you are.
-
+**The chart** (`Chart.tsx`):
 - **The map** has a graticule — ticks along the frame every 2.5, longer at ±5 — as a printed chart marks its border. Each dot is a 24px target (`DrinkSpot`); drinks sharing a coordinate share one spot.
-- **The title block** is the chart's cartouche: where you are (region and coordinate), the legend, and the reading (Drinks: your menu filled, the rest hollow; Your pours: liked 7+ filled, 5–6 hollow, 4 or below muted). It replaced the "You are in" row and the 2:1 thumbnail, which drew the same dot a second time.
-- **The menu** is the top-pick sheet and seven rows; under Your pours, the list is your pours instead.
-- **A drink** tapped anywhere — a mark, the top pick, a row — opens in one card pinned above the app bar, the way a maps app opens a place: region and coordinate, build, closeness, your last pour, "Log this" and the register entry.
+- **The title block** is the chart's cartouche: where you are (region and coordinate; "On this device" for a guest), the legend, and the reading (Drinks: your menu filled, the rest hollow; Your pours: liked 7+ filled, 5–6 hollow, 4 or below muted).
+- **A drink** tapped on it opens in the drink card.
 
 No trail of past positions is drawn yet; the pours to rebuild one from are stored.
+
+## Compass (`/taste`, `ResultsScreen.tsx`)
+
+Finding something, not looking at yourself: no map here. One search over drinks — by name or by what is in them ("mezcal") — and bars. With nothing typed it points the way: the top-pick sheet and seven rows (your menu, `useMenu`, the same ranking Log's map fills in), then **Your bars** from your pours. A bar opens the harbour already there (`harbourAt`); a typed bar the log has never seen does too. **Near me** says plainly that it is Later: Cotidal knows the bars you have poured at, not yet where every bar is.
+
+**The drink card** (`DrinkCard`, on Compass and Log alike): pinned above the app bar, the way a maps app opens a place — region and coordinate, build, closeness, your last pour, "Log this" and the register entry.
 
 **Nothing moves under the reader.** A tap opens something where the thumb is rather than inserting it above what was tapped; anything that loads after paint (the top pick's line) holds its space while it does; the foot of the menu — who you are, your public map, share, account, start over — is one block under one rule, not a band each.
 

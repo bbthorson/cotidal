@@ -68,6 +68,25 @@ export const radio = {
   yesterday: 'Yesterday',
 } as const;
 
+/**
+ * Compass: finding something — a drink, a bar. Your map is Log's; this
+ * points outward.
+ */
+export const compass = {
+  title: 'Compass',
+  findYours: 'Find your coordinate',
+  searchLabel: 'Search drinks and bars',
+  placeholder: 'Negroni, mezcal, Attaboy…',
+  nearMe: 'Near me',
+  nearMeLater: 'Later: bars near you. Cotidal knows the bars you have poured at, not yet where every bar is.',
+  drinksTitle: 'Drinks',
+  noDrinks: 'No drink on the map by that name or ingredient.',
+  barsTitle: 'Bars',
+  yourBars: 'Your bars',
+  barPours: (n: number) => (n === 1 ? '1 pour' : `${n} pours`),
+  pickAt: (bar: string) => `Pick a drink at ${bar}`,
+} as const;
+
 /** /log: yours — where you are, what you have poured, and the account. */
 export const logPage = {
   title: 'Log',
@@ -309,15 +328,12 @@ export const chart = {
     { id: 'pours', label: 'Your pours' },
   ],
   findYours: 'Find your coordinate',
-  poured: 'What you’ve poured',
   closeness: 'Closeness',
   lastPour: 'Your last pour',
   logThis: 'Log this',
   readEntry: 'Read the entry',
   close: 'Close',
   sameSpot: 'Also here',
-  noPours: 'Nothing poured yet. Log a pour and it lands here.',
-  offMap: (n: number) => (n === 1 ? '1 pour is of a drink not on the map.' : `${n} pours are of drinks not on the map.`),
   legendMenu: 'On your menu',
   legendElsewhere: 'Elsewhere',
   legendLiked: 'Liked (7+)',

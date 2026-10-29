@@ -3,7 +3,6 @@ import { useAtprotoContext, AtprotoProvider } from './AtprotoProvider';
 import { drinkDatabase } from '@/lib/data';
 import { quadrantFor } from '@/lib/quadrant';
 import { calculateDistance } from '@/lib/scoring';
-import { formatCoordinate } from '@/lib/coordinate';
 import type { PourRecord } from '@/lib/atproto/records';
 import { logDrinkFeedback, getConnectedPours, getConnectedPalate } from '@/lib/api-client';
 import { loadGuestState, loadProfile, saveGuestState, saveProfile, loadPick, clearPick, loadGuestPours, addGuestPour } from '@/lib/device-store';
@@ -11,7 +10,10 @@ import { returnVisit, pour, logPage, nav } from '@/lib/copy';
 import { START_OVER_PARAM } from '@/lib/atproto/paths';
 import { catalogSlug, type Register } from '@/lib/register';
 import type { UserProfile } from '@/hooks/useDiscoveryQuiz';
-import { MapThumb } from './CoordinateMap';
+import { Chart, DrinkCard, useLastPours, type Lens } from './Chart';
+import { useMenu } from '@/hooks/useMenu';
+import { logPathFor } from '@/lib/site-nav';
+import { cn } from '@/lib/utils';
 import { Moved } from './Moved';
 import { PourForm, toLogOptions, type PourEntry } from './PourForm';
 import { withoutDraft, type PourDraft } from '@/lib/pour-draft';
@@ -164,6 +166,25 @@ function ReturnVisitContent({
   const x = profile?.x ?? 0;
   const y = profile?.y ?? 0;
   const region = quadrantFor(x, y);
+
+  // The map: your menu filled in, or your pours, and any drink opened in the card.
+  const [lens, setLens] = useState<Lens>('drinks');
+  const [selected, setSelected] = useState<string | null>(null);
+  const user = useMemo(
+    () => ({
+      x,
+      y,
+      filters: [
+        ...(profile?.dislikesSmoke ? ['noSmoke'] : []),
+        ...(profile?.dislikesBitter ? ['noBitter'] : []),
+        ...(profile?.dislikesAnise ? ['noAnise'] : []),
+      ],
+    }),
+    [x, y, profile?.dislikesSmoke, profile?.dislikesBitter, profile?.dislikesAnise]
+  );
+  const { menu, closeness } = useMenu(user, profile?.vibeTags, pours);
+  const lastPourOf = useLastPours(pours);
+  const selectedDrink = selected ? drinkDatabase.find((d) => d.name === selected) ?? null : null;
 
   // Quick picks: the drinks closest to where you are now.
   const nearest = useMemo(
@@ -320,28 +341,26 @@ function ReturnVisitContent({
   ];
 
   return (
-    <div className="mx-auto max-w-xl pb-6 pt-4 lg:pt-8">
+    <div className={cn('mx-auto max-w-xl pb-6 pt-4 lg:pt-8', selectedDrink && 'pb-80')}>
       {/* Named for screen readers; on screen the app bar already says where you are. */}
       <h1 className="sr-only">{logPage.title}</h1>
 
-      {/* Where you are now, and what the log adds up to */}
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex flex-col gap-1">
-          <span className="label-caps">
-            {!member && `${logPage.guestEyebrow} · `}
-            {returnVisit.youAreIn}
-          </span>
-          <a href={`/regions/${region.id}`} className="font-serif text-2xl italic leading-none text-primary hover:underline">
-            {region.name}
-          </a>
-          <span className="font-condensed text-xs font-semibold tabular-nums tracking-label text-secondary">
-            {formatCoordinate(x, y)}
-          </span>
-        </div>
-        <a href="/taste" aria-label={nav.map}>
-          <MapThumb x={x} y={y} />
-        </a>
-      </div>
+      {/* Where you are: the map is yours, so it lives here */}
+      <Chart
+        you={{ x, y }}
+        menuNames={menu.map((d) => d.name)}
+        lastPour={lastPourOf}
+        lens={lens}
+        onLens={(l) => {
+          setLens(l);
+          setSelected(null);
+        }}
+        selected={selected}
+        onSelect={(n) => setSelected((cur) => (cur === n ? null : n))}
+        register={register}
+        onTakeQuiz={() => window.location.assign('/taste')}
+        eyebrow={member ? undefined : logPage.guestEyebrow}
+      />
       <dl className="mt-4 grid grid-cols-2 border-t border-foreground">
         {stats.map((st, i) => (
           <div key={st.label} className={`flex flex-col gap-0.5 border-b border-border py-2.5 ${i % 2 ? 'pl-4' : 'border-r pr-4'}`}>
@@ -414,6 +433,20 @@ function ReturnVisitContent({
           onStartOver={() => window.location.assign(`/taste?${START_OVER_PARAM}=1`)}
         />
       </section>
+      {selectedDrink && (
+        <DrinkCard
+          drink={selectedDrink}
+          register={register}
+          closeness={closeness[selectedDrink.name]}
+          last={lastPourOf.get(selectedDrink.name)}
+          sameSpot={drinkDatabase.filter(
+            (d) => d.name !== selectedDrink.name && d.x === selectedDrink.x && d.y === selectedDrink.y
+          )}
+          onPick={setSelected}
+          onLog={() => window.location.assign(logPathFor(selectedDrink.name))}
+          onClose={() => setSelected(null)}
+        />
+      )}
       {sheet}
     </div>
   );

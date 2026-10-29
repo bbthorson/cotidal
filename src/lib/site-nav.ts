@@ -39,6 +39,9 @@ export const appDestinations = [
 /** Where "Pick a drink" goes: the harbour, composed in steps. */
 export const pickHref = '/harbour';
 
+/** The harbour, already at a bar (a bar on Compass). */
+export const harbourAt = (bar: string) => `${pickHref}?bar=${encodeURIComponent(bar)}`;
+
 /** /log with its form opened on a drink ("Log this" on the map). */
 export const logPathFor = (drinkName: string) => `/log?drink=${encodeURIComponent(drinkName)}`;
 

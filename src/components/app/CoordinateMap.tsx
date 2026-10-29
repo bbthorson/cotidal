@@ -309,20 +309,3 @@ export function TraceMark({
     </>
   );
 }
-
-/**
- * The 2:1 thumbnail for a header: hairlines and your dot, nothing else. The
- * full square map is for the reveal and the Map tab.
- */
-export function MapThumb({ x, y, className }: { x: number; y: number; className?: string }) {
-  return (
-    <div aria-hidden="true" className={cn('relative h-12 w-24 shrink-0 border border-foreground bg-card', className)}>
-      <div className="absolute bottom-0 left-1/2 top-0 w-px bg-border" />
-      <div className="absolute left-0 right-0 top-1/2 h-px bg-border" />
-      <span
-        className="absolute h-2 w-2 -translate-x-1/2 translate-y-1/2 rounded-full bg-primary"
-        style={at(x, y)}
-      />
-    </div>
-  );
-}

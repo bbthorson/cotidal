@@ -57,3 +57,20 @@ test('Log: a guest’s pour is kept on the device, in Log and on Radio', async (
   await expect(today).toContainText('Negroni');
   await expect(today).toContainText(radio.onDevice);
 });
+
+test('Log: the map is yours — your menu filled in, or your pours', async ({ page }) => {
+  await page.addInitScript((p) => localStorage.setItem('user_profile', JSON.stringify(p)), profile);
+  await page.goto('/log');
+
+  await expect(page.getByRole('region', { name: 'The chart' })).toBeVisible();
+  const lenses = page.getByRole('group', { name: 'Show' });
+  await expect(lenses.getByRole('button')).toHaveText(['Drinks', 'Your pours']);
+  await lenses.getByRole('button', { name: 'Your pours' }).click();
+  await expect(lenses.getByRole('button', { name: 'Your pours' })).toHaveAttribute('aria-pressed', 'true');
+});
+
+test('Harbour: from a bar on Compass, it starts at that bar’s menu', async ({ page }) => {
+  await page.addInitScript((p) => localStorage.setItem('user_profile', JSON.stringify(p)), profile);
+  await page.goto('/harbour?bar=Attaboy');
+  await expect(page.getByRole('heading', { name: 'What’s on the menu?' })).toBeVisible();
+});

@@ -78,10 +78,10 @@ test('Sign out: /taste forgets the coordinate on this device', async ({ page }) 
   await expect.poll(() => new URL(page.url()).searchParams.has(SIGNED_OUT_PARAM)).toBe(false);
 });
 
-test('Start over: two steps on the menu, and Keep it changes nothing', async ({ page }) => {
-  await page.goto('/taste');
+test('Start over: two steps on Log, and Keep it changes nothing', async ({ page }) => {
+  await page.goto('/log');
   await page.evaluate((p) => localStorage.setItem('user_profile', JSON.stringify(p)), profile);
-  await page.goto('/taste');
+  await page.goto('/log');
 
   await page.getByRole('button', { name: menu.startOver }).click();
   await expect(page.getByText(account.startOverBody)).toBeVisible();
@@ -92,7 +92,8 @@ test('Start over: two steps on the menu, and Keep it changes nothing', async ({ 
   await page.getByRole('button', { name: menu.startOver }).click();
   await page.getByRole('button', { name: account.startOverCta }).click();
   await expect(page.getByText('Which glass do you push away first?')).toBeVisible();
-  expect(await page.evaluate(() => localStorage.getItem('user_profile'))).toBeNull();
+  // The questions are in the server's HTML too, before the island clears the device: wait for it.
+  await expect.poll(() => page.evaluate(() => localStorage.getItem('user_profile'))).toBeNull();
 });
 
 test('Start over: /account sends you to the questions', async ({ page }) => {

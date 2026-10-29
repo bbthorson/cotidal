@@ -56,6 +56,14 @@ function HarbourContent({ register }: { register: Register }) {
 
   useEffect(() => setProfile(loadProfile()), []);
 
+  // From a bar on Compass (`harbourAt`): already there, so straight to its menu.
+  useEffect(() => {
+    const at = new URLSearchParams(window.location.search).get('bar')?.trim().slice(0, 200);
+    if (!at) return;
+    setBar(at);
+    setStep('menu');
+  }, []);
+
   useEffect(() => {
     if (!isConnected) return;
     getConnectedPours(50)

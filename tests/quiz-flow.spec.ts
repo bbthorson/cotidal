@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { quadrants, returnVisit } from '../src/lib/copy';
+import { quadrants, returnVisit, compass } from '../src/lib/copy';
 
 /**
  * Questionnaire flow contract:
@@ -20,10 +20,10 @@ test('Questionnaire: opens directly with calibration question and selectable opt
   await expect(page.getByText(/of about 8/)).toBeVisible();
 });
 
-test('Questionnaire: browsing skips straight to the map', async ({ page }) => {
+test('Questionnaire: browsing skips straight to Compass', async ({ page }) => {
   await page.goto('/taste?browse=1');
   await expect(page.getByText('Which glass do you push away first?')).toHaveCount(0);
-  await expect(page.getByRole('button', { name: /start over/i })).toBeVisible();
+  await expect(page.getByRole('button', { name: compass.findYours })).toBeVisible();
 });
 
 test('Questionnaire: answering options advances questions and supports undo', async ({ page }) => {
@@ -57,8 +57,9 @@ test('Questionnaire: finishing the questions reveals a region before the menu', 
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(new RegExp(`^The (${names})\\.$`));
   await page.getByRole('button', { name: /see what to order/i }).click();
 
-  await expect(page.getByText('You are in')).toBeVisible();
-  await expect(page.getByRole('region', { name: 'The chart' })).toBeVisible();
+  // After the reveal, Compass: your menu, and a search over drinks and bars.
+  await expect(page.getByText(/No\. 1 · Your go-to/)).toBeVisible();
+  await expect(page.getByRole('searchbox', { name: compass.searchLabel })).toBeVisible();
 });
 
 test('Menu: one ranked list, with no occasion switch', async ({ page }) => {
@@ -78,28 +79,27 @@ test('Menu: one ranked list, with no occasion switch', async ({ page }) => {
   expect(scores.length).toBeGreaterThan(1);
   expect(scores).toEqual([...scores].sort((a, b) => b - a));
 
-  // One screen: the chart and the menu under it, not Menu · Map tabs.
-  await expect(page.getByRole('region', { name: 'The chart' })).toBeVisible();
-  await expect(page.getByRole('navigation', { name: 'Your coordinate' })).toHaveCount(0);
+  // Compass points outward; the map is Log's.
+  await expect(page.getByRole('region', { name: 'The chart' })).toHaveCount(0);
 });
 
-test('Chart: tap a drink, then "Log this" opens /log on that drink', async ({ page }) => {
+test('Compass: search a drink, tap it, then "Log this" opens /log on that drink', async ({ page }) => {
   await page.goto('/taste?browse=1');
 
-  const lenses = page.getByRole('group', { name: 'Show' });
-  await expect(lenses.getByRole('button')).toHaveText(['Drinks', 'Your pours']);
-
-  // A row of the menu opens the drink in the card.
+  // A drink is found by what is in it, not only by its name.
+  await page.getByRole('searchbox', { name: compass.searchLabel }).fill('mezcal');
   const first = page.locator('ol > li').first();
+  await expect(first).toBeVisible();
   const drink = (await first.locator('.font-serif').textContent())!.trim();
+
+  // A typed bar the log has never seen still opens the harbour there.
+  await expect(page.getByRole('link', { name: new RegExp(compass.pickAt('mezcal')) })).toHaveAttribute(
+    'href',
+    '/harbour?bar=mezcal'
+  );
+
   await first.getByRole('button').click();
   await expect(page.getByText('Closeness', { exact: true })).toBeVisible();
-
-  // Your pours says plainly when there is nothing yet.
-  await lenses.getByRole('button', { name: 'Your pours' }).click();
-  await expect(page.getByText('Nothing poured yet.', { exact: false })).toBeVisible();
-  await lenses.getByRole('button', { name: 'Drinks' }).click();
-  await first.getByRole('button').click();
 
   await page.getByRole('button', { name: 'Log this' }).click();
   await expect(page).toHaveURL(/\/log\?drink=/);

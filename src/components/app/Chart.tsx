@@ -50,6 +50,7 @@ export function Chart({
   onSelect,
   register,
   onTakeQuiz,
+  eyebrow,
 }: {
   you: { x: number; y: number } | null;
   menuNames: string[];
@@ -61,6 +62,8 @@ export function Chart({
   register: Register;
   /** Shown in place of the position when there is none yet. */
   onTakeQuiz: () => void;
+  /** Said before "You are in" — "On this device", for a guest. */
+  eyebrow?: string;
 }) {
   const name = (n: string) => register[n]?.title ?? n;
   const region = you ? quadrantFor(you.x, you.y) : null;
@@ -119,7 +122,10 @@ export function Chart({
         <div className="flex min-w-0 flex-col gap-1">
           {you && region ? (
             <>
-              <span className="label-caps">{menu.youAreIn}</span>
+              <span className="label-caps">
+                {eyebrow && `${eyebrow} · `}
+                {menu.youAreIn}
+              </span>
               <span className="flex flex-wrap items-baseline gap-x-2.5">
                 <span className="font-serif text-2xl italic leading-none text-primary">{region.name}</span>
                 <span className="font-condensed text-xs font-semibold tabular-nums tracking-label text-secondary">
@@ -174,47 +180,6 @@ export function Chart({
           ))}
         </div>
       </div>
-    </section>
-  );
-}
-
-/** Your pours, newest first, scored as you scored them. */
-export function PouredList({
-  lastPour,
-  offMap,
-  selected,
-  onSelect,
-  register,
-}: {
-  lastPour: Map<string, PourRecord>;
-  offMap: number;
-  selected: string | null;
-  onSelect: (drinkName: string) => void;
-  register: Register;
-}) {
-  const rows = [...lastPour.entries()].sort(
-    ([, a], [, b]) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-  );
-  return (
-    <section className="mt-6">
-      <h2 className="border-b border-foreground pb-1.5 font-serif text-xl font-bold">{chart.poured}</h2>
-      {rows.length === 0 ? (
-        <p className="border-b border-border py-6 font-serif text-prose italic text-muted-foreground">{chart.noPours}</p>
-      ) : (
-        <ol>
-          {rows.map(([drinkName, p]) => (
-            <li key={drinkName} className="border-b border-border">
-              <DrinkRow
-                title={register[drinkName]?.title ?? drinkName}
-                figure={pour.scoreOf(p.rating.hedonic)}
-                selected={selected === drinkName}
-                onSelect={() => onSelect(drinkName)}
-              />
-            </li>
-          ))}
-        </ol>
-      )}
-      {offMap > 0 && <p className="mt-3 text-meta text-muted-foreground">{chart.offMap(offMap)}</p>}
     </section>
   );
 }
