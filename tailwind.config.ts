@@ -43,6 +43,10 @@ export default {
       data: {
         open: 'state="open"',
       },
+      gridTemplateColumns: {
+        // A radio log: the time in a narrow margin, the entry beside it.
+        radio: '3.5rem minmax(0, 1fr)',
+      },
       borderWidth: {
         // The active tab's top rule
         '3': '3px',

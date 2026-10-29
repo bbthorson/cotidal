@@ -116,7 +116,7 @@ Width and padding stay with the layout (`w-full`, `px-8`).
 
 Navigation is unified across the entire site through `<SiteHeader.astro>` and `<SiteFooter.astro>`, both rendered from one list (`destinations` in `src/lib/site-nav.ts`):
 1. **Zero Client JavaScript**: Rendered as semantic HTML `<header>` and `<nav aria-label="Main Navigation">`.
-2. **Destinations** (header): Chart (`/taste`), Harbour (`/harbour`), Log a Pour (`/log`), Drinks (`/drinks`), The Four Regions (`/#regions`), For Bars (`/bars`).
+2. **Destinations** (header): Radio (`/radio`), Compass (`/taste`), Log (`/log`), Drinks (`/drinks`), The Four Regions (`/#regions`), For Bars (`/bars`).
 3. **The account control** (header) says what the server knows (`accountFor` in `session.ts`, read once in `AppShell`):
    - a member sees `@handle`, which opens `/account`, and **Sign out** — a plain form post that answers with a redirect, like sign-in, so it needs no script;
    - a guest sees **Sign in**;
@@ -126,13 +126,36 @@ Navigation is unified across the entire site through `<SiteHeader.astro>` and `<
 6. **Sub-Route Navigation**: In `/drinks/[slug]`, the header supports a semantic `backLink` while retaining global site navigation.
 7. **Phones**: the header collapses to wordmark · account · Menu. "Menu" is a `<details>` that opens the same `<nav>` through `peer-open`, so `/` still ships no JavaScript; a member's Sign out sits at the foot of it.
 8. **Focus mode**: any element marked `data-focus-mode` (the quiz, the reveal, the after-a-pour screen) hides the site header and footer below `lg` (`globals.css`, pure CSS so nothing flashes before hydration).
-9. **The app bar** (`AppBar.astro`): Chart · Harbour · Log along the foot of a phone on the three app pages (`AppShell`'s `bottomBar`) — the three things a drinker does: see where they are, decide at a bar, rate what they drank. Plain links, no script; hidden in focus mode and from `lg`, where the header carries the same destinations. A card pinned above it (the chart's drink card) uses the `tabbar` spacing token.
+9. **The app bar** (`AppBar.astro`): **Radio · Compass · Log** along the foot of a phone on the app pages (`AppShell`'s `bottomBar`) — listen, navigate, record. Plain links, no script; hidden in focus mode and from `lg`, where the header carries the same destinations. A card pinned above it (Compass's drink card) uses the `tabbar` spacing token.
+10. **Order** (`OrderButton.astro`): ordering is the one thing you *do*, not a place, so it is a floating button rather than a tab — above the app bar on a phone, in the corner from `lg`. It opens the harbour. Not drawn on the harbour, while a drink card is open, or in focus mode.
 
 ## The first-visit flow (`/taste`)
 
 Questions → reveal → your menu. Sign-in is offered once, after the reveal, as one sheet (`SignInSheet.tsx`) that states what it buys; the landing page's form (`ConnectForm.astro`) renders the same promise from `connect.buys` in `copy.ts`. The radar chart, the archetypes and the Oracle tab are retired from the interface; the region is the only identity. Logging a pour ends on the after-a-pour screen, which shows the coordinate moving and what changed on the menu.
 
-## The chart (`Chart.tsx`, `/taste`)
+## Signed in, signed out
+
+Everything works signed out, on the device; signing in moves the record into the member's own account and is what the social half needs. Pages that differ are told which by the server (`accountFor`, passed to the island as `member`), so nothing guesses or flashes.
+
+| | Signed out (guest) | Signed in (member) |
+|---|---|---|
+| **Compass** | Everything | Everything |
+| **Order** (harbour) | Everything; the order waits on the device | The same |
+| **Rating** | Moves the coordinate on this device; the pour is kept there (`guestPours`, `device-store.ts`) | Written to the member's repository |
+| **Radio** | Their pours on this device, and once what signing in buys | Their pours; Following and Nearby are **Later:** |
+| **Log** | Coordinate and pours, marked *On this device*, and what signing in keeps | `@handle`, coordinate, pours, the account (public map, share, chat assistants, sign out and start over) |
+
+Signing out forgets the device's copy (`forgetDevice`). A guest's pours stay on the device when they sign in; they are not written to the account on their behalf.
+
+## Radio (`/radio`, `Radio.tsx`)
+
+Pours as they go out, newest first, kept like a radio log: grouped by day, the time in a narrow margin (`grid-cols-radio`), who sent it and where, the drink and its score. The dial is All · Following · Nearby; the last two say plainly that they are Later rather than standing empty. An order waiting to be rated sits at the top.
+
+## Log (`/log`, `ReturnVisit.tsx`)
+
+Yours: where you are (region and coordinate, linked to the region and to Compass), what the log adds up to (pours, bars, since, best so far), the ledger, and the account. The rating form shows only while rating something — a drink handed over ("Log this", an order, a chat's draft) or "Log one directly" — and closes once the pour is logged.
+
+## Compass (`Chart.tsx`, `/taste`)
 
 One screen: the square map, a title block under its frame, then your menu. It replaced two tabs, Menu and Map, which mostly repeated each other and each re-stated where you are.
 

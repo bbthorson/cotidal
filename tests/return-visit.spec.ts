@@ -6,7 +6,7 @@ test('Return Visit: server-renders /log route shell', async ({ page }) => {
   expect(response.status()).toBe(200);
 
   const html = await response.text();
-  expect(html).toContain('The Return Visit');
+  expect(html).toContain(returnVisit.coldTitle);
   expect(html).toContain('aria-label="Main Navigation"');
   expect(html).toContain('href="/log"');
 });

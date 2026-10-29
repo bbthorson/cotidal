@@ -1,0 +1,20 @@
+---
+import { appBar } from '../../lib/copy';
+import { orderHref } from '../../lib/site-nav';
+
+/**
+ * Order: the one thing you *do* here, so it is a button, not a tab — the way
+ * a social app's compose button floats over the feed. It opens the harbour,
+ * composed in steps. On a phone it sits just above the app bar, under the
+ * thumb; from `lg` in the corner. A plain link, so it needs no script.
+ * Hidden while a drink card is open, and in focus mode (globals.css).
+ */
+---
+
+<a
+  href={orderHref}
+  data-order-button
+  class="btn btn-primary fixed bottom-tabbar right-4 z-30 mb-3 px-5 shadow-mcm lg:bottom-6 lg:right-6 lg:mb-0"
+>
+  {appBar.order}
+</a>

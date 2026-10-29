@@ -6,8 +6,9 @@ import { calculateDistance } from '@/lib/scoring';
 import { formatCoordinate } from '@/lib/coordinate';
 import type { PourRecord } from '@/lib/atproto/records';
 import { logDrinkFeedback, getConnectedPours, getConnectedPalate } from '@/lib/api-client';
-import { loadGuestState, loadProfile, saveGuestState, saveProfile, loadOpenOrder, clearOpenOrder } from '@/lib/device-store';
-import { returnVisit, pour } from '@/lib/copy';
+import { loadGuestState, loadProfile, saveGuestState, saveProfile, loadOpenOrder, clearOpenOrder, loadGuestPours, addGuestPour } from '@/lib/device-store';
+import { returnVisit, pour, logPage, nav } from '@/lib/copy';
+import { START_OVER_PARAM } from '@/lib/atproto/paths';
 import { catalogSlug, type Register } from '@/lib/register';
 import type { UserProfile } from '@/hooks/useDiscoveryQuiz';
 import { MapThumb } from './CoordinateMap';
@@ -16,6 +17,8 @@ import { PourForm, toLogOptions, type PourEntry } from './PourForm';
 import { withoutDraft, type PourDraft } from '@/lib/pour-draft';
 import { PourLedger } from './PourLedger';
 import { SignInSheet } from './SignInSheet';
+import { OpenOrder } from './OpenOrder';
+import { AccountTools } from './AccountTools';
 import {
   createInitialPalateState,
   applyPour,
@@ -102,14 +105,16 @@ interface LastPour {
  */
 function ReturnVisitContent({
   register,
+  member,
   initialDrink,
   initialDraft,
 }: {
   register: Register;
+  member: { handle: string | null } | null;
   initialDrink?: string;
   initialDraft?: PourDraft;
 }) {
-  const { isConnected } = useAtprotoContext();
+  const { isConnected, isEnabled } = useAtprotoContext();
 
   const [profile, setProfile] = useState<UserProfile | null>(loadProfile);
   const [pours, setPours] = useState<PourRecord[]>([]);
@@ -122,6 +127,9 @@ function ReturnVisitContent({
   const [draft, setDraft] = useState(initialDraft);
   const [lastPour, setLastPour] = useState<LastPour | null>(null);
   const [signInOpen, setSignInOpen] = useState(false);
+  // The form shows only while rating something: a drink handed over ("Log
+  // this", an order from the harbour, a chat's draft), or one asked for here.
+  const [rating, setRating] = useState(!!initialDrink || !!initialDraft);
 
   const loadData = useCallback(async () => {
     if (isConnected) {
@@ -141,6 +149,7 @@ function ReturnVisitContent({
     } else {
       const local = loadProfile();
       if (local) setProfile(local);
+      setPours(loadGuestPours());
     }
   }, [isConnected]);
 
@@ -190,6 +199,7 @@ function ReturnVisitContent({
     };
     setProfile(neutral);
     saveProfile(neutral);
+    setRating(true);
   };
 
   const handleSubmit = async (entry: PourEntry) => {
@@ -221,14 +231,17 @@ function ReturnVisitContent({
           isHomePour: entry.isHomePour,
           createdAt: new Date().toISOString(),
         };
+        addGuestPour(guestPour);
         setPours((prev) => [guestPour, ...prev]);
       }
       // An order from the harbour, now rated.
       if (loadOpenOrder()?.drink.toLowerCase() === entry.drinkName.toLowerCase()) clearOpenOrder();
-      if (draft) {
-        setDraft(undefined);
-        window.history.replaceState(null, '', withoutDraft(new URL(window.location.href)));
-      }
+      if (draft) setDraft(undefined);
+      // Rated: the form closes, and a reload must not offer the same pour again.
+      const url = withoutDraft(new URL(window.location.href));
+      url.searchParams.delete('drink');
+      window.history.replaceState(null, '', url);
+      setRating(false);
       setLastPour({ from, drinkName: entry.drinkName, hedonic: entry.hedonic });
     } catch (err) {
       console.error(err);
@@ -289,71 +302,118 @@ function ReturnVisitContent({
     );
   }
 
+  const bars = new Set(pours.filter((p) => !p.isHomePour && p.venue?.entity?.name).map((p) => p.venue!.entity!.name)).size;
+  const first = pours.length > 0 ? pours[pours.length - 1] : null;
+  const best = pours.reduce<PourRecord | null>((top, p) => (!top || p.rating.hedonic > top.rating.hedonic ? p : top), null);
+  const stats = [
+    { label: logPage.stats.pours, value: String(pours.length) },
+    { label: logPage.stats.bars, value: String(bars) },
+    ...(first
+      ? [
+          {
+            label: logPage.stats.since,
+            value: new Date(first.createdAt).toLocaleDateString(undefined, { month: 'short', year: 'numeric' }),
+          },
+        ]
+      : []),
+    ...(best ? [{ label: logPage.stats.best, value: register[best.drink.name]?.title ?? best.drink.name }] : []),
+  ];
+
   return (
-    <div className="mx-auto max-w-xl pb-6 pt-8 md:pt-12">
-      <header className="flex flex-col gap-2">
-        <span className="label-caps text-secondary">{returnVisit.eyebrow}</span>
-        <h1 className="font-serif text-title font-bold text-foreground">{returnVisit.title}</h1>
-        <p className="font-serif text-prose text-muted-foreground">{returnVisit.intro}</p>
+    <div className="mx-auto max-w-xl pb-6 pt-5 lg:pt-8">
+      <header className="flex items-baseline justify-between gap-4 border-b border-foreground pb-2">
+        <h1 className="font-serif text-title font-bold text-foreground">{logPage.title}</h1>
+        <span className={member?.handle ? 'font-body text-meta font-bold text-foreground' : 'label-caps'}>
+          {member?.handle ? `@${member.handle}` : member ? '' : logPage.guestEyebrow}
+        </span>
       </header>
 
-      {/* Where you are now */}
-      <div className="mt-8 border-y border-foreground py-4">
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex flex-col gap-1">
-            <span className="label-caps">{returnVisit.youAreIn}</span>
-            <span className="font-serif text-2xl italic leading-none text-primary">{region.name}</span>
-          </div>
-          <MapThumb x={x} y={y} />
-        </div>
-        <div className="dot-leader mt-3">
-          <span className="font-condensed text-sm font-semibold tabular-nums tracking-wider">{formatCoordinate(x, y)}</span>
-          <span aria-hidden="true" className="leader" />
-          <span className="font-condensed text-sm uppercase tracking-label text-muted-foreground">
-            {returnVisit.poursLabel(pours.length)}
+      {/* Where you are now, and what the log adds up to */}
+      <div className="mt-4 flex items-center justify-between gap-4">
+        <div className="flex flex-col gap-1">
+          <span className="label-caps">{returnVisit.youAreIn}</span>
+          <a href={`/regions/${region.id}`} className="font-serif text-2xl italic leading-none text-primary hover:underline">
+            {region.name}
+          </a>
+          <span className="font-condensed text-xs font-semibold tabular-nums tracking-label text-secondary">
+            {formatCoordinate(x, y)}
           </span>
         </div>
-        <div className="mt-2 flex flex-wrap gap-x-6">
-          <a
-            href="/taste"
-            className="inline-flex min-h-11 items-center font-condensed text-xs uppercase tracking-label text-primary hover:underline"
-          >
-            {returnVisit.menuLink} &rarr;
-          </a>
-          <a
-            href={`/regions/${region.id}`}
-            className="inline-flex min-h-11 items-center font-condensed text-xs uppercase tracking-label text-muted-foreground hover:text-foreground"
-          >
-            {returnVisit.regionLink} &rarr;
-          </a>
-        </div>
+        <a href="/taste" aria-label={nav.map}>
+          <MapThumb x={x} y={y} />
+        </a>
+      </div>
+      <dl className="mt-4 grid grid-cols-2 border-t border-foreground">
+        {stats.map((st, i) => (
+          <div key={st.label} className={`flex flex-col gap-0.5 border-b border-border py-2.5 ${i % 2 ? 'pl-4' : 'border-r pr-4'}`}>
+            <dt className="label-caps">{st.label}</dt>
+            <dd className="truncate font-condensed text-ui font-semibold tabular-nums text-foreground">{st.value}</dd>
+          </div>
+        ))}
+      </dl>
+
+      <div className="mt-5">
+        {!rating && <OpenOrder displayName={(n) => register[n]?.title ?? n} />}
       </div>
 
-      <section className="mt-10">
-        <h2 className="mb-4 border-b border-foreground pb-1.5 font-serif text-xl font-bold">{returnVisit.logTitle}</h2>
-        <PourForm
-          suggestions={nearest}
-          suggestionsLabel={pour.nearLabel}
-          labelFor={(name) => register[name]?.title ?? name}
-          initialDrink={initialDrink ?? nearest[0]}
-          draft={draft}
-          venue={venue}
-          onVenueChange={setVenue}
-          recentVenues={recentVenues}
-          isMember={isConnected}
-          submitting={submitting}
-          error={error}
-          onSubmit={handleSubmit}
-        />
-        {!isConnected && <p className="mt-3 text-meta text-muted-foreground">{returnVisit.guestNote}</p>}
-      </section>
+      {rating && (
+        <section className="mt-6">
+          <h2 className="mb-4 border-b border-foreground pb-1.5 font-serif text-xl font-bold">{returnVisit.logTitle}</h2>
+          <PourForm
+            suggestions={nearest}
+            suggestionsLabel={pour.nearLabel}
+            labelFor={(name) => register[name]?.title ?? name}
+            initialDrink={initialDrink ?? nearest[0]}
+            draft={draft}
+            venue={venue}
+            onVenueChange={setVenue}
+            recentVenues={recentVenues}
+            isMember={isConnected}
+            submitting={submitting}
+            error={error}
+            onSubmit={handleSubmit}
+          />
+          {!isConnected && <p className="mt-3 text-meta text-muted-foreground">{returnVisit.guestNote}</p>}
+        </section>
+      )}
 
-      <section className="mt-12">
-        <div className="mb-1 flex items-baseline justify-between">
+      <section className="mt-8">
+        <div className="mb-1 flex items-baseline justify-between gap-4">
           <h2 className="font-serif text-xl font-bold">{returnVisit.ledgerTitle}</h2>
-          <span className="label-caps text-secondary">{returnVisit.poursLabel(pours.length)}</span>
+          {!rating && (
+            <button
+              type="button"
+              onClick={() => setRating(true)}
+              className="inline-flex min-h-11 items-center font-condensed text-xs uppercase tracking-label text-secondary hover:text-primary"
+            >
+              {logPage.logDirectly}
+            </button>
+          )}
         </div>
         <PourLedger pours={pours} register={register} empty={returnVisit.ledgerEmpty} loading={loading} />
+      </section>
+
+      {/* A guest: what signing in buys, once, under the log it would keep. */}
+      {!member && isEnabled && (
+        <div className="mt-6 flex items-center gap-3 border border-border bg-card p-4">
+          <div className="flex flex-1 flex-col gap-0.5">
+            <span className="font-serif text-base font-bold">{logPage.guestTitle}</span>
+            <span className="text-meta text-muted-foreground">{logPage.guestBody}</span>
+          </div>
+          <button type="button" onClick={() => setSignInOpen(true)} className="btn btn-primary shrink-0 px-3.5">
+            {nav.signIn}
+          </button>
+        </div>
+      )}
+
+      <section className="mt-8">
+        <h2 className="border-b border-foreground pb-1.5 font-serif text-xl font-bold">{logPage.settingsTitle}</h2>
+        <AccountTools
+          handle={member?.handle ?? null}
+          topName={register[nearest[0]]?.title ?? nearest[0] ?? ''}
+          regionName={region.name}
+          onStartOver={() => window.location.assign(`/taste?${START_OVER_PARAM}=1`)}
+        />
       </section>
       {sheet}
     </div>
@@ -363,11 +423,14 @@ function ReturnVisitContent({
 export default function ReturnVisit({
   register,
   signInEnabled,
+  member,
   initialDrink,
   initialDraft,
 }: {
   register: Register;
   signInEnabled: boolean;
+  /** The server's answer (`accountFor`): who is reading, before anything loads. */
+  member: { handle: string | null } | null;
   /** The drink to open the form on, from `/log?drink=`. */
   initialDrink?: string;
   /** A pour drafted in a chat, from `/log?draft=1` (src/lib/pour-draft.ts). */
@@ -375,7 +438,7 @@ export default function ReturnVisit({
 }) {
   return (
     <AtprotoProvider enabled={signInEnabled}>
-      <ReturnVisitContent register={register} initialDrink={initialDrink} initialDraft={initialDraft} />
+      <ReturnVisitContent register={register} member={member} initialDrink={initialDrink} initialDraft={initialDraft} />
     </AtprotoProvider>
   );
 }

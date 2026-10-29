@@ -322,8 +322,10 @@ interface; see `docs/brand.md`.
    `src/content/regions/`, linked from the landing page, `/drinks` and
    `/p/<handle>`; see Region prose.
 6. **The return visit.** Logging a pour and watching the point move is the
-   only recurring behaviour in the product. Its front door is `/log`
-   (`ReturnVisit.tsx`), in the site navigation.
+   only recurring behaviour in the product. The app is three tabs —
+   Radio (`/radio`), Compass (`/taste`), Log (`/log`) — and an Order button
+   into the harbour (`/harbour`); signed in versus signed out is a table in
+   `docs/design-system.md`.
 7. **Venue claim and menu publishing.** Handle-as-domain makes claiming and
    publishing the same act; the lexicons exist and nothing renders them.
 8. **Rework elicitation.** Forced-choice pairs for precision *(landed; see

@@ -19,7 +19,8 @@ export const site = {
 export const nav = {
   skipToContent: 'Skip to content',
   home: 'Home',
-  map: 'Chart',
+  radio: 'Radio',
+  map: 'Compass',
   register: 'Drinks',
   regions: 'The Four Regions',
   signIn: 'Sign in',
@@ -28,17 +29,66 @@ export const nav = {
   account: 'Account',
   menu: 'Menu',
   footer: 'Site',
-  log: 'Log a Pour',
-  harbour: 'Harbour',
+  log: 'Log',
+  order: 'Order',
   bars: 'For Bars',
 } as const;
 
-/** The bar along the foot of the app on a phone: the three things a drinker does. */
+/**
+ * The bar along the foot of the app on a phone: listen, navigate, record.
+ * Ordering is not a place, so it is a button (`OrderButton.astro`), not a tab.
+ */
 export const appBar = {
   label: 'App',
-  chart: 'Chart',
-  harbour: 'Harbour',
+  radio: 'Radio',
+  compass: 'Compass',
   log: 'Log',
+  order: 'Order',
+} as const;
+
+/**
+ * /radio: what is on the air — pours, newest first. Today that is your own;
+ * the people you follow and the bars near you are Later, and say so.
+ */
+export const radio = {
+  title: 'Radio',
+  intro: 'Pours as they go out, newest first.',
+  filterLabel: 'Tune to',
+  filters: [
+    { id: 'all', label: 'All' },
+    { id: 'following', label: 'Following' },
+    { id: 'nearby', label: 'Nearby' },
+  ],
+  followingLater: 'Later: pours from the people you follow on Bluesky.',
+  nearbyLater: 'Later: pours at bars near you.',
+  you: 'You',
+  onDevice: 'On this device',
+  empty: 'Nothing on the air yet. Order a drink, rate it, and it goes out here.',
+  emptyCta: 'Order a drink',
+  guestTitle: 'Tune in to the people you follow',
+  guestBody: 'Sign in with Bluesky and Radio will carry their pours. Until then it carries yours, on this device.',
+  today: 'Today',
+  yesterday: 'Yesterday',
+} as const;
+
+/** /log: yours — where you are, what you have poured, and the account. */
+export const logPage = {
+  title: 'Log',
+  guestEyebrow: 'On this device',
+  guestTitle: 'Keep this log',
+  guestBody: 'As a guest your coordinate and pours live on this device only. Sign in with Bluesky and they live in your own account, and move with you.',
+  stats: {
+    pours: 'Pours',
+    bars: 'Bars',
+    since: 'Since',
+    best: 'Best so far',
+  },
+  logDirectly: 'Log one directly',
+  settingsTitle: 'Account',
+  publicMap: 'Your public map',
+  assistants: 'Chat assistants',
+  account: 'Sign out, start over',
+  startOver: 'Start over',
 } as const;
 
 /**
@@ -375,10 +425,10 @@ export const returnVisit = {
   menuLink: 'Your menu',
   regionLink: 'About this region',
   logEyebrow: 'New entry',
-  logTitle: 'Log a pour',
+  logTitle: 'Rate it',
   ledgerEyebrow: 'Chronicle',
   ledgerTitle: 'What moved it',
-  ledgerEmpty: 'No pours logged yet. Pour a glass, note how it lands, and log it above.',
+  ledgerEmpty: 'No pours yet. Order a drink, rate it, and it lands here.',
   movedBack: 'Back to your ledger',
 } as const;
 

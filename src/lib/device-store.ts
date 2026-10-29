@@ -1,5 +1,5 @@
 import type { UserProfile } from '@/hooks/useDiscoveryQuiz';
-import type { DynamicState, ElicitationRecord } from '@/lib/atproto/records';
+import type { DynamicState, ElicitationRecord, PourRecord } from '@/lib/atproto/records';
 
 /**
  * Everything the app keeps on this device, and the one place that names it.
@@ -17,6 +17,8 @@ const KEYS = {
   guestState: 'palate_state',
   /** A drink ordered in the harbour, until it is rated (or set aside). */
   openOrder: 'open_order',
+  /** A guest's pours, newest first, so Radio and Log have them after a reload. */
+  guestPours: 'guest_pours',
 } as const;
 
 function read<T>(key: string): T | null {
@@ -63,6 +65,12 @@ export interface OpenOrder {
 export const loadOpenOrder = () => read<OpenOrder>(KEYS.openOrder);
 export const saveOpenOrder = (order: OpenOrder) => write(KEYS.openOrder, order);
 export const clearOpenOrder = () => remove(KEYS.openOrder);
+
+/** As many as a member's first page of pours (`getConnectedPours(50)`). */
+const GUEST_POUR_LIMIT = 50;
+
+export const loadGuestPours = () => read<PourRecord[]>(KEYS.guestPours) ?? [];
+export const addGuestPour = (p: PourRecord) => write(KEYS.guestPours, [p, ...loadGuestPours()].slice(0, GUEST_POUR_LIMIT));
 
 export const loadGuestState = () => read<DynamicState>(KEYS.guestState);
 export const saveGuestState = (state: DynamicState) => write(KEYS.guestState, state);

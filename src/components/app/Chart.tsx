@@ -300,6 +300,7 @@ export function DrinkCard({
 
   return (
     <div
+      data-drink-card
       aria-live="polite"
       className="fixed inset-x-0 bottom-tabbar z-20 max-h-96 overflow-y-auto border-t border-foreground bg-card pb-4 shadow-bar lg:bottom-0 lg:pb-safe-b motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-4 sm:mx-auto sm:max-w-xl sm:border-x"
     >

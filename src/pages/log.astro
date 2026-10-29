@@ -1,10 +1,11 @@
 ---
 import AppShell from '../layouts/AppShell.astro';
 import ReturnVisit from '../components/app/ReturnVisit';
-import { site, returnVisit } from '../lib/copy';
+import { site, logPage } from '../lib/copy';
 import { loadRegister } from '../lib/register.server';
 import { signInEnabled } from '../lib/atproto/auth';
 import { parseDraft } from '../lib/pour-draft';
+import { accountFor } from '../lib/atproto/session';
 
 /**
  * The return visit: "Your map, and what moved it."
@@ -20,13 +21,15 @@ const authEnabled = await signInEnabled();
 const initialDrink = Astro.url.searchParams.get('drink')?.trim().slice(0, 200) || undefined;
 // A pour drafted in a chat (`draft_pour` on /mcp), to confirm here (pour-draft.ts).
 const initialDraft = parseDraft(Astro.url.searchParams) ?? undefined;
+const account = await accountFor(Astro.request, false);
+const member = account.kind === 'member' ? { handle: account.handle } : null;
 ---
 
 <AppShell
-  title={`${site.name} — ${returnVisit.eyebrow}`}
+  title={`${site.name} — ${logPage.title}`}
   currentPath="/log"
   width="standard"
   bottomBar
 >
-  <ReturnVisit client:load register={register} signInEnabled={authEnabled} initialDrink={initialDrink} initialDraft={initialDraft} />
+  <ReturnVisit client:load register={register} signInEnabled={authEnabled} member={member} initialDrink={initialDrink} initialDraft={initialDraft} />
 </AppShell>

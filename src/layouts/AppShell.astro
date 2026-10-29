@@ -3,6 +3,7 @@ import Base from './Base.astro';
 import SiteHeader from '../components/marketing/SiteHeader.astro';
 import SiteFooter from '../components/marketing/SiteFooter.astro';
 import AppBar from '../components/marketing/AppBar.astro';
+import OrderButton from '../components/marketing/OrderButton.astro';
 import { accountFor } from '../lib/atproto/session';
 
 interface Props {
@@ -55,6 +56,8 @@ const widthClass = {
         </nav>
       )}
       <slot />
+      {/* Room to scroll the last of the content out from under the Order button. */}
+      {bottomBar && <div aria-hidden="true" class="h-16" />}
     </div>
 
     <div
@@ -65,5 +68,6 @@ const widthClass = {
     </div>
 
     {bottomBar && <AppBar currentPath={currentPath} />}
+    {bottomBar && !currentPath.startsWith('/harbour') && <OrderButton />}
   </div>
 </Base>

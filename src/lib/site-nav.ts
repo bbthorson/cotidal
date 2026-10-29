@@ -10,8 +10,8 @@ import { appBar, nav } from './copy';
  * links to the landing section but is current on any `/regions/*` page.
  */
 export const destinations = [
+  { href: '/radio', label: nav.radio, match: '/radio', app: true },
   { href: '/taste', label: nav.map, match: '/taste', app: true },
-  { href: '/harbour', label: nav.harbour, match: '/harbour', app: true },
   { href: '/log', label: nav.log, match: '/log', app: true },
   { href: '/drinks', label: nav.register, match: '/drinks', app: false },
   { href: '/#regions', label: nav.regions, match: '/regions', app: false },
@@ -31,10 +31,13 @@ export const signInHref = (currentPath: string) =>
 
 /** The bar along the foot of the app on a phone (`AppBar.astro`). */
 export const appDestinations = [
-  { href: '/taste', label: appBar.chart, match: '/taste' },
-  { href: '/harbour', label: appBar.harbour, match: '/harbour' },
+  { href: '/radio', label: appBar.radio, match: '/radio' },
+  { href: '/taste', label: appBar.compass, match: '/taste' },
   { href: '/log', label: appBar.log, match: '/log' },
 ] as const;
+
+/** Where the Order button goes: the harbour, composed in steps. */
+export const orderHref = '/harbour';
 
 /** /log with its form opened on a drink ("Log this" on the map). */
 export const logPathFor = (drinkName: string) => `/log?drink=${encodeURIComponent(drinkName)}`;
