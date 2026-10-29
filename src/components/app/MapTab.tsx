@@ -35,7 +35,10 @@ const key = (d: { x: number; y: number }) => `${d.x},${d.y}`;
 /**
  * The Map tab: every drink at its coordinate, with three readings of the same
  * square — everything, your menu, what you've poured. Tap a dot (or a row
- * in the list below) and the drink opens under the map, with "Log this".
+ * in the list below) and the drink opens with "Log this": on a phone as a
+ * card over the tab bar, the way a maps app opens a place, so nothing on the
+ * page moves and a row tapped at the foot of the list is answered where the
+ * thumb is; from `lg` under the map.
  */
 export function MapTab({ you, menu, closeness, pours, register, onLog }: MapTabProps) {
   const [lens, setLens] = useState<Lens>('all');
@@ -120,7 +123,7 @@ export function MapTab({ you, menu, closeness, pours, register, onLog }: MapTabP
   const listTitle = lens === 'menu' ? mapTab.onMenu : lens === 'pours' ? mapTab.poured : mapTab.nearest;
 
   return (
-    <div className="flex flex-col">
+    <div className={cn('flex flex-col', selectedDrink && 'pb-72 lg:pb-0')}>
       <div role="group" aria-label={mapTab.lensLabel} className="grid grid-cols-3 border border-foreground">
         {mapTab.lenses.map((l, i) => (
           <button
@@ -157,7 +160,7 @@ export function MapTab({ you, menu, closeness, pours, register, onLog }: MapTabP
         {you && <YouMark x={you.x} y={you.y} label={`Your coordinate, in ${quadrantFor(you.x, you.y).name}`} />}
       </CoordinateMap>
 
-      <div className="mt-2 flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
+      <div className="mt-2 flex min-h-5 flex-wrap items-center justify-between gap-x-4 gap-y-1">
         <ul className="flex flex-wrap gap-x-4 gap-y-1">
           {legend.map((item) => (
             <li key={item.label} className="flex items-center gap-1.5 text-meta text-muted-foreground">
@@ -176,7 +179,7 @@ export function MapTab({ you, menu, closeness, pours, register, onLog }: MapTabP
             </li>
           ))}
         </ul>
-        {!selectedDrink && <span className="text-meta text-muted-foreground">{mapTab.hint}</span>}
+        <span className="text-meta text-muted-foreground">{mapTab.hint}</span>
       </div>
 
       {selectedDrink && (
@@ -193,7 +196,7 @@ export function MapTab({ you, menu, closeness, pours, register, onLog }: MapTabP
         />
       )}
 
-      <section className="mt-8">
+      <section className="mt-6">
         <h2 className="border-b border-foreground pb-1.5 font-serif text-xl font-bold">{listTitle}</h2>
         {ordered.length === 0 ? (
           <p className="border-b border-border py-6 font-serif text-prose italic text-muted-foreground">
@@ -273,72 +276,74 @@ function DrinkPanel({
   return (
     <div
       aria-live="polite"
-      className="mt-4 flex flex-col gap-2.5 border border-foreground bg-card p-4.5 motion-safe:animate-in motion-safe:fade-in"
+      className="fixed inset-x-0 bottom-tabbar z-20 max-h-96 overflow-y-auto border-t border-foreground bg-card shadow-bar motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-4 lg:static lg:z-auto lg:mt-4 lg:max-h-none lg:overflow-visible lg:border lg:shadow-none"
     >
-      <div className="flex items-baseline justify-between gap-3">
-        <span className="font-condensed text-xs font-semibold uppercase tracking-label text-secondary">
-          {region.name} · {formatCoordinate(drink.x, drink.y)}
-        </span>
-        <button
-          type="button"
-          onClick={onClose}
-          className="-my-2 -mr-2 flex min-h-11 items-center px-2 font-condensed text-xs uppercase tracking-label text-muted-foreground hover:text-foreground"
-        >
-          {mapTab.close}
-        </button>
-      </div>
-      <span className="font-serif text-title font-bold text-foreground">{title}</span>
-      {entry?.build && <span className="text-sm text-muted-foreground">{entry.build}</span>}
-
-      <dl className="border-t border-border pt-1">
-        {closeness !== undefined && (
-          <div className="dot-leader py-1.5">
-            <dt className="text-meta text-muted-foreground">{mapTab.closeness}</dt>
-            <span aria-hidden="true" className="leader" />
-            <dd className="font-condensed text-ui font-bold tabular-nums">{closeness}</dd>
-          </div>
-        )}
-        {lastLine && (
-          <div className="dot-leader py-1.5">
-            <dt className="text-meta text-muted-foreground">{mapTab.lastPour}</dt>
-            <span aria-hidden="true" className="leader" />
-            <dd className="font-condensed text-ui font-semibold">{lastLine}</dd>
-          </div>
-        )}
-      </dl>
-
-      {sameSpot.length > 0 && (
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="font-condensed text-xs uppercase tracking-label text-muted-foreground">{mapTab.sameSpot}</span>
-          {sameSpot.map((d) => (
-            <button
-              key={d.id}
-              type="button"
-              onClick={() => onPick(d.id)}
-              className="min-h-9 border border-border px-2.5 font-condensed text-xs uppercase tracking-label text-secondary transition-colors hover:border-foreground"
-            >
-              {d.label}
-            </button>
-          ))}
-        </div>
-      )}
-
-      <div className="mt-1 flex flex-wrap items-center gap-x-5 gap-y-2">
-        <button
-          type="button"
-          onClick={onLog}
-          className="btn btn-primary px-5"
-        >
-          {mapTab.logThis}
-        </button>
-        {entry && (
-          <a
-            href={`/drinks/${entry.slug}`}
-            className="inline-flex min-h-11 items-center font-condensed text-xs uppercase tracking-label text-primary hover:underline"
+      <div className="mx-auto flex max-w-xl flex-col gap-2 px-6 py-4 lg:max-w-none lg:gap-2.5 lg:p-4.5">
+        <div className="flex items-baseline justify-between gap-3">
+          <span className="font-condensed text-xs font-semibold uppercase tracking-label text-secondary">
+            {region.name} · {formatCoordinate(drink.x, drink.y)}
+          </span>
+          <button
+            type="button"
+            onClick={onClose}
+            className="-my-2 -mr-2 flex min-h-11 items-center px-2 font-condensed text-xs uppercase tracking-label text-muted-foreground hover:text-foreground"
           >
-            {mapTab.readEntry} &rarr;
-          </a>
+            {mapTab.close}
+          </button>
+        </div>
+        <span className="font-serif text-2xl font-bold leading-tight text-foreground lg:text-title">{title}</span>
+        {entry?.build && <span className="line-clamp-2 text-sm text-muted-foreground lg:line-clamp-none">{entry.build}</span>}
+
+        <dl className="border-t border-border pt-1">
+          {closeness !== undefined && (
+            <div className="dot-leader py-1.5">
+              <dt className="text-meta text-muted-foreground">{mapTab.closeness}</dt>
+              <span aria-hidden="true" className="leader" />
+              <dd className="font-condensed text-ui font-bold tabular-nums">{closeness}</dd>
+            </div>
+          )}
+          {lastLine && (
+            <div className="dot-leader py-1.5">
+              <dt className="text-meta text-muted-foreground">{mapTab.lastPour}</dt>
+              <span aria-hidden="true" className="leader" />
+              <dd className="font-condensed text-ui font-semibold">{lastLine}</dd>
+            </div>
+          )}
+        </dl>
+
+        {sameSpot.length > 0 && (
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="font-condensed text-xs uppercase tracking-label text-muted-foreground">{mapTab.sameSpot}</span>
+            {sameSpot.map((d) => (
+              <button
+                key={d.id}
+                type="button"
+                onClick={() => onPick(d.id)}
+                className="min-h-9 border border-border px-2.5 font-condensed text-xs uppercase tracking-label text-secondary transition-colors hover:border-foreground"
+              >
+                {d.label}
+              </button>
+            ))}
+          </div>
         )}
+
+        <div className="mt-1 flex flex-wrap items-center gap-x-5 gap-y-2">
+          <button
+            type="button"
+            onClick={onLog}
+            className="btn btn-primary px-5"
+          >
+            {mapTab.logThis}
+          </button>
+          {entry && (
+            <a
+              href={`/drinks/${entry.slug}`}
+              className="inline-flex min-h-11 items-center font-condensed text-xs uppercase tracking-label text-primary hover:underline"
+            >
+              {mapTab.readEntry} &rarr;
+            </a>
+          )}
+        </div>
       </div>
     </div>
   );

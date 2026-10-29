@@ -124,7 +124,7 @@ export function ResultsScreen({
   const rest = goTo.slice(1);
 
   return (
-    <div className="mx-auto max-w-xl pb-6 pt-5 motion-safe:animate-in motion-safe:fade-in lg:pb-0 lg:pt-8">
+    <div className="mx-auto max-w-xl pb-6 pt-4 motion-safe:animate-in motion-safe:fade-in lg:pb-0 lg:pt-8">
       <AppNavigation
         activeTab={activeTab}
         onTabChange={changeTab}
@@ -190,20 +190,17 @@ export function ResultsScreen({
             </div>
           )}
 
-          {isConnected && (
-            <MemberTools
-              handle={handle}
-              topName={top ? displayName(top.name) : ''}
-              regionName={region.name}
-            />
-          )}
-
-          <StartOver onConfirm={onStartOver} />
+          <MemberTools
+            handle={isConnected ? handle : null}
+            topName={top ? displayName(top.name) : ''}
+            regionName={region.name}
+            onStartOver={onStartOver}
+          />
         </div>
       )}
 
       {activeTab === 'map' && (
-        <div className="mt-4.5 motion-safe:animate-in motion-safe:fade-in">
+        <div className="mt-4 motion-safe:animate-in motion-safe:fade-in">
           <MapTab
             you={hasCoordinate ? { x: user.x, y: user.y } : null}
             menu={goTo.map((d) => d.name)}
@@ -273,7 +270,7 @@ function TopPick({
   const loading = why?.name !== drink.name;
 
   return (
-    <div className="mt-5 flex flex-col gap-2.5 border border-foreground bg-card p-4.5 shadow-mcm">
+    <div className="mt-4 flex flex-col gap-2.5 border border-foreground bg-card p-4.5 shadow-mcm">
       <div className="flex items-baseline justify-between">
         <span className="font-condensed text-xs font-semibold uppercase tracking-label text-secondary">
           {menu.topPrefix} · {menu.topTitle}
@@ -288,7 +285,8 @@ function TopPick({
         <p
           aria-busy={loading}
           className={cn(
-            'border-t border-border pt-2.5 font-serif text-ui italic',
+            // Two lines held open while it loads, so the list below does not drop when it lands.
+            'min-h-16 border-t border-border pt-2.5 font-serif text-ui italic',
             loading && 'text-muted-foreground motion-safe:animate-pulse'
           )}
         >
@@ -299,18 +297,27 @@ function TopPick({
   );
 }
 
-/** For signed-in members: who you are, your public map, and sharing. */
+/**
+ * The foot of the menu, in one ruled-off block rather than three stacked
+ * ones: who you are (a member), your public map, sharing, the account, and
+ * start over. They were separate bands, each with its own rules and margin,
+ * which on a phone read as a run of empty lines.
+ */
 function MemberTools({
   handle,
   topName,
   regionName,
+  onStartOver,
 }: {
+  /** Null for a guest. */
   handle: string | null;
   topName: string;
   regionName: string;
+  onStartOver: () => void;
 }) {
   const [shareState, setShareState] = useState<'idle' | 'sharing' | 'shared'>('idle');
   const [shareError, setShareError] = useState<string | null>(null);
+  const [confirming, setConfirming] = useState(false);
 
   const share = async () => {
     setShareState('sharing');
@@ -324,78 +331,76 @@ function MemberTools({
     }
   };
 
+  const link = 'inline-flex min-h-11 items-center font-condensed text-xs uppercase tracking-label transition-colors';
+
   return (
-    <div className="mt-8 space-y-8">
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 border-y border-border py-2">
-        <span className="mr-auto text-meta text-muted-foreground">
+    <div className="mt-6">
+      {handle && (
+        <p className="text-meta text-muted-foreground">
           {menu.signedInAs} <span className="font-bold text-foreground">@{handle}</span>
-        </span>
+        </p>
+      )}
+      <div className="flex flex-wrap items-center gap-x-5">
         {handle && (
-          <a
-            href={publicMapPath(handle)}
-            className="inline-flex min-h-11 items-center font-condensed text-xs uppercase tracking-label text-secondary transition-colors hover:text-primary"
-          >
-            {publicMap.memberLink}
-          </a>
+          <>
+            <a href={publicMapPath(handle)} className={cn(link, 'text-secondary hover:text-primary')}>
+              {publicMap.memberLink}
+            </a>
+            <button
+              type="button"
+              onClick={share}
+              disabled={shareState !== 'idle'}
+              className={cn(link, 'text-secondary hover:text-primary disabled:text-muted-foreground')}
+            >
+              {shareState === 'shared' ? menu.shared : menu.share}
+            </button>
+            {/* Sign out lives in the header and on /account: a form post, no script needed. */}
+            <a href={accountHref} className={cn(link, 'text-muted-foreground hover:text-foreground')}>
+              {nav.account}
+            </a>
+          </>
         )}
-        <button
-          type="button"
-          onClick={share}
-          disabled={shareState !== 'idle'}
-          className="min-h-11 font-condensed text-xs uppercase tracking-label text-secondary transition-colors hover:text-primary disabled:text-muted-foreground"
-        >
-          {shareState === 'shared' ? menu.shared : menu.share}
-        </button>
-        {/* Sign out lives in the header and on /account: a form post, no script needed. */}
-        <a
-          href={accountHref}
-          className="inline-flex min-h-11 items-center font-condensed text-xs uppercase tracking-label text-muted-foreground transition-colors hover:text-foreground"
-        >
-          {nav.account}
-        </a>
-        {shareError && (
-          <p role="alert" className="w-full text-meta text-destructive">
-            {shareError}
-          </p>
+        {!confirming && (
+          <button
+            type="button"
+            onClick={() => setConfirming(true)}
+            className={cn(link, 'text-muted-foreground hover:text-primary')}
+          >
+            {menu.startOver}
+          </button>
         )}
       </div>
+      {shareError && (
+        <p role="alert" className="text-meta text-destructive">
+          {shareError}
+        </p>
+      )}
+      {confirming && <StartOver onConfirm={onStartOver} onCancel={() => setConfirming(false)} />}
     </div>
   );
 }
 
 /**
- * Start over, in two steps: the first says what it does, the second does it.
+ * Start over, in two steps: the link above says what it is, this does it.
  * A coordinate built from a quiz and a ledger of pours is not something to
  * lose to a stray tap. The words are /account's, so the two cannot disagree.
  */
-function StartOver({ onConfirm }: { onConfirm: () => void }) {
-  const [confirming, setConfirming] = useState(false);
-  const quiet =
-    'min-h-11 px-4 font-condensed text-meta uppercase tracking-label text-muted-foreground underline decoration-primary underline-offset-4 transition-colors hover:text-primary';
-
+function StartOver({ onConfirm, onCancel }: { onConfirm: () => void; onCancel: () => void }) {
   return (
-    <div className="mt-10 border-t border-border pt-4 text-center">
-      {confirming ? (
-        <div role="group" aria-label={menu.startOver} className="mx-auto flex max-w-sm flex-col items-center gap-3">
-          <p className="text-ui text-muted-foreground">{account.startOverBody}</p>
-          <div className="flex flex-wrap justify-center gap-2">
-            <button
-              type="button"
-              onClick={onConfirm}
-              className="btn btn-primary px-4"
-            >
-              {account.startOverCta}
-            </button>
-            <button type="button" onClick={() => setConfirming(false)} className={quiet}>
-              {menu.startOverCancel}
-            </button>
-          </div>
-        </div>
-      ) : (
-        <button type="button" onClick={() => setConfirming(true)} className={quiet}>
-          {menu.startOver}
+    <div role="group" aria-label={menu.startOver} className="mt-2 flex flex-col gap-3 border-t border-border pt-4">
+      <p className="text-ui text-muted-foreground">{account.startOverBody}</p>
+      <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+        <button type="button" onClick={onConfirm} className="btn btn-primary px-4">
+          {account.startOverCta}
         </button>
-      )}
+        <button
+          type="button"
+          onClick={onCancel}
+          className="inline-flex min-h-11 items-center font-condensed text-xs uppercase tracking-label text-muted-foreground transition-colors hover:text-foreground"
+        >
+          {menu.startOverCancel}
+        </button>
+      </div>
     </div>
   );
 }

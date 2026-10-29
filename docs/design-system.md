@@ -121,7 +121,7 @@ Navigation is unified across the entire site through `<SiteHeader.astro>` and `<
    - a member sees `@handle`, which opens `/account`, and **Sign out** — a plain form post that answers with a redirect, like sign-in, so it needs no script;
    - a guest sees **Sign in**;
    - a prerendered page (`/drinks`, `/regions/*`) was built before anyone visited, so it says **Account** (`/account`) rather than guess.
-4. **Footer**: the reading pages only — Home, Drinks, The Four Regions, For Bars. The app destinations and the account are always in the header.
+4. **Footer**: the reading pages only — Home, Drinks, The Four Regions, For Bars. The app destinations and the account are always in the header. On `/taste` it is left out below `lg`: the bottom tab bar is that page's foot, and the header's Menu already lists the same pages.
 5. **Active State Indicators**: Routes are identified via `currentPath` and styled with `bg-secondary text-secondary-foreground shadow-bar`.
 6. **Sub-Route Navigation**: In `/drinks/[slug]`, the header supports a semantic `backLink` while retaining global site navigation.
 7. **Phones**: the header collapses to wordmark · account · Menu. "Menu" is a `<details>` that opens the same `<nav>` through `peer-open`, so `/` still ships no JavaScript; a member's Sign out sits at the foot of it.
@@ -132,13 +132,15 @@ Navigation is unified across the entire site through `<SiteHeader.astro>` and `<
 
 Questions → reveal → your menu. Sign-in is offered once, after the reveal, as one sheet (`SignInSheet.tsx`) that states what it buys; the landing page's form (`ConnectForm.astro`) renders the same promise from `connect.buys` in `copy.ts`. The radar chart, the archetypes and the Oracle tab are retired from the interface; the region is the only identity. Logging a pour ends on the after-a-pour screen, which shows the coordinate moving and what changed on the menu.
 
+**Nothing moves under the reader.** A tap opens something where the thumb is rather than inserting it above what was tapped; anything that loads after paint (the top pick's line) holds its space while it does; the foot of the menu — who you are, your public map, share, account, start over — is one block under one rule, not a band each.
+
 ## Logging a pour (`/taste` Log tab and `/log`)
 
 One form (`PourForm.tsx`) and one ledger (`PourLedger.tsx`) serve both places. Ratings use the 9-point hedonic scale the pour record stores, as nine cells in an ink frame; "What was off" uses axis tags; spirit, glass, garnish and the sensory sliders sit behind "More detail" for signed-in members. Both places end on the same after-a-pour screen (`Moved.tsx`).
 
 ## The Map tab (`MapTab.tsx`)
 
-The square map with three readings: Everything (menu drinks filled), Your menu, and Your pours (liked 7+ filled, 5–6 hollow, 4 or below muted). Each dot is a 24px target (`DrinkSpot`); drinks sharing a coordinate share one spot. Tapping a dot or a list row opens the drink under the map: region and coordinate, build, closeness, your last pour, "Log this" (which opens the Log tab on that drink) and the register entry. The list below is the full-size path to every drink. No trail of past positions is drawn, because coordinate history is not stored.
+The square map with three readings: Everything (menu drinks filled), Your menu, and Your pours (liked 7+ filled, 5–6 hollow, 4 or below muted). Each dot is a 24px target (`DrinkSpot`); drinks sharing a coordinate share one spot. Tapping a dot or a list row opens the drink — on a phone as a card pinned above the tab bar (`bottom-tabbar`), the way a maps app opens a place, so nothing on the page moves; from `lg` under the map: region and coordinate, build, closeness, your last pour, "Log this" (which opens the Log tab on that drink) and the register entry. The list below is the full-size path to every drink. No trail of past positions is drawn, because coordinate history is not stored.
 
 ---
 
