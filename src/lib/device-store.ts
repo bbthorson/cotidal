@@ -15,8 +15,8 @@ const KEYS = {
   pendingAnswers: 'pending_elicitation',
   /** A guest's filter state, so their steps shrink as pours accumulate. */
   guestState: 'palate_state',
-  /** A drink ordered in the harbour, until it is rated (or set aside). */
-  openOrder: 'open_order',
+  /** The drink picked in the harbour, until it is rated (or set aside). Kept under its first name. */
+  pick: 'open_order',
   /** A guest's pours, newest first, so Radio and Log have them after a reload. */
   guestPours: 'guest_pours',
 } as const;
@@ -55,16 +55,16 @@ export const loadPendingAnswers = () => read<ElicitationRecord>(KEYS.pendingAnsw
 export const savePendingAnswers = (record: ElicitationRecord) => write(KEYS.pendingAnswers, record);
 export const clearPendingAnswers = () => remove(KEYS.pendingAnswers);
 
-export interface OpenOrder {
+export interface DrinkPick {
   drink: string;
   bar?: string;
   atHome?: boolean;
-  orderedAt: string;
+  pickedAt: string;
 }
 
-export const loadOpenOrder = () => read<OpenOrder>(KEYS.openOrder);
-export const saveOpenOrder = (order: OpenOrder) => write(KEYS.openOrder, order);
-export const clearOpenOrder = () => remove(KEYS.openOrder);
+export const loadPick = () => read<DrinkPick>(KEYS.pick);
+export const savePick = (pick: DrinkPick) => write(KEYS.pick, pick);
+export const clearPick = () => remove(KEYS.pick);
 
 /** As many as a member's first page of pours (`getConnectedPours(50)`). */
 const GUEST_POUR_LIMIT = 50;

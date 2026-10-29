@@ -23,27 +23,26 @@ export const nav = {
   map: 'Compass',
   register: 'Drinks',
   regions: 'The Four Regions',
-  signIn: 'Sign in',
+  signIn: 'Come aboard',
   signOut: 'Sign out',
   /** The header's account link where the page cannot know who is reading (prerendered). */
   account: 'Account',
   menu: 'Menu',
   footer: 'Site',
   log: 'Log',
-  order: 'Order',
   bars: 'For Bars',
 } as const;
 
 /**
  * The bar along the foot of the app on a phone: listen, navigate, record.
- * Ordering is not a place, so it is a button (`OrderButton.astro`), not a tab.
+ * Picking a drink is not a place, so it is a button (`PickButton.astro`), not a tab.
  */
 export const appBar = {
   label: 'App',
   radio: 'Radio',
   compass: 'Compass',
   log: 'Log',
-  order: 'Order',
+  pick: 'Pick a drink',
 } as const;
 
 /**
@@ -52,7 +51,6 @@ export const appBar = {
  */
 export const radio = {
   title: 'Radio',
-  intro: 'Pours as they go out, newest first.',
   filterLabel: 'Tune to',
   filters: [
     { id: 'all', label: 'All' },
@@ -63,10 +61,9 @@ export const radio = {
   nearbyLater: 'Later: pours at bars near you.',
   you: 'You',
   onDevice: 'On this device',
-  empty: 'Nothing on the air yet. Order a drink, rate it, and it goes out here.',
-  emptyCta: 'Order a drink',
+  empty: 'Nothing on the air yet. Pick a drink, rate it, and it goes out here.',
   guestTitle: 'Tune in to the people you follow',
-  guestBody: 'Sign in with Bluesky and Radio will carry their pours. Until then it carries yours, on this device.',
+  guestBody: 'Come aboard with your Bluesky account and Radio will carry their pours. Until then it carries yours, on this device.',
   today: 'Today',
   yesterday: 'Yesterday',
 } as const;
@@ -76,7 +73,7 @@ export const logPage = {
   title: 'Log',
   guestEyebrow: 'On this device',
   guestTitle: 'Keep this log',
-  guestBody: 'As a guest your coordinate and pours live on this device only. Sign in with Bluesky and they live in your own account, and move with you.',
+  guestBody: 'As a guest your coordinate and pours live on this device only. Come aboard with your Bluesky account and they live in your own account, and move with you.',
   stats: {
     pours: 'Pours',
     bars: 'Bars',
@@ -93,17 +90,17 @@ export const logPage = {
 
 /**
  * /harbour: at a bar, deciding. Composed in steps like a post — where you
- * are, what's pouring, what to order — and the order is kept as a draft
- * until you rate it.
+ * are, what's pouring, which to have — and the pick is kept as a draft
+ * until you rate it. It orders nothing: Cotidal is not connected to the bar.
  */
 export const harbour = {
   title: 'Harbour',
-  steps: ['Where', 'Menu', 'Order'],
+  steps: ['Where', 'Menu', 'Pick'],
   stepOf: (n: number, total: number) => `${n} of ${total}`,
   back: 'Back',
   next: 'Next',
   whereTitle: 'Where are you?',
-  whereBody: 'The bar, so the order and the rating land in the same place.',
+  whereBody: 'The bar, so your pick and its rating land in the same place.',
   barLabel: 'Bar name',
   atHome: 'At home',
   recentLabel: 'Recently',
@@ -116,19 +113,19 @@ export const harbour = {
   placed: 'On the map',
   unplaced: 'Not on the map',
   photoLater: 'Later: photograph the menu instead of typing it.',
-  orderTitle: (where: string) => `What to order at ${where}`,
-  orderTitleHome: 'What to pour at home',
-  orderBody: 'Ranked by how close each drink sits to your coordinate.',
+  pickTitle: (where: string) => `What to have at ${where}`,
+  pickTitleHome: 'What to pour at home',
+  pickBody: 'Ranked by how close each drink sits to your coordinate.',
   unplacedTitle: 'Can’t place these yet',
-  orderThis: 'Order this',
-  orderedEyebrow: 'Ordered',
-  orderedBody: 'Kept on this device until you rate it. Rate it once you’ve tasted it — that is what moves your coordinate.',
+  pickThis: 'Pick this',
+  pickedEyebrow: 'Your pick',
+  pickedBody: 'Kept on this device until you rate it. Rate it once you’ve tasted it — that is what moves your coordinate.',
   rateNow: 'Rate it now',
   rateLater: 'Rate it later',
   coldTitle: 'Find your coordinate first.',
   coldBody: 'The harbour ranks a bar’s menu against your coordinate. A few questions place it.',
   coldCta: 'Find your coordinate',
-  waiting: 'Waiting for your rating',
+  waiting: 'Your pick, waiting for a rating',
   rate: 'Rate it',
   dismiss: 'Set it aside',
 } as const;
@@ -150,7 +147,7 @@ export const account = {
   startOverCta: 'Retake the questions',
   signOutTitle: 'Sign out',
   signOutBody: 'Signing out also clears your coordinate from this device. It stays on your account.',
-  guestTitle: 'Sign in to keep your coordinate.',
+  guestTitle: 'Come aboard to keep your coordinate.',
 } as const;
 
 export const hero = {
@@ -232,7 +229,7 @@ export const sections = {
   /** From a region to its section of /drinks. */
   regionDrinks: 'Its drinks',
   principles: 'Your logbook, not ours',
-  connect: 'Sign in',
+  connect: 'Come aboard',
 } as const;
 
 export const connect = {
@@ -240,10 +237,10 @@ export const connect = {
   /** Landing page only; the in-app sheet goes straight from title to list. */
   lede: 'A palate isn’t static. Neither is your map.',
   body:
-    'What you want at 6 PM in July isn’t what you want at midnight in November. Sign in to keep your starting point, take it to the bar, and watch your coordinate drift as you log what you drink.',
+    'What you want at 6 PM in July isn’t what you want at midnight in November. Come aboard to keep your starting point, take it to the bar, and watch your coordinate drift as you log what you drink.',
   label: 'Your Bluesky handle',
   placeholder: 'you.bsky.social',
-  submit: 'Sign in with Bluesky',
+  submit: 'Come aboard with Bluesky',
   connecting: 'Opening Bluesky…',
   guest: 'Keep browsing as a guest',
   divider: 'or',
@@ -256,7 +253,7 @@ export const connect = {
   buys: [
     {
       title: 'Take it to the bar',
-      body: 'Your coordinate follows you to any phone you sign in on. Pull up the drinks nearest you — or show the bartender the three closest instead of playing twenty questions.',
+      body: 'Your coordinate follows you to any phone you come aboard on. Pull up the drinks nearest you — or show the bartender the three closest instead of playing twenty questions.',
     },
     {
       title: 'Log a pour, track the drift',
@@ -416,7 +413,7 @@ export const returnVisit = {
   coldTitle: 'The loop is: drink → log → the map changes.',
   coldBody:
     'Your coordinate is not a quiz result. It is a record in your own account, and it moves every time you log a pour.',
-  signInCta: 'Sign in',
+  signInCta: 'Come aboard',
   quizCta: 'Find your coordinate first',
   guestCta: 'Try a pour as a guest',
   guestNote: 'As a guest, the pour stays on this device.',
@@ -428,7 +425,7 @@ export const returnVisit = {
   logTitle: 'Rate it',
   ledgerEyebrow: 'Chronicle',
   ledgerTitle: 'What moved it',
-  ledgerEmpty: 'No pours yet. Order a drink, rate it, and it lands here.',
+  ledgerEmpty: 'No pours yet. Pick a drink, rate it, and it lands here.',
   movedBack: 'Back to your ledger',
 } as const;
 
@@ -551,7 +548,7 @@ export const pour = {
   crosspost: 'Also post it to your Bluesky feed',
   submit: 'Log this pour',
   submitting: 'Logging…',
-  signInToLog: 'Sign in to log a pour',
+  signInToLog: 'Come aboard to log a pour',
   needDrink: 'Name the drink first.',
   needBar: 'Name the bar, or choose “At home”.',
   needRating: 'Tap how it landed first.',
@@ -622,7 +619,7 @@ export const publicMap = {
     'This is your public map. The palate record behind it already lives in your own repository; this page only draws it.',
   linkLabel: 'Your link',
   guestTitle: 'Where do you land?',
-  guestBody: 'Find your own coordinate, then sign in and open this link again to see the distance between you.',
+  guestBody: 'Find your own coordinate, then come aboard and open this link again to see the distance between you.',
   guestCta: 'Find your coordinate',
   memberNoPalateBody: 'Finish the questions and your coordinate will sit beside theirs here.',
   noPalateTitle: 'No coordinate here yet.',

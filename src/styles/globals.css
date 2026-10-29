@@ -208,11 +208,11 @@
   }
 }
 
-/* The Order button steps aside while a drink card is open: the card has its
+/* "Pick a drink" steps aside while a drink card is open: the card has its
    own action ("Log this"), and the two would stack in the same corner. On
    every width, since the button floats on every width. */
-body:has([data-drink-card]) [data-order-button],
-body:has([data-focus-mode]) [data-order-button] {
+body:has([data-drink-card]) [data-pick-button],
+body:has([data-focus-mode]) [data-pick-button] {
   display: none;
 }
 

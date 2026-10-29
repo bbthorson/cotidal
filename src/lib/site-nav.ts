@@ -36,8 +36,8 @@ export const appDestinations = [
   { href: '/log', label: appBar.log, match: '/log' },
 ] as const;
 
-/** Where the Order button goes: the harbour, composed in steps. */
-export const orderHref = '/harbour';
+/** Where "Pick a drink" goes: the harbour, composed in steps. */
+export const pickHref = '/harbour';
 
 /** /log with its form opened on a drink ("Log this" on the map). */
 export const logPathFor = (drinkName: string) => `/log?drink=${encodeURIComponent(drinkName)}`;

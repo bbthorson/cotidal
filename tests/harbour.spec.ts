@@ -9,9 +9,9 @@ test('Harbour: with no coordinate, it sends you to find one', async ({ page }) =
   await expect(page.getByRole('link', { name: harbour.coldCta })).toHaveAttribute('href', '/taste');
 });
 
-test('Harbour: where, the menu, the order — then the draft waits on the chart', async ({ page }) => {
+test('Harbour: where, the menu, the pick — then the draft waits on the chart', async ({ page }) => {
   await page.addInitScript((p) => {
-    // Only on the first load: the flow writes its own order after.
+    // Only on the first load: the flow writes its own pick after.
     if (!sessionStorage.getItem('seeded')) {
       localStorage.setItem('user_profile', JSON.stringify(p));
       sessionStorage.setItem('seeded', '1');
@@ -37,16 +37,16 @@ test('Harbour: where, the menu, the order — then the draft waits on the chart'
   await next.click();
 
   // Ranked, closest first, with what could not be placed set apart.
-  await expect(page.getByRole('heading', { name: harbour.orderTitle('Attaboy') })).toBeVisible();
+  await expect(page.getByRole('heading', { name: harbour.pickTitle('Attaboy') })).toBeVisible();
   const scores = await page.getByLabel(/^Closeness \d+$/).evaluateAll((els) => els.map((el) => Number(el.textContent)));
   expect(scores).toHaveLength(2);
   expect(scores).toEqual([...scores].sort((a, b) => b - a));
   await expect(page.getByText('House Special')).toBeVisible();
 
   await page.getByRole('button', { name: /Negroni/ }).click();
-  await page.getByRole('button', { name: harbour.orderThis }).click();
+  await page.getByRole('button', { name: harbour.pickThis }).click();
 
-  // Ordered: rating hands the draft to /log, with no rating in it.
+  // Picked: rating hands the draft to /log, with no rating in it.
   await expect(page.getByRole('heading', { name: 'Negroni' })).toBeVisible();
   const rate = page.getByRole('link', { name: harbour.rateNow });
   const href = new URL((await rate.getAttribute('href'))!, 'http://x');

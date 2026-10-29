@@ -127,7 +127,8 @@ Navigation is unified across the entire site through `<SiteHeader.astro>` and `<
 7. **Phones**: the header collapses to wordmark · account · Menu. "Menu" is a `<details>` that opens the same `<nav>` through `peer-open`, so `/` still ships no JavaScript; a member's Sign out sits at the foot of it.
 8. **Focus mode**: any element marked `data-focus-mode` (the quiz, the reveal, the after-a-pour screen) hides the site header and footer below `lg` (`globals.css`, pure CSS so nothing flashes before hydration).
 9. **The app bar** (`AppBar.astro`): **Radio · Compass · Log** along the foot of a phone on the app pages (`AppShell`'s `bottomBar`) — listen, navigate, record. Plain links, no script; hidden in focus mode and from `lg`, where the header carries the same destinations. A card pinned above it (Compass's drink card) uses the `tabbar` spacing token.
-10. **Order** (`OrderButton.astro`): ordering is the one thing you *do*, not a place, so it is a floating button rather than a tab — above the app bar on a phone, in the corner from `lg`. It opens the harbour. Not drawn on the harbour, while a drink card is open, or in focus mode.
+10. **Pick a drink** (`PickButton.astro`): choosing what to have is the one thing you *do*, not a place, so it is a floating button rather than a tab — above the app bar on a phone, in the corner from `lg`. It opens the harbour. Not drawn on the harbour, while a drink card is open, or in focus mode.
+11. **No page titles on screen in the app.** The app bar already says which tab you are on, so Radio and Log name themselves for screen readers only (`sr-only` `h1`) and open on their content.
 
 ## The first-visit flow (`/taste`)
 
@@ -140,7 +141,7 @@ Everything works signed out, on the device; signing in moves the record into the
 | | Signed out (guest) | Signed in (member) |
 |---|---|---|
 | **Compass** | Everything | Everything |
-| **Order** (harbour) | Everything; the order waits on the device | The same |
+| **Pick a drink** (harbour) | Everything; the pick waits on the device | The same |
 | **Rating** | Moves the coordinate on this device; the pour is kept there (`guestPours`, `device-store.ts`) | Written to the member's repository |
 | **Radio** | Their pours on this device, and once what signing in buys | Their pours; Following and Nearby are **Later:** |
 | **Log** | Coordinate and pours, marked *On this device*, and what signing in keeps | `@handle`, coordinate, pours, the account (public map, share, chat assistants, sign out and start over) |
@@ -149,11 +150,11 @@ Signing out forgets the device's copy (`forgetDevice`). A guest's pours stay on 
 
 ## Radio (`/radio`, `Radio.tsx`)
 
-Pours as they go out, newest first, kept like a radio log: grouped by day, the time in a narrow margin (`grid-cols-radio`), who sent it and where, the drink and its score. The dial is All · Following · Nearby; the last two say plainly that they are Later rather than standing empty. An order waiting to be rated sits at the top.
+Pours as they go out, newest first, kept like a radio log: grouped by day, the time in a narrow margin (`grid-cols-radio`), who sent it and where, the drink and its score. The dial is All · Following · Nearby; the last two say plainly that they are Later rather than standing empty. A pick waiting to be rated sits at the top.
 
 ## Log (`/log`, `ReturnVisit.tsx`)
 
-Yours: where you are (region and coordinate, linked to the region and to Compass), what the log adds up to (pours, bars, since, best so far), the ledger, and the account. The rating form shows only while rating something — a drink handed over ("Log this", an order, a chat's draft) or "Log one directly" — and closes once the pour is logged.
+Yours: where you are (region and coordinate, linked to the region and to Compass), what the log adds up to (pours, bars, since, best so far), the ledger, and the account. The rating form shows only while rating something — a drink handed over ("Log this", a pick, a chat's draft) or "Log one directly" — and closes once the pour is logged.
 
 ## Compass (`Chart.tsx`, `/taste`)
 
@@ -170,7 +171,9 @@ No trail of past positions is drawn yet; the pours to rebuild one from are store
 
 ## The harbour (`/harbour`, `Harbour.tsx`)
 
-At a bar, deciding. Composed in steps like a post, numbered in a three-cell strip: **Where** (a bar, a recent one, or at home) → **Menu** (type what they pour; a line that names a drink on the map is placed, anything else is kept and marked unplaced) → **Order** (the placed drinks ranked by closeness, with the venue in the relevance score; the unplaced listed apart). "Order this" keeps the order on the device (`openOrder` in `device-store.ts`) and offers **Rate it now** — `/log` opened on the order as a draft (`draftPath`, the same hand-off a chat assistant uses), with no rating in it — or **Rate it later**, in which case the chart shows it waiting until it is rated or set aside. Photographing the menu is **Later:**.
+At a bar, deciding. Composed in steps like a post, numbered in a three-cell strip: **Where** (a bar, a recent one, or at home) → **Menu** (type what they pour; a line that names a drink on the map is placed, anything else is kept and marked unplaced) → **Pick** (the placed drinks ranked by closeness, with the venue in the relevance score; the unplaced listed apart). "Pick this" keeps the pick on the device (`pick` in `device-store.ts`) and offers **Rate it now** — `/log` opened on the pick as a draft (`draftPath`, the same hand-off a chat assistant uses), with no rating in it — or **Rate it later**, in which case the chart shows it waiting until it is rated or set aside. Photographing the menu is **Later:**.
+
+**It orders nothing.** Cotidal is rarely connected to a bar's own system, so nothing in the interface says *order*: you pick, the bartender takes the order. Interface copy about the bar itself ("what to order once you know it") is fine.
 
 ## Logging a pour (`/log`)
 

@@ -6,7 +6,7 @@ import { calculateDistance } from '@/lib/scoring';
 import { formatCoordinate } from '@/lib/coordinate';
 import type { PourRecord } from '@/lib/atproto/records';
 import { logDrinkFeedback, getConnectedPours, getConnectedPalate } from '@/lib/api-client';
-import { loadGuestState, loadProfile, saveGuestState, saveProfile, loadOpenOrder, clearOpenOrder, loadGuestPours, addGuestPour } from '@/lib/device-store';
+import { loadGuestState, loadProfile, saveGuestState, saveProfile, loadPick, clearPick, loadGuestPours, addGuestPour } from '@/lib/device-store';
 import { returnVisit, pour, logPage, nav } from '@/lib/copy';
 import { START_OVER_PARAM } from '@/lib/atproto/paths';
 import { catalogSlug, type Register } from '@/lib/register';
@@ -17,7 +17,7 @@ import { PourForm, toLogOptions, type PourEntry } from './PourForm';
 import { withoutDraft, type PourDraft } from '@/lib/pour-draft';
 import { PourLedger } from './PourLedger';
 import { SignInSheet } from './SignInSheet';
-import { OpenOrder } from './OpenOrder';
+import { WaitingPick } from './WaitingPick';
 import { AccountTools } from './AccountTools';
 import {
   createInitialPalateState,
@@ -128,7 +128,7 @@ function ReturnVisitContent({
   const [lastPour, setLastPour] = useState<LastPour | null>(null);
   const [signInOpen, setSignInOpen] = useState(false);
   // The form shows only while rating something: a drink handed over ("Log
-  // this", an order from the harbour, a chat's draft), or one asked for here.
+  // this", a pick from the harbour, a chat's draft), or one asked for here.
   const [rating, setRating] = useState(!!initialDrink || !!initialDraft);
 
   const loadData = useCallback(async () => {
@@ -234,8 +234,8 @@ function ReturnVisitContent({
         addGuestPour(guestPour);
         setPours((prev) => [guestPour, ...prev]);
       }
-      // An order from the harbour, now rated.
-      if (loadOpenOrder()?.drink.toLowerCase() === entry.drinkName.toLowerCase()) clearOpenOrder();
+      // A pick from the harbour, now rated.
+      if (loadPick()?.drink.toLowerCase() === entry.drinkName.toLowerCase()) clearPick();
       if (draft) setDraft(undefined);
       // Rated: the form closes, and a reload must not offer the same pour again.
       const url = withoutDraft(new URL(window.location.href));
@@ -320,18 +320,17 @@ function ReturnVisitContent({
   ];
 
   return (
-    <div className="mx-auto max-w-xl pb-6 pt-5 lg:pt-8">
-      <header className="flex items-baseline justify-between gap-4 border-b border-foreground pb-2">
-        <h1 className="font-serif text-title font-bold text-foreground">{logPage.title}</h1>
-        <span className={member?.handle ? 'font-body text-meta font-bold text-foreground' : 'label-caps'}>
-          {member?.handle ? `@${member.handle}` : member ? '' : logPage.guestEyebrow}
-        </span>
-      </header>
+    <div className="mx-auto max-w-xl pb-6 pt-4 lg:pt-8">
+      {/* Named for screen readers; on screen the app bar already says where you are. */}
+      <h1 className="sr-only">{logPage.title}</h1>
 
       {/* Where you are now, and what the log adds up to */}
-      <div className="mt-4 flex items-center justify-between gap-4">
+      <div className="flex items-center justify-between gap-4">
         <div className="flex flex-col gap-1">
-          <span className="label-caps">{returnVisit.youAreIn}</span>
+          <span className="label-caps">
+            {!member && `${logPage.guestEyebrow} · `}
+            {returnVisit.youAreIn}
+          </span>
           <a href={`/regions/${region.id}`} className="font-serif text-2xl italic leading-none text-primary hover:underline">
             {region.name}
           </a>
@@ -353,7 +352,7 @@ function ReturnVisitContent({
       </dl>
 
       <div className="mt-5">
-        {!rating && <OpenOrder displayName={(n) => register[n]?.title ?? n} />}
+        {!rating && <WaitingPick displayName={(n) => register[n]?.title ?? n} />}
       </div>
 
       {rating && (

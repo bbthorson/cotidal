@@ -54,6 +54,17 @@ hail*, *the rutter* (a mariner's book of sailing directions) — but links and
 navigation use plain words ("Drinks", not "The Rutter"): a reader should never
 have to decode where a link goes.
 
+The app's own words follow the same rule: plain enough to need no decoding,
+nautical where a plain word allows it.
+
+| Word | Means | |
+|---|---|---|
+| **Radio** | The feed | How you hear the boats around you |
+| **Compass** | The map and your menu | Which way to go next |
+| **Log** | Yours: coordinate, pours, account | A ship's log is its own record |
+| **Pick a drink** | The harbour's steps | Never *order*: Cotidal is not connected to the bar, and the bartender takes the order |
+| **Come aboard** | Sign in | The button that starts Bluesky sign-in says so: "Come aboard with Bluesky" |
+
 ## Claims
 
 **The copy says only what the product does today.** A precise instrument that

@@ -2,11 +2,10 @@ import { useMemo, useState } from 'react';
 import { nav, pour, radio } from '@/lib/copy';
 import type { Register } from '@/lib/register';
 import type { PourRecord } from '@/lib/atproto/records';
-import { orderHref } from '@/lib/site-nav';
 import { usePours } from '@/hooks/usePours';
 import { cn } from '@/lib/utils';
 import { AtprotoProvider } from './AtprotoProvider';
-import { OpenOrder } from './OpenOrder';
+import { WaitingPick } from './WaitingPick';
 import { SignInSheet } from './SignInSheet';
 
 type Filter = (typeof radio.filters)[number]['id'];
@@ -57,13 +56,11 @@ function RadioContent({
   }, [pours]);
 
   return (
-    <div className="mx-auto max-w-xl pb-6 pt-5 lg:pt-8">
-      <header className="flex items-baseline justify-between gap-4 border-b border-foreground pb-2">
-        <h1 className="font-serif text-title font-bold text-foreground">{radio.title}</h1>
-        <span className="label-caps">{radio.intro}</span>
-      </header>
+    <div className="mx-auto max-w-xl pb-6 pt-4 lg:pt-8">
+      {/* Named for screen readers; on screen the app bar already says where you are. */}
+      <h1 className="sr-only">{radio.title}</h1>
 
-      <div role="group" aria-label={radio.filterLabel} className="mt-4 grid grid-cols-3 border border-foreground">
+      <div role="group" aria-label={radio.filterLabel} className="grid grid-cols-3 border border-foreground">
         {radio.filters.map((f, i) => (
           <button
             key={f.id}
@@ -82,7 +79,7 @@ function RadioContent({
       </div>
 
       <div className="mt-4">
-        <OpenOrder displayName={name} />
+        <WaitingPick displayName={name} />
       </div>
 
       {!member && canSignIn && (
@@ -104,12 +101,8 @@ function RadioContent({
       ) : pours === null ? (
         <p className="py-6 font-serif text-ui italic text-muted-foreground motion-safe:animate-pulse">…</p>
       ) : pours.length === 0 ? (
-        <div className="border-y border-border py-6">
-          <p className="font-serif text-prose italic text-muted-foreground">{radio.empty}</p>
-          <a href={orderHref} className="btn btn-outline mt-4 px-5">
-            {radio.emptyCta}
-          </a>
-        </div>
+        // "Pick a drink" floats over the page already; a second button here only repeats it.
+        <p className="border-y border-border py-6 font-serif text-prose italic text-muted-foreground">{radio.empty}</p>
       ) : (
         days.map((day) => (
           <section key={day.label} aria-label={day.label} className="mt-2">

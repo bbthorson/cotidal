@@ -5,15 +5,15 @@ import { harbour } from '@/lib/copy';
 import type { Register } from '@/lib/register';
 import type { PourRecord } from '@/lib/atproto/records';
 import { getConnectedPours } from '@/lib/api-client';
-import { loadProfile, saveOpenOrder, type OpenOrder } from '@/lib/device-store';
+import { loadProfile, savePick, type DrinkPick } from '@/lib/device-store';
 import type { UserProfile } from '@/hooks/useDiscoveryQuiz';
 import { draftPath } from '@/lib/pour-draft';
 import { cn } from '@/lib/utils';
 import { AtprotoProvider, useAtprotoContext } from './AtprotoProvider';
 import { DrinkRow } from './Chart';
 
-type Step = 'where' | 'menu' | 'order' | 'ordered';
-const STEPS: Step[] = ['where', 'menu', 'order'];
+type Step = 'where' | 'menu' | 'pick' | 'picked';
+const STEPS: Step[] = ['where', 'menu', 'pick'];
 
 interface MenuItem {
   /** As typed, or the register's title when it was picked from the map. */
@@ -33,9 +33,10 @@ function placeDrink(label: string, register: Register): Drink | null {
 }
 
 /**
- * The harbour: at a bar, deciding what to order. It is composed in steps,
- * like a post — where you are, what they pour, what to order — and ends with
- * the order kept as a draft on the device. Rating it opens /log on the draft
+ * The harbour: at a bar, deciding what to have. It is composed in steps,
+ * like a post — where you are, what they pour, which to have — and ends with
+ * the pick kept as a draft on the device. It does not order anything: it
+ * helps choose, and remembers to ask for the rating. Rating it opens /log on the draft
  * (`draftPath`), the same hand-off a chat assistant uses, so the rating is
  * still the member's own tap.
  */
@@ -50,7 +51,7 @@ function HarbourContent({ register }: { register: Register }) {
   const [items, setItems] = useState<MenuItem[]>([]);
   const [entry, setEntry] = useState('');
   const [choice, setChoice] = useState<string | null>(null);
-  const [order, setOrder] = useState<OpenOrder | null>(null);
+  const [pick, setPick] = useState<DrinkPick | null>(null);
   const [pours, setPours] = useState<PourRecord[]>([]);
 
   useEffect(() => setProfile(loadProfile()), []);
@@ -112,17 +113,17 @@ function HarbourContent({ register }: { register: Register }) {
     setEntry('');
   };
 
-  const placeOrder = () => {
+  const placePick = () => {
     const drinkName = choice ?? ranked[0]?.drink.name;
     if (!drinkName) return;
-    const next: OpenOrder = {
+    const next: DrinkPick = {
       drink: drinkName,
       ...(atHome ? { atHome: true } : where ? { bar: where } : {}),
-      orderedAt: new Date().toISOString(),
+      pickedAt: new Date().toISOString(),
     };
-    saveOpenOrder(next);
-    setOrder(next);
-    setStep('ordered');
+    savePick(next);
+    setPick(next);
+    setStep('picked');
   };
 
   if (profile === undefined) return <div className="min-h-screen" />;
@@ -141,23 +142,23 @@ function HarbourContent({ register }: { register: Register }) {
     );
   }
 
-  if (step === 'ordered' && order) {
-    const title = register[order.drink]?.title ?? order.drink;
+  if (step === 'picked' && pick) {
+    const title = register[pick.drink]?.title ?? pick.drink;
     return (
       <div className="mx-auto max-w-xl py-8 motion-safe:animate-in motion-safe:fade-in">
         <div className="flex flex-col gap-2.5 border border-foreground bg-card p-4.5 shadow-mcm">
           <span className="font-condensed text-xs font-semibold uppercase tracking-label text-secondary">
-            {harbour.orderedEyebrow} · {order.atHome ? harbour.atHome : order.bar}
+            {harbour.pickedEyebrow} · {pick.atHome ? harbour.atHome : pick.bar}
           </span>
           <h1 className="font-serif text-title font-bold text-foreground">{title}</h1>
           <span className="font-condensed text-xs uppercase tracking-label text-muted-foreground">
-            {new Date(order.orderedAt).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}
+            {new Date(pick.pickedAt).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}
           </span>
         </div>
-        <p className="mt-5 text-ui text-muted-foreground">{harbour.orderedBody}</p>
+        <p className="mt-5 text-ui text-muted-foreground">{harbour.pickedBody}</p>
         <div className="mt-6 flex flex-col gap-3">
           <a
-            href={draftPath({ drink: order.drink, atHome: order.atHome, bar: order.bar })}
+            href={draftPath({ drink: pick.drink, atHome: pick.atHome, bar: pick.bar })}
             className="btn btn-primary btn-lg w-full px-6"
           >
             {harbour.rateNow}
@@ -295,12 +296,12 @@ function HarbourContent({ register }: { register: Register }) {
         </section>
       )}
 
-      {step === 'order' && (
+      {step === 'pick' && (
         <section className="mt-6 flex flex-col">
           <h1 className="font-serif text-title font-bold text-foreground">
-            {where ? harbour.orderTitle(where) : harbour.orderTitleHome}
+            {where ? harbour.pickTitle(where) : harbour.pickTitleHome}
           </h1>
-          <p className="mt-2 text-ui text-muted-foreground">{harbour.orderBody}</p>
+          <p className="mt-2 text-ui text-muted-foreground">{harbour.pickBody}</p>
           <ol className="mt-4 border-t border-foreground">
             {ranked.map(({ drink, score }, i) => (
               <li key={drink.name} className="border-b border-border">
@@ -331,9 +332,9 @@ function HarbourContent({ register }: { register: Register }) {
             {harbour.back}
           </button>
         )}
-        {step === 'order' ? (
-          <button type="button" onClick={placeOrder} className="btn btn-primary btn-lg flex-1 px-6">
-            {harbour.orderThis}
+        {step === 'pick' ? (
+          <button type="button" onClick={placePick} className="btn btn-primary btn-lg flex-1 px-6">
+            {harbour.pickThis}
           </button>
         ) : (
           <button

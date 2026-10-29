@@ -7,7 +7,7 @@ import { logPathFor } from '@/lib/site-nav';
 import type { Register } from '@/lib/register';
 import { Chart, DrinkCard, DrinkRow, PouredList, useLastPours, type Lens } from './Chart';
 import { useAtprotoContext } from './AtprotoProvider';
-import { OpenOrder } from './OpenOrder';
+import { WaitingPick } from './WaitingPick';
 import { AccountTools } from './AccountTools';
 import { explainDrinkMatch, getConnectedPours } from '@/lib/api-client';
 import { cn } from '@/lib/utils';
@@ -130,7 +130,7 @@ export function ResultsScreen({
         selectedDrink && 'pb-80'
       )}
     >
-      <OpenOrder displayName={displayName} />
+      <WaitingPick displayName={displayName} />
 
       <Chart
         you={hasCoordinate ? { x: user.x, y: user.y } : null}

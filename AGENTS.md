@@ -314,7 +314,7 @@ interface; see `docs/brand.md`.
    are on tokens too: the token rule is an error across `src/components/`, and
    nothing violates it.
 4. **Menu capture.** The harbour (`/harbour`) is its front half *(landed)*:
-   type a bar's menu, get it ranked, order, and rate it later. Still to do:
+   type a bar's menu, get it ranked, pick one, and rate it later. Still to do:
    photograph the menu instead of typing it. Photograph a menu, get a recommendation, no account
    required — value before signup, and it builds the venue/menu corpus as a
    byproduct.
@@ -323,7 +323,7 @@ interface; see `docs/brand.md`.
    `/p/<handle>`; see Region prose.
 6. **The return visit.** Logging a pour and watching the point move is the
    only recurring behaviour in the product. The app is three tabs —
-   Radio (`/radio`), Compass (`/taste`), Log (`/log`) — and an Order button
+   Radio (`/radio`), Compass (`/taste`), Log (`/log`) — and a "Pick a drink" button
    into the harbour (`/harbour`); signed in versus signed out is a table in
    `docs/design-system.md`.
 7. **Venue claim and menu publishing.** Handle-as-domain makes claiming and

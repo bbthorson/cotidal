@@ -3,23 +3,23 @@ import { appBar, logPage, pour, radio, returnVisit } from '../src/lib/copy';
 
 const profile = { x: 4, y: -2, dislikesSmoke: false, dislikesBitter: false, dislikesAnise: false, vibeTags: {} };
 
-test('App bar: Radio · Compass · Log, and Order is a button, not a tab', async ({ page }) => {
+test('App bar: Radio · Compass · Log, and picking a drink is a button, not a tab', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/radio');
   const bar = page.getByRole('navigation', { name: appBar.label });
   await expect(bar.getByRole('link')).toHaveText([appBar.radio, appBar.compass, appBar.log]);
   await expect(bar.getByRole('link', { name: appBar.radio })).toHaveAttribute('aria-current', 'page');
-  await expect(page.getByRole('link', { name: appBar.order, exact: true })).toHaveAttribute('href', '/harbour');
+  await expect(page.getByRole('link', { name: appBar.pick, exact: true })).toHaveAttribute('href', '/harbour');
 
   // Not on the harbour itself.
   await page.goto('/harbour');
-  await expect(page.getByRole('link', { name: appBar.order, exact: true })).toHaveCount(0);
+  await expect(page.getByRole('link', { name: appBar.pick, exact: true })).toHaveCount(0);
 });
 
 test('Radio: a guest with nothing logged is told how to put something on the air', async ({ page }) => {
   await page.goto('/radio');
   await expect(page.getByText(radio.empty)).toBeVisible();
-  await expect(page.getByRole('link', { name: radio.emptyCta })).toHaveAttribute('href', '/harbour');
+  await expect(page.getByRole('link', { name: appBar.pick })).toHaveAttribute('href', '/harbour');
 
   // Following is on the dial, and says it is Later rather than standing empty.
   await page.getByRole('group', { name: radio.filterLabel }).getByRole('button', { name: 'Following' }).click();
