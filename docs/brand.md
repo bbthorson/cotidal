@@ -64,6 +64,7 @@ nautical where a plain word allows it.
 | **Log** | Yours: coordinate, pours, account | A ship's log is its own record |
 | **Pick a drink** | The harbour's steps | Never *order*: Cotidal is not connected to the bar, and the bartender takes the order |
 | **Come aboard** | Sign in | The button that starts Bluesky sign-in says so: "Come aboard with Bluesky" |
+| **Go ashore** | Sign out | Its explanation says it signs you out |
 
 ## Claims
 

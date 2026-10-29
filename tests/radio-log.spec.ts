@@ -11,6 +11,9 @@ test('App bar: Radio · Compass · Log, and picking a drink is a button, not a t
   await expect(bar.getByRole('link', { name: appBar.radio })).toHaveAttribute('aria-current', 'page');
   await expect(page.getByRole('link', { name: appBar.pick, exact: true })).toHaveAttribute('href', '/harbour');
 
+  // The app bar is a phone's navigation here: no Menu repeating it in the header.
+  await expect(page.locator('header summary')).toBeHidden();
+
   // Not on the harbour itself.
   await page.goto('/harbour');
   await expect(page.getByRole('link', { name: appBar.pick, exact: true })).toHaveCount(0);
@@ -67,6 +70,10 @@ test('Log: the map is yours — your menu filled in, or your pours', async ({ pa
   await expect(lenses.getByRole('button')).toHaveText(['Drinks', 'Your pours']);
   await lenses.getByRole('button', { name: 'Your pours' }).click();
   await expect(lenses.getByRole('button', { name: 'Your pours' })).toHaveAttribute('aria-pressed', 'true');
+
+  // With no Menu on the app pages, the reading pages are at its foot.
+  const reading = page.getByRole('navigation', { name: logPage.readingLabel });
+  await expect(reading.getByRole('link', { name: 'Drinks' })).toHaveAttribute('href', '/drinks');
 });
 
 test('Harbour: from a bar on Compass, it starts at that bar’s menu', async ({ page }) => {

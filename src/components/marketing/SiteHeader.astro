@@ -8,9 +8,15 @@ import type { Account } from '../../lib/atproto/session';
 interface Props {
   currentPath?: string;
   account: Account;
+  /**
+   * An app page (Radio, Compass, Log, the harbour): on a phone the app bar is
+   * its navigation, so there is no Menu to repeat it. The reading pages and
+   * Go ashore are at the foot of Log.
+   */
+  appPage?: boolean;
 }
 
-const { currentPath = '/', account } = Astro.props;
+const { currentPath = '/', account, appPage = false } = Astro.props;
 
 /**
  * The account control says what the server knows. A member sees their handle
@@ -87,7 +93,7 @@ const controlClass =
       )
     }
 
-    <details class="peer order-2 lg:hidden">
+    <details class:list={['peer order-2 lg:hidden', appPage && 'hidden']}>
       <summary
         class:list={[controlClass, 'summary-plain cursor-pointer text-muted-foreground hover:text-foreground']}
       >

@@ -12,7 +12,7 @@ import { catalogSlug, type Register } from '@/lib/register';
 import type { UserProfile } from '@/hooks/useDiscoveryQuiz';
 import { Chart, DrinkCard, useLastPours, type Lens } from './Chart';
 import { useMenu } from '@/hooks/useMenu';
-import { logPathFor } from '@/lib/site-nav';
+import { destinations, logPathFor } from '@/lib/site-nav';
 import { cn } from '@/lib/utils';
 import { Moved } from './Moved';
 import { PourForm, toLogOptions, type PourEntry } from './PourForm';
@@ -433,6 +433,21 @@ function ReturnVisitContent({
           onStartOver={() => window.location.assign(`/taste?${START_OVER_PARAM}=1`)}
         />
       </section>
+
+      {/* The reading pages: on a phone the app pages have no Menu, so they are here. */}
+      <nav aria-label={logPage.readingLabel} className="mt-6 flex flex-wrap gap-x-5 border-t border-border pt-2">
+        {destinations
+          .filter((d) => !d.app)
+          .map((d) => (
+            <a
+              key={d.href}
+              href={d.href}
+              className="inline-flex min-h-11 items-center font-condensed text-xs uppercase tracking-label text-muted-foreground transition-colors hover:text-primary"
+            >
+              {d.label}
+            </a>
+          ))}
+      </nav>
       {selectedDrink && (
         <DrinkCard
           drink={selectedDrink}

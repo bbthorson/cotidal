@@ -24,7 +24,7 @@ export const nav = {
   register: 'Drinks',
   regions: 'The Four Regions',
   signIn: 'Come aboard',
-  signOut: 'Sign out',
+  signOut: 'Go ashore',
   /** The header's account link where the page cannot know who is reading (prerendered). */
   account: 'Account',
   menu: 'Menu',
@@ -103,7 +103,8 @@ export const logPage = {
   settingsTitle: 'Account',
   publicMap: 'Your public map',
   assistants: 'Chat assistants',
-  account: 'Sign out, start over',
+  /** The reading pages, at the foot of Log: on a phone the app pages have no Menu. */
+  readingLabel: 'Read',
   startOver: 'Start over',
 } as const;
 
@@ -164,8 +165,8 @@ export const account = {
   startOverBody:
     'Retake the questions for a new coordinate. It replaces the one on your account; the pours you have logged stay in your ledger.',
   startOverCta: 'Retake the questions',
-  signOutTitle: 'Sign out',
-  signOutBody: 'Signing out also clears your coordinate from this device. It stays on your account.',
+  signOutTitle: 'Go ashore',
+  signOutBody: 'Going ashore signs you out and clears your coordinate from this device. It stays on your account.',
   guestTitle: 'Come aboard to keep your coordinate.',
 } as const;
 

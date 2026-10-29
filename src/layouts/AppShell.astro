@@ -41,7 +41,7 @@ const widthClass = {
 <Base title={title} description={description}>
   <div class="bar-texture min-h-screen bg-background text-foreground">
     <div data-site-chrome class="mx-auto w-full max-w-5xl px-6 pt-5 md:pt-14">
-      <SiteHeader currentPath={currentPath} account={account} />
+      <SiteHeader currentPath={currentPath} account={account} appPage={bottomBar} />
     </div>
 
     <div class:list={['mx-auto w-full px-6', widthClass, bottomBar && 'pb-tabbar lg:pb-0']}>

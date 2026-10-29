@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { account, logPage, menu, nav, publicMap } from '@/lib/copy';
-import { publicMapPath } from '@/lib/atproto/paths';
+import { AUTH_BASE_PATH, publicMapPath } from '@/lib/atproto/paths';
 import { accountHref } from '@/lib/site-nav';
 import { sharePalateToFeed } from '@/lib/api-client';
 import { cn } from '@/lib/utils';
@@ -65,10 +65,15 @@ export function AccountTools({
             <a href="/assistants" className={cn(link, 'text-secondary hover:text-primary')}>
               {logPage.assistants}
             </a>
-            {/* Sign out lives in the header and on /account: a form post, no script needed. */}
             <a href={accountHref} className={cn(link, 'text-muted-foreground hover:text-foreground')}>
               {nav.account}
             </a>
+            {/* A form post that answers with a redirect, like the header's: no script needed. */}
+            <form method="POST" action={`${AUTH_BASE_PATH}/logout`} className="contents">
+              <button type="submit" className={cn(link, 'text-muted-foreground hover:text-foreground')}>
+                {nav.signOut}
+              </button>
+            </form>
           </>
         )}
         {!confirming && (
