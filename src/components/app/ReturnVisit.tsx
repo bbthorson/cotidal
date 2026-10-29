@@ -8,6 +8,7 @@ import { logDrinkFeedback, getConnectedPours, getConnectedPalate } from '@/lib/a
 import { loadGuestState, loadProfile, saveGuestState, saveProfile, loadPick, clearPick, loadGuestPours, addGuestPour } from '@/lib/device-store';
 import { returnVisit, pour, logPage, nav } from '@/lib/copy';
 import { START_OVER_PARAM } from '@/lib/atproto/paths';
+import { geoLocation } from '@/lib/atproto/location';
 import { catalogSlug, type Register } from '@/lib/register';
 import type { UserProfile } from '@/hooks/useDiscoveryQuiz';
 import { Chart, DrinkCard, useLastPours, type Lens } from './Chart';
@@ -224,12 +225,16 @@ function ReturnVisitContent({
   };
 
   const handleSubmit = async (entry: PourEntry) => {
+    // Where the bar is, from the map — only while the pour is still at the bar the draft named.
+    const at = !entry.isHomePour && draft?.at && draft.bar === entry.venue.trim() ? draft.at : null;
     setSubmitting(true);
     setError(null);
     const from = { x, y };
     try {
       if (isConnected) {
-        const result = await logDrinkFeedback(toLogOptions(entry));
+        const options = toLogOptions(entry);
+        if (at && options.venue) options.venue = { ...options.venue, lat: at.lat, lng: at.lon };
+        const result = await logDrinkFeedback(options);
         if (!result.success || !result.profile) {
           setError(result.error || pour.failed);
           return;
@@ -244,7 +249,9 @@ function ReturnVisitContent({
         const guestPour: PourRecord = {
           $type: 'app.cotidal.pour',
           drink: { name: entry.drinkName, slug: catalogSlug(register, entry.drinkName) },
-          venue: entry.isHomePour ? undefined : { entity: { name: entry.venue } },
+          venue: entry.isHomePour
+            ? undefined
+            : { entity: { name: entry.venue }, ...(at ? { address: geoLocation(at.lat, at.lon, entry.venue) ?? undefined } : {}) },
           rating: { hedonic: entry.hedonic },
           deviations: entry.deviations.length > 0 ? entry.deviations : undefined,
           cata: entry.cata && entry.cata.length > 0 ? entry.cata : undefined,

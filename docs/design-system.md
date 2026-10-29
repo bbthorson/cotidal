@@ -165,7 +165,12 @@ No trail of past positions is drawn yet; the pours to rebuild one from are store
 
 ## Compass (`/taste`, `ResultsScreen.tsx`)
 
-Finding something, not looking at yourself: no map here. One search over drinks — by name or by what is in them ("mezcal") — and bars. With nothing typed it points the way: the top-pick sheet and seven rows (your menu, `useMenu`, the same ranking Log's map fills in), then **Your bars** from your pours. A bar opens the harbour already there (`harbourAt`); a typed bar the log has never seen does too. **Near me** says plainly that it is Later: Cotidal knows the bars you have poured at, not yet where every bar is.
+Finding something, not looking at yourself: the taste map is Log's. The first view is a **street map** of the bars around you (`Near.tsx`, `NearMap.tsx`), above one search over drinks — by name or by what is in them ("mezcal") — and bars; then the top-pick sheet and seven rows (your menu, `useMenu`, the same ranking Log's map fills in), then **Your bars** from your pours.
+
+- **Bars come from OpenStreetMap** through the Overpass API (`src/lib/osm.ts`): named places tagged bar, pub, beer garden or club within about 1.2 km. Nothing is asked for until the reader taps **Show bars near me** — unless the browser already holds their yes for this site, and then the map opens on its own. The point leaves the device rounded to three decimal places (about 100 m), only to OpenStreetMap, and Cotidal keeps none of it; the panel says so.
+- **The map is quieter than the chart.** OpenStreetMap's tiles are washed toward paper (`.map-paper` in `globals.css`) and carry no graticule or cartouche, so the two maps in the app do not look alike. Bars you have poured at — by name, or by where a pour said the bar was — are terracotta, the colour for what is yours. Leaflet loads only when the map shows.
+- **The panel holds its height** (`h-72`) through every state — asking, finding, denied, failed — so nothing under it moves when the map fills.
+- **A bar** opens in a card like the drink card: kind and distance, how often you have poured there, **Pick a drink here** — the harbour already there, carrying where the bar is — and a link to it on OpenStreetMap.
 
 **The drink card** (`DrinkCard`, on Compass and Log alike): pinned above the app bar, the way a maps app opens a place — region and coordinate, build, closeness, your last pour, "Log this" and the register entry.
 
@@ -174,6 +179,8 @@ Finding something, not looking at yourself: no map here. One search over drinks 
 ## The harbour (`/harbour`, `Harbour.tsx`)
 
 At a bar, deciding. Composed in steps like a post, numbered in a three-cell strip: **Where** (a bar, a recent one, or at home) → **Menu** (type what they pour; a line that names a drink on the map is placed, anything else is kept and marked unplaced) → **Pick** (the placed drinks ranked by closeness, with the venue in the relevance score; the unplaced listed apart). "Pick this" keeps the pick on the device (`pick` in `device-store.ts`) and offers **Rate it now** — `/log` opened on the pick as a draft (`draftPath`, the same hand-off a chat assistant uses), with no rating in it — or **Rate it later**, in which case the chart shows it waiting until it is rated or set aside. Photographing the menu is **Later:**.
+
+**Where the bar is.** A bar picked from the map carries its point through the pick, the draft link (`lat`, `lon` in `pour-draft.ts`) and the form, and the pour records it as `venue.address`: a `community.lexicon.location.geo` (`src/lib/atproto/location.ts`), the Lexicon Community's shape, strings not floats. It is written only while the pour is still at the bar the map named: typing another bar, or choosing At home, drops it. The tests validate it against the community's published lexicon (`tests/fixtures/community-lexicon/`).
 
 **It orders nothing.** Cotidal is rarely connected to a bar's own system, so nothing in the interface says *order*: you pick, the bartender takes the order. Interface copy about the bar itself ("what to order once you know it") is fine.
 

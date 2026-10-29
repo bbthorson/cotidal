@@ -59,6 +59,8 @@ export interface DrinkPick {
   drink: string;
   bar?: string;
   atHome?: boolean;
+  /** Where the bar is, when it was picked from the map. */
+  at?: { lat: number; lon: number };
   pickedAt: string;
 }
 

@@ -1,4 +1,5 @@
 import { CATA, DEVIATIONS, type CataNote, type Deviation } from './atproto/vocab';
+import { geoLocation } from './atproto/location';
 
 /**
  * A pour drafted somewhere else — a chat assistant, through `/mcp` — for the
@@ -18,6 +19,8 @@ export interface PourDraft {
   drink: string;
   atHome?: boolean;
   bar?: string;
+  /** Where the bar is, when it came from a map (Compass, through the harbour). */
+  at?: { lat: number; lon: number };
   deviations?: Deviation[];
   cata?: CataNote[];
   note?: string;
@@ -46,6 +49,8 @@ export function cleanDraft(input: {
   drink?: string | null;
   atHome?: boolean;
   bar?: string | null;
+  lat?: number;
+  lon?: number;
   deviations?: string[];
   cata?: string[];
   note?: string | null;
@@ -56,15 +61,20 @@ export function cleanDraft(input: {
   const cata = known(CATA, input.cata);
   const bar = input.atHome ? undefined : text(input.bar, DRAFT_LIMITS.bar);
   const note = text(input.note, DRAFT_LIMITS.note);
+  // A point only with a bar to belong to, and only one that parses.
+  const at = bar && geoLocation(input.lat, input.lon) ? { lat: input.lat!, lon: input.lon! } : undefined;
   return {
     drink,
     ...(input.atHome ? { atHome: true } : {}),
     ...(bar ? { bar } : {}),
+    ...(at ? { at } : {}),
     ...(deviations.length > 0 ? { deviations } : {}),
     ...(cata.length > 0 ? { cata } : {}),
     ...(note ? { note } : {}),
   };
 }
+
+const num = (value: string | null) => (value === null || value.trim() === '' ? undefined : Number(value));
 
 const list = (value: string | null) => (value ? value.split(',').map((v) => v.trim()) : undefined);
 
@@ -75,6 +85,8 @@ export function parseDraft(params: URLSearchParams): PourDraft | null {
     drink: params.get('drink'),
     atHome: params.get('at') === 'home',
     bar: params.get('bar'),
+    lat: num(params.get('lat')),
+    lon: num(params.get('lon')),
     deviations: list(params.get('off')),
     cata: list(params.get('notes')),
     note: params.get('note'),
@@ -86,6 +98,10 @@ export function draftPath(draft: PourDraft): string {
   const params = new URLSearchParams({ [MARKER]: '1', drink: draft.drink });
   if (draft.atHome) params.set('at', 'home');
   if (draft.bar) params.set('bar', draft.bar);
+  if (draft.bar && draft.at) {
+    params.set('lat', String(draft.at.lat));
+    params.set('lon', String(draft.at.lon));
+  }
   if (draft.deviations?.length) params.set('off', draft.deviations.join(','));
   if (draft.cata?.length) params.set('notes', draft.cata.join(','));
   if (draft.note) params.set('note', draft.note);
@@ -95,6 +111,6 @@ export function draftPath(draft: PourDraft): string {
 /** The URL with the draft taken out, once it has been logged or set aside. */
 export function withoutDraft(url: URL): URL {
   const next = new URL(url);
-  for (const key of [MARKER, 'drink', 'at', 'bar', 'off', 'notes', 'note']) next.searchParams.delete(key);
+  for (const key of [MARKER, 'drink', 'at', 'bar', 'lat', 'lon', 'off', 'notes', 'note']) next.searchParams.delete(key);
   return next;
 }

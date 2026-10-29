@@ -27,7 +27,7 @@ export function WaitingPick({ displayName }: { displayName: (name: string) => st
           )}
         </span>
       </div>
-      <a href={draftPath({ drink: pick.drink, atHome: pick.atHome, bar: pick.bar })} className="btn btn-primary px-4">
+      <a href={draftPath({ drink: pick.drink, atHome: pick.atHome, bar: pick.bar, at: pick.at })} className="btn btn-primary px-4">
         {harbour.rate}
       </a>
       <button

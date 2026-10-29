@@ -8,6 +8,7 @@ import { getConnectedPours } from '@/lib/api-client';
 import { loadProfile, savePick, type DrinkPick } from '@/lib/device-store';
 import type { UserProfile } from '@/hooks/useDiscoveryQuiz';
 import { draftPath } from '@/lib/pour-draft';
+import { geoLocation } from '@/lib/atproto/location';
 import { cn } from '@/lib/utils';
 import { AtprotoProvider, useAtprotoContext } from './AtprotoProvider';
 import { DrinkRow } from './Chart';
@@ -47,6 +48,8 @@ function HarbourContent({ register }: { register: Register }) {
   const [profile, setProfile] = useState<UserProfile | null | undefined>(undefined);
   const [step, setStep] = useState<Step>('where');
   const [bar, setBar] = useState('');
+  // Where the bar is, from the map; it belongs to that name only, so typing another drops it.
+  const [barAt, setBarAt] = useState<{ name: string; lat: number; lon: number } | null>(null);
   const [atHome, setAtHome] = useState(false);
   const [items, setItems] = useState<MenuItem[]>([]);
   const [entry, setEntry] = useState('');
@@ -58,9 +61,13 @@ function HarbourContent({ register }: { register: Register }) {
 
   // From a bar on Compass (`harbourAt`): already there, so straight to its menu.
   useEffect(() => {
-    const at = new URLSearchParams(window.location.search).get('bar')?.trim().slice(0, 200);
-    if (!at) return;
-    setBar(at);
+    const params = new URLSearchParams(window.location.search);
+    const name = params.get('bar')?.trim().slice(0, 200);
+    if (!name) return;
+    setBar(name);
+    const lat = Number(params.get('lat'));
+    const lon = Number(params.get('lon'));
+    if (params.has('lat') && geoLocation(lat, lon)) setBarAt({ name, lat, lon });
     setStep('menu');
   }, []);
 
@@ -127,6 +134,7 @@ function HarbourContent({ register }: { register: Register }) {
     const next: DrinkPick = {
       drink: drinkName,
       ...(atHome ? { atHome: true } : where ? { bar: where } : {}),
+      ...(!atHome && barAt && barAt.name === where ? { at: { lat: barAt.lat, lon: barAt.lon } } : {}),
       pickedAt: new Date().toISOString(),
     };
     savePick(next);
@@ -166,7 +174,7 @@ function HarbourContent({ register }: { register: Register }) {
         <p className="mt-5 text-ui text-muted-foreground">{harbour.pickedBody}</p>
         <div className="mt-6 flex flex-col gap-3">
           <a
-            href={draftPath({ drink: pick.drink, atHome: pick.atHome, bar: pick.bar })}
+            href={draftPath({ drink: pick.drink, atHome: pick.atHome, bar: pick.bar, at: pick.at })}
             className="btn btn-primary btn-lg w-full px-6"
           >
             {harbour.rateNow}

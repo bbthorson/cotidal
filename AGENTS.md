@@ -236,6 +236,15 @@ numbers) and converted only at the edge: `encodePalate` on every write,
 float records written before the encoding. No lexicon may declare a
 `number` — it is not a Lexicon type — and `npm run lexicons` fails on one.
 
+**Places are `community.lexicon.location.*`, never our own.** A pour's
+`venue.address` and a venue's `location` are unions of the Lexicon Community's
+types. Cotidal writes `community.lexicon.location.geo` (`location.ts`) for a
+bar picked from Compass's map — whose bars come from OpenStreetMap
+(`src/lib/osm.ts`), which has no type of its own there. Its shape is checked
+against the community's published file, vendored in
+`tests/fixtures/community-lexicon/` for the reference validator; copy it
+again to update it, never edit it.
+
 **Each record's Zod schema says exactly what its lexicon says.** Strings are
 built with `lexString()`, which counts UTF-8 bytes and graphemes as the
 lexicon does, and checks formats with `@atproto/syntax` — the protocol's
