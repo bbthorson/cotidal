@@ -19,7 +19,7 @@ export const site = {
 export const nav = {
   skipToContent: 'Skip to content',
   home: 'Home',
-  map: 'Palate Map',
+  map: 'Chart',
   register: 'Drinks',
   regions: 'The Four Regions',
   signIn: 'Sign in',
@@ -29,7 +29,58 @@ export const nav = {
   menu: 'Menu',
   footer: 'Site',
   log: 'Log a Pour',
+  harbour: 'Harbour',
   bars: 'For Bars',
+} as const;
+
+/** The bar along the foot of the app on a phone: the three things a drinker does. */
+export const appBar = {
+  label: 'App',
+  chart: 'Chart',
+  harbour: 'Harbour',
+  log: 'Log',
+} as const;
+
+/**
+ * /harbour: at a bar, deciding. Composed in steps like a post — where you
+ * are, what's pouring, what to order — and the order is kept as a draft
+ * until you rate it.
+ */
+export const harbour = {
+  title: 'Harbour',
+  steps: ['Where', 'Menu', 'Order'],
+  stepOf: (n: number, total: number) => `${n} of ${total}`,
+  back: 'Back',
+  next: 'Next',
+  whereTitle: 'Where are you?',
+  whereBody: 'The bar, so the order and the rating land in the same place.',
+  barLabel: 'Bar name',
+  atHome: 'At home',
+  recentLabel: 'Recently',
+  menuTitle: 'What’s on the menu?',
+  menuBody: 'Add what they pour. Anything on the map is placed; anything else is kept, unplaced.',
+  addLabel: 'A drink on their menu',
+  addPlaceholder: 'Last Word, house Negroni…',
+  add: 'Add',
+  remove: (name: string) => `Remove ${name}`,
+  placed: 'On the map',
+  unplaced: 'Not on the map',
+  photoLater: 'Later: photograph the menu instead of typing it.',
+  orderTitle: (where: string) => `What to order at ${where}`,
+  orderTitleHome: 'What to pour at home',
+  orderBody: 'Ranked by how close each drink sits to your coordinate.',
+  unplacedTitle: 'Can’t place these yet',
+  orderThis: 'Order this',
+  orderedEyebrow: 'Ordered',
+  orderedBody: 'Kept on this device until you rate it. Rate it once you’ve tasted it — that is what moves your coordinate.',
+  rateNow: 'Rate it now',
+  rateLater: 'Rate it later',
+  coldTitle: 'Find your coordinate first.',
+  coldBody: 'The harbour ranks a bar’s menu against your coordinate. A few questions place it.',
+  coldCta: 'Find your coordinate',
+  waiting: 'Waiting for your rating',
+  rate: 'Rate it',
+  dismiss: 'Set it aside',
 } as const;
 
 /** /account: who you are here, and the two things you can do about it. */

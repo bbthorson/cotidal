@@ -1,4 +1,4 @@
-import { nav } from './copy';
+import { appBar, nav } from './copy';
 
 /**
  * The one list of destinations. The header renders all of it; the footer
@@ -11,6 +11,7 @@ import { nav } from './copy';
  */
 export const destinations = [
   { href: '/taste', label: nav.map, match: '/taste', app: true },
+  { href: '/harbour', label: nav.harbour, match: '/harbour', app: true },
   { href: '/log', label: nav.log, match: '/log', app: true },
   { href: '/drinks', label: nav.register, match: '/drinks', app: false },
   { href: '/#regions', label: nav.regions, match: '/regions', app: false },
@@ -27,6 +28,13 @@ export const signIn = { href: '/#connect', label: nav.signIn } as const;
  */
 export const signInHref = (currentPath: string) =>
   currentPath.startsWith('/taste') ? '/taste?signin=1' : signIn.href;
+
+/** The bar along the foot of the app on a phone (`AppBar.astro`). */
+export const appDestinations = [
+  { href: '/taste', label: appBar.chart, match: '/taste' },
+  { href: '/harbour', label: appBar.harbour, match: '/harbour' },
+  { href: '/log', label: appBar.log, match: '/log' },
+] as const;
 
 /** /log with its form opened on a drink ("Log this" on the map). */
 export const logPathFor = (drinkName: string) => `/log?drink=${encodeURIComponent(drinkName)}`;

@@ -1,0 +1,19 @@
+---
+import AppShell from '../layouts/AppShell.astro';
+import Harbour from '../components/app/Harbour';
+import { site, harbour } from '../lib/copy';
+import { loadRegister } from '../lib/register.server';
+import { signInEnabled } from '../lib/atproto/auth';
+
+/**
+ * At a bar, deciding: where you are, what they pour, what to order — and the
+ * order kept as a draft until you rate it at /log.
+ */
+
+const register = await loadRegister();
+const authEnabled = await signInEnabled();
+---
+
+<AppShell title={`${site.name} — ${harbour.title}`} currentPath="/harbour" width="standard" bottomBar>
+  <Harbour client:load register={register} signInEnabled={authEnabled} />
+</AppShell>

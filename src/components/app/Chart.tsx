@@ -262,7 +262,7 @@ export function DrinkRow({
 }
 
 /**
- * A drink, opened: pinned to the foot of the screen the way a maps app opens
+ * A drink, opened: pinned above the app bar the way a maps app opens
  * a place, so nothing on the page moves and a row tapped at the foot of the
  * list is answered where the thumb is.
  */
@@ -301,7 +301,7 @@ export function DrinkCard({
   return (
     <div
       aria-live="polite"
-      className="fixed inset-x-0 bottom-0 z-20 max-h-96 overflow-y-auto border-t border-foreground bg-card pb-safe-b shadow-bar motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-4 sm:mx-auto sm:max-w-xl sm:border-x"
+      className="fixed inset-x-0 bottom-tabbar z-20 max-h-96 overflow-y-auto border-t border-foreground bg-card pb-4 shadow-bar lg:bottom-0 lg:pb-safe-b motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-4 sm:mx-auto sm:max-w-xl sm:border-x"
     >
       <div className="flex flex-col gap-2 px-6 pt-4">
         <div className="flex items-baseline justify-between gap-3">

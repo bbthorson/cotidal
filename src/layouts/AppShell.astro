@@ -2,6 +2,7 @@
 import Base from './Base.astro';
 import SiteHeader from '../components/marketing/SiteHeader.astro';
 import SiteFooter from '../components/marketing/SiteFooter.astro';
+import AppBar from '../components/marketing/AppBar.astro';
 import { accountFor } from '../lib/atproto/session';
 
 interface Props {
@@ -11,7 +12,8 @@ interface Props {
   backLink?: { href: string; label: string };
   width?: 'prose' | 'standard' | 'wide';
   /**
-   * The page pins a bar to the bottom of a phone (/taste). Below `lg` the
+   * An app page (/taste, /harbour, /log): Chart · Harbour · Log is pinned to
+   * the bottom of a phone (`AppBar`). Below `lg` the
    * footer is left out there: it repeats the header's Menu, and with the bar
    * it was a screen of padding under the content. The content clears the bar.
    */
@@ -61,5 +63,7 @@ const widthClass = {
     >
       <SiteFooter currentPath={currentPath} />
     </div>
+
+    {bottomBar && <AppBar currentPath={currentPath} />}
   </div>
 </Base>

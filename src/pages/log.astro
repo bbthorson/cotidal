@@ -26,6 +26,7 @@ const initialDraft = parseDraft(Astro.url.searchParams) ?? undefined;
   title={`${site.name} — ${returnVisit.eyebrow}`}
   currentPath="/log"
   width="standard"
+  bottomBar
 >
   <ReturnVisit client:load register={register} signInEnabled={authEnabled} initialDrink={initialDrink} initialDraft={initialDraft} />
 </AppShell>

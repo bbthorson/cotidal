@@ -116,7 +116,7 @@ Width and padding stay with the layout (`w-full`, `px-8`).
 
 Navigation is unified across the entire site through `<SiteHeader.astro>` and `<SiteFooter.astro>`, both rendered from one list (`destinations` in `src/lib/site-nav.ts`):
 1. **Zero Client JavaScript**: Rendered as semantic HTML `<header>` and `<nav aria-label="Main Navigation">`.
-2. **Destinations** (header): Palate Map (`/taste`), Log a Pour (`/log`), Drinks (`/drinks`), The Four Regions (`/#regions`), For Bars (`/bars`).
+2. **Destinations** (header): Chart (`/taste`), Harbour (`/harbour`), Log a Pour (`/log`), Drinks (`/drinks`), The Four Regions (`/#regions`), For Bars (`/bars`).
 3. **The account control** (header) says what the server knows (`accountFor` in `session.ts`, read once in `AppShell`):
    - a member sees `@handle`, which opens `/account`, and **Sign out** — a plain form post that answers with a redirect, like sign-in, so it needs no script;
    - a guest sees **Sign in**;
@@ -126,17 +126,11 @@ Navigation is unified across the entire site through `<SiteHeader.astro>` and `<
 6. **Sub-Route Navigation**: In `/drinks/[slug]`, the header supports a semantic `backLink` while retaining global site navigation.
 7. **Phones**: the header collapses to wordmark · account · Menu. "Menu" is a `<details>` that opens the same `<nav>` through `peer-open`, so `/` still ships no JavaScript; a member's Sign out sits at the foot of it.
 8. **Focus mode**: any element marked `data-focus-mode` (the quiz, the reveal, the after-a-pour screen) hides the site header and footer below `lg` (`globals.css`, pure CSS so nothing flashes before hydration).
-9. **In-App Controls**: `/taste` is one screen, the chart (`Chart.tsx`) with your menu under it; it has no tab bar. Logging a pour is `/log`; "Log this" on a drink opens `/log?drink=…`.
+9. **The app bar** (`AppBar.astro`): Chart · Harbour · Log along the foot of a phone on the three app pages (`AppShell`'s `bottomBar`) — the three things a drinker does: see where they are, decide at a bar, rate what they drank. Plain links, no script; hidden in focus mode and from `lg`, where the header carries the same destinations. A card pinned above it (the chart's drink card) uses the `tabbar` spacing token.
 
 ## The first-visit flow (`/taste`)
 
 Questions → reveal → your menu. Sign-in is offered once, after the reveal, as one sheet (`SignInSheet.tsx`) that states what it buys; the landing page's form (`ConnectForm.astro`) renders the same promise from `connect.buys` in `copy.ts`. The radar chart, the archetypes and the Oracle tab are retired from the interface; the region is the only identity. Logging a pour ends on the after-a-pour screen, which shows the coordinate moving and what changed on the menu.
-
-**Nothing moves under the reader.** A tap opens something where the thumb is rather than inserting it above what was tapped; anything that loads after paint (the top pick's line) holds its space while it does; the foot of the menu — who you are, your public map, share, account, start over — is one block under one rule, not a band each.
-
-## Logging a pour (`/log`)
-
-One form (`PourForm.tsx`) and one ledger (`PourLedger.tsx`) serve both places. Ratings use the 9-point hedonic scale the pour record stores, as nine cells in an ink frame; "What was off" uses axis tags; spirit, glass, garnish and the sensory sliders sit behind "More detail" for signed-in members. Both places end on the same after-a-pour screen (`Moved.tsx`).
 
 ## The chart (`Chart.tsx`, `/taste`)
 
@@ -145,11 +139,15 @@ One screen: the square map, a title block under its frame, then your menu. It re
 - **The map** has a graticule — ticks along the frame every 2.5, longer at ±5 — as a printed chart marks its border. Each dot is a 24px target (`DrinkSpot`); drinks sharing a coordinate share one spot.
 - **The title block** is the chart's cartouche: where you are (region and coordinate), the legend, and the reading (Drinks: your menu filled, the rest hollow; Your pours: liked 7+ filled, 5–6 hollow, 4 or below muted). It replaced the "You are in" row and the 2:1 thumbnail, which drew the same dot a second time.
 - **The menu** is the top-pick sheet and seven rows; under Your pours, the list is your pours instead.
-- **A drink** tapped anywhere — a mark, the top pick, a row — opens in one card pinned to the foot of the screen, the way a maps app opens a place: region and coordinate, build, closeness, your last pour, "Log this" and the register entry.
+- **A drink** tapped anywhere — a mark, the top pick, a row — opens in one card pinned above the app bar, the way a maps app opens a place: region and coordinate, build, closeness, your last pour, "Log this" and the register entry.
 
 No trail of past positions is drawn yet; the pours to rebuild one from are stored.
 
 **Nothing moves under the reader.** A tap opens something where the thumb is rather than inserting it above what was tapped; anything that loads after paint (the top pick's line) holds its space while it does; the foot of the menu — who you are, your public map, share, account, start over — is one block under one rule, not a band each.
+
+## The harbour (`/harbour`, `Harbour.tsx`)
+
+At a bar, deciding. Composed in steps like a post, numbered in a three-cell strip: **Where** (a bar, a recent one, or at home) → **Menu** (type what they pour; a line that names a drink on the map is placed, anything else is kept and marked unplaced) → **Order** (the placed drinks ranked by closeness, with the venue in the relevance score; the unplaced listed apart). "Order this" keeps the order on the device (`openOrder` in `device-store.ts`) and offers **Rate it now** — `/log` opened on the order as a draft (`draftPath`, the same hand-off a chat assistant uses), with no rating in it — or **Rate it later**, in which case the chart shows it waiting until it is rated or set aside. Photographing the menu is **Later:**.
 
 ## Logging a pour (`/log`)
 

@@ -313,7 +313,9 @@ interface; see `docs/brand.md`.
 3. **Carry the palette into `/taste`** *(Completed)*. The app's components
    are on tokens too: the token rule is an error across `src/components/`, and
    nothing violates it.
-4. **Menu capture.** Photograph a menu, get a recommendation, no account
+4. **Menu capture.** The harbour (`/harbour`) is its front half *(landed)*:
+   type a bar's menu, get it ranked, order, and rate it later. Still to do:
+   photograph the menu instead of typing it. Photograph a menu, get a recommendation, no account
    required — value before signup, and it builds the venue/menu corpus as a
    byproduct.
 5. **Region pages** (`/regions/<id>`) *(Completed)*. Sourced prose in

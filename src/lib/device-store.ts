@@ -15,6 +15,8 @@ const KEYS = {
   pendingAnswers: 'pending_elicitation',
   /** A guest's filter state, so their steps shrink as pours accumulate. */
   guestState: 'palate_state',
+  /** A drink ordered in the harbour, until it is rated (or set aside). */
+  openOrder: 'open_order',
 } as const;
 
 function read<T>(key: string): T | null {
@@ -50,6 +52,17 @@ export const clearProfile = () => remove(KEYS.profile);
 export const loadPendingAnswers = () => read<ElicitationRecord>(KEYS.pendingAnswers);
 export const savePendingAnswers = (record: ElicitationRecord) => write(KEYS.pendingAnswers, record);
 export const clearPendingAnswers = () => remove(KEYS.pendingAnswers);
+
+export interface OpenOrder {
+  drink: string;
+  bar?: string;
+  atHome?: boolean;
+  orderedAt: string;
+}
+
+export const loadOpenOrder = () => read<OpenOrder>(KEYS.openOrder);
+export const saveOpenOrder = (order: OpenOrder) => write(KEYS.openOrder, order);
+export const clearOpenOrder = () => remove(KEYS.openOrder);
 
 export const loadGuestState = () => read<DynamicState>(KEYS.guestState);
 export const saveGuestState = (state: DynamicState) => write(KEYS.guestState, state);

@@ -6,7 +6,7 @@ import { calculateDistance } from '@/lib/scoring';
 import { formatCoordinate } from '@/lib/coordinate';
 import type { PourRecord } from '@/lib/atproto/records';
 import { logDrinkFeedback, getConnectedPours, getConnectedPalate } from '@/lib/api-client';
-import { loadGuestState, loadProfile, saveGuestState, saveProfile } from '@/lib/device-store';
+import { loadGuestState, loadProfile, saveGuestState, saveProfile, loadOpenOrder, clearOpenOrder } from '@/lib/device-store';
 import { returnVisit, pour } from '@/lib/copy';
 import { catalogSlug, type Register } from '@/lib/register';
 import type { UserProfile } from '@/hooks/useDiscoveryQuiz';
@@ -223,6 +223,8 @@ function ReturnVisitContent({
         };
         setPours((prev) => [guestPour, ...prev]);
       }
+      // An order from the harbour, now rated.
+      if (loadOpenOrder()?.drink.toLowerCase() === entry.drinkName.toLowerCase()) clearOpenOrder();
       if (draft) {
         setDraft(undefined);
         window.history.replaceState(null, '', withoutDraft(new URL(window.location.href)));
