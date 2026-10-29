@@ -200,21 +200,17 @@ export const menu = {
   startOver: 'Start over',
   startOverCancel: 'Keep it',
   empty: 'Nothing on the map fits these limits yet.',
-  tabs: { menu: 'Menu', map: 'Map' },
-  tabsLabel: 'Your coordinate',
 } as const;
 
-/** The Map tab: the whole map, and any drink on it. */
-export const mapTab = {
+/** The chart: the whole map, your menu under it, and any drink on it. */
+export const chart = {
+  label: 'The chart',
   lensLabel: 'Show',
   lenses: [
-    { id: 'all', label: 'Everything' },
-    { id: 'menu', label: 'Your menu' },
+    { id: 'drinks', label: 'Drinks' },
     { id: 'pours', label: 'Your pours' },
   ],
-  hint: 'Tap a dot to see the drink.',
-  nearest: 'Nearest to you',
-  onMenu: 'On your menu',
+  findYours: 'Find your coordinate',
   poured: 'What you’ve poured',
   closeness: 'Closeness',
   lastPour: 'Your last pour',

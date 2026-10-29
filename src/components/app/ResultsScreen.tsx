@@ -2,14 +2,12 @@ import { useMemo, useState, useEffect, useCallback } from 'react';
 import { drinkDatabase, type Drink, type User } from '@/lib/data';
 import { calculateWeightedRelevance } from '@/lib/scoring';
 import { quadrantFor } from '@/lib/quadrant';
-import { account, hero, menu, nav, publicMap } from '@/lib/copy';
+import { account, menu, nav, publicMap } from '@/lib/copy';
 import { publicMapPath } from '@/lib/atproto/paths';
 import { accountHref, logPathFor } from '@/lib/site-nav';
 import type { Register } from '@/lib/register';
-import { MapTab } from './MapTab';
-import { AppNavigation, type ActiveTab } from './AppNavigation';
+import { Chart, DrinkCard, DrinkRow, PouredList, useLastPours, type Lens } from './Chart';
 import { useAtprotoContext } from './AtprotoProvider';
-import { MapThumb } from './CoordinateMap';
 import {
   explainDrinkMatch,
   getConnectedPours,
@@ -34,10 +32,11 @@ type ScoredDrink = Drink & { score: number };
 const MENU_LENGTH = 8;
 
 /**
- * Your menu, which replaced the old results dashboard. One list, ranked by
- * relevance alone; the top pick is the one sheet that is yours. The radar
- * chart, the archetype and the Oracle tab are retired: the region is the
- * only identity.
+ * The chart, and your menu under it: one screen. It was two tabs, Menu and
+ * Map, which mostly repeated each other (a top eight, and the nearest eight)
+ * and each re-stated where you are. Now the map is the one large move, its
+ * title block says where you are, and the menu is the list beneath it. A
+ * drink tapped anywhere — a mark, the top pick, a row — opens in one card.
  */
 export function ResultsScreen({
   user,
@@ -48,8 +47,10 @@ export function ResultsScreen({
   onStartOver,
 }: ResultsScreenProps) {
   const { isEnabled, isConnected, handle } = useAtprotoContext();
-  const [activeTab, setActiveTab] = useState<ActiveTab>('menu');
+  const [lens, setLens] = useState<Lens>('drinks');
+  const [selected, setSelected] = useState<string | null>(null);
   const [history, setHistory] = useState<PourRecord[]>([]);
+  const lastPour = useLastPours(history);
 
   const fetchHistory = useCallback(async () => {
     if (!isConnected) return;
@@ -115,124 +116,97 @@ export function ResultsScreen({
   const displayName = useCallback((name: string) => register[name]?.title ?? name, [register]);
   const region = quadrantFor(user.x, user.y);
 
-  const changeTab = (tab: ActiveTab) => {
-    setActiveTab(tab);
-    window.scrollTo(0, 0);
-  };
-
   const top = goTo[0];
   const rest = goTo.slice(1);
 
+  const choose = (drinkName: string) => setSelected((s) => (s === drinkName ? null : drinkName));
+  const selectedDrink = selected ? drinkDatabase.find((d) => d.name === selected) ?? null : null;
+  const offMap = history.filter(
+    (p) => !drinkDatabase.some((d) => d.name.toLowerCase() === p.drink.name.toLowerCase())
+  ).length;
+
   return (
-    <div className="mx-auto max-w-xl pb-6 pt-4 motion-safe:animate-in motion-safe:fade-in lg:pb-0 lg:pt-8">
-      <AppNavigation
-        activeTab={activeTab}
-        onTabChange={changeTab}
+    <div
+      className={cn(
+        'mx-auto max-w-xl pb-6 pt-4 motion-safe:animate-in motion-safe:fade-in lg:pt-8',
+        // Room to scroll the foot of the page out from under the card.
+        selectedDrink && 'pb-80'
+      )}
+    >
+      <Chart
+        you={hasCoordinate ? { x: user.x, y: user.y } : null}
+        menuNames={goTo.map((d) => d.name)}
+        lastPour={lastPour}
+        lens={lens}
+        onLens={(l) => {
+          setLens(l);
+          setSelected(null);
+        }}
+        selected={selected}
+        onSelect={choose}
+        register={register}
+        onTakeQuiz={onStartOver}
       />
 
-      {/* Where you are: region name, and the 2:1 thumbnail with your dot */}
-      <div className="flex items-center justify-between gap-4">
-        {hasCoordinate ? (
-          <div className="flex flex-col gap-1">
-            <span className="label-caps">{menu.youAreIn}</span>
-            <span className="font-serif text-2xl italic leading-none text-primary">{region.name}</span>
+      {lens === 'pours' ? (
+        <PouredList lastPour={lastPour} offMap={offMap} selected={selected} onSelect={choose} register={register} />
+      ) : top ? (
+        <>
+          <TopPick drink={top} entry={register[top.name]} user={user} selected={selected === top.name} onSelect={() => choose(top.name)} />
+          <ol className="mt-5.5 border-t border-foreground">
+            {rest.map((d, i) => (
+              <li key={d.name} className="border-b border-border">
+                <DrinkRow
+                  rank={i + 2}
+                  title={displayName(d.name)}
+                  figure={d.score}
+                  figureLabel={`Closeness ${d.score}`}
+                  selected={selected === d.name}
+                  onSelect={() => choose(d.name)}
+                />
+              </li>
+            ))}
+          </ol>
+        </>
+      ) : (
+        <p className="mt-6 font-serif text-prose italic text-muted-foreground">{menu.empty}</p>
+      )}
+
+      {/* One sign-in prompt, below the list, stating the benefit */}
+      {isEnabled && !isConnected && (
+        <div className="mt-5 flex items-center gap-3 border border-border bg-card p-4">
+          <div className="flex flex-1 flex-col gap-0.5">
+            <span className="font-serif text-base font-bold">{menu.keepTitle}</span>
+            <span className="text-meta text-muted-foreground">{menu.keepBody}</span>
           </div>
-        ) : (
-          <button
-            type="button"
-            onClick={onStartOver}
-            className="flex min-h-11 items-center font-serif text-lg italic text-foreground underline decoration-primary underline-offset-4 hover:text-primary"
-          >
-            {hero.primaryCta}
+          <button type="button" onClick={onRequestSignIn} className="btn btn-primary shrink-0 px-3.5">
+            {nav.signIn}
           </button>
-        )}
-        {hasCoordinate && <MapThumb x={user.x} y={user.y} />}
-      </div>
-
-      {activeTab === 'menu' && (
-        <div className="motion-safe:animate-in motion-safe:fade-in">
-          {top ? (
-            <>
-              <TopPick drink={top} entry={register[top.name]} user={user} />
-              <ol className="mt-5.5 border-t border-foreground">
-                {rest.map((d, i) => (
-                  <li key={d.name} className="dot-leader border-b border-border py-3">
-                    <span className="w-5.5 shrink-0 font-condensed text-meta tabular-nums text-muted-foreground">
-                      {i + 2}
-                    </span>
-                    <DrinkName name={d.name} entry={register[d.name]} className="text-prose" />
-                    <span aria-hidden="true" className="leader" />
-                    <span className="font-condensed text-ui font-semibold tabular-nums" aria-label={`Closeness ${d.score}`}>
-                      {d.score}
-                    </span>
-                  </li>
-                ))}
-              </ol>
-            </>
-          ) : (
-            <p className="mt-6 font-serif text-prose italic text-muted-foreground">{menu.empty}</p>
-          )}
-
-          {/* One sign-in prompt, below the list, stating the benefit */}
-          {isEnabled && !isConnected && (
-            <div className="mt-5 flex items-center gap-3 border border-border bg-card p-4">
-              <div className="flex flex-1 flex-col gap-0.5">
-                <span className="font-serif text-base font-bold">{menu.keepTitle}</span>
-                <span className="text-meta text-muted-foreground">{menu.keepBody}</span>
-              </div>
-              <button
-                type="button"
-                onClick={onRequestSignIn}
-                className="btn btn-primary shrink-0 px-3.5"
-              >
-                {nav.signIn}
-              </button>
-            </div>
-          )}
-
-          <MemberTools
-            handle={isConnected ? handle : null}
-            topName={top ? displayName(top.name) : ''}
-            regionName={region.name}
-            onStartOver={onStartOver}
-          />
         </div>
       )}
 
-      {activeTab === 'map' && (
-        <div className="mt-4 motion-safe:animate-in motion-safe:fade-in">
-          <MapTab
-            you={hasCoordinate ? { x: user.x, y: user.y } : null}
-            menu={goTo.map((d) => d.name)}
-            closeness={closeness}
-            pours={history}
-            register={register}
-            onLog={(drinkName) => window.location.assign(logPathFor(drinkName))}
-          />
-        </div>
-      )}
+      <MemberTools
+        handle={isConnected ? handle : null}
+        topName={top ? displayName(top.name) : ''}
+        regionName={region.name}
+        onStartOver={onStartOver}
+      />
 
+      {selectedDrink && (
+        <DrinkCard
+          drink={selectedDrink}
+          register={register}
+          closeness={closeness[selectedDrink.name]}
+          last={lastPour.get(selectedDrink.name)}
+          sameSpot={drinkDatabase.filter(
+            (d) => d.name !== selectedDrink.name && d.x === selectedDrink.x && d.y === selectedDrink.y
+          )}
+          onPick={setSelected}
+          onLog={() => window.location.assign(logPathFor(selectedDrink.name))}
+          onClose={() => setSelected(null)}
+        />
+      )}
     </div>
-  );
-}
-
-function DrinkName({
-  name,
-  entry,
-  className,
-}: {
-  name: string;
-  entry?: Register[string];
-  className?: string;
-}) {
-  const label = entry?.title ?? name;
-  const classes = cn('font-serif font-bold text-foreground', className);
-  return entry ? (
-    <a href={`/drinks/${entry.slug}`} className={cn(classes, 'transition-colors hover:text-primary')}>
-      {label}
-    </a>
-  ) : (
-    <span className={classes}>{label}</span>
   );
 }
 
@@ -245,10 +219,14 @@ function TopPick({
   drink,
   entry,
   user,
+  selected,
+  onSelect,
 }: {
   drink: ScoredDrink;
   entry?: Register[string];
   user: User;
+  selected: boolean;
+  onSelect: () => void;
 }) {
   const [why, setWhy] = useState<{ name: string; text: string | null } | null>(null);
 
@@ -279,7 +257,17 @@ function TopPick({
           {drink.score}
         </span>
       </div>
-      <DrinkName name={drink.name} entry={entry} className="text-title" />
+      <button
+        type="button"
+        onClick={onSelect}
+        aria-pressed={selected}
+        className={cn(
+          'text-left font-serif text-title font-bold transition-colors hover:text-primary',
+          selected ? 'text-primary' : 'text-foreground'
+        )}
+      >
+        {entry?.title ?? drink.name}
+      </button>
       {entry?.build && <span className="text-sm text-muted-foreground">{entry.build}</span>}
       {(loading || why?.text) && (
         <p

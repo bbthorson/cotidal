@@ -58,7 +58,7 @@ test('Questionnaire: finishing the questions reveals a region before the menu', 
   await page.getByRole('button', { name: /see what to order/i }).click();
 
   await expect(page.getByText('You are in')).toBeVisible();
-  await expect(page.getByRole('navigation', { name: 'Your coordinate' })).toBeVisible();
+  await expect(page.getByRole('region', { name: 'The chart' })).toBeVisible();
 });
 
 test('Menu: one ranked list, with no occasion switch', async ({ page }) => {
@@ -78,29 +78,27 @@ test('Menu: one ranked list, with no occasion switch', async ({ page }) => {
   expect(scores.length).toBeGreaterThan(1);
   expect(scores).toEqual([...scores].sort((a, b) => b - a));
 
-  // Menu · Map. Logging a pour is /log, in the header — not a third tab.
-  const tabs = page.getByRole('navigation', { name: 'Your coordinate' });
-  await expect(tabs.getByRole('button')).toHaveText(['Menu', 'Map']);
+  // One screen: the chart and the menu under it, not Menu · Map tabs.
+  await expect(page.getByRole('region', { name: 'The chart' })).toBeVisible();
+  await expect(page.getByRole('navigation', { name: 'Your coordinate' })).toHaveCount(0);
 });
 
-test('Map: tap a drink, then "Log this" opens /log on that drink', async ({ page }) => {
+test('Chart: tap a drink, then "Log this" opens /log on that drink', async ({ page }) => {
   await page.goto('/taste?browse=1');
-  await page.getByRole('navigation', { name: 'Your coordinate' }).getByRole('button', { name: 'Map' }).click();
 
   const lenses = page.getByRole('group', { name: 'Show' });
-  await expect(lenses.getByRole('button')).toHaveText(['Everything', 'Your menu', 'Your pours']);
+  await expect(lenses.getByRole('button')).toHaveText(['Drinks', 'Your pours']);
 
-  // The list under the map reaches every drink at full size; pick its first.
-  await expect(page.getByRole('heading', { name: 'Nearest to you' })).toBeVisible();
-  const first = page.getByRole('heading', { name: 'Nearest to you' }).locator('xpath=..').getByRole('listitem').first();
+  // A row of the menu opens the drink in the card.
+  const first = page.locator('ol > li').first();
   const drink = (await first.locator('.font-serif').textContent())!.trim();
   await first.getByRole('button').click();
-  await expect(page.getByText('Closeness')).toBeVisible();
+  await expect(page.getByText('Closeness', { exact: true })).toBeVisible();
 
-  // Your pours lens says plainly when there is nothing yet.
+  // Your pours says plainly when there is nothing yet.
   await lenses.getByRole('button', { name: 'Your pours' }).click();
   await expect(page.getByText('Nothing poured yet.', { exact: false })).toBeVisible();
-  await lenses.getByRole('button', { name: 'Everything' }).click();
+  await lenses.getByRole('button', { name: 'Drinks' }).click();
   await first.getByRole('button').click();
 
   await page.getByRole('button', { name: 'Log this' }).click();

@@ -21,7 +21,6 @@ const authEnabled = await signInEnabled();
   title={`${site.name} — ${nav.map}`}
   currentPath="/taste"
   width="wide"
-  bottomBar
 >
   <Home client:load register={register} signInEnabled={authEnabled} />
 </AppShell>
