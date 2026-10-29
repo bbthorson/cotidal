@@ -236,6 +236,15 @@ numbers) and converted only at the edge: `encodePalate` on every write,
 float records written before the encoding. No lexicon may declare a
 `number` — it is not a Lexicon type — and `npm run lexicons` fails on one.
 
+**Places are `community.lexicon.location.*`, never our own.** A pour's
+`venue.address` and a venue's `location` are unions of the Lexicon Community's
+types. Cotidal writes `community.lexicon.location.geo` (`location.ts`) for a
+bar picked from Compass's map — whose bars come from OpenStreetMap
+(`src/lib/osm.ts`), which has no type of its own there. Its shape is checked
+against the community's published file, vendored in
+`tests/fixtures/community-lexicon/` for the reference validator; copy it
+again to update it, never edit it.
+
 **Each record's Zod schema says exactly what its lexicon says.** Strings are
 built with `lexString()`, which counts UTF-8 bytes and graphemes as the
 lexicon does, and checks formats with `@atproto/syntax` — the protocol's
@@ -313,15 +322,19 @@ interface; see `docs/brand.md`.
 3. **Carry the palette into `/taste`** *(Completed)*. The app's components
    are on tokens too: the token rule is an error across `src/components/`, and
    nothing violates it.
-4. **Menu capture.** Photograph a menu, get a recommendation, no account
+4. **Menu capture.** The harbour (`/harbour`) is its front half *(landed)*:
+   type a bar's menu, get it ranked, pick one, and rate it later. Still to do:
+   photograph the menu instead of typing it. Photograph a menu, get a recommendation, no account
    required — value before signup, and it builds the venue/menu corpus as a
    byproduct.
 5. **Region pages** (`/regions/<id>`) *(Completed)*. Sourced prose in
    `src/content/regions/`, linked from the landing page, `/drinks` and
    `/p/<handle>`; see Region prose.
 6. **The return visit.** Logging a pour and watching the point move is the
-   only recurring behaviour in the product. Its front door is `/log`
-   (`ReturnVisit.tsx`), in the site navigation.
+   only recurring behaviour in the product. The app is three tabs —
+   Radio (`/radio`), Compass (`/taste`), Log (`/log`) — and a "Pick a drink" button
+   into the harbour (`/harbour`); signed in versus signed out is a table in
+   `docs/design-system.md`.
 7. **Venue claim and menu publishing.** Handle-as-domain makes claiming and
    publishing the same act; the lexicons exist and nothing renders them.
 8. **Rework elicitation.** Forced-choice pairs for precision *(landed; see

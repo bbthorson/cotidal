@@ -33,11 +33,22 @@ interface CoordinateMapProps {
   you?: { x: number; y: number };
   /** Axis words on the axes (Rich, Crisp, Sweet, Savory). */
   showAxes?: boolean;
+  /** Ticks along the frame every 2.5, longer at ±5, as a chart marks its border. */
+  graticule?: boolean;
   className?: string;
   children?: ReactNode;
 }
 
-export function CoordinateMap({ tone = 'paper', you, showAxes = false, className, children }: CoordinateMapProps) {
+const TICKS = [-10, -7.5, -5, -2.5, 2.5, 5, 7.5, 10];
+
+export function CoordinateMap({
+  tone = 'paper',
+  you,
+  showAxes = false,
+  graticule = false,
+  className,
+  children,
+}: CoordinateMapProps) {
   const ink = tone === 'ink';
   const yours = you ? quadrantIdFor(you.x, you.y) : null;
 
@@ -57,6 +68,32 @@ export function CoordinateMap({ tone = 'paper', you, showAxes = false, className
         aria-hidden="true"
         className={cn('absolute left-0 right-0 top-1/2 h-px', ink ? 'bg-reveal-hairline' : 'bg-border')}
       />
+
+      {graticule && (
+        <div aria-hidden="true">
+          {/* In the same inset as the marks, so a tick lines up with a coordinate. */}
+          <div className="absolute inset-x-3 top-0 h-2.5">
+            {TICKS.map((t) => (
+              <span key={t} className={cn('absolute top-0 w-px bg-foreground', Math.abs(t) === 5 ? 'h-2.5' : 'h-1.5')} style={{ left: `${toPercent(t)}%` }} />
+            ))}
+          </div>
+          <div className="absolute inset-x-3 bottom-0 h-2.5">
+            {TICKS.map((t) => (
+              <span key={t} className={cn('absolute bottom-0 w-px bg-foreground', Math.abs(t) === 5 ? 'h-2.5' : 'h-1.5')} style={{ left: `${toPercent(t)}%` }} />
+            ))}
+          </div>
+          <div className="absolute inset-y-3 left-0 w-2.5">
+            {TICKS.map((t) => (
+              <span key={t} className={cn('absolute left-0 h-px bg-foreground', Math.abs(t) === 5 ? 'w-2.5' : 'w-1.5')} style={{ bottom: `${toPercent(t)}%` }} />
+            ))}
+          </div>
+          <div className="absolute inset-y-3 right-0 w-2.5">
+            {TICKS.map((t) => (
+              <span key={t} className={cn('absolute right-0 h-px bg-foreground', Math.abs(t) === 5 ? 'w-2.5' : 'w-1.5')} style={{ bottom: `${toPercent(t)}%` }} />
+            ))}
+          </div>
+        </div>
+      )}
 
       {quadrants.map((q) => (
         <span
@@ -270,22 +307,5 @@ export function TraceMark({
         style={at(from.x, from.y)}
       />
     </>
-  );
-}
-
-/**
- * The 2:1 thumbnail for a header: hairlines and your dot, nothing else. The
- * full square map is for the reveal and the Map tab.
- */
-export function MapThumb({ x, y, className }: { x: number; y: number; className?: string }) {
-  return (
-    <div aria-hidden="true" className={cn('relative h-12 w-24 shrink-0 border border-foreground bg-card', className)}>
-      <div className="absolute bottom-0 left-1/2 top-0 w-px bg-border" />
-      <div className="absolute left-0 right-0 top-1/2 h-px bg-border" />
-      <span
-        className="absolute h-2 w-2 -translate-x-1/2 translate-y-1/2 rounded-full bg-primary"
-        style={at(x, y)}
-      />
-    </div>
   );
 }

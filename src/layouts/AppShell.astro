@@ -2,6 +2,8 @@
 import Base from './Base.astro';
 import SiteHeader from '../components/marketing/SiteHeader.astro';
 import SiteFooter from '../components/marketing/SiteFooter.astro';
+import AppBar from '../components/marketing/AppBar.astro';
+import PickButton from '../components/marketing/PickButton.astro';
 import { accountFor } from '../lib/atproto/session';
 
 interface Props {
@@ -10,7 +12,12 @@ interface Props {
   currentPath: string;
   backLink?: { href: string; label: string };
   width?: 'prose' | 'standard' | 'wide';
-  /** The page pins a bar to the bottom of a phone (/taste): keep the footer clear of it. */
+  /**
+   * An app page (/taste, /harbour, /log): Chart · Harbour · Log is pinned to
+   * the bottom of a phone (`AppBar`). Below `lg` the
+   * footer is left out there: it repeats the header's Menu, and with the bar
+   * it was a screen of padding under the content. The content clears the bar.
+   */
   bottomBar?: boolean;
 }
 
@@ -34,10 +41,10 @@ const widthClass = {
 <Base title={title} description={description}>
   <div class="bar-texture min-h-screen bg-background text-foreground">
     <div data-site-chrome class="mx-auto w-full max-w-5xl px-6 pt-5 md:pt-14">
-      <SiteHeader currentPath={currentPath} account={account} />
+      <SiteHeader currentPath={currentPath} account={account} appPage={bottomBar} />
     </div>
 
-    <div class:list={['mx-auto w-full px-6', widthClass]}>
+    <div class:list={['mx-auto w-full px-6', widthClass, bottomBar && 'pb-tabbar lg:pb-0']}>
       {backLink && (
         <nav aria-label="Breadcrumb" class="pt-6">
           <a
@@ -49,13 +56,18 @@ const widthClass = {
         </nav>
       )}
       <slot />
+      {/* Room to scroll the last of the content out from under "Pick a drink". */}
+      {bottomBar && <div aria-hidden="true" class="h-16" />}
     </div>
 
     <div
       data-site-chrome
-      class:list={['mx-auto w-full max-w-5xl px-6 pt-16 md:pb-14', bottomBar ? 'pb-28 lg:pb-14' : 'pb-10']}
+      class:list={['mx-auto w-full max-w-5xl px-6 pt-16 pb-10 md:pb-14', bottomBar && 'hidden lg:block']}
     >
       <SiteFooter currentPath={currentPath} />
     </div>
+
+    {bottomBar && <AppBar currentPath={currentPath} />}
+    {bottomBar && !currentPath.startsWith('/harbour') && <PickButton />}
   </div>
 </Base>

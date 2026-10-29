@@ -1,5 +1,5 @@
 import type { UserProfile } from '@/hooks/useDiscoveryQuiz';
-import type { DynamicState, ElicitationRecord } from '@/lib/atproto/records';
+import type { DynamicState, ElicitationRecord, PourRecord } from '@/lib/atproto/records';
 
 /**
  * Everything the app keeps on this device, and the one place that names it.
@@ -15,6 +15,10 @@ const KEYS = {
   pendingAnswers: 'pending_elicitation',
   /** A guest's filter state, so their steps shrink as pours accumulate. */
   guestState: 'palate_state',
+  /** The drink picked in the harbour, until it is rated (or set aside). Kept under its first name. */
+  pick: 'open_order',
+  /** A guest's pours, newest first, so Radio and Log have them after a reload. */
+  guestPours: 'guest_pours',
 } as const;
 
 function read<T>(key: string): T | null {
@@ -50,6 +54,25 @@ export const clearProfile = () => remove(KEYS.profile);
 export const loadPendingAnswers = () => read<ElicitationRecord>(KEYS.pendingAnswers);
 export const savePendingAnswers = (record: ElicitationRecord) => write(KEYS.pendingAnswers, record);
 export const clearPendingAnswers = () => remove(KEYS.pendingAnswers);
+
+export interface DrinkPick {
+  drink: string;
+  bar?: string;
+  atHome?: boolean;
+  /** Where the bar is, when it was picked from the map. */
+  at?: { lat: number; lon: number };
+  pickedAt: string;
+}
+
+export const loadPick = () => read<DrinkPick>(KEYS.pick);
+export const savePick = (pick: DrinkPick) => write(KEYS.pick, pick);
+export const clearPick = () => remove(KEYS.pick);
+
+/** As many as a member's first page of pours (`getConnectedPours(50)`). */
+const GUEST_POUR_LIMIT = 50;
+
+export const loadGuestPours = () => read<PourRecord[]>(KEYS.guestPours) ?? [];
+export const addGuestPour = (p: PourRecord) => write(KEYS.guestPours, [p, ...loadGuestPours()].slice(0, GUEST_POUR_LIMIT));
 
 export const loadGuestState = () => read<DynamicState>(KEYS.guestState);
 export const saveGuestState = (state: DynamicState) => write(KEYS.guestState, state);

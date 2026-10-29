@@ -1,22 +1,18 @@
 import { useMemo, useState, useEffect, useCallback } from 'react';
-import { drinkDatabase, type Drink, type User } from '@/lib/data';
-import { calculateWeightedRelevance } from '@/lib/scoring';
-import { quadrantFor } from '@/lib/quadrant';
-import { account, hero, menu, nav, publicMap } from '@/lib/copy';
-import { publicMapPath } from '@/lib/atproto/paths';
-import { accountHref, logPathFor } from '@/lib/site-nav';
+import { drinkDatabase, type User } from '@/lib/data';
+import { compass, menu, nav } from '@/lib/copy';
+import { harbourAt, logPathFor } from '@/lib/site-nav';
 import type { Register } from '@/lib/register';
-import { MapTab } from './MapTab';
-import { AppNavigation, type ActiveTab } from './AppNavigation';
+import { usePours } from '@/hooks/usePours';
+import { useMenu, type ScoredDrink } from '@/hooks/useMenu';
+import { DrinkCard, DrinkRow, useLastPours } from './Chart';
 import { useAtprotoContext } from './AtprotoProvider';
-import { MapThumb } from './CoordinateMap';
-import {
-  explainDrinkMatch,
-  getConnectedPours,
-  sharePalateToFeed,
-} from '@/lib/api-client';
+import { WaitingPick } from './WaitingPick';
+import { BarCard, BarRows, NearPanel, useNearby } from './Near';
+import { metresBetween } from '@/lib/osm';
+import { readGeo } from '@/lib/atproto/location';
+import { explainDrinkMatch } from '@/lib/api-client';
 import { cn } from '@/lib/utils';
-import type { PourRecord } from '@/lib/atproto/records';
 
 interface ResultsScreenProps {
   user: User;
@@ -28,16 +24,26 @@ interface ResultsScreenProps {
   onStartOver: () => void;
 }
 
-type ScoredDrink = Drink & { score: number };
+/** Folded for matching: case and accents aside. */
+const fold = (s: string) =>
+  s
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '')
+    .toLowerCase()
+    .trim();
 
-/** The menu: the top pick and seven more. */
-const MENU_LENGTH = 8;
+interface Bar {
+  name: string;
+  pours: number;
+  last: string;
+}
 
 /**
- * Your menu, which replaced the old results dashboard. One list, ranked by
- * relevance alone; the top pick is the one sheet that is yours. The radar
- * chart, the archetype and the Oracle tab are retired: the region is the
- * only identity.
+ * Compass: finding something — a drink, a bar — rather than looking at
+ * yourself, which is Log's (and where the map now lives). One search over
+ * both. With nothing typed it points the way: your top pick, the drinks
+ * closest to your taste, and the bars you have poured at. A drink opens in
+ * the card; a bar opens the harbour already there.
  */
 export function ResultsScreen({
   user,
@@ -47,124 +53,164 @@ export function ResultsScreen({
   onRequestSignIn,
   onStartOver,
 }: ResultsScreenProps) {
-  const { isEnabled, isConnected, handle } = useAtprotoContext();
-  const [activeTab, setActiveTab] = useState<ActiveTab>('menu');
-  const [history, setHistory] = useState<PourRecord[]>([]);
-
-  const fetchHistory = useCallback(async () => {
-    if (!isConnected) return;
-    try {
-      setHistory(await getConnectedPours(50));
-    } catch (e) {
-      console.error('Failed to load tasted history:', e);
-    }
-  }, [isConnected]);
-
-  useEffect(() => {
-    fetchHistory();
-  }, [fetchHistory]);
-
-  // Filter, then score by weighted relevance (coordinate, vibe, history, venue).
-  const baseScored = useMemo(() => {
-    const dislikesSmoke = user.filters.includes('noSmoke');
-    const dislikesBitter = user.filters.includes('noBitter');
-    const dislikesAnise = user.filters.includes('noAnise');
-
-    const logs = history.map((pour) => ({
-      drinkName: pour.drink.name,
-      location: pour.isHomePour ? 'Home Pour' : pour.venue?.entity?.name,
-      hedonicScale: pour.rating.hedonic,
-      createdAt: pour.createdAt,
-    }));
-
-    return drinkDatabase
-      .filter((d) => !(dislikesSmoke && d.hasSmoke) && !(dislikesBitter && d.isBitter) && !(dislikesAnise && d.hasAnise))
-      .filter((drink) => {
-        // A drink you rated 3 or lower last time comes off the menu.
-        const latest = logs
-          .filter((log) => log.drinkName.toLowerCase() === drink.name.toLowerCase())
-          .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
-        return !(latest && latest.hedonicScale <= 3);
-      })
-      .map((drink) => ({
-        drink,
-        relevance: calculateWeightedRelevance(
-          { x: user.x, y: user.y, vibeTags: vibeTags || null },
-          drink,
-          logs,
-          // No venue chosen on this page: the venue term is for /log's form.
-          null
-        ),
-      }));
-  }, [user, vibeTags, history]);
-
-  // The menu ranks by relevance alone.
-  const goTo = useMemo(
-    (): ScoredDrink[] =>
-      baseScored
-        .map(({ drink, relevance }) => ({ ...drink, score: relevance }))
-        .sort((a, b) => b.score - a.score)
-        .slice(0, MENU_LENGTH),
-    [baseScored]
-  );
-  const closeness = useMemo(
-    () => Object.fromEntries(baseScored.map(({ drink, relevance }) => [drink.name, relevance])),
-    [baseScored]
-  );
+  const { isEnabled, isConnected } = useAtprotoContext();
+  const [selected, setSelected] = useState<string | null>(null);
+  const [query, setQuery] = useState('');
+  const [selectedBar, setSelectedBar] = useState<string | null>(null);
+  const nearby = useNearby();
+  const { pours } = usePours(isConnected);
+  const history = useMemo(() => pours ?? [], [pours]);
+  const lastPour = useLastPours(history);
+  const { scored, menu: goTo, closeness } = useMenu(user, vibeTags, history);
 
   const displayName = useCallback((name: string) => register[name]?.title ?? name, [register]);
-  const region = quadrantFor(user.x, user.y);
 
-  const changeTab = (tab: ActiveTab) => {
-    setActiveTab(tab);
-    window.scrollTo(0, 0);
+  const bars = useMemo(() => {
+    const byName = new Map<string, Bar>();
+    for (const p of history) {
+      const name = p.isHomePour ? null : p.venue?.entity?.name?.trim();
+      if (!name) continue;
+      const bar = byName.get(fold(name)) ?? { name, pours: 0, last: p.createdAt };
+      bar.pours += 1;
+      if (p.createdAt > bar.last) bar.last = p.createdAt;
+      byName.set(fold(name), bar);
+    }
+    return [...byName.values()].sort((a, b) => b.last.localeCompare(a.last));
+  }, [history]);
+
+  // Which bars on the map you have poured at, and how often: by name, or by
+  // where the pour said the bar was (a pour picked from this map records it).
+  const pouredAt = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const b of nearby.bars) {
+      const n = history.filter((p) => {
+        if (p.isHomePour || !p.venue) return false;
+        const at = readGeo(p.venue.address);
+        return fold(p.venue.entity.name) === fold(b.name) || (at !== null && metresBetween(at, b) < 60);
+      }).length;
+      if (n > 0) counts.set(b.id, n);
+    }
+    return counts;
+  }, [nearby.bars, history]);
+  const known = useMemo(() => new Set(pouredAt.keys()), [pouredAt]);
+  const openBar = selectedBar ? nearby.bars.find((b) => b.id === selectedBar) ?? null : null;
+  const chooseBar = (id: string) => {
+    setSelected(null);
+    setSelectedBar((cur) => (cur === id ? null : id));
   };
+
+  const q = fold(query);
+  // A drink matches by its name or by what is in it ("mezcal", "lime").
+  const drinkHits = useMemo(
+    () =>
+      q
+        ? scored.filter((d) => fold(register[d.name]?.title ?? d.name).includes(q) || fold(register[d.name]?.build ?? '').includes(q))
+        : [],
+    [q, scored, register]
+  );
+  const barHits = q ? bars.filter((b) => fold(b.name).includes(q)) : bars;
+  const nearHits = q ? nearby.bars.filter((b) => fold(b.name).includes(q)) : [];
 
   const top = goTo[0];
   const rest = goTo.slice(1);
 
+  const choose = (drinkName: string) => {
+    setSelectedBar(null);
+    setSelected((s) => (s === drinkName ? null : drinkName));
+  };
+  const selectedDrink = selected ? drinkDatabase.find((d) => d.name === selected) ?? null : null;
+
   return (
-    <div className="mx-auto max-w-xl pb-6 pt-5 motion-safe:animate-in motion-safe:fade-in lg:pb-0 lg:pt-8">
-      <AppNavigation
-        activeTab={activeTab}
-        onTabChange={changeTab}
-      />
+    <div
+      className={cn(
+        'mx-auto max-w-xl pb-6 pt-4 motion-safe:animate-in motion-safe:fade-in lg:pt-8',
+        // Room to scroll the foot of the page out from under the card.
+        (selectedDrink || openBar) && 'pb-80'
+      )}
+    >
+      <h1 className="sr-only">{compass.title}</h1>
+      <WaitingPick displayName={displayName} />
 
-      {/* Where you are: region name, and the 2:1 thumbnail with your dot */}
-      <div className="flex items-center justify-between gap-4">
-        {hasCoordinate ? (
-          <div className="flex flex-col gap-1">
-            <span className="label-caps">{menu.youAreIn}</span>
-            <span className="font-serif text-2xl italic leading-none text-primary">{region.name}</span>
-          </div>
-        ) : (
-          <button
-            type="button"
-            onClick={onStartOver}
-            className="flex min-h-11 items-center font-serif text-lg italic text-foreground underline decoration-primary underline-offset-4 hover:text-primary"
-          >
-            {hero.primaryCta}
-          </button>
-        )}
-        {hasCoordinate && <MapThumb x={user.x} y={user.y} />}
-      </div>
+      {!hasCoordinate && (
+        <button
+          type="button"
+          onClick={onStartOver}
+          className="mb-4 flex min-h-11 items-center font-serif text-lg italic text-foreground underline decoration-primary underline-offset-4 hover:text-primary"
+        >
+          {compass.findYours}
+        </button>
+      )}
 
-      {activeTab === 'menu' && (
-        <div className="motion-safe:animate-in motion-safe:fade-in">
+      <search className="mb-4 flex">
+        <label className="flex flex-1 flex-col">
+          <span className="sr-only">{compass.searchLabel}</span>
+          <input
+            type="search"
+            value={query}
+            onChange={(e) => {
+              setQuery(e.target.value);
+              setSelected(null);
+            }}
+            placeholder={compass.placeholder}
+            autoComplete="off"
+            className="min-h-11 rounded-sm border border-foreground bg-card px-3 font-body text-ui text-foreground focus:border-primary focus:outline-none"
+          />
+        </label>
+      </search>
+
+      {q ? (
+        <>
+          <section className="mt-6">
+            <h2 className="border-b border-foreground pb-1.5 font-serif text-xl font-bold">{compass.drinksTitle}</h2>
+            {drinkHits.length === 0 ? (
+              <p className="border-b border-border py-4 text-meta text-muted-foreground">{compass.noDrinks}</p>
+            ) : (
+              <ol>
+                {drinkHits.slice(0, 20).map((d) => (
+                  <li key={d.name} className="border-b border-border">
+                    <DrinkRow
+                      title={displayName(d.name)}
+                      figure={d.score}
+                      figureLabel={`Closeness ${d.score}`}
+                      selected={selected === d.name}
+                      onSelect={() => choose(d.name)}
+                    />
+                  </li>
+                ))}
+              </ol>
+            )}
+          </section>
+          <BarList
+            title={compass.barsTitle}
+            bars={barHits}
+            // Not a bar you have been to: the harbour starts there all the same.
+            extra={barHits.some((b) => fold(b.name) === q) || nearHits.some((b) => fold(b.name) === q) ? null : query.trim()}
+          />
+          {nearHits.length > 0 && (
+            <section className="mt-6">
+              <h2 className="border-b border-foreground pb-1.5 font-serif text-xl font-bold">{compass.nearTitle}</h2>
+              <BarRows bars={nearHits} known={known} selected={selectedBar} onSelect={chooseBar} />
+            </section>
+          )}
+        </>
+      ) : (
+        <>
+          {/* The first view is the map: where you are, and what is around you. */}
+          <NearPanel nearby={nearby} known={known} selected={selectedBar} onSelect={chooseBar} />
           {top ? (
             <>
-              <TopPick drink={top} entry={register[top.name]} user={user} />
+              <TopPick drink={top} entry={register[top.name]} user={user} selected={selected === top.name} onSelect={() => choose(top.name)} />
               <ol className="mt-5.5 border-t border-foreground">
                 {rest.map((d, i) => (
-                  <li key={d.name} className="dot-leader border-b border-border py-3">
-                    <span className="w-5.5 shrink-0 font-condensed text-meta tabular-nums text-muted-foreground">
-                      {i + 2}
-                    </span>
-                    <DrinkName name={d.name} entry={register[d.name]} className="text-prose" />
-                    <span aria-hidden="true" className="leader" />
-                    <span className="font-condensed text-ui font-semibold tabular-nums" aria-label={`Closeness ${d.score}`}>
-                      {d.score}
-                    </span>
+                  <li key={d.name} className="border-b border-border">
+                    <DrinkRow
+                      rank={i + 2}
+                      title={displayName(d.name)}
+                      figure={d.score}
+                      figureLabel={`Closeness ${d.score}`}
+                      selected={selected === d.name}
+                      onSelect={() => choose(d.name)}
+                    />
                   </li>
                 ))}
               </ol>
@@ -172,70 +218,73 @@ export function ResultsScreen({
           ) : (
             <p className="mt-6 font-serif text-prose italic text-muted-foreground">{menu.empty}</p>
           )}
+          {bars.length > 0 && <BarList title={compass.yourBars} bars={bars} extra={null} />}
+        </>
+      )}
 
-          {/* One sign-in prompt, below the list, stating the benefit */}
-          {isEnabled && !isConnected && (
-            <div className="mt-5 flex items-center gap-3 border border-border bg-card p-4">
-              <div className="flex flex-1 flex-col gap-0.5">
-                <span className="font-serif text-base font-bold">{menu.keepTitle}</span>
-                <span className="text-meta text-muted-foreground">{menu.keepBody}</span>
-              </div>
-              <button
-                type="button"
-                onClick={onRequestSignIn}
-                className="btn btn-primary shrink-0 px-3.5"
-              >
-                {nav.signIn}
-              </button>
-            </div>
-          )}
-
-          {isConnected && (
-            <MemberTools
-              handle={handle}
-              topName={top ? displayName(top.name) : ''}
-              regionName={region.name}
-            />
-          )}
-
-          <StartOver onConfirm={onStartOver} />
+      {/* One sign-in prompt, below the list, stating the benefit */}
+      {isEnabled && !isConnected && (
+        <div className="mt-5 flex items-center gap-3 border border-border bg-card p-4">
+          <div className="flex flex-1 flex-col gap-0.5">
+            <span className="font-serif text-base font-bold">{menu.keepTitle}</span>
+            <span className="text-meta text-muted-foreground">{menu.keepBody}</span>
+          </div>
+          <button type="button" onClick={onRequestSignIn} className="btn btn-primary shrink-0 px-3.5">
+            {nav.signIn}
+          </button>
         </div>
       )}
 
-      {activeTab === 'map' && (
-        <div className="mt-4.5 motion-safe:animate-in motion-safe:fade-in">
-          <MapTab
-            you={hasCoordinate ? { x: user.x, y: user.y } : null}
-            menu={goTo.map((d) => d.name)}
-            closeness={closeness}
-            pours={history}
-            register={register}
-            onLog={(drinkName) => window.location.assign(logPathFor(drinkName))}
-          />
-        </div>
-      )}
+      {openBar && <BarCard bar={openBar} poured={pouredAt.get(openBar.id) ?? 0} onClose={() => setSelectedBar(null)} />}
 
+      {selectedDrink && (
+        <DrinkCard
+          drink={selectedDrink}
+          register={register}
+          closeness={closeness[selectedDrink.name]}
+          last={lastPour.get(selectedDrink.name)}
+          sameSpot={drinkDatabase.filter(
+            (d) => d.name !== selectedDrink.name && d.x === selectedDrink.x && d.y === selectedDrink.y
+          )}
+          onPick={setSelected}
+          onLog={() => window.location.assign(logPathFor(selectedDrink.name))}
+          onClose={() => setSelected(null)}
+        />
+      )}
     </div>
   );
 }
 
-function DrinkName({
-  name,
-  entry,
-  className,
-}: {
-  name: string;
-  entry?: Register[string];
-  className?: string;
-}) {
-  const label = entry?.title ?? name;
-  const classes = cn('font-serif font-bold text-foreground', className);
-  return entry ? (
-    <a href={`/drinks/${entry.slug}`} className={cn(classes, 'transition-colors hover:text-primary')}>
-      {label}
-    </a>
-  ) : (
-    <span className={classes}>{label}</span>
+/** Bars: each opens the harbour already there, to pick a drink. */
+function BarList({ title, bars, extra }: { title: string; bars: Bar[]; extra: string | null }) {
+  if (bars.length === 0 && !extra) return null;
+  return (
+    <section className="mt-6">
+      <h2 className="border-b border-foreground pb-1.5 font-serif text-xl font-bold">{title}</h2>
+      <ol>
+        {bars.map((b) => (
+          <li key={b.name} className="border-b border-border">
+            <a href={harbourAt(b.name)} className="dot-leader min-h-11 w-full py-3 focus-ring-inset">
+              <span className="font-serif text-prose font-bold text-foreground transition-colors hover:text-primary">{b.name}</span>
+              <span aria-hidden="true" className="leader" />
+              <span className="shrink-0 font-condensed text-meta uppercase tracking-label text-muted-foreground">
+                {compass.barPours(b.pours)}
+              </span>
+            </a>
+          </li>
+        ))}
+        {extra && (
+          <li className="border-b border-border">
+            <a
+              href={harbourAt(extra)}
+              className="flex min-h-11 items-center py-3 font-condensed text-xs uppercase tracking-label text-secondary hover:text-primary focus-ring-inset"
+            >
+              {compass.pickAt(extra)} &rarr;
+            </a>
+          </li>
+        )}
+      </ol>
+    </section>
   );
 }
 
@@ -248,10 +297,14 @@ function TopPick({
   drink,
   entry,
   user,
+  selected,
+  onSelect,
 }: {
   drink: ScoredDrink;
   entry?: Register[string];
   user: User;
+  selected: boolean;
+  onSelect: () => void;
 }) {
   const [why, setWhy] = useState<{ name: string; text: string | null } | null>(null);
 
@@ -273,7 +326,7 @@ function TopPick({
   const loading = why?.name !== drink.name;
 
   return (
-    <div className="mt-5 flex flex-col gap-2.5 border border-foreground bg-card p-4.5 shadow-mcm">
+    <div className="mt-4 flex flex-col gap-2.5 border border-foreground bg-card p-4.5 shadow-mcm">
       <div className="flex items-baseline justify-between">
         <span className="font-condensed text-xs font-semibold uppercase tracking-label text-secondary">
           {menu.topPrefix} · {menu.topTitle}
@@ -282,119 +335,29 @@ function TopPick({
           {drink.score}
         </span>
       </div>
-      <DrinkName name={drink.name} entry={entry} className="text-title" />
+      <button
+        type="button"
+        onClick={onSelect}
+        aria-pressed={selected}
+        className={cn(
+          'text-left font-serif text-title font-bold transition-colors hover:text-primary',
+          selected ? 'text-primary' : 'text-foreground'
+        )}
+      >
+        {entry?.title ?? drink.name}
+      </button>
       {entry?.build && <span className="text-sm text-muted-foreground">{entry.build}</span>}
       {(loading || why?.text) && (
         <p
           aria-busy={loading}
           className={cn(
-            'border-t border-border pt-2.5 font-serif text-ui italic',
+            // Two lines held open while it loads, so the list below does not drop when it lands.
+            'min-h-16 border-t border-border pt-2.5 font-serif text-ui italic',
             loading && 'text-muted-foreground motion-safe:animate-pulse'
           )}
         >
           {loading ? '…' : why?.text}
         </p>
-      )}
-    </div>
-  );
-}
-
-/** For signed-in members: who you are, your public map, and sharing. */
-function MemberTools({
-  handle,
-  topName,
-  regionName,
-}: {
-  handle: string | null;
-  topName: string;
-  regionName: string;
-}) {
-  const [shareState, setShareState] = useState<'idle' | 'sharing' | 'shared'>('idle');
-  const [shareError, setShareError] = useState<string | null>(null);
-
-  const share = async () => {
-    setShareState('sharing');
-    setShareError(null);
-    const response = await sharePalateToFeed(topName, regionName);
-    if (response.success) {
-      setShareState('shared');
-    } else {
-      setShareState('idle');
-      setShareError(response.error || 'That did not go through. Try again.');
-    }
-  };
-
-  return (
-    <div className="mt-8 space-y-8">
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 border-y border-border py-2">
-        <span className="mr-auto text-meta text-muted-foreground">
-          {menu.signedInAs} <span className="font-bold text-foreground">@{handle}</span>
-        </span>
-        {handle && (
-          <a
-            href={publicMapPath(handle)}
-            className="inline-flex min-h-11 items-center font-condensed text-xs uppercase tracking-label text-secondary transition-colors hover:text-primary"
-          >
-            {publicMap.memberLink}
-          </a>
-        )}
-        <button
-          type="button"
-          onClick={share}
-          disabled={shareState !== 'idle'}
-          className="min-h-11 font-condensed text-xs uppercase tracking-label text-secondary transition-colors hover:text-primary disabled:text-muted-foreground"
-        >
-          {shareState === 'shared' ? menu.shared : menu.share}
-        </button>
-        {/* Sign out lives in the header and on /account: a form post, no script needed. */}
-        <a
-          href={accountHref}
-          className="inline-flex min-h-11 items-center font-condensed text-xs uppercase tracking-label text-muted-foreground transition-colors hover:text-foreground"
-        >
-          {nav.account}
-        </a>
-        {shareError && (
-          <p role="alert" className="w-full text-meta text-destructive">
-            {shareError}
-          </p>
-        )}
-      </div>
-    </div>
-  );
-}
-
-/**
- * Start over, in two steps: the first says what it does, the second does it.
- * A coordinate built from a quiz and a ledger of pours is not something to
- * lose to a stray tap. The words are /account's, so the two cannot disagree.
- */
-function StartOver({ onConfirm }: { onConfirm: () => void }) {
-  const [confirming, setConfirming] = useState(false);
-  const quiet =
-    'min-h-11 px-4 font-condensed text-meta uppercase tracking-label text-muted-foreground underline decoration-primary underline-offset-4 transition-colors hover:text-primary';
-
-  return (
-    <div className="mt-10 border-t border-border pt-4 text-center">
-      {confirming ? (
-        <div role="group" aria-label={menu.startOver} className="mx-auto flex max-w-sm flex-col items-center gap-3">
-          <p className="text-ui text-muted-foreground">{account.startOverBody}</p>
-          <div className="flex flex-wrap justify-center gap-2">
-            <button
-              type="button"
-              onClick={onConfirm}
-              className="btn btn-primary px-4"
-            >
-              {account.startOverCta}
-            </button>
-            <button type="button" onClick={() => setConfirming(false)} className={quiet}>
-              {menu.startOverCancel}
-            </button>
-          </div>
-        </div>
-      ) : (
-        <button type="button" onClick={() => setConfirming(true)} className={quiet}>
-          {menu.startOver}
-        </button>
       )}
     </div>
   );

@@ -25,6 +25,9 @@ export default {
       },
       spacing: {
         'safe-b': 'max(env(safe-area-inset-bottom, 0px), 1rem)',
+        // The phone's bottom tab bar: its 56px row plus `safe-b` beneath it.
+        // Whatever sits above the bar (the drink card) or must clear it (the page's foot) uses this.
+        'tabbar': 'calc(3.5rem + max(env(safe-area-inset-bottom, 0px), 1rem))',
         // 3px: the progress bar and the active tab's rule
         '0.75': '3px',
         // 7px: a drink on the map
@@ -39,6 +42,10 @@ export default {
       // `data-open:` for Radix parts, which mark themselves data-state="open".
       data: {
         open: 'state="open"',
+      },
+      gridTemplateColumns: {
+        // A radio log: the time in a narrow margin, the entry beside it.
+        radio: '3.5rem minmax(0, 1fr)',
       },
       borderWidth: {
         // The active tab's top rule

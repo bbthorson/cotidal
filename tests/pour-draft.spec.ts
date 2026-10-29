@@ -99,10 +99,10 @@ test('Draft in /log: the form opens on it, will not log without a rating, and lo
   await expect(page.getByRole('heading', { name: 'Your coordinate moved.' })).toBeVisible();
   await expect(page.getByText(/6 of 9/)).toBeVisible();
 
-  // Logged once: gone from the URL, and the form that comes back is not the draft.
+  // Logged once: gone from the URL, and the form is closed rather than offered again.
   expect(new URL(page.url()).search).toBe('');
   await page.getByRole('button', { name: returnVisit.movedBack }).click();
   await expect(page.getByTestId('pour-draft-note')).toHaveCount(0);
-  await expect(page.getByLabel(pour.noteLabel)).toHaveValue('');
+  await expect(page.getByLabel(pour.noteLabel)).toHaveCount(0);
   await expect(page.locator('ol').filter({ hasText: 'Dante' })).toHaveCount(1);
 });

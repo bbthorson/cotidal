@@ -15,6 +15,7 @@ import {
 } from '@/lib/atproto/records';
 import { getPalateProfile, postToFeed, publishPour, publishRawPalateRecord } from '@/lib/atproto/publish';
 import { publicMapPath } from '@/lib/atproto/paths';
+import { geoLocation } from '@/lib/atproto/location';
 import { feedPost } from '@/lib/copy';
 import {
   fromDynamicRecord,
@@ -53,6 +54,17 @@ export interface BuiltPour {
 export const UNKNOWN_VENUE = 'Unknown Venue';
 
 export type BuildResult = { ok: true; pour: BuiltPour } | { ok: false; error: string };
+
+/**
+ * The venue as the record holds it: its name, and — when the bar came from a
+ * map — where it is, as a `community.lexicon.location.geo` (location.ts). A
+ * point that does not parse is left out rather than refused: the name alone
+ * is still a complete venue.
+ */
+function venueRef(venueName: string, venue: LogDrinkOptions['venue']) {
+  const address = venue ? geoLocation(venue.lat, venue.lng, venueName) : null;
+  return { entity: { name: venueName }, ...(address ? { address } : {}) };
+}
 
 /**
  * The request body as a pour, or why not. Every field is unvalidated, hence
@@ -99,7 +111,7 @@ export function buildPour(
       slug: catalogSlug(register, drinkName),
       baseSpirit,
     },
-    venue: isHomePour ? undefined : { entity: { name: name(finalLocation) } },
+    venue: isHomePour ? undefined : venueRef(name(finalLocation), venue),
     rating: {
       hedonic,
       glmsValence: options.glmsValence,

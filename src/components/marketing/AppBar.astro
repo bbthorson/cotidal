@@ -1,0 +1,46 @@
+---
+import { appBar } from '../../lib/copy';
+import { appDestinations, isCurrent } from '../../lib/site-nav';
+
+interface Props {
+  currentPath: string;
+}
+
+const { currentPath } = Astro.props;
+
+/**
+ * Chart · Harbour · Log along the foot of a phone, within thumb reach: the
+ * three things a drinker does — see where they are, decide at a bar, rate
+ * what they drank. Plain links, so it needs no script. From `lg` the header
+ * carries the same destinations and this is not drawn.
+ *
+ * `data-site-chrome`: the quiz and the reveal hide it with the header
+ * (focus mode, globals.css).
+ */
+---
+
+<nav
+  data-site-chrome
+  aria-label={appBar.label}
+  class="fixed inset-x-0 bottom-0 z-30 grid grid-cols-3 border-t border-foreground bg-background pb-safe-b lg:hidden"
+>
+  {
+    appDestinations.map((d) => {
+      const active = isCurrent(currentPath, d.match);
+      return (
+        <a
+          href={d.href}
+          aria-current={active ? 'page' : undefined}
+          class:list={[
+            '-mt-px flex min-h-14 items-center justify-center border-t-3 font-condensed text-meta uppercase tracking-label transition-colors focus-ring-inset',
+            active
+              ? 'border-primary font-bold text-foreground'
+              : 'border-transparent font-semibold text-muted-foreground hover:text-foreground',
+          ]}
+        >
+          {d.label}
+        </a>
+      );
+    })
+  }
+</nav>

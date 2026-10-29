@@ -1,4 +1,4 @@
-import { nav } from './copy';
+import { appBar, nav } from './copy';
 
 /**
  * The one list of destinations. The header renders all of it; the footer
@@ -10,6 +10,7 @@ import { nav } from './copy';
  * links to the landing section but is current on any `/regions/*` page.
  */
 export const destinations = [
+  { href: '/radio', label: nav.radio, match: '/radio', app: true },
   { href: '/taste', label: nav.map, match: '/taste', app: true },
   { href: '/log', label: nav.log, match: '/log', app: true },
   { href: '/drinks', label: nav.register, match: '/drinks', app: false },
@@ -27,6 +28,26 @@ export const signIn = { href: '/#connect', label: nav.signIn } as const;
  */
 export const signInHref = (currentPath: string) =>
   currentPath.startsWith('/taste') ? '/taste?signin=1' : signIn.href;
+
+/** The bar along the foot of the app on a phone (`AppBar.astro`). */
+export const appDestinations = [
+  { href: '/radio', label: appBar.radio, match: '/radio' },
+  { href: '/taste', label: appBar.compass, match: '/taste' },
+  { href: '/log', label: appBar.log, match: '/log' },
+] as const;
+
+/** Where "Pick a drink" goes: the harbour, composed in steps. */
+export const pickHref = '/harbour';
+
+/** The harbour, already at a bar (a bar on Compass), and where it is when the map knows. */
+export function harbourAt(bar: string, at?: { lat: number; lon: number }): string {
+  const params = new URLSearchParams({ bar });
+  if (at) {
+    params.set('lat', String(at.lat));
+    params.set('lon', String(at.lon));
+  }
+  return `${pickHref}?${params.toString()}`;
+}
 
 /** /log with its form opened on a drink ("Log this" on the map). */
 export const logPathFor = (drinkName: string) => `/log?drink=${encodeURIComponent(drinkName)}`;
