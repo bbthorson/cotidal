@@ -79,7 +79,7 @@ interface PourFormProps {
   labelFor?: (name: string) => string;
   initialDrink?: string;
   /**
-   * A pour drafted elsewhere (a chat assistant, `/log?draft=1`), to check and
+   * A pour drafted elsewhere (a chat assistant, `/rate?draft=1`), to check and
    * confirm. It fills what it carries and leaves the rating unset: the
    * drinker taps it, and the form will not log until they do.
    */

@@ -1,5 +1,10 @@
 # Cleanup plan — audit of 30 October 2026
 
+> **Status: carried out** with every recommended default in §1 — WP1–WP9 on
+> `claude/app-audit-cleanup-65ty64`. What was not done, and why, is under
+> "Left for the owner" at the foot. The rest of this file is kept as the
+> record of what was found and decided.
+
 An audit of the app after the move to three tabs (Radio · Compass · Log) and
 "Pick a drink". It lists what is left over from earlier versions of the app and
 turns it into work packages, each about the size of one PR, for an agent to
@@ -469,3 +474,25 @@ Fix each one inside the work package named, or on its own if it is urgent:
 | The landing page's "Look at the map first" opens Compass's street map, not the taste map (now on Log) | `index.astro` | WP7.1 |
 | On a failed request, `TopPick` shows an invented line ("an excellent choice…") as if it were the explanation | `api-client.ts` | WP2 |
 | The feed post's link is built from a URL the client sends | `atproto-publish.ts` | WP3.7 |
+
+---
+
+## 4. Left for the owner
+
+- **`conductor/`** (the December 2025 brief and plans, already marked
+  historical): not deleted, because WP9 says to ask first. Nothing reads it.
+- **The Worker's name.** `wrangler.toml` still says `name = "crystal-coupe"`
+  while the site is served at `cotidal.bbthorson.workers.dev`. Left alone
+  until the dashboard's name is confirmed. The `package.json` name is now
+  `cotidal`. Two other deployed names still say crystal-coupe — the AI
+  Gateway id (`AI_GATEWAY_ID` in `src/lib/generation.ts`) and the KV
+  namespace in `wrangler.toml` — and are Cloudflare resources, not code to
+  rename.
+- **The harbour's cold state** (`Harbour.tsx`) was not folded into
+  `ColdState`: it offers one action, not three, and says different things.
+- **A lint rule for hand-spelled `.link-caps` / `.segment`.** The classes
+  exist and the app uses them; spotting the spelled-out form by regex was
+  not reliable enough to enforce.
+- **`astro check` reports one hint** in `src/pages/log.astro` (a value used
+  only inside a top-level `return Astro.redirect(…)` is flagged "never
+  read"). It is a false positive of the Astro language server, not an error.

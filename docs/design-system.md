@@ -56,33 +56,44 @@ A colour that needs transparency gets a name here, in `globals.css`, rather than
 | `--chart-axis` | `--foreground` at 20% | The map's axes on the cotidal chart (`ChartFigure`) |
 | `--chart-ring` | `--foreground` at 40% | Its co-range rings |
 | `--chart-cross` | `--card` at 70% | The crosshair on the terracotta band |
+| `--leader` | `--foreground` at 30% | The dotted leader between a name and its figure |
+| `--leader-reveal` | `--reveal-foreground` at 35% | The same leader on the reveal ground |
+| `--shade`, `--shade-deep` | warm greys | What `shadow-bar` is cast in |
 
 ### Typography Tokens
+Sizes are named for the role, not the number. Tailwind's own sizes (`text-sm`, `text-xl`…) and `tracking-wider` are not used: the lint rule below rejects them.
+
 | Token | Font Family / Size | Tracking / Leading | Usage |
 |---|---|---|---|
-| `font-serif` | Playfair Display | `leading-display` | Headlines, titles, drink names |
+| `font-serif` | Playfair Display | — | Headlines, titles, drink names |
 | `font-body` | PT Sans | Normal | Editorial body prose, paragraphs |
 | `font-condensed` | Barlow Condensed | `tracking-label` (0.2em) | Metadata labels, coordinates, nav links |
-| `label-caps` | Barlow Condensed | `text-3xs uppercase tracking-label text-muted-foreground` | Standard field / column label |
+| `label-caps` | Barlow Condensed | `text-label uppercase tracking-label text-muted-foreground` | Standard field / column label |
 | `tracking-wordmark` | `0.15em` | — | Site title wordmark |
-| `text-3xs` | `0.625rem` / `0.875rem` | — | Micro labels & colophons |
-| `text-2xs` | `0.6875rem` / `1rem` | — | Footnotes, specimen markers |
+| `text-3xs` | 10px / 14px | — | Micro labels & colophons |
+| `text-2xs` | 11px / 16px | — | Footnotes, specimen markers |
+| `text-label` | 12px / 16px | — | Condensed caps: labels, links, buttons |
 | `text-meta` | 13px / 1.5 | — | PT Sans small: glosses, notes |
-| `text-ui` | 15px / 1.55 | — | PT Sans body |
-| `text-prose` | 17px / 1.6 | — | Playfair prose |
+| `text-ui` | 15px / 1.55 | — | PT Sans body; running text on the reading pages |
+| `text-field` | 16px / 1.5 | — | A text field. Never smaller: iOS zooms on focus |
+| `text-prose` | 17px / 1.6 | — | Playfair prose; list-item names |
 | `text-plate` | 19px / 1.3 | — | Option and drink names |
+| `text-heading` | 20px / 1.3 | — | A section heading |
+| `text-subtitle` | 24px / 1.2 | — | A card's title; the region in the chart's cartouche |
 | `text-title` | 30px / 1.15 | — | A question, a drink, a sheet title |
-| `text-hero` | 40px / 1.05 | — | Landing headline on a phone |
+| `text-display` / `text-display-lg` | 36px / 48px, 1.05 | — | A page title (phone / from `md`) |
+| `text-hero` / `text-hero-lg` | 40px / 60px, 1.05 | — | Landing headline (phone / from `md`) |
 | `text-region` | 56px / 1 | — | A region, revealed (Playfair 400 italic) |
+
+A new size is added to `fontSize` in `tailwind.config.ts` **and** to `FONT_SIZES` in `src/lib/utils.ts` (`tests/class-merge.spec.ts` holds the two equal), so `cn()` does not read it as a colour.
 
 Fonts (`Base.astro`): Playfair Display 400, 400 italic and 700; PT Sans 400/700; Barlow Condensed 400/600/700. `font-mono` resolves to Barlow — monospace is not a brand face.
 
 ### Elevation & Shadows
 | Token | Definition | Intent |
 |---|---|---|
-| `shadow-bar` | `0 1px 2px 0 hsl(40 20% 40% / 0.06), 0 8px 24px -12px hsl(40 20% 30% / 0.18)` | A sheet lifted slightly off paper stock |
-| `shadow-mcm` | `4px 4px 0px 0px hsl(8 55% 40%)` | Hard letterpress offset in terracotta |
-| `shadow-glow` | `inset 0 0 0 1px hsl(41 29% 81%)` | An impression/stamp, not a digital light halo |
+| `shadow-bar` | `0 1px 2px 0 hsl(var(--shade) / 0.06), 0 8px 24px -12px hsl(var(--shade-deep) / 0.18)` | A sheet lifted slightly off paper stock |
+| `shadow-mcm` | `4px 4px 0 0 hsl(var(--primary))` | Hard letterpress offset in terracotta |
 
 ### Corners
 Radius is 0 for sheets, plates, buttons and tabs. `rounded-sm` (2px) is the one exception, for inputs. `rounded-full` stays for the dots on the map.
@@ -106,8 +117,12 @@ Width and padding stay with the layout (`w-full`, `px-8`).
 - **Menu Row**: `.menu-row` creates a clean hairline top rule with generous breathing room.
 - **Top pick sheet**: the one sheet that is yours — ink edge, `bg-card`, `shadow-mcm`.
 - **Option plate**: the whole plate is the button; chosen = ink edge + `shadow-mcm`, struck through when the question asks what to push away.
-- **Segmented control**: four equal cells in an ink frame; active cell `bg-secondary`.
-- **Tags**: axis (outline, forest), region (terracotta fill), status (sage fill). No other tag styles.
+- **Segmented control**: `.segmented` frame with `.segment` cells (`aria-pressed` is forest; a radio's `aria-checked` is terracotta, for what is yours). The columns are the caller's (`grid grid-cols-3`), or `.segmented-stack` for a column.
+- **Tags**: axis (outline, forest), region (terracotta fill), status (sage fill). A static label is `.tag`; a toggle is `.chip` (`<Chip>`, `aria-pressed` is forest). No other tag styles.
+- **Caps link**: `.link-caps` — 44px, condensed, wide-set; the colour is the caller's. The italic underlined link in running serif is `.link-serif`.
+- **Section title**: `.section-title` — a rule of ink under a bold serif line.
+- **Text field**: `.field` — 16px, hairline border, terracotta on focus.
+- **Shared components** (`src/components/app/ui.tsx`, `PinnedCard.tsx`, `ColdState.tsx`): `GuestPrompt` (what signing in buys, with the one button), `Loading`, `Chip`, `PinnedCard` (the drink card and the bar card: pinned above the app bar), and `ColdState` (what Log and Rate say to someone with no coordinate).
 - **Paper Grain**: `.bar-texture` applies a subtle SVG fractal grain texture.
 
 ---
@@ -116,27 +131,30 @@ Width and padding stay with the layout (`w-full`, `px-8`).
 
 Navigation is unified across the entire site through `<SiteHeader.astro>` and `<SiteFooter.astro>`, both rendered from one list (`destinations` in `src/lib/site-nav.ts`):
 1. **Zero Client JavaScript**: Rendered as semantic HTML `<header>` and `<nav aria-label="Main Navigation">`.
-2. **Destinations** (header): Radio (`/radio`), Compass (`/taste`), Log (`/log`), Drinks (`/drinks`), The Four Regions (`/#regions`), For Bars (`/bars`).
+2. **Destinations** (header): Radio (`/radio`), Compass (`/compass`), Log (`/log`), Drinks (`/drinks`), The Four Regions (`/#regions`). For Bars (`/bars`) is the supply side, a different product from the drinker's app, so it is in the footer and on the landing page, not the header; `/bars/*` is reserved for it and will get its own layout.
 3. **The account control** (header) says what the server knows (`accountFor` in `session.ts`, read once in `AppShell`):
-   - a member sees `@handle`, which opens `/account`, and **Sign out** — a plain form post that answers with a redirect, like sign-in, so it needs no script;
+   - a member sees `@handle`, which opens the account (the foot of Log, `/log#account`), and **Sign out** — a plain form post that answers with a redirect, like sign-in, so it needs no script;
    - a guest sees **Sign in**;
-   - a prerendered page (`/drinks`, `/regions/*`) was built before anyone visited, so it says **Account** (`/account`) rather than guess.
-4. **Footer**: the reading pages only — Home, Drinks, The Four Regions, For Bars. The app destinations and the account are always in the header. On a page with a bar pinned along the bottom (`AppShell`'s `bottomBar`) it is left out below `lg`: the bar is that page's foot, and the header's Menu already lists the same pages.
+   - a prerendered page (`/drinks`, `/regions/*`) was built before anyone visited, so it says **Account** (also `/log#account`) rather than guess. `/account` itself redirects there.
+   - on an app page, **Sign in** opens the one sign-in sheet in place (`?signin=1`, handled by `AtprotoProvider`) rather than leaving for the landing page's form. On every other page it goes to `/#connect`.
+4. **Footer**: the reading pages only — Home, Drinks, The Four Regions, For Bars (`app: false` in `destinations`). The app destinations and the account are always in the header. On a page with a bar pinned along the bottom (`AppShell`'s `bottomBar`) it is left out below `lg`: the bar is that page's foot, and the header's Menu already lists the same pages.
 5. **Active State Indicators**: Routes are identified via `currentPath` and styled with `bg-secondary text-secondary-foreground shadow-bar`.
 6. **Sub-Route Navigation**: In `/drinks/[slug]`, the header supports a semantic `backLink` while retaining global site navigation.
 7. **Phones**: on the reading pages the header collapses to wordmark · account · Menu. On the app pages there is no Menu — the app bar is the navigation, and the reading pages and Go ashore sit at the foot of Log (`SiteHeader`'s `appPage`). "Menu" is a `<details>` that opens the same `<nav>` through `peer-open`, so `/` still ships no JavaScript; a member's Sign out sits at the foot of it.
-8. **Focus mode**: any element marked `data-focus-mode` (the quiz, the reveal, the after-a-pour screen) hides the site header and footer below `lg` (`globals.css`, pure CSS so nothing flashes before hydration).
-9. **The app bar** (`AppBar.astro`): **Radio · Compass · Log** along the foot of a phone on the app pages (`AppShell`'s `bottomBar`) — listen, navigate, record. Plain links, no script; hidden in focus mode and from `lg`, where the header carries the same destinations. A card pinned above it (the drink card) uses the `tabbar` spacing token.
+8. **Focus mode**: any element marked `data-focus-mode` (the questions, the reveal, the after-a-pour screen) hides the site header and footer below `lg` (`globals.css`, pure CSS so nothing flashes before hydration).
+9. **The app bar** (`AppBar.astro`): **Radio · Compass · Log** along the foot of a phone on the app pages (`AppShell`'s `bottomBar`) — listen, navigate, record. Plain links, no script; hidden in focus mode and from `lg`, where the header carries the same destinations. A card pinned above it (`PinnedCard`) uses the `tabbar` spacing token.
 10. **Pick a drink** (`PickButton.astro`): choosing what to have is the one thing you *do*, not a place, so it is a floating button rather than a tab — above the app bar on a phone, in the corner from `lg`. It opens the harbour. Not drawn on the harbour, while a drink card is open, or in focus mode.
 11. **No page titles on screen in the app.** The app bar already says which tab you are on, so Radio and Log name themselves for screen readers only (`sr-only` `h1`) and open on their content.
 
-## The first-visit flow (`/taste`)
+## The first-visit flow (`/questions`)
 
-Questions → reveal → your menu. Sign-in is offered once, after the reveal, as one sheet (`SignInSheet.tsx`) that states what it buys; the landing page's form (`ConnectForm.astro`) renders the same promise from `connect.buys` in `copy.ts`. The radar chart, the archetypes and the Oracle tab are retired from the interface; the region is the only identity. Logging a pour ends on the after-a-pour screen, which shows the coordinate moving and what changed on the menu.
+Questions → reveal → Compass. The questions are a page of their own (`Questions.tsx`): no tab is current and the bar along the foot is left out. Someone who already has a coordinate is sent on to Compass — the landing page's "Find your coordinate" is the same link for everyone — unless they came to start over (`/questions?startover=1`, from the account on Log), which clears the device's copy first. Skipping goes to Compass, which browses without a coordinate and offers the questions in a line at the top.
+
+Sign-in is offered where it would keep something, as one sheet (`SignInSheet.tsx`, mounted once by `AtprotoProvider`) that states what it buys; the landing page's form (`ConnectForm.astro`) renders the same promise from `connect.buys` in `copy.ts`. The radar chart, the archetypes and the Oracle tab are retired from the interface; the region is the only identity.
 
 ## Signed in, signed out
 
-Everything works signed out, on the device; signing in moves the record into the member's own account and is what the social half needs. Pages that differ are told which by the server (`accountFor`, passed to the island as `member`), so nothing guesses or flashes.
+Everything works signed out, on the device; signing in moves the record into the member's own account and is what the social half needs. Pages that differ are told which by the server (`accountFor`, passed to every island as `member`), so nothing guesses or flashes: the island never asks the browser who is signed in. A member's first visit settles what a guest did before signing in (`useProfile`): the coordinate and quiz answers waiting on the device are written to the account, unless the account already has a coordinate.
 
 | | Signed out (guest) | Signed in (member) |
 |---|---|---|
@@ -144,17 +162,18 @@ Everything works signed out, on the device; signing in moves the record into the
 | **Pick a drink** (harbour) | Everything; the pick waits on the device | The same |
 | **Rating** | Moves the coordinate on this device; the pour is kept there (`guestPours`, `device-store.ts`) | Written to the member's repository |
 | **Radio** | Their pours on this device, and once what signing in buys | Their pours; Following and Nearby are **Later:** |
-| **Log** | Coordinate and pours, marked *On this device*, and what signing in keeps | `@handle`, coordinate, pours, the account (public map, share, chat assistants, sign out and start over) |
+| **Log** | Coordinate and pours, marked *On this device*, and what signing in keeps; start over | `@handle`, coordinate, pours, the account (public map, share, chat assistants, start over, sign out) |
+| **Rate** | The same form; the pour stays on the device | Written to the member's repository; the detail fields and cross-posting |
 
-Signing out forgets the device's copy (`forgetDevice`). A guest's pours stay on the device when they sign in; they are not written to the account on their behalf.
+Signing out forgets the device's copy (`forgetDevice`), on whichever app page it lands (`AtprotoProvider`). A guest's pours stay on the device when they sign in; they are not written to the account on their behalf.
 
 ## Radio (`/radio`, `Radio.tsx`)
 
 Pours as they go out, newest first, kept like a radio log: grouped by day, the time in a narrow margin (`grid-cols-radio`), who sent it and where, the drink and its score. The dial is All · Following · Nearby; the last two say plainly that they are Later rather than standing empty. A pick waiting to be rated sits at the top.
 
-## Log (`/log`, `ReturnVisit.tsx`)
+## Log (`/log`, `LogScreen.tsx`)
 
-Yours — personal details, so the map lives here: the chart, then what the log adds up to (pours, bars, since, best so far), the ledger, and the account. The rating form shows only while rating something — a drink handed over ("Log this", a pick, a chat's draft) or "Log one directly" — and closes once the pour is logged.
+Yours — personal details, so the map lives here: the chart, then what the log adds up to (pours, bars, since, best so far), the ledger, and **the account** (`AccountSection.tsx`, `#account`): who you are, your public map, share, chat assistants, start over, and Go ashore. Rating is not here: "Rate a drink" beside the ledger opens `/rate`.
 
 **The chart** (`Chart.tsx`):
 - **The map** has a graticule — ticks along the frame every 2.5, longer at ±5 — as a printed chart marks its border. Each dot is a 24px target (`DrinkSpot`); drinks sharing a coordinate share one spot.
@@ -163,7 +182,7 @@ Yours — personal details, so the map lives here: the chart, then what the log 
 
 No trail of past positions is drawn yet; the pours to rebuild one from are stored.
 
-## Compass (`/taste`, `ResultsScreen.tsx`)
+## Compass (`/compass`, `Compass.tsx`)
 
 Finding something, not looking at yourself: the taste map is Log's. The first view is a **street map** of the bars around you (`Near.tsx`, `NearMap.tsx`), above one search over drinks — by name or by what is in them ("mezcal") — and bars; then the top-pick sheet and seven rows (your menu, `useMenu`, the same ranking Log's map fills in), then **Your bars** from your pours.
 
@@ -172,21 +191,23 @@ Finding something, not looking at yourself: the taste map is Log's. The first vi
 - **The panel holds its height** (`h-72`) through every state — asking, finding, denied, failed — so nothing under it moves when the map fills.
 - **A bar** opens in a card like the drink card: kind and distance, how often you have poured there, **Pick a drink here** — the harbour already there, carrying where the bar is — and a link to it on OpenStreetMap.
 
-**The drink card** (`DrinkCard`, on Compass and Log alike): pinned above the app bar, the way a maps app opens a place — region and coordinate, build, closeness, your last pour, "Log this" and the register entry.
+**The drink card** (`DrinkCard`, a `PinnedCard`, on Compass and Log alike): pinned above the app bar, the way a maps app opens a place — region and coordinate, build, closeness, your last pour, "Log this" and the register entry.
 
-**Nothing moves under the reader.** A tap opens something where the thumb is rather than inserting it above what was tapped; anything that loads after paint (the top pick's line) holds its space while it does; the foot of the menu — who you are, your public map, share, account, start over — is one block under one rule, not a band each.
+**Nothing moves under the reader.** A tap opens something where the thumb is rather than inserting it above what was tapped; anything that loads after paint (the top pick's line) holds its space while it does.
 
-## The harbour (`/harbour`, `Harbour.tsx`)
+## Pick a drink (`/harbour`, `Harbour.tsx`)
 
-At a bar, deciding. Composed in steps like a post, numbered in a three-cell strip: **Where** (a bar, a recent one, or at home) → **Menu** (type what they pour; a line that names a drink on the map is placed, anything else is kept and marked unplaced) → **Pick** (the placed drinks ranked by closeness, with the venue in the relevance score; the unplaced listed apart). "Pick this" keeps the pick on the device (`pick` in `device-store.ts`) and offers **Rate it now** — `/log` opened on the pick as a draft (`draftPath`, the same hand-off a chat assistant uses), with no rating in it — or **Rate it later**, in which case the chart shows it waiting until it is rated or set aside. Photographing the menu is **Later:**.
+The screen is "Pick a drink" to the people using it; the address and the code keep the name harbour.
+
+At a bar, deciding. Composed in steps like a post, numbered in a three-cell strip: **Where** (a bar, a recent one, or at home) → **Menu** (type what they pour; a line that names a drink on the map is placed, anything else is kept and marked unplaced) → **Pick** (the placed drinks ranked by closeness, with the venue in the relevance score; the unplaced listed apart). "Pick this" keeps the pick on the device (`pick` in `device-store.ts`) and offers **Rate it now** — `/rate` opened on the pick as a draft (`draftPath`, the same hand-off a chat assistant uses), with no rating in it — or **Rate it later** (to Compass), in which case Radio, Compass and Log show it waiting until it is rated or set aside. Photographing the menu is **Later:**.
 
 **Where the bar is.** A bar picked from the map carries its point through the pick, the draft link (`lat`, `lon` in `pour-draft.ts`) and the form, and the pour records it as `venue.address`: a `community.lexicon.location.geo` (`src/lib/atproto/location.ts`), the Lexicon Community's shape, strings not floats. It is written only while the pour is still at the bar the map named: typing another bar, or choosing At home, drops it. The tests validate it against the community's published lexicon (`tests/fixtures/community-lexicon/`).
 
 **It orders nothing.** Cotidal is rarely connected to a bar's own system, so nothing in the interface says *order*: you pick, the bartender takes the order. Interface copy about the bar itself ("what to order once you know it") is fine.
 
-## Logging a pour (`/log`)
+## Rating a pour (`/rate`)
 
-One form (`PourForm.tsx`) and one ledger (`PourLedger.tsx`) serve both places. Ratings use the 9-point hedonic scale the pour record stores, as nine cells in an ink frame; "What was off" uses axis tags; spirit, glass, garnish and the sensory sliders sit behind "More detail" for signed-in members. Both places end on the same after-a-pour screen (`Moved.tsx`).
+One screen of its own (`Rate.tsx`; no tab is current), opened on a drink handed over ("Log this", a pick, a chat's draft: `/log?drink=` and `/log?draft=` redirect here) or on the drink closest to you. One form (`PourForm.tsx`); its ledger is Log's (`PourLedger.tsx`). Ratings use the 9-point hedonic scale the pour record stores, as nine cells in an ink frame; "What was off" uses axis tags; spirit, glass, garnish and the sensory sliders sit behind "More detail" for signed-in members. It ends on the after-a-pour screen (`Moved.tsx`): where the coordinate went, and what the pour did to your menu (the drink's new rank, and a drink that joined it). "Back to your ledger" returns to Log.
 
 ---
 
@@ -198,6 +219,7 @@ To guarantee the design system never drifts, automated enforcement is active at 
 - **Banned Arbitrary Values**: Rejects Tailwind brackets like `bg-[#hex]`, `text-[13px]`, `shadow-[...]`.
 - **Banned Raw Colors**: Rejects `#hex`, `rgba(...)`, `hsla(...)` in classes.
 - **Banned Hand-Built Components**: Rejects a focus ring spelled out (`focus-visible:ring-*`, `focus-visible:outline-*`) a primary button spelled out (`bg-secondary` with `hover:bg-primary`), and an outline button spelled out (`border-foreground` with `hover:bg-secondary`); use the classes above.
+- **Banned Default Scale**: Rejects Tailwind's own type sizes (`text-xs`, `text-sm`, `text-base`, `text-lg`, `text-xl`, `text-2xl`…) and `tracking-wide`/`wider`/`widest`; use the named roles above and `tracking-label` / `tracking-wordmark`.
 - **Banned Opacity Modifiers**: Rejects a colour faded where it is used (`text-foreground/80`, `border-border/60`). De-emphasise text with size and weight; give a translucent colour a token.
 - **Error Level**: Enforced as an error on `src/pages/`, `src/layouts/` and all of `src/components/`.
 

@@ -9,7 +9,7 @@ table with links; AGENTS.md has the architecture.
 - **Runtime:** Node.js >= 22 for tooling (`.nvmrc`); workerd in production
 
 ## Frontend & UI
-- **Rendering:** static Astro for `/`, `/drinks`, `/regions/<id>` and `/p/<handle>`; React 19 islands on `/taste` and `/log` only
+- **Rendering:** static Astro for `/`, `/drinks`, `/regions/<id>` and `/p/<handle>`; React 19 islands on the app pages only (`/radio`, `/compass`, `/log`, `/harbour`, `/questions`, `/rate`)
 - **Styling:** Tailwind CSS, tokens in `src/styles/globals.css` (docs/design-system.md)
 - **Component primitives:** `@radix-ui/react-dialog` (the sign-in sheet)
 - **Validation:** Zod
