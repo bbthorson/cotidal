@@ -1,17 +1,19 @@
 import { useEffect, useMemo, useState } from 'react';
 import { drinkDatabase, type Drink } from '@/lib/data';
 import { calculateWeightedRelevance, type MinimalDrinkLog } from '@/lib/scoring';
-import { harbour } from '@/lib/copy';
-import type { Register } from '@/lib/register';
-import type { PourRecord } from '@/lib/atproto/records';
-import { getConnectedPours } from '@/lib/api-client';
+import { chart, harbour } from '@/lib/copy';
+import { titleOf, type Register } from '@/lib/register';
+import { usePours } from '@/hooks/usePours';
+import { questionsHref } from '@/lib/site-nav';
 import { loadProfile, savePick, type DrinkPick } from '@/lib/device-store';
 import type { UserProfile } from '@/hooks/useDiscoveryQuiz';
 import { draftPath } from '@/lib/pour-draft';
 import { geoLocation } from '@/lib/atproto/location';
+import { recentBarNames } from '@/lib/pour-history';
 import { cn } from '@/lib/utils';
-import { AtprotoProvider, useAtprotoContext } from './AtprotoProvider';
+import { AtprotoProvider } from './AtprotoProvider';
 import { DrinkRow } from './Chart';
+import { Chip } from './ui';
 
 type Step = 'where' | 'menu' | 'pick' | 'picked';
 const STEPS: Step[] = ['where', 'menu', 'pick'];
@@ -22,14 +24,14 @@ interface MenuItem {
   drink: Drink | null;
 }
 
-const fold = (s: string) => s.trim().toLowerCase().replace(/\s*\(.*\)\s*$/, '');
+const drinkKey = (s: string) => s.trim().toLowerCase().replace(/\s*\(.*\)\s*$/, '');
 
 /** The drink on the map a menu line names, by catalogue name or register title. */
 function placeDrink(label: string, register: Register): Drink | null {
-  const want = fold(label);
+  const want = drinkKey(label);
   if (!want) return null;
   return (
-    drinkDatabase.find((d) => fold(d.name) === want || fold(register[d.name]?.title ?? '') === want) ?? null
+    drinkDatabase.find((d) => drinkKey(d.name) === want || drinkKey(register[d.name]?.title ?? '') === want) ?? null
   );
 }
 
@@ -41,8 +43,7 @@ function placeDrink(label: string, register: Register): Drink | null {
  * (`draftPath`), the same hand-off a chat assistant uses, so the rating is
  * still the member's own tap.
  */
-function HarbourContent({ register }: { register: Register }) {
-  const { isConnected } = useAtprotoContext();
+function HarbourContent({ register, member }: { register: Register; member: boolean }) {
   // Read after mount: the server has no device, and its "no coordinate" must
   // not flash at someone who has one.
   const [profile, setProfile] = useState<UserProfile | null | undefined>(undefined);
@@ -55,7 +56,8 @@ function HarbourContent({ register }: { register: Register }) {
   const [entry, setEntry] = useState('');
   const [choice, setChoice] = useState<string | null>(null);
   const [pick, setPick] = useState<DrinkPick | null>(null);
-  const [pours, setPours] = useState<PourRecord[]>([]);
+  const { pours: poured } = usePours(member);
+  const pours = useMemo(() => poured ?? [], [poured]);
 
   useEffect(() => setProfile(loadProfile()), []);
 
@@ -72,27 +74,10 @@ function HarbourContent({ register }: { register: Register }) {
   }, []);
 
   useEffect(() => {
-    if (!isConnected) return;
-    getConnectedPours(50)
-      .then(setPours)
-      .catch((e) => console.error('Failed to load pours:', e));
-  }, [isConnected]);
-
-  useEffect(() => {
     window.scrollTo(0, 0);
   }, [step]);
 
-  const recentBars = useMemo(
-    () => [
-      ...new Set(
-        pours
-          .filter((p) => !p.isHomePour)
-          .map((p) => p.venue?.entity?.name?.trim())
-          .filter((v): v is string => !!v)
-      ),
-    ].slice(0, 5),
-    [pours]
-  );
+  const recentBars = useMemo(() => recentBarNames(pours, 5), [pours]);
 
   const ranked = useMemo(() => {
     if (!profile) return [];
@@ -123,8 +108,8 @@ function HarbourContent({ register }: { register: Register }) {
     const label = entry.trim();
     if (!label) return;
     const drink = placeDrink(label, register);
-    const shown = drink ? register[drink.name]?.title ?? drink.name : label;
-    setItems((prev) => (prev.some((i) => fold(i.label) === fold(shown)) ? prev : [...prev, { label: shown, drink }]));
+    const shown = drink ? titleOf(register, drink.name) : label;
+    setItems((prev) => (prev.some((i) => drinkKey(i.label) === drinkKey(shown)) ? prev : [...prev, { label: shown, drink }]));
     setEntry('');
   };
 
@@ -151,7 +136,7 @@ function HarbourContent({ register }: { register: Register }) {
         <span className="label-caps text-secondary">{harbour.title}</span>
         <h1 className="mt-3 font-serif text-title font-bold text-foreground">{harbour.coldTitle}</h1>
         <p className="mt-3 font-serif text-prose text-muted-foreground">{harbour.coldBody}</p>
-        <a href="/taste" className="btn btn-primary btn-lg mt-8 w-full px-6">
+        <a href={questionsHref} className="btn btn-primary btn-lg mt-8 w-full px-6">
           {harbour.coldCta}
         </a>
       </div>
@@ -159,15 +144,15 @@ function HarbourContent({ register }: { register: Register }) {
   }
 
   if (step === 'picked' && pick) {
-    const title = register[pick.drink]?.title ?? pick.drink;
+    const title = titleOf(register, pick.drink);
     return (
       <div className="mx-auto max-w-xl py-8 motion-safe:animate-in motion-safe:fade-in">
         <div className="flex flex-col gap-2.5 border border-foreground bg-card p-4.5 shadow-mcm">
-          <span className="font-condensed text-xs font-semibold uppercase tracking-label text-secondary">
+          <span className="font-condensed text-label font-semibold uppercase tracking-label text-secondary">
             {harbour.pickedEyebrow} · {pick.atHome ? harbour.atHome : pick.bar}
           </span>
           <h1 className="font-serif text-title font-bold text-foreground">{title}</h1>
-          <span className="font-condensed text-xs uppercase tracking-label text-muted-foreground">
+          <span className="font-condensed text-label uppercase tracking-label text-muted-foreground">
             {new Date(pick.pickedAt).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}
           </span>
         </div>
@@ -179,7 +164,7 @@ function HarbourContent({ register }: { register: Register }) {
           >
             {harbour.rateNow}
           </a>
-          <a href="/taste" className="btn btn-outline w-full px-6">
+          <a href="/compass" className="btn btn-outline w-full px-6">
             {harbour.rateLater}
           </a>
         </div>
@@ -193,13 +178,13 @@ function HarbourContent({ register }: { register: Register }) {
   return (
     <div className="mx-auto flex max-w-xl flex-col py-5 lg:py-8">
       {/* Where you are in the composition: three ruled cells, the way a form numbers its parts. */}
-      <ol aria-label={harbour.title} className="grid grid-cols-3 border border-foreground">
+      <ol aria-label={harbour.title} className="segmented grid grid-cols-3">
         {STEPS.map((s, i) => (
           <li
             key={s}
             aria-current={s === step ? 'step' : undefined}
             className={cn(
-              'flex min-h-9 items-center justify-center gap-1.5 font-condensed text-xs uppercase tracking-label',
+              'flex min-h-9 items-center justify-center gap-1.5 font-condensed text-label uppercase tracking-label',
               i > 0 && 'border-l border-foreground',
               s === step
                 ? 'bg-secondary font-bold text-secondary-foreground'
@@ -231,17 +216,17 @@ function HarbourContent({ register }: { register: Register }) {
               onKeyDown={(e) => e.key === 'Enter' && canNext && setStep('menu')}
               maxLength={200}
               autoComplete="off"
-              className="min-h-11 rounded-sm border border-border bg-card px-3 font-body text-ui text-foreground focus:border-primary focus:outline-none"
+              className="field min-h-11"
             />
           </label>
           <div className="flex flex-wrap gap-2">
             {recentBars.length > 0 && <span className="label-caps flex w-full">{harbour.recentLabel}</span>}
             {recentBars.map((v) => (
-              <Chip key={v} active={!atHome && bar === v} onClick={() => (setBar(v), setAtHome(false))}>
+              <Chip className="min-h-11" key={v} active={!atHome && bar === v} onClick={() => (setBar(v), setAtHome(false))}>
                 {v}
               </Chip>
             ))}
-            <Chip active={atHome} onClick={() => (setAtHome(true), setBar(''))}>
+            <Chip className="min-h-11" active={atHome} onClick={() => (setAtHome(true), setBar(''))}>
               {harbour.atHome}
             </Chip>
           </div>
@@ -270,7 +255,7 @@ function HarbourContent({ register }: { register: Register }) {
                 placeholder={harbour.addPlaceholder}
                 maxLength={200}
                 autoComplete="off"
-                className="min-h-11 rounded-sm border border-border bg-card px-3 font-body text-ui text-foreground focus:border-primary focus:outline-none"
+                className="field min-h-11"
               />
             </label>
             <button type="submit" className="btn btn-outline self-end px-4">
@@ -278,7 +263,7 @@ function HarbourContent({ register }: { register: Register }) {
             </button>
             <datalist id="harbour-drinks">
               {drinkDatabase.map((d) => (
-                <option key={d.name} value={register[d.name]?.title ?? d.name} />
+                <option key={d.name} value={titleOf(register, d.name)} />
               ))}
             </datalist>
           </form>
@@ -323,9 +308,9 @@ function HarbourContent({ register }: { register: Register }) {
               <li key={drink.name} className="border-b border-border">
                 <DrinkRow
                   rank={i + 1}
-                  title={register[drink.name]?.title ?? drink.name}
+                  title={titleOf(register, drink.name)}
                   figure={score}
-                  figureLabel={`Closeness ${score}`}
+                  figureLabel={chart.closenessOf(score)}
                   selected={(choice ?? ranked[0]?.drink.name) === drink.name}
                   onSelect={() => setChoice(drink.name)}
                 />
@@ -367,26 +352,19 @@ function HarbourContent({ register }: { register: Register }) {
   );
 }
 
-function Chip({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
-  return (
-    <button
-      type="button"
-      aria-pressed={active}
-      onClick={onClick}
-      className={cn(
-        'min-h-11 border px-3 font-condensed text-xs uppercase tracking-label transition-colors',
-        active ? 'border-foreground bg-secondary text-secondary-foreground' : 'border-border bg-card text-foreground hover:border-foreground'
-      )}
-    >
-      {children}
-    </button>
-  );
-}
-
-export default function Harbour({ register, signInEnabled }: { register: Register; signInEnabled: boolean }) {
+export default function Harbour({
+  register,
+  signInEnabled,
+  member,
+}: {
+  register: Register;
+  signInEnabled: boolean;
+  /** The server's answer (`accountFor`): whose pours to rank against. */
+  member: { handle: string | null } | null;
+}) {
   return (
     <AtprotoProvider enabled={signInEnabled}>
-      <HarbourContent register={register} />
+      <HarbourContent register={register} member={!!member} />
     </AtprotoProvider>
   );
 }

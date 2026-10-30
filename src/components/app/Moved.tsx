@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { drinkDatabase } from '@/lib/data';
 import { quadrantFor } from '@/lib/quadrant';
 import { describeMove } from '@/lib/coordinate';
-import { moved } from '@/lib/copy';
+import { chart, moved } from '@/lib/copy';
 import { CoordinateMap, DrinkDot, TraceMark, YouMark } from './CoordinateMap';
 
 interface MovedProps {
@@ -12,7 +12,7 @@ interface MovedProps {
   /** "7 of 9" */
   scoreLabel: string;
   /**
-   * What the pour did to the go-to menu, where there is one (/taste): the
+   * What the pour did to the go-to menu, where there is one (on /rate): the
    * logged drink's new rank, and a drink that was not on it before.
    */
   menuChange?: { rank: number | null; newcomer: string | null };
@@ -22,7 +22,7 @@ interface MovedProps {
 }
 
 /**
- * After a pour, in /taste and /log. The payoff of logging, shown every time:
+ * After a pour, on /rate. The payoff of logging, shown every time:
  * where you were, where you are, what changed on the menu. The second and
  * last use of the ink ground.
  */
@@ -62,7 +62,7 @@ export function Moved({
       className="-mx-6 flex min-h-dvh flex-col bg-reveal px-6 pb-8 pt-14 text-reveal-foreground lg:mx-auto lg:my-6 lg:min-h-0 lg:max-w-md lg:pt-12"
     >
       <div className="flex flex-col gap-2.5">
-        <span className="font-condensed text-xs font-semibold uppercase tracking-label text-reveal-muted">
+        <span className="font-condensed text-label font-semibold uppercase tracking-label text-reveal-muted">
           {moved.eyebrow} · {displayName(drink?.name ?? drinkName)} · {scoreLabel}
         </span>
         <h1 ref={heading} tabIndex={-1} className="font-serif text-hero font-normal italic outline-none">
@@ -75,7 +75,7 @@ export function Moved({
 
       <CoordinateMap tone="ink" you={to} className="mt-7">
         <TraceMark from={from} to={to} tone="ink" />
-        <YouMark x={to.x} y={to.y} tone="ink" land label={`Your coordinate, now in ${after.name}`} />
+        <YouMark x={to.x} y={to.y} tone="ink" land label={chart.youNowIn(after.name)} />
         {drink && <DrinkDot x={drink.x} y={drink.y} tone="ink" filled label={displayName(drink.name)} />}
       </CoordinateMap>
 
@@ -83,9 +83,9 @@ export function Moved({
       <ul className="mt-4.5 border-t border-reveal-rule">
         {rows.map((row) => (
           <li key={row.name} className="dot-leader border-b border-reveal-hairline py-3">
-            <span className="font-serif text-base font-bold">{row.name}</span>
+            <span className="font-serif text-prose font-bold">{row.name}</span>
             <span aria-hidden="true" className="leader leader-reveal" />
-            <span className="font-condensed text-sm font-semibold tracking-widest text-reveal-muted">{row.note}</span>
+            <span className="font-condensed text-ui font-semibold tracking-label text-reveal-muted">{row.note}</span>
           </li>
         ))}
       </ul>

@@ -1,5 +1,3 @@
-'use client';
-
 import { useEffect, useCallback, useState } from 'react';
 import {
   QUESTION_CATEGORIES,
@@ -7,7 +5,7 @@ import {
   type QuestionOption,
 } from '@/lib/discovery-questions';
 import { MAX_QUESTIONS } from '@/lib/belief-state';
-import { quiz } from '@/lib/copy';
+import { a11y, quiz } from '@/lib/copy';
 import { cn } from '@/lib/utils';
 
 interface QuestionnaireProps {
@@ -43,7 +41,7 @@ export function Questionnaire({
   if (!currentQuestion) {
     return (
       <div data-focus-mode className="flex min-h-dvh items-center justify-center lg:min-h-0 lg:py-20">
-        <p className="font-serif text-lg italic text-muted-foreground motion-safe:animate-pulse">
+        <p className="font-serif text-plate italic text-muted-foreground motion-safe:animate-pulse">
           {quiz.loading}
         </p>
       </div>
@@ -65,7 +63,7 @@ export function Questionnaire({
         >
           &larr; {quiz.back}
         </button>
-        <span className="font-condensed text-sm font-bold tracking-wider tabular-nums text-foreground">
+        <span className="font-condensed text-ui font-bold tracking-label tabular-nums text-foreground">
           {number} <span className="font-normal text-muted-foreground">{quiz.countJoiner} {MAX_QUESTIONS}</span>
         </span>
         <button
@@ -82,7 +80,7 @@ export function Questionnaire({
       <div
         className="relative mx-6 mt-1.5 h-px bg-border"
         role="progressbar"
-        aria-label="Progress"
+        aria-label={a11y.progress}
         aria-valuemin={0}
         aria-valuemax={100}
         aria-valuenow={Math.round(progress)}
@@ -110,7 +108,7 @@ export function Questionnaire({
             key={cat.id}
             aria-current={cat.id === currentQuestion.category ? 'step' : undefined}
             className={cn(
-              'font-condensed text-xs uppercase tracking-label',
+              'font-condensed text-label uppercase tracking-label',
               cat.id === currentQuestion.category ? 'font-bold text-foreground' : 'text-muted-foreground'
             )}
           >
@@ -180,7 +178,7 @@ function QuestionStage({ question, isNavigating, canGoBack, onSelectOption, onBa
       <div
         className={cn('px-6 pb-8 pt-7', isPair ? 'grid grid-cols-2 gap-3' : 'flex flex-col gap-3')}
         role="group"
-        aria-label="Answer options"
+        aria-label={a11y.answerOptions}
       >
         {question.options.map((option, index) => {
           const isPicked = picked === index;
@@ -197,7 +195,7 @@ function QuestionStage({ question, isNavigating, canGoBack, onSelectOption, onBa
                 isPicked ? 'border-foreground shadow-mcm' : 'border-border hover:border-primary'
               )}
             >
-              <span className="w-4.5 shrink-0 pt-0.5 font-condensed text-sm font-semibold tracking-widest text-primary">
+              <span className="w-4.5 shrink-0 pt-0.5 font-condensed text-ui font-semibold tracking-label text-primary">
                 {ROMAN_NUMERALS[index] ?? index + 1}
               </span>
               <span className="flex flex-1 flex-col gap-1">
@@ -209,7 +207,7 @@ function QuestionStage({ question, isNavigating, canGoBack, onSelectOption, onBa
                 >
                   {option.text}
                 </span>
-                {option.note && <span className="text-sm leading-snug text-muted-foreground">{option.note}</span>}
+                {option.note && <span className="text-meta leading-snug text-muted-foreground">{option.note}</span>}
               </span>
             </button>
           );

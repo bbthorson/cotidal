@@ -79,7 +79,7 @@ it is. The guest experience stays complete: the quiz runs, the map renders, the
 recommendation is real. What signing in adds is prose written for them.
 
 Beyond keeping the coordinate and pours in the member's own repository — the
-product's whole thesis — this is most of what signing in buys on `/taste`
+product's whole thesis — this is most of what signing in buys on Compass
 today. That is the argument for it.
 
 ### The gate must be proof, not a claim
@@ -191,7 +191,7 @@ fixed question bank.
 ("no peat, less sweet") sent to `POST /api/refine-palate`, where the model
 returned a nudge on each axis, aversions and a two-sentence reply, and the
 coordinate moved to match. It was removed for launch; it is in git history
-(the route, `refinePalateWithAI`, and the section in `ResultsScreen`).
+(the route, `refinePalateWithAI`, and the section on the Compass page, then `ResultsScreen`).
 
 It had two problems to solve before it returns. **It broke the rule above:**
 the model's answer moved the coordinate — it produced a result rather than
@@ -206,7 +206,7 @@ construction.
 
 1. **No generated text on `/` or `/drinks`.** Both are static and script-free,
    and `tests/landing-static.spec.ts` guards the first. Generation lives on
-   `/taste` only.
+   Compass only.
 2. **Every model call has a deterministic fallback**, and the fallback is
    written to be read, not to be a placeholder.
 3. **Model IDs live in one constant**, never inline per route.

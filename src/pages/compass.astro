@@ -1,0 +1,27 @@
+---
+import AppShell from '../layouts/AppShell.astro';
+import Compass from '../components/app/Compass';
+import { site, nav } from '../lib/copy';
+import { loadRegister } from '../lib/register.server';
+import { signInEnabled } from '../lib/atproto/auth';
+import { accountFor } from '../lib/atproto/session';
+
+/**
+ * Finding a drink or a bar: the street map, one search, and your menu. The
+ * server says whether the reader is a member, so the island knows where their
+ * pours live without asking.
+ *
+ * `client:load` (not `client:only`) so the shell server-renders and the
+ * page has painted content before hydration finishes.
+ */
+export const prerender = false;
+
+const register = await loadRegister();
+const authEnabled = await signInEnabled();
+const account = await accountFor(Astro.request, false);
+const member = account.kind === 'member' ? { handle: account.handle } : null;
+---
+
+<AppShell title={`${site.name} — ${nav.compass}`} currentPath="/compass" width="wide" bottomBar>
+  <Compass client:load register={register} signInEnabled={authEnabled} member={member} />
+</AppShell>

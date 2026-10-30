@@ -1,6 +1,7 @@
 import type { UserProfile } from '@/hooks/useDiscoveryQuiz';
 import type { PourRecord, PerceivedIntensities, ElicitationRecord } from '@/lib/atproto/records';
 import type { BaseSpirit, Glassware } from '@/lib/atproto/vocab';
+import { apiErrors } from '@/lib/copy';
 import { clearPendingAnswers, loadPendingAnswers, savePendingAnswers } from '@/lib/device-store';
 
 export interface LogDrinkOptions {
@@ -22,7 +23,8 @@ export interface LogDrinkOptions {
   crosspostToFeed?: boolean;
 }
 
-export async function explainDrinkMatch(drinkName: string, userProfile: unknown): Promise<string> {
+/** Why a drink suits you; `null` when the request failed, so the page shows nothing rather than a stand-in. */
+export async function explainDrinkMatch(drinkName: string, userProfile: unknown): Promise<string | null> {
   try {
     const res = await fetch('/api/explain-drink', {
       method: 'POST',
@@ -31,10 +33,10 @@ export async function explainDrinkMatch(drinkName: string, userProfile: unknown)
     });
 
     const data = await res.json();
-    return data.text || "This drink is an excellent choice for your palate.";
+    return data.text || null;
   } catch (error) {
-    console.error("Failed to explain drink match:", error);
-    return "This drink is an excellent choice for your palate.";
+    console.error('Failed to explain drink match:', error);
+    return null;
   }
 }
 
@@ -47,7 +49,7 @@ export async function publishPalate(profile: UserProfile): Promise<{ success: bo
     });
     return await res.json();
   } catch {
-    return { success: false, error: 'Failed to publish profile' };
+    return { success: false, error: apiErrors.publishFailed };
   }
 }
 
@@ -89,15 +91,14 @@ export async function sharePalateToFeed(
   quadrant: string
 ): Promise<{ success: boolean; uri?: string; error?: string }> {
   try {
-    const appUrl = typeof window !== 'undefined' ? window.location.origin : 'https://cotidal.app';
     const res = await fetch('/api/atproto-publish', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'sharePalateToFeed', topDrink, quadrant, appUrl }),
+      body: JSON.stringify({ action: 'sharePalateToFeed', topDrink, quadrant }),
     });
     return await res.json();
   } catch {
-    return { success: false, error: 'Failed to share to Bluesky' };
+    return { success: false, error: apiErrors.shareFailed };
   }
 }
 
@@ -119,15 +120,14 @@ export async function logDrinkFeedback(
   options: LogDrinkOptions
 ): Promise<{ success: boolean; profile?: UserProfile; uri?: string; error?: string }> {
   try {
-    const appUrl = typeof window !== 'undefined' ? window.location.origin : 'https://cotidal.app';
     const res = await fetch('/api/atproto-publish', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'logDrinkFeedback', options, appUrl }),
+      body: JSON.stringify({ action: 'logDrinkFeedback', options }),
     });
     return await res.json();
   } catch {
-    return { success: false, error: 'Failed to process feedback' };
+    return { success: false, error: apiErrors.logFailed };
   }
 }
 

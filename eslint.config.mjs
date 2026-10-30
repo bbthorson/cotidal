@@ -30,6 +30,15 @@ const RAW_COLOR = /#[0-9a-fA-F]{3,8}\b|\brgba?\(|\bhsla?\(/;
 const OPACITY_MODIFIER =
   /(^|[\s:])(text|bg|border(-[trblxy])?|ring|ring-offset|outline|fill|stroke|divide|decoration|shadow|from|via|to|accent|caret|placeholder)-[a-z][a-z0-9-]*\/\d+(\s|$)/;
 
+/**
+ * Tailwind's own type sizes (`text-sm`, `text-xl`…) and tracking (`tracking-wider`).
+ * The system names its sizes by role (`text-meta`, `text-heading`…) and its
+ * tracking (`tracking-label`, `tracking-wordmark`): a size is chosen once,
+ * in tailwind.config.ts, rather than approximated on each screen.
+ */
+const DEFAULT_SCALE =
+  /(^|[\s:])(text-(xs|sm|base|lg|xl|[2-9]xl)|tracking-(wide|wider|widest))(\s|$)/;
+
 /** A focus ring drawn by hand, which the base `:focus-visible` rule already draws. */
 const HAND_FOCUS = /focus-visible:(ring|outline)/;
 
@@ -50,6 +59,12 @@ const COMPONENT_MESSAGE =
   'for a variant), and the primary button is `btn btn-primary` (or ' +
   '`btn btn-reveal`, with `btn-lg` for the large size); the second action is ' +
   '`btn btn-outline`.';
+
+const SCALE_MESSAGE =
+  'Use the named type scale, not Tailwind\'s: `text-label`, `text-meta`, `text-ui`, ' +
+  '`text-field`, `text-prose`, `text-plate`, `text-heading`, `text-subtitle`, `text-title`, ' +
+  '`text-display`… (docs/design-system.md), and `tracking-label` or `tracking-wordmark`. ' +
+  'If the role you need is missing, add it to tailwind.config.ts first.';
 
 const TOKEN_MESSAGE =
   'Use a design token, not a literal. Colours, sizes and shadows belong in ' +
@@ -81,6 +96,8 @@ const tokenRuleEntries = [
     selector: `TemplateElement[value.raw=/${OPACITY_MODIFIER.source}/]`,
     message: TOKEN_MESSAGE,
   },
+  { selector: `Literal[value=/${DEFAULT_SCALE.source}/]`, message: SCALE_MESSAGE },
+  { selector: `TemplateElement[value.raw=/${DEFAULT_SCALE.source}/]`, message: SCALE_MESSAGE },
   ...[HAND_FOCUS, HAND_PRIMARY, HAND_OUTLINE].flatMap((pattern) => [
     { selector: `Literal[value=/${pattern.source}/]`, message: COMPONENT_MESSAGE },
     { selector: `TemplateElement[value.raw=/${pattern.source}/]`, message: COMPONENT_MESSAGE },

@@ -7,7 +7,8 @@ is about the code.
 ## Rendering: keep the front door static
 
 `/` is pure Astro with **zero client JavaScript**, and so is `/p/<handle>`
-(a link sent to a stranger). `/taste` and `/log` mount React islands.
+(a link sent to a stranger). The app pages (`/radio`, `/compass`, `/log`,
+`/harbour`, `/questions`, `/rate`) mount React islands.
 
 The whole app was previously one `client:only` island, so nothing painted
 until ~860 KB of JavaScript had downloaded and hydrated — on every route,
@@ -18,8 +19,9 @@ landing page included. Astro was being used as a slower Next.js.
 - Prefer `client:load` over `client:only` so the shell server-renders.
 - The header's account control is server truth: `@handle` and a Sign out
   form for a member, Sign in for a guest, a neutral Account link on a
-  prerendered page that cannot know. `/account` is script-free too. Signing
-  out lands on `/taste?signed_out=1`, where the island clears the device's
+  prerendered page that cannot know. The account is the foot of `/log`
+  (`/account` redirects there). Signing out lands on `/compass?signed_out=1`,
+  where `AtprotoProvider` — every island mounts it — clears the device's
   copy of the palate.
 - Never add an island to `/`. `tests/landing-static.spec.ts` fails if you do.
 - Sign-in is `@bbthorson/atproto-cf-auth`, content-negotiated at
@@ -35,7 +37,7 @@ something that drifts from the first. Three had already happened:
 | Layer | Truth | How drift is caught |
 |---|---|---|
 | Records | `src/lib/atproto/lexicons/*.json` | `npm run lexicons` |
-| Styling | `globals.css` tokens + `tailwind.config.ts` | `npm run lint` — arbitrary values and raw colours are an error in `pages/`, `layouts/` and `components/` |
+| Styling | `globals.css` tokens + `tailwind.config.ts` | `npm run lint` — arbitrary values, raw colours, and Tailwind's own type sizes are an error in `pages/`, `layouts/` and `components/` |
 | Marketing copy | `src/lib/copy.ts` | *(convention)* |
 | Drink prose | `src/content/drinks/*.md` | `tests/drink-content.spec.ts` |
 | Region prose | `src/content/regions/*.md` | `tests/region-content.spec.ts` |
@@ -60,7 +62,7 @@ a string to `copy.ts` before rendering it.
 
 ## Key modules
 
-### Palate map — `src/lib/data.ts`, `src/components/app/ResultsScreen.tsx`
+### Palate map — `src/lib/data.ts`, `src/components/app/Compass.tsx`
 2D plane. Users and drinks both carry `x` (Rich −10 → Crisp +10) and `y`
 (Savory −10 → Sweet +10). Euclidean distance gives the raw match; `VibeTag`s
 sort within it. The menu is one list ranked by that relevance alone.
@@ -204,7 +206,7 @@ Workers the binding is absent and the package locks within the process.
 `signInEnabled()` in `auth.ts` — `ATPROTO_ENABLED` under `[vars]` in
 `wrangler.toml` (not the dashboard: `wrangler deploy` replaces dashboard
 variables), plus the `SESSION_SECRET` secret.
-`/` renders from it, and `/taste` and `/log` pass it to their islands as a
+`/` renders from it, and every app page passes it to its island as a
 prop. Never read the flag from `import.meta.env` or in browser code: that is
 fixed at build time, and it once left `/` and the island saying "not enabled"
 in front of a server that would have signed people in.
@@ -224,7 +226,7 @@ search drinks. Stateless and read-only; the tools are plain functions over
 `readPublicPalate` and `overlap.ts`, so they give the answers `/p/<handle>`
 gives. Their descriptions are interface copy and live in `copy.ts`.
 A pour is logged from a chat by drafting, not writing: `draft_pour` returns a
-`/log?draft=1` link (`src/lib/pour-draft.ts`) that opens the form filled in,
+`/rate?draft=1` link (`src/lib/pour-draft.ts`) that opens the form filled in,
 with no rating, and the member taps one and logs it (`docs/mcp.md`).
 
 **No floats in records.** The AT Protocol data model has none, and
@@ -319,7 +321,7 @@ interface; see `docs/brand.md`.
 2. **Migrate `drinkLog` → `pour`** *(Completed)*. Clean-slate implementation
    with 5D EKF dynamic state, gLMS hedonic ratings, CATA volatile descriptors,
    and prandial satiety normalization. Legacy `drinkLog` replaced by `pour`.
-3. **Carry the palette into `/taste`** *(Completed)*. The app's components
+3. **Carry the palette into the app pages** *(Completed)*. The app's components
    are on tokens too: the token rule is an error across `src/components/`, and
    nothing violates it.
 4. **Menu capture.** The harbour (`/harbour`) is its front half *(landed)*:
@@ -332,7 +334,7 @@ interface; see `docs/brand.md`.
    `/p/<handle>`; see Region prose.
 6. **The return visit.** Logging a pour and watching the point move is the
    only recurring behaviour in the product. The app is three tabs —
-   Radio (`/radio`), Compass (`/taste`), Log (`/log`) — and a "Pick a drink" button
+   Radio (`/radio`), Compass (`/compass`), Log (`/log`) — and a "Pick a drink" button
    into the harbour (`/harbour`); signed in versus signed out is a table in
    `docs/design-system.md`.
 7. **Venue claim and menu publishing.** Handle-as-domain makes claiming and

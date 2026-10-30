@@ -4,16 +4,20 @@ import Harbour from '../components/app/Harbour';
 import { site, harbour } from '../lib/copy';
 import { loadRegister } from '../lib/register.server';
 import { signInEnabled } from '../lib/atproto/auth';
+import { accountFor } from '../lib/atproto/session';
 
 /**
- * At a bar, deciding: where you are, what they pour, what to order — and the
- * order kept as a draft until you rate it at /log.
+ * At a bar, deciding: where you are, what they pour, which to have — and the
+ * pick kept as a draft until you rate it at /rate.
+ * Shown as "Pick a drink"; the address stays /harbour.
  */
 
 const register = await loadRegister();
 const authEnabled = await signInEnabled();
+const account = await accountFor(Astro.request, false);
+const member = account.kind === 'member' ? { handle: account.handle } : null;
 ---
 
 <AppShell title={`${site.name} — ${harbour.title}`} currentPath="/harbour" width="standard" bottomBar>
-  <Harbour client:load register={register} signInEnabled={authEnabled} />
+  <Harbour client:load register={register} signInEnabled={authEnabled} member={member} />
 </AppShell>

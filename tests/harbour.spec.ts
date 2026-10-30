@@ -6,7 +6,7 @@ const profile = { x: 4, y: -2, dislikesSmoke: false, dislikesBitter: false, disl
 test('Harbour: with no coordinate, it sends you to find one', async ({ page }) => {
   await page.goto('/harbour');
   await expect(page.getByRole('heading', { name: harbour.coldTitle })).toBeVisible();
-  await expect(page.getByRole('link', { name: harbour.coldCta })).toHaveAttribute('href', '/taste');
+  await expect(page.getByRole('link', { name: harbour.coldCta })).toHaveAttribute('href', '/questions');
 });
 
 test('Harbour: where, the menu, the pick — then the draft waits on the chart', async ({ page }) => {
@@ -46,11 +46,11 @@ test('Harbour: where, the menu, the pick — then the draft waits on the chart',
   await page.getByRole('button', { name: /Negroni/ }).click();
   await page.getByRole('button', { name: harbour.pickThis }).click();
 
-  // Picked: rating hands the draft to /log, with no rating in it.
+  // Picked: rating hands the draft to /rate, with no rating in it.
   await expect(page.getByRole('heading', { name: 'Negroni' })).toBeVisible();
   const rate = page.getByRole('link', { name: harbour.rateNow });
   const href = new URL((await rate.getAttribute('href'))!, 'http://x');
-  expect(href.pathname).toBe('/log');
+  expect(href.pathname).toBe('/rate');
   expect(href.searchParams.get('draft')).toBe('1');
   expect(href.searchParams.get('drink')).toBe('Negroni');
   expect(href.searchParams.get('bar')).toBe('Attaboy');

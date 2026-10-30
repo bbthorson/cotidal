@@ -79,15 +79,17 @@ test('Auth: the landing form is offered exactly when the server will sign in', a
   expect(html.includes(connect.disabled)).toBe(!enabled);
 });
 
-test('Auth: the sign-in sheet on /taste agrees with the server', async ({ page, request }) => {
+test('Auth: the sign-in sheet on every app page agrees with the server', async ({ page, request }) => {
   const enabled = await serverSignInEnabled(request);
-  await page.goto('/taste?signin=1');
-  const dialog = page.getByRole('dialog');
-  await expect(dialog).toBeVisible();
-  if (enabled) {
-    await expect(dialog.getByPlaceholder(connect.placeholder)).toBeVisible();
-  } else {
-    await expect(dialog.getByText(connect.disabled)).toBeVisible();
+  for (const path of ['/compass', '/radio', '/log', '/harbour', '/rate', '/questions']) {
+    await page.goto(`${path}?signin=1`);
+    const dialog = page.getByRole('dialog');
+    await expect(dialog, path).toBeVisible();
+    if (enabled) {
+      await expect(dialog.getByPlaceholder(connect.placeholder), path).toBeVisible();
+    } else {
+      await expect(dialog.getByText(connect.disabled), path).toBeVisible();
+    }
   }
 });
 

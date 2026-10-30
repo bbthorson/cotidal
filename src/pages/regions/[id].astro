@@ -65,7 +65,7 @@ const others = quadrants.filter((q) => q.id !== id);
       <h2 class="label-caps border-b border-foreground pb-2 text-foreground">
         {copy.orderingLabel}
       </h2>
-      <p class="mt-4 font-serif text-sm leading-relaxed text-foreground">
+      <p class="mt-4 font-serif text-ui leading-relaxed text-foreground">
         {copy.ordering(region.name, region.axis)}
       </p>
     </section>
@@ -87,7 +87,7 @@ const others = quadrants.filter((q) => q.id !== id);
             <li class="menu-row first:border-t-0">
               <a href={`/drinks/${drinkEntry.id}`} class="group block py-3">
                 <span class="dot-leader">
-                  <span class="font-serif text-base font-bold text-foreground transition-colors group-hover:text-primary">
+                  <span class="font-serif text-prose font-bold text-foreground transition-colors group-hover:text-primary">
                     {drinkEntry.data.title}
                   </span>
                   <span class="leader" aria-hidden="true" />
@@ -102,7 +102,7 @@ const others = quadrants.filter((q) => q.id !== id);
           ))
         }
       </ul>
-      <p class="mt-3 font-serif text-xs italic leading-relaxed text-muted-foreground">
+      <p class="mt-3 font-serif text-label italic leading-relaxed text-muted-foreground">
         {copy.placedNote}
       </p>
     </section>
@@ -117,15 +117,15 @@ const others = quadrants.filter((q) => q.id !== id);
           <ul class="border-b border-border">
             {shared.map((ingredient) => (
               <li class="menu-row dot-leader py-2.5 first:border-t-0">
-                <span class="font-serif text-sm text-foreground">{ingredient.name}</span>
+                <span class="font-serif text-ui text-foreground">{ingredient.name}</span>
                 <span class="leader" aria-hidden="true" />
-                <span class="shrink-0 font-condensed text-sm tabular-nums text-secondary">
+                <span class="shrink-0 font-condensed text-ui tabular-nums text-secondary">
                   {copy.sharedCount(ingredient.count, placed.length)}
                 </span>
               </li>
             ))}
           </ul>
-          <p class="mt-3 font-serif text-xs italic leading-relaxed text-muted-foreground">
+          <p class="mt-3 font-serif text-label italic leading-relaxed text-muted-foreground">
             {copy.sharedNote(placed.length)}
           </p>
         </section>
@@ -149,13 +149,13 @@ const others = quadrants.filter((q) => q.id !== id);
             <li class="menu-row first:border-t-0">
               <a href={`/regions/${other.id}`} class="group block py-3">
                 <span class="dot-leader">
-                  <span class="font-serif text-base font-bold text-foreground transition-colors group-hover:text-primary">
+                  <span class="font-serif text-prose font-bold text-foreground transition-colors group-hover:text-primary">
                     {other.name}
                   </span>
                   <span class="leader" aria-hidden="true" />
                   <span class="label-caps shrink-0">{other.axis}</span>
                 </span>
-                <p class="mt-1 font-serif text-xs italic leading-relaxed text-muted-foreground">
+                <p class="mt-1 font-serif text-label italic leading-relaxed text-muted-foreground">
                   {other.gloss}
                 </p>
               </a>

@@ -4,6 +4,16 @@ import 'leaflet/dist/leaflet.css';
 import type { OsmBar } from '@/lib/osm';
 import { compass } from '@/lib/copy';
 
+/**
+ * How the dots on this map are drawn. Leaflet paints SVG from options in JS,
+ * so these cannot be classes; they live here so the street map's dots are
+ * sized in one place, as the taste chart's are in `DrinkSpot` (CoordinateMap).
+ */
+const MARKER = {
+  bar: { radius: 7, selectedRadius: 11, weight: 2 },
+  you: { radius: 6, weight: 3 },
+} as const;
+
 /** A design token as a colour Leaflet can paint with (its markers are SVG, styled in JS). */
 const token = (name: string) => `hsl(${getComputedStyle(document.documentElement).getPropertyValue(name).trim()})`;
 
@@ -58,8 +68,8 @@ export function NearMap({
       for (const bar of bars) {
         const mine = known.has(bar.id);
         const marker = L.circleMarker([bar.lat, bar.lon], {
-          radius: 7,
-          weight: 2,
+          radius: MARKER.bar.radius,
+          weight: MARKER.bar.weight,
           color: mine ? yours : ink,
           fillColor: mine ? yours : paper,
           fillOpacity: 1,
@@ -70,7 +80,7 @@ export function NearMap({
         drawn.set(bar.id, marker);
       }
       // You: the terracotta dot with a paper ring, as on the chart.
-      L.circleMarker([you.lat, you.lon], { radius: 6, weight: 3, color: paper, fillColor: yours, fillOpacity: 1, interactive: false })
+      L.circleMarker([you.lat, you.lon], { radius: MARKER.you.radius, weight: MARKER.you.weight, color: paper, fillColor: yours, fillOpacity: 1, interactive: false })
         .bindTooltip(compass.you)
         .addTo(m);
 
@@ -92,7 +102,7 @@ export function NearMap({
 
   // The selected bar: larger, and centred if it is off screen.
   useEffect(() => {
-    for (const [id, marker] of markers.current) marker.setRadius(id === selected ? 11 : 7);
+    for (const [id, marker] of markers.current) marker.setRadius(id === selected ? MARKER.bar.selectedRadius : MARKER.bar.radius);
     const marker = selected ? markers.current.get(selected) : null;
     if (marker && map.current && !map.current.getBounds().contains(marker.getLatLng())) map.current.panTo(marker.getLatLng());
   }, [selected]);

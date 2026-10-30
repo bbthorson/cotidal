@@ -6,10 +6,12 @@ import Principles from '../components/marketing/Principles.astro';
 import ChartFigure from '../components/marketing/ChartFigure.astro';
 import { hero, connect, drinks, sections } from '../lib/copy';
 import { signInEnabled } from '../lib/atproto/auth';
+import { questionsHref } from '../lib/site-nav';
+import { AUTH_ERROR_MESSAGES, AUTH_ERROR_PARAM, isAuthErrorCode } from '@bbthorson/atproto-cf-auth/client';
 
 /**
  * The landing page ships zero JavaScript. Everything interactive lives at
- * /taste, which is where the React island is mounted. Sign-in is a plain
+ * the app pages, which are where the React islands are mounted. Sign-in is a plain
  * form post (see src/pages/api/auth/atproto/[...route].ts).
  *
  * Laid out as a printed specimen and menu — hairline rules, one section per idea,
@@ -20,21 +22,12 @@ import { signInEnabled } from '../lib/atproto/auth';
 // build-time variable, which is what let the two disagree.
 const atprotoEnabled = await signInEnabled();
 
-const errorCodes: Record<string, string> = {
-  not_configured: 'Sign-in is not configured right now.',
-  invalid_handle: 'That handle does not look right. Try again.',
-  handle_not_found: 'We could not find that handle. Try again.',
-  authorize_failed: 'We could not reach your provider. Try again.',
-  access_denied: 'Sign-in was cancelled.',
-  callback_failed: 'Sign-in did not complete. Try again.',
-  browser_mismatch: 'Sign-in did not complete. Try again.',
-  use_loopback_ip: 'Open this site at 127.0.0.1 rather than localhost to sign in.',
-  network_error: 'We could not reach your provider. Try again.',
-};
-
-// `auth_error` is what @bbthorson/atproto-cf-auth redirects back with.
-const errorParam = Astro.url.searchParams.get('auth_error');
-const error = errorParam ? (errorCodes[errorParam] ?? errorCodes.authorize_failed) : null;
+// `auth_error` is what @bbthorson/atproto-cf-auth redirects back with, in the
+// package's own words: the same ones the in-app sheet shows.
+const errorParam = Astro.url.searchParams.get(AUTH_ERROR_PARAM);
+const error = errorParam
+  ? AUTH_ERROR_MESSAGES[isAuthErrorCode(errorParam) ? errorParam : 'authorize_failed']
+  : null;
 ---
 
 <AppShell currentPath="/" width="standard">
@@ -44,13 +37,13 @@ const error = errorParam ? (errorCodes[errorParam] ?? errorCodes.authorize_faile
     <p class="label-caps mb-3.5">{hero.edition}</p>
 
     <h1
-      class="mx-auto max-w-2xl font-serif text-hero font-bold text-foreground md:text-6xl md:leading-display"
+      class="mx-auto max-w-2xl font-serif text-hero font-bold text-foreground md:text-hero-lg"
     >
       {hero.headline}<br />
       <em class="font-normal italic text-primary">{hero.headlineAccent}</em>
     </h1>
 
-    <p class="mx-auto mt-4.5 max-w-xs font-serif text-prose text-muted-foreground md:max-w-md md:text-lg">
+    <p class="mx-auto mt-4.5 max-w-xs font-serif text-prose text-muted-foreground md:max-w-md md:text-plate">
       {hero.body}
     </p>
 
@@ -60,7 +53,7 @@ const error = errorParam ? (errorCodes[errorParam] ?? errorCodes.authorize_faile
 
     <div class="mx-auto mt-7 flex max-w-sm flex-col items-center md:mt-10">
       <a
-        href="/taste"
+        href={questionsHref}
         class="btn btn-primary btn-lg w-full px-8"
       >
         {hero.primaryCta}
@@ -68,7 +61,7 @@ const error = errorParam ? (errorCodes[errorParam] ?? errorCodes.authorize_faile
       <p class="mt-2.5 text-meta text-muted-foreground">{hero.cost}</p>
       <a
         href="#regions"
-        class="mt-4 inline-flex min-h-11 items-center font-serif text-ui italic text-foreground underline decoration-primary underline-offset-4 transition-colors hover:text-primary"
+        class="link-serif mt-4 inline-flex min-h-11 items-center text-ui"
       >
         {hero.readFirst}
       </a>
@@ -78,25 +71,19 @@ const error = errorParam ? (errorCodes[errorParam] ?? errorCodes.authorize_faile
   <!-- The map, as a menu -->
   <section id="regions" class="scroll-mt-8 pb-16 md:pb-20">
     <div class="flex items-baseline justify-between border-b border-foreground pb-2">
-      <h2 class="font-serif text-xl font-bold text-foreground">
+      <h2 class="font-serif text-heading font-bold text-foreground">
         {sections.map}
       </h2>
       <span class="label-caps text-secondary">{sections.mapLabel}</span>
     </div>
-    <p class="mb-4 mt-3 font-serif text-sm italic text-muted-foreground">
+    <p class="mb-4 mt-3 font-serif text-meta italic text-muted-foreground">
       {sections.mapNote}
     </p>
     <QuadrantGrid />
-    <div class="mt-4 flex flex-wrap items-center justify-between gap-x-6">
-      <a
-        href="/taste?browse=1"
-        class="inline-flex min-h-11 items-center font-serif text-sm italic text-muted-foreground underline underline-offset-4 transition-colors hover:text-primary"
-      >
-        {hero.secondaryCta}
-      </a>
+    <div class="mt-4 flex justify-end">
       <a
         href="/drinks"
-        class="inline-flex min-h-11 items-center font-condensed text-xs uppercase tracking-label text-muted-foreground transition-colors hover:text-primary"
+        class="link-caps text-muted-foreground hover:text-primary"
       >
         {drinks.navLabel} &rarr;
       </a>
@@ -106,20 +93,20 @@ const error = errorParam ? (errorCodes[errorParam] ?? errorCodes.authorize_faile
   <!-- From the register: one sheet, one idea -->
   <section class="pb-16 md:pb-20">
     <div class="flex items-baseline justify-between border-b border-foreground pb-2">
-      <h2 class="font-serif text-xl font-bold text-foreground">
+      <h2 class="font-serif text-heading font-bold text-foreground">
         {sections.registerSpotlight}
       </h2>
       <span class="label-caps text-secondary">{sections.registerSpotlightLabel}</span>
     </div>
-    <p class="mb-5 mt-3 font-serif text-sm italic text-muted-foreground">
+    <p class="mb-5 mt-3 font-serif text-meta italic text-muted-foreground">
       {sections.registerSpotlightNote}
     </p>
     <div class="border border-border bg-card p-5 shadow-bar md:p-8">
       <span class="label-caps block text-secondary">{sections.registerCardLabel}</span>
-      <h3 class="mt-2 font-serif text-xl font-bold text-foreground">
+      <h3 class="mt-2 font-serif text-heading font-bold text-foreground">
         {drinks.title}
       </h3>
-      <p class="mt-2 text-sm leading-relaxed text-muted-foreground">
+      <p class="mt-2 text-ui leading-relaxed text-muted-foreground">
         {drinks.intro}
       </p>
       <a

@@ -1,35 +1,35 @@
 ---
 import AppShell from '../layouts/AppShell.astro';
-import ReturnVisit from '../components/app/ReturnVisit';
+import LogScreen from '../components/app/LogScreen';
 import { site, logPage } from '../lib/copy';
 import { loadRegister } from '../lib/register.server';
 import { signInEnabled } from '../lib/atproto/auth';
-import { parseDraft } from '../lib/pour-draft';
 import { accountFor } from '../lib/atproto/session';
+import { RATE_PATH } from '../lib/atproto/paths';
 
 /**
- * The return visit: "Your map, and what moved it."
+ * Yours: your map, what your pours add up to, the ledger of what moved you,
+ * and the account. `client:load` so the shell server-renders and paints
+ * before hydration finishes.
  *
- * Logging a pour and watching the point move is the core recurring behaviour
- * of the product. Mounts ReturnVisit with client:load so the shell server-renders
- * and paints before hydration finishes.
+ * Rating used to happen here. Links to `/log?drink=…` and `/log?draft=1…`
+ * (a chat assistant's draft) are in the wild, so they still arrive, and are
+ * passed on to /rate with the query intact.
  */
+export const prerender = false;
+
+const url = Astro.url;
+const ratingTarget = RATE_PATH + url.search;
+if (url.searchParams.has('drink') || url.searchParams.has('draft')) {
+  return Astro.redirect(ratingTarget, 302);
+}
 
 const register = await loadRegister();
 const authEnabled = await signInEnabled();
-// "Log this" on the /taste map arrives with the drink (logPathFor in site-nav.ts).
-const initialDrink = Astro.url.searchParams.get('drink')?.trim().slice(0, 200) || undefined;
-// A pour drafted in a chat (`draft_pour` on /mcp), to confirm here (pour-draft.ts).
-const initialDraft = parseDraft(Astro.url.searchParams) ?? undefined;
 const account = await accountFor(Astro.request, false);
 const member = account.kind === 'member' ? { handle: account.handle } : null;
 ---
 
-<AppShell
-  title={`${site.name} — ${logPage.title}`}
-  currentPath="/log"
-  width="standard"
-  bottomBar
->
-  <ReturnVisit client:load register={register} signInEnabled={authEnabled} member={member} initialDrink={initialDrink} initialDraft={initialDraft} />
+<AppShell title={`${site.name} — ${logPage.title}`} currentPath="/log" width="standard" bottomBar>
+  <LogScreen client:load register={register} signInEnabled={authEnabled} member={member} />
 </AppShell>

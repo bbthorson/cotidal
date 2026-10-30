@@ -1,27 +1,27 @@
 import { test, expect } from '@playwright/test';
-import { returnVisit, pour } from '../src/lib/copy';
+import { coldState, logPage, menu, moved, pour, ratePage } from '../src/lib/copy';
 
-test('Return Visit: server-renders /log route shell', async ({ page }) => {
+test('Log: server-renders the route shell', async ({ page }) => {
   const response = await page.request.get('/log');
   expect(response.status()).toBe(200);
 
   const html = await response.text();
-  expect(html).toContain(returnVisit.coldTitle);
+  expect(html).toContain(coldState.title);
   expect(html).toContain('aria-label="Main Navigation"');
   expect(html).toContain('href="/log"');
 });
 
-test('Return Visit: a guest logs a pour, sees the coordinate move, then the ledger', async ({ page }) => {
+test('Rate: a guest logs a pour, sees the coordinate move, then the ledger', async ({ page }) => {
   await page.goto('/log');
 
   // The cold state says what the page is, and the ways in.
-  await expect(page.getByText(returnVisit.coldTitle)).toBeVisible();
-  await expect(page.getByText(returnVisit.coldBody)).toBeVisible();
-  await page.getByRole('button', { name: returnVisit.guestCta }).click();
+  await expect(page.getByText(coldState.title)).toBeVisible();
+  await expect(page.getByText(coldState.body)).toBeVisible();
+  await page.getByRole('button', { name: coldState.guestCta }).click();
 
-  // The working surface: where you are, and the one pour form.
-  await expect(page.getByRole('heading', { name: returnVisit.logTitle })).toBeVisible();
-  await expect(page.getByText(returnVisit.youAreIn)).toBeVisible();
+  // Trying a pour as a guest opens the rating screen: the one pour form.
+  await expect(page).toHaveURL(/\/rate$/);
+  await expect(page.getByRole('heading', { name: ratePage.title })).toBeVisible();
 
   const where = page.getByRole('group', { name: pour.whereLabel });
   await where.getByRole('button', { name: pour.atHome }).click();
@@ -34,12 +34,16 @@ test('Return Visit: a guest logs a pour, sees the coordinate move, then the ledg
   await page.getByRole('button', { name: pour.cata['bright-citrus'], exact: true }).click();
   await page.getByRole('button', { name: pour.submit }).click();
 
-  // The same after-a-pour screen as /taste.
-  await expect(page.getByRole('heading', { name: 'Your coordinate moved.' })).toBeVisible();
+  // The after-a-pour screen: where it went, and what it did to the menu.
+  await expect(page.getByRole('heading', { name: moved.title })).toBeVisible();
   await expect(page.getByText(/8 of 9/)).toBeVisible();
-  await page.getByRole('button', { name: returnVisit.movedBack }).click();
+  await expect(page.getByText(/^Now No\. \d on your menu$|^Not on your menu$/)).toBeVisible();
+  await page.getByRole('button', { name: moved.back }).click();
 
-  await expect(page.getByRole('heading', { name: returnVisit.ledgerTitle, exact: true })).toBeVisible();
+  // Back on Log: where you are now, and the pour in the ledger.
+  await expect(page).toHaveURL(/\/log$/);
+  await expect(page.getByText(menu.youAreIn)).toBeVisible();
+  await expect(page.getByRole('heading', { name: logPage.ledgerTitle, exact: true })).toBeVisible();
   const ledger = page.locator('ol').filter({ hasText: 'Too sweet' });
   await expect(ledger).toContainText(pour.home);
   await expect(ledger).toContainText('8 of 9');

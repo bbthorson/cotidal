@@ -2,7 +2,7 @@
 import AppShell from '../layouts/AppShell.astro';
 import PageTitle from '../components/marketing/PageTitle.astro';
 import { site, venuesCopy } from '../lib/copy';
-import { venueDatabase } from '../lib/venues-database';
+import { exampleVenues } from '../lib/example-menus';
 
 /**
  * The supply side: what a bar can do on the protocol today, and what is
@@ -29,8 +29,8 @@ import { venueDatabase } from '../lib/venues-database';
       <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
         {venuesCopy.today.map((item) => (
           <article class="coaster border border-border bg-card p-6">
-            <h3 class="font-serif text-lg font-bold text-foreground mb-3">{item.title}</h3>
-            <p class="font-serif text-sm leading-relaxed text-muted-foreground">{item.description}</p>
+            <h3 class="font-serif text-plate font-bold text-foreground mb-3">{item.title}</h3>
+            <p class="font-serif text-ui leading-relaxed text-muted-foreground">{item.description}</p>
           </article>
         ))}
       </div>
@@ -43,38 +43,38 @@ import { venueDatabase } from '../lib/venues-database';
 
       <ul class="space-y-3">
         {venuesCopy.later.map((line) => (
-          <li class="font-serif text-sm leading-relaxed text-muted-foreground">{line}</li>
+          <li class="font-serif text-ui leading-relaxed text-muted-foreground">{line}</li>
         ))}
       </ul>
     </section>
 
     <section class="space-y-6">
       <div class="border-b border-foreground pb-2">
-        <h2 class="font-serif text-2xl font-bold text-foreground">{venuesCopy.examplesTitle}</h2>
-        <p class="font-serif text-sm text-muted-foreground mt-1">{venuesCopy.examplesSubtitle}</p>
+        <h2 class="font-serif text-subtitle font-bold text-foreground">{venuesCopy.examplesTitle}</h2>
+        <p class="font-serif text-meta text-muted-foreground mt-1">{venuesCopy.examplesSubtitle}</p>
       </div>
 
       <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {venueDatabase.slice(0, 6).map((venue) => (
+        {exampleVenues.map((venue) => (
           <article class="coaster border border-border bg-card p-6 space-y-4">
             <div class="flex items-center justify-between border-b border-border pb-2">
-              <span class="font-mono text-xs text-primary font-semibold">{venue.domain}</span>
+              <span class="font-condensed text-label uppercase tracking-label text-muted-foreground">{venue.domain}</span>
               <span class="rounded-sm border border-border px-2 py-0.5 font-condensed text-3xs uppercase tracking-label text-muted-foreground">
                 {venuesCopy.exampleTag}
               </span>
             </div>
             <div>
-              <h3 class="font-serif text-xl font-bold text-foreground mb-1">{venue.name}</h3>
-              <p class="font-serif text-xs text-muted-foreground mb-3">{venue.neighborhood} · {venue.city}</p>
-              <p class="font-serif text-xs leading-relaxed text-foreground">{venue.summary}</p>
+              <h3 class="font-serif text-heading font-bold text-foreground mb-1">{venue.name}</h3>
+              <p class="font-serif text-label text-muted-foreground mb-3">{venue.neighborhood} · {venue.city}</p>
+              <p class="font-serif text-label leading-relaxed text-foreground">{venue.summary}</p>
             </div>
             <div class="border-t border-border pt-3">
               <span class="label-caps text-secondary block mb-2">{venuesCopy.examplesSpecs(venue.menu.length)}</span>
-              <ul class="space-y-1.5 font-serif text-xs text-foreground">
+              <ul class="space-y-1.5 font-serif text-label text-foreground">
                 {venue.menu.map((item) => (
                   <li class="flex items-center justify-between">
                     <span class="font-medium">{item.name}</span>
-                    <span class="font-mono text-3xs text-muted-foreground">[{item.x > 0 ? `+${item.x}` : item.x}, {item.y > 0 ? `+${item.y}` : item.y}]</span>
+                    <span class="font-condensed text-3xs text-muted-foreground">[{item.x > 0 ? `+${item.x}` : item.x}, {item.y > 0 ? `+${item.y}` : item.y}]</span>
                   </li>
                 ))}
               </ul>

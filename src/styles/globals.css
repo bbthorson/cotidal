@@ -55,6 +55,14 @@
     /* Paper ink, dimmed: drinks off your menu, and your mark's crosshair */
     --reveal-dim: var(--reveal-foreground) / 0.58;
 
+    /* The shade a sheet casts on the stock (`shadow-bar`): warm grey, then deeper */
+    --shade: 40 20% 40%;
+    --shade-deep: 40 20% 30%;
+
+    /* The dotted leader between a name and its figure, on paper and on the ink ground */
+    --leader: var(--foreground) / 0.3;
+    --leader-reveal: var(--reveal-foreground) / 0.35;
+
     /* The ink laid over the page behind a sheet */
     --scrim: var(--foreground) / 0.55;
 
@@ -64,24 +72,6 @@
     --chart-ring: var(--foreground) / 0.4;
     --chart-cross: var(--card) / 0.7;
 
-  }
-
-  /* The previous obsidian palette, kept behind `.dark` so the inversion is
-     reversible. Nothing toggles this class today. */
-  .dark {
-    --background: 220 15% 8%;
-    --foreground: 35 30% 92%;
-    --card: 220 12% 11%;
-    --primary: 36 72% 55%;
-    --primary-foreground: 220 15% 8%;
-    --secondary: 18 60% 52%;
-    --secondary-foreground: 35 30% 92%;
-    --muted: 220 10% 16%;
-    --muted-foreground: 35 15% 58%;
-    --accent: 36 50% 40%;
-    --destructive: 0 62.8% 30.6%;
-    --border: 220 10% 22%;
-    --ring: 36 72% 55%;
   }
 }
 
@@ -100,11 +90,11 @@
   /* Buttons. Square, condensed caps, an ink edge. `.btn` is the shape; a
      colour class says what it is. Width and padding stay with the layout. */
   .btn {
-    @apply inline-flex min-h-11 items-center justify-center border font-condensed text-xs font-bold uppercase tracking-label transition-colors;
+    @apply inline-flex min-h-11 items-center justify-center border font-condensed text-label font-bold uppercase tracking-label transition-colors;
   }
   /* The large size: a screen's main action, usually full width. */
   .btn-lg {
-    @apply min-h-13 text-sm;
+    @apply min-h-13 text-ui;
   }
   /* The primary action: forest, terracotta on hover. */
   .btn-primary {
@@ -118,6 +108,60 @@
   /* The primary action on the reveal ground: paper on forest. */
   .btn-reveal {
     @apply border-reveal-foreground bg-reveal-foreground text-reveal hover:bg-reveal-muted focus-ring-reveal;
+  }
+
+  /* A caps link or text button: 44px tall, condensed, wide-set. The colour is the caller's. */
+  .link-caps {
+    @apply inline-flex min-h-11 items-center font-condensed text-label uppercase tracking-label transition-colors;
+  }
+  /* The italic underlined link in running serif: "Find your coordinate". The size is the caller's. */
+  .link-serif {
+    @apply font-serif italic text-foreground underline decoration-primary underline-offset-4 transition-colors hover:text-primary;
+  }
+
+  /* A section's heading: a rule of ink under a bold serif line. */
+  .section-title {
+    @apply border-b border-foreground pb-1.5 font-serif text-heading font-bold;
+  }
+
+  /* A text field. 16px (`text-field`) so iOS does not zoom when it takes focus.
+     A caller that marks an error or a stronger edge overrides the border. */
+  .field {
+    @apply min-h-12 w-full rounded-sm border border-border bg-card px-3.5 font-body text-field text-foreground transition-colors placeholder:text-muted-foreground focus:border-primary focus:outline-none;
+  }
+
+  /* A segmented control: cells in an ink frame, one pressed. The layout (grid
+     columns, or `segmented-stack` for a column) is the caller's. Pressed is
+     forest (`aria-pressed`); a radio's checked cell is terracotta, for what is yours. */
+  .segmented {
+    @apply border border-foreground;
+  }
+  .segment {
+    @apply min-h-11 bg-card font-condensed text-label font-semibold uppercase tracking-label text-foreground transition-colors hover:bg-muted focus-ring-inset;
+  }
+  .segment[aria-pressed='true'] {
+    @apply bg-secondary text-secondary-foreground hover:bg-secondary;
+  }
+  .segment[aria-checked='true'] {
+    @apply bg-primary text-primary-foreground hover:bg-primary;
+  }
+  .segmented > .segment + .segment {
+    @apply border-l border-foreground;
+  }
+  .segmented-stack > .segment + .segment {
+    @apply border-l-0 border-t border-foreground;
+  }
+
+  /* Tags: a static label, and a chip that toggles. Axis, region and status
+     tags are the other three; nothing else is a tag (docs/design-system.md). */
+  .tag {
+    @apply border border-border px-2 py-0.5 font-condensed text-label uppercase tracking-label text-secondary;
+  }
+  .chip {
+    @apply min-h-9 border border-border px-2.5 font-condensed text-label uppercase tracking-label text-secondary transition-colors hover:border-foreground;
+  }
+  .chip[aria-pressed='true'] {
+    @apply border-secondary bg-secondary text-secondary-foreground hover:border-secondary;
   }
 }
 
@@ -151,13 +195,13 @@
   }
   .dot-leader > .leader {
     flex: 1;
-    border-bottom: 1px dotted hsl(var(--foreground) / 0.3);
+    border-bottom: 1px dotted hsl(var(--leader));
     margin: 0 0.5rem;
     min-width: 1.5rem;
   }
   /* The same leader on the reveal ground */
   .dot-leader > .leader.leader-reveal {
-    border-bottom-color: hsl(var(--reveal-foreground) / 0.35);
+    border-bottom-color: hsl(var(--leader-reveal));
   }
 
   /* A printed menu row: hairline above, generous leading, nothing else. */
@@ -168,7 +212,7 @@
   /* Letterpress-style caps used for labels and column heads. 12px, 600:
      it was 10px, below what the brand allows for any running label. */
   .label-caps {
-    @apply font-condensed text-xs font-semibold uppercase tracking-label text-muted-foreground;
+    @apply font-condensed text-label font-semibold uppercase tracking-label text-muted-foreground;
   }
 
   /* A <summary> that reads as a plain control, not a disclosure triangle. */
@@ -183,7 +227,7 @@
      own, so the typography is defined once here rather than re-typed as
      arbitrary values in every page that renders a collection entry. */
   .prose-entry {
-    @apply font-serif text-base leading-relaxed text-muted-foreground;
+    @apply font-serif text-prose text-muted-foreground;
   }
   .prose-entry > p + p {
     margin-top: 1.25rem;
@@ -222,7 +266,7 @@
 .map-paper .leaflet-control-attribution {
   background: hsl(var(--card));
   color: hsl(var(--muted-foreground));
-  font-size: 0.625rem;
+  font-size: theme('fontSize.3xs');
 }
 .map-paper .leaflet-control-zoom a {
   border-radius: 0;

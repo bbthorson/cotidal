@@ -49,18 +49,26 @@ build produces. CI (`ci.yml`) only lints, typechecks, builds and tests.
 
 - **`/`** — the landing page. Pure Astro, **zero client JavaScript**; sign-in
   is a plain form post that works without it.
-- **`/taste`** — the quiz, the reveal and your menu. A React island.
-- **`/log`** — log a pour and watch the coordinate move. A React island.
+- **`/radio`**, **`/compass`**, **`/log`** — the three tabs of the app, each a
+  React island. Radio is activity (pours as they go out); Compass is finding a
+  drink or a bar (a street map of bars near you, search, your menu); Log is
+  you (your map, your ledger, the account).
+- **`/harbour`** — "Pick a drink": at a bar, type its menu, get it ranked.
+  An island.
+- **`/questions`** — the questions that place a coordinate, then the reveal.
+  An island.
+- **`/rate`** — rate one pour and watch the coordinate move. An island.
+  `/log?drink=…` and `/log?draft=…` still arrive here.
 - **`/drinks`** — the register: what is actually known about a drink, separated
   from what is only repeated about it. Static, zero client JavaScript.
 - **`/regions/<id>`** — one page per region. Static.
 - **`/p/<handle>`** — someone's coordinate at a public URL, with yours beside
   it if you are signed in. Server-rendered, zero client JavaScript.
-- **`/account`** — who you are signed in as, starting over, and signing out.
-  Server-rendered, zero client JavaScript.
 - **`/bars`** — the placeholder for venues.
 
-Only `/taste` and `/log` mount islands. Keep it that way: `client:only` on the whole app previously meant ~860 KB of
+`/taste` (now `/compass`) and `/account` (now the foot of `/log`) redirect.
+
+Only the app pages above mount islands. Keep it that way: `client:only` on the whole app previously meant ~860 KB of
 JavaScript had to download and hydrate before anything painted at all,
 including on the landing page. `tests/landing-static.spec.ts` guards it.
 

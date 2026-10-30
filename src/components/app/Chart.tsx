@@ -3,10 +3,11 @@ import { drinkDatabase, type Drink } from '@/lib/data';
 import { quadrantFor } from '@/lib/quadrant';
 import { formatCoordinate } from '@/lib/coordinate';
 import { chart, menu, pour } from '@/lib/copy';
-import type { Register } from '@/lib/register';
+import { titleOf, type Register } from '@/lib/register';
 import type { PourRecord } from '@/lib/atproto/records';
 import { cn } from '@/lib/utils';
 import { CoordinateMap, DrinkSpot, YouMark } from './CoordinateMap';
+import { PinnedCard } from './PinnedCard';
 
 export type Lens = (typeof chart.lenses)[number]['id'];
 
@@ -65,7 +66,7 @@ export function Chart({
   /** Said before "You are in" — "On this device", for a guest. */
   eyebrow?: string;
 }) {
-  const name = (n: string) => register[n]?.title ?? n;
+  const name = (n: string) => titleOf(register, n);
   const region = you ? quadrantFor(you.x, you.y) : null;
 
   const spots = useMemo(() => {
@@ -114,7 +115,7 @@ export function Chart({
             onSelect={() => onSelect(spot.drinks[0].name)}
           />
         ))}
-        {you && region && <YouMark x={you.x} y={you.y} label={`Your coordinate, in ${region.name}`} />}
+        {you && region && <YouMark x={you.x} y={you.y} label={chart.youIn(region.name)} />}
       </CoordinateMap>
 
       {/* The title block: the frame continues around it. */}
@@ -127,8 +128,8 @@ export function Chart({
                 {menu.youAreIn}
               </span>
               <span className="flex flex-wrap items-baseline gap-x-2.5">
-                <span className="font-serif text-2xl italic leading-none text-primary">{region.name}</span>
-                <span className="font-condensed text-xs font-semibold tabular-nums tracking-label text-secondary">
+                <span className="font-serif text-subtitle italic leading-none text-primary">{region.name}</span>
+                <span className="font-condensed text-label font-semibold tabular-nums tracking-label text-secondary">
                   {formatCoordinate(you.x, you.y)}
                 </span>
               </span>
@@ -137,7 +138,7 @@ export function Chart({
             <button
               type="button"
               onClick={onTakeQuiz}
-              className="flex min-h-11 items-center text-left font-serif text-lg italic text-foreground underline decoration-primary underline-offset-4 hover:text-primary"
+              className="link-serif flex min-h-11 items-center text-left text-plate"
             >
               {chart.findYours}
             </button>
@@ -162,18 +163,14 @@ export function Chart({
           </ul>
         </div>
 
-        <div role="group" aria-label={chart.lensLabel} className="flex shrink-0 flex-col border border-foreground">
-          {chart.lenses.map((l, i) => (
+        <div role="group" aria-label={chart.lensLabel} className="segmented segmented-stack flex shrink-0 flex-col">
+          {chart.lenses.map((l) => (
             <button
               key={l.id}
               type="button"
               aria-pressed={lens === l.id}
               onClick={() => onLens(l.id)}
-              className={cn(
-                'min-h-11 px-3 font-condensed text-xs font-semibold uppercase tracking-wider transition-colors focus-ring-inset',
-                i > 0 && 'border-t border-foreground',
-                lens === l.id ? 'bg-secondary text-secondary-foreground' : 'bg-card text-foreground hover:bg-muted'
-              )}
+              className="segment px-3"
             >
               {l.label}
             </button>
@@ -264,76 +261,62 @@ export function DrinkCard({
     : null;
 
   return (
-    <div
-      data-drink-card
-      aria-live="polite"
-      className="fixed inset-x-0 bottom-tabbar z-20 max-h-96 overflow-y-auto border-t border-foreground bg-card pb-4 shadow-bar lg:bottom-0 lg:pb-safe-b motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-4 sm:mx-auto sm:max-w-xl sm:border-x"
+    <PinnedCard
+      eyebrow={`${region.name} · ${formatCoordinate(drink.x, drink.y)}`}
+      onClose={onClose}
+      className="max-h-card overflow-y-auto"
     >
-      <div className="flex flex-col gap-2 px-6 pt-4">
-        <div className="flex items-baseline justify-between gap-3">
-          <span className="font-condensed text-xs font-semibold uppercase tracking-label text-secondary">
-            {region.name} · {formatCoordinate(drink.x, drink.y)}
-          </span>
-          <button
-            type="button"
-            onClick={onClose}
-            className="-my-2 -mr-2 flex min-h-11 items-center px-2 font-condensed text-xs uppercase tracking-label text-muted-foreground hover:text-foreground"
-          >
-            {chart.close}
-          </button>
-        </div>
-        <span className="font-serif text-2xl font-bold leading-tight text-foreground">{title}</span>
-        {entry?.build && <span className="line-clamp-2 text-sm text-muted-foreground">{entry.build}</span>}
+      <span className="font-serif text-subtitle font-bold leading-tight text-foreground">{title}</span>
+      {entry?.build && <span className="line-clamp-2 text-meta text-muted-foreground">{entry.build}</span>}
 
-        {(closeness !== undefined || lastLine) && (
-          <dl className="border-t border-border pt-1">
-            {closeness !== undefined && (
-              <div className="dot-leader py-1.5">
-                <dt className="text-meta text-muted-foreground">{chart.closeness}</dt>
-                <span aria-hidden="true" className="leader" />
-                <dd className="font-condensed text-ui font-bold tabular-nums">{closeness}</dd>
-              </div>
-            )}
-            {lastLine && (
-              <div className="dot-leader py-1.5">
-                <dt className="text-meta text-muted-foreground">{chart.lastPour}</dt>
-                <span aria-hidden="true" className="leader" />
-                <dd className="font-condensed text-ui font-semibold">{lastLine}</dd>
-              </div>
-            )}
-          </dl>
-        )}
-
-        {sameSpot.length > 0 && (
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="font-condensed text-xs uppercase tracking-label text-muted-foreground">{chart.sameSpot}</span>
-            {sameSpot.map((d) => (
-              <button
-                key={d.name}
-                type="button"
-                onClick={() => onPick(d.name)}
-                className="min-h-9 border border-border px-2.5 font-condensed text-xs uppercase tracking-label text-secondary transition-colors hover:border-foreground"
-              >
-                {register[d.name]?.title ?? d.name}
-              </button>
-            ))}
-          </div>
-        )}
-
-        <div className="mt-1 flex flex-wrap items-center gap-x-5 gap-y-2">
-          <button type="button" onClick={onLog} className="btn btn-primary px-5">
-            {chart.logThis}
-          </button>
-          {entry && (
-            <a
-              href={`/drinks/${entry.slug}`}
-              className="inline-flex min-h-11 items-center font-condensed text-xs uppercase tracking-label text-primary hover:underline"
-            >
-              {chart.readEntry} &rarr;
-            </a>
+      {(closeness !== undefined || lastLine) && (
+        <dl className="border-t border-border pt-1">
+          {closeness !== undefined && (
+            <div className="dot-leader py-1.5">
+              <dt className="text-meta text-muted-foreground">{chart.closeness}</dt>
+              <span aria-hidden="true" className="leader" />
+              <dd className="font-condensed text-ui font-bold tabular-nums">{closeness}</dd>
+            </div>
           )}
+          {lastLine && (
+            <div className="dot-leader py-1.5">
+              <dt className="text-meta text-muted-foreground">{chart.lastPour}</dt>
+              <span aria-hidden="true" className="leader" />
+              <dd className="font-condensed text-ui font-semibold">{lastLine}</dd>
+            </div>
+          )}
+        </dl>
+      )}
+
+      {sameSpot.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="font-condensed text-label uppercase tracking-label text-muted-foreground">{chart.sameSpot}</span>
+          {sameSpot.map((d) => (
+            <button
+              key={d.name}
+              type="button"
+              onClick={() => onPick(d.name)}
+              className="chip"
+            >
+              {titleOf(register, d.name)}
+            </button>
+          ))}
         </div>
+      )}
+
+      <div className="mt-1 flex flex-wrap items-center gap-x-5 gap-y-2">
+        <button type="button" onClick={onLog} className="btn btn-primary px-5">
+          {chart.logThis}
+        </button>
+        {entry && (
+          <a
+            href={`/drinks/${entry.slug}`}
+            className="link-caps text-primary hover:underline"
+          >
+            {chart.readEntry} &rarr;
+          </a>
+        )}
       </div>
-    </div>
+    </PinnedCard>
   );
 }

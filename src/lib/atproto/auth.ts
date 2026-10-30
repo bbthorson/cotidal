@@ -79,7 +79,7 @@ export async function getAuth(): Promise<BlueskyAuth | null> {
   return (auth = createBlueskyAuth({
     appName: 'Cotidal',
     basePath: AUTH_BASE_PATH,
-    redirectTo: '/taste',
+    redirectTo: '/compass',
     scope: 'atproto transition:generic',
     store: kv ? kvStore(kv) : memoryStore(),
     ...(lock ? { requestLock: durableObjectLock(lock) } : {}),
@@ -92,7 +92,7 @@ export async function getAuth(): Promise<BlueskyAuth | null> {
 
 /**
  * Whether sign-in is on: switched on *and* able to seal sessions. The one
- * answer `/`, `/taste` and `/log` render from, so the form is offered exactly
+ * answer `/` and every app page render from, so the form is offered exactly
  * when the login route will accept it.
  */
 export async function signInEnabled(): Promise<boolean> {

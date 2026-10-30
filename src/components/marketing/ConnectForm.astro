@@ -21,7 +21,7 @@ const { enabled, error } = Astro.props;
     {
       connect.buys.map((b, i) => (
         <li class="flex gap-3 border-b border-border py-3">
-          <span class="w-3.5 shrink-0 font-condensed text-sm font-bold text-primary">{i + 1}</span>
+          <span class="w-3.5 shrink-0 font-condensed text-ui font-bold text-primary">{i + 1}</span>
           <div class="space-y-0.5">
             <p class="text-ui font-bold text-foreground">{b.title}</p>
             <p class="text-meta text-muted-foreground">{b.body}</p>
@@ -44,9 +44,9 @@ const { enabled, error } = Astro.props;
   {
     enabled ? (
       <form method="POST" action={`${AUTH_BASE_PATH}/login`} class="space-y-4">
-        <input type="hidden" name="returnTo" value="/taste" />
+        <input type="hidden" name="returnTo" value="/compass" />
         <label for="handle" class="flex flex-col gap-1.5">
-          <span class="font-condensed text-xs uppercase tracking-label text-muted-foreground">
+          <span class="font-condensed text-label uppercase tracking-label text-muted-foreground">
             {connect.label}
           </span>
           <input
@@ -58,7 +58,7 @@ const { enabled, error } = Astro.props;
             autocapitalize="none"
             spellcheck="false"
             placeholder={connect.placeholder}
-            class="min-h-12 w-full rounded-sm border border-border bg-card px-3.5 font-body text-base text-foreground placeholder:text-muted-foreground transition-colors focus:border-primary focus:outline-none"
+            class="field"
           />
         </label>
         <button

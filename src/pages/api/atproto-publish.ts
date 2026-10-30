@@ -14,6 +14,7 @@ import type { LogDrinkOptions } from '@/lib/api-client';
 import { oauthSession } from '@/lib/atproto/session';
 import { publicMapPath } from '@/lib/atproto/paths';
 import { logPour, sessionStore } from '@/lib/pours.server';
+import { apiErrors } from '@/lib/copy';
 
 const ProfileSchema = z.object({
   x: z.number().min(-10).max(10),
@@ -25,24 +26,29 @@ const ProfileSchema = z.object({
   variance: z.object({ x: z.number().min(0), y: z.number().min(0) }).optional(),
 });
 
+const json = (body: unknown, status = 200) =>
+  new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
+
+const fail = (error: string, status: number) => json({ success: false, error }, status);
+
 export const POST: APIRoute = async ({ request }) => {
   let body: { action?: string; [key: string]: unknown };
   try {
     body = await request.json();
   } catch {
-    return new Response(JSON.stringify({ success: false, error: 'Invalid JSON' }), {
-      status: 400,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return fail(apiErrors.invalidRequest, 400);
   }
 
+  // Links in what we post for a member point back at this deployment: taken
+  // from the request itself rather than from anything the page claims.
+  const appUrl = new URL(request.url).origin;
   const session = await oauthSession(request);
 
   if (body.action === 'getConnectedPalate') {
-    if (!session) return new Response(JSON.stringify({ profile: null }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+    if (!session) return json({ profile: null });
     try {
       const record = await getPalateProfile(session);
-      if (!record) return new Response(JSON.stringify({ profile: null }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+      if (!record) return json({ profile: null });
       const profile: UserProfile = {
         x: record.mapCoordinates?.x ?? 0,
         y: record.mapCoordinates?.y ?? 0,
@@ -51,83 +57,69 @@ export const POST: APIRoute = async ({ request }) => {
         dislikesAnise: record.aversions?.anise ?? false,
         vibeTags: (record.vibeTags as Record<string, number>) || {},
       };
-      return new Response(JSON.stringify({ profile }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+      return json({ profile });
     } catch (e) {
       console.error('Failed to get connected palate:', e);
-      return new Response(JSON.stringify({ profile: null }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+      return json({ profile: null });
     }
   }
 
-  // `getConnectedDrinkLogs` and `logs` are the names a page loaded before the
-  // rename to pours still sends and reads.
-  if (body.action === 'getConnectedDrinkLogs' || body.action === 'getConnectedPours') {
-    if (!session) return new Response(JSON.stringify({ logs: [], pours: [] }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+  if (body.action === 'getConnectedPours') {
+    if (!session) return json({ pours: [] });
     try {
       const limit = typeof body.limit === 'number' ? body.limit : undefined;
-      const pours = await getPours(session, limit);
-      return new Response(JSON.stringify({ pours, logs: pours }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+      return json({ pours: await getPours(session, limit) });
     } catch (e) {
       console.error('Failed to get connected pours:', e);
-      return new Response(JSON.stringify({ pours: [], logs: [] }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+      return json({ pours: [] });
     }
   }
 
-  if (!session) {
-    return new Response(JSON.stringify({ success: false, error: 'Not connected to Bluesky' }), {
-      status: 401,
-      headers: { 'Content-Type': 'application/json' },
-    });
-  }
+  if (!session) return fail(apiErrors.notConnected, 401);
 
   if (body.action === 'publishPalate') {
     const parsed = ProfileSchema.safeParse(body.profile);
-    if (!parsed.success) return new Response(JSON.stringify({ success: false, error: 'Invalid profile data' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+    if (!parsed.success) return fail(apiErrors.invalidProfile, 400);
 
     try {
       const result = await publishPalateProfile(session, parsed.data as UserProfile);
-      return new Response(JSON.stringify({ success: true, uri: result.uri }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+      return json({ success: true, uri: result.uri });
     } catch (e) {
       console.error('Failed to publish palate:', e);
-      return new Response(JSON.stringify({ success: false, error: 'Failed to publish profile' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+      return fail(apiErrors.publishFailed, 500);
     }
   }
 
   if (body.action === 'publishElicitation') {
     const parsed = ElicitationWriteSchema.safeParse(body.record);
-    if (!parsed.success) return new Response(JSON.stringify({ success: false, error: 'Invalid answers' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+    if (!parsed.success) return fail(apiErrors.invalidAnswers, 400);
 
     try {
       const result = await publishElicitation(session, parsed.data);
-      return new Response(JSON.stringify({ success: true, uri: result.uri }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+      return json({ success: true, uri: result.uri });
     } catch (e) {
       console.error('Failed to publish answers:', e);
-      return new Response(JSON.stringify({ success: false, error: 'Failed to publish answers' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+      return fail(apiErrors.publishAnswersFailed, 500);
     }
   }
 
   if (body.action === 'sharePalateToFeed') {
     const topDrink = body.topDrink as string;
     const quadrant = body.quadrant as string;
-    const appUrl = (body.appUrl as string) || 'https://cotidal.app';
 
-    if (!topDrink || topDrink.length > 100) return new Response(JSON.stringify({ success: false, error: 'Invalid drink name' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
-    if (!quadrant || quadrant.length > 50) return new Response(JSON.stringify({ success: false, error: 'Invalid quadrant' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+    if (!topDrink || topDrink.length > 100) return fail(apiErrors.invalidDrink, 400);
+    if (!quadrant || quadrant.length > 50) return fail(apiErrors.invalidRegion, 400);
 
     // The post links to the sharer's public map, by DID: a handle can change
     // and a post is never rewritten, so the link has to outlive the handle.
-    let mapUrl: string;
-    try {
-      mapUrl = new URL(publicMapPath(session.did), appUrl).toString();
-    } catch {
-      return new Response(JSON.stringify({ success: false, error: 'Invalid app URL' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
-    }
+    const mapUrl = new URL(publicMapPath(session.did), appUrl).toString();
 
     try {
       const result = await shareToFeed(session, topDrink, quadrant, mapUrl);
-      return new Response(JSON.stringify({ success: true, uri: result.uri }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+      return json({ success: true, uri: result.uri });
     } catch (e) {
       console.error('Failed to share to feed:', e);
-      return new Response(JSON.stringify({ success: false, error: 'Failed to share to Bluesky' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+      return fail(apiErrors.shareFailed, 500);
     }
   }
 
@@ -136,17 +128,11 @@ export const POST: APIRoute = async ({ request }) => {
     // checks it before anything is written (src/lib/pours.server.ts).
     const result = await logPour(sessionStore(session), body.options as Partial<LogDrinkOptions> | undefined, {
       register: await loadRegister(),
-      appUrl: (body.appUrl as string) || 'https://cotidal.app',
+      appUrl,
     });
-    if (!result.ok) {
-      return new Response(JSON.stringify({ success: false, error: result.error }), { status: result.status, headers: { 'Content-Type': 'application/json' } });
-    }
-    return new Response(JSON.stringify({
-      success: true,
-      profile: result.profile,
-      uri: result.uri
-    }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+    if (!result.ok) return fail(result.error, result.status);
+    return json({ success: true, profile: result.profile, uri: result.uri });
   }
 
-  return new Response(JSON.stringify({ success: false, error: 'Unknown action' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+  return fail(apiErrors.unknownAction, 400);
 };

@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { QUADRANT_ORDER } from '../src/lib/quadrant';
 import { quadrants, formerQuadrantIds, nav as nav_ } from '../src/lib/copy';
+import { AUTH_ERROR_MESSAGES } from '@bbthorson/atproto-cf-auth/client';
 
 /**
  * The landing page is the app's front door and must stay free of client
@@ -98,33 +99,33 @@ test('Landing: sign-in works without JavaScript', async ({ browser }) => {
 
   await expect(page.getByRole('link', { name: /find your coordinate/i })).toHaveAttribute(
     'href',
-    '/taste'
+    '/questions'
   );
   await context.close();
 });
 
 test('Landing: surfaces sign-in errors from the callback', async ({ page }) => {
   await page.goto('/?auth_error=callback_failed');
-  await expect(page.getByRole('alert')).toContainText('Sign-in did not complete');
+  await expect(page.getByRole('alert')).toContainText(AUTH_ERROR_MESSAGES.callback_failed);
 });
 
 test('Navigation: unified header navigation renders on landing and register', async ({ page }) => {
   const landing = await (await page.request.get('/')).text();
   expect(landing).toContain('aria-label="Main Navigation"');
-  expect(landing).toContain('href="/taste"');
+  expect(landing).toContain('href="/compass"');
   expect(landing).toContain('href="/drinks"');
   expect(landing).toContain('href="/#regions"');
   expect(landing).toContain('href="/#connect"');
 
   const register = await (await page.request.get('/drinks')).text();
   expect(register).toContain('aria-label="Main Navigation"');
-  expect(register).toContain('href="/taste"');
+  expect(register).toContain('href="/compass"');
   expect(register).toContain('href="/drinks"');
 
-  const taste = await (await page.request.get('/taste')).text();
-  expect(taste).toContain('aria-label="Main Navigation"');
-  expect(taste).toContain('href="/taste"');
-  expect(taste).toContain('href="/drinks"');
+  const compass = await (await page.request.get('/compass')).text();
+  expect(compass).toContain('aria-label="Main Navigation"');
+  expect(compass).toContain('href="/compass"');
+  expect(compass).toContain('href="/drinks"');
 });
 
 

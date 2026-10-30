@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { appBar, logPage, pour, radio, returnVisit } from '../src/lib/copy';
+import { appBar, logPage, moved, pour, radio, ratePage } from '../src/lib/copy';
 
 const profile = { x: 4, y: -2, dislikesSmoke: false, dislikesBitter: false, dislikesAnise: false, vibeTags: {} };
 
@@ -37,21 +37,23 @@ test('Log: a guest’s pour is kept on the device, in Log and on Radio', async (
     }
   }, profile);
 
-  // Without a drink to rate, Log shows the log, not a form.
+  // Log shows the log, not a form: rating is a screen of its own.
   await page.goto('/log');
   await expect(page.getByRole('heading', { name: logPage.title, level: 1 })).toBeVisible();
-  await expect(page.getByRole('heading', { name: returnVisit.logTitle })).toHaveCount(0);
+  await expect(page.getByRole('heading', { name: ratePage.title })).toHaveCount(0);
+  await expect(page.getByRole('link', { name: logPage.rateDrink })).toHaveAttribute('href', '/rate');
 
   // A drink handed over opens the form.
-  await page.goto('/log?drink=Negroni');
-  await expect(page.getByRole('heading', { name: returnVisit.logTitle })).toBeVisible();
+  await page.goto('/rate?drink=Negroni');
+  await expect(page.getByRole('heading', { name: ratePage.title })).toBeVisible();
   await page.getByRole('group', { name: pour.whereLabel }).getByRole('button', { name: pour.atHome }).click();
   await page.getByRole('radio', { name: /^7:/ }).click();
   await page.getByRole('button', { name: pour.submit }).click();
-  await page.getByRole('button', { name: returnVisit.movedBack }).click();
+  await page.getByRole('button', { name: moved.back }).click();
 
-  // Rated: the form is closed, and the pour survives a reload.
-  await expect(page.getByRole('heading', { name: returnVisit.logTitle })).toHaveCount(0);
+  // Rated: back on the ledger, and the pour survives a reload.
+  await expect(page).toHaveURL(/\/log$/);
+  await expect(page.getByRole('heading', { name: ratePage.title })).toHaveCount(0);
   await page.reload();
   await expect(page.locator('ol').filter({ hasText: '7 of 9' })).toContainText('Negroni');
 

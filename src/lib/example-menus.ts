@@ -3,10 +3,11 @@ import type { VibeTag } from './data';
 /**
  * Example menus for /bars: well-known bars' drinks, placed on the map by us to
  * show what a published `app.cotidal.menu` would carry. Not sightings, and not
- * published by the bars themselves.
+ * published by the bars themselves — illustration for that one page, not data:
+ * nothing else may import it, and nothing here is a bar's claim on anything.
  */
 
-export type SeededMenuItem = {
+type ExampleMenuItem = {
   name: string;
   description: string;
   x: number; // Rich (-10) to Crisp (+10)
@@ -20,7 +21,7 @@ export type SeededMenuItem = {
   isHouseOriginal?: boolean;
 };
 
-export type SeededVenue = {
+type ExampleVenue = {
   id: string; // url slug e.g. "attaboy-nyc"
   name: string;
   domain: string; // reconciliation key (e.g. "attaboy.nyc")
@@ -35,10 +36,10 @@ export type SeededVenue = {
     lng: number;
   };
   summary: string;
-  menu: SeededMenuItem[];
+  menu: ExampleMenuItem[];
 };
 
-export const venueDatabase: SeededVenue[] = [
+export const exampleVenues: ExampleVenue[] = [
   // --- NEW YORK ---
   {
     id: 'attaboy-nyc',
@@ -304,272 +305,6 @@ export const venueDatabase: SeededVenue[] = [
         price: { amount: 2500, currency: 'GBP' },
         tags: ['crushable', 'complex', 'spice'],
         creator: 'Giorgio Bargiani',
-        isHouseOriginal: true,
-      },
-    ],
-  },
-  {
-    id: 'tayer-elementary-london',
-    name: 'Tayēr + Elementary',
-    domain: 'tayer-elementary.com',
-    city: 'London',
-    region: 'Greater London',
-    country: 'UK',
-    neighborhood: 'Shoreditch',
-    address: '152 Old St, London EC1V 9BW',
-    website: 'https://tayer-elementary.com',
-    coordinates: { lat: 51.5256, lng: -0.0911 },
-    summary:
-      'Monica Berg and Alex Kratena’s minimalist duality: draft cocktails upfront, hyper-seasonal culinary bar in the rear.',
-    menu: [
-      {
-        name: 'One-Sip Martini',
-        description: 'Vodka, vermouth, sherry, served icy with a blue cheese-stuffed olive.',
-        x: 8,
-        y: -7,
-        price: { amount: 600, currency: 'GBP' },
-        tags: ['bold', 'classic', 'polarizing'],
-        creator: 'Alex Kratena & Monica Berg',
-        isHouseOriginal: true,
-      },
-      {
-        name: 'Palo Santo & Jasmine',
-        description: 'Blanco tequila, distilled palo santo, cold-brew jasmine tea, white verjus.',
-        x: 4,
-        y: 1,
-        price: { amount: 1600, currency: 'GBP' },
-        tags: ['complex', 'crushable', 'prestige'],
-        creator: 'Monica Berg',
-        isHouseOriginal: true,
-      },
-    ],
-  },
-  {
-    id: 'swift-london',
-    name: 'Swift',
-    domain: 'barswift.com',
-    city: 'London',
-    region: 'Greater London',
-    country: 'UK',
-    neighborhood: 'Soho',
-    address: '12 Old Compton St, London W1D 4TQ',
-    website: 'https://barswift.com',
-    coordinates: { lat: 51.5133, lng: -0.1315 },
-    summary:
-      'Mia Johansson and Bobby Hiddleston’s bustling Soho aperitivo bar upstairs and moody whisky den downstairs.',
-    menu: [
-      {
-        name: 'Swift Irish Coffee',
-        description: 'Jameson Caskmates, freshly brewed rich filter coffee, demerara, hand-whipped double cream.',
-        x: -6,
-        y: 5,
-        price: { amount: 1400, currency: 'GBP' },
-        tags: ['warm', 'comfort', 'classic'],
-        creator: 'Bobby Hiddleston',
-        isHouseOriginal: true,
-      },
-      {
-        name: 'Skerryvore',
-        description: 'Single malt scotch, peated malt, apricot liqueur, white cacao, orgeat, lemon.',
-        x: -3,
-        y: 3,
-        price: { amount: 1600, currency: 'GBP' },
-        tags: ['complex', 'bold', 'sweet'],
-        creator: 'Swift Bar Team',
-        isHouseOriginal: true,
-      },
-    ],
-  },
-
-  // --- NEW ORLEANS ---
-  {
-    id: 'carousel-bar-nola',
-    name: 'The Carousel Bar & Lounge',
-    domain: 'hotelmonteleone.com',
-    city: 'New Orleans',
-    region: 'LA',
-    country: 'USA',
-    neighborhood: 'French Quarter',
-    address: '214 Royal St, New Orleans, LA 70130',
-    website: 'https://hotelmonteleone.com/entertainment/carousel-bar/',
-    coordinates: { lat: 29.9546, lng: -90.0683 },
-    summary:
-      'The historic 25-seat rotating carousel lounge inside Hotel Monteleone, birthplace of the Vieux Carré.',
-    menu: [
-      {
-        name: 'Vieux Carré',
-        description: 'Rye whiskey, Cognac, sweet vermouth, Bénédictine, Angostura and Peychaud’s bitters.',
-        x: -7,
-        y: 2,
-        price: { amount: 2000, currency: 'USD' },
-        tags: ['classic', 'bold', 'warm'],
-        creator: 'Walter Bergeron (1938)',
-        isHouseOriginal: true,
-      },
-    ],
-  },
-  {
-    id: 'french-75-bar-nola',
-    name: "Arnaud's French 75 Bar",
-    domain: 'arnaudsrestaurant.com',
-    city: 'New Orleans',
-    region: 'LA',
-    country: 'USA',
-    neighborhood: 'French Quarter',
-    address: '813 Bienville St, New Orleans, LA 70112',
-    website: 'https://www.arnaudsrestaurant.com/bars/french-75/',
-    coordinates: { lat: 29.9555, lng: -90.0691 },
-    summary:
-      'Chris Hannah’s James Beard Award-winning French Quarter institution celebrating Cognac tradition.',
-    menu: [
-      {
-        name: 'French 75 (Cognac Style)',
-        description: 'Courvoisier VS Cognac, fresh lemon juice, simple syrup, topped with Champagne.',
-        x: 8,
-        y: 4,
-        price: { amount: 1800, currency: 'USD' },
-        tags: ['classic', 'prestige', 'social'],
-        creator: 'Chris Hannah',
-        isHouseOriginal: true,
-      },
-    ],
-  },
-
-  // --- SAN FRANCISCO ---
-  {
-    id: 'smugglers-cove-sf',
-    name: "Smuggler's Cove",
-    domain: 'smugglerscovesf.com',
-    city: 'San Francisco',
-    region: 'CA',
-    country: 'USA',
-    neighborhood: 'Hayes Valley',
-    address: '650 Gough St, San Francisco, CA 94102',
-    website: 'https://www.smugglerscovesf.com',
-    coordinates: { lat: 37.7794, lng: -122.4232 },
-    summary:
-      'Martin Cate’s world-renowned rum repository and historical tiki temple with over 700 rare rums.',
-    menu: [
-      {
-        name: "Smuggler's Rum Barrel",
-        description: 'Multi-island rum blend, allspice dram, fresh lime, grapefruit, honey syrup.',
-        x: -2,
-        y: 7,
-        price: { amount: 2000, currency: 'USD' },
-        tags: ['bold', 'complex', 'sweet'],
-        creator: 'Martin Cate',
-        isHouseOriginal: true,
-      },
-      {
-        name: 'Tradewinds',
-        description: 'Dark rum, high-proof light rum, apricot liqueur, coconut cream, fresh lemon.',
-        x: -4,
-        y: 8,
-        price: { amount: 1800, currency: 'USD' },
-        tags: ['sweet', 'comfort', 'visual'],
-        creator: 'Martin Cate',
-        isHouseOriginal: true,
-      },
-    ],
-  },
-  {
-    id: 'trick-dog-sf',
-    name: 'Trick Dog',
-    domain: 'trickdogbar.com',
-    city: 'San Francisco',
-    region: 'CA',
-    country: 'USA',
-    neighborhood: 'Mission District',
-    address: '3010 20th St, San Francisco, CA 94110',
-    website: 'https://trickdogbar.com',
-    coordinates: { lat: 37.7592, lng: -122.4112 },
-    summary:
-      'The Bon Vivants’ Mission powerhouse, famous for rotating themed menus that reshape industry packaging.',
-    menu: [
-      {
-        name: 'Mission Highball',
-        description: 'Oaxacan mezcal, green apple cordial, cold-pressed celery juice, sparkling water.',
-        x: 7,
-        y: -2,
-        price: { amount: 1900, currency: 'USD' },
-        tags: ['crushable', 'complex', 'visual'],
-        creator: 'The Bon Vivants',
-        isHouseOriginal: true,
-      },
-    ],
-  },
-
-  // --- CHICAGO ---
-  {
-    id: 'violet-hour-chicago',
-    name: 'The Violet Hour',
-    domain: 'theviolethour.com',
-    city: 'Chicago',
-    region: 'IL',
-    country: 'USA',
-    neighborhood: 'Wicker Park',
-    address: '1520 N Damen Ave, Chicago, IL 60622',
-    website: 'https://www.theviolethour.com',
-    coordinates: { lat: 41.9095, lng: -87.6778 },
-    summary:
-      'Toby Maloney’s hidden velvet-draped cocktail sanctum that sparked the Midwestern mixology renaissance.',
-    menu: [
-      {
-        name: 'Juliet & Romeo',
-        description: 'Beefeater gin, fresh lime, mint, cucumber, rosewater drops, Angostura garnish.',
-        x: 7,
-        y: 3,
-        price: { amount: 1800, currency: 'USD' },
-        tags: ['classic', 'visual', 'crushable'],
-        creator: 'Toby Maloney',
-        isHouseOriginal: true,
-      },
-      {
-        name: 'Art of Choking',
-        description: 'Cynar amaro, overproof rum, Green Chartreuse, fresh lime, demerara.',
-        x: -5,
-        y: -3,
-        price: { amount: 1900, currency: 'USD' },
-        tags: ['bold', 'polarizing', 'complex'],
-        creator: 'Toby Maloney',
-        isHouseOriginal: true,
-      },
-    ],
-  },
-
-  // --- TOKYO ---
-  {
-    id: 'bar-high-five-tokyo',
-    name: 'Bar High Five',
-    domain: 'barhighfive.com',
-    city: 'Tokyo',
-    region: 'Kanto',
-    country: 'Japan',
-    neighborhood: 'Ginza',
-    address: 'B1F, Efuro Building, 5-4-15 Ginza, Chuo-ku, Tokyo',
-    website: 'http://www.barhighfive.com',
-    coordinates: { lat: 35.6713, lng: 139.7635 },
-    summary:
-      'Hidetsugu Ueno’s intimate Ginza sanctuary, famed for hand-carved ice diamonds and bespoke omakase cocktails.',
-    menu: [
-      {
-        name: 'White Lady (Ueno Cut)',
-        description: 'Dry gin, Cointreau, fresh lemon juice, atomized orange blossom water.',
-        x: 8,
-        y: 2,
-        price: { amount: 2400, currency: 'JPY' },
-        tags: ['classic', 'prestige', 'crushable'],
-        creator: 'Hidetsugu Ueno',
-        isHouseOriginal: true,
-      },
-      {
-        name: 'Black Rose',
-        description: 'Aged dark rum, coffee liqueur, chilled Earl Grey black tea infusion.',
-        x: -6,
-        y: 3,
-        price: { amount: 2400, currency: 'JPY' },
-        tags: ['complex', 'warm', 'comfort'],
-        creator: 'Hidetsugu Ueno',
         isHouseOriginal: true,
       },
     ],

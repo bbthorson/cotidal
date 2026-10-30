@@ -28,7 +28,7 @@ export async function restoredDid(request: Request): Promise<string | null> {
 }
 
 /**
- * Who the page is being rendered for, as the header and /account show it.
+ * Who the page is being rendered for, as the header and the pages that pass it to their island show it.
  *
  * - `member`: a signed-in visitor, read from the session cookie (no token
  *   refresh: rendering a page is not a reason to call the PDS).

@@ -20,13 +20,11 @@ export const nav = {
   skipToContent: 'Skip to content',
   home: 'Home',
   radio: 'Radio',
-  map: 'Compass',
+  compass: 'Compass',
   register: 'Drinks',
   regions: 'The Four Regions',
   signIn: 'Come aboard',
   signOut: 'Go ashore',
-  /** The header's account link where the page cannot know who is reading (prerendered). */
-  account: 'Account',
   menu: 'Menu',
   footer: 'Site',
   log: 'Log',
@@ -91,7 +89,6 @@ export const compass = {
   pouredHere: (n: number) => (n === 1 ? 'You have poured here once' : `You have poured here ${n} times`),
   pickHere: 'Pick a drink here',
   onOsm: 'On OpenStreetMap',
-  close: 'Close',
   drinksTitle: 'Drinks',
   noDrinks: 'No drink on the map by that name or ingredient.',
   barsTitle: 'Bars',
@@ -112,24 +109,40 @@ export const logPage = {
     since: 'Since',
     best: 'Best so far',
   },
-  logDirectly: 'Log one directly',
-  settingsTitle: 'Account',
-  publicMap: 'Your public map',
-  assistants: 'Chat assistants',
+  /** The way into rating a drink that was not handed over (a pick, "Log this", a chat's draft). */
+  rateDrink: 'Rate a drink',
+  ledgerTitle: 'What moved it',
+  ledgerEmpty: 'No pours yet. Pick a drink, rate it, and it lands here.',
   /** The reading pages, at the foot of Log: on a phone the app pages have no Menu. */
   readingLabel: 'Read',
-  startOver: 'Start over',
+} as const;
+
+/** /rate: one pour, rated, and where the coordinate went. */
+export const ratePage = {
+  title: 'Rate it',
 } as const;
 
 /**
- * /harbour: at a bar, deciding. Composed in steps like a post — where you
+ * What /log and /rate say to someone with no coordinate yet: what the loop
+ * is, and the ways in.
+ */
+export const coldState = {
+  title: 'The loop is: drink → log → the map changes.',
+  body: 'Your coordinate is not a quiz result. It is a record in your own account, and it moves every time you log a pour.',
+  quizCta: 'Find your coordinate first',
+  signInCta: 'Come aboard',
+  guestCta: 'Try a pour as a guest',
+  guestNote: 'As a guest, the pour stays on this device.',
+} as const;
+
+/**
+ * /harbour (shown as "Pick a drink"): at a bar, deciding. Composed in steps like a post — where you
  * are, what's pouring, which to have — and the pick is kept as a draft
  * until you rate it. It orders nothing: Cotidal is not connected to the bar.
  */
 export const harbour = {
-  title: 'Harbour',
+  title: 'Pick a drink',
   steps: ['Where', 'Menu', 'Pick'],
-  stepOf: (n: number, total: number) => `${n} of ${total}`,
   back: 'Back',
   next: 'Next',
   whereTitle: 'Where are you?',
@@ -163,24 +176,24 @@ export const harbour = {
   dismiss: 'Set it aside',
 } as const;
 
-/** /account: who you are here, and the two things you can do about it. */
+/** The account, at the foot of Log: who you are, and what you can do about it. */
 export const account = {
   title: 'Your account',
   signedInAs: 'Signed in as',
-  /** When the session has no handle, only a DID. */
-  signedIn: 'Signed in',
-  links: {
-    map: 'Your coordinate',
-    log: 'Your pours',
-    public: 'Your public map',
-  },
-  startOverTitle: 'Start over',
+  /** The header's link where the page cannot know who is reading (prerendered). */
+  neutral: 'Account',
+  publicMap: 'Your public map',
+  assistants: 'Chat assistants',
+  share: 'Share to your feed',
+  shared: 'Shared',
+  shareFailed: 'That did not go through. Try again.',
+  startOver: 'Start over',
   startOverBody:
     'Retake the questions for a new coordinate. It replaces the one on your account; the pours you have logged stay in your ledger.',
   startOverCta: 'Retake the questions',
+  startOverCancel: 'Keep it',
   signOutTitle: 'Go ashore',
   signOutBody: 'Going ashore signs you out and clears your coordinate from this device. It stays on your account.',
-  guestTitle: 'Come aboard to keep your coordinate.',
 } as const;
 
 export const hero = {
@@ -190,12 +203,10 @@ export const hero = {
   body:
     'Answer a few questions. A point appears on the chart. What surrounds it is what you should be ordering next.',
   primaryCta: 'Find your coordinate',
-  primaryCtaReturning: 'Return to your map',
   /** Stated under the one primary action, so the cost is known up front. */
   cost: 'About two minutes · no account needed',
   /** The reading path: one tap away, never a second button. */
   readFirst: 'Read the four regions first',
-  secondaryCta: 'Look at the map first',
   registerCta: 'Open the rutter',
 } as const;
 
@@ -276,7 +287,6 @@ export const connect = {
   submit: 'Come aboard with Bluesky',
   connecting: 'Opening Bluesky…',
   guest: 'Keep browsing as a guest',
-  divider: 'or',
   disabled: 'Sign-in is not enabled in this environment.',
   /**
    * What signing in buys, in the order a guest will feel it. One list, used
@@ -307,29 +317,23 @@ export const quiz = {
   skipLabel: 'Skip the questions and go to the menu',
   /** "3 of about 8" — honest, because the selector is adaptive. */
   countJoiner: 'of about',
-  pushAway: 'Tap the one you’d send back.',
   loading: 'Locating your coordinate…',
 } as const;
 
 /** The reveal: the one screen where the product says who you are. */
 export const reveal = {
   eyebrow: 'Your coordinate lands in',
-  continue: 'See what to order',
+  continue: 'See your menu',
   retake: 'Not you? Retake',
 } as const;
 
-/** The menu that replaces the old results dashboard. */
+/** Your menu on Compass: the top pick and the drinks after it. */
 export const menu = {
   youAreIn: 'You are in',
   topPrefix: 'No. 1',
   topTitle: 'Your go-to',
   keepTitle: 'Keep this coordinate',
   keepBody: 'Log pours and watch it move.',
-  signedInAs: 'Signed in as',
-  share: 'Share to your feed',
-  shared: 'Shared',
-  startOver: 'Start over',
-  startOverCancel: 'Keep it',
   empty: 'Nothing on the map fits these limits yet.',
 } as const;
 
@@ -343,6 +347,11 @@ export const chart = {
   ],
   findYours: 'Find your coordinate',
   closeness: 'Closeness',
+  closenessOf: (n: number) => `Closeness ${n}`,
+  /** The mark for you on a map, read aloud. */
+  you: 'Your coordinate',
+  youIn: (region: string) => `Your coordinate, in ${region}`,
+  youNowIn: (region: string) => `Your coordinate, now in ${region}`,
   lastPour: 'Your last pour',
   logThis: 'Log this',
   readEntry: 'Read the entry',
@@ -363,7 +372,7 @@ export const moved = {
   rankOnMenu: (n: number) => `Now No. ${n} on your menu`,
   offMenu: 'Not on your menu',
   newOnMenu: 'New on your menu',
-  back: 'Back to your menu',
+  back: 'Back to your ledger',
 } as const;
 
 export const principles = [
@@ -435,33 +444,8 @@ export const regionPage = {
   otherLabel: 'The other three',
 } as const;
 
-export const returnVisit = {
-  eyebrow: 'The Return Visit',
-  title: 'Your map, and what moved it.',
-  intro:
-    'Every drink you log is a dated entry signed by you, and each one moves your coordinate toward what you actually enjoy.',
-  coldTitle: 'The loop is: drink → log → the map changes.',
-  coldBody:
-    'Your coordinate is not a quiz result. It is a record in your own account, and it moves every time you log a pour.',
-  signInCta: 'Come aboard',
-  quizCta: 'Find your coordinate first',
-  guestCta: 'Try a pour as a guest',
-  guestNote: 'As a guest, the pour stays on this device.',
-  youAreIn: 'You are in',
-  poursLabel: (n: number) => (n === 1 ? '1 pour' : `${n} pours`),
-  menuLink: 'Your menu',
-  regionLink: 'About this region',
-  logEyebrow: 'New entry',
-  logTitle: 'Rate it',
-  ledgerEyebrow: 'Chronicle',
-  ledgerTitle: 'What moved it',
-  ledgerEmpty: 'No pours yet. Pick a drink, rate it, and it lands here.',
-  movedBack: 'Back to your ledger',
-} as const;
-
 /**
- * The one pour form and the one ledger, shared by the Log tab in /taste and
- * the return visit at /log. Ratings are the 9-point hedonic scale the pour
+ * The one pour form and the one ledger. Ratings are the 9-point hedonic scale the pour
  * record stores (app.cotidal.pour), so what you tap is what is written.
  */
 export const pour = {
@@ -578,7 +562,6 @@ export const pour = {
   crosspost: 'Also post it to your Bluesky feed',
   submit: 'Log this pour',
   submitting: 'Logging…',
-  signInToLog: 'Come aboard to log a pour',
   needDrink: 'Name the drink first.',
   needBar: 'Name the bar, or choose “At home”.',
   needRating: 'Tap how it landed first.',
@@ -659,8 +642,6 @@ export const publicMap = {
   unavailableTitle: 'The record did not answer.',
   unavailableBody: 'Their server did not respond in time. Try again in a moment.',
   description: (name: string, region: string) => `@${name}’s palate lands in ${region}. Where does yours?`,
-  readEntry: 'Read the entry',
-  memberLink: 'Your public map',
   axes: { rich: 'Rich', crisp: 'Crisp', sweet: 'Sweet', savory: 'Savory' },
   plotLabel: (who: string) => `${who} on the palate map`,
 } as const;
@@ -694,10 +675,7 @@ export const assistants = {
   readOnlyTitle: 'Only you log',
   readOnly:
     'The assistant reads the same public coordinate anyone can open at your public map. It can draft a pour, as a link to the form here, but only you log it: you check it, tap how it landed, and press the button. It cannot retake the questions or change your map.',
-  /** On /account. */
-  accountTitle: 'Use it in a chatbot',
-  accountBody: 'Ask Claude, or another chat assistant, what to order with your coordinate.',
-  accountCta: 'Set it up',
+  back: 'Account',
 } as const;
 
 /**
@@ -805,6 +783,31 @@ export const distanceBands = [
   { under: 14, text: 'Across the room from each other.' },
   { under: Infinity, text: 'Opposite ends of the map.' },
 ] as const;
+
+/** Labels read only by assistive technology. */
+export const a11y = {
+  mainNav: 'Main Navigation',
+  progress: 'Progress',
+  answerOptions: 'Answer options',
+} as const;
+
+/**
+ * What the app's own requests answer when they fail. Shown to people, so
+ * they are interface copy; the server sends the same words back.
+ */
+export const apiErrors = {
+  notConnected: 'Not connected to Bluesky',
+  invalidRequest: 'That request was not understood.',
+  invalidProfile: 'Invalid profile data',
+  invalidAnswers: 'Invalid answers',
+  invalidDrink: 'Invalid drink name',
+  invalidRegion: 'Invalid region',
+  unknownAction: 'Unknown action',
+  publishFailed: 'Failed to publish profile',
+  publishAnswersFailed: 'Failed to publish answers',
+  shareFailed: 'Failed to share to Bluesky',
+  logFailed: 'Failed to process feedback',
+} as const;
 
 export const footer = {
   note: 'Built on the AT Protocol.',
