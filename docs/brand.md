@@ -37,10 +37,15 @@ named rather than explained:
 
 | Quadrant | Axis | |
 |---|---|---|
-| **The Deep** | Rich · Savory | Dark, bitter, unhurried. Drinks that argue back. |
-| **The Salt Line** | Crisp · Savory | Dry, mineral, exact. Nothing hidden behind sugar. |
-| **The Eddy** | Rich · Sweet | Where the current slows and pools. Dense, warm, the last drink of the night. |
-| **The Surf** | Crisp · Sweet | Bright, aerated, fast, built for company. |
+| **The Deep** | Rich · Savory | Dark, bitter, unhurried. Negronis, Manhattans, amaro, peat. |
+| **The Salt Line** | Crisp · Savory | Dry, mineral, exact. Martinis, fino sherry, a gin and tonic. |
+| **The Eddy** | Rich · Sweet | Dense, warm, slow. Port, cream, coffee. |
+| **The Surf** | Crisp · Sweet | Bright, cold, quick. Spritzes, daiquiris, mojitos. |
+
+Each gloss names drinks, because a reader recognises a Negroni before they
+recognise "rich and savory". The drinks named must be ones the map puts in
+that region (`drinkDatabase`); a gloss that names a drink placed elsewhere
+is the drift this codebase keeps producing.
 
 The names are one vocabulary — water and motion, as on a chart — rather than
 the ember / vault / orchard set they replaced, which mixed fire, a room and a
@@ -50,9 +55,14 @@ can be replaced in one file; the ids are URLs, so a rename adds a redirect
 (`astro.config.mjs`, `formerQuadrantIds`).
 
 Chart words carry the brand — *the chart*, *drift*, *reckoned*, *within
-hail*, *the rutter* (a mariner's book of sailing directions) — but links and
-navigation use plain words ("Drinks", not "The Rutter"): a reader should never
-have to decode where a link goes.
+hail*, *come aboard* — but links and navigation use plain words ("Drinks"): a
+reader should never have to decode where a link goes. A chart word has to be
+one a reader already knows. *The rutter* (a mariner's book of sailing
+directions) named the drinks register until a reader pointed out that nobody
+knows it; it is gone from the interface.
+
+The register is solitary hydrography, not dress-up: never *ahoy*, pirates,
+treasure, setting sail or shanties.
 
 The app's own words follow the same rule: plain enough to need no decoding,
 nautical where a plain word allows it.
@@ -75,7 +85,24 @@ coordinates are placed, not computed from a recipe's proportions; a bartender
 cannot read "−4.2 · −3.1", but can read three drink names; and anything not
 built yet says **Later:** (comparing with the people you follow) rather than
 being described as if it were there. No other app reads these records yet, so
-"an open record" says *can*, and "today, that is this one".
+"an open record" says *can*. It does not add "today, that is only this one":
+true, but it describes an empty room rather than an open door.
+
+**Drift is your ratings, nothing else.** A drink rated 7 or more pulls the
+point toward it, 3 or less pushes it away, "what was off" nudges it, and each
+step shrinks as the point grows surer. Nothing tracks the season, the hour or
+the weather, so the copy never implies it does ("what you want in July isn't
+what you want in November" was cut for that reason).
+
+**Things the copy may not say**, each because it isn't true or can't be
+checked: *verified* (the register separates the attested from the told; it
+verifies nothing), *forever*, *no trackers* or *no algorithm*, and any word
+from the code (*latent*, *triangulation*, *calibration*).
+
+**The AT Protocol is plumbing.** To a drinker it is "your own Bluesky
+account". Name the protocol only where the reader needs it (the For Bars
+page, chat assistants), and compare it to things people know (a blog's feed),
+never to crypto.
 
 ## Palette
 
@@ -186,5 +213,10 @@ a little dry, said to one person.
 - **Labels are not sentences.** No trailing full stop on a button or an option.
 - **Say "actually" only when something is contrasted with what is merely
   claimed**, which is the register's whole job. Elsewhere it is filler.
+- **Say what it is, not what they'll feel.** "Rye, sweet vermouth, bitters",
+  not "a warm hug at the end of the night". No *delicious*, *refreshing*,
+  *perfect* or *magical*.
+- **Buttons are sentence case and start with a verb.** "Find your
+  coordinate", "Log this pour", never "Map Your Palate".
 - **Words for people, not for the system.** An error says what to do next
   ("Couldn't save your coordinate. Try again."), never the name of the field.

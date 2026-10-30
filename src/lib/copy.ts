@@ -201,7 +201,7 @@ export const hero = {
   headline: 'Every palate has',
   headlineAccent: 'a coordinate.',
   body:
-    'A few questions put a point on the chart. At the bar, it ranks the menu. Rate what you drink and the point moves.',
+    'A few questions put a point on the chart. Show it a bar’s menu and it says what to have. You don’t need the words for what you like.',
   primaryCta: 'Find your coordinate',
   /** Stated under the one primary action, so the cost is known up front. */
   cost: 'About two minutes · no account needed',
@@ -231,7 +231,7 @@ export const howItGoes = {
     {
       where: 'Log',
       title: 'Rate it, and the point moves',
-      body: 'One tap on a nine-point scale, from dislike to like. Every pour nudges your coordinate, and your menu changes with it.',
+      body: 'One tap from dislike to like. A drink you liked pulls the point toward it, one you didn’t pushes it away, and your menu reorders.',
     },
   ],
 } as const;
@@ -249,25 +249,25 @@ export const quadrants = [
     id: 'deep',
     name: 'The Deep',
     axis: 'Rich · Savory',
-    gloss: 'Dark, bitter, and unhurried. Drinks that argue back.',
+    gloss: 'Dark, bitter, unhurried. Negronis, Manhattans, amaro, peat. Drinks that argue back.',
   },
   {
     id: 'salt-line',
     name: 'The Salt Line',
     axis: 'Crisp · Savory',
-    gloss: 'Dry, mineral, and exact. Nothing hidden behind sugar.',
+    gloss: 'Dry, mineral, exact. Martinis, fino sherry, a gin and tonic. Nothing hidden behind sugar.',
   },
   {
     id: 'eddy',
     name: 'The Eddy',
     axis: 'Rich · Sweet',
-    gloss: 'Where the current slows and pools. Dense, warm, the last drink of the night.',
+    gloss: 'Dense, warm, slow. Port, cream, coffee. Where the current pools at the end of the night.',
   },
   {
     id: 'surf',
     name: 'The Surf',
     axis: 'Crisp · Sweet',
-    gloss: 'Bright, aerated, fast, and built for company.',
+    gloss: 'Bright, cold, quick. Spritzes, daiquiris, mojitos. Built for company.',
   },
 ] as const;
 
@@ -411,15 +411,15 @@ export const principles = [
   },
   {
     icon: 'lock',
-    title: 'Stored in your own repository',
+    title: 'Kept in your own account',
     body:
-      'Your coordinate, the answers behind it and every pour are written to your own Bluesky account on the AT Protocol. They’re public there, and they’re yours. Delete our app tomorrow and every entry stays with you.',
+      'Sign in and your coordinate, the answers behind it and every pour are saved to your own Bluesky account, not to us. They’re public there, and they’re yours. If this app disappears tomorrow, your log stays with you.',
   },
   {
     icon: 'compass',
     title: 'An open record',
     body:
-      'Your coordinate is a published record that any app on the protocol can read. Today, that is only this one.',
+      'Your coordinate is saved in an open format, the way a blog has a feed. Any app built on the same protocol as Bluesky can read it, not only this one.',
   },
 ] as const;
 
@@ -429,10 +429,10 @@ export const principles = [
  * taste precisely should be the one that says which is which.
  */
 export const drinks = {
-  eyebrow: 'The rutter',
+  eyebrow: 'Every drink on the chart',
   title: 'What is known',
   intro:
-    'Most of what gets said about a cocktail is repetition. Each entry in the rutter gives the build, places the drink on the chart, and separates what is on the record from what bartenders merely tell each other.',
+    'Most of what gets said about a cocktail is repetition. Each entry gives the build, places the drink on the chart, and separates what is on the record from what bartenders only tell each other.',
   navLabel: 'Drinks',
   backLabel: 'All drinks',
   coordinateLabel: 'Coordinate',
