@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { QUADRANT_ORDER } from '../src/lib/quadrant';
 import { quadrants, formerQuadrantIds, nav as nav_ } from '../src/lib/copy';
+import { AUTH_ERROR_MESSAGES } from '@bbthorson/atproto-cf-auth/client';
 
 /**
  * The landing page is the app's front door and must stay free of client
@@ -105,7 +106,7 @@ test('Landing: sign-in works without JavaScript', async ({ browser }) => {
 
 test('Landing: surfaces sign-in errors from the callback', async ({ page }) => {
   await page.goto('/?auth_error=callback_failed');
-  await expect(page.getByRole('alert')).toContainText('Sign-in did not complete');
+  await expect(page.getByRole('alert')).toContainText(AUTH_ERROR_MESSAGES.callback_failed);
 });
 
 test('Navigation: unified header navigation renders on landing and register', async ({ page }) => {

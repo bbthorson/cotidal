@@ -1,7 +1,7 @@
 /**
  * What the menu needs from the drinks register (src/content/drinks/): a
  * printable name, the build as one line, and where the full entry lives.
- * Built server-side in src/pages/taste.astro and handed to the island, so
+ * Built server-side by `loadRegister` (register.server.ts) and handed to the island, so
  * the island never imports the content collection itself.
  */
 export interface RegisterEntry {
@@ -25,4 +25,9 @@ export function catalogSlug(register: Register, drinkName: string): string | und
   const wanted = drinkName.trim().toLowerCase();
   const name = Object.keys(register).find((n) => n.toLowerCase() === wanted);
   return name ? register[name].slug : undefined;
+}
+
+/** The printed name for a drink: its register title, or the name it goes by on the map. */
+export function titleOf(register: Register, drinkName: string): string {
+  return register[drinkName]?.title ?? drinkName;
 }

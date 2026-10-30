@@ -6,6 +6,7 @@ import Principles from '../components/marketing/Principles.astro';
 import ChartFigure from '../components/marketing/ChartFigure.astro';
 import { hero, connect, drinks, sections } from '../lib/copy';
 import { signInEnabled } from '../lib/atproto/auth';
+import { AUTH_ERROR_MESSAGES, AUTH_ERROR_PARAM, isAuthErrorCode } from '@bbthorson/atproto-cf-auth/client';
 
 /**
  * The landing page ships zero JavaScript. Everything interactive lives at
@@ -20,21 +21,12 @@ import { signInEnabled } from '../lib/atproto/auth';
 // build-time variable, which is what let the two disagree.
 const atprotoEnabled = await signInEnabled();
 
-const errorCodes: Record<string, string> = {
-  not_configured: 'Sign-in is not configured right now.',
-  invalid_handle: 'That handle does not look right. Try again.',
-  handle_not_found: 'We could not find that handle. Try again.',
-  authorize_failed: 'We could not reach your provider. Try again.',
-  access_denied: 'Sign-in was cancelled.',
-  callback_failed: 'Sign-in did not complete. Try again.',
-  browser_mismatch: 'Sign-in did not complete. Try again.',
-  use_loopback_ip: 'Open this site at 127.0.0.1 rather than localhost to sign in.',
-  network_error: 'We could not reach your provider. Try again.',
-};
-
-// `auth_error` is what @bbthorson/atproto-cf-auth redirects back with.
-const errorParam = Astro.url.searchParams.get('auth_error');
-const error = errorParam ? (errorCodes[errorParam] ?? errorCodes.authorize_failed) : null;
+// `auth_error` is what @bbthorson/atproto-cf-auth redirects back with, in the
+// package's own words: the same ones the in-app sheet shows.
+const errorParam = Astro.url.searchParams.get(AUTH_ERROR_PARAM);
+const error = errorParam
+  ? AUTH_ERROR_MESSAGES[isAuthErrorCode(errorParam) ? errorParam : 'authorize_failed']
+  : null;
 ---
 
 <AppShell currentPath="/" width="standard">

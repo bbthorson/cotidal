@@ -1,14 +1,15 @@
 import { useEffect, useMemo, useState } from 'react';
 import { drinkDatabase, type Drink } from '@/lib/data';
 import { calculateWeightedRelevance, type MinimalDrinkLog } from '@/lib/scoring';
-import { harbour } from '@/lib/copy';
-import type { Register } from '@/lib/register';
+import { chart, harbour } from '@/lib/copy';
+import { titleOf, type Register } from '@/lib/register';
 import type { PourRecord } from '@/lib/atproto/records';
 import { getConnectedPours } from '@/lib/api-client';
 import { loadProfile, savePick, type DrinkPick } from '@/lib/device-store';
 import type { UserProfile } from '@/hooks/useDiscoveryQuiz';
 import { draftPath } from '@/lib/pour-draft';
 import { geoLocation } from '@/lib/atproto/location';
+import { recentBarNames } from '@/lib/pour-history';
 import { cn } from '@/lib/utils';
 import { AtprotoProvider, useAtprotoContext } from './AtprotoProvider';
 import { DrinkRow } from './Chart';
@@ -22,14 +23,14 @@ interface MenuItem {
   drink: Drink | null;
 }
 
-const fold = (s: string) => s.trim().toLowerCase().replace(/\s*\(.*\)\s*$/, '');
+const drinkKey = (s: string) => s.trim().toLowerCase().replace(/\s*\(.*\)\s*$/, '');
 
 /** The drink on the map a menu line names, by catalogue name or register title. */
 function placeDrink(label: string, register: Register): Drink | null {
-  const want = fold(label);
+  const want = drinkKey(label);
   if (!want) return null;
   return (
-    drinkDatabase.find((d) => fold(d.name) === want || fold(register[d.name]?.title ?? '') === want) ?? null
+    drinkDatabase.find((d) => drinkKey(d.name) === want || drinkKey(register[d.name]?.title ?? '') === want) ?? null
   );
 }
 
@@ -82,17 +83,7 @@ function HarbourContent({ register }: { register: Register }) {
     window.scrollTo(0, 0);
   }, [step]);
 
-  const recentBars = useMemo(
-    () => [
-      ...new Set(
-        pours
-          .filter((p) => !p.isHomePour)
-          .map((p) => p.venue?.entity?.name?.trim())
-          .filter((v): v is string => !!v)
-      ),
-    ].slice(0, 5),
-    [pours]
-  );
+  const recentBars = useMemo(() => recentBarNames(pours, 5), [pours]);
 
   const ranked = useMemo(() => {
     if (!profile) return [];
@@ -123,8 +114,8 @@ function HarbourContent({ register }: { register: Register }) {
     const label = entry.trim();
     if (!label) return;
     const drink = placeDrink(label, register);
-    const shown = drink ? register[drink.name]?.title ?? drink.name : label;
-    setItems((prev) => (prev.some((i) => fold(i.label) === fold(shown)) ? prev : [...prev, { label: shown, drink }]));
+    const shown = drink ? titleOf(register, drink.name) : label;
+    setItems((prev) => (prev.some((i) => drinkKey(i.label) === drinkKey(shown)) ? prev : [...prev, { label: shown, drink }]));
     setEntry('');
   };
 
@@ -159,7 +150,7 @@ function HarbourContent({ register }: { register: Register }) {
   }
 
   if (step === 'picked' && pick) {
-    const title = register[pick.drink]?.title ?? pick.drink;
+    const title = titleOf(register, pick.drink);
     return (
       <div className="mx-auto max-w-xl py-8 motion-safe:animate-in motion-safe:fade-in">
         <div className="flex flex-col gap-2.5 border border-foreground bg-card p-4.5 shadow-mcm">
@@ -278,7 +269,7 @@ function HarbourContent({ register }: { register: Register }) {
             </button>
             <datalist id="harbour-drinks">
               {drinkDatabase.map((d) => (
-                <option key={d.name} value={register[d.name]?.title ?? d.name} />
+                <option key={d.name} value={titleOf(register, d.name)} />
               ))}
             </datalist>
           </form>
@@ -323,9 +314,9 @@ function HarbourContent({ register }: { register: Register }) {
               <li key={drink.name} className="border-b border-border">
                 <DrinkRow
                   rank={i + 1}
-                  title={register[drink.name]?.title ?? drink.name}
+                  title={titleOf(register, drink.name)}
                   figure={score}
-                  figureLabel={`Closeness ${score}`}
+                  figureLabel={chart.closenessOf(score)}
                   selected={(choice ?? ranked[0]?.drink.name) === drink.name}
                   onSelect={() => setChoice(drink.name)}
                 />

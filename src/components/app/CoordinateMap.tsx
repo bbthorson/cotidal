@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { quadrants } from '@/lib/copy';
+import { chart, quadrants } from '@/lib/copy';
 import { quadrantIdFor, type QuadrantId } from '@/lib/quadrant';
 import { toPercent } from '@/lib/coordinate';
 import { cn } from '@/lib/utils';
@@ -234,7 +234,7 @@ export function YouMark({
   y,
   tone = 'paper',
   land = false,
-  label = 'Your coordinate',
+  label = chart.you,
 }: {
   x: number;
   y: number;

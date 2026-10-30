@@ -100,7 +100,7 @@ export const compass = {
   pickAt: (bar: string) => `Pick a drink at ${bar}`,
 } as const;
 
-/** /log: yours — where you are, what you have poured, and the account. */
+/** /log: yours — where you are, what you have poured. */
 export const logPage = {
   title: 'Log',
   guestEyebrow: 'On this device',
@@ -308,11 +308,11 @@ export const quiz = {
 /** The reveal: the one screen where the product says who you are. */
 export const reveal = {
   eyebrow: 'Your coordinate lands in',
-  continue: 'See what to order',
+  continue: 'See your menu',
   retake: 'Not you? Retake',
 } as const;
 
-/** The menu that replaces the old results dashboard. */
+/** Your menu on Compass: the top pick and the drinks after it. */
 export const menu = {
   youAreIn: 'You are in',
   topPrefix: 'No. 1',
@@ -324,6 +324,7 @@ export const menu = {
   shared: 'Shared',
   startOver: 'Start over',
   startOverCancel: 'Keep it',
+  shareFailed: 'That did not go through. Try again.',
   empty: 'Nothing on the map fits these limits yet.',
 } as const;
 
@@ -337,6 +338,11 @@ export const chart = {
   ],
   findYours: 'Find your coordinate',
   closeness: 'Closeness',
+  closenessOf: (n: number) => `Closeness ${n}`,
+  /** The mark for you on a map, read aloud. */
+  you: 'Your coordinate',
+  youIn: (region: string) => `Your coordinate, in ${region}`,
+  youNowIn: (region: string) => `Your coordinate, now in ${region}`,
   lastPour: 'Your last pour',
   logThis: 'Log this',
   readEntry: 'Read the entry',
@@ -357,7 +363,7 @@ export const moved = {
   rankOnMenu: (n: number) => `Now No. ${n} on your menu`,
   offMenu: 'Not on your menu',
   newOnMenu: 'New on your menu',
-  back: 'Back to your menu',
+  back: 'Back to your ledger',
 } as const;
 
 export const principles = [
@@ -445,8 +451,7 @@ export const returnVisit = {
 } as const;
 
 /**
- * The one pour form and the one ledger, shared by the Log tab in /taste and
- * the return visit at /log. Ratings are the 9-point hedonic scale the pour
+ * The one pour form and the one ledger. Ratings are the 9-point hedonic scale the pour
  * record stores (app.cotidal.pour), so what you tap is what is written.
  */
 export const pour = {
@@ -788,6 +793,31 @@ export const distanceBands = [
   { under: 14, text: 'Across the room from each other.' },
   { under: Infinity, text: 'Opposite ends of the map.' },
 ] as const;
+
+/** Labels read only by assistive technology. */
+export const a11y = {
+  mainNav: 'Main Navigation',
+  progress: 'Progress',
+  answerOptions: 'Answer options',
+} as const;
+
+/**
+ * What the app's own requests answer when they fail. Shown to people, so
+ * they are interface copy; the server sends the same words back.
+ */
+export const apiErrors = {
+  notConnected: 'Not connected to Bluesky',
+  invalidRequest: 'That request was not understood.',
+  invalidProfile: 'Invalid profile data',
+  invalidAnswers: 'Invalid answers',
+  invalidDrink: 'Invalid drink name',
+  invalidRegion: 'Invalid region',
+  unknownAction: 'Unknown action',
+  publishFailed: 'Failed to publish profile',
+  publishAnswersFailed: 'Failed to publish answers',
+  shareFailed: 'Failed to share to Bluesky',
+  logFailed: 'Failed to process feedback',
+} as const;
 
 export const footer = {
   note: 'Built on the AT Protocol.',

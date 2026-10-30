@@ -1,6 +1,6 @@
 ---
 import Monogram from './Monogram.astro';
-import { site, nav } from '../../lib/copy';
+import { a11y, site, nav } from '../../lib/copy';
 import { destinations, signIn, signInHref, isCurrent, accountHref } from '../../lib/site-nav';
 import { AUTH_BASE_PATH } from '../../lib/atproto/paths';
 import type { Account } from '../../lib/atproto/session';
@@ -102,7 +102,7 @@ const controlClass =
     </details>
 
     <nav
-      aria-label="Main Navigation"
+      aria-label={a11y.mainNav}
       class="order-3 hidden basis-full flex-col border-t border-border peer-open:flex lg:order-2 lg:flex lg:basis-auto lg:flex-row lg:items-center lg:gap-1 lg:border-t-0"
     >
       {destinations.map((item) => {

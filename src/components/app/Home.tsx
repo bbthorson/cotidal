@@ -7,23 +7,9 @@ import { AtprotoProvider, useAtprotoContext } from '@/components/app/AtprotoProv
 import { useDiscoveryQuiz, type UserProfile } from '@/hooks/useDiscoveryQuiz';
 import { flushPendingElicitation, getConnectedPalate, publishPalate } from '@/lib/api-client';
 import { clearProfile, forgetDevice, loadProfile, saveProfile } from '@/lib/device-store';
-import type { User } from '@/lib/data';
+import { userFromProfile } from '@/lib/profile';
 import { SIGNED_OUT_PARAM, START_OVER_PARAM } from '@/lib/atproto/paths';
 import type { Register } from '@/lib/register';
-
-function profileToUser(profile: UserProfile | null): User {
-  if (!profile) return { x: 0, y: 0, filters: [] };
-  const filters: string[] = [];
-  if (profile.dislikesSmoke) filters.push('noSmoke');
-  if (profile.dislikesBitter) filters.push('noBitter');
-  if (profile.dislikesAnise) filters.push('noAnise');
-  return {
-    x: Math.max(-10, Math.min(10, profile.x)),
-    y: Math.max(-10, Math.min(10, profile.y)),
-    filters,
-    dislikesAnise: profile.dislikesAnise,
-  };
-}
 
 /**
  * Take a one-off instruction from the URL and remove it, so a reload does not
@@ -142,7 +128,7 @@ function HomeContent({ register }: { register: Register }) {
     if (takeParam(START_OVER_PARAM)) reset();
   }, [reset]);
 
-  const finalUser = useMemo(() => profileToUser(userProfile), [userProfile]);
+  const finalUser = useMemo(() => userFromProfile(userProfile), [userProfile]);
 
   let content;
   if (screen === 'reveal') {

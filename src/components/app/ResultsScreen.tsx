@@ -1,8 +1,8 @@
 import { useMemo, useState, useEffect, useCallback } from 'react';
 import { drinkDatabase, type User } from '@/lib/data';
-import { compass, menu, nav } from '@/lib/copy';
+import { chart, compass, menu, nav } from '@/lib/copy';
 import { harbourAt, logPathFor } from '@/lib/site-nav';
-import type { Register } from '@/lib/register';
+import { titleOf, type Register } from '@/lib/register';
 import { usePours } from '@/hooks/usePours';
 import { useMenu, type ScoredDrink } from '@/hooks/useMenu';
 import { DrinkCard, DrinkRow, useLastPours } from './Chart';
@@ -12,6 +12,7 @@ import { BarCard, BarRows, NearPanel, useNearby } from './Near';
 import { metresBetween } from '@/lib/osm';
 import { readGeo } from '@/lib/atproto/location';
 import { explainDrinkMatch } from '@/lib/api-client';
+import { barsFromPours, foldName, type BarVisits } from '@/lib/pour-history';
 import { cn } from '@/lib/utils';
 
 interface ResultsScreenProps {
@@ -22,20 +23,6 @@ interface ResultsScreenProps {
   register: Register;
   onRequestSignIn: () => void;
   onStartOver: () => void;
-}
-
-/** Folded for matching: case and accents aside. */
-const fold = (s: string) =>
-  s
-    .normalize('NFD')
-    .replace(/\p{Diacritic}/gu, '')
-    .toLowerCase()
-    .trim();
-
-interface Bar {
-  name: string;
-  pours: number;
-  last: string;
 }
 
 /**
@@ -63,20 +50,9 @@ export function ResultsScreen({
   const lastPour = useLastPours(history);
   const { scored, menu: goTo, closeness } = useMenu(user, vibeTags, history);
 
-  const displayName = useCallback((name: string) => register[name]?.title ?? name, [register]);
+  const displayName = useCallback((name: string) => titleOf(register, name), [register]);
 
-  const bars = useMemo(() => {
-    const byName = new Map<string, Bar>();
-    for (const p of history) {
-      const name = p.isHomePour ? null : p.venue?.entity?.name?.trim();
-      if (!name) continue;
-      const bar = byName.get(fold(name)) ?? { name, pours: 0, last: p.createdAt };
-      bar.pours += 1;
-      if (p.createdAt > bar.last) bar.last = p.createdAt;
-      byName.set(fold(name), bar);
-    }
-    return [...byName.values()].sort((a, b) => b.last.localeCompare(a.last));
-  }, [history]);
+  const bars = useMemo(() => barsFromPours(history), [history]);
 
   // Which bars on the map you have poured at, and how often: by name, or by
   // where the pour said the bar was (a pour picked from this map records it).
@@ -86,7 +62,7 @@ export function ResultsScreen({
       const n = history.filter((p) => {
         if (p.isHomePour || !p.venue) return false;
         const at = readGeo(p.venue.address);
-        return fold(p.venue.entity.name) === fold(b.name) || (at !== null && metresBetween(at, b) < 60);
+        return foldName(p.venue.entity.name) === foldName(b.name) || (at !== null && metresBetween(at, b) < 60);
       }).length;
       if (n > 0) counts.set(b.id, n);
     }
@@ -99,17 +75,17 @@ export function ResultsScreen({
     setSelectedBar((cur) => (cur === id ? null : id));
   };
 
-  const q = fold(query);
+  const q = foldName(query);
   // A drink matches by its name or by what is in it ("mezcal", "lime").
   const drinkHits = useMemo(
     () =>
       q
-        ? scored.filter((d) => fold(register[d.name]?.title ?? d.name).includes(q) || fold(register[d.name]?.build ?? '').includes(q))
+        ? scored.filter((d) => foldName(titleOf(register, d.name)).includes(q) || foldName(register[d.name]?.build ?? '').includes(q))
         : [],
     [q, scored, register]
   );
-  const barHits = q ? bars.filter((b) => fold(b.name).includes(q)) : bars;
-  const nearHits = q ? nearby.bars.filter((b) => fold(b.name).includes(q)) : [];
+  const barHits = q ? bars.filter((b) => foldName(b.name).includes(q)) : bars;
+  const nearHits = q ? nearby.bars.filter((b) => foldName(b.name).includes(q)) : [];
 
   const top = goTo[0];
   const rest = goTo.slice(1);
@@ -171,7 +147,7 @@ export function ResultsScreen({
                     <DrinkRow
                       title={displayName(d.name)}
                       figure={d.score}
-                      figureLabel={`Closeness ${d.score}`}
+                      figureLabel={chart.closenessOf(d.score)}
                       selected={selected === d.name}
                       onSelect={() => choose(d.name)}
                     />
@@ -184,7 +160,7 @@ export function ResultsScreen({
             title={compass.barsTitle}
             bars={barHits}
             // Not a bar you have been to: the harbour starts there all the same.
-            extra={barHits.some((b) => fold(b.name) === q) || nearHits.some((b) => fold(b.name) === q) ? null : query.trim()}
+            extra={barHits.some((b) => foldName(b.name) === q) || nearHits.some((b) => foldName(b.name) === q) ? null : query.trim()}
           />
           {nearHits.length > 0 && (
             <section className="mt-6">
@@ -207,7 +183,7 @@ export function ResultsScreen({
                       rank={i + 2}
                       title={displayName(d.name)}
                       figure={d.score}
-                      figureLabel={`Closeness ${d.score}`}
+                      figureLabel={chart.closenessOf(d.score)}
                       selected={selected === d.name}
                       onSelect={() => choose(d.name)}
                     />
@@ -256,7 +232,7 @@ export function ResultsScreen({
 }
 
 /** Bars: each opens the harbour already there, to pick a drink. */
-function BarList({ title, bars, extra }: { title: string; bars: Bar[]; extra: string | null }) {
+function BarList({ title, bars, extra }: { title: string; bars: BarVisits[]; extra: string | null }) {
   if (bars.length === 0 && !extra) return null;
   return (
     <section className="mt-6">
@@ -331,7 +307,7 @@ function TopPick({
         <span className="font-condensed text-xs font-semibold uppercase tracking-label text-secondary">
           {menu.topPrefix} · {menu.topTitle}
         </span>
-        <span className="font-condensed text-base font-bold tabular-nums" aria-label={`Closeness ${drink.score}`}>
+        <span className="font-condensed text-base font-bold tabular-nums" aria-label={chart.closenessOf(drink.score)}>
           {drink.score}
         </span>
       </div>

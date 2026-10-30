@@ -3,7 +3,7 @@ import { drinkDatabase, type Drink } from '@/lib/data';
 import { quadrantFor } from '@/lib/quadrant';
 import { formatCoordinate } from '@/lib/coordinate';
 import { chart, menu, pour } from '@/lib/copy';
-import type { Register } from '@/lib/register';
+import { titleOf, type Register } from '@/lib/register';
 import type { PourRecord } from '@/lib/atproto/records';
 import { cn } from '@/lib/utils';
 import { CoordinateMap, DrinkSpot, YouMark } from './CoordinateMap';
@@ -65,7 +65,7 @@ export function Chart({
   /** Said before "You are in" — "On this device", for a guest. */
   eyebrow?: string;
 }) {
-  const name = (n: string) => register[n]?.title ?? n;
+  const name = (n: string) => titleOf(register, n);
   const region = you ? quadrantFor(you.x, you.y) : null;
 
   const spots = useMemo(() => {
@@ -114,7 +114,7 @@ export function Chart({
             onSelect={() => onSelect(spot.drinks[0].name)}
           />
         ))}
-        {you && region && <YouMark x={you.x} y={you.y} label={`Your coordinate, in ${region.name}`} />}
+        {you && region && <YouMark x={you.x} y={you.y} label={chart.youIn(region.name)} />}
       </CoordinateMap>
 
       {/* The title block: the frame continues around it. */}
@@ -314,7 +314,7 @@ export function DrinkCard({
                 onClick={() => onPick(d.name)}
                 className="min-h-9 border border-border px-2.5 font-condensed text-xs uppercase tracking-label text-secondary transition-colors hover:border-foreground"
               >
-                {register[d.name]?.title ?? d.name}
+                {titleOf(register, d.name)}
               </button>
             ))}
           </div>

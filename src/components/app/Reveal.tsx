@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { drinkDatabase } from '@/lib/data';
 import { quadrantFor } from '@/lib/quadrant';
 import { formatAxis } from '@/lib/coordinate';
-import { reveal } from '@/lib/copy';
+import { chart, reveal } from '@/lib/copy';
 import { CoordinateMap, DrinkDot, YouMark } from './CoordinateMap';
 
 interface RevealProps {
@@ -46,7 +46,7 @@ export function Reveal({ x, y, onContinue, onRetake }: RevealProps) {
         {drinkDatabase.map((d) => (
           <DrinkDot key={d.name} x={d.x} y={d.y} tone="ink" />
         ))}
-        <YouMark x={x} y={y} tone="ink" land label={`Your coordinate, in ${region.name}`} />
+        <YouMark x={x} y={y} tone="ink" land label={chart.youIn(region.name)} />
       </CoordinateMap>
       <div className="mt-2.5 flex justify-between font-condensed text-xs uppercase tracking-label text-reveal-muted">
         <span>{formatAxis(x, 'x')}</span>

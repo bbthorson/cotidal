@@ -9,11 +9,13 @@ import { loadGuestState, loadProfile, saveGuestState, saveProfile, loadPick, cle
 import { returnVisit, pour, logPage, nav } from '@/lib/copy';
 import { START_OVER_PARAM } from '@/lib/atproto/paths';
 import { geoLocation } from '@/lib/atproto/location';
-import { catalogSlug, type Register } from '@/lib/register';
+import { catalogSlug, titleOf, type Register } from '@/lib/register';
 import type { UserProfile } from '@/hooks/useDiscoveryQuiz';
 import { Chart, DrinkCard, useLastPours, type Lens } from './Chart';
 import { useMenu } from '@/hooks/useMenu';
 import { destinations, logPathFor } from '@/lib/site-nav';
+import { barsFromPours, recentBarNames } from '@/lib/pour-history';
+import { userFromProfile } from '@/lib/profile';
 import { cn } from '@/lib/utils';
 import { Moved } from './Moved';
 import { PourForm, toLogOptions, type PourEntry } from './PourForm';
@@ -173,18 +175,7 @@ function ReturnVisitContent({
   // The map: your menu filled in, or your pours, and any drink opened in the card.
   const [lens, setLens] = useState<Lens>('drinks');
   const [selected, setSelected] = useState<string | null>(null);
-  const user = useMemo(
-    () => ({
-      x,
-      y,
-      filters: [
-        ...(profile?.dislikesSmoke ? ['noSmoke'] : []),
-        ...(profile?.dislikesBitter ? ['noBitter'] : []),
-        ...(profile?.dislikesAnise ? ['noAnise'] : []),
-      ],
-    }),
-    [x, y, profile?.dislikesSmoke, profile?.dislikesBitter, profile?.dislikesAnise]
-  );
+  const user = useMemo(() => userFromProfile(profile), [profile]);
   const { menu, closeness } = useMenu(user, profile?.vibeTags, pours);
   const lastPourOf = useLastPours(pours);
   const selectedDrink = selected ? drinkDatabase.find((d) => d.name === selected) ?? null : null;
@@ -199,18 +190,7 @@ function ReturnVisitContent({
     [x, y]
   );
 
-  const recentVenues = useMemo(
-    () =>
-      Array.from(
-        new Set(
-          pours
-            .filter((p) => !p.isHomePour)
-            .map((p) => p.venue?.entity?.name)
-            .filter((v): v is string => !!v && v.trim().length > 0)
-        )
-      ),
-    [pours]
-  );
+  const recentVenues = useMemo(() => recentBarNames(pours), [pours]);
 
   const startAsGuest = () => {
     const neutral: UserProfile = {
@@ -332,14 +312,14 @@ function ReturnVisitContent({
           rank: at >= 0 ? at + 1 : null,
           newcomer: menuNow.find((n, i) => i !== at && !lastPour.menuBefore.includes(n)) ?? null,
         }}
-        displayName={(name) => register[name]?.title ?? name}
+        displayName={(name) => titleOf(register, name)}
         backLabel={returnVisit.movedBack}
         onDone={() => setLastPour(null)}
       />
     );
   }
 
-  const bars = new Set(pours.filter((p) => !p.isHomePour && p.venue?.entity?.name).map((p) => p.venue!.entity!.name)).size;
+  const bars = barsFromPours(pours).length;
   const first = pours.length > 0 ? pours[pours.length - 1] : null;
   const best = pours.reduce<PourRecord | null>((top, p) => (!top || p.rating.hedonic > top.rating.hedonic ? p : top), null);
   const stats = [
@@ -353,7 +333,7 @@ function ReturnVisitContent({
           },
         ]
       : []),
-    ...(best ? [{ label: logPage.stats.best, value: register[best.drink.name]?.title ?? best.drink.name }] : []),
+    ...(best ? [{ label: logPage.stats.best, value: titleOf(register, best.drink.name) }] : []),
   ];
 
   return (
@@ -387,7 +367,7 @@ function ReturnVisitContent({
       </dl>
 
       <div className="mt-5">
-        {!rating && <WaitingPick displayName={(n) => register[n]?.title ?? n} />}
+        {!rating && <WaitingPick displayName={(n) => titleOf(register, n)} />}
       </div>
 
       {rating && (
@@ -396,7 +376,7 @@ function ReturnVisitContent({
           <PourForm
             suggestions={nearest}
             suggestionsLabel={pour.nearLabel}
-            labelFor={(name) => register[name]?.title ?? name}
+            labelFor={(name) => titleOf(register, name)}
             initialDrink={initialDrink ?? nearest[0]}
             draft={draft}
             venue={venue}

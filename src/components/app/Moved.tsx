@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { drinkDatabase } from '@/lib/data';
 import { quadrantFor } from '@/lib/quadrant';
 import { describeMove } from '@/lib/coordinate';
-import { moved } from '@/lib/copy';
+import { chart, moved } from '@/lib/copy';
 import { CoordinateMap, DrinkDot, TraceMark, YouMark } from './CoordinateMap';
 
 interface MovedProps {
@@ -75,7 +75,7 @@ export function Moved({
 
       <CoordinateMap tone="ink" you={to} className="mt-7">
         <TraceMark from={from} to={to} tone="ink" />
-        <YouMark x={to.x} y={to.y} tone="ink" land label={`Your coordinate, now in ${after.name}`} />
+        <YouMark x={to.x} y={to.y} tone="ink" land label={chart.youNowIn(after.name)} />
         {drink && <DrinkDot x={drink.x} y={drink.y} tone="ink" filled label={displayName(drink.name)} />}
       </CoordinateMap>
 

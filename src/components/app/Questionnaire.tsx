@@ -7,7 +7,7 @@ import {
   type QuestionOption,
 } from '@/lib/discovery-questions';
 import { MAX_QUESTIONS } from '@/lib/belief-state';
-import { quiz } from '@/lib/copy';
+import { a11y, quiz } from '@/lib/copy';
 import { cn } from '@/lib/utils';
 
 interface QuestionnaireProps {
@@ -82,7 +82,7 @@ export function Questionnaire({
       <div
         className="relative mx-6 mt-1.5 h-px bg-border"
         role="progressbar"
-        aria-label="Progress"
+        aria-label={a11y.progress}
         aria-valuemin={0}
         aria-valuemax={100}
         aria-valuenow={Math.round(progress)}
@@ -180,7 +180,7 @@ function QuestionStage({ question, isNavigating, canGoBack, onSelectOption, onBa
       <div
         className={cn('px-6 pb-8 pt-7', isPair ? 'grid grid-cols-2 gap-3' : 'flex flex-col gap-3')}
         role="group"
-        aria-label="Answer options"
+        aria-label={a11y.answerOptions}
       >
         {question.options.map((option, index) => {
           const isPicked = picked === index;

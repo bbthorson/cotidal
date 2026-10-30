@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { nav, pour, radio } from '@/lib/copy';
-import type { Register } from '@/lib/register';
+import { titleOf, type Register } from '@/lib/register';
 import type { PourRecord } from '@/lib/atproto/records';
 import { usePours } from '@/hooks/usePours';
 import { cn } from '@/lib/utils';
@@ -41,7 +41,7 @@ function RadioContent({
   const { pours } = usePours(!!member);
   const [filter, setFilter] = useState<Filter>('all');
   const [signInOpen, setSignInOpen] = useState(false);
-  const name = (n: string) => register[n]?.title ?? n;
+  const name = (n: string) => titleOf(register, n);
   const sender = member?.handle ? `@${member.handle}` : member ? radio.you : radio.onDevice;
 
   const days = useMemo(() => {

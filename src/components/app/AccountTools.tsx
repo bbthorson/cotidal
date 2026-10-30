@@ -35,7 +35,7 @@ export function AccountTools({
       setShareState('shared');
     } else {
       setShareState('idle');
-      setShareError(response.error || 'That did not go through. Try again.');
+      setShareError(response.error || menu.shareFailed);
     }
   };
 
