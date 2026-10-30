@@ -3,6 +3,7 @@ import AppShell from '../layouts/AppShell.astro';
 import PageTitle from '../components/marketing/PageTitle.astro';
 import { assistants as copy, site } from '../lib/copy';
 import { accountFor } from '../lib/atproto/session';
+import { accountHref } from '../lib/site-nav';
 
 /**
  * How to reach your palate from a chat assistant: the `/mcp` address, where
@@ -20,7 +21,12 @@ const account = await accountFor(Astro.request, false);
 const handle = account.kind === 'member' ? account.handle : null;
 ---
 
-<AppShell title={`${site.name} — ${copy.eyebrow}`} currentPath="/assistants" width="prose">
+<AppShell
+  title={`${site.name} — ${copy.eyebrow}`}
+  currentPath="/assistants"
+  width="prose"
+  backLink={{ href: accountHref, label: copy.back }}
+>
   <div class="space-y-12 pb-6">
     <PageTitle eyebrow={copy.eyebrow} title={copy.title} lede={copy.lede} />
 

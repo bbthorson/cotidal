@@ -12,7 +12,7 @@ interface MovedProps {
   /** "7 of 9" */
   scoreLabel: string;
   /**
-   * What the pour did to the go-to menu, where there is one (/taste): the
+   * What the pour did to the go-to menu, where there is one (on /rate): the
    * logged drink's new rank, and a drink that was not on it before.
    */
   menuChange?: { rank: number | null; newcomer: string | null };
@@ -22,7 +22,7 @@ interface MovedProps {
 }
 
 /**
- * After a pour, in /taste and /log. The payoff of logging, shown every time:
+ * After a pour, on /rate. The payoff of logging, shown every time:
  * where you were, where you are, what changed on the menu. The second and
  * last use of the ink ground.
  */

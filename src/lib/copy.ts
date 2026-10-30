@@ -20,13 +20,11 @@ export const nav = {
   skipToContent: 'Skip to content',
   home: 'Home',
   radio: 'Radio',
-  map: 'Compass',
+  compass: 'Compass',
   register: 'Drinks',
   regions: 'The Four Regions',
   signIn: 'Come aboard',
   signOut: 'Go ashore',
-  /** The header's account link where the page cannot know who is reading (prerendered). */
-  account: 'Account',
   menu: 'Menu',
   footer: 'Site',
   log: 'Log',
@@ -100,7 +98,7 @@ export const compass = {
   pickAt: (bar: string) => `Pick a drink at ${bar}`,
 } as const;
 
-/** /log: yours — where you are, what you have poured. */
+/** /log: yours — where you are, what you have poured, and the account. */
 export const logPage = {
   title: 'Log',
   guestEyebrow: 'On this device',
@@ -112,20 +110,39 @@ export const logPage = {
     since: 'Since',
     best: 'Best so far',
   },
-  logDirectly: 'Log one directly',
-  settingsTitle: 'Account',
-  assistants: 'Chat assistants',
+  /** The way into rating a drink that was not handed over (a pick, "Log this", a chat's draft). */
+  rateDrink: 'Rate a drink',
+  ledgerTitle: 'What moved it',
+  ledgerEmpty: 'No pours yet. Pick a drink, rate it, and it lands here.',
   /** The reading pages, at the foot of Log: on a phone the app pages have no Menu. */
   readingLabel: 'Read',
 } as const;
 
+/** /rate: one pour, rated, and where the coordinate went. */
+export const ratePage = {
+  title: 'Rate it',
+} as const;
+
 /**
- * /harbour: at a bar, deciding. Composed in steps like a post — where you
+ * What /log and /rate say to someone with no coordinate yet: what the loop
+ * is, and the ways in.
+ */
+export const coldState = {
+  title: 'The loop is: drink → log → the map changes.',
+  body: 'Your coordinate is not a quiz result. It is a record in your own account, and it moves every time you log a pour.',
+  quizCta: 'Find your coordinate first',
+  signInCta: 'Come aboard',
+  guestCta: 'Try a pour as a guest',
+  guestNote: 'As a guest, the pour stays on this device.',
+} as const;
+
+/**
+ * /harbour (shown as "Pick a drink"): at a bar, deciding. Composed in steps like a post — where you
  * are, what's pouring, which to have — and the pick is kept as a draft
  * until you rate it. It orders nothing: Cotidal is not connected to the bar.
  */
 export const harbour = {
-  title: 'Harbour',
+  title: 'Pick a drink',
   steps: ['Where', 'Menu', 'Pick'],
   back: 'Back',
   next: 'Next',
@@ -160,24 +177,24 @@ export const harbour = {
   dismiss: 'Set it aside',
 } as const;
 
-/** /account: who you are here, and the two things you can do about it. */
+/** The account, at the foot of Log: who you are, and what you can do about it. */
 export const account = {
   title: 'Your account',
   signedInAs: 'Signed in as',
-  /** When the session has no handle, only a DID. */
-  signedIn: 'Signed in',
-  links: {
-    map: 'Your coordinate',
-    log: 'Your pours',
-    public: 'Your public map',
-  },
-  startOverTitle: 'Start over',
+  /** The header's link where the page cannot know who is reading (prerendered). */
+  neutral: 'Account',
+  publicMap: 'Your public map',
+  assistants: 'Chat assistants',
+  share: 'Share to your feed',
+  shared: 'Shared',
+  shareFailed: 'That did not go through. Try again.',
+  startOver: 'Start over',
   startOverBody:
     'Retake the questions for a new coordinate. It replaces the one on your account; the pours you have logged stay in your ledger.',
   startOverCta: 'Retake the questions',
+  startOverCancel: 'Keep it',
   signOutTitle: 'Go ashore',
   signOutBody: 'Going ashore signs you out and clears your coordinate from this device. It stays on your account.',
-  guestTitle: 'Come aboard to keep your coordinate.',
 } as const;
 
 export const hero = {
@@ -191,7 +208,6 @@ export const hero = {
   cost: 'About two minutes · no account needed',
   /** The reading path: one tap away, never a second button. */
   readFirst: 'Read the four regions first',
-  secondaryCta: 'Look at the map first',
   registerCta: 'Open the rutter',
 } as const;
 
@@ -319,12 +335,6 @@ export const menu = {
   topTitle: 'Your go-to',
   keepTitle: 'Keep this coordinate',
   keepBody: 'Log pours and watch it move.',
-  signedInAs: 'Signed in as',
-  share: 'Share to your feed',
-  shared: 'Shared',
-  startOver: 'Start over',
-  startOverCancel: 'Keep it',
-  shareFailed: 'That did not go through. Try again.',
   empty: 'Nothing on the map fits these limits yet.',
 } as const;
 
@@ -433,21 +443,6 @@ export const regionPage = {
     `Counted from the ingredients of the ${total} drinks written up here; an ingredient given as alternatives counts toward each. Wines, beers and spirits served alone list what they are made from, and share nothing on this list.`,
   sharedCount: (count: number, total: number) => `${count} of ${total}`,
   otherLabel: 'The other three',
-} as const;
-
-export const returnVisit = {
-  eyebrow: 'The Return Visit',
-  coldTitle: 'The loop is: drink → log → the map changes.',
-  coldBody:
-    'Your coordinate is not a quiz result. It is a record in your own account, and it moves every time you log a pour.',
-  signInCta: 'Come aboard',
-  quizCta: 'Find your coordinate first',
-  guestCta: 'Try a pour as a guest',
-  guestNote: 'As a guest, the pour stays on this device.',
-  logTitle: 'Rate it',
-  ledgerTitle: 'What moved it',
-  ledgerEmpty: 'No pours yet. Pick a drink, rate it, and it lands here.',
-  movedBack: 'Back to your ledger',
 } as const;
 
 /**
@@ -648,7 +643,6 @@ export const publicMap = {
   unavailableTitle: 'The record did not answer.',
   unavailableBody: 'Their server did not respond in time. Try again in a moment.',
   description: (name: string, region: string) => `@${name}’s palate lands in ${region}. Where does yours?`,
-  memberLink: 'Your public map',
   axes: { rich: 'Rich', crisp: 'Crisp', sweet: 'Sweet', savory: 'Savory' },
   plotLabel: (who: string) => `${who} on the palate map`,
 } as const;
@@ -682,10 +676,7 @@ export const assistants = {
   readOnlyTitle: 'Only you log',
   readOnly:
     'The assistant reads the same public coordinate anyone can open at your public map. It can draft a pour, as a link to the form here, but only you log it: you check it, tap how it landed, and press the button. It cannot retake the questions or change your map.',
-  /** On /account. */
-  accountTitle: 'Use it in a chatbot',
-  accountBody: 'Ask Claude, or another chat assistant, what to order with your coordinate.',
-  accountCta: 'Set it up',
+  back: 'Account',
 } as const;
 
 /**

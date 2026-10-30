@@ -1,12 +1,14 @@
 import { useMemo, useState, useEffect, useCallback } from 'react';
 import { drinkDatabase, type User } from '@/lib/data';
 import { chart, compass, menu, nav } from '@/lib/copy';
-import { harbourAt, logPathFor } from '@/lib/site-nav';
+import { harbourAt, logPathFor, questionsHref } from '@/lib/site-nav';
 import { titleOf, type Register } from '@/lib/register';
 import { usePours } from '@/hooks/usePours';
 import { useMenu, type ScoredDrink } from '@/hooks/useMenu';
 import { DrinkCard, DrinkRow, useLastPours } from './Chart';
-import { useAtprotoContext } from './AtprotoProvider';
+import { AtprotoProvider, useAtprotoContext } from './AtprotoProvider';
+import { useProfile } from '@/hooks/useProfile';
+import { userFromProfile } from '@/lib/profile';
 import { WaitingPick } from './WaitingPick';
 import { BarCard, BarRows, NearPanel, useNearby } from './Near';
 import { metresBetween } from '@/lib/osm';
@@ -15,16 +17,6 @@ import { explainDrinkMatch } from '@/lib/api-client';
 import { barsFromPours, foldName, type BarVisits } from '@/lib/pour-history';
 import { cn } from '@/lib/utils';
 
-interface ResultsScreenProps {
-  user: User;
-  /** False when browsing without having answered the questions. */
-  hasCoordinate: boolean;
-  vibeTags?: Record<string, number>;
-  register: Register;
-  onRequestSignIn: () => void;
-  onStartOver: () => void;
-}
-
 /**
  * Compass: finding something — a drink, a bar — rather than looking at
  * yourself, which is Log's (and where the map now lives). One search over
@@ -32,20 +24,23 @@ interface ResultsScreenProps {
  * closest to your taste, and the bars you have poured at. A drink opens in
  * the card; a bar opens the harbour already there.
  */
-export function ResultsScreen({
-  user,
-  hasCoordinate,
-  vibeTags,
+function CompassContent({
   register,
-  onRequestSignIn,
-  onStartOver,
-}: ResultsScreenProps) {
-  const { isEnabled, isConnected } = useAtprotoContext();
+  member,
+}: {
+  register: Register;
+  member: { handle: string | null } | null;
+}) {
+  const { isEnabled, openSignIn } = useAtprotoContext();
+  const [profile] = useProfile(!!member);
+  const user = useMemo(() => userFromProfile(profile), [profile]);
+  const hasCoordinate = !!profile;
+  const vibeTags = profile?.vibeTags;
   const [selected, setSelected] = useState<string | null>(null);
   const [query, setQuery] = useState('');
   const [selectedBar, setSelectedBar] = useState<string | null>(null);
   const nearby = useNearby();
-  const { pours } = usePours(isConnected);
+  const { pours } = usePours(!!member);
   const history = useMemo(() => pours ?? [], [pours]);
   const lastPour = useLastPours(history);
   const { scored, menu: goTo, closeness } = useMenu(user, vibeTags, history);
@@ -110,7 +105,7 @@ export function ResultsScreen({
       {!hasCoordinate && (
         <button
           type="button"
-          onClick={onStartOver}
+          onClick={() => window.location.assign(questionsHref)}
           className="mb-4 flex min-h-11 items-center font-serif text-lg italic text-foreground underline decoration-primary underline-offset-4 hover:text-primary"
         >
           {compass.findYours}
@@ -199,13 +194,13 @@ export function ResultsScreen({
       )}
 
       {/* One sign-in prompt, below the list, stating the benefit */}
-      {isEnabled && !isConnected && (
+      {isEnabled && !member && (
         <div className="mt-5 flex items-center gap-3 border border-border bg-card p-4">
           <div className="flex flex-1 flex-col gap-0.5">
             <span className="font-serif text-base font-bold">{menu.keepTitle}</span>
             <span className="text-meta text-muted-foreground">{menu.keepBody}</span>
           </div>
-          <button type="button" onClick={onRequestSignIn} className="btn btn-primary shrink-0 px-3.5">
+          <button type="button" onClick={openSignIn} className="btn btn-primary shrink-0 px-3.5">
             {nav.signIn}
           </button>
         </div>
@@ -336,5 +331,22 @@ function TopPick({
         </p>
       )}
     </div>
+  );
+}
+
+export default function Compass({
+  register,
+  signInEnabled,
+  member,
+}: {
+  register: Register;
+  signInEnabled: boolean;
+  /** The server's answer (`accountFor`): who is reading, before anything loads. */
+  member: { handle: string | null } | null;
+}) {
+  return (
+    <AtprotoProvider enabled={signInEnabled}>
+      <CompassContent register={register} member={member} />
+    </AtprotoProvider>
   );
 }

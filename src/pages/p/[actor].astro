@@ -7,6 +7,7 @@ import { formatCoordinate } from '../../lib/coordinate';
 import { quadrantFor } from '../../lib/quadrant';
 import { readPublicPalate } from '../../lib/atproto/public-read';
 import { publicMapPath } from '../../lib/atproto/paths';
+import { questionsHref } from '../../lib/site-nav';
 import { oauthSession } from '../../lib/atproto/session';
 import { getPalateProfile } from '../../lib/atproto/publish';
 import { compareMaps, nearestDrinks, type MapPoint } from '../../lib/overlap';
@@ -228,7 +229,7 @@ const ctaClass =
           <p class="text-ui text-muted-foreground">
             {session ? publicMap.memberNoPalateBody : publicMap.guestBody}
           </p>
-          <a href="/taste" class={ctaClass}>{publicMap.guestCta}</a>
+          <a href={questionsHref} class={ctaClass}>{publicMap.guestCta}</a>
         </section>
       )}
     </article>
@@ -251,7 +252,7 @@ const ctaClass =
         }
       />
       <div class="mx-auto max-w-sm">
-        <a href="/taste" class={ctaClass}>{publicMap.guestCta}</a>
+        <a href={questionsHref} class={ctaClass}>{publicMap.guestCta}</a>
       </div>
     </article>
   )}

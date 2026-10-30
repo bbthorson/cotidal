@@ -2,12 +2,8 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { AUTH_ERROR_MESSAGES, createAuthClient, takeAuthError } from '@bbthorson/atproto-cf-auth/client';
 import { AUTH_BASE_PATH } from '@/lib/atproto/paths';
 
-
 interface AtprotoState {
   isEnabled: boolean;
-  isConnected: boolean;
-  did: string | null;
-  handle: string | null;
   connecting: boolean;
   error: string | null;
   connect: (handle: string) => Promise<void>;
@@ -17,37 +13,22 @@ interface AtprotoState {
  * `isEnabled` is the server's answer (`signInEnabled()` in
  * src/lib/atproto/auth.ts), passed down from the page as a prop. The browser
  * cannot work it out for itself: anything it reads was fixed at build time.
+ *
+ * This starts a sign-in and reports why one failed. Whether someone *is*
+ * signed in is the server's answer too (`accountFor`), which each page hands
+ * to its island: the session cookie is HttpOnly and opaque to the browser.
  */
 export function useAtproto(isAtprotoEnabled: boolean): AtprotoState {
   const auth = useMemo(() => createAuthClient({ basePath: AUTH_BASE_PATH }), []);
-  const [did, setDid] = useState<string | null>(null);
-  const [handle, setHandle] = useState<string | null>(null);
   const [connecting, setConnecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Who is signed in is the server's answer, not something the page can read:
-  // the session cookie is HttpOnly and opaque.
+  // A sign-in that failed on the way back lands here with the reason.
   useEffect(() => {
     if (!isAtprotoEnabled) return;
-
     const failure = takeAuthError();
     if (failure) setError(failure.message);
-
-    let cancelled = false;
-    auth
-      .getUser()
-      .then((user) => {
-        if (cancelled || !user) return;
-        setDid(user.did);
-        setHandle(user.handle ?? null);
-      })
-      .catch(() => {
-        // Offline or unconfigured: stay a guest.
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [auth, isAtprotoEnabled]);
+  }, [isAtprotoEnabled]);
 
   const connect = useCallback(
     async (inputHandle: string) => {
@@ -65,14 +46,5 @@ export function useAtproto(isAtprotoEnabled: boolean): AtprotoState {
     [auth, isAtprotoEnabled]
   );
 
-
-  return {
-    isEnabled: isAtprotoEnabled,
-    isConnected: !!did,
-    did,
-    handle,
-    connecting,
-    error,
-    connect,
-  };
+  return { isEnabled: isAtprotoEnabled, connecting, error, connect };
 }

@@ -15,11 +15,16 @@ export function publicMapPath(actor: string): string {
 }
 
 /**
- * Where a form sign-out lands, and the marker the island looks for there to
- * clear this device's copy of the coordinate (Home.tsx).
+ * Where a form sign-out lands, and the marker every island looks for to
+ * clear this device's copy of the coordinate (AtprotoProvider).
  */
 export const SIGNED_OUT_PARAM = 'signed_out';
-export const signedOutPath = `/taste?${SIGNED_OUT_PARAM}=1`;
+export const signedOutPath = `/compass?${SIGNED_OUT_PARAM}=1`;
 
-/** Asks /taste to start the questions over (from /account). */
+/** The questions, and the marker that makes them start over (from Log's account). */
+export const QUESTIONS_PATH = '/questions';
 export const START_OVER_PARAM = 'startover';
+export const startOverPath = `${QUESTIONS_PATH}?${START_OVER_PARAM}=1`;
+
+/** Where a pour is rated; a draft from a chat assistant arrives here too (pour-draft.ts). */
+export const RATE_PATH = '/rate';

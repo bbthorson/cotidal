@@ -4,9 +4,8 @@ import { titleOf, type Register } from '@/lib/register';
 import type { PourRecord } from '@/lib/atproto/records';
 import { usePours } from '@/hooks/usePours';
 import { cn } from '@/lib/utils';
-import { AtprotoProvider } from './AtprotoProvider';
+import { AtprotoProvider, useAtprotoContext } from './AtprotoProvider';
 import { WaitingPick } from './WaitingPick';
-import { SignInSheet } from './SignInSheet';
 
 type Filter = (typeof radio.filters)[number]['id'];
 
@@ -40,7 +39,7 @@ function RadioContent({
 }) {
   const { pours } = usePours(!!member);
   const [filter, setFilter] = useState<Filter>('all');
-  const [signInOpen, setSignInOpen] = useState(false);
+  const { openSignIn } = useAtprotoContext();
   const name = (n: string) => titleOf(register, n);
   const sender = member?.handle ? `@${member.handle}` : member ? radio.you : radio.onDevice;
 
@@ -88,7 +87,7 @@ function RadioContent({
             <span className="font-serif text-base font-bold">{radio.guestTitle}</span>
             <span className="text-meta text-muted-foreground">{radio.guestBody}</span>
           </div>
-          <button type="button" onClick={() => setSignInOpen(true)} className="btn btn-primary shrink-0 px-3.5">
+          <button type="button" onClick={openSignIn} className="btn btn-primary shrink-0 px-3.5">
             {nav.signIn}
           </button>
         </div>
@@ -149,8 +148,6 @@ function RadioContent({
           </section>
         ))
       )}
-
-      <SignInSheet open={signInOpen} onOpenChange={setSignInOpen} />
     </div>
   );
 }

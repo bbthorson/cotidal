@@ -3,15 +3,15 @@ import { drinkDatabase, type Drink } from '@/lib/data';
 import { calculateWeightedRelevance, type MinimalDrinkLog } from '@/lib/scoring';
 import { chart, harbour } from '@/lib/copy';
 import { titleOf, type Register } from '@/lib/register';
-import type { PourRecord } from '@/lib/atproto/records';
-import { getConnectedPours } from '@/lib/api-client';
+import { usePours } from '@/hooks/usePours';
+import { questionsHref } from '@/lib/site-nav';
 import { loadProfile, savePick, type DrinkPick } from '@/lib/device-store';
 import type { UserProfile } from '@/hooks/useDiscoveryQuiz';
 import { draftPath } from '@/lib/pour-draft';
 import { geoLocation } from '@/lib/atproto/location';
 import { recentBarNames } from '@/lib/pour-history';
 import { cn } from '@/lib/utils';
-import { AtprotoProvider, useAtprotoContext } from './AtprotoProvider';
+import { AtprotoProvider } from './AtprotoProvider';
 import { DrinkRow } from './Chart';
 
 type Step = 'where' | 'menu' | 'pick' | 'picked';
@@ -42,8 +42,7 @@ function placeDrink(label: string, register: Register): Drink | null {
  * (`draftPath`), the same hand-off a chat assistant uses, so the rating is
  * still the member's own tap.
  */
-function HarbourContent({ register }: { register: Register }) {
-  const { isConnected } = useAtprotoContext();
+function HarbourContent({ register, member }: { register: Register; member: boolean }) {
   // Read after mount: the server has no device, and its "no coordinate" must
   // not flash at someone who has one.
   const [profile, setProfile] = useState<UserProfile | null | undefined>(undefined);
@@ -56,7 +55,8 @@ function HarbourContent({ register }: { register: Register }) {
   const [entry, setEntry] = useState('');
   const [choice, setChoice] = useState<string | null>(null);
   const [pick, setPick] = useState<DrinkPick | null>(null);
-  const [pours, setPours] = useState<PourRecord[]>([]);
+  const { pours: poured } = usePours(member);
+  const pours = useMemo(() => poured ?? [], [poured]);
 
   useEffect(() => setProfile(loadProfile()), []);
 
@@ -71,13 +71,6 @@ function HarbourContent({ register }: { register: Register }) {
     if (params.has('lat') && geoLocation(lat, lon)) setBarAt({ name, lat, lon });
     setStep('menu');
   }, []);
-
-  useEffect(() => {
-    if (!isConnected) return;
-    getConnectedPours(50)
-      .then(setPours)
-      .catch((e) => console.error('Failed to load pours:', e));
-  }, [isConnected]);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -142,7 +135,7 @@ function HarbourContent({ register }: { register: Register }) {
         <span className="label-caps text-secondary">{harbour.title}</span>
         <h1 className="mt-3 font-serif text-title font-bold text-foreground">{harbour.coldTitle}</h1>
         <p className="mt-3 font-serif text-prose text-muted-foreground">{harbour.coldBody}</p>
-        <a href="/taste" className="btn btn-primary btn-lg mt-8 w-full px-6">
+        <a href={questionsHref} className="btn btn-primary btn-lg mt-8 w-full px-6">
           {harbour.coldCta}
         </a>
       </div>
@@ -170,7 +163,7 @@ function HarbourContent({ register }: { register: Register }) {
           >
             {harbour.rateNow}
           </a>
-          <a href="/taste" className="btn btn-outline w-full px-6">
+          <a href="/compass" className="btn btn-outline w-full px-6">
             {harbour.rateLater}
           </a>
         </div>
@@ -374,10 +367,19 @@ function Chip({ active, onClick, children }: { active: boolean; onClick: () => v
   );
 }
 
-export default function Harbour({ register, signInEnabled }: { register: Register; signInEnabled: boolean }) {
+export default function Harbour({
+  register,
+  signInEnabled,
+  member,
+}: {
+  register: Register;
+  signInEnabled: boolean;
+  /** The server's answer (`accountFor`): whose pours to rank against. */
+  member: { handle: string | null } | null;
+}) {
   return (
     <AtprotoProvider enabled={signInEnabled}>
-      <HarbourContent register={register} />
+      <HarbourContent register={register} member={!!member} />
     </AtprotoProvider>
   );
 }

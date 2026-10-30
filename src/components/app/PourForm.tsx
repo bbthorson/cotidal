@@ -45,7 +45,7 @@ export interface PourEntry {
  */
 const hedonicToRating = (hedonic: number) => (hedonic - 1) * 1.25;
 
-/** What the log route is sent for an entry. One mapping, for /taste and /log alike. */
+/** What the log route is sent for an entry. One mapping for the one form. */
 export function toLogOptions(entry: PourEntry): LogDrinkOptions {
   return {
     drinkName: entry.drinkName,
@@ -83,7 +83,7 @@ interface PourFormProps {
    * drinker taps it, and the form will not log until they do.
    */
   draft?: PourDraft;
-  /** Controlled, so the menu in /taste can re-weight by where you are. */
+  /** Controlled, so the page can re-weight its quick picks by where you are. */
   venue: string;
   onVenueChange: (venue: string) => void;
   recentVenues?: string[];

@@ -1,7 +1,7 @@
 import { useState, type SubmitEvent } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
 import { connect, nav } from '@/lib/copy';
-import { useAtprotoContext } from './AtprotoProvider';
+import { useAtprotoContext } from './AtprotoContext';
 
 interface SignInSheetProps {
   open: boolean;
@@ -9,13 +9,13 @@ interface SignInSheetProps {
 }
 
 /**
- * The one sign-in pattern. Opened from the menu's
- * "Keep this coordinate" prompt, from the header, and when a guest taps
- * "Log a pour". The landing page renders the same promise statically
+ * The one sign-in pattern, mounted once by `AtprotoProvider` and opened with
+ * `openSignIn()`: from a guest's "Keep this" prompts and from the header. The
+ * landing page renders the same promise statically
  * (src/components/marketing/ConnectForm.astro) from the same copy.
  *
- * A guest's coordinate is published once they are signed in (Home.tsx); the
- * sheet says what signing in buys, not what happens to the data after.
+ * A guest's coordinate is published once they are signed in (`useProfile`);
+ * the sheet says what signing in buys, not what happens to the data after.
  */
 export function SignInSheet({ open, onOpenChange }: SignInSheetProps) {
   const { isEnabled, connecting, error, connect: signIn } = useAtprotoContext();

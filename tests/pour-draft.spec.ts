@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { cleanDraft, draftPath, parseDraft, withoutDraft } from '../src/lib/pour-draft';
 import { draftPour, type ToolContext } from '../src/lib/mcp/tools';
-import { pour, returnVisit } from '../src/lib/copy';
+import { coldState, moved, pour } from '../src/lib/copy';
 
 /**
  * A pour drafted in a chat (`draft_pour` on /mcp) and confirmed in the form at
@@ -47,12 +47,12 @@ test('Draft: only what the form can show, cut to what it accepts', () => {
 
 test('Draft: no drink, no draft; and a plain “Log this” link is not one', () => {
   expect(cleanDraft({ drink: '   ' })).toBeNull();
-  expect(parseDraft(paramsOf('/log?draft=1'))).toBeNull();
-  expect(parseDraft(paramsOf('/log?drink=Negroni'))).toBeNull();
+  expect(parseDraft(paramsOf('/rate?draft=1'))).toBeNull();
+  expect(parseDraft(paramsOf('/rate?drink=Negroni'))).toBeNull();
 });
 
 test('Draft: a rating in the link is ignored, because a draft has none', () => {
-  const draft = parseDraft(paramsOf('/log?draft=1&drink=Negroni&hedonic=9&rating=10'));
+  const draft = parseDraft(paramsOf('/rate?draft=1&drink=Negroni&hedonic=9&rating=10'));
   expect(draft).toEqual({ drink: 'Negroni' });
 });
 
@@ -65,7 +65,7 @@ test('draft_pour: names a drink on the map by its map name, and keeps anything e
   const onMap = draftPour({ drink: 'daiquiri', bar: 'Attaboy' }, ctx);
   expect(onMap.ok && onMap.data.draft.drink).toBe('Daiquiri (Classic)');
   expect(onMap.ok && onMap.data.onMap).toBe(true);
-  expect(onMap.ok && onMap.data.url.startsWith('https://cotidal.example/log?draft=1&')).toBe(true);
+  expect(onMap.ok && onMap.data.url.startsWith('https://cotidal.example/rate?draft=1&')).toBe(true);
 
   const off = draftPour({ drink: 'Grandma’s Punch', atHome: true }, ctx);
   expect(off.ok && off.data.draft).toEqual({ drink: 'Grandma’s Punch', atHome: true });
@@ -73,10 +73,22 @@ test('draft_pour: names a drink on the map by its map name, and keeps anything e
   expect(off.ok && off.data.message).toContain('Nothing is logged yet');
 });
 
-test('Draft in /log: the form opens on it, will not log without a rating, and logs once', async ({ page }) => {
+test('Draft: a chat assistant\'s old /log link still arrives, query intact', async ({ request }) => {
+  const res = await request.get('/log?draft=1&drink=Negroni&bar=Dante', { maxRedirects: 0 });
+  expect(res.status()).toBe(302);
+  const to = new URL(res.headers()['location'], 'http://x');
+  expect(to.pathname).toBe('/rate');
+  expect(to.searchParams.get('draft')).toBe('1');
+  expect(to.searchParams.get('bar')).toBe('Dante');
+
+  const drink = await request.get('/log?drink=Negroni', { maxRedirects: 0 });
+  expect(new URL(drink.headers()['location'], 'http://x').search).toBe('?drink=Negroni');
+});
+
+test('Draft on /rate: the form opens on it, will not log without a rating, and logs once', async ({ page }) => {
   const path = draftPath({ drink: 'Negroni', bar: 'Dante', deviations: ['too-bitter'], note: 'Big orange peel' });
   await page.goto(path);
-  await page.getByRole('button', { name: returnVisit.guestCta }).click();
+  await page.getByRole('button', { name: coldState.guestCta }).click();
 
   await expect(page.getByTestId('pour-draft-note')).toHaveText(pour.draftNote);
   await expect(page.getByLabel(pour.drinkLabel)).toHaveValue('Negroni');
@@ -99,9 +111,10 @@ test('Draft in /log: the form opens on it, will not log without a rating, and lo
   await expect(page.getByRole('heading', { name: 'Your coordinate moved.' })).toBeVisible();
   await expect(page.getByText(/6 of 9/)).toBeVisible();
 
-  // Logged once: gone from the URL, and the form is closed rather than offered again.
+  // Logged once: gone from the URL, and the form is not offered again.
   expect(new URL(page.url()).search).toBe('');
-  await page.getByRole('button', { name: returnVisit.movedBack }).click();
+  await page.getByRole('button', { name: moved.back }).click();
+  await expect(page).toHaveURL(/\/log$/);
   await expect(page.getByTestId('pour-draft-note')).toHaveCount(0);
   await expect(page.getByLabel(pour.noteLabel)).toHaveCount(0);
   await expect(page.locator('ol').filter({ hasText: 'Dante' })).toHaveCount(1);

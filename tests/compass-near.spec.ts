@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { compass, harbour, pour, returnVisit } from '../src/lib/copy';
+import { compass, harbour, pour, ratePage } from '../src/lib/copy';
 import { GEO_TYPE } from '../src/lib/atproto/location';
 
 const profile = { x: 4, y: -2, dislikesSmoke: false, dislikesBitter: false, dislikesAnise: false, vibeTags: {} };
@@ -17,7 +17,7 @@ test('Compass: without location, the map waits to be asked, and nothing is sent'
   let asked = false;
   await page.route('https://overpass-api.de/**', (r) => ((asked = true), r.abort()));
   await page.addInitScript((p) => localStorage.setItem('user_profile', JSON.stringify(p)), profile);
-  await page.goto('/taste');
+  await page.goto('/compass');
   await expect(page.getByRole('button', { name: compass.showNear })).toBeVisible();
   await expect(page.getByText(compass.nearNote)).toBeVisible();
   expect(asked).toBe(false);
@@ -40,7 +40,7 @@ test('Compass: bars near you, then a pick there, then a pour that says where the
   }, profile);
 
   // Location already allowed: the map opens on its own, and the point went out rounded.
-  await page.goto('/taste');
+  await page.goto('/compass');
   const near = page.getByRole('heading', { name: compass.nearTitle });
   await expect(near).toBeVisible();
   expect(sent).toContain('40.722,-73.988');
@@ -63,7 +63,7 @@ test('Compass: bars near you, then a pick there, then a pour that says where the
   await page.getByRole('link', { name: harbour.rateNow }).click();
 
   // Rated at the bar the map named: the pour records where it is.
-  await expect(page.getByRole('heading', { name: returnVisit.logTitle })).toBeVisible();
+  await expect(page.getByRole('heading', { name: ratePage.title })).toBeVisible();
   await page.getByRole('radio', { name: /^7:/ }).click();
   await page.getByRole('button', { name: pour.submit }).click();
   await expect(page.getByRole('heading', { name: 'Your coordinate moved.' })).toBeVisible();

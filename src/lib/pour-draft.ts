@@ -1,9 +1,10 @@
 import { CATA, DEVIATIONS, type CataNote, type Deviation } from './atproto/vocab';
 import { geoLocation } from './atproto/location';
+import { RATE_PATH } from './atproto/paths';
 
 /**
  * A pour drafted somewhere else — a chat assistant, through `/mcp` — for the
- * member to confirm in the form at `/log`. It travels in the link, so nothing
+ * member to confirm in the form at `/rate`. It travels in the link, so nothing
  * is stored and nothing is written until they press the button.
  *
  * It carries no rating, on purpose: the rating is what moves the coordinate,
@@ -29,7 +30,7 @@ export interface PourDraft {
 /** The form's own limits: the drink and bar inputs keep 200, the note textarea 1000. */
 export const DRAFT_LIMITS = { drink: 200, bar: 200, note: 1000 } as const;
 
-/** Marks a link as a draft, so `/log?drink=` from "Log this" keeps its old meaning. */
+/** Marks a link as a draft, so `/rate?drink=` from "Log this" keeps its meaning. */
 const MARKER = 'draft';
 
 const known = <T extends string>(vocab: readonly T[], values: string[] | undefined): T[] =>
@@ -78,7 +79,7 @@ const num = (value: string | null) => (value === null || value.trim() === '' ? u
 
 const list = (value: string | null) => (value ? value.split(',').map((v) => v.trim()) : undefined);
 
-/** The draft in a `/log` URL, or `null` when the URL is not a draft. */
+/** The draft in a `/rate` URL, or `null` when the URL is not a draft. */
 export function parseDraft(params: URLSearchParams): PourDraft | null {
   if (params.get(MARKER) !== '1') return null;
   return cleanDraft({
@@ -93,7 +94,7 @@ export function parseDraft(params: URLSearchParams): PourDraft | null {
   });
 }
 
-/** `/log?draft=1&…`, the link a draft is handed over in. */
+/** `/rate?draft=1&…`, the link a draft is handed over in. */
 export function draftPath(draft: PourDraft): string {
   const params = new URLSearchParams({ [MARKER]: '1', drink: draft.drink });
   if (draft.atHome) params.set('at', 'home');
@@ -105,7 +106,7 @@ export function draftPath(draft: PourDraft): string {
   if (draft.deviations?.length) params.set('off', draft.deviations.join(','));
   if (draft.cata?.length) params.set('notes', draft.cata.join(','));
   if (draft.note) params.set('note', draft.note);
-  return `/log?${params.toString()}`;
+  return `${RATE_PATH}?${params.toString()}`;
 }
 
 /** The URL with the draft taken out, once it has been logged or set aside. */

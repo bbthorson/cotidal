@@ -1,5 +1,3 @@
-'use client';
-
 import { useEffect, useCallback, useState } from 'react';
 import {
   QUESTION_CATEGORIES,

@@ -6,11 +6,12 @@ import Principles from '../components/marketing/Principles.astro';
 import ChartFigure from '../components/marketing/ChartFigure.astro';
 import { hero, connect, drinks, sections } from '../lib/copy';
 import { signInEnabled } from '../lib/atproto/auth';
+import { questionsHref } from '../lib/site-nav';
 import { AUTH_ERROR_MESSAGES, AUTH_ERROR_PARAM, isAuthErrorCode } from '@bbthorson/atproto-cf-auth/client';
 
 /**
  * The landing page ships zero JavaScript. Everything interactive lives at
- * /taste, which is where the React island is mounted. Sign-in is a plain
+ * the app pages, which are where the React islands are mounted. Sign-in is a plain
  * form post (see src/pages/api/auth/atproto/[...route].ts).
  *
  * Laid out as a printed specimen and menu — hairline rules, one section per idea,
@@ -52,7 +53,7 @@ const error = errorParam
 
     <div class="mx-auto mt-7 flex max-w-sm flex-col items-center md:mt-10">
       <a
-        href="/taste"
+        href={questionsHref}
         class="btn btn-primary btn-lg w-full px-8"
       >
         {hero.primaryCta}
@@ -79,13 +80,7 @@ const error = errorParam
       {sections.mapNote}
     </p>
     <QuadrantGrid />
-    <div class="mt-4 flex flex-wrap items-center justify-between gap-x-6">
-      <a
-        href="/taste?browse=1"
-        class="inline-flex min-h-11 items-center font-serif text-sm italic text-muted-foreground underline underline-offset-4 transition-colors hover:text-primary"
-      >
-        {hero.secondaryCta}
-      </a>
+    <div class="mt-4 flex justify-end">
       <a
         href="/drinks"
         class="inline-flex min-h-11 items-center font-condensed text-xs uppercase tracking-label text-muted-foreground transition-colors hover:text-primary"

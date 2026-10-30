@@ -1,16 +1,16 @@
 import { test, expect } from '@playwright/test';
-import { quadrants, returnVisit, compass } from '../src/lib/copy';
+import { quadrants, coldState, compass, ratePage, reveal as revealCopy } from '../src/lib/copy';
 
 /**
  * Questionnaire flow contract:
- * The app opens directly with structured calibration questions and visible
- * selectable options (no conversational chat input).
+ * The questions page opens directly with structured calibration questions
+ * and visible selectable options (no conversational chat input).
  *
  * The mathematical scoring underneath is covered directly in `belief-state.spec.ts`.
  */
 
 test('Questionnaire: opens directly with calibration question and selectable options', async ({ page }) => {
-  await page.goto('/taste');
+  await page.goto('/questions');
 
   await expect(page.getByRole('heading', { level: 1 })).toContainText('Which glass do you push away first?');
   await expect(page.getByText('Sharp Citrus & Mineral')).toBeVisible();
@@ -20,14 +20,32 @@ test('Questionnaire: opens directly with calibration question and selectable opt
   await expect(page.getByText(/of about 8/)).toBeVisible();
 });
 
-test('Questionnaire: browsing skips straight to Compass', async ({ page }) => {
-  await page.goto('/taste?browse=1');
+test('Compass: with no coordinate it still browses, and offers the questions', async ({ page }) => {
+  await page.goto('/compass');
   await expect(page.getByText('Which glass do you push away first?')).toHaveCount(0);
-  await expect(page.getByRole('button', { name: compass.findYours })).toBeVisible();
+  await page.getByRole('button', { name: compass.findYours }).click();
+  await expect(page).toHaveURL(/\/questions$/);
+  await expect(page.getByText('Which glass do you push away first?')).toBeVisible();
+});
+
+test('Questionnaire: skipping goes to Compass', async ({ page }) => {
+  await page.goto('/questions');
+  await page.getByRole('button', { name: /skip/i }).click();
+  await expect(page).toHaveURL(/\/compass$/);
+});
+
+test('Questionnaire: someone who already has a coordinate is sent on to Compass', async ({ page }) => {
+  await page.goto('/compass');
+  await page.evaluate(
+    (p) => localStorage.setItem('user_profile', JSON.stringify(p)),
+    { x: 4, y: -2, vibeTags: {}, dislikesSmoke: false, dislikesBitter: false, dislikesAnise: false }
+  );
+  await page.goto('/questions');
+  await expect(page).toHaveURL(/\/compass$/);
 });
 
 test('Questionnaire: answering options advances questions and supports undo', async ({ page }) => {
-  await page.goto('/taste');
+  await page.goto('/questions');
 
   await expect(page.getByRole('heading', { level: 1 })).toContainText('Which glass do you push away first?');
   await page.getByText('Sharp Citrus & Mineral').click();
@@ -41,7 +59,7 @@ test('Questionnaire: answering options advances questions and supports undo', as
 });
 
 test('Questionnaire: finishing the questions reveals a region before the menu', async ({ page }) => {
-  await page.goto('/taste');
+  await page.goto('/questions');
 
   // The selector is adaptive, so the path is not fixed: take the first plate
   // until the reveal appears. It ends within eight questions.
@@ -55,7 +73,8 @@ test('Questionnaire: finishing the questions reveals a region before the menu', 
   await expect(reveal).toBeVisible();
   const names = quadrants.map((q) => q.name.replace(/^The /, '')).join('|');
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(new RegExp(`^The (${names})\\.$`));
-  await page.getByRole('button', { name: /see what to order/i }).click();
+  await page.getByRole('button', { name: revealCopy.continue }).click();
+  await expect(page).toHaveURL(/\/compass$/);
 
   // After the reveal, Compass: your menu, and a search over drinks and bars.
   await expect(page.getByText(/No\. 1 · Your go-to/)).toBeVisible();
@@ -63,7 +82,7 @@ test('Questionnaire: finishing the questions reveals a region before the menu', 
 });
 
 test('Menu: one ranked list, with no occasion switch', async ({ page }) => {
-  await page.goto('/taste?browse=1');
+  await page.goto('/compass');
 
   await expect(page.getByText(/No\. 1 · Your go-to/)).toBeVisible();
   // The occasion tabs are gone; the menu ranks by closeness alone.
@@ -83,8 +102,8 @@ test('Menu: one ranked list, with no occasion switch', async ({ page }) => {
   await expect(page.getByRole('region', { name: 'The chart' })).toHaveCount(0);
 });
 
-test('Compass: search a drink, tap it, then "Log this" opens /log on that drink', async ({ page }) => {
-  await page.goto('/taste?browse=1');
+test('Compass: search a drink, tap it, then "Log this" opens /rate on that drink', async ({ page }) => {
+  await page.goto('/compass');
 
   // A drink is found by what is in it, not only by its name.
   await page.getByRole('searchbox', { name: compass.searchLabel }).fill('mezcal');
@@ -102,10 +121,10 @@ test('Compass: search a drink, tap it, then "Log this" opens /log on that drink'
   await expect(page.getByText('Closeness', { exact: true })).toBeVisible();
 
   await page.getByRole('button', { name: 'Log this' }).click();
-  await expect(page).toHaveURL(/\/log\?drink=/);
+  await expect(page).toHaveURL(/\/rate\?drink=/);
   // A guest with no coordinate starts from the cold state; the drink waits.
-  const asGuest = page.getByRole('button', { name: returnVisit.guestCta });
-  const form = page.getByRole('heading', { name: returnVisit.logTitle });
+  const asGuest = page.getByRole('button', { name: coldState.guestCta });
+  const form = page.getByRole('heading', { name: ratePage.title });
   await expect(asGuest.or(form)).toBeVisible();
   if (await asGuest.isVisible()) await asGuest.click();
   await expect(form).toBeVisible();
