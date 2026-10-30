@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { appBar, logPage, moved, pour, radio, ratePage } from '../src/lib/copy';
+import { appBar, chart, logPage, moved, pour, radio, ratePage } from '../src/lib/copy';
 
 const profile = { x: 4, y: -2, dislikesSmoke: false, dislikesBitter: false, dislikesAnise: false, vibeTags: {} };
 
@@ -39,7 +39,7 @@ test('Log: a guest’s pour is kept on the device, in Log and on Radio', async (
 
   // Log shows the log, not a form: rating is a screen of its own.
   await page.goto('/log');
-  await expect(page.getByRole('heading', { name: logPage.title, level: 1 })).toBeVisible();
+  await expect(page.getByRole('heading', { name: logPage.heading, level: 1 })).toBeVisible();
   await expect(page.getByRole('heading', { name: ratePage.title })).toHaveCount(0);
   await expect(page.getByRole('link', { name: logPage.rateDrink })).toHaveAttribute('href', '/rate');
 
@@ -82,4 +82,21 @@ test('Harbour: from a bar on Compass, it starts at that bar’s menu', async ({ 
   await page.addInitScript((p) => localStorage.setItem('user_profile', JSON.stringify(p)), profile);
   await page.goto('/harbour?bar=Attaboy');
   await expect(page.getByRole('heading', { name: 'What’s on the menu?' })).toBeVisible();
+});
+
+test('Log: the chart sits beside the ledger on a wide screen, above it on a phone', async ({ page }) => {
+  await page.addInitScript((p) => localStorage.setItem('user_profile', JSON.stringify(p)), profile);
+  const map = page.getByRole('region', { name: chart.label });
+  const ledger = page.getByRole('heading', { name: logPage.ledgerTitle, exact: true });
+
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto('/log');
+  await expect(ledger).toBeVisible();
+  const [m, l] = [(await map.boundingBox())!, (await ledger.boundingBox())!];
+  expect(m.x + m.width).toBeLessThan(l.x);
+  expect(l.y).toBeLessThan(m.y + m.height);
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  const [m2, l2] = [(await map.boundingBox())!, (await ledger.boundingBox())!];
+  expect(m2.y + m2.height).toBeLessThan(l2.y);
 });

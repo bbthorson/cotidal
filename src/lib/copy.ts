@@ -101,6 +101,7 @@ export const compass = {
 /** /log: yours — where you are, what you have poured, and the account. */
 export const logPage = {
   title: 'Log',
+  heading: 'Where you stand',
   guestEyebrow: 'On this device',
   guestTitle: 'Keep this log',
   guestBody: 'As a guest your coordinate and pours live on this device only. Come aboard with your Bluesky account and they live in your own account, and move with you.',
