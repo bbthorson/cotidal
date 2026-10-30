@@ -62,7 +62,7 @@ export function Moved({
       className="-mx-6 flex min-h-dvh flex-col bg-reveal px-6 pb-8 pt-14 text-reveal-foreground lg:mx-auto lg:my-6 lg:min-h-0 lg:max-w-md lg:pt-12"
     >
       <div className="flex flex-col gap-2.5">
-        <span className="font-condensed text-xs font-semibold uppercase tracking-label text-reveal-muted">
+        <span className="font-condensed text-label font-semibold uppercase tracking-label text-reveal-muted">
           {moved.eyebrow} · {displayName(drink?.name ?? drinkName)} · {scoreLabel}
         </span>
         <h1 ref={heading} tabIndex={-1} className="font-serif text-hero font-normal italic outline-none">
@@ -83,9 +83,9 @@ export function Moved({
       <ul className="mt-4.5 border-t border-reveal-rule">
         {rows.map((row) => (
           <li key={row.name} className="dot-leader border-b border-reveal-hairline py-3">
-            <span className="font-serif text-base font-bold">{row.name}</span>
+            <span className="font-serif text-prose font-bold">{row.name}</span>
             <span aria-hidden="true" className="leader leader-reveal" />
-            <span className="font-condensed text-sm font-semibold tracking-widest text-reveal-muted">{row.note}</span>
+            <span className="font-condensed text-ui font-semibold tracking-label text-reveal-muted">{row.note}</span>
           </li>
         ))}
       </ul>

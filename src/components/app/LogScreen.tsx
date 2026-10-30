@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { drinkDatabase } from '@/lib/data';
 import { quadrantFor } from '@/lib/quadrant';
 import { calculateDistance } from '@/lib/scoring';
-import { logPage, nav } from '@/lib/copy';
+import { logPage } from '@/lib/copy';
 import { RATE_PATH, startOverPath } from '@/lib/atproto/paths';
 import { titleOf, type Register } from '@/lib/register';
 import { barsFromPours } from '@/lib/pour-history';
@@ -18,6 +18,7 @@ import { Chart, DrinkCard, useLastPours, type Lens } from './Chart';
 import { ColdState } from './ColdState';
 import { PourLedger } from './PourLedger';
 import { WaitingPick } from './WaitingPick';
+import { GuestPrompt } from './ui';
 import { AccountSection } from './AccountSection';
 
 /**
@@ -92,7 +93,7 @@ function LogContent({
   ];
 
   return (
-    <div className={cn('mx-auto max-w-xl pb-6 pt-4 lg:pt-8', selectedDrink && 'pb-80')}>
+    <div className={cn('mx-auto max-w-xl pb-6 pt-4 lg:pt-8', selectedDrink && 'pb-card-clearance')}>
       {/* Named for screen readers; on screen the app bar already says where you are. */}
       <h1 className="sr-only">{logPage.title}</h1>
 
@@ -127,10 +128,10 @@ function LogContent({
 
       <section className="mt-8">
         <div className="mb-1 flex items-baseline justify-between gap-4">
-          <h2 className="font-serif text-xl font-bold">{logPage.ledgerTitle}</h2>
+          <h2 className="font-serif text-heading font-bold">{logPage.ledgerTitle}</h2>
           <a
             href={RATE_PATH}
-            className="inline-flex min-h-11 items-center font-condensed text-xs uppercase tracking-label text-secondary hover:text-primary"
+            className="link-caps text-secondary hover:text-primary"
           >
             {logPage.rateDrink}
           </a>
@@ -140,15 +141,7 @@ function LogContent({
 
       {/* A guest: what signing in buys, once, under the log it would keep. */}
       {!isMember && isEnabled && (
-        <div className="mt-6 flex items-center gap-3 border border-border bg-card p-4">
-          <div className="flex flex-1 flex-col gap-0.5">
-            <span className="font-serif text-base font-bold">{logPage.guestTitle}</span>
-            <span className="text-meta text-muted-foreground">{logPage.guestBody}</span>
-          </div>
-          <button type="button" onClick={openSignIn} className="btn btn-primary shrink-0 px-3.5">
-            {nav.signIn}
-          </button>
-        </div>
+        <GuestPrompt className="mt-6" title={logPage.guestTitle} body={logPage.guestBody} onSignIn={openSignIn} />
       )}
 
       <AccountSection
@@ -166,7 +159,7 @@ function LogContent({
             <a
               key={d.href}
               href={d.href}
-              className="inline-flex min-h-11 items-center font-condensed text-xs uppercase tracking-label text-muted-foreground transition-colors hover:text-primary"
+              className="link-caps text-muted-foreground hover:text-primary"
             >
               {d.label}
             </a>

@@ -37,13 +37,13 @@ const error = errorParam
     <p class="label-caps mb-3.5">{hero.edition}</p>
 
     <h1
-      class="mx-auto max-w-2xl font-serif text-hero font-bold text-foreground md:text-6xl md:leading-display"
+      class="mx-auto max-w-2xl font-serif text-hero font-bold text-foreground md:text-hero-lg"
     >
       {hero.headline}<br />
       <em class="font-normal italic text-primary">{hero.headlineAccent}</em>
     </h1>
 
-    <p class="mx-auto mt-4.5 max-w-xs font-serif text-prose text-muted-foreground md:max-w-md md:text-lg">
+    <p class="mx-auto mt-4.5 max-w-xs font-serif text-prose text-muted-foreground md:max-w-md md:text-plate">
       {hero.body}
     </p>
 
@@ -61,7 +61,7 @@ const error = errorParam
       <p class="mt-2.5 text-meta text-muted-foreground">{hero.cost}</p>
       <a
         href="#regions"
-        class="mt-4 inline-flex min-h-11 items-center font-serif text-ui italic text-foreground underline decoration-primary underline-offset-4 transition-colors hover:text-primary"
+        class="link-serif mt-4 inline-flex min-h-11 items-center text-ui"
       >
         {hero.readFirst}
       </a>
@@ -71,19 +71,19 @@ const error = errorParam
   <!-- The map, as a menu -->
   <section id="regions" class="scroll-mt-8 pb-16 md:pb-20">
     <div class="flex items-baseline justify-between border-b border-foreground pb-2">
-      <h2 class="font-serif text-xl font-bold text-foreground">
+      <h2 class="font-serif text-heading font-bold text-foreground">
         {sections.map}
       </h2>
       <span class="label-caps text-secondary">{sections.mapLabel}</span>
     </div>
-    <p class="mb-4 mt-3 font-serif text-sm italic text-muted-foreground">
+    <p class="mb-4 mt-3 font-serif text-meta italic text-muted-foreground">
       {sections.mapNote}
     </p>
     <QuadrantGrid />
     <div class="mt-4 flex justify-end">
       <a
         href="/drinks"
-        class="inline-flex min-h-11 items-center font-condensed text-xs uppercase tracking-label text-muted-foreground transition-colors hover:text-primary"
+        class="link-caps text-muted-foreground hover:text-primary"
       >
         {drinks.navLabel} &rarr;
       </a>
@@ -93,20 +93,20 @@ const error = errorParam
   <!-- From the register: one sheet, one idea -->
   <section class="pb-16 md:pb-20">
     <div class="flex items-baseline justify-between border-b border-foreground pb-2">
-      <h2 class="font-serif text-xl font-bold text-foreground">
+      <h2 class="font-serif text-heading font-bold text-foreground">
         {sections.registerSpotlight}
       </h2>
       <span class="label-caps text-secondary">{sections.registerSpotlightLabel}</span>
     </div>
-    <p class="mb-5 mt-3 font-serif text-sm italic text-muted-foreground">
+    <p class="mb-5 mt-3 font-serif text-meta italic text-muted-foreground">
       {sections.registerSpotlightNote}
     </p>
     <div class="border border-border bg-card p-5 shadow-bar md:p-8">
       <span class="label-caps block text-secondary">{sections.registerCardLabel}</span>
-      <h3 class="mt-2 font-serif text-xl font-bold text-foreground">
+      <h3 class="mt-2 font-serif text-heading font-bold text-foreground">
         {drinks.title}
       </h3>
-      <p class="mt-2 text-sm leading-relaxed text-muted-foreground">
+      <p class="mt-2 text-ui leading-relaxed text-muted-foreground">
         {drinks.intro}
       </p>
       <a

@@ -100,7 +100,7 @@ export function CoordinateMap({
           key={q.id}
           className={cn(
             // Laid on the ground colour so a drink under a label cannot cut it.
-            'absolute z-10 px-0.5 font-condensed text-xs uppercase tracking-label',
+            'absolute z-10 px-0.5 font-condensed text-label uppercase tracking-label',
             ink ? 'bg-reveal' : 'bg-card',
             CORNER[q.id],
             q.id === yours
@@ -160,7 +160,7 @@ export function DrinkDot({
       {label && (
         <span
           className={cn(
-            'absolute translate-x-2 translate-y-1/2 whitespace-nowrap font-condensed text-xs tracking-wider',
+            'absolute translate-x-2 translate-y-1/2 whitespace-nowrap font-condensed text-label tracking-label',
             ink ? 'text-reveal-foreground' : 'text-foreground'
           )}
           style={at(x, y)}

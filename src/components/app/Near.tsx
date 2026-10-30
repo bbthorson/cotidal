@@ -3,6 +3,7 @@ import { barsNear, formatDistance, type OsmBar } from '@/lib/osm';
 import { compass } from '@/lib/copy';
 import { harbourAt } from '@/lib/site-nav';
 import { cn } from '@/lib/utils';
+import { PinnedCard } from './PinnedCard';
 
 const NearMap = lazy(() => import('./NearMap').then((m) => ({ default: m.NearMap })));
 
@@ -96,7 +97,7 @@ export function NearPanel({
 
       {status === 'ready' && (
         <div className="mt-4">
-          <h2 className="border-b border-foreground pb-1.5 font-serif text-xl font-bold">{compass.nearTitle}</h2>
+          <h2 className="section-title">{compass.nearTitle}</h2>
           {bars.length === 0 ? (
             <p className="border-b border-border py-4 text-meta text-muted-foreground">{compass.noneNear}</p>
           ) : (
@@ -156,40 +157,22 @@ export function BarRows({
  */
 export function BarCard({ bar, poured, onClose }: { bar: OsmBar; poured: number; onClose: () => void }) {
   return (
-    <div
-      data-drink-card
-      aria-live="polite"
-      className="fixed inset-x-0 bottom-tabbar z-20 border-t border-foreground bg-card pb-4 shadow-bar motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-4 sm:mx-auto sm:max-w-xl sm:border-x lg:bottom-0 lg:pb-safe-b"
-    >
-      <div className="flex flex-col gap-2 px-6 pt-4">
-        <div className="flex items-baseline justify-between gap-3">
-          <span className="font-condensed text-xs font-semibold uppercase tracking-label text-secondary">
-            {compass.kinds[bar.kind]} · {formatDistance(bar.distance)}
-          </span>
-          <button
-            type="button"
-            onClick={onClose}
-            className="-my-2 -mr-2 flex min-h-11 items-center px-2 font-condensed text-xs uppercase tracking-label text-muted-foreground hover:text-foreground"
-          >
-            {compass.close}
-          </button>
-        </div>
-        <span className="font-serif text-2xl font-bold leading-tight text-foreground">{bar.name}</span>
-        {poured > 0 && <span className="text-meta text-primary">{compass.pouredHere(poured)}</span>}
-        <div className="mt-1 flex flex-wrap items-center gap-x-5 gap-y-2">
-          <a href={harbourAt(bar.name, { lat: bar.lat, lon: bar.lon })} className="btn btn-primary px-5">
-            {compass.pickHere}
-          </a>
-          <a
-            href={`https://www.openstreetmap.org/${bar.id}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex min-h-11 items-center font-condensed text-xs uppercase tracking-label text-muted-foreground hover:text-foreground"
-          >
-            {compass.onOsm} &rarr;
-          </a>
-        </div>
+    <PinnedCard eyebrow={`${compass.kinds[bar.kind]} · ${formatDistance(bar.distance)}`} onClose={onClose}>
+      <span className="font-serif text-subtitle font-bold leading-tight text-foreground">{bar.name}</span>
+      {poured > 0 && <span className="text-meta text-primary">{compass.pouredHere(poured)}</span>}
+      <div className="mt-1 flex flex-wrap items-center gap-x-5 gap-y-2">
+        <a href={harbourAt(bar.name, { lat: bar.lat, lon: bar.lon })} className="btn btn-primary px-5">
+          {compass.pickHere}
+        </a>
+        <a
+          href={`https://www.openstreetmap.org/${bar.id}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="link-caps text-muted-foreground hover:text-foreground"
+        >
+          {compass.onOsm} &rarr;
+        </a>
       </div>
-    </div>
+    </PinnedCard>
   );
 }

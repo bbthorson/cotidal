@@ -1,6 +1,7 @@
 import { useState, type SubmitEvent } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
 import { connect, nav } from '@/lib/copy';
+import { cn } from '@/lib/utils';
 import { useAtprotoContext } from './AtprotoContext';
 
 interface SignInSheetProps {
@@ -35,7 +36,7 @@ export function SignInSheet({ open, onOpenChange }: SignInSheetProps) {
           <div aria-hidden="true" className="h-0.75 w-10 self-center bg-border sm:hidden" />
 
           <div className="flex flex-col gap-2">
-            <span className="font-condensed text-xs font-semibold uppercase tracking-label text-secondary">
+            <span className="font-condensed text-label font-semibold uppercase tracking-label text-secondary">
               {nav.signIn}
             </span>
             <Dialog.Title className="font-serif text-title font-bold">{connect.title}</Dialog.Title>
@@ -45,7 +46,7 @@ export function SignInSheet({ open, onOpenChange }: SignInSheetProps) {
           <ol className="border-t border-foreground">
             {connect.buys.map((b, i) => (
               <li key={b.title} className="flex gap-3 border-b border-border py-3">
-                <span className="w-3.5 shrink-0 font-condensed text-sm font-bold text-primary">{i + 1}</span>
+                <span className="w-3.5 shrink-0 font-condensed text-ui font-bold text-primary">{i + 1}</span>
                 <div className="flex flex-col gap-0.5">
                   <span className="text-ui font-bold">{b.title}</span>
                   <span className="text-meta text-muted-foreground">{b.body}</span>
@@ -60,8 +61,8 @@ export function SignInSheet({ open, onOpenChange }: SignInSheetProps) {
                 <span
                   className={
                     error
-                      ? 'font-condensed text-xs uppercase tracking-label text-destructive'
-                      : 'font-condensed text-xs uppercase tracking-label text-muted-foreground'
+                      ? 'font-condensed text-label uppercase tracking-label text-destructive'
+                      : 'font-condensed text-label uppercase tracking-label text-muted-foreground'
                   }
                 >
                   {connect.label}
@@ -76,10 +77,7 @@ export function SignInSheet({ open, onOpenChange }: SignInSheetProps) {
                   spellCheck={false}
                   disabled={connecting}
                   aria-invalid={!!error}
-                  className={
-                    'min-h-12 rounded-sm border bg-card px-3.5 font-body text-base text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none ' +
-                    (error ? 'border-destructive' : 'border-border')
-                  }
+                  className={cn('field', error && 'border-destructive')}
                 />
                 {error && (
                   <span role="alert" className="text-meta text-destructive">

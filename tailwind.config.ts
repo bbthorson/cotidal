@@ -12,12 +12,10 @@ export default {
     extend: {
       letterSpacing: {
         // Named so the brand's tracking is a decision made once, in one place,
-        // rather than an arbitrary value re-typed per component.
+        // rather than an arbitrary value re-typed per component. Tailwind's own
+        // `wider` / `widest` are not used (eslint.config.mjs).
         wordmark: '0.15em',
         label: '0.2em',
-      },
-      lineHeight: {
-        display: '1.05',
       },
       aspectRatio: {
         '2/1': '2 / 1',
@@ -33,6 +31,8 @@ export default {
         '1.75': '0.4375rem',
         // 18px: the padding inside a plate or the top-pick sheet
         '4.5': '1.125rem',
+        // 320px: room left under a page for the card pinned over its foot
+        'card-clearance': '20rem',
         // 22px: the rank column in a menu row
         '5.5': '1.375rem',
         // 52px: the height of a primary action on a phone
@@ -41,6 +41,10 @@ export default {
       // `data-open:` for Radix parts, which mark themselves data-state="open".
       data: {
         open: 'state="open"',
+      },
+      maxHeight: {
+        // The pinned drink card scrolls past this
+        card: '24rem',
       },
       gridTemplateColumns: {
         // A radio log: the time in a narrow margin, the entry beside it.
@@ -57,12 +61,19 @@ export default {
         '2xs': ['0.6875rem', { lineHeight: '1rem' }],
         // The specimen-book type scale (docs/design-system.md). Named for the
         // role, so a size is chosen once rather than approximated per screen.
+        label: ['0.75rem', { lineHeight: '1rem' }], // 12 · condensed caps: labels, links, buttons
         meta: ['0.8125rem', { lineHeight: '1.5' }], // 13 · PT Sans small
         ui: ['0.9375rem', { lineHeight: '1.55' }], // 15 · PT Sans body
+        field: ['1rem', { lineHeight: '1.5' }], // 16 · a text field: never smaller, or iOS zooms on focus
         prose: ['1.0625rem', { lineHeight: '1.6' }], // 17 · Playfair prose
         plate: ['1.1875rem', { lineHeight: '1.3' }], // 19 · option and drink names
+        heading: ['1.25rem', { lineHeight: '1.3' }], // 20 · a section heading
+        subtitle: ['1.5rem', { lineHeight: '1.2' }], // 24 · a card's title, a region in the cartouche
         title: ['1.875rem', { lineHeight: '1.15' }], // 30 · a question, a drink
+        display: ['2.25rem', { lineHeight: '1.05' }], // 36 · a page title on a phone
+        'display-lg': ['3rem', { lineHeight: '1.05' }], // 48 · a page title from `md`
         hero: ['2.5rem', { lineHeight: '1.05' }], // 40 · landing headline on a phone
+        'hero-lg': ['3.75rem', { lineHeight: '1.05' }], // 60 · landing headline from `md`
         // Not `reveal`: that is a colour, and a shared name emits both.
         region: ['3.5rem', { lineHeight: '1' }], // 56 · a region, revealed
       },
@@ -70,9 +81,6 @@ export default {
         body: ['var(--font-pt-sans)', 'sans-serif'],
         serif: ['var(--font-playfair)', 'serif'],
         condensed: ['var(--font-barlow)', 'sans-serif'],
-        // Monospace is not a brand face. Anything still asking for it gets
-        // Barlow, which carries every number in the system.
-        mono: ['var(--font-barlow)', 'sans-serif'],
         code: ['monospace'],
       },
       colors: {
@@ -128,9 +136,9 @@ export default {
       // black drop and an amber glow, both of which read as dirt on cream.
       boxShadow: {
         // Letterpress-style hard offset, in terracotta.
-        'mcm': '4px 4px 0px 0px hsl(8 55% 40%)',
+        'mcm': '4px 4px 0 0 hsl(var(--primary))',
         // A sheet lifted a millimetre off the stock.
-        'bar': '0 1px 2px 0 hsl(40 20% 40% / 0.06), 0 8px 24px -12px hsl(40 20% 30% / 0.18)',
+        'bar': '0 1px 2px 0 hsl(var(--shade) / 0.06), 0 8px 24px -12px hsl(var(--shade-deep) / 0.18)',
       },
       keyframes: {
         // The one thing that moves on the reveal: the dot landing.

@@ -89,7 +89,6 @@ export const compass = {
   pouredHere: (n: number) => (n === 1 ? 'You have poured here once' : `You have poured here ${n} times`),
   pickHere: 'Pick a drink here',
   onOsm: 'On OpenStreetMap',
-  close: 'Close',
   drinksTitle: 'Drinks',
   noDrinks: 'No drink on the map by that name or ingredient.',
   barsTitle: 'Bars',

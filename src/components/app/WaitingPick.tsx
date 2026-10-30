@@ -17,7 +17,7 @@ export function WaitingPick({ displayName }: { displayName: (name: string) => st
     <div className="mb-4 flex flex-wrap items-center gap-x-4 gap-y-1 border border-foreground bg-card px-4 py-2">
       <div className="mr-auto flex min-w-0 flex-col">
         <span className="label-caps">{harbour.waiting}</span>
-        <span className="truncate font-serif text-base font-bold text-foreground">
+        <span className="truncate font-serif text-prose font-bold text-foreground">
           {displayName(pick.drink)}
           {(pick.bar || pick.atHome) && (
             <span className="font-normal italic text-muted-foreground">
@@ -36,7 +36,7 @@ export function WaitingPick({ displayName }: { displayName: (name: string) => st
           clearPick();
           setPick(null);
         }}
-        className="inline-flex min-h-11 items-center font-condensed text-xs uppercase tracking-label text-muted-foreground hover:text-foreground"
+        className="link-caps text-muted-foreground hover:text-foreground"
       >
         {harbour.dismiss}
       </button>

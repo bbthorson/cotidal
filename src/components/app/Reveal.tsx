@@ -33,13 +33,13 @@ export function Reveal({ x, y, onContinue, onRetake }: RevealProps) {
       className="-mx-6 flex min-h-dvh flex-col bg-reveal px-6 pb-8 pt-16 text-reveal-foreground lg:mx-auto lg:my-6 lg:min-h-0 lg:max-w-md lg:pt-12"
     >
       <div className="flex flex-col gap-2.5">
-        <span className="font-condensed text-xs font-semibold uppercase tracking-label text-reveal-muted">
+        <span className="font-condensed text-label font-semibold uppercase tracking-label text-reveal-muted">
           {reveal.eyebrow}
         </span>
         <h1 ref={heading} tabIndex={-1} className="font-serif text-region font-normal italic outline-none">
           {region.name}.
         </h1>
-        <p className="mt-1.5 font-serif text-lg leading-normal">{region.gloss}</p>
+        <p className="mt-1.5 font-serif text-plate leading-normal">{region.gloss}</p>
       </div>
 
       <CoordinateMap tone="ink" you={{ x, y }} className="mt-8">
@@ -48,7 +48,7 @@ export function Reveal({ x, y, onContinue, onRetake }: RevealProps) {
         ))}
         <YouMark x={x} y={y} tone="ink" land label={chart.youIn(region.name)} />
       </CoordinateMap>
-      <div className="mt-2.5 flex justify-between font-condensed text-xs uppercase tracking-label text-reveal-muted">
+      <div className="mt-2.5 flex justify-between font-condensed text-label uppercase tracking-label text-reveal-muted">
         <span>{formatAxis(x, 'x')}</span>
         <span>{formatAxis(y, 'y')}</span>
       </div>

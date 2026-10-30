@@ -4,7 +4,7 @@ import { AUTH_BASE_PATH, publicMapPath } from '@/lib/atproto/paths';
 import { sharePalateToFeed } from '@/lib/api-client';
 import { cn } from '@/lib/utils';
 
-const link = 'inline-flex min-h-11 items-center font-condensed text-xs uppercase tracking-label transition-colors';
+const link = 'link-caps';
 
 /**
  * The account, in one block under the ledger: who you are, your public map,
@@ -42,7 +42,7 @@ export function AccountSection({
 
   return (
     <section id="account" aria-labelledby="account-title" className="mt-8 scroll-mt-4">
-      <h2 id="account-title" className="border-b border-foreground pb-1.5 font-serif text-xl font-bold">
+      <h2 id="account-title" className="section-title">
         {account.title}
       </h2>
       <div className="mt-3">

@@ -16,6 +16,7 @@ import { pour } from '@/lib/copy';
 import type { LogDrinkOptions } from '@/lib/api-client';
 import type { PourDraft } from '@/lib/pour-draft';
 import { cn } from '@/lib/utils';
+import { Chip } from './ui';
 
 export type Deviation = (typeof DEVIATIONS)[number];
 
@@ -195,13 +196,13 @@ export function PourForm({
         </datalist>
         {suggestions.length > 0 && (
           <div className="flex flex-wrap items-center gap-2">
-            <span className="font-condensed text-xs uppercase tracking-label text-muted-foreground">
+            <span className="font-condensed text-label uppercase tracking-label text-muted-foreground">
               {suggestionsLabel}
             </span>
             {suggestions.slice(0, 4).map((name) => (
-              <Tag key={name} active={drinkName === name} onClick={() => setDrinkName(name)}>
+              <Chip key={name} active={drinkName === name} onClick={() => setDrinkName(name)}>
                 {labelFor(name)}
-              </Tag>
+              </Chip>
             ))}
           </div>
         )}
@@ -210,18 +211,14 @@ export function PourForm({
       {/* Where */}
       <div className="flex flex-col gap-2">
         <FieldLabel as="span">{pour.whereLabel}</FieldLabel>
-        <div role="group" aria-label={pour.whereLabel} className="grid grid-cols-2 border border-foreground">
+        <div role="group" aria-label={pour.whereLabel} className="segmented grid grid-cols-2">
           {[false, true].map((home) => (
             <button
               key={String(home)}
               type="button"
               aria-pressed={isHomePour === home}
               onClick={() => setIsHomePour(home)}
-              className={cn(
-                'min-h-11 font-condensed text-xs font-semibold uppercase tracking-label transition-colors focus-ring-inset',
-                home && 'border-l border-foreground',
-                isHomePour === home ? 'bg-secondary text-secondary-foreground' : 'bg-card text-foreground hover:bg-muted'
-              )}
+              className="segment"
             >
               {home ? pour.atHome : pour.atBar}
             </button>
@@ -242,13 +239,13 @@ export function PourForm({
             />
             {recentVenues.length > 0 && (
               <div className="flex flex-wrap items-center gap-2">
-                <span className="font-condensed text-xs uppercase tracking-label text-muted-foreground">
+                <span className="font-condensed text-label uppercase tracking-label text-muted-foreground">
                   {pour.recentLabel}
                 </span>
                 {recentVenues.slice(0, 5).map((v) => (
-                  <Tag key={v} active={venue === v} onClick={() => onVenueChange(venue === v ? '' : v)}>
+                  <Chip key={v} active={venue === v} onClick={() => onVenueChange(venue === v ? '' : v)}>
                     {v}
-                  </Tag>
+                  </Chip>
                 ))}
               </div>
             )}
@@ -267,7 +264,7 @@ export function PourForm({
             {hedonic === null ? pour.tapRating : pour.hedonic[hedonic - 1]}
           </span>
         </div>
-        <div role="radiogroup" aria-label={pour.ratingLabel} className="grid grid-cols-9 border border-foreground">
+        <div role="radiogroup" aria-label={pour.ratingLabel} className="segmented grid grid-cols-9">
           {pour.hedonic.map((label, i) => {
             const n = i + 1;
             const active = n === hedonic;
@@ -279,11 +276,7 @@ export function PourForm({
                 aria-checked={active}
                 aria-label={`${n}: ${label}`}
                 onClick={() => setHedonic(n)}
-                className={cn(
-                  'min-h-11 font-condensed text-ui font-bold tabular-nums transition-colors focus-ring-inset',
-                  i > 0 && 'border-l border-foreground',
-                  active ? 'bg-primary text-primary-foreground' : 'bg-card text-foreground hover:bg-muted'
-                )}
+                className="segment text-ui font-bold tabular-nums"
               >
                 {n}
               </button>
@@ -305,13 +298,13 @@ export function PourForm({
           {DEVIATIONS.map((dev) => {
             const active = deviations.includes(dev);
             return (
-              <Tag
+              <Chip
                 key={dev}
                 active={active}
                 onClick={() => setDeviations((prev) => (active ? prev.filter((d) => d !== dev) : [...prev, dev]))}
               >
                 {pour.deviations[dev]}
-              </Tag>
+              </Chip>
             );
           })}
         </div>
@@ -326,13 +319,13 @@ export function PourForm({
           {CATA.map((item) => {
             const active = cata.includes(item);
             return (
-              <Tag
+              <Chip
                 key={item}
                 active={active}
                 onClick={() => setCata((prev) => (active ? prev.filter((c) => c !== item) : [...prev, item]))}
               >
                 {pour.cata[item]}
-              </Tag>
+              </Chip>
             );
           })}
         </div>
@@ -463,8 +456,7 @@ export function PourForm({
   );
 }
 
-const inputClass =
-  'min-h-12 w-full rounded-sm border border-border bg-card px-3.5 font-body text-base text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none';
+const inputClass = 'field';
 
 function FieldLabel({
   children,
@@ -475,7 +467,7 @@ function FieldLabel({
   htmlFor?: string;
   as?: 'label' | 'span';
 }) {
-  const className = 'font-condensed text-xs uppercase tracking-label text-muted-foreground';
+  const className = 'font-condensed text-label uppercase tracking-label text-muted-foreground';
   return as === 'label' ? (
     <label htmlFor={htmlFor} className={className}>
       {children}
@@ -486,24 +478,6 @@ function FieldLabel({
 }
 
 /** Axis-style tag: outline at rest, forest when on. */
-function Tag({ active, onClick, children }: { active: boolean; onClick: () => void; children: ReactNode }) {
-  return (
-    <button
-      type="button"
-      aria-pressed={active}
-      onClick={onClick}
-      className={cn(
-        'min-h-9 border px-2.5 font-condensed text-xs uppercase tracking-label transition-colors',
-        active
-          ? 'border-secondary bg-secondary text-secondary-foreground'
-          : 'border-border text-secondary hover:border-foreground'
-      )}
-    >
-      {children}
-    </button>
-  );
-}
-
 /** A select that starts on nothing: the empty choice records nothing. */
 function SelectField({
   label,
@@ -518,7 +492,7 @@ function SelectField({
 }) {
   return (
     <label className="flex flex-col gap-2">
-      <span className="font-condensed text-xs uppercase tracking-label text-muted-foreground">{label}</span>
+      <span className="font-condensed text-label uppercase tracking-label text-muted-foreground">{label}</span>
       <select value={value} onChange={(e) => onChange(e.target.value)} className={inputClass}>
         <option value="">{pour.notSet}</option>
         {options.map((o) => (

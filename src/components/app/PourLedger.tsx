@@ -1,6 +1,7 @@
 import type { PourRecord, Deviation, CataNote } from '@/lib/atproto/records';
 import type { Register } from '@/lib/register';
 import { pour } from '@/lib/copy';
+import { Loading } from './ui';
 
 interface PourLedgerProps {
   pours: PourRecord[];
@@ -16,7 +17,7 @@ interface PourLedgerProps {
  */
 export function PourLedger({ pours, register = {}, empty, loading = false }: PourLedgerProps) {
   if (loading) {
-    return <p className="py-6 font-serif text-ui italic text-muted-foreground motion-safe:animate-pulse">…</p>;
+    return <Loading />;
   }
   if (pours.length === 0) {
     return <p className="border-b border-border py-6 font-serif text-prose italic text-muted-foreground">{empty}</p>;
@@ -62,7 +63,7 @@ export function PourLedger({ pours, register = {}, empty, loading = false }: Pou
                 {p.deviations.map((dev) => (
                   <li
                     key={dev}
-                    className="border border-border px-2 py-0.5 font-condensed text-xs uppercase tracking-label text-secondary"
+                    className="tag"
                   >
                     {pour.deviations[dev as Deviation] ?? dev}
                   </li>
@@ -74,7 +75,7 @@ export function PourLedger({ pours, register = {}, empty, loading = false }: Pou
                 {p.cata.map((desc) => (
                   <li
                     key={desc}
-                    className="border border-border px-2 py-0.5 font-condensed text-xs uppercase tracking-label text-secondary"
+                    className="tag"
                   >
                     {pour.cata[desc as CataNote] ?? desc}
                   </li>

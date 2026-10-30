@@ -1,6 +1,6 @@
 import { useMemo, useState, useEffect, useCallback } from 'react';
 import { drinkDatabase, type User } from '@/lib/data';
-import { chart, compass, menu, nav } from '@/lib/copy';
+import { chart, compass, menu } from '@/lib/copy';
 import { harbourAt, logPathFor, questionsHref } from '@/lib/site-nav';
 import { titleOf, type Register } from '@/lib/register';
 import { usePours } from '@/hooks/usePours';
@@ -10,6 +10,7 @@ import { AtprotoProvider, useAtprotoContext } from './AtprotoProvider';
 import { useProfile } from '@/hooks/useProfile';
 import { userFromProfile } from '@/lib/profile';
 import { WaitingPick } from './WaitingPick';
+import { GuestPrompt } from './ui';
 import { BarCard, BarRows, NearPanel, useNearby } from './Near';
 import { metresBetween } from '@/lib/osm';
 import { readGeo } from '@/lib/atproto/location';
@@ -96,7 +97,7 @@ function CompassContent({
       className={cn(
         'mx-auto max-w-xl pb-6 pt-4 motion-safe:animate-in motion-safe:fade-in lg:pt-8',
         // Room to scroll the foot of the page out from under the card.
-        (selectedDrink || openBar) && 'pb-80'
+        (selectedDrink || openBar) && 'pb-card-clearance'
       )}
     >
       <h1 className="sr-only">{compass.title}</h1>
@@ -106,7 +107,7 @@ function CompassContent({
         <button
           type="button"
           onClick={() => window.location.assign(questionsHref)}
-          className="mb-4 flex min-h-11 items-center font-serif text-lg italic text-foreground underline decoration-primary underline-offset-4 hover:text-primary"
+          className="link-serif mb-4 flex min-h-11 items-center text-plate"
         >
           {compass.findYours}
         </button>
@@ -124,7 +125,7 @@ function CompassContent({
             }}
             placeholder={compass.placeholder}
             autoComplete="off"
-            className="min-h-11 rounded-sm border border-foreground bg-card px-3 font-body text-ui text-foreground focus:border-primary focus:outline-none"
+            className="field min-h-11 border-foreground"
           />
         </label>
       </search>
@@ -132,7 +133,7 @@ function CompassContent({
       {q ? (
         <>
           <section className="mt-6">
-            <h2 className="border-b border-foreground pb-1.5 font-serif text-xl font-bold">{compass.drinksTitle}</h2>
+            <h2 className="section-title">{compass.drinksTitle}</h2>
             {drinkHits.length === 0 ? (
               <p className="border-b border-border py-4 text-meta text-muted-foreground">{compass.noDrinks}</p>
             ) : (
@@ -159,7 +160,7 @@ function CompassContent({
           />
           {nearHits.length > 0 && (
             <section className="mt-6">
-              <h2 className="border-b border-foreground pb-1.5 font-serif text-xl font-bold">{compass.nearTitle}</h2>
+              <h2 className="section-title">{compass.nearTitle}</h2>
               <BarRows bars={nearHits} known={known} selected={selectedBar} onSelect={chooseBar} />
             </section>
           )}
@@ -195,15 +196,7 @@ function CompassContent({
 
       {/* One sign-in prompt, below the list, stating the benefit */}
       {isEnabled && !member && (
-        <div className="mt-5 flex items-center gap-3 border border-border bg-card p-4">
-          <div className="flex flex-1 flex-col gap-0.5">
-            <span className="font-serif text-base font-bold">{menu.keepTitle}</span>
-            <span className="text-meta text-muted-foreground">{menu.keepBody}</span>
-          </div>
-          <button type="button" onClick={openSignIn} className="btn btn-primary shrink-0 px-3.5">
-            {nav.signIn}
-          </button>
-        </div>
+        <GuestPrompt className="mt-5" title={menu.keepTitle} body={menu.keepBody} onSignIn={openSignIn} />
       )}
 
       {openBar && <BarCard bar={openBar} poured={pouredAt.get(openBar.id) ?? 0} onClose={() => setSelectedBar(null)} />}
@@ -231,7 +224,7 @@ function BarList({ title, bars, extra }: { title: string; bars: BarVisits[]; ext
   if (bars.length === 0 && !extra) return null;
   return (
     <section className="mt-6">
-      <h2 className="border-b border-foreground pb-1.5 font-serif text-xl font-bold">{title}</h2>
+      <h2 className="section-title">{title}</h2>
       <ol>
         {bars.map((b) => (
           <li key={b.name} className="border-b border-border">
@@ -248,7 +241,7 @@ function BarList({ title, bars, extra }: { title: string; bars: BarVisits[]; ext
           <li className="border-b border-border">
             <a
               href={harbourAt(extra)}
-              className="flex min-h-11 items-center py-3 font-condensed text-xs uppercase tracking-label text-secondary hover:text-primary focus-ring-inset"
+              className="link-caps flex py-3 text-secondary hover:text-primary focus-ring-inset"
             >
               {compass.pickAt(extra)} &rarr;
             </a>
@@ -299,10 +292,10 @@ function TopPick({
   return (
     <div className="mt-4 flex flex-col gap-2.5 border border-foreground bg-card p-4.5 shadow-mcm">
       <div className="flex items-baseline justify-between">
-        <span className="font-condensed text-xs font-semibold uppercase tracking-label text-secondary">
+        <span className="font-condensed text-label font-semibold uppercase tracking-label text-secondary">
           {menu.topPrefix} · {menu.topTitle}
         </span>
-        <span className="font-condensed text-base font-bold tabular-nums" aria-label={chart.closenessOf(drink.score)}>
+        <span className="font-condensed text-prose font-bold tabular-nums" aria-label={chart.closenessOf(drink.score)}>
           {drink.score}
         </span>
       </div>
@@ -317,7 +310,7 @@ function TopPick({
       >
         {entry?.title ?? drink.name}
       </button>
-      {entry?.build && <span className="text-sm text-muted-foreground">{entry.build}</span>}
+      {entry?.build && <span className="text-meta text-muted-foreground">{entry.build}</span>}
       {(loading || why?.text) && (
         <p
           aria-busy={loading}

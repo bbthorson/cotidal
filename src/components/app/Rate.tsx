@@ -159,7 +159,7 @@ function RateContent({
 
   return (
     <div className="mx-auto max-w-xl pb-6 pt-4 lg:pt-8">
-      <h1 className="mb-4 border-b border-foreground pb-1.5 font-serif text-xl font-bold">{ratePage.title}</h1>
+      <h1 className="section-title mb-4">{ratePage.title}</h1>
       <PourForm
         suggestions={nearest}
         suggestionsLabel={pour.nearLabel}

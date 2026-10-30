@@ -13,6 +13,7 @@ import { recentBarNames } from '@/lib/pour-history';
 import { cn } from '@/lib/utils';
 import { AtprotoProvider } from './AtprotoProvider';
 import { DrinkRow } from './Chart';
+import { Chip } from './ui';
 
 type Step = 'where' | 'menu' | 'pick' | 'picked';
 const STEPS: Step[] = ['where', 'menu', 'pick'];
@@ -147,11 +148,11 @@ function HarbourContent({ register, member }: { register: Register; member: bool
     return (
       <div className="mx-auto max-w-xl py-8 motion-safe:animate-in motion-safe:fade-in">
         <div className="flex flex-col gap-2.5 border border-foreground bg-card p-4.5 shadow-mcm">
-          <span className="font-condensed text-xs font-semibold uppercase tracking-label text-secondary">
+          <span className="font-condensed text-label font-semibold uppercase tracking-label text-secondary">
             {harbour.pickedEyebrow} · {pick.atHome ? harbour.atHome : pick.bar}
           </span>
           <h1 className="font-serif text-title font-bold text-foreground">{title}</h1>
-          <span className="font-condensed text-xs uppercase tracking-label text-muted-foreground">
+          <span className="font-condensed text-label uppercase tracking-label text-muted-foreground">
             {new Date(pick.pickedAt).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}
           </span>
         </div>
@@ -177,13 +178,13 @@ function HarbourContent({ register, member }: { register: Register; member: bool
   return (
     <div className="mx-auto flex max-w-xl flex-col py-5 lg:py-8">
       {/* Where you are in the composition: three ruled cells, the way a form numbers its parts. */}
-      <ol aria-label={harbour.title} className="grid grid-cols-3 border border-foreground">
+      <ol aria-label={harbour.title} className="segmented grid grid-cols-3">
         {STEPS.map((s, i) => (
           <li
             key={s}
             aria-current={s === step ? 'step' : undefined}
             className={cn(
-              'flex min-h-9 items-center justify-center gap-1.5 font-condensed text-xs uppercase tracking-label',
+              'flex min-h-9 items-center justify-center gap-1.5 font-condensed text-label uppercase tracking-label',
               i > 0 && 'border-l border-foreground',
               s === step
                 ? 'bg-secondary font-bold text-secondary-foreground'
@@ -215,17 +216,17 @@ function HarbourContent({ register, member }: { register: Register; member: bool
               onKeyDown={(e) => e.key === 'Enter' && canNext && setStep('menu')}
               maxLength={200}
               autoComplete="off"
-              className="min-h-11 rounded-sm border border-border bg-card px-3 font-body text-ui text-foreground focus:border-primary focus:outline-none"
+              className="field min-h-11"
             />
           </label>
           <div className="flex flex-wrap gap-2">
             {recentBars.length > 0 && <span className="label-caps flex w-full">{harbour.recentLabel}</span>}
             {recentBars.map((v) => (
-              <Chip key={v} active={!atHome && bar === v} onClick={() => (setBar(v), setAtHome(false))}>
+              <Chip className="min-h-11" key={v} active={!atHome && bar === v} onClick={() => (setBar(v), setAtHome(false))}>
                 {v}
               </Chip>
             ))}
-            <Chip active={atHome} onClick={() => (setAtHome(true), setBar(''))}>
+            <Chip className="min-h-11" active={atHome} onClick={() => (setAtHome(true), setBar(''))}>
               {harbour.atHome}
             </Chip>
           </div>
@@ -254,7 +255,7 @@ function HarbourContent({ register, member }: { register: Register; member: bool
                 placeholder={harbour.addPlaceholder}
                 maxLength={200}
                 autoComplete="off"
-                className="min-h-11 rounded-sm border border-border bg-card px-3 font-body text-ui text-foreground focus:border-primary focus:outline-none"
+                className="field min-h-11"
               />
             </label>
             <button type="submit" className="btn btn-outline self-end px-4">
@@ -348,22 +349,6 @@ function HarbourContent({ register, member }: { register: Register; member: bool
         )}
       </div>
     </div>
-  );
-}
-
-function Chip({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
-  return (
-    <button
-      type="button"
-      aria-pressed={active}
-      onClick={onClick}
-      className={cn(
-        'min-h-11 border px-3 font-condensed text-xs uppercase tracking-label transition-colors',
-        active ? 'border-foreground bg-secondary text-secondary-foreground' : 'border-border bg-card text-foreground hover:border-foreground'
-      )}
-    >
-      {children}
-    </button>
   );
 }
 

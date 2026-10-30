@@ -42,7 +42,7 @@ const quadrant = drink ? quadrantFor(drink.x, drink.y) : null;
               <div class="mt-8 inline-flex items-stretch border border-border">
                 <div class="border-r border-border px-4 py-2 text-left">
                   <span class="label-caps block">{copy.coordinateLabel}</span>
-                  <span class="mt-0.5 block font-condensed text-base tabular-nums text-primary">
+                  <span class="mt-0.5 block font-condensed text-prose tabular-nums text-primary">
                     {drink.x > 0 ? '+' : ''}
                     {drink.x}, {drink.y > 0 ? '+' : ''}
                     {drink.y}
@@ -50,7 +50,7 @@ const quadrant = drink ? quadrantFor(drink.x, drink.y) : null;
                 </div>
                 <div class="px-4 py-2 text-left">
                   <span class="label-caps block">{quadrant.axis}</span>
-                  <span class="mt-0.5 block font-serif text-base font-bold text-foreground">
+                  <span class="mt-0.5 block font-serif text-prose font-bold text-foreground">
                     {quadrant.name}
                   </span>
                 </div>
@@ -73,7 +73,7 @@ const quadrant = drink ? quadrantFor(drink.x, drink.y) : null;
               <ul class="border-b border-border">
                 {d.ingredients.map((i) => (
                   <li class="menu-row dot-leader py-2.5 first:border-t-0">
-                    <span class="font-serif text-sm text-foreground">
+                    <span class="font-serif text-ui text-foreground">
                       {i.name}
                       {i.optional && (
                         <em class="ml-2 font-condensed text-3xs uppercase not-italic tracking-label text-muted-foreground">
@@ -82,7 +82,7 @@ const quadrant = drink ? quadrantFor(drink.x, drink.y) : null;
                       )}
                     </span>
                     <span class="leader" aria-hidden="true"></span>
-                    <span class="shrink-0 font-condensed text-sm tabular-nums text-secondary">
+                    <span class="shrink-0 font-condensed text-ui tabular-nums text-secondary">
                       {i.amount}
                     </span>
                   </li>
@@ -93,13 +93,13 @@ const quadrant = drink ? quadrantFor(drink.x, drink.y) : null;
           <dl class="mt-5 space-y-2.5">
             <div class="flex gap-4">
               <dt class="label-caps w-16 shrink-0 pt-0.5">{copy.glassLabel}</dt>
-              <dd class="font-serif text-xs leading-relaxed text-foreground">
+              <dd class="font-serif text-label leading-relaxed text-foreground">
                 {d.build.glass}
               </dd>
             </div>
             <div class="flex gap-4">
               <dt class="label-caps w-16 shrink-0 pt-0.5">{copy.methodLabel}</dt>
-              <dd class="font-serif text-xs leading-relaxed text-foreground">
+              <dd class="font-serif text-label leading-relaxed text-foreground">
                 {d.build.method}
               </dd>
             </div>
@@ -107,7 +107,7 @@ const quadrant = drink ? quadrantFor(drink.x, drink.y) : null;
               d.build.garnish && (
                 <div class="flex gap-4">
                   <dt class="label-caps w-16 shrink-0 pt-0.5">{copy.garnishLabel}</dt>
-                  <dd class="font-serif text-xs leading-relaxed text-foreground">
+                  <dd class="font-serif text-label leading-relaxed text-foreground">
                     {d.build.garnish}
                   </dd>
                 </div>
