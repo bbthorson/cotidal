@@ -1,4 +1,4 @@
-import { questions, type Question, type QuestionCategory, type QuestionOption } from './discovery-questions';
+import { questions, type Question, type QuestionOption } from './discovery-questions';
 import {
   GRID,
   NOISE_LEVELS,
@@ -137,32 +137,4 @@ export function selectNextQuestion(
 
   // After calibration: the question expected to settle the most
   return bestQuestion(belief, questions.filter(q => !answeredIds.has(q.id)));
-}
-
-// Fallback: pick from non-calibration hardcoded pool (skips calibration IDs)
-export function selectFallbackQuestion(
-  belief: BeliefState,
-  answeredIds: Set<string>,
-): Question | null {
-  return bestQuestion(
-    belief,
-    questions.filter(q => !answeredIds.has(q.id) && !CALIBRATION_IDS.includes(q.id)),
-  );
-}
-
-export function getTierLabel(question: Question): string {
-  switch (question.tier) {
-    case 'calibration': return 'The Basics';
-    case 'architecture': return 'Your Style';
-    case 'context': return 'The Details';
-  }
-}
-
-export function getCategoryLabel(category: QuestionCategory): string {
-  switch (category) {
-    case 'palate': return 'The Palate';
-    case 'architecture': return 'The Method';
-    case 'ritual': return 'The Ritual';
-    case 'occasion': return 'The Hour';
-  }
 }

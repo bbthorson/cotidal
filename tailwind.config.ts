@@ -2,7 +2,6 @@ import type { Config } from 'tailwindcss';
 import tailwindAnimate from 'tailwindcss-animate';
 
 export default {
-  darkMode: ['class'],
   content: [
     './src/pages/**/*.{astro,js,ts,jsx,tsx,mdx}',
     './src/components/**/*.{astro,js,ts,jsx,tsx,mdx}',
@@ -69,7 +68,6 @@ export default {
       },
       fontFamily: {
         body: ['var(--font-pt-sans)', 'sans-serif'],
-        headline: ['var(--font-playfair)', 'serif'],
         serif: ['var(--font-playfair)', 'serif'],
         condensed: ['var(--font-barlow)', 'sans-serif'],
         // Monospace is not a brand face. Anything still asking for it gets
@@ -133,8 +131,6 @@ export default {
         'mcm': '4px 4px 0px 0px hsl(8 55% 40%)',
         // A sheet lifted a millimetre off the stock.
         'bar': '0 1px 2px 0 hsl(40 20% 40% / 0.06), 0 8px 24px -12px hsl(40 20% 30% / 0.18)',
-        // Was a glow. On paper the equivalent is an impression, not light.
-        'glow': 'inset 0 0 0 1px hsl(41 29% 81%)',
       },
       keyframes: {
         // The one thing that moves on the reveal: the dot landing.

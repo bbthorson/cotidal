@@ -99,6 +99,8 @@ interface LastPour {
   from: { x: number; y: number };
   drinkName: string;
   hedonic: number;
+  /** Your menu as it stood before the pour, to show what the pour changed on it. */
+  menuBefore: string[];
 }
 
 /**
@@ -230,6 +232,7 @@ function ReturnVisitContent({
     setSubmitting(true);
     setError(null);
     const from = { x, y };
+    const menuBefore = menu.map((d) => d.name);
     try {
       if (isConnected) {
         const options = toLogOptions(entry);
@@ -270,7 +273,7 @@ function ReturnVisitContent({
       url.searchParams.delete('drink');
       window.history.replaceState(null, '', url);
       setRating(false);
-      setLastPour({ from, drinkName: entry.drinkName, hedonic: entry.hedonic });
+      setLastPour({ from, drinkName: entry.drinkName, hedonic: entry.hedonic, menuBefore });
     } catch (err) {
       console.error(err);
       setError(pour.failed);
@@ -317,12 +320,18 @@ function ReturnVisitContent({
   }
 
   if (lastPour) {
+    const menuNow = menu.map((d) => d.name);
+    const at = menuNow.findIndex((n) => n.toLowerCase() === lastPour.drinkName.toLowerCase());
     return (
       <Moved
         from={lastPour.from}
         to={{ x, y }}
         drinkName={lastPour.drinkName}
         scoreLabel={pour.scoreOf(lastPour.hedonic)}
+        menuChange={{
+          rank: at >= 0 ? at + 1 : null,
+          newcomer: menuNow.find((n, i) => i !== at && !lastPour.menuBefore.includes(n)) ?? null,
+        }}
         displayName={(name) => register[name]?.title ?? name}
         backLabel={returnVisit.movedBack}
         onDone={() => setLastPour(null)}

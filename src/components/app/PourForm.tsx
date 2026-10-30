@@ -43,7 +43,7 @@ export interface PourEntry {
  * The server's 0–10 rating for a hedonic score. It maps back with
  * round(rating × 0.8 + 1), so the stored score is exactly the one tapped.
  */
-export const hedonicToRating = (hedonic: number) => (hedonic - 1) * 1.25;
+const hedonicToRating = (hedonic: number) => (hedonic - 1) * 1.25;
 
 /** What the log route is sent for an entry. One mapping, for /taste and /log alike. */
 export function toLogOptions(entry: PourEntry): LogDrinkOptions {
@@ -70,8 +70,6 @@ export function glmsWord(value: number): string {
   return anchor ? pour.glms[anchor.id] : pour.glmsNone;
 }
 
-export const CATA_OPTIONS = CATA;
-
 interface PourFormProps {
   /** Quick picks shown under the drink field, e.g. the top of your menu. */
   suggestions: string[];
@@ -94,8 +92,6 @@ interface PourFormProps {
   submitting: boolean;
   error: string | null;
   onSubmit: (entry: PourEntry) => void;
-  /** Rendered in place of the submit button, e.g. when logging needs an account. */
-  submitSlot?: ReactNode;
 }
 
 /**
@@ -115,7 +111,6 @@ export function PourForm({
   submitting,
   error,
   onSubmit,
-  submitSlot,
 }: PourFormProps) {
   const id = useId();
   const [drinkName, setDrinkName] = useState(draft?.drink ?? initialDrink);
@@ -328,7 +323,7 @@ export function PourForm({
           {pour.cataLabel} <span className="normal-case tracking-normal">({pour.optional})</span>
         </FieldLabel>
         <div className="flex flex-wrap gap-2">
-          {CATA_OPTIONS.map((item) => {
+          {CATA.map((item) => {
             const active = cata.includes(item);
             return (
               <Tag
@@ -451,15 +446,13 @@ export function PourForm({
       )}
 
       <div className="flex flex-col gap-2">
-        {submitSlot ?? (
-          <button
-            type="submit"
-            disabled={submitting}
-            className="btn btn-primary btn-lg w-full disabled:cursor-wait"
-          >
-            {submitting ? pour.submitting : pour.submit}
-          </button>
-        )}
+        <button
+          type="submit"
+          disabled={submitting}
+          className="btn btn-primary btn-lg w-full disabled:cursor-wait"
+        >
+          {submitting ? pour.submitting : pour.submit}
+        </button>
         {shownError && (
           <p role="alert" className="text-meta text-destructive">
             {shownError}

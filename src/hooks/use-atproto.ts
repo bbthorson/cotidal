@@ -8,7 +8,6 @@ interface AtprotoState {
   isConnected: boolean;
   did: string | null;
   handle: string | null;
-  displayName: string | null;
   connecting: boolean;
   error: string | null;
   connect: (handle: string) => Promise<void>;
@@ -45,14 +44,6 @@ export function useAtproto(isAtprotoEnabled: boolean): AtprotoState {
       .catch(() => {
         // Offline or unconfigured: stay a guest.
       });
-
-    // A successful sign-in lands here with ?connected=true from older links.
-    const params = new URLSearchParams(window.location.search);
-    if (params.has('connected')) {
-      const url = new URL(window.location.href);
-      url.searchParams.delete('connected');
-      window.history.replaceState({}, '', url.pathname + url.search);
-    }
     return () => {
       cancelled = true;
     };
@@ -80,7 +71,6 @@ export function useAtproto(isAtprotoEnabled: boolean): AtprotoState {
     isConnected: !!did,
     did,
     handle,
-    displayName: null,
     connecting,
     error,
     connect,

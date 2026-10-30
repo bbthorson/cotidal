@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { returnVisit, pour } from '../src/lib/copy';
+import { returnVisit, pour, menu } from '../src/lib/copy';
 
 test('Return Visit: server-renders /log route shell', async ({ page }) => {
   const response = await page.request.get('/log');
@@ -21,7 +21,7 @@ test('Return Visit: a guest logs a pour, sees the coordinate move, then the ledg
 
   // The working surface: where you are, and the one pour form.
   await expect(page.getByRole('heading', { name: returnVisit.logTitle })).toBeVisible();
-  await expect(page.getByText(returnVisit.youAreIn)).toBeVisible();
+  await expect(page.getByText(menu.youAreIn)).toBeVisible();
 
   const where = page.getByRole('group', { name: pour.whereLabel });
   await where.getByRole('button', { name: pour.atHome }).click();

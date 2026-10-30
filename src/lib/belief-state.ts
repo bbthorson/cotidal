@@ -309,18 +309,6 @@ export function answerQuestion(state: BeliefState, question: Question, option: Q
   };
 }
 
-export function getMaxUncertaintyAxis(state: BeliefState): string {
-  let maxAxis = 'x';
-  let maxVariance = -1;
-  for (const [axis, belief] of Object.entries(state.axes)) {
-    if (belief.variance > maxVariance) {
-      maxVariance = belief.variance;
-      maxAxis = axis;
-    }
-  }
-  return maxAxis;
-}
-
 export function isComplete(state: BeliefState): boolean {
   if (state.questionCount < MIN_QUESTIONS) return false;
   if (state.questionCount >= MAX_QUESTIONS) return true;
@@ -344,22 +332,6 @@ export function getConfidenceProgress(state: BeliefState): number {
   const avgVariance = axisValues.reduce((sum, a) => sum + a.variance, 0) / axisValues.length;
   const progress = (1 - avgVariance / INITIAL_VARIANCE) * 100;
   return Math.max(0, Math.min(100, progress));
-}
-
-export function getProgressContext(state: BeliefState): {
-  phase: 'early' | 'midway' | 'almost-done';
-  questionsRemaining: string;
-} {
-  const progress = getConfidenceProgress(state);
-  const remaining = MAX_QUESTIONS - state.questionCount;
-
-  if (progress < 40 || state.questionCount <= 3) {
-    return { phase: 'early', questionsRemaining: `up to ${remaining}` };
-  }
-  if (progress >= 75 || remaining <= 2) {
-    return { phase: 'almost-done', questionsRemaining: `${remaining} or fewer` };
-  }
-  return { phase: 'midway', questionsRemaining: `about ${remaining}` };
 }
 
 export function beliefToProfile(state: BeliefState): UserProfile {

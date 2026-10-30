@@ -65,24 +65,6 @@
     --chart-cross: var(--card) / 0.7;
 
   }
-
-  /* The previous obsidian palette, kept behind `.dark` so the inversion is
-     reversible. Nothing toggles this class today. */
-  .dark {
-    --background: 220 15% 8%;
-    --foreground: 35 30% 92%;
-    --card: 220 12% 11%;
-    --primary: 36 72% 55%;
-    --primary-foreground: 220 15% 8%;
-    --secondary: 18 60% 52%;
-    --secondary-foreground: 35 30% 92%;
-    --muted: 220 10% 16%;
-    --muted-foreground: 35 15% 58%;
-    --accent: 36 50% 40%;
-    --destructive: 0 62.8% 30.6%;
-    --border: 220 10% 22%;
-    --ring: 36 72% 55%;
-  }
 }
 
 @layer components {

@@ -58,17 +58,15 @@ export const POST: APIRoute = async ({ request }) => {
     }
   }
 
-  // `getConnectedDrinkLogs` and `logs` are the names a page loaded before the
-  // rename to pours still sends and reads.
-  if (body.action === 'getConnectedDrinkLogs' || body.action === 'getConnectedPours') {
-    if (!session) return new Response(JSON.stringify({ logs: [], pours: [] }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+  if (body.action === 'getConnectedPours') {
+    if (!session) return new Response(JSON.stringify({ pours: [] }), { status: 200, headers: { 'Content-Type': 'application/json' } });
     try {
       const limit = typeof body.limit === 'number' ? body.limit : undefined;
       const pours = await getPours(session, limit);
-      return new Response(JSON.stringify({ pours, logs: pours }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+      return new Response(JSON.stringify({ pours }), { status: 200, headers: { 'Content-Type': 'application/json' } });
     } catch (e) {
       console.error('Failed to get connected pours:', e);
-      return new Response(JSON.stringify({ pours: [], logs: [] }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+      return new Response(JSON.stringify({ pours: [] }), { status: 200, headers: { 'Content-Type': 'application/json' } });
     }
   }
 

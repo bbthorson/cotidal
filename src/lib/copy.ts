@@ -114,11 +114,9 @@ export const logPage = {
   },
   logDirectly: 'Log one directly',
   settingsTitle: 'Account',
-  publicMap: 'Your public map',
   assistants: 'Chat assistants',
   /** The reading pages, at the foot of Log: on a phone the app pages have no Menu. */
   readingLabel: 'Read',
-  startOver: 'Start over',
 } as const;
 
 /**
@@ -129,7 +127,6 @@ export const logPage = {
 export const harbour = {
   title: 'Harbour',
   steps: ['Where', 'Menu', 'Pick'],
-  stepOf: (n: number, total: number) => `${n} of ${total}`,
   back: 'Back',
   next: 'Next',
   whereTitle: 'Where are you?',
@@ -190,7 +187,6 @@ export const hero = {
   body:
     'Answer a few questions. A point appears on the chart. What surrounds it is what you should be ordering next.',
   primaryCta: 'Find your coordinate',
-  primaryCtaReturning: 'Return to your map',
   /** Stated under the one primary action, so the cost is known up front. */
   cost: 'About two minutes · no account needed',
   /** The reading path: one tap away, never a second button. */
@@ -276,7 +272,6 @@ export const connect = {
   submit: 'Come aboard with Bluesky',
   connecting: 'Opening Bluesky…',
   guest: 'Keep browsing as a guest',
-  divider: 'or',
   disabled: 'Sign-in is not enabled in this environment.',
   /**
    * What signing in buys, in the order a guest will feel it. One list, used
@@ -307,7 +302,6 @@ export const quiz = {
   skipLabel: 'Skip the questions and go to the menu',
   /** "3 of about 8" — honest, because the selector is adaptive. */
   countJoiner: 'of about',
-  pushAway: 'Tap the one you’d send back.',
   loading: 'Locating your coordinate…',
 } as const;
 
@@ -437,9 +431,6 @@ export const regionPage = {
 
 export const returnVisit = {
   eyebrow: 'The Return Visit',
-  title: 'Your map, and what moved it.',
-  intro:
-    'Every drink you log is a dated entry signed by you, and each one moves your coordinate toward what you actually enjoy.',
   coldTitle: 'The loop is: drink → log → the map changes.',
   coldBody:
     'Your coordinate is not a quiz result. It is a record in your own account, and it moves every time you log a pour.',
@@ -447,13 +438,7 @@ export const returnVisit = {
   quizCta: 'Find your coordinate first',
   guestCta: 'Try a pour as a guest',
   guestNote: 'As a guest, the pour stays on this device.',
-  youAreIn: 'You are in',
-  poursLabel: (n: number) => (n === 1 ? '1 pour' : `${n} pours`),
-  menuLink: 'Your menu',
-  regionLink: 'About this region',
-  logEyebrow: 'New entry',
   logTitle: 'Rate it',
-  ledgerEyebrow: 'Chronicle',
   ledgerTitle: 'What moved it',
   ledgerEmpty: 'No pours yet. Pick a drink, rate it, and it lands here.',
   movedBack: 'Back to your ledger',
@@ -578,7 +563,6 @@ export const pour = {
   crosspost: 'Also post it to your Bluesky feed',
   submit: 'Log this pour',
   submitting: 'Logging…',
-  signInToLog: 'Come aboard to log a pour',
   needDrink: 'Name the drink first.',
   needBar: 'Name the bar, or choose “At home”.',
   needRating: 'Tap how it landed first.',
@@ -659,7 +643,6 @@ export const publicMap = {
   unavailableTitle: 'The record did not answer.',
   unavailableBody: 'Their server did not respond in time. Try again in a moment.',
   description: (name: string, region: string) => `@${name}’s palate lands in ${region}. Where does yours?`,
-  readEntry: 'Read the entry',
   memberLink: 'Your public map',
   axes: { rich: 'Rich', crisp: 'Crisp', sweet: 'Sweet', savory: 'Savory' },
   plotLabel: (who: string) => `${who} on the palate map`,
