@@ -6,10 +6,17 @@ routes exist and why.
 
 ## The home page sells one thing
 
-`/` makes a single argument: *every palate has a coordinate → here are the four
-regions → sign in to keep it → here is what you keep.* It works because it
-promises one thing, and the coupe is allowed to be the one large move on it
-(`docs/brand.md`, "Bold is one move per screen").
+`/` makes a single argument: *every palate has a coordinate → here is how it
+goes (the questions, Pick a drink, Log) → here are the four regions → sign in
+to keep it with you.* It works because it promises one thing, and the chart is
+allowed to be the one large move on it (`docs/brand.md`, "Bold is one move per
+screen").
+
+"How it goes" names each step by the screen it happens on, in the app bar's
+words, so the front door and the app describe the same product. The sign-in
+section promises only what a guest does not already have: everything works
+signed out, on the device, so signing in buys the account (any phone), the
+public map, and chat assistants, not logging or the menu.
 
 **Candidate features are routes, not home page sections.** Every idea below is
 worth building and none of them belongs on `/` as a tile. A front door that

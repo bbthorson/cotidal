@@ -201,13 +201,39 @@ export const hero = {
   headline: 'Every palate has',
   headlineAccent: 'a coordinate.',
   body:
-    'Answer a few questions and a point appears on the chart. The drinks around it are what to try next.',
+    'A few questions put a point on the chart. At the bar, it ranks the menu. Rate what you drink and the point moves.',
   primaryCta: 'Find your coordinate',
   /** Stated under the one primary action, so the cost is known up front. */
   cost: 'About two minutes · no account needed',
   /** The reading path: one tap away, never a second button. */
   readFirst: 'Read the four regions first',
-  registerCta: 'Open the rutter',
+} as const;
+
+/**
+ * The landing page's "how it goes": the app's one loop, in the order a
+ * newcomer meets it. Each step names the screen it happens on, in the words
+ * the app bar uses, so the landing page and the app describe one product.
+ */
+export const howItGoes = {
+  title: 'How it goes',
+  label: 'Three steps',
+  steps: [
+    {
+      where: 'The questions',
+      title: 'Find your coordinate',
+      body: 'About eight quick choices: the coffee you take, the end of a good dinner, the glass you push away. Your answers place a point on the chart.',
+    },
+    {
+      where: 'Pick a drink',
+      title: 'Bring it to the bar',
+      body: 'Type in what they pour and Cotidal ranks it by how close each drink sits to you. You still order from the bartender.',
+    },
+    {
+      where: 'Log',
+      title: 'Rate it, and the point moves',
+      body: 'One tap on a nine-point scale, from dislike to like. Every pour nudges your coordinate, and your menu changes with it.',
+    },
+  ],
 } as const;
 
 /**
@@ -261,15 +287,8 @@ export const sections = {
   mapLabel: 'The chart',
   /** The reveal. The hero withholds the axes; this is where they land. */
   mapNote: 'Two axes, rich to crisp and savory to sweet. Four regions between them.',
-  /**
-   * A rutter is a mariner's book of sailing directions. It is the section's
-   * name, not the link's: the header and links say "Drinks".
-   */
-  registerSpotlight: 'From the rutter',
-  registerSpotlightLabel: 'On the record',
-  registerSpotlightNote: 'Each entry separates what is on the record from what is only told.',
-  /** The register's premise, stated as the reader's benefit. */
-  registerCardLabel: 'Sourced, not repeated',
+  /** Under the four regions: the way into the register, with its premise. */
+  registerNote: 'Every drink on the chart has an entry: the build, and what is on the record apart from what is only told.',
   /** From a region to its section of /drinks. */
   regionDrinks: 'Its drinks',
   principles: 'Your logbook, not ours',
@@ -277,11 +296,11 @@ export const sections = {
 } as const;
 
 export const connect = {
-  title: 'Keep your coordinate.',
+  title: 'Keep your log with you.',
   /** Landing page only; the in-app sheet goes straight from title to list. */
-  lede: 'What you want at 6 PM in July isn’t what you want at midnight in November.',
+  lede: 'Everything here works without an account.',
   body:
-    'Come aboard to keep your starting point, take it to the bar, and watch your coordinate drift as you log what you drink.',
+    'As a guest, your coordinate and pours stay on this device. Come aboard with Bluesky and they live in your own account instead.',
   label: 'Your Bluesky handle',
   placeholder: 'you.bsky.social',
   submit: 'Come aboard with Bluesky',
@@ -291,20 +310,22 @@ export const connect = {
   /**
    * What signing in buys, in the order a guest will feel it. One list, used
    * by the landing page's sign-in section and the in-app sheet alike, so the
-   * promise cannot drift between them. "Friends" says plainly it is later.
+   * promise cannot drift between them. Only what a guest does not already
+   * have: rating, the menu and the map all work signed out, on the device.
+   * "Following" says plainly it is later.
    */
   buys: [
     {
-      title: 'Take it to the bar',
-      body: 'Your coordinate follows you to any phone you come aboard on. Pull up the drinks nearest you, or show the bartender the three closest instead of playing twenty questions.',
+      title: 'On any phone',
+      body: 'Your coordinate and every pour are kept in your own Bluesky account, so they follow you to the next phone, and survive a cleared browser.',
     },
     {
-      title: 'Log a pour, track the drift',
-      body: 'Record what you drank, where, and whether it landed. Every entry nudges your coordinate, so you can watch your taste drift with the seasons.',
+      title: 'A map you can send',
+      body: 'Your coordinate at a link of its own. A friend who opens it sees the distance between you, and a drink each of you would order that the other wouldn’t.',
     },
     {
       title: 'Within hail',
-      body: 'Later: where the people you already follow sit on the chart. For now, send anyone your map’s link and see the distance between you.',
+      body: 'Ask a chat assistant what to drink, with your coordinate in hand. Later: Radio carries the pours of the people you follow.',
     },
   ],
 } as const;
@@ -336,7 +357,10 @@ export const menu = {
   topPrefix: 'No. 1',
   topTitle: 'Your go-to',
   keepTitle: 'Keep this coordinate',
-  keepBody: 'Log pours and watch it move.',
+  keepBody: 'It lives on this device. Come aboard and it lives in your account.',
+  /** In the top pick's place, for someone with no coordinate: the menu needs one. */
+  coldTitle: 'Your menu starts with a few questions',
+  coldBody: 'Answer them and this list ranks every drink by how close it sits to you. Until then, search away.',
   empty: 'Nothing on the map fits these limits yet.',
 } as const;
 

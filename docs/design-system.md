@@ -148,7 +148,7 @@ Navigation is unified across the entire site through `<SiteHeader.astro>` and `<
 
 ## The first-visit flow (`/questions`)
 
-Questions → reveal → Compass. The questions are a page of their own (`Questions.tsx`): no tab is current and the bar along the foot is left out. Someone who already has a coordinate is sent on to Compass — the landing page's "Find your coordinate" is the same link for everyone — unless they came to start over (`/questions?startover=1`, from the account on Log), which clears the device's copy first. Skipping goes to Compass, which browses without a coordinate and offers the questions in a line at the top.
+Questions → reveal → Compass. The questions are a page of their own (`Questions.tsx`): no tab is current and the bar along the foot is left out. Someone who already has a coordinate is sent on to Compass — the landing page's "Find your coordinate" is the same link for everyone — unless they came to start over (`/questions?startover=1`, from the account on Log), which clears the device's copy first. Skipping goes to Compass, which browses and searches without a coordinate; in the top pick's place it says the menu starts with the questions, rather than ranking drinks around a point nobody chose.
 
 Sign-in is offered where it would keep something, as one sheet (`SignInSheet.tsx`, mounted once by `AtprotoProvider`) that states what it buys; the landing page's form (`ConnectForm.astro`) renders the same promise from `connect.buys` in `copy.ts`. The radar chart, the archetypes and the Oracle tab are retired from the interface; the region is the only identity.
 

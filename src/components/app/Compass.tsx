@@ -103,16 +103,6 @@ function CompassContent({
       <h1 className="sr-only">{compass.title}</h1>
       <WaitingPick displayName={displayName} />
 
-      {!hasCoordinate && (
-        <button
-          type="button"
-          onClick={() => window.location.assign(questionsHref)}
-          className="link-serif mb-4 flex min-h-11 items-center text-plate"
-        >
-          {compass.findYours}
-        </button>
-      )}
-
       <search className="mb-4 flex">
         <label className="flex flex-1 flex-col">
           <span className="sr-only">{compass.searchLabel}</span>
@@ -169,7 +159,21 @@ function CompassContent({
         <>
           {/* The first view is the map: where you are, and what is around you. */}
           <NearPanel nearby={nearby} known={known} selected={selectedBar} onSelect={chooseBar} />
-          {top ? (
+          {!hasCoordinate ? (
+            // Without a coordinate the ranking is distance from the origin, which
+            // is nobody's menu: say what it needs instead of presenting one.
+            <div className="mt-4 flex flex-col gap-2.5 border border-foreground bg-card p-4.5">
+              <h2 className="font-serif text-heading font-bold text-foreground">{menu.coldTitle}</h2>
+              <p className="text-meta text-muted-foreground">{menu.coldBody}</p>
+              <button
+                type="button"
+                onClick={() => window.location.assign(questionsHref)}
+                className="btn btn-primary mt-1.5 w-full px-6"
+              >
+                {compass.findYours}
+              </button>
+            </div>
+          ) : top ? (
             <>
               <TopPick drink={top} entry={register[top.name]} user={user} selected={selected === top.name} onSelect={() => choose(top.name)} />
               <ol className="mt-5.5 border-t border-foreground">
@@ -195,7 +199,7 @@ function CompassContent({
       )}
 
       {/* One sign-in prompt, below the list, stating the benefit */}
-      {isEnabled && !member && (
+      {isEnabled && !member && hasCoordinate && (
         <GuestPrompt className="mt-5" title={menu.keepTitle} body={menu.keepBody} onSignIn={openSignIn} />
       )}
 
