@@ -225,7 +225,8 @@ To guarantee the design system never drifts, automated enforcement is active at 
 
 ### 2. Copy Single Source of Truth (`src/lib/copy.ts`)
 - All user-facing strings live in `src/lib/copy.ts`.
-- No marketing or public-facing component may hard-code interface text.
+- No page, layout or component may hard-code interface text. This is a lint error: words in JSX text, and a literal `placeholder`, `aria-label`, `title` or `alt`, are rejected. Symbols and entities (`·`, `&rarr;`) are fine.
+- Not covered: a sentence built in a variable, and the two places that keep words beside data on purpose (the quiz's questions, the drink and region prose).
 
 ### 3. Build & Static Analysis (`npm run check`)
 - `npm run lexicons`: Checks AT Protocol schemas.

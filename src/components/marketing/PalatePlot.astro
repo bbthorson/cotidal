@@ -1,5 +1,5 @@
 ---
-import { publicMap } from '../../lib/copy';
+import { axes } from '../../lib/copy';
 import { formatCoordinate } from '../../lib/coordinate';
 
 /**
@@ -53,10 +53,10 @@ const labelDx = (cx: number) => (cx > SIZE - 70 ? -9 : 9);
     <line x1={PAD / 2} y1={mid} x2={SIZE - PAD / 2} y2={mid} class="stroke-border" stroke-width="1" />
 
     <g class="fill-muted-foreground font-condensed uppercase" font-size="7" letter-spacing="1" aria-hidden="true">
-      <text x={PAD / 2 + 2} y={mid - 4}>{publicMap.axes.rich}</text>
-      <text x={SIZE - PAD / 2 - 2} y={mid - 4} text-anchor="end">{publicMap.axes.crisp}</text>
-      <text x={mid + 4} y={PAD / 2 + 7}>{publicMap.axes.sweet}</text>
-      <text x={mid + 4} y={SIZE - PAD / 2 - 2}>{publicMap.axes.savory}</text>
+      <text x={PAD / 2 + 2} y={mid - 4}>{axes.rich}</text>
+      <text x={SIZE - PAD / 2 - 2} y={mid - 4} text-anchor="end">{axes.crisp}</text>
+      <text x={mid + 4} y={PAD / 2 + 7}>{axes.sweet}</text>
+      <text x={mid + 4} y={SIZE - PAD / 2 - 2}>{axes.savory}</text>
     </g>
 
     {a && b && (

@@ -38,7 +38,7 @@ something that drifts from the first. Three had already happened:
 |---|---|---|
 | Records | `src/lib/atproto/lexicons/*.json` | `npm run lexicons` |
 | Styling | `globals.css` tokens + `tailwind.config.ts` | `npm run lint` — arbitrary values, raw colours, and Tailwind's own type sizes are an error in `pages/`, `layouts/` and `components/` |
-| Marketing copy | `src/lib/copy.ts` | *(convention)* |
+| Interface copy | `src/lib/copy.ts` | `npm run lint` — words typed into JSX text or a `placeholder` / `aria-label` / `title` / `alt` are an error. Quiz questions (`discovery-questions.ts`, beside their scoring) and the drink and region prose are the exceptions |
 | Drink prose | `src/content/drinks/*.md` | `tests/drink-content.spec.ts` |
 | Region prose | `src/content/regions/*.md` | `tests/region-content.spec.ts` |
 | What the device keeps | `src/lib/device-store.ts` | *(convention)* — nothing else touches `localStorage` |

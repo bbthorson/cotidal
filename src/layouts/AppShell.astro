@@ -5,6 +5,7 @@ import SiteFooter from '../components/marketing/SiteFooter.astro';
 import AppBar from '../components/marketing/AppBar.astro';
 import PickButton from '../components/marketing/PickButton.astro';
 import { accountFor } from '../lib/atproto/session';
+import { a11y } from '../lib/copy';
 
 interface Props {
   title?: string;
@@ -46,7 +47,7 @@ const widthClass = {
 
     <div class:list={['mx-auto w-full px-6', widthClass, bottomBar && 'pb-tabbar lg:pb-0']}>
       {backLink && (
-        <nav aria-label="Breadcrumb" class="pt-6">
+        <nav aria-label={a11y.breadcrumb} class="pt-6">
           <a
             href={backLink.href}
             class="font-condensed text-label uppercase tracking-label text-muted-foreground transition-colors hover:text-primary"

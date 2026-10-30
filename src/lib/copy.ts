@@ -1,8 +1,8 @@
 /**
- * Single source of truth for user-facing marketing copy.
+ * Single source of truth for interface copy.
  *
- * Nothing in `src/components/marketing/` may contain a hard-coded string —
- * the voice lives here so it can be revised in one place. "Triangulation",
+ * No page, layout or component may type words into its markup (eslint.config.mjs
+ * rejects it) — the voice lives here so it can be revised in one place. "Triangulation",
  * "Calibration", "Architecture" and "Context" remain valid *internal*
  * vocabulary (see AGENTS.md); they are deliberately absent from this file.
  */
@@ -308,6 +308,9 @@ export const connect = {
     },
   ],
 } as const;
+
+/** The words on the map's axes. Set in caps where they are drawn. */
+export const axes = { rich: 'Rich', crisp: 'Crisp', sweet: 'Sweet', savory: 'Savory' } as const;
 
 /** The quiz's own chrome. The questions themselves live in discovery-questions.ts. */
 export const quiz = {
@@ -642,7 +645,6 @@ export const publicMap = {
   unavailableTitle: 'The record did not answer.',
   unavailableBody: 'Their server did not respond in time. Try again in a moment.',
   description: (name: string, region: string) => `@${name}’s palate lands in ${region}. Where does yours?`,
-  axes: { rich: 'Rich', crisp: 'Crisp', sweet: 'Sweet', savory: 'Savory' },
   plotLabel: (who: string) => `${who} on the palate map`,
 } as const;
 
@@ -787,6 +789,7 @@ export const distanceBands = [
 /** Labels read only by assistive technology. */
 export const a11y = {
   mainNav: 'Main Navigation',
+  breadcrumb: 'Breadcrumb',
   progress: 'Progress',
   answerOptions: 'Answer options',
 } as const;
