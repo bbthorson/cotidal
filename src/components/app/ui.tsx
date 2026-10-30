@@ -22,8 +22,24 @@ export function Chip({
 }
 
 /**
+ * How an app screen opens: an eyebrow, the title, and a lede if the screen
+ * needs one — left-aligned, at one size, on every app screen. The reading
+ * pages open with `PageTitle` instead; the two tiers differ on purpose.
+ */
+export function ScreenHeader({ eyebrow, title, lede }: { eyebrow: string; title: string; lede?: string }) {
+  return (
+    <div className="pb-5">
+      <p className="label-caps">{eyebrow}</p>
+      <h1 className="mt-2 font-serif text-title font-bold text-foreground">{title}</h1>
+      {lede && <p className="mt-2 text-ui text-muted-foreground">{lede}</p>}
+    </div>
+  );
+}
+
+/**
  * What a guest is told signing in buys, once, in the place it would keep:
- * a title, a line, and the one sign-in button.
+ * a title, a line, and the one sign-in button. Ruled above and below rather
+ * than boxed: a screen's one sheet is what is yours, and this is not.
  */
 export function GuestPrompt({
   title,
@@ -37,7 +53,7 @@ export function GuestPrompt({
   className?: string;
 }) {
   return (
-    <div className={cn('flex items-center gap-3 border border-border bg-card p-4', className)}>
+    <div className={cn('flex items-center gap-3 border-y border-foreground py-4', className)}>
       <div className="flex flex-1 flex-col gap-0.5">
         <span className="font-serif text-prose font-bold">{title}</span>
         <span className="text-meta text-muted-foreground">{body}</span>

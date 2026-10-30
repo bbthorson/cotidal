@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { compass, harbour, pour, ratePage } from '../src/lib/copy';
+import { compass, harbour, menu, pour, ratePage } from '../src/lib/copy';
 import { GEO_TYPE } from '../src/lib/atproto/location';
 
 const profile = { x: 4, y: -2, dislikesSmoke: false, dislikesBitter: false, dislikesAnise: false, vibeTags: {} };
@@ -21,6 +21,24 @@ test('Compass: without location, the map waits to be asked, and nothing is sent'
   await expect(page.getByRole('button', { name: compass.showNear })).toBeVisible();
   await expect(page.getByText(compass.nearNote)).toBeVisible();
   expect(asked).toBe(false);
+});
+
+test('Compass: the map sits beside the menu on a wide screen, above it on a phone', async ({ page }) => {
+  await page.addInitScript((p) => localStorage.setItem('user_profile', JSON.stringify(p)), profile);
+  const top = page.getByText(`${menu.topPrefix} · ${menu.topTitle}`);
+  const map = page.getByRole('region', { name: compass.mapLabel });
+
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto('/compass');
+  await expect(page.getByRole('heading', { level: 1, name: compass.heading })).toBeVisible();
+  await expect(top).toBeVisible();
+  const [m, t] = [(await map.boundingBox())!, (await top.boundingBox())!];
+  expect(m.x + m.width).toBeLessThan(t.x);
+  expect(Math.abs(m.y - t.y)).toBeLessThan(m.height);
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  const [m2, t2] = [(await map.boundingBox())!, (await top.boundingBox())!];
+  expect(m2.y + m2.height).toBeLessThan(t2.y);
 });
 
 test('Compass: bars near you, then a pick there, then a pour that says where the bar is', async ({ browser }) => {

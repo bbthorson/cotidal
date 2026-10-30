@@ -122,7 +122,7 @@ Width and padding stay with the layout (`w-full`, `px-8`).
 - **Caps link**: `.link-caps` — 44px, condensed, wide-set; the colour is the caller's. The italic underlined link in running serif is `.link-serif`.
 - **Section title**: `.section-title` — a rule of ink under a bold serif line.
 - **Text field**: `.field` — 16px, hairline border, terracotta on focus.
-- **Shared components** (`src/components/app/ui.tsx`, `PinnedCard.tsx`, `ColdState.tsx`): `GuestPrompt` (what signing in buys, with the one button), `Loading`, `Chip`, `PinnedCard` (the drink card and the bar card: pinned above the app bar), and `ColdState` (what Log and Rate say to someone with no coordinate).
+- **Shared components** (`src/components/app/ui.tsx`, `PinnedCard.tsx`, `ColdState.tsx`): `ScreenHeader` (how an app screen opens: eyebrow, `text-title` heading, optional lede, left-aligned), `GuestPrompt` (what signing in buys, with the one button; ruled above and below, not boxed), `Loading`, `Chip`, `PinnedCard` (the drink card and the bar card: pinned above the app bar), and `ColdState` (what Log and Rate say to someone with no coordinate).
 - **Paper Grain**: `.bar-texture` applies a subtle SVG fractal grain texture.
 
 ---
@@ -143,8 +143,9 @@ Navigation is unified across the entire site through `<SiteHeader.astro>` and `<
 7. **Phones**: on the reading pages the header collapses to wordmark · account · Menu. On the app pages there is no Menu — the app bar is the navigation, and the reading pages and Go ashore sit at the foot of Log (`SiteHeader`'s `appPage`). "Menu" is a `<details>` that opens the same `<nav>` through `peer-open`, so `/` still ships no JavaScript; a member's Sign out sits at the foot of it.
 8. **Focus mode**: any element marked `data-focus-mode` (the questions, the reveal, the after-a-pour screen) hides the site header and footer below `lg` (`globals.css`, pure CSS so nothing flashes before hydration).
 9. **The app bar** (`AppBar.astro`): **Radio · Compass · Log** along the foot of a phone on the app pages (`AppShell`'s `bottomBar`) — listen, navigate, record. Plain links, no script; hidden in focus mode and from `lg`, where the header carries the same destinations. A card pinned above it (`PinnedCard`) uses the `tabbar` spacing token.
-10. **Pick a drink** (`PickButton.astro`): choosing what to have is the one thing you *do*, not a place, so it is a floating button rather than a tab — above the app bar on a phone, in the corner from `lg`. It opens the harbour. Not drawn on the harbour, while a drink card is open, or in focus mode.
-11. **No page titles on screen in the app.** The app bar already says which tab you are on, so Radio and Log name themselves for screen readers only (`sr-only` `h1`) and open on their content.
+10. **Pick a drink** (`PickButton.astro`): choosing what to have is the one thing you *do*, not a place, so it is a floating button rather than a tab — above the app bar on a phone; from `lg` at the foot of the content's right edge (`right-frame-edge`), not the window's corner. It opens the harbour. Not drawn on the harbour, while a drink card is open, or in focus mode.
+11. **Two tiers of page title.** Reading pages open with the centred `PageTitle`. App screens open with `ScreenHeader` — the tab's name as the eyebrow, then the screen's own title — left-aligned and at one size. Compass has moved to it; Radio and Log still name themselves for screen readers only (`sr-only` `h1`) until they follow.
+12. **One sheet per screen.** Only what is yours — the top pick, the chosen option, the pinned card — is a sheet with `shadow-mcm`. Everything else is a ruled section (`section-title`) or rows. A map sits in a frame on the ground, as a printed chart does; that is a figure, not a sheet.
 
 ## The first-visit flow (`/questions`)
 
@@ -184,7 +185,9 @@ No trail of past positions is drawn yet; the pours to rebuild one from are store
 
 ## Compass (`/compass`, `Compass.tsx`)
 
-Finding something, not looking at yourself: the taste map is Log's. The first view is a **street map** of the bars around you (`Near.tsx`, `NearMap.tsx`), above one search over drinks — by name or by what is in them ("mezcal") — and bars; then the top-pick sheet and seven rows (your menu, `useMenu`, the same ranking Log's map fills in), then **Your bars** from your pours.
+Finding something, not looking at yourself: the taste map is Log's. It opens with its `ScreenHeader` ("Where to next"), then one search over drinks — by name or by what is in them ("mezcal") — and bars, across the page. Under it, a **street map** of the bars around you (`Near.tsx`, `NearMap.tsx`) and then your menu: the top-pick sheet and seven rows (`useMenu`, the same ranking Log's map fills in), then **Your bars** from your pours. Without a coordinate the menu's place is a ruled section that offers the questions.
+
+- **From `lg` the map and the menu sit side by side** (the page uses AppShell's `frame` width, the header's own band): the map, taller, with the bars near you under it, on the left; the menu, or the search results, on the right. On a phone they stack, map first, and the map steps aside while a search is typed.
 
 - **Bars come from OpenStreetMap** through the Overpass API (`src/lib/osm.ts`): named places tagged bar, pub, beer garden or club within about 1.2 km. Nothing is asked for until the reader taps **Show bars near me** — unless the browser already holds their yes for this site, and then the map opens on its own. The point leaves the device rounded to three decimal places (about 100 m), only to OpenStreetMap, and Cotidal keeps none of it; the panel says so.
 - **The map is quieter than the chart.** OpenStreetMap's tiles are washed toward paper (`.map-paper` in `globals.css`) and carry no graticule or cartouche, so the two maps in the app do not look alike. Bars you have poured at — by name, or by where a pour said the bar was — are terracotta, the colour for what is yours. Leaflet loads only when the map shows.

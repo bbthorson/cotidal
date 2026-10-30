@@ -10,7 +10,7 @@ import { AtprotoProvider, useAtprotoContext } from './AtprotoProvider';
 import { useProfile } from '@/hooks/useProfile';
 import { userFromProfile } from '@/lib/profile';
 import { WaitingPick } from './WaitingPick';
-import { GuestPrompt } from './ui';
+import { GuestPrompt, ScreenHeader } from './ui';
 import { BarCard, BarRows, NearPanel, useNearby } from './Near';
 import { metresBetween } from '@/lib/osm';
 import { readGeo } from '@/lib/atproto/location';
@@ -24,6 +24,10 @@ import { cn } from '@/lib/utils';
  * both. With nothing typed it points the way: your top pick, the drinks
  * closest to your taste, and the bars you have poured at. A drink opens in
  * the card; a bar opens the harbour already there.
+ *
+ * One search runs across the page. Under it, from `lg`, the map and the bars
+ * near you sit beside the menu, so a wide screen shows both at once; on a
+ * phone they stack, map first, and the map steps aside while you search.
  */
 function CompassContent({
   register,
@@ -95,15 +99,15 @@ function CompassContent({
   return (
     <div
       className={cn(
-        'mx-auto max-w-xl pb-6 pt-4 motion-safe:animate-in motion-safe:fade-in lg:pt-8',
+        'mx-auto max-w-xl pb-6 pt-6 motion-safe:animate-in motion-safe:fade-in lg:max-w-none lg:pt-10',
         // Room to scroll the foot of the page out from under the card.
         (selectedDrink || openBar) && 'pb-card-clearance'
       )}
     >
-      <h1 className="sr-only">{compass.title}</h1>
+      <ScreenHeader eyebrow={compass.title} title={compass.heading} />
       <WaitingPick displayName={displayName} />
 
-      <search className="mb-4 flex">
+      <search className="flex">
         <label className="flex flex-1 flex-col">
           <span className="sr-only">{compass.searchLabel}</span>
           <input
@@ -120,88 +124,95 @@ function CompassContent({
         </label>
       </search>
 
-      {q ? (
-        <>
-          <section className="mt-6">
-            <h2 className="section-title">{compass.drinksTitle}</h2>
-            {drinkHits.length === 0 ? (
-              <p className="border-b border-border py-4 text-meta text-muted-foreground">{compass.noDrinks}</p>
-            ) : (
-              <ol>
-                {drinkHits.slice(0, 20).map((d) => (
-                  <li key={d.name} className="border-b border-border">
-                    <DrinkRow
-                      title={displayName(d.name)}
-                      figure={d.score}
-                      figureLabel={chart.closenessOf(d.score)}
-                      selected={selected === d.name}
-                      onSelect={() => choose(d.name)}
-                    />
-                  </li>
-                ))}
-              </ol>
-            )}
-          </section>
-          <BarList
-            title={compass.barsTitle}
-            bars={barHits}
-            // Not a bar you have been to: the harbour starts there all the same.
-            extra={barHits.some((b) => foldName(b.name) === q) || nearHits.some((b) => foldName(b.name) === q) ? null : query.trim()}
-          />
-          {nearHits.length > 0 && (
-            <section className="mt-6">
-              <h2 className="section-title">{compass.nearTitle}</h2>
-              <BarRows bars={nearHits} known={known} selected={selectedBar} onSelect={chooseBar} />
-            </section>
-          )}
-        </>
-      ) : (
-        <>
-          {/* The first view is the map: where you are, and what is around you. */}
+      <div className="mt-4 lg:mt-8 lg:grid lg:grid-cols-2 lg:items-start lg:gap-12">
+        {/* The first view is the map: where you are, and what is around you. */}
+        <div className={cn(q && 'hidden lg:block')}>
           <NearPanel nearby={nearby} known={known} selected={selectedBar} onSelect={chooseBar} />
-          {!hasCoordinate ? (
-            // Without a coordinate the ranking is distance from the origin, which
-            // is nobody's menu: say what it needs instead of presenting one.
-            <div className="mt-4 flex flex-col gap-2.5 border border-foreground bg-card p-4.5">
-              <h2 className="font-serif text-heading font-bold text-foreground">{menu.coldTitle}</h2>
-              <p className="text-meta text-muted-foreground">{menu.coldBody}</p>
-              <button
-                type="button"
-                onClick={() => window.location.assign(questionsHref)}
-                className="btn btn-primary mt-1.5 w-full px-6"
-              >
-                {compass.findYours}
-              </button>
-            </div>
-          ) : top ? (
+        </div>
+
+        <div className={cn(!q && 'mt-6 lg:mt-0')}>
+          {q ? (
             <>
-              <TopPick drink={top} entry={register[top.name]} user={user} selected={selected === top.name} onSelect={() => choose(top.name)} />
-              <ol className="mt-5.5 border-t border-foreground">
-                {rest.map((d, i) => (
-                  <li key={d.name} className="border-b border-border">
-                    <DrinkRow
-                      rank={i + 2}
-                      title={displayName(d.name)}
-                      figure={d.score}
-                      figureLabel={chart.closenessOf(d.score)}
-                      selected={selected === d.name}
-                      onSelect={() => choose(d.name)}
-                    />
-                  </li>
-                ))}
-              </ol>
+              <section className="mt-6 lg:mt-0">
+                <h2 className="section-title">{compass.drinksTitle}</h2>
+                {drinkHits.length === 0 ? (
+                  <p className="border-b border-border py-4 text-meta text-muted-foreground">{compass.noDrinks}</p>
+                ) : (
+                  <ol>
+                    {drinkHits.slice(0, 20).map((d) => (
+                      <li key={d.name} className="border-b border-border">
+                        <DrinkRow
+                          title={displayName(d.name)}
+                          figure={d.score}
+                          figureLabel={chart.closenessOf(d.score)}
+                          selected={selected === d.name}
+                          onSelect={() => choose(d.name)}
+                        />
+                      </li>
+                    ))}
+                  </ol>
+                )}
+              </section>
+              <BarList
+                title={compass.barsTitle}
+                bars={barHits}
+                // Not a bar you have been to: the harbour starts there all the same.
+                extra={barHits.some((b) => foldName(b.name) === q) || nearHits.some((b) => foldName(b.name) === q) ? null : query.trim()}
+              />
+              {nearHits.length > 0 && (
+                <section className="mt-6">
+                  <h2 className="section-title">{compass.nearTitle}</h2>
+                  <BarRows bars={nearHits} known={known} selected={selectedBar} onSelect={chooseBar} />
+                </section>
+              )}
             </>
           ) : (
-            <p className="mt-6 font-serif text-prose italic text-muted-foreground">{menu.empty}</p>
+            <>
+              {!hasCoordinate ? (
+                // Without a coordinate the ranking is distance from the origin, which
+                // is nobody's menu: say what it needs instead of presenting one.
+                <section className="flex flex-col gap-2.5">
+                  <h2 className="section-title">{menu.coldTitle}</h2>
+                  <p className="text-ui text-muted-foreground">{menu.coldBody}</p>
+                  <button
+                    type="button"
+                    onClick={() => window.location.assign(questionsHref)}
+                    className="btn btn-primary mt-1.5 w-full px-6"
+                  >
+                    {compass.findYours}
+                  </button>
+                </section>
+              ) : top ? (
+                <>
+                  <TopPick drink={top} entry={register[top.name]} user={user} selected={selected === top.name} onSelect={() => choose(top.name)} />
+                  <ol className="mt-5.5 border-t border-foreground">
+                    {rest.map((d, i) => (
+                      <li key={d.name} className="border-b border-border">
+                        <DrinkRow
+                          rank={i + 2}
+                          title={displayName(d.name)}
+                          figure={d.score}
+                          figureLabel={chart.closenessOf(d.score)}
+                          selected={selected === d.name}
+                          onSelect={() => choose(d.name)}
+                        />
+                      </li>
+                    ))}
+                  </ol>
+                </>
+              ) : (
+                <p className="font-serif text-prose italic text-muted-foreground">{menu.empty}</p>
+              )}
+              {bars.length > 0 && <BarList title={compass.yourBars} bars={bars} extra={null} />}
+            </>
           )}
-          {bars.length > 0 && <BarList title={compass.yourBars} bars={bars} extra={null} />}
-        </>
-      )}
 
-      {/* One sign-in prompt, below the list, stating the benefit */}
-      {isEnabled && !member && hasCoordinate && (
-        <GuestPrompt className="mt-5" title={menu.keepTitle} body={menu.keepBody} onSignIn={openSignIn} />
-      )}
+          {/* One sign-in prompt, below the list, stating the benefit */}
+          {isEnabled && !member && hasCoordinate && (
+            <GuestPrompt className="mt-6" title={menu.keepTitle} body={menu.keepBody} onSignIn={openSignIn} />
+          )}
+        </div>
+      </div>
 
       {openBar && <BarCard bar={openBar} poured={pouredAt.get(openBar.id) ?? 0} onClose={() => setSelectedBar(null)} />}
 
@@ -294,7 +305,7 @@ function TopPick({
   const loading = why?.name !== drink.name;
 
   return (
-    <div className="mt-4 flex flex-col gap-2.5 border border-foreground bg-card p-4.5 shadow-mcm">
+    <div className="flex flex-col gap-2.5 border border-foreground bg-card p-4.5 shadow-mcm">
       <div className="flex items-baseline justify-between">
         <span className="font-condensed text-label font-semibold uppercase tracking-label text-secondary">
           {menu.topPrefix} · {menu.topTitle}

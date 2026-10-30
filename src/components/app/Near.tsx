@@ -55,7 +55,8 @@ export function useNearby() {
 
 /**
  * The first thing on Compass: the map, in a frame that holds its height
- * whatever state it is in, so nothing below it moves when it fills.
+ * whatever state it is in, so nothing below it moves when it fills. A frame
+ * on the ground, as a printed chart has, not a sheet: the sheet is the top pick.
  */
 export function NearPanel({
   nearby,
@@ -71,7 +72,7 @@ export function NearPanel({
   const { status, you, bars, search, locate } = nearby;
   return (
     <section aria-label={compass.mapLabel}>
-      <div className="relative h-72 overflow-hidden border border-foreground bg-card">
+      <div className="relative h-72 overflow-hidden border border-foreground lg:h-96">
         {status === 'ready' && you ? (
           <Suspense fallback={null}>
             <NearMap key={search} you={you} bars={bars} known={known} selected={selected} onSelect={onSelect} />

@@ -25,6 +25,9 @@ export default {
         // The phone's bottom tab bar: its 56px row plus `safe-b` beneath it.
         // Whatever sits above the bar (the drink card) or must clear it (the page's foot) uses this.
         'tabbar': 'calc(3.5rem + max(env(safe-area-inset-bottom, 0px), 1rem))',
+        // The content's right edge inside the header's band (max-w-5xl, px-6),
+        // so a fixed control lines up with the page rather than the window.
+        'frame-edge': 'max(1.5rem, calc((100% - 64rem) / 2 + 1.5rem))',
         // 3px: the progress bar and the active tab's rule
         '0.75': '3px',
         // 7px: a drink on the map

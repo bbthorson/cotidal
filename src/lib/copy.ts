@@ -72,6 +72,7 @@ export const radio = {
  */
 export const compass = {
   title: 'Compass',
+  heading: 'Where to next',
   findYours: 'Find your coordinate',
   searchLabel: 'Search drinks and bars',
   placeholder: 'Negroni, mezcal, Attaboy…',
