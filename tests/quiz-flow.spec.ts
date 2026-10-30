@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { questions } from '../src/lib/discovery-questions';
-import { quadrants, coldState, compass, ratePage, reveal as revealCopy } from '../src/lib/copy';
+import { quadrants, coldState, compass, menu, ratePage, reveal as revealCopy } from '../src/lib/copy';
 
 /**
  * Questionnaire flow contract:
@@ -28,6 +28,9 @@ test('Questionnaire: opens directly with calibration question and selectable opt
 test('Compass: with no coordinate it still browses, and offers the questions', async ({ page }) => {
   await page.goto('/compass');
   await expect(page.getByText(first.text)).toHaveCount(0);
+  // No coordinate, so no menu: ranking around the origin would be nobody's.
+  await expect(page.getByText(menu.coldTitle)).toBeVisible();
+  await expect(page.getByText(/No\. 1 · Your go-to/)).toHaveCount(0);
   await page.getByRole('button', { name: compass.findYours }).click();
   await expect(page).toHaveURL(/\/questions$/);
   await expect(page.getByText(first.text)).toBeVisible();
@@ -88,6 +91,11 @@ test('Questionnaire: finishing the questions reveals a region before the menu', 
 
 test('Menu: one ranked list, with no occasion switch', async ({ page }) => {
   await page.goto('/compass');
+  await page.evaluate(
+    (p) => localStorage.setItem('user_profile', JSON.stringify(p)),
+    { x: 4, y: -2, vibeTags: {}, dislikesSmoke: false, dislikesBitter: false, dislikesAnise: false }
+  );
+  await page.reload();
 
   await expect(page.getByText(/No\. 1 · Your go-to/)).toBeVisible();
   // The occasion tabs are gone; the menu ranks by closeness alone.

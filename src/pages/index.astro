@@ -4,7 +4,7 @@ import ConnectForm from '../components/marketing/ConnectForm.astro';
 import QuadrantGrid from '../components/marketing/QuadrantGrid.astro';
 import Principles from '../components/marketing/Principles.astro';
 import ChartFigure from '../components/marketing/ChartFigure.astro';
-import { hero, connect, drinks, sections } from '../lib/copy';
+import { hero, howItGoes, connect, drinks, sections } from '../lib/copy';
 import { signInEnabled } from '../lib/atproto/auth';
 import { questionsHref } from '../lib/site-nav';
 import { AUTH_ERROR_MESSAGES, AUTH_ERROR_PARAM, isAuthErrorCode } from '@bbthorson/atproto-cf-auth/client';
@@ -68,6 +68,31 @@ const error = errorParam
     </div>
   </section>
 
+  <!-- How it goes: the app's one loop, so the front door and the app
+       describe the same product -->
+  <section class="pb-16 md:pb-20">
+    <div class="flex items-baseline justify-between border-b border-foreground pb-2">
+      <h2 class="font-serif text-heading font-bold text-foreground">
+        {howItGoes.title}
+      </h2>
+      <span class="label-caps text-secondary">{howItGoes.label}</span>
+    </div>
+    <ol class="grid grid-cols-1 md:grid-cols-3 md:gap-8">
+      {
+        howItGoes.steps.map((step, i) => (
+          <li class="flex gap-3 border-b border-border py-4 md:flex-col md:gap-2 md:border-b-0 md:py-5">
+            <span class="w-3.5 shrink-0 font-condensed text-ui font-bold text-primary">{i + 1}</span>
+            <div class="space-y-1">
+              <span class="label-caps block">{step.where}</span>
+              <h3 class="font-serif text-plate font-bold text-foreground">{step.title}</h3>
+              <p class="text-meta text-muted-foreground">{step.body}</p>
+            </div>
+          </li>
+        ))
+      }
+    </ol>
+  </section>
+
   <!-- The map, as a menu -->
   <section id="regions" class="scroll-mt-8 pb-16 md:pb-20">
     <div class="flex items-baseline justify-between border-b border-foreground pb-2">
@@ -80,40 +105,13 @@ const error = errorParam
       {sections.mapNote}
     </p>
     <QuadrantGrid />
-    <div class="mt-4 flex justify-end">
+    <div class="mt-4 flex flex-col gap-1 md:flex-row md:items-baseline md:justify-between md:gap-6">
+      <p class="max-w-md text-meta text-muted-foreground">{sections.registerNote}</p>
       <a
         href="/drinks"
-        class="link-caps text-muted-foreground hover:text-primary"
+        class="link-caps shrink-0 self-end text-secondary hover:text-primary md:self-auto"
       >
         {drinks.navLabel} &rarr;
-      </a>
-    </div>
-  </section>
-
-  <!-- From the register: one sheet, one idea -->
-  <section class="pb-16 md:pb-20">
-    <div class="flex items-baseline justify-between border-b border-foreground pb-2">
-      <h2 class="font-serif text-heading font-bold text-foreground">
-        {sections.registerSpotlight}
-      </h2>
-      <span class="label-caps text-secondary">{sections.registerSpotlightLabel}</span>
-    </div>
-    <p class="mb-5 mt-3 font-serif text-meta italic text-muted-foreground">
-      {sections.registerSpotlightNote}
-    </p>
-    <div class="border border-border bg-card p-5 shadow-bar md:p-8">
-      <span class="label-caps block text-secondary">{sections.registerCardLabel}</span>
-      <h3 class="mt-2 font-serif text-heading font-bold text-foreground">
-        {drinks.title}
-      </h3>
-      <p class="mt-2 text-ui leading-relaxed text-muted-foreground">
-        {drinks.intro}
-      </p>
-      <a
-        href="/drinks"
-        class="btn btn-outline mt-4 px-5"
-      >
-        {hero.registerCta}
       </a>
     </div>
   </section>

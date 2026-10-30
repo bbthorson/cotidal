@@ -74,7 +74,8 @@ export const POST: APIRoute = async ({ request }) => {
     {
       role: 'system' as const,
       content:
-        'You are a knowledgeable, friendly bartender explaining a drink recommendation. In 2 casual sentences, explain why this drink is a great fit for the guest. Voice: Warm, knowledgeable, approachable — like a bartender who really knows their stuff. Talk about the actual flavors and why they work for this person. Do NOT mention "coordinates", "algorithms", "x", or "y".',
+        // The house voice (docs/brand.md, "Writing the words"): a bartender who knows the build and has no patience for theatre.
+        'You explain a drink recommendation for Cotidal. In 2 short sentences, say what the drink is made of and how that lines up with the guest\'s taste. Voice: dry, concrete, said to one person. Name ingredients and what they do (bitterness, acid, sugar, dilution, smoke), not moods. Describe what the drink is, never what the guest will feel. Never use "delicious", "refreshing", "perfect", "great fit" or nautical theatre. Do NOT mention "coordinates", "algorithms", "x", or "y".',
     },
     {
       role: 'user' as const,
