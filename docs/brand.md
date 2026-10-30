@@ -105,14 +105,13 @@ The ink is green, not black. It is the difference between a printed menu and a
 laser-printed handout, and it is nearly subliminal at body size — which is the
 right amount of strange for a colour you look at all day.
 
-The obsidian palette is kept behind `.dark` in `globals.css` so the inversion
-is reversible. Nothing toggles that class today.
+The obsidian palette is gone; there is no dark theme.
 
 ### Shadows
 
-On paper, light does not glow — it presses. `shadow-glow` is now an inset
-hairline (an impression, not a halo), `shadow-bar` lifts a sheet a millimetre
-off the stock, and `shadow-mcm` is a hard letterpress offset in terracotta.
+On paper, light does not glow — it presses. `shadow-bar` lifts a sheet a
+millimetre off the stock, and `shadow-mcm` is a hard letterpress offset in
+terracotta.
 
 ### Form
 
@@ -152,15 +151,40 @@ state — none of which may be authored inside a component.
    Tailwind tokens. Undefined utilities fail silently: `text-2xs` and
    `text-3xs` were used 41 times while defined nowhere, and every one of those
    elements rendered at inherited size.
-2. **No hard-coded copy in marketing components.** Strings live in
-   `src/lib/copy.ts` so the voice can be revised in one place.
+2. **No hard-coded copy in components.** Strings live in `src/lib/copy.ts`
+   so the voice can be revised in one place. The quiz's questions are the one
+   exception, because each sits beside the numbers that score it
+   (`discovery-questions.ts`); the drink and region prose are content
+   (`src/content/`).
 3. **Fonts are tokens too.** `font-body` / `font-serif` / `font-condensed`
    resolve through `--font-*` variables in `globals.css`. Those variables were
    missing entirely, so all three Google Fonts downloaded and none applied.
 
-Item 1 is enforced: `eslint.config.mjs` bans arbitrary Tailwind values and raw
-colours, as an error in `src/pages/`, `src/layouts/` and every component. The
+Items 1 and 2 are enforced: `eslint.config.mjs` bans arbitrary Tailwind values, raw
+colours, and words typed into markup (JSX text, or a literal `placeholder`,
+`aria-label`, `title` or `alt`), as an error in `src/pages/`, `src/layouts/` and every component. The
 app's components once carried ~38 hard-coded colours as warnings; they are
 tokens now, and none remain.
 
 Item 3 is still a convention.
+
+## Writing the words
+
+The voice is the one the newest questions already have: *"Cold enough to
+ache."* *"Same bar, different stools."* *"Nobody by that name."* Short, concrete,
+a little dry, said to one person.
+
+- **Say the thing.** "Pastis, fennel, absinthe", not "herbaceous botanical
+  aromatics". If a list holds three words for the same sensation, keep the best.
+- **No stacked adjectives, no Title Case pairs.** "Sharp and mineral", not
+  "Sharp Citrus & Mineral".
+- **Don't announce the contrast.** "Not a quiz result, a record" and "a
+  palate isn't static, neither is your map" are a shape, not a sentence.
+  Say what it is.
+- **Sparing with dashes.** A dash is a pause. Three in a paragraph is a tic;
+  a colon or a full stop usually does the job.
+- **Labels are not sentences.** No trailing full stop on a button or an option.
+- **Say "actually" only when something is contrasted with what is merely
+  claimed**, which is the register's whole job. Elsewhere it is filler.
+- **Words for people, not for the system.** An error says what to do next
+  ("Couldn't save your coordinate. Try again."), never the name of the field.

@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { chart, quadrants } from '@/lib/copy';
+import { axes, chart, quadrants } from '@/lib/copy';
 import { quadrantIdFor, type QuadrantId } from '@/lib/quadrant';
 import { toPercent } from '@/lib/coordinate';
 import { cn } from '@/lib/utils';
@@ -113,11 +113,11 @@ export function CoordinateMap({
       ))}
 
       {showAxes && (
-        <div aria-hidden="true" className={cn('font-condensed text-2xs tracking-label', ink ? 'text-reveal-muted' : 'text-muted-foreground')}>
-          <span className="absolute left-1.5 top-1/2 -translate-y-full pb-1">RICH</span>
-          <span className="absolute right-1.5 top-1/2 -translate-y-full pb-1">CRISP</span>
-          <span className="absolute left-1/2 top-1.5 pl-2">SWEET</span>
-          <span className="absolute bottom-1.5 left-1/2 pl-2">SAVORY</span>
+        <div aria-hidden="true" className={cn('font-condensed text-2xs uppercase tracking-label', ink ? 'text-reveal-muted' : 'text-muted-foreground')}>
+          <span className="absolute left-1.5 top-1/2 -translate-y-full pb-1">{axes.rich}</span>
+          <span className="absolute right-1.5 top-1/2 -translate-y-full pb-1">{axes.crisp}</span>
+          <span className="absolute left-1/2 top-1.5 pl-2">{axes.sweet}</span>
+          <span className="absolute bottom-1.5 left-1/2 pl-2">{axes.savory}</span>
         </div>
       )}
 

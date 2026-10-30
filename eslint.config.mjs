@@ -53,6 +53,18 @@ const HAND_PRIMARY = /bg-secondary\b.*hover:bg-primary\b|hover:bg-primary\b.*bg-
 const HAND_OUTLINE =
   /(^|\s)border-foreground\b.*(^|\s)hover:bg-secondary\b|(^|\s)hover:bg-secondary\b.*(^|\s)border-foreground\b/;
 
+/**
+ * Words typed straight into markup: JSX text with letters in it, or a
+ * `placeholder`, `aria-label`, `title` or `alt` given as a literal. Interface
+ * text lives in `src/lib/copy.ts` so the voice can be revised in one place.
+ * Symbols and entities (`·`, `&rarr;`, `&times;`) carry no words and are fine.
+ */
+const COPY_MESSAGE =
+  'Interface words belong in `src/lib/copy.ts`, not in the markup: add the string there ' +
+  'and render it from the import (docs/brand.md, Rules).';
+const WORDS = '(?!&[a-z]+;)[A-Za-z]{2}';
+const COPY_ATTRIBUTES = '^(placeholder|aria-label|title|alt)$';
+
 const COMPONENT_MESSAGE =
   'Use the design system class, not its parts: focus is drawn once by ' +
   '`:focus-visible` in globals.css (add focus-ring-inset or focus-ring-reveal ' +
@@ -98,6 +110,11 @@ const tokenRuleEntries = [
   },
   { selector: `Literal[value=/${DEFAULT_SCALE.source}/]`, message: SCALE_MESSAGE },
   { selector: `TemplateElement[value.raw=/${DEFAULT_SCALE.source}/]`, message: SCALE_MESSAGE },
+  { selector: `JSXText[value=/${WORDS}/]`, message: COPY_MESSAGE },
+  {
+    selector: `JSXAttribute[name.name=/${COPY_ATTRIBUTES}/] > Literal[value=/[A-Za-z]/]`,
+    message: COPY_MESSAGE,
+  },
   ...[HAND_FOCUS, HAND_PRIMARY, HAND_OUTLINE].flatMap((pattern) => [
     { selector: `Literal[value=/${pattern.source}/]`, message: COMPONENT_MESSAGE },
     { selector: `TemplateElement[value.raw=/${pattern.source}/]`, message: COMPONENT_MESSAGE },

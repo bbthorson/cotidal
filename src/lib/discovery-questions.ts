@@ -16,7 +16,6 @@ export interface QuestionOption {
     value: boolean;
   };
   filterFlags?: Partial<Record<'dislikesSmoke' | 'dislikesBitter' | 'dislikesAnise', boolean>>;
-  feedback?: string;
 }
 
 export interface Question {
@@ -63,25 +62,22 @@ export const questions: Question[] = [
     primaryAxis: 'y',
     options: [
       {
-        text: "Sharp Citrus & Mineral",
-        note: "Bracing lime, green apple, cold soda, bone dry finish",
+        text: "Sharp and mineral",
+        note: "Lime, green apple, cold soda, a bone-dry finish",
         dx: -4,
-        dy: 3,
-        feedback: "Averse to bracing acid; seeking weight and roundness."
+        dy: 3
       },
       {
-        text: "Dense Velvet & Demerara",
-        note: "Spiced fig, molasses, rich cream, candied stonefruit",
+        text: "Dense and syrupy",
+        note: "Fig, molasses, cream, candied stone fruit",
         dx: 4,
-        dy: -4,
-        feedback: "Low sugar ceiling; rejecting heavy syrup and unctuous sweetness."
+        dy: -4
       },
       {
-        text: "Stark Botanical Brine",
-        note: "Dry gin, sea spray, olive leaf, austere finish",
+        text: "Stark and briny",
+        note: "Dry gin, sea spray, olive leaf, nothing soft about it",
         dx: -2,
-        dy: 4,
-        feedback: "Stark dryness rejected; craving sweetness and fruit."
+        dy: 4
       }
     ]
   },
@@ -90,34 +86,31 @@ export const questions: Question[] = [
     tier: 'calibration',
     category: 'palate',
     sectionNumber: '01',
-    text: "Which botanical profile do you eliminate?",
+    text: "Which flavor would you cross off?",
     subtitle: "Tap the one you’d send back.",
     type: 'triad',
     primaryAxis: 'x',
     options: [
       {
-        text: "Alpine Roots & Dark Amaro",
-        note: "Gentian root, pine needle, artichoke, intense bitter bite",
+        text: "Bitter roots and amaro",
+        note: "Gentian, pine, artichoke, a hard bitter bite",
         dx: 2,
         dy: 3,
-        filterFlag: { key: 'dislikesBitter', value: true },
-        feedback: "Intense botanical bitterness rejected."
+        filterFlag: { key: 'dislikesBitter', value: true }
       },
       {
-        text: "Star Anise & Absinthe",
-        note: "Black licorice, fennel bulb, heavy wormwood aromatics",
+        text: "Licorice and absinthe",
+        note: "Black licorice, fennel, wormwood",
         dx: 1,
         dy: -1,
-        filterFlag: { key: 'dislikesAnise', value: true },
-        feedback: "Anise and licorice aromatics eliminated."
+        filterFlag: { key: 'dislikesAnise', value: true }
       },
       {
-        text: "Sweet Floral & Elderflower",
-        note: "White blossom, ripe pear, elderflower, soft clover honey",
+        text: "Sweet and floral",
+        note: "Elderflower, ripe pear, clover honey",
         dx: -2,
         dy: -4,
-        filterFlags: { dislikesBitter: false, dislikesAnise: false },
-        feedback: "Perfumed sweetness pushed away; amaro and botanicals embraced."
+        filterFlags: { dislikesBitter: false, dislikesAnise: false }
       }
     ]
   },
@@ -126,34 +119,31 @@ export const questions: Question[] = [
     tier: 'calibration',
     category: 'architecture',
     sectionNumber: '02',
-    text: "Which spirit foundation do you push away?",
+    text: "Which spirit would you push away?",
     subtitle: "Tap the one you’d send back.",
     type: 'triad',
     primaryAxis: 'x',
     options: [
       {
-        text: "Charred Agave & Islay Peat",
-        note: "Bonfire smoke, mezcal ash, campfire ember, iodine peat",
+        text: "Smoke and peat",
+        note: "Mezcal, Islay scotch, bonfire ash, iodine",
         dx: 3,
         dy: 1,
-        filterFlag: { key: 'dislikesSmoke', value: true },
-        feedback: "Heavy smoke and peat rejected."
+        filterFlag: { key: 'dislikesSmoke', value: true }
       },
       {
-        text: "Toasted Bourbon & Maple",
-        note: "Heavily charred American oak, brown butter, vanilla bean",
+        text: "Barrel and vanilla",
+        note: "Charred oak, brown butter, vanilla bean",
         dx: 3,
         dy: -3,
-        filterFlags: { dislikesSmoke: false },
-        feedback: "Heavy bourbon oak and vanilla sweetness pushed away."
+        filterFlags: { dislikesSmoke: false }
       },
       {
-        text: "Raw Highland Agave & Pepper",
-        note: "Crisp vegetal spirit, green pepper, crushed wet river stone",
+        text: "Green and peppery",
+        note: "Raw agave, green pepper, wet stone",
         dx: -3,
         dy: 1,
-        filterFlags: { dislikesSmoke: false },
-        feedback: "Pungent vegetal spirit heat eliminated."
+        filterFlags: { dislikesSmoke: false }
       }
     ]
   },
@@ -162,34 +152,31 @@ export const questions: Question[] = [
     tier: 'calibration',
     category: 'ritual',
     sectionNumber: '03',
-    text: "Which drink preparation do you push away?",
+    text: "Which style do you push away?",
     subtitle: "Tap the one you’d send back.",
     type: 'triad',
     primaryAxis: 'x',
     options: [
       {
-        text: "Undiluted & High-Proof",
-        note: "Room-temperature spirit bite, oily coating, no ice",
+        text: "Straight and strong",
+        note: "Spirit at room temperature, oily, no ice",
         dx: 4,
         dy: 0,
-        vibeTags: ['classic', 'crushable'],
-        feedback: "Spirit-forward burn rejected; craving cold dilution."
+        vibeTags: ['classic', 'crushable']
       },
       {
-        text: "Tall, Fizzy & Ice-Cold",
-        note: "High-carbonation soda, mountain ice, feather-light body",
+        text: "Tall and fizzy",
+        note: "Soda, plenty of ice, light as air",
         dx: -4,
         dy: 0,
-        vibeTags: ['complex', 'polarizing'],
-        feedback: "Thin highballs pushed away; demanding weight and depth."
+        vibeTags: ['complex', 'polarizing']
       },
       {
-        text: "Frothy Velvet & Nutmeg",
-        note: "Egg white meringue, rich custard mouthfeel, heavy texture",
+        text: "Frothy and creamy",
+        note: "Egg-white foam, a custard texture, nutmeg on top",
         dx: 2,
         dy: -3,
-        vibeTags: ['classic', 'social'],
-        feedback: "Foamy dessert texture eliminated; leaning clean and direct."
+        vibeTags: ['classic', 'social']
       }
     ]
   },
@@ -203,18 +190,16 @@ export const questions: Question[] = [
     primaryAxis: 'x',
     options: [
       {
-        text: "Black or Espresso.",
-        note: "Pure roast, bold extraction, bitter finish",
+        text: "Black, or espresso",
+        note: "Pure roast, bold, a bitter finish",
         dx: -5,
-        dy: -2,
-        feedback: "A preference for the pure and bold."
+        dy: -2
       },
       {
-        text: "With milk and sugar.",
-        note: "Softened acid, rounded cream, sweet finish",
+        text: "Milk and sugar",
+        note: "Softer acid, round, a sweet finish",
         dx: -2,
-        dy: 5,
-        feedback: "Seeking comfort and sweetness."
+        dy: 5
       }
     ]
   },
@@ -223,30 +208,27 @@ export const questions: Question[] = [
     tier: 'calibration',
     category: 'palate',
     sectionNumber: '01',
-    text: "Pick a finish to a perfect meal.",
+    text: "Pick the end of a good dinner.",
     subtitle: "Something bright, or cocoa and cream.",
     primaryAxis: 'y',
     options: [
       {
-        text: "Lemon Tart (Zest)",
-        note: "Snappy citrus acid, bright curd, sweet crust",
+        text: "Lemon tart",
+        note: "Sharp citrus, bright curd, sweet crust",
         dx: 5,
-        dy: 5,
-        feedback: "Bright, acidic, and sweet."
+        dy: 5
       },
       {
-        text: "Dark Chocolate (Cacao)",
-        note: "Dry roasted cocoa, earth, low sweetness",
+        text: "Dark chocolate",
+        note: "Roasted cocoa, earthy, barely sweet",
         dx: -3,
-        dy: -3,
-        feedback: "Rich and dry."
+        dy: -3
       },
       {
-        text: "Crème Brûlée (Cream)",
-        note: "Dense cream, lush vanilla, caramelized sugar",
+        text: "Crème brûlée",
+        note: "Thick cream, vanilla, burnt sugar",
         dx: -5,
-        dy: 8,
-        feedback: "Lush, rich, and sweet."
+        dy: 8
       }
     ]
   },
@@ -255,25 +237,23 @@ export const questions: Question[] = [
     tier: 'calibration',
     category: 'palate',
     sectionNumber: '01',
-    text: "Do you enjoy the bite of Tonic water?",
-    subtitle: "Botanical bitterness, gentian, and dry quinine",
+    text: "Do you like the bite of tonic water?",
+    subtitle: "That bitter, quinine edge.",
     primaryAxis: 'y',
     options: [
       {
-        text: "Love the bite.",
-        note: "Herbal astringency and quinine welcome",
+        text: "Love the bite",
+        note: "Bitter and herbal, and that’s the point",
         dx: 2,
         dy: -3,
-        filterFlag: { key: 'dislikesBitter', value: false },
-        feedback: "The bitterness is welcomed."
+        filterFlag: { key: 'dislikesBitter', value: false }
       },
       {
-        text: "Too bitter for me.",
-        note: "Softened edges, low astringency preferred",
+        text: "Too bitter for me",
+        note: "Softer edges, please",
         dx: 0,
         dy: 0,
-        filterFlag: { key: 'dislikesBitter', value: true },
-        feedback: "Softening the edges."
+        filterFlag: { key: 'dislikesBitter', value: true }
       }
     ]
   },
@@ -282,26 +262,24 @@ export const questions: Question[] = [
     tier: 'context',
     category: 'palate',
     sectionNumber: '01',
-    text: "Does the smell of a campfire allure you?",
-    subtitle: "Peated Islay malts, mezcal embers, and charred wood",
+    text: "Do you want campfire smoke in your glass?",
+    subtitle: "Islay scotch, mezcal, charred wood",
     primaryAxis: 'y',
     options: [
       {
-        text: "Love it.",
-        note: "Earthy peat, mezcal smoke, rich campfire",
+        text: "Love it",
+        note: "Peat, mezcal smoke, campfire",
         dx: -1,
         dy: -2,
         filterFlag: { key: 'dislikesSmoke', value: false },
-        vibeTags: ['complex', 'bold'],
-        feedback: "Smoky notes revealed."
+        vibeTags: ['complex', 'bold']
       },
       {
-        text: "No thanks.",
-        note: "Clean distillation, crisp spirits uncharred",
+        text: "No thanks",
+        note: "Clean spirits, nothing charred",
         dx: 0,
         dy: 0,
-        filterFlag: { key: 'dislikesSmoke', value: true },
-        feedback: "Keeping it clean."
+        filterFlag: { key: 'dislikesSmoke', value: true }
       }
     ]
   },
@@ -310,27 +288,25 @@ export const questions: Question[] = [
     tier: 'context',
     category: 'palate',
     sectionNumber: '01',
-    text: "Which flavor are you drawn to?",
-    subtitle: "Alpine botanical licorice versus warm citrus peel",
+    text: "Which flavor pulls you in?",
+    subtitle: "Licorice, or orange peel and spice.",
     primaryAxis: 'y',
     options: [
       {
-        text: "Black Licorice (Anise)",
-        note: "Herbaceous pastis, fennel, absinthe botanical",
+        text: "Black licorice",
+        note: "Pastis, fennel, absinthe",
         dx: -1,
         dy: -2,
         filterFlag: { key: 'dislikesAnise', value: false },
-        vibeTags: ['polarizing'],
-        feedback: "Adventurous — I like it."
+        vibeTags: ['polarizing']
       },
       {
-        text: "Spiced Orange (Citrus)",
-        note: "Sun-ripened orange peel, baking spice warmth",
+        text: "Spiced orange",
+        note: "Orange peel, baking spice",
         dx: 1,
         dy: 2,
         filterFlag: { key: 'dislikesAnise', value: true },
-        vibeTags: ['spice'],
-        feedback: "Warmth and sunshine."
+        vibeTags: ['spice']
       }
     ]
   },
@@ -343,25 +319,23 @@ export const questions: Question[] = [
     tier: 'architecture',
     category: 'architecture',
     sectionNumber: '02',
-    text: "Fizzy or Still?",
-    subtitle: "Aeration, highball carbonation, and liquid density",
+    text: "Fizzy or still?",
+    subtitle: "Bubbles, or weight.",
     primaryAxis: 'x',
     options: [
       {
-        text: "Fizzy & Refreshing",
-        note: "Lively bubbles, effervescent lift, light palate",
+        text: "Fizzy",
+        note: "Lively bubbles, a light finish",
         dx: 3,
         dy: 1,
-        vibeTags: ['crushable'],
-        feedback: "Effervescence awaits."
+        vibeTags: ['crushable']
       },
       {
-        text: "Still & Smooth",
-        note: "Silky viscosity, spirit weight, contemplative",
+        text: "Still",
+        note: "Silky, weighty, slow",
         dx: -2,
         dy: 0,
-        vibeTags: ['classic'],
-        feedback: "Grounded and elegant."
+        vibeTags: ['classic']
       }
     ]
   },
@@ -370,25 +344,23 @@ export const questions: Question[] = [
     tier: 'architecture',
     category: 'architecture',
     sectionNumber: '02',
-    text: "Shaken or Stirred?",
-    subtitle: "How the liquid is chilled, diluted, and combined",
+    text: "Shaken or stirred?",
+    subtitle: "How the drink gets cold.",
     primaryAxis: 'x',
     options: [
       {
-        text: "Shaken with vigor.",
-        note: "Snappy cold bite, micro-ice aeration, frothy head",
+        text: "Shaken",
+        note: "Cold and snappy, with a frothy top",
         dx: 3,
         dy: 1,
-        vibeTags: ['crushable', 'visual'],
-        feedback: "Aerated and cold."
+        vibeTags: ['crushable', 'visual']
       },
       {
-        text: "Stirred with patience.",
-        note: "Heavy spirit clarity, gentle melt, velvet texture",
+        text: "Stirred",
+        note: "Clear, weighty, silky",
         dx: -3,
         dy: -1,
-        vibeTags: ['classic', 'prestige'],
-        feedback: "Crystal clarity and weight."
+        vibeTags: ['classic', 'prestige']
       }
     ]
   },
@@ -397,24 +369,22 @@ export const questions: Question[] = [
     tier: 'architecture',
     category: 'architecture',
     sectionNumber: '02',
-    text: "What is your current climate vibe?",
-    subtitle: "Thermal relief vs. inner hearth warmth",
+    text: "Hot day or cold night?",
+    subtitle: "Cooling off, or warming up.",
     primaryAxis: 'x',
     options: [
       {
-        text: "Heatwave (Need ice)",
-        note: "Crushed ice, rapid dilution, cooling revival",
+        text: "Hot day",
+        note: "Crushed ice, quick dilution, cooling off",
         dx: 2,
-        dy: 0,
-        feedback: "Cooling the spirit."
+        dy: 0
       },
       {
-        text: "Blizzard (Need warmth)",
-        note: "Spirit-forward proof, gentle warming finish",
+        text: "Cold night",
+        note: "Strong, with a warming finish",
         dx: -2,
         dy: -2,
-        vibeTags: ['warm'],
-        feedback: "Igniting the hearth."
+        vibeTags: ['warm']
       }
     ]
   },
@@ -427,25 +397,23 @@ export const questions: Question[] = [
     tier: 'architecture',
     category: 'ritual',
     sectionNumber: '03',
-    text: "Choose your vessel.",
-    subtitle: "Stemware keeps liquid cold; rocks glasses give tactile weight",
+    text: "Stem or tumbler?",
+    subtitle: "A stem keeps it cold. A tumbler gives it weight.",
     primaryAxis: 'x',
     options: [
       {
-        text: "Stemmed & Elegant",
-        note: "Coupe or Nick & Nora, elevated aromatics, zero warming",
+        text: "On a stem",
+        note: "Coupe or Nick & Nora: stays cold, shows off the aroma",
         dx: 1,
         dy: 0,
-        vibeTags: ['prestige', 'visual'],
-        feedback: "A touch of ceremony."
+        vibeTags: ['prestige', 'visual']
       },
       {
-        text: "Heavy & Grounded",
-        note: "Double rocks glass, tactile weight in hand, single rock",
+        text: "In a tumbler",
+        note: "Double rocks glass, solid in the hand, one big rock",
         dx: -1,
         dy: -1,
-        vibeTags: ['comfort', 'bold'],
-        feedback: "Substantial and real."
+        vibeTags: ['comfort', 'bold']
       }
     ]
   },
@@ -454,33 +422,30 @@ export const questions: Question[] = [
     tier: 'context',
     category: 'ritual',
     sectionNumber: '03',
-    text: "The finishing touch on the rim?",
-    subtitle: "Aromatic perfume, mineral salinity, or naked unadorned spirit",
+    text: "What goes on top?",
+    subtitle: "A citrus twist, a briny olive, or nothing.",
     primaryAxis: 'y',
     options: [
       {
-        text: "Expressed citrus twist.",
-        note: "Bright perfume of lemon or grapefruit oils over the crown",
+        text: "A citrus twist",
+        note: "Lemon or grapefruit oils over the top",
         dx: 1,
         dy: 1,
-        vibeTags: ['visual', 'classic'],
-        feedback: "Aromatic essential oils."
+        vibeTags: ['visual', 'classic']
       },
       {
-        text: "Castelvetrano olive or saline.",
-        note: "Briny mineral edge, savory depth that sharpens the palate",
+        text: "An olive, or a pinch of salt",
+        note: "Briny and savory, sharpens the palate",
         dx: -1,
         dy: -3,
-        vibeTags: ['complex', 'bold'],
-        feedback: "Brine and mineral tension."
+        vibeTags: ['complex', 'bold']
       },
       {
-        text: "Strictly unadorned.",
-        note: "Zero garnish — letting the spirit and vermouth speak",
+        text: "Nothing",
+        note: "No garnish. Let the spirit and the vermouth talk",
         dx: -2,
         dy: -1,
-        vibeTags: ['classic'],
-        feedback: "Uncompromising and pure."
+        vibeTags: ['classic']
       }
     ]
   },
@@ -493,25 +458,23 @@ export const questions: Question[] = [
     tier: 'context',
     category: 'occasion',
     sectionNumber: '04',
-    text: "What is the pacing of your evening?",
-    subtitle: "Setting the tempo of your glass",
+    text: "How fast are you going tonight?",
+    subtitle: "The tempo of your glass.",
     primaryAxis: 'x',
     options: [
       {
-        text: "Sipping slowly.",
-        note: "Contemplative, unhurried, slow melt in the glass",
+        text: "Slowly",
+        note: "Unhurried, melting slowly in the glass",
         dx: -1,
         dy: -1,
-        vibeTags: ['complex', 'bold'],
-        feedback: "Patience is a virtue."
+        vibeTags: ['complex', 'bold']
       },
       {
-        text: "Social & Spirited.",
-        note: "Bright, energetic tempo, crushable companion",
+        text: "Out with people",
+        note: "Lively, easy to keep drinking",
         dx: 1,
         dy: 1,
-        vibeTags: ['social', 'crushable'],
-        feedback: "Energy and flow."
+        vibeTags: ['social', 'crushable']
       }
     ]
   },
@@ -520,33 +483,30 @@ export const questions: Question[] = [
     tier: 'context',
     category: 'occasion',
     sectionNumber: '04',
-    text: "What chapter of the evening is this?",
-    subtitle: "The appetite-opening first drink vs. the final nightcap",
+    text: "Where are you in the evening?",
+    subtitle: "The first drink, or the last.",
     primaryAxis: 'x',
     options: [
       {
-        text: "The Golden Hour (Aperitivo).",
-        note: "Low-ABV, bitter-sweet, sparkling, whetting the appetite",
+        text: "The first one",
+        note: "Light, bitter-sweet, sparkling, gets you hungry",
         dx: 3,
         dy: 1,
-        vibeTags: ['social', 'crushable'],
-        feedback: "Starting light and sharp."
+        vibeTags: ['social', 'crushable']
       },
       {
-        text: "The Table Centerpiece.",
-        note: "Structured classic, paired with rich food and debate",
+        text: "With dinner",
+        note: "A structured classic that stands up to rich food",
         dx: -1,
         dy: -1,
-        vibeTags: ['classic', 'complex'],
-        feedback: "Holding court at the table."
+        vibeTags: ['classic', 'complex']
       },
       {
-        text: "The Midnight Nightcap.",
-        note: "High proof, spirit-forward, warmth to close the night",
+        text: "The last one",
+        note: "Strong, spirit-forward, a warm way to end the night",
         dx: -4,
         dy: 0,
-        vibeTags: ['bold', 'comfort', 'warm'],
-        feedback: "A slow, deep parting glass."
+        vibeTags: ['bold', 'comfort', 'warm']
       }
     ]
   },
@@ -573,15 +533,13 @@ export const questions: Question[] = [
         text: "Velvet weight",
         note: "Aged spirit, stirred long, coats the glass",
         dx: -4,
-        dy: 0,
-        feedback: "Full weight, nothing to lighten it."
+        dy: 0
       },
       {
         text: "Round, with a lift",
         note: "Some body, but a twist of citrus keeps it moving",
         dx: -1,
-        dy: 0,
-        feedback: "Weight, but with an edge of brightness."
+        dy: 0
       }
     ]
   },
@@ -599,15 +557,13 @@ export const questions: Question[] = [
         text: "Warm and rounded",
         note: "Barrel spice, soft edges, sipped slowly",
         dx: -2,
-        dy: 0,
-        feedback: "Leaning toward warmth and weight."
+        dy: 0
       },
       {
         text: "Cool and lifted",
         note: "Fresh citrus, light body, a clean finish",
         dx: 2,
-        dy: 0,
-        feedback: "Leaning toward lift and freshness."
+        dy: 0
       }
     ]
   },
@@ -625,15 +581,13 @@ export const questions: Question[] = [
         text: "Fresh, with some body",
         note: "Citrus over a rounder base, bright but not sharp",
         dx: 1,
-        dy: 0,
-        feedback: "Bright, with something to hold onto."
+        dy: 0
       },
       {
         text: "Bracing and electric",
         note: "Hard-shaken, high acid, cold enough to ache",
         dx: 4,
-        dy: 0,
-        feedback: "As crisp as it comes."
+        dy: 0
       }
     ]
   },
@@ -651,15 +605,13 @@ export const questions: Question[] = [
         text: "Bone dry and saline",
         note: "Brine, bitter herbs, not a trace of sugar",
         dx: 0,
-        dy: -4,
-        feedback: "Savory all the way down."
+        dy: -4
       },
       {
         text: "Dry, with a little give",
         note: "Mostly savory, a whisper of ripe fruit",
         dx: 0,
-        dy: -1,
-        feedback: "Dry, but not austere."
+        dy: -1
       }
     ]
   },
@@ -677,15 +629,13 @@ export const questions: Question[] = [
         text: "Herbal and dry",
         note: "Green herbs, mineral, a bitter finish",
         dx: 0,
-        dy: -2,
-        feedback: "Leaning savory."
+        dy: -2
       },
       {
         text: "Ripe and juicy",
         note: "Stone fruit, a little honey, a soft finish",
         dx: 0,
-        dy: 2,
-        feedback: "Leaning sweet."
+        dy: 2
       }
     ]
   },
@@ -703,15 +653,13 @@ export const questions: Question[] = [
         text: "Fruit, kept in check",
         note: "Ripe fruit balanced by acid, sweet but never sticky",
         dx: 0,
-        dy: 1,
-        feedback: "Sweet, held in balance."
+        dy: 1
       },
       {
         text: "Lush and dessert-sweet",
         note: "Caramel, cream, the sweet end of the menu",
         dx: 0,
-        dy: 4,
-        feedback: "The sweet end of the menu, gladly."
+        dy: 4
       }
     ]
   },

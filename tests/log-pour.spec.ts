@@ -6,6 +6,7 @@ import type { Palate, PourRecord } from '../src/lib/atproto/records';
 import type { LogDrinkOptions } from '../src/lib/api-client';
 import { calculateDistance } from '../src/lib/scoring';
 import { drinkDatabase } from '../src/lib/data';
+import { apiErrors, pour as pourCopy } from '../src/lib/copy';
 
 /**
  * Logging a pour — the one pipeline the page and (later) a chat assistant
@@ -58,11 +59,11 @@ function fakeStore(prior: Palate | null, fail: Partial<Record<keyof PourStore, b
 }
 
 test('Log pour: a request without a drink, or one that does not fit its lexicon, is refused', () => {
-  expect(buildPour(undefined, register)).toEqual({ ok: false, error: 'Invalid options' });
-  expect(buildPour({ rating: 8 }, register)).toEqual({ ok: false, error: 'drinkName is required' });
-  expect(buildPour({ drinkName: '   ' }, register)).toEqual({ ok: false, error: 'drinkName is required' });
+  expect(buildPour(undefined, register)).toEqual({ ok: false, error: apiErrors.invalidRequest });
+  expect(buildPour({ rating: 8 }, register)).toEqual({ ok: false, error: pourCopy.needDrink });
+  expect(buildPour({ drinkName: '   ' }, register)).toEqual({ ok: false, error: pourCopy.needDrink });
   const badSpirit = { drinkName: 'Negroni', baseSpirit: 'kerosene' } as unknown as Partial<LogDrinkOptions>;
-  expect(buildPour(badSpirit, register)).toEqual({ ok: false, error: 'Invalid pour' });
+  expect(buildPour(badSpirit, register)).toEqual({ ok: false, error: apiErrors.invalidPour });
 });
 
 test('Log pour: what was not said is absent from the record', () => {
@@ -94,7 +95,7 @@ test('Log pour: the rating maps onto the 9-point hedonic, and the drink onto its
 test('Log pour: a refused pour writes nothing', async () => {
   const { store, writes } = fakeStore(palate(1, 1));
   const result = await logPour(store, { rating: 8 }, context);
-  expect(result).toEqual({ ok: false, status: 400, error: 'drinkName is required' });
+  expect(result).toEqual({ ok: false, status: 400, error: pourCopy.needDrink });
   expect(writes).toEqual([]);
 });
 
@@ -136,7 +137,7 @@ test('Log pour: a repository that fails is a 500, and a failed palate write logs
   for (const fail of ['readPalate', 'writePalate', 'writePour'] as const) {
     const { store, writes } = fakeStore(palate(0, 0), { [fail]: true });
     const result = await logPour(store, { drinkName: 'Negroni', rating: 8 }, context);
-    expect(result).toEqual({ ok: false, status: 500, error: 'Failed to process feedback' });
+    expect(result).toEqual({ ok: false, status: 500, error: apiErrors.logFailed });
     if (fail !== 'writePour') expect(writes).not.toContain('pour');
   }
 });
