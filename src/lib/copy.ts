@@ -13,7 +13,7 @@ export const site = {
   name: 'Cotidal',
   tagline: 'Every palate has a coordinate.',
   description:
-    'Find the coordinate your taste actually sits on, and what to order once you know it.',
+    'Find where your taste sits on the map, and what to drink next.',
 } as const;
 
 export const nav = {
@@ -127,8 +127,8 @@ export const ratePage = {
  * is, and the ways in.
  */
 export const coldState = {
-  title: 'The loop is: drink → log → the map changes.',
-  body: 'Your coordinate is not a quiz result. It is a record in your own account, and it moves every time you log a pour.',
+  title: 'Drink it, log it, watch the map move.',
+  body: 'Your coordinate starts with a few questions, then it follows you. Every pour you log nudges it.',
   quizCta: 'Find your coordinate first',
   signInCta: 'Come aboard',
   guestCta: 'Try a pour as a guest',
@@ -165,11 +165,11 @@ export const harbour = {
   unplacedTitle: 'Can’t place these yet',
   pickThis: 'Pick this',
   pickedEyebrow: 'Your pick',
-  pickedBody: 'Kept on this device until you rate it. Rate it once you’ve tasted it — that is what moves your coordinate.',
+  pickedBody: 'Kept on this device until you rate it. Rate it once you’ve tasted it. That is what moves your coordinate.',
   rateNow: 'Rate it now',
   rateLater: 'Rate it later',
   coldTitle: 'Find your coordinate first.',
-  coldBody: 'The harbour ranks a bar’s menu against your coordinate. A few questions place it.',
+  coldBody: 'Pick a drink ranks a bar’s menu against your coordinate. A few questions place it.',
   coldCta: 'Find your coordinate',
   waiting: 'Your pick, waiting for a rating',
   rate: 'Rate it',
@@ -201,7 +201,7 @@ export const hero = {
   headline: 'Every palate has',
   headlineAccent: 'a coordinate.',
   body:
-    'Answer a few questions. A point appears on the chart. What surrounds it is what you should be ordering next.',
+    'Answer a few questions and a point appears on the chart. The drinks around it are what to try next.',
   primaryCta: 'Find your coordinate',
   /** Stated under the one primary action, so the cost is known up front. */
   cost: 'About two minutes · no account needed',
@@ -260,7 +260,7 @@ export const sections = {
   map: 'The four regions',
   mapLabel: 'The chart',
   /** The reveal. The hero withholds the axes; this is where they land. */
-  mapNote: 'Two axes — rich to crisp, savory to sweet. Four regions between them.',
+  mapNote: 'Two axes, rich to crisp and savory to sweet. Four regions between them.',
   /**
    * A rutter is a mariner's book of sailing directions. It is the section's
    * name, not the link's: the header and links say "Drinks".
@@ -279,9 +279,9 @@ export const sections = {
 export const connect = {
   title: 'Keep your coordinate.',
   /** Landing page only; the in-app sheet goes straight from title to list. */
-  lede: 'A palate isn’t static. Neither is your map.',
+  lede: 'What you want at 6 PM in July isn’t what you want at midnight in November.',
   body:
-    'What you want at 6 PM in July isn’t what you want at midnight in November. Come aboard to keep your starting point, take it to the bar, and watch your coordinate drift as you log what you drink.',
+    'Come aboard to keep your starting point, take it to the bar, and watch your coordinate drift as you log what you drink.',
   label: 'Your Bluesky handle',
   placeholder: 'you.bsky.social',
   submit: 'Come aboard with Bluesky',
@@ -296,11 +296,11 @@ export const connect = {
   buys: [
     {
       title: 'Take it to the bar',
-      body: 'Your coordinate follows you to any phone you come aboard on. Pull up the drinks nearest you — or show the bartender the three closest instead of playing twenty questions.',
+      body: 'Your coordinate follows you to any phone you come aboard on. Pull up the drinks nearest you, or show the bartender the three closest instead of playing twenty questions.',
     },
     {
       title: 'Log a pour, track the drift',
-      body: 'Record what you drank, where, and whether it landed. Your coordinate is reckoned from every entry, so you can watch your taste drift with the seasons.',
+      body: 'Record what you drank, where, and whether it landed. Every entry nudges your coordinate, so you can watch your taste drift with the seasons.',
     },
     {
       title: 'Within hail',
@@ -380,19 +380,19 @@ export const principles = [
     icon: 'book',
     title: 'A ship’s log, not a leaderboard',
     body:
-      'Every pour you log is a dated entry signed by you — where you were, what it was, whether it landed. Nobody is gamifying your bar tab or ranking your taste.',
+      'Every pour you log is a dated entry, signed by you: where you were, what it was, whether it landed. Nobody is scoring your bar tab or ranking your taste.',
   },
   {
     icon: 'lock',
     title: 'Stored in your own repository',
     body:
-      'Your coordinate, the answers behind it and every pour are written to your own Bluesky account on the AT Protocol — public there, and yours. Delete our app tomorrow and every entry stays with you.',
+      'Your coordinate, the answers behind it and every pour are written to your own Bluesky account on the AT Protocol. They’re public there, and they’re yours. Delete our app tomorrow and every entry stays with you.',
   },
   {
     icon: 'compass',
     title: 'An open record',
     body:
-      'Your coordinate is a published record, not a row in our database. Any app built on the protocol can read it — today, that is this one.',
+      'Your coordinate is a published record that any app on the protocol can read. Today, that is only this one.',
   },
 ] as const;
 
@@ -403,7 +403,7 @@ export const principles = [
  */
 export const drinks = {
   eyebrow: 'The rutter',
-  title: 'What is actually known',
+  title: 'What is known',
   intro:
     'Most of what gets said about a cocktail is repetition. Each entry in the rutter gives the build, places the drink on the chart, and separates what is on the record from what bartenders merely tell each other.',
   navLabel: 'Drinks',
@@ -432,7 +432,7 @@ export const regionPage = {
   ordering: (name: string, axis: string) =>
     `Your coordinate lands in ${name} when your answers lean ${axis
       .toLowerCase()
-      .replace(' · ', ' and ')}. That is all it records: a position, worked out from the options you chose — not a type, and not a judgement of you. The menu ranks every drink by its distance from that point, so the nearer you sit to the drinks below, the sooner it reaches for them. Log what you actually drink and the point can move, across a border if that is where your pours take it.`,
+      .replace(' · ', ' and ')}. That is all it is: a position, worked out from the options you picked. The menu ranks every drink by its distance from that point, so the closer you sit to the drinks below, the sooner it reaches for them. Log what you drink and the point can move, across a border if that is where your pours take it.`,
   drinksLabel: 'The drinks here',
   /** Under the list: how a drink came to be in it. */
   placedNote:
@@ -593,7 +593,7 @@ export const venuesCopy = {
     {
       title: 'Pours that name the bar',
       description:
-        'A member’s pour records the bar by the name the drinker typed. When the bar later proves its domain, reconciling those pours to it is the app’s job — no one’s record is rewritten.',
+        'A member’s pour records the bar by the name the drinker typed. When the bar later proves its domain, reconciling those pours to it is the app’s job, and no one’s record is rewritten.',
     },
   ],
   laterTitle: 'Not built yet',
@@ -602,7 +602,7 @@ export const venuesCopy = {
     'Later: what your patrons have logged at your bar, and where their palates sit on the map.',
     'Later: your menu on your own domain, rendered from your own records.',
     'Later: syncing the menu from your point-of-sale system.',
-    'Later: for bartenders, a profile that links the specs you wrote and counts where they are poured — adoption, never a score.',
+    'Later: for bartenders, a profile that links the specs you wrote and counts where they are poured. Adoption, never a score.',
   ],
   examplesTitle: 'Example menus',
   examplesSubtitle:
@@ -653,7 +653,7 @@ export const publicMap = {
 export const assistants = {
   eyebrow: 'In your chatbot',
   title: 'Ask about your palate anywhere.',
-  lede: 'Add Cotidal to Claude, or any chat assistant that takes an MCP server, and ask it what to order with your coordinate in hand.',
+  lede: 'Add Cotidal to Claude, or any chat assistant that takes an MCP server, and ask it what to drink, with your coordinate in hand.',
   urlLabel: 'The address to add',
   stepsTitle: 'In Claude',
   steps: [
@@ -665,13 +665,13 @@ export const assistants = {
   canTitle: 'What you can ask',
   can: [
     'Where your palate lands, and what is closest to it.',
-    'What to order from a menu you paste in.',
+    'Which drink to pick from a menu you paste in.',
     'How far your map is from a friend’s.',
     'Where a drink sits on the map.',
     'To draft a pour you had, for you to log here.',
   ],
-  askWith: (handle: string) => `Ask with your handle: “What does Cotidal say I should order? I’m @${handle}.”`,
-  askWithGuest: 'Ask with your Bluesky handle: “What does Cotidal say I should order? I’m @you.bsky.social.”',
+  askWith: (handle: string) => `Ask with your handle: “What does Cotidal say I should drink? I’m @${handle}.”`,
+  askWithGuest: 'Ask with your Bluesky handle: “What does Cotidal say I should drink? I’m @you.bsky.social.”',
   readOnlyTitle: 'Only you log',
   readOnly:
     'The assistant reads the same public coordinate anyone can open at your public map. It can draft a pour, as a link to the form here, but only you log it: you check it, tap how it landed, and press the button. It cannot retake the questions or change your map.',
@@ -796,17 +796,18 @@ export const a11y = {
  * they are interface copy; the server sends the same words back.
  */
 export const apiErrors = {
-  notConnected: 'Not connected to Bluesky',
+  notConnected: 'You’re not signed in.',
   invalidRequest: 'That request was not understood.',
-  invalidProfile: 'Invalid profile data',
-  invalidAnswers: 'Invalid answers',
-  invalidDrink: 'Invalid drink name',
-  invalidRegion: 'Invalid region',
-  unknownAction: 'Unknown action',
-  publishFailed: 'Failed to publish profile',
-  publishAnswersFailed: 'Failed to publish answers',
-  shareFailed: 'Failed to share to Bluesky',
-  logFailed: 'Failed to process feedback',
+  invalidProfile: 'That coordinate didn’t look right.',
+  invalidAnswers: 'Those answers didn’t look right.',
+  invalidDrink: 'That drink name didn’t look right.',
+  invalidRegion: 'That region didn’t look right.',
+  invalidPour: 'That pour didn’t look right.',
+  unknownAction: 'That request was not understood.',
+  publishFailed: 'Couldn’t save your coordinate. Try again.',
+  publishAnswersFailed: 'Couldn’t save your answers. Try again.',
+  shareFailed: 'Couldn’t post to Bluesky. Try again.',
+  logFailed: 'That pour did not save. Try again.',
 } as const;
 
 export const footer = {

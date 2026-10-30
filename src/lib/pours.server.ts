@@ -16,7 +16,7 @@ import {
 import { getPalateProfile, postToFeed, publishPour, publishRawPalateRecord } from '@/lib/atproto/publish';
 import { publicMapPath } from '@/lib/atproto/paths';
 import { geoLocation } from '@/lib/atproto/location';
-import { feedPost } from '@/lib/copy';
+import { apiErrors, feedPost, pour as pourCopy } from '@/lib/copy';
 import {
   fromDynamicRecord,
   toDynamicRecord,
@@ -76,13 +76,13 @@ export function buildPour(
   register: Register,
   now: Date = new Date()
 ): BuildResult {
-  if (!options || typeof options !== 'object') return { ok: false, error: 'Invalid options' };
+  if (!options || typeof options !== 'object') return { ok: false, error: apiErrors.invalidRequest };
 
   // `drinkName` was previously read through an `as any` and used unguarded
   // in three places, so a request without one wrote a record with an
   // undefined name rather than being rejected here.
   if (typeof options.drinkName !== 'string' || !options.drinkName.trim()) {
-    return { ok: false, error: 'drinkName is required' };
+    return { ok: false, error: pourCopy.needDrink };
   }
 
   const {
@@ -127,7 +127,7 @@ export function buildPour(
     isHomePour: !!isHomePour,
     createdAt: now.toISOString(),
   });
-  if (!check.success) return { ok: false, error: 'Invalid pour' };
+  if (!check.success) return { ok: false, error: apiErrors.invalidPour };
 
   return { ok: true, pour: { record: check.data, hedonic, drink, deviations } };
 }
@@ -254,6 +254,6 @@ export async function logPour(
     };
   } catch (e) {
     console.error('Failed to log drink feedback:', e);
-    return { ok: false, status: 500, error: 'Failed to process feedback' };
+    return { ok: false, status: 500, error: apiErrors.logFailed };
   }
 }

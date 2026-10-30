@@ -105,14 +105,13 @@ The ink is green, not black. It is the difference between a printed menu and a
 laser-printed handout, and it is nearly subliminal at body size — which is the
 right amount of strange for a colour you look at all day.
 
-The obsidian palette is kept behind `.dark` in `globals.css` so the inversion
-is reversible. Nothing toggles that class today.
+The obsidian palette is gone; there is no dark theme.
 
 ### Shadows
 
-On paper, light does not glow — it presses. `shadow-glow` is now an inset
-hairline (an impression, not a halo), `shadow-bar` lifts a sheet a millimetre
-off the stock, and `shadow-mcm` is a hard letterpress offset in terracotta.
+On paper, light does not glow — it presses. `shadow-bar` lifts a sheet a
+millimetre off the stock, and `shadow-mcm` is a hard letterpress offset in
+terracotta.
 
 ### Form
 
@@ -164,3 +163,24 @@ app's components once carried ~38 hard-coded colours as warnings; they are
 tokens now, and none remain.
 
 Item 3 is still a convention.
+
+## Writing the words
+
+The voice is the one the newest questions already have: *"Cold enough to
+ache."* *"Same bar, different stools."* *"Nobody by that name."* Short, concrete,
+a little dry, said to one person.
+
+- **Say the thing.** "Pastis, fennel, absinthe", not "herbaceous botanical
+  aromatics". If a list holds three words for the same sensation, keep the best.
+- **No stacked adjectives, no Title Case pairs.** "Sharp and mineral", not
+  "Sharp Citrus & Mineral".
+- **Don't announce the contrast.** "Not a quiz result, a record" and "a
+  palate isn't static, neither is your map" are a shape, not a sentence.
+  Say what it is.
+- **Sparing with dashes.** A dash is a pause. Three in a paragraph is a tic;
+  a colon or a full stop usually does the job.
+- **Labels are not sentences.** No trailing full stop on a button or an option.
+- **Say "actually" only when something is contrasted with what is merely
+  claimed**, which is the register's whole job. Elsewhere it is filler.
+- **Words for people, not for the system.** An error says what to do next
+  ("Couldn't save your coordinate. Try again."), never the name of the field.

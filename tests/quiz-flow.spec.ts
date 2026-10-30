@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { questions } from '../src/lib/discovery-questions';
 import { quadrants, coldState, compass, ratePage, reveal as revealCopy } from '../src/lib/copy';
 
 /**
@@ -9,12 +10,16 @@ import { quadrants, coldState, compass, ratePage, reveal as revealCopy } from '.
  * The mathematical scoring underneath is covered directly in `belief-state.spec.ts`.
  */
 
+// The four openers are fixed (CALIBRATION_IDS); their words are not this file's to know.
+const opener = (id: string) => questions.find((q) => q.id === id)!;
+const first = opener('triad_sugar_texture');
+const second = opener('triad_bitter_botanical');
+
 test('Questionnaire: opens directly with calibration question and selectable options', async ({ page }) => {
   await page.goto('/questions');
 
-  await expect(page.getByRole('heading', { level: 1 })).toContainText('Which glass do you push away first?');
-  await expect(page.getByText('Sharp Citrus & Mineral')).toBeVisible();
-  await expect(page.getByText('Dense Velvet & Demerara')).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1 })).toContainText(first.text);
+  for (const option of first.options) await expect(page.getByText(option.text, { exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: /skip/i })).toBeVisible();
   // The count is honest about the selector being adaptive.
   await expect(page.getByText(/of about 8/)).toBeVisible();
@@ -22,10 +27,10 @@ test('Questionnaire: opens directly with calibration question and selectable opt
 
 test('Compass: with no coordinate it still browses, and offers the questions', async ({ page }) => {
   await page.goto('/compass');
-  await expect(page.getByText('Which glass do you push away first?')).toHaveCount(0);
+  await expect(page.getByText(first.text)).toHaveCount(0);
   await page.getByRole('button', { name: compass.findYours }).click();
   await expect(page).toHaveURL(/\/questions$/);
-  await expect(page.getByText('Which glass do you push away first?')).toBeVisible();
+  await expect(page.getByText(first.text)).toBeVisible();
 });
 
 test('Questionnaire: skipping goes to Compass', async ({ page }) => {
@@ -47,15 +52,15 @@ test('Questionnaire: someone who already has a coordinate is sent on to Compass'
 test('Questionnaire: answering options advances questions and supports undo', async ({ page }) => {
   await page.goto('/questions');
 
-  await expect(page.getByRole('heading', { level: 1 })).toContainText('Which glass do you push away first?');
-  await page.getByText('Sharp Citrus & Mineral').click();
+  await expect(page.getByRole('heading', { level: 1 })).toContainText(first.text);
+  await page.getByText(first.options[0].text, { exact: true }).click();
 
-  await expect(page.getByRole('heading', { level: 1 })).toContainText('Which botanical profile do you eliminate?');
+  await expect(page.getByRole('heading', { level: 1 })).toContainText(second.text);
   await expect(page.getByRole('button', { name: /previous question/i })).toBeVisible();
 
   // Test back navigation
   await page.getByRole('button', { name: /previous question/i }).click();
-  await expect(page.getByRole('heading', { level: 1 })).toContainText('Which glass do you push away first?');
+  await expect(page.getByRole('heading', { level: 1 })).toContainText(first.text);
 });
 
 test('Questionnaire: finishing the questions reveals a region before the menu', async ({ page }) => {
