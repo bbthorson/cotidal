@@ -144,7 +144,7 @@ Navigation is unified across the entire site through `<SiteHeader.astro>` and `<
 8. **Focus mode**: any element marked `data-focus-mode` (the questions, the reveal, the after-a-pour screen) hides the site header and footer below `lg` (`globals.css`, pure CSS so nothing flashes before hydration).
 9. **The app bar** (`AppBar.astro`): **Radio · Compass · Log** along the foot of a phone on the app pages (`AppShell`'s `bottomBar`) — listen, navigate, record. Plain links, no script; hidden in focus mode and from `lg`, where the header carries the same destinations. A card pinned above it (`PinnedCard`) uses the `tabbar` spacing token.
 10. **Pick a drink** (`PickButton.astro`): choosing what to have is the one thing you *do*, not a place, so it is a floating button rather than a tab — above the app bar on a phone; from `lg` at the foot of the content's right edge (`right-frame-edge`), not the window's corner. It opens the harbour. Not drawn on the harbour, while a drink card is open, or in focus mode.
-11. **Two tiers of page title.** Reading pages open with the centred `PageTitle`. App screens open with `ScreenHeader` — the tab's name as the eyebrow, then the screen's own title — left-aligned and at one size. Compass, Log and the cold state (`ColdState`, on Log and Rate) use it; Radio still names itself for screen readers only (`sr-only` `h1`) until it follows.
+11. **Two tiers of page title.** Reading pages open with the centred `PageTitle`. App screens open with `ScreenHeader` — the tab's name as the eyebrow, then the screen's own title — left-aligned and at one size. Radio, Compass, Log and the cold state (`ColdState`, on Log and Rate) use it.
 12. **One sheet per screen.** Only what is yours — the top pick, the chosen option, the pinned card — is a sheet with `shadow-mcm`. Everything else is a ruled section (`section-title`) or rows. A map sits in a frame on the ground, as a printed chart does; that is a figure, not a sheet.
 
 ## The first-visit flow (`/questions`)
@@ -170,7 +170,9 @@ Signing out forgets the device's copy (`forgetDevice`), on whichever app page it
 
 ## Radio (`/radio`, `Radio.tsx`)
 
-Pours as they go out, newest first, kept like a radio log: grouped by day, the time in a narrow margin (`grid-cols-radio`), who sent it and where, the drink and its score. The dial is All · Following · Nearby; the last two say plainly that they are Later rather than standing empty. A pick waiting to be rated sits at the top.
+It opens with its `ScreenHeader` ("On the air"). Pours as they go out, newest first, kept like a radio log: grouped by day, the time in a narrow margin (`grid-cols-radio`), who sent it and where, the drink and its score. The dial is All · Following · Nearby; the last two say plainly that they are Later rather than standing empty. A pick waiting to be rated sits at the top.
+
+From `lg` the log takes two thirds of AppShell's `frame` width and the dial sits beside it (sticky), with a pick waiting and what signing in buys; on a phone the dial comes first.
 
 ## Log (`/log`, `LogScreen.tsx`)
 

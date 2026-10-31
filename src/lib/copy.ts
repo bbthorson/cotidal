@@ -49,6 +49,7 @@ export const appBar = {
  */
 export const radio = {
   title: 'Radio',
+  heading: 'On the air',
   filterLabel: 'Tune to',
   filters: [
     { id: 'all', label: 'All' },

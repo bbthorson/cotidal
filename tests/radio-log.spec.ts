@@ -100,3 +100,19 @@ test('Log: the chart sits beside the ledger on a wide screen, above it on a phon
   const [m2, l2] = [(await map.boundingBox())!, (await ledger.boundingBox())!];
   expect(m2.y + m2.height).toBeLessThan(l2.y);
 });
+
+test('Radio: the dial sits beside the log on a wide screen, above it on a phone', async ({ page }) => {
+  const dial = page.getByRole('group', { name: radio.filterLabel });
+  const air = page.getByText(radio.empty);
+
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto('/radio');
+  await expect(page.getByRole('heading', { level: 1, name: radio.heading })).toBeVisible();
+  await expect(air).toBeVisible();
+  const [d, a] = [(await dial.boundingBox())!, (await air.boundingBox())!];
+  expect(a.x + a.width).toBeLessThan(d.x);
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  const [d2, a2] = [(await dial.boundingBox())!, (await air.boundingBox())!];
+  expect(d2.y + d2.height).toBeLessThan(a2.y);
+});
