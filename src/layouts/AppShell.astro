@@ -12,7 +12,7 @@ interface Props {
   description?: string;
   currentPath: string;
   backLink?: { href: string; label: string };
-  width?: 'prose' | 'standard' | 'wide';
+  width?: 'prose' | 'standard' | 'wide' | 'frame';
   /**
    * An app page (Radio, Compass, Log, the harbour): Radio · Compass · Log is pinned to
    * the bottom of a phone (`AppBar`). Below `lg` the
@@ -36,6 +36,8 @@ const widthClass = {
   prose: 'max-w-2xl',
   standard: 'max-w-3xl',
   wide: 'max-w-4xl',
+  // The header's own band: a screen laid out in columns on a wide screen.
+  frame: 'max-w-5xl',
 }[width];
 ---
 
@@ -50,7 +52,7 @@ const widthClass = {
         <nav aria-label={a11y.breadcrumb} class="pt-6">
           <a
             href={backLink.href}
-            class="font-condensed text-label uppercase tracking-label text-muted-foreground transition-colors hover:text-primary"
+            class="font-condensed text-label uppercase tracking-label text-muted-foreground transition-colors hover:text-foreground"
           >
             &larr; {backLink.label}
           </a>

@@ -209,7 +209,7 @@ export function DrinkRow({
       )}
       <span
         className={cn(
-          'font-serif text-prose font-bold transition-colors hover:text-primary',
+          'font-serif text-prose font-bold transition-colors hover:underline hover:underline-offset-4',
           selected ? 'text-primary' : 'text-foreground'
         )}
       >
@@ -311,7 +311,7 @@ export function DrinkCard({
         {entry && (
           <a
             href={`/drinks/${entry.slug}`}
-            className="link-caps text-primary hover:underline"
+            className="link-caps text-secondary hover:underline"
           >
             {chart.readEntry} &rarr;
           </a>

@@ -15,7 +15,7 @@ import { quadrants, sections } from '../../lib/copy';
         <div class="dot-leader">
           <a
             href={`/regions/${q.id}`}
-            class="font-serif text-prose font-bold leading-snug text-foreground transition-colors hover:text-primary md:text-heading"
+            class="font-serif text-prose font-bold leading-snug text-foreground transition-colors hover:underline hover:underline-offset-4 md:text-heading"
           >
             {q.name}
           </a>
@@ -28,7 +28,7 @@ import { quadrants, sections } from '../../lib/copy';
           <p class="text-meta text-muted-foreground">{q.gloss}</p>
           <a
             href={`/drinks#${q.id}`}
-            class="font-condensed text-label uppercase tracking-label text-muted-foreground transition-colors hover:text-primary"
+            class="font-condensed text-label uppercase tracking-label text-muted-foreground transition-colors hover:text-foreground"
           >
             {sections.regionDrinks} &rarr;
           </a>

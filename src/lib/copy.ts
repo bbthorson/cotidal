@@ -22,13 +22,13 @@ export const nav = {
   radio: 'Radio',
   compass: 'Compass',
   register: 'Drinks',
-  regions: 'The Four Regions',
-  signIn: 'Come aboard',
-  signOut: 'Go ashore',
+  regions: 'Regions',
+  signIn: 'Sign in',
+  signOut: 'Sign out',
   menu: 'Menu',
   footer: 'Site',
   log: 'Log',
-  bars: 'For Bars',
+  bars: 'For bars',
 } as const;
 
 /**
@@ -49,6 +49,7 @@ export const appBar = {
  */
 export const radio = {
   title: 'Radio',
+  heading: 'On the air',
   filterLabel: 'Tune to',
   filters: [
     { id: 'all', label: 'All' },
@@ -60,8 +61,8 @@ export const radio = {
   you: 'You',
   onDevice: 'On this device',
   empty: 'Nothing on the air yet. Pick a drink, rate it, and it goes out here.',
-  guestTitle: 'Tune in to the people you follow',
-  guestBody: 'Come aboard with your Bluesky account and Radio will carry their pours. Until then it carries yours, on this device.',
+  guestTitle: 'Keep your log with you',
+  guestBody: 'Radio carries your pours, on this device. Sign in with Bluesky and they’re kept in your own account. Later: pours from the people you follow.',
   today: 'Today',
   yesterday: 'Yesterday',
 } as const;
@@ -72,6 +73,7 @@ export const radio = {
  */
 export const compass = {
   title: 'Compass',
+  heading: 'Where to next',
   findYours: 'Find your coordinate',
   searchLabel: 'Search drinks and bars',
   placeholder: 'Negroni, mezcal, Attaboy…',
@@ -100,9 +102,10 @@ export const compass = {
 /** /log: yours — where you are, what you have poured, and the account. */
 export const logPage = {
   title: 'Log',
+  heading: 'Your log',
   guestEyebrow: 'On this device',
-  guestTitle: 'Keep this log',
-  guestBody: 'As a guest your coordinate and pours live on this device only. Come aboard with your Bluesky account and they live in your own account, and move with you.',
+  guestTitle: 'Keep your log with you',
+  guestBody: 'As a guest, your coordinate and pours live on this device. Sign in with Bluesky and they’re kept in your own account, on any phone.',
   stats: {
     pours: 'Pours',
     bars: 'Bars',
@@ -119,7 +122,8 @@ export const logPage = {
 
 /** /rate: one pour, rated, and where the coordinate went. */
 export const ratePage = {
-  title: 'Rate it',
+  title: 'Rate a drink',
+  heading: 'How was it?',
 } as const;
 
 /**
@@ -129,10 +133,10 @@ export const ratePage = {
 export const coldState = {
   title: 'Drink it, log it, watch the map move.',
   body: 'Your coordinate starts with a few questions, then it follows you. Every pour you log nudges it.',
-  quizCta: 'Find your coordinate first',
-  signInCta: 'Come aboard',
-  guestCta: 'Try a pour as a guest',
-  guestNote: 'As a guest, the pour stays on this device.',
+  quizCta: 'Find your coordinate',
+  signInCta: 'Sign in',
+  guestCta: 'Rate one as a guest',
+  guestNote: 'As a guest, it stays on this device.',
 } as const;
 
 /**
@@ -171,7 +175,7 @@ export const harbour = {
   coldTitle: 'Find your coordinate first.',
   coldBody: 'Pick a drink ranks a bar’s menu against your coordinate. A few questions place it.',
   coldCta: 'Find your coordinate',
-  waiting: 'Your pick, waiting for a rating',
+  waiting: 'Waiting to be rated',
   rate: 'Rate it',
   dismiss: 'Set it aside',
 } as const;
@@ -189,15 +193,14 @@ export const account = {
   shareFailed: 'That did not go through. Try again.',
   startOver: 'Start over',
   startOverBody:
-    'Retake the questions for a new coordinate. It replaces the one on your account; the pours you have logged stay in your ledger.',
+    'Retake the questions for a new coordinate. It replaces the one on your account; the pours you have logged stay in your log.',
   startOverCta: 'Retake the questions',
   startOverCancel: 'Keep it',
-  signOutTitle: 'Go ashore',
-  signOutBody: 'Going ashore signs you out and clears your coordinate from this device. It stays on your account.',
+  signOutTitle: 'Sign out',
+  signOutBody: 'Signing out clears your coordinate from this device. It stays in your account.',
 } as const;
 
 export const hero = {
-  edition: '[0, 0] · Origin point',
   headline: 'Every palate has',
   headlineAccent: 'a coordinate.',
   body:
@@ -229,7 +232,7 @@ export const howItGoes = {
       body: 'Type in what they pour and Cotidal ranks it by how close each drink sits to you. You still order from the bartender.',
     },
     {
-      where: 'Log',
+      where: 'Rate a drink',
       title: 'Rate it, and the point moves',
       body: 'One tap from dislike to like. A drink you liked pulls the point toward it, one you didn’t pushes it away, and your menu reorders.',
     },
@@ -291,8 +294,8 @@ export const sections = {
   registerNote: 'Every drink on the chart has an entry: the build, and what is on the record apart from what is only told.',
   /** From a region to its section of /drinks. */
   regionDrinks: 'Its drinks',
-  principles: 'Your logbook, not ours',
-  connect: 'Come aboard',
+  principles: 'Whose log it is',
+  connect: 'Sign in',
 } as const;
 
 export const connect = {
@@ -300,13 +303,13 @@ export const connect = {
   /** Landing page only; the in-app sheet goes straight from title to list. */
   lede: 'Everything here works without an account.',
   body:
-    'As a guest, your coordinate and pours stay on this device. Come aboard with Bluesky and they live in your own account instead.',
+    'As a guest, your coordinate and pours stay on this device. Sign in with Bluesky and they’re kept in your own account instead.',
   label: 'Your Bluesky handle',
   placeholder: 'you.bsky.social',
-  submit: 'Come aboard with Bluesky',
+  submit: 'Sign in with Bluesky',
   connecting: 'Opening Bluesky…',
   guest: 'Keep browsing as a guest',
-  disabled: 'Sign-in is not enabled in this environment.',
+  disabled: 'Signing in is switched off for now. Everything else works.',
   /**
    * What signing in buys, in the order a guest will feel it. One list, used
    * by the landing page's sign-in section and the in-app sheet alike, so the
@@ -324,7 +327,7 @@ export const connect = {
       body: 'Your coordinate at a link of its own. A friend who opens it sees the distance between you, and a drink each of you would order that the other wouldn’t.',
     },
     {
-      title: 'Within hail',
+      title: 'In your chat assistant',
       body: 'Ask a chat assistant what to drink, with your coordinate in hand. Later: Radio carries the pours of the people you follow.',
     },
   ],
@@ -348,7 +351,7 @@ export const quiz = {
 export const reveal = {
   eyebrow: 'Your coordinate lands in',
   continue: 'See your menu',
-  retake: 'Not you? Retake',
+  retake: 'Not you? Retake the questions',
 } as const;
 
 /** Your menu on Compass: the top pick and the drinks after it. */
@@ -356,8 +359,8 @@ export const menu = {
   youAreIn: 'You are in',
   topPrefix: 'No. 1',
   topTitle: 'Your go-to',
-  keepTitle: 'Keep this coordinate',
-  keepBody: 'It lives on this device. Come aboard and it lives in your account.',
+  keepTitle: 'Keep your log with you',
+  keepBody: 'Your coordinate lives on this device. Sign in and it’s kept in your own account.',
   /** In the top pick's place, for someone with no coordinate: the menu needs one. */
   coldTitle: 'Your menu starts with a few questions',
   coldBody: 'Answer them and this list ranks every drink by how close it sits to you. Until then, search away.',
@@ -380,7 +383,7 @@ export const chart = {
   youIn: (region: string) => `Your coordinate, in ${region}`,
   youNowIn: (region: string) => `Your coordinate, now in ${region}`,
   lastPour: 'Your last pour',
-  logThis: 'Log this',
+  logThis: 'Rate this',
   readEntry: 'Read the entry',
   close: 'Close',
   sameSpot: 'Also here',
@@ -399,13 +402,13 @@ export const moved = {
   rankOnMenu: (n: number) => `Now No. ${n} on your menu`,
   offMenu: 'Not on your menu',
   newOnMenu: 'New on your menu',
-  back: 'Back to your ledger',
+  back: 'Back to your log',
 } as const;
 
 export const principles = [
   {
     icon: 'book',
-    title: 'A ship’s log, not a leaderboard',
+    title: 'A dated log, signed by you',
     body:
       'Every pour you log is a dated entry, signed by you: where you were, what it was, whether it landed. Nobody is scoring your bar tab or ranking your taste.',
   },
@@ -429,8 +432,8 @@ export const principles = [
  * taste precisely should be the one that says which is which.
  */
 export const drinks = {
-  eyebrow: 'Every drink on the chart',
-  title: 'What is known',
+  eyebrow: 'Drinks',
+  title: 'Every drink on the chart',
   intro:
     'Most of what gets said about a cocktail is repetition. Each entry gives the build, places the drink on the chart, and separates what is on the record from what bartenders only tell each other.',
   navLabel: 'Drinks',
@@ -452,14 +455,20 @@ export const drinks = {
  * these are the parts that are the same for all four, and they describe what
  * the product does rather than what a region means.
  */
+/** A quadrant's axis label as words: "Rich · Savory" → "Rich and savory". */
+export function axisWords(axis: string): string {
+  const [a, b] = axis.split(' · ');
+  return b ? `${a} and ${b.toLowerCase()}` : axis;
+}
+
 export const regionPage = {
-  backLabel: 'The four regions',
+  /** Over a region's title: where it sits in the site, then its axis in words ("Rich and savory"). */
+  eyebrow: (axis: string) => `Regions · ${axisWords(axis)}`,
+  backLabel: 'Regions',
   orderingLabel: 'What it says about you',
   /** `axis` is a quadrant's axis label, e.g. "Rich · Savory". */
   ordering: (name: string, axis: string) =>
-    `Your coordinate lands in ${name} when your answers lean ${axis
-      .toLowerCase()
-      .replace(' · ', ' and ')}. That is all it is: a position, worked out from the options you picked. The menu ranks every drink by its distance from that point, so the closer you sit to the drinks below, the sooner it reaches for them. Log what you drink and the point can move, across a border if that is where your pours take it.`,
+    `Your coordinate lands in ${name} when your answers lean ${axisWords(axis).toLowerCase()}. That is all it is: a position, worked out from the options you picked. The menu ranks every drink by its distance from that point, so the closer you sit to the drinks below, the sooner it reaches for them. Log what you drink and the point can move, across a border if that is where your pours take it.`,
   drinksLabel: 'The drinks here',
   /** Under the list: how a drink came to be in it. */
   placedNote:
@@ -573,21 +582,21 @@ export const pour = {
    * (`CATA` in records.ts). Reword a label freely; never rename a key.
    */
   cata: {
-    'bright-citrus': 'Bright Citrus',
-    'lime-peel': 'Lime Peel',
-    'stone-fruit': 'Stone Fruit',
-    'dark-cherry': 'Dark Cherry',
-    'campfire-smoke': 'Campfire Smoke',
-    'botanical-herb': 'Botanical Herb',
-    'baking-spice': 'Baking Spice',
-    'toasted-oak': 'Toasted Oak',
-    'floral-blossom': 'Floral Blossom',
-    'bittersweet-cocoa': 'Bittersweet Cocoa',
-    'briny-mineral': 'Briny Mineral',
-    'rich-velvet-body': 'Rich Velvet Body',
+    'bright-citrus': 'Bright citrus',
+    'lime-peel': 'Lime peel',
+    'stone-fruit': 'Stone fruit',
+    'dark-cherry': 'Dark cherry',
+    'campfire-smoke': 'Campfire smoke',
+    'botanical-herb': 'Botanical herb',
+    'baking-spice': 'Baking spice',
+    'toasted-oak': 'Toasted oak',
+    'floral-blossom': 'Floral blossom',
+    'bittersweet-cocoa': 'Bittersweet cocoa',
+    'briny-mineral': 'Briny mineral',
+    'rich-velvet-body': 'Rich velvet body',
   },
   crosspost: 'Also post it to your Bluesky feed',
-  submit: 'Log this pour',
+  submit: 'Log it',
   submitting: 'Logging…',
   needDrink: 'Name the drink first.',
   needBar: 'Name the bar, or choose “At home”.',
@@ -643,7 +652,8 @@ export const venuesCopy = {
  * visitor, theirs beside it. Two dots and the distance between them.
  */
 export const publicMap = {
-  eyebrow: 'A coordinate',
+  eyebrow: 'Public map',
+  coordinateLabel: 'Coordinate',
   title: (name: string) => `@${name}`,
   lands: 'Lands in',
   pours: (n: number) => (n === 1 ? 'Moved by 1 pour' : `Moved by ${n} pours`),
@@ -655,11 +665,10 @@ export const publicMap = {
   yoursLabel: 'You’d order, they wouldn’t',
   sharedLabel: 'One you’d both order',
   nearLabel: 'Close to this coordinate',
-  selfNote:
-    'This is your public map. The palate record behind it already lives in your own repository; this page only draws it.',
+  selfNote: 'This is your public map. It’s drawn from the record in your own Bluesky account.',
   linkLabel: 'Your link',
   guestTitle: 'Where do you land?',
-  guestBody: 'Find your own coordinate, then come aboard and open this link again to see the distance between you.',
+  guestBody: 'Find your own coordinate, then sign in and open this link again to see the distance between you.',
   guestCta: 'Find your coordinate',
   memberNoPalateBody: 'Finish the questions and your coordinate will sit beside theirs here.',
   noPalateTitle: 'No coordinate here yet.',
@@ -677,8 +686,8 @@ export const publicMap = {
  * browser sees at `/mcp`, the address the chatbot is given.
  */
 export const assistants = {
-  eyebrow: 'In your chatbot',
-  title: 'Ask about your palate anywhere.',
+  eyebrow: 'Chat assistants',
+  title: 'Ask your chat assistant what to drink.',
   lede: 'Add Cotidal to Claude, or any chat assistant that takes an MCP server, and ask it what to drink, with your coordinate in hand.',
   urlLabel: 'The address to add',
   stepsTitle: 'In Claude',
@@ -812,7 +821,7 @@ export const distanceBands = [
 
 /** Labels read only by assistive technology. */
 export const a11y = {
-  mainNav: 'Main Navigation',
+  mainNav: 'Main navigation',
   breadcrumb: 'Breadcrumb',
   progress: 'Progress',
   answerOptions: 'Answer options',

@@ -42,8 +42,8 @@ const DEFAULT_SCALE =
 /** A focus ring drawn by hand, which the base `:focus-visible` rule already draws. */
 const HAND_FOCUS = /focus-visible:(ring|outline)/;
 
-/** The primary button spelled out: forest with a terracotta hover. */
-const HAND_PRIMARY = /bg-secondary\b.*hover:bg-primary\b|hover:bg-primary\b.*bg-secondary\b/;
+/** The primary button spelled out: forest deepening to ink on hover. */
+const HAND_PRIMARY = /bg-secondary\b.*hover:bg-foreground\b|hover:bg-foreground\b.*bg-secondary\b/;
 
 /**
  * The outline button spelled out: an ink edge that fills forest on hover.

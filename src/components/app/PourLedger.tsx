@@ -1,7 +1,7 @@
 import type { PourRecord, Deviation, CataNote } from '@/lib/atproto/records';
 import type { Register } from '@/lib/register';
 import { pour } from '@/lib/copy';
-import { Loading } from './ui';
+import { Empty, Loading } from './ui';
 
 interface PourLedgerProps {
   pours: PourRecord[];
@@ -20,7 +20,7 @@ export function PourLedger({ pours, register = {}, empty, loading = false }: Pou
     return <Loading />;
   }
   if (pours.length === 0) {
-    return <p className="border-b border-border py-6 font-serif text-prose italic text-muted-foreground">{empty}</p>;
+    return <Empty>{empty}</Empty>;
   }
 
   return (
@@ -40,7 +40,7 @@ export function PourLedger({ pours, register = {}, empty, loading = false }: Pou
               {entry ? (
                 <a
                   href={`/drinks/${entry.slug}`}
-                  className="font-serif text-prose font-bold text-foreground transition-colors hover:text-primary"
+                  className="font-serif text-prose font-bold text-foreground transition-colors hover:underline hover:underline-offset-4"
                 >
                   {name}
                 </a>

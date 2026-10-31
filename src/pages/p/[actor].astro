@@ -2,6 +2,7 @@
 import AppShell from '../../layouts/AppShell.astro';
 import PageTitle from '../../components/marketing/PageTitle.astro';
 import PalatePlot from '../../components/marketing/PalatePlot.astro';
+import Readout from '../../components/marketing/Readout.astro';
 import { site, publicMap, coaster } from '../../lib/copy';
 import { formatCoordinate } from '../../lib/coordinate';
 import { quadrantFor } from '../../lib/quadrant';
@@ -98,8 +99,9 @@ const description = name && region ? publicMap.description(name, region.name) : 
 
 const marks = subject
   ? [
-      { x: subject.x, y: subject.y, label: isSelf ? publicMap.you : publicMap.them, tone: 'primary' as const },
-      ...(viewer ? [{ x: viewer.x, y: viewer.y, label: publicMap.you, tone: 'secondary' as const }] : []),
+      // Terracotta is yours (docs/design-system.md): your own mark, wherever it is drawn.
+      { x: subject.x, y: subject.y, label: isSelf ? publicMap.you : publicMap.them, tone: isSelf ? ('primary' as const) : ('secondary' as const) },
+      ...(viewer ? [{ x: viewer.x, y: viewer.y, label: publicMap.you, tone: 'primary' as const }] : []),
     ]
   : [];
 
@@ -118,16 +120,13 @@ const ctaClass =
 <AppShell title={pageTitle} description={description} currentPath="/p" width="standard">
   {result.status === 'ok' && subject && region && name ? (
     <article class="space-y-12" data-testid="public-map">
-      <PageTitle title={publicMap.title(name)} lede={region.gloss} ruled>
-        <div slot="eyebrow" class="flex items-center justify-center gap-2">
-          <span class="label-caps text-secondary">{publicMap.lands}</span>
-          <a
-            href={`/regions/${region.id}`}
-            class="label-caps border border-border px-2.5 py-0.5 text-primary transition-colors hover:border-primary"
-          >
-            {region.name}
-          </a>
-        </div>
+      <PageTitle eyebrow={publicMap.eyebrow} title={publicMap.title(name)} lede={region.gloss} ruled>
+        <Readout
+          cells={[
+            { label: publicMap.coordinateLabel, value: formatCoordinate(subject.x, subject.y), figure: true },
+            { label: publicMap.lands, value: region.name, href: `/regions/${region.id}` },
+          ]}
+        />
       </PageTitle>
 
       <PalatePlot marks={marks} title={publicMap.plotLabel(publicMap.title(name))} />
@@ -167,7 +166,7 @@ const ctaClass =
                   <span class="label-caps text-muted-foreground">{label}</span>
                   <span class="leader" aria-hidden="true" />
                   {href ? (
-                    <a href={href} class="font-serif text-plate font-bold text-foreground transition-colors hover:text-primary">
+                    <a href={href} class="font-serif text-plate font-bold text-foreground transition-colors hover:underline hover:underline-offset-4">
                       {titleFor(drink)}
                     </a>
                   ) : (
@@ -182,14 +181,14 @@ const ctaClass =
 
       {near.length > 0 && (
         <section class="space-y-3">
-          <h2 class="label-caps border-b border-foreground pb-2 text-foreground">{publicMap.nearLabel}</h2>
+          <h2 class="section-title">{publicMap.nearLabel}</h2>
           <ul class="divide-y divide-border">
             {near.map((drink) => {
               const href = entryHref(drink);
               return (
                 <li class="py-3">
                   {href ? (
-                    <a href={href} class="font-serif text-plate font-bold text-foreground transition-colors hover:text-primary">
+                    <a href={href} class="font-serif text-plate font-bold text-foreground transition-colors hover:underline hover:underline-offset-4">
                       {titleFor(drink)}
                     </a>
                   ) : (
@@ -203,7 +202,7 @@ const ctaClass =
       )}
 
       {isSelf && selfLink && (
-        <section class="space-y-2 border-l-2 border-primary pl-4">
+        <section class="space-y-2 border-t border-foreground pt-4">
           <p class="font-serif text-ui italic text-foreground">{publicMap.selfNote}</p>
           <label class="block">
             <span class="label-caps text-muted-foreground">{publicMap.linkLabel}</span>
@@ -216,7 +215,7 @@ const ctaClass =
           </label>
           <p class="pt-2 font-serif text-ui text-muted-foreground">
             {coaster.makeCodeNote}{' '}
-            <a href={coasterPath(result.actor.did)} class="text-primary underline underline-offset-4" data-testid="make-code">
+            <a href={coasterPath(result.actor.did)} class="text-foreground underline decoration-muted-foreground underline-offset-4 hover:decoration-foreground" data-testid="make-code">
               {coaster.makeCode}
             </a>
           </p>

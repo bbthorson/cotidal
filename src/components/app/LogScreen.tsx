@@ -18,13 +18,16 @@ import { Chart, DrinkCard, useLastPours, type Lens } from './Chart';
 import { ColdState } from './ColdState';
 import { PourLedger } from './PourLedger';
 import { WaitingPick } from './WaitingPick';
-import { GuestPrompt } from './ui';
+import { GuestPrompt, ScreenHeader } from './ui';
 import { AccountSection } from './AccountSection';
 
 /**
  * Log: yours. Where you are on the map, what your pours add up to, the
  * ledger of what moved you, and the account. Rating a pour is its own screen
  * (`/rate`); this is where its result is kept.
+ *
+ * From `lg` the chart and its figures hold the left column while the ledger
+ * and the account scroll beside them; on a phone they stack, chart first.
  */
 function LogContent({
   register,
@@ -93,78 +96,81 @@ function LogContent({
   ];
 
   return (
-    <div className={cn('mx-auto max-w-xl pb-6 pt-4 lg:pt-8', selectedDrink && 'pb-card-clearance')}>
-      {/* Named for screen readers; on screen the app bar already says where you are. */}
-      <h1 className="sr-only">{logPage.title}</h1>
+    <div className={cn('mx-auto max-w-xl pb-6 pt-6 lg:max-w-none lg:pt-10', selectedDrink && 'pb-card-clearance')}>
+      <ScreenHeader eyebrow={logPage.title} title={logPage.heading} />
 
-      {/* Where you are: the map is yours, so it lives here */}
-      <Chart
-        you={{ x, y }}
-        menuNames={menu.map((d) => d.name)}
-        lastPour={lastPourOf}
-        lens={lens}
-        onLens={(l) => {
-          setLens(l);
-          setSelected(null);
-        }}
-        selected={selected}
-        onSelect={(n) => setSelected((cur) => (cur === n ? null : n))}
-        register={register}
-        onTakeQuiz={() => window.location.assign(questionsHref)}
-        eyebrow={isMember ? undefined : logPage.guestEyebrow}
-      />
-      <dl className="mt-4 grid grid-cols-2 border-t border-foreground">
-        {stats.map((st, i) => (
-          <div key={st.label} className={`flex flex-col gap-0.5 border-b border-border py-2.5 ${i % 2 ? 'pl-4' : 'border-r pr-4'}`}>
-            <dt className="label-caps">{st.label}</dt>
-            <dd className="truncate font-condensed text-ui font-semibold tabular-nums text-foreground">{st.value}</dd>
-          </div>
-        ))}
-      </dl>
-
-      <div className="mt-5">
-        <WaitingPick displayName={name} />
-      </div>
-
-      <section className="mt-8">
-        <div className="mb-1 flex items-baseline justify-between gap-4">
-          <h2 className="font-serif text-heading font-bold">{logPage.ledgerTitle}</h2>
-          <a
-            href={RATE_PATH}
-            className="link-caps text-secondary hover:text-primary"
-          >
-            {logPage.rateDrink}
-          </a>
+      <div className="lg:grid lg:grid-cols-2 lg:items-start lg:gap-12">
+        <div className="lg:sticky lg:top-8">
+          {/* Where you are: the map is yours, so it lives here */}
+          <Chart
+            you={{ x, y }}
+            menuNames={menu.map((d) => d.name)}
+            lastPour={lastPourOf}
+            lens={lens}
+            onLens={(l) => {
+              setLens(l);
+              setSelected(null);
+            }}
+            selected={selected}
+            onSelect={(n) => setSelected((cur) => (cur === n ? null : n))}
+            register={register}
+            onTakeQuiz={() => window.location.assign(questionsHref)}
+            eyebrow={isMember ? undefined : logPage.guestEyebrow}
+          />
+          <dl className="mt-4 grid grid-cols-2 border-t border-foreground">
+            {stats.map((st, i) => (
+              <div key={st.label} className={`flex flex-col gap-0.5 border-b border-border py-2.5 ${i % 2 ? 'pl-4' : 'border-r pr-4'}`}>
+                <dt className="label-caps">{st.label}</dt>
+                <dd className="truncate font-condensed text-ui font-semibold tabular-nums text-foreground">{st.value}</dd>
+              </div>
+            ))}
+          </dl>
         </div>
-        <PourLedger pours={history} register={register} empty={logPage.ledgerEmpty} loading={pours === null} />
-      </section>
 
-      {/* A guest: what signing in buys, once, under the log it would keep. */}
-      {!isMember && isEnabled && (
-        <GuestPrompt className="mt-6" title={logPage.guestTitle} body={logPage.guestBody} onSignIn={openSignIn} />
-      )}
+        <div className="mt-8 lg:mt-0">
+          <WaitingPick displayName={name} />
 
-      <AccountSection
-        handle={member?.handle ?? null}
-        topName={name(nearest)}
-        regionName={region.name}
-        onStartOver={() => window.location.assign(startOverPath)}
-      />
+          <section>
+            <div className="mb-1 flex items-baseline justify-between gap-4">
+              <h2 className="font-serif text-heading font-bold">{logPage.ledgerTitle}</h2>
+              <a
+                href={RATE_PATH}
+                className="link-caps text-secondary hover:underline hover:underline-offset-4"
+              >
+                {logPage.rateDrink}
+              </a>
+            </div>
+            <PourLedger pours={history} register={register} empty={logPage.ledgerEmpty} loading={pours === null} />
+          </section>
 
-      {/* The reading pages: on a phone the app pages have no Menu, so they are here. */}
-      <nav aria-label={logPage.readingLabel} className="mt-6 flex flex-wrap gap-x-5 border-t border-border pt-2">
-        {destinations
-          .filter((d) => !d.app)
-          .map((d) => (
-            <a
-              key={d.href}
-              href={d.href}
-              className="link-caps text-muted-foreground hover:text-primary"
-            >
-              {d.label}
-            </a>
-          ))}
-      </nav>
+          {/* A guest: what signing in buys, once, under the log it would keep. */}
+          {!isMember && isEnabled && (
+            <GuestPrompt className="mt-6" title={logPage.guestTitle} body={logPage.guestBody} onSignIn={openSignIn} />
+          )}
+
+          <AccountSection
+            handle={member?.handle ?? null}
+            topName={name(nearest)}
+            regionName={region.name}
+            onStartOver={() => window.location.assign(startOverPath)}
+          />
+
+          {/* The reading pages: on a phone the app pages have no Menu, so they are here. */}
+          <nav aria-label={logPage.readingLabel} className="mt-6 flex flex-wrap gap-x-5 border-t border-border pt-2">
+            {destinations
+              .filter((d) => !d.app)
+              .map((d) => (
+                <a
+                  key={d.href}
+                  href={d.href}
+                  className="link-caps text-muted-foreground hover:text-foreground"
+                >
+                  {d.label}
+                </a>
+              ))}
+          </nav>
+        </div>
+      </div>
       {selectedDrink && (
         <DrinkCard
           drink={selectedDrink}

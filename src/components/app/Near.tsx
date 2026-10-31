@@ -4,6 +4,7 @@ import { compass } from '@/lib/copy';
 import { harbourAt } from '@/lib/site-nav';
 import { cn } from '@/lib/utils';
 import { PinnedCard } from './PinnedCard';
+import { Empty } from './ui';
 
 const NearMap = lazy(() => import('./NearMap').then((m) => ({ default: m.NearMap })));
 
@@ -55,7 +56,8 @@ export function useNearby() {
 
 /**
  * The first thing on Compass: the map, in a frame that holds its height
- * whatever state it is in, so nothing below it moves when it fills.
+ * whatever state it is in, so nothing below it moves when it fills. A frame
+ * on the ground, as a printed chart has, not a sheet: the sheet is the top pick.
  */
 export function NearPanel({
   nearby,
@@ -71,7 +73,7 @@ export function NearPanel({
   const { status, you, bars, search, locate } = nearby;
   return (
     <section aria-label={compass.mapLabel}>
-      <div className="relative h-72 overflow-hidden border border-foreground bg-card">
+      <div className="relative h-72 overflow-hidden border border-foreground lg:h-96">
         {status === 'ready' && you ? (
           <Suspense fallback={null}>
             <NearMap key={search} you={you} bars={bars} known={known} selected={selected} onSelect={onSelect} />
@@ -99,7 +101,7 @@ export function NearPanel({
         <div className="mt-4">
           <h2 className="section-title">{compass.nearTitle}</h2>
           {bars.length === 0 ? (
-            <p className="border-b border-border py-4 text-meta text-muted-foreground">{compass.noneNear}</p>
+            <Empty>{compass.noneNear}</Empty>
           ) : (
             <BarRows bars={bars.slice(0, 8)} known={known} selected={selected} onSelect={onSelect} />
           )}
@@ -133,14 +135,14 @@ export function BarRows({
           >
             <span
               className={cn(
-                'font-serif text-prose font-bold transition-colors hover:text-primary',
+                'font-serif text-prose font-bold transition-colors hover:underline hover:underline-offset-4',
                 selected === b.id || known.has(b.id) ? 'text-primary' : 'text-foreground'
               )}
             >
               {b.name}
             </span>
             <span aria-hidden="true" className="leader" />
-            <span className="shrink-0 font-condensed text-meta uppercase tracking-label text-muted-foreground">
+            <span className="shrink-0 text-meta tabular-nums text-muted-foreground">
               {formatDistance(b.distance)}
             </span>
           </button>

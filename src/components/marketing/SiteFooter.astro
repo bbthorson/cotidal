@@ -28,7 +28,7 @@ const links = [
         aria-current={link.active ? 'page' : undefined}
         class:list={[
           'flex min-h-11 items-center',
-          link.active ? 'font-bold text-foreground' : 'transition-colors hover:text-primary',
+          link.active ? 'font-bold text-foreground' : 'transition-colors hover:underline hover:underline-offset-4',
         ]}
       >
         {link.label}
@@ -36,7 +36,7 @@ const links = [
     ))}
   </nav>
 
-  <div class="mt-5 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 font-condensed text-3xs uppercase tracking-label text-muted-foreground">
+  <div class="mt-5 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-meta text-muted-foreground">
     <span>{footer.note}</span>
     <span aria-hidden="true">·</span>
     <span>{footer.drinkResponsibly}</span>

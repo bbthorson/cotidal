@@ -258,7 +258,7 @@ export function PourForm({
         <div className="flex items-baseline justify-between">
           <FieldLabel as="span">{pour.ratingLabel}</FieldLabel>
           <span
-            className={cn('font-serif text-ui italic', hedonic === null ? 'text-primary' : 'text-foreground')}
+            className={cn('font-serif text-ui italic', hedonic === null ? 'text-muted-foreground' : 'text-foreground')}
             aria-live="polite"
           >
             {hedonic === null ? pour.tapRating : pour.hedonic[hedonic - 1]}
@@ -350,7 +350,7 @@ export function PourForm({
         <details className="group border-y border-border">
           <summary className="summary-plain flex min-h-11 cursor-pointer items-center justify-between font-condensed text-meta font-semibold uppercase tracking-label text-foreground">
             {pour.moreDetail}
-            <span aria-hidden="true" className="text-primary transition-transform group-open:rotate-45">
+            <span aria-hidden="true" className="text-foreground transition-transform group-open:rotate-45">
               +
             </span>
           </summary>

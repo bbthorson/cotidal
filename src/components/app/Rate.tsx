@@ -18,6 +18,7 @@ import { AtprotoProvider, useAtprotoContext } from './AtprotoProvider';
 import { ColdState } from './ColdState';
 import { Moved } from './Moved';
 import { PourForm, toLogOptions, type PourEntry } from './PourForm';
+import { ScreenHeader } from './ui';
 
 interface LastPour {
   from: { x: number; y: number };
@@ -158,8 +159,8 @@ function RateContent({
   }
 
   return (
-    <div className="mx-auto max-w-xl pb-6 pt-4 lg:pt-8">
-      <h1 className="section-title mb-4">{ratePage.title}</h1>
+    <div className="mx-auto max-w-xl pb-6 pt-6 lg:pt-10">
+      <ScreenHeader eyebrow={ratePage.title} title={ratePage.heading} />
       <PourForm
         suggestions={nearest}
         suggestionsLabel={pour.nearLabel}

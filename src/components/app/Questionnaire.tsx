@@ -86,7 +86,7 @@ export function Questionnaire({
         aria-valuenow={Math.round(progress)}
       >
         <div
-          className="absolute -top-px left-0 h-0.75 bg-primary transition-all duration-500 ease-out"
+          className="absolute -top-px left-0 h-0.75 bg-foreground transition-all duration-500 ease-out"
           style={{ width: `${Math.max(number / MAX_QUESTIONS, progress / 100) * 100}%` }}
         />
       </div>
@@ -170,7 +170,7 @@ function QuestionStage({ question, isNavigating, canGoBack, onSelectOption, onBa
   return (
     <>
       <div className="flex flex-col gap-3.5 px-6 pt-10">
-        {category && <span className="label-caps text-primary">{category.label}</span>}
+        {category && <span className="label-caps">{category.label}</span>}
         <h1 className="font-serif text-title font-bold text-foreground">{question.text}</h1>
         {question.subtitle && <p className="text-ui text-muted-foreground">{question.subtitle}</p>}
       </div>
@@ -192,10 +192,10 @@ function QuestionStage({ question, isNavigating, canGoBack, onSelectOption, onBa
               className={cn(
                 'flex border bg-card p-4.5 text-left transition-colors duration-150',
                 isPair ? 'flex-col gap-2' : 'items-start gap-3.5',
-                isPicked ? 'border-foreground shadow-mcm' : 'border-border hover:border-primary'
+                isPicked ? 'border-foreground shadow-mcm' : 'border-border hover:border-foreground'
               )}
             >
-              <span className="w-4.5 shrink-0 pt-0.5 font-condensed text-ui font-semibold tracking-label text-primary">
+              <span className="w-4.5 shrink-0 pt-0.5 font-condensed text-ui font-semibold tracking-label text-muted-foreground">
                 {ROMAN_NUMERALS[index] ?? index + 1}
               </span>
               <span className="flex flex-1 flex-col gap-1">

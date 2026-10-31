@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { appBar, logPage, moved, pour, radio, ratePage } from '../src/lib/copy';
+import { appBar, chart, logPage, moved, pour, radio, ratePage } from '../src/lib/copy';
 
 const profile = { x: 4, y: -2, dislikesSmoke: false, dislikesBitter: false, dislikesAnise: false, vibeTags: {} };
 
@@ -39,13 +39,13 @@ test('Log: a guest’s pour is kept on the device, in Log and on Radio', async (
 
   // Log shows the log, not a form: rating is a screen of its own.
   await page.goto('/log');
-  await expect(page.getByRole('heading', { name: logPage.title, level: 1 })).toBeVisible();
-  await expect(page.getByRole('heading', { name: ratePage.title })).toHaveCount(0);
+  await expect(page.getByRole('heading', { name: logPage.heading, level: 1 })).toBeVisible();
+  await expect(page.getByRole('heading', { name: ratePage.heading })).toHaveCount(0);
   await expect(page.getByRole('link', { name: logPage.rateDrink })).toHaveAttribute('href', '/rate');
 
   // A drink handed over opens the form.
   await page.goto('/rate?drink=Negroni');
-  await expect(page.getByRole('heading', { name: ratePage.title })).toBeVisible();
+  await expect(page.getByRole('heading', { name: ratePage.heading })).toBeVisible();
   await page.getByRole('group', { name: pour.whereLabel }).getByRole('button', { name: pour.atHome }).click();
   await page.getByRole('radio', { name: /^7:/ }).click();
   await page.getByRole('button', { name: pour.submit }).click();
@@ -53,7 +53,7 @@ test('Log: a guest’s pour is kept on the device, in Log and on Radio', async (
 
   // Rated: back on the ledger, and the pour survives a reload.
   await expect(page).toHaveURL(/\/log$/);
-  await expect(page.getByRole('heading', { name: ratePage.title })).toHaveCount(0);
+  await expect(page.getByRole('heading', { name: ratePage.heading })).toHaveCount(0);
   await page.reload();
   await expect(page.locator('ol').filter({ hasText: '7 of 9' })).toContainText('Negroni');
 
@@ -82,4 +82,37 @@ test('Harbour: from a bar on Compass, it starts at that bar’s menu', async ({ 
   await page.addInitScript((p) => localStorage.setItem('user_profile', JSON.stringify(p)), profile);
   await page.goto('/harbour?bar=Attaboy');
   await expect(page.getByRole('heading', { name: 'What’s on the menu?' })).toBeVisible();
+});
+
+test('Log: the chart sits beside the ledger on a wide screen, above it on a phone', async ({ page }) => {
+  await page.addInitScript((p) => localStorage.setItem('user_profile', JSON.stringify(p)), profile);
+  const map = page.getByRole('region', { name: chart.label });
+  const ledger = page.getByRole('heading', { name: logPage.ledgerTitle, exact: true });
+
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto('/log');
+  await expect(ledger).toBeVisible();
+  const [m, l] = [(await map.boundingBox())!, (await ledger.boundingBox())!];
+  expect(m.x + m.width).toBeLessThan(l.x);
+  expect(l.y).toBeLessThan(m.y + m.height);
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  const [m2, l2] = [(await map.boundingBox())!, (await ledger.boundingBox())!];
+  expect(m2.y + m2.height).toBeLessThan(l2.y);
+});
+
+test('Radio: the dial sits beside the log on a wide screen, above it on a phone', async ({ page }) => {
+  const dial = page.getByRole('group', { name: radio.filterLabel });
+  const air = page.getByText(radio.empty);
+
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto('/radio');
+  await expect(page.getByRole('heading', { level: 1, name: radio.heading })).toBeVisible();
+  await expect(air).toBeVisible();
+  const [d, a] = [(await dial.boundingBox())!, (await air.boundingBox())!];
+  expect(a.x + a.width).toBeLessThan(d.x);
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  const [d2, a2] = [(await dial.boundingBox())!, (await air.boundingBox())!];
+  expect(d2.y + d2.height).toBeLessThan(a2.y);
 });
