@@ -1,5 +1,10 @@
 # Cloudflare Workers Configuration (Astro SSR)
-name = "crystal-coupe"
+# Must match the Worker's name in the Cloudflare dashboard, which Workers Builds
+# deploys from `main`; a mismatch fails the build, and production stays on the
+# last good deploy. The resources below keep their pre-rename names
+# (`crystal-coupe-kv`, the `crystal-coupe-gateway` AI Gateway): those are other
+# objects, found by id or by their own name, not by the Worker's.
+name = "cotidal"
 compatibility_date = "2026-08-01"
 compatibility_flags = ["nodejs_compat"]
 
