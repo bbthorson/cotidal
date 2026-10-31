@@ -115,7 +115,7 @@ test('Menu: one ranked list, with no occasion switch', async ({ page }) => {
   await expect(page.getByRole('region', { name: 'The chart' })).toHaveCount(0);
 });
 
-test('Compass: search a drink, tap it, then "Log this" opens /rate on that drink', async ({ page }) => {
+test('Compass: search a drink, tap it, then "Rate this" opens /rate on that drink', async ({ page }) => {
   await page.goto('/compass');
 
   // A drink is found by what is in it, not only by its name.
@@ -133,7 +133,7 @@ test('Compass: search a drink, tap it, then "Log this" opens /rate on that drink
   await first.getByRole('button').click();
   await expect(page.getByText('Closeness', { exact: true })).toBeVisible();
 
-  await page.getByRole('button', { name: 'Log this' }).click();
+  await page.getByRole('button', { name: 'Rate this' }).click();
   await expect(page).toHaveURL(/\/rate\?drink=/);
   // A guest with no coordinate starts from the cold state; the drink waits.
   const asGuest = page.getByRole('button', { name: coldState.guestCta });

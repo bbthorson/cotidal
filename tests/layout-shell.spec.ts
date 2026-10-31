@@ -27,6 +27,6 @@ test('Layout: one main landmark and one site footer on every route', async ({ pa
     await page.goto(route);
     await expect(page.locator('main'), route).toHaveCount(1);
     await expect(page.locator('footer'), route).toHaveCount(1);
-    await expect(page.getByRole('navigation', { name: 'Main Navigation' }), route).toBeVisible();
+    await expect(page.getByRole('navigation', { name: 'Main navigation' }), route).toBeVisible();
   }
 });

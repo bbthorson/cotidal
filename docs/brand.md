@@ -54,12 +54,15 @@ you belong, glossed but never justified. They live in `src/lib/copy.ts` and
 can be replaced in one file; the ids are URLs, so a rename adds a redirect
 (`astro.config.mjs`, `formerQuadrantIds`).
 
-Chart words carry the brand — *the chart*, *drift*, *reckoned*, *within
-hail*, *come aboard* — but links and navigation use plain words ("Drinks"): a
+Chart words carry the brand — *the chart*, *drift*, *reckoned* — but links,
+buttons and navigation use plain words ("Drinks", "Sign in"): a
 reader should never have to decode where a link goes. A chart word has to be
 one a reader already knows. *The rutter* (a mariner's book of sailing
 directions) named the drinks register until a reader pointed out that nobody
-knows it; it is gone from the interface.
+knows it; it is gone from the interface. *Come aboard* and *Go ashore* named
+signing in and out until the copy pass of October 2026: they sat in the header
+of every page, which is navigation, so they are "Sign in" and "Sign out" now.
+*Within hail* went with them.
 
 The register is solitary hydrography, not dress-up: never *ahoy*, pirates,
 treasure, setting sail or shanties.
@@ -73,8 +76,9 @@ nautical where a plain word allows it.
 | **Compass** | The map and your menu | Which way to go next |
 | **Log** | Yours: coordinate, pours, account | A ship's log is its own record |
 | **Pick a drink** | The harbour's steps | Never *order*: Cotidal is not connected to the bar, and the bartender takes the order |
-| **Come aboard** | Sign in | The button that starts Bluesky sign-in says so: "Come aboard with Bluesky" |
-| **Go ashore** | Sign out | Its explanation says it signs you out |
+| **Rate** | Open the form for a drink you had | "Rate this", "Rate a drink", "Rate it". The form's button says **Log it** |
+| **Log** (the record) | Where a rated pour lands | Never *ledger* in the interface |
+| **Sign in / Sign out** | Bluesky sign-in | Plain words: they are navigation |
 
 ## Claims
 

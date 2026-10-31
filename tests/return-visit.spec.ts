@@ -7,7 +7,7 @@ test('Log: server-renders the route shell', async ({ page }) => {
 
   const html = await response.text();
   expect(html).toContain(coldState.title);
-  expect(html).toContain('aria-label="Main Navigation"');
+  expect(html).toContain('aria-label="Main navigation"');
   expect(html).toContain('href="/log"');
 });
 

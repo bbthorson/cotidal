@@ -94,7 +94,7 @@ test('Landing: sign-in works without JavaScript', async ({ browser }) => {
 
   // A real <form> post, not a fetch() handler, so the flow degrades cleanly.
   const form = page.locator('form[action="/api/auth/atproto/login"]');
-  const disabled = page.getByText('Sign-in is not enabled in this environment.');
+  const disabled = page.getByText('Signing in is switched off for now. Everything else works.');
   await expect(form.or(disabled).first()).toBeVisible();
 
   await expect(page.getByRole('link', { name: /find your coordinate/i })).toHaveAttribute(
@@ -111,19 +111,19 @@ test('Landing: surfaces sign-in errors from the callback', async ({ page }) => {
 
 test('Navigation: unified header navigation renders on landing and register', async ({ page }) => {
   const landing = await (await page.request.get('/')).text();
-  expect(landing).toContain('aria-label="Main Navigation"');
+  expect(landing).toContain('aria-label="Main navigation"');
   expect(landing).toContain('href="/compass"');
   expect(landing).toContain('href="/drinks"');
   expect(landing).toContain('href="/#regions"');
   expect(landing).toContain('href="/#connect"');
 
   const register = await (await page.request.get('/drinks')).text();
-  expect(register).toContain('aria-label="Main Navigation"');
+  expect(register).toContain('aria-label="Main navigation"');
   expect(register).toContain('href="/compass"');
   expect(register).toContain('href="/drinks"');
 
   const compass = await (await page.request.get('/compass')).text();
-  expect(compass).toContain('aria-label="Main Navigation"');
+  expect(compass).toContain('aria-label="Main navigation"');
   expect(compass).toContain('href="/compass"');
   expect(compass).toContain('href="/drinks"');
 });
@@ -134,7 +134,7 @@ test('Header: on a phone the destinations fold under "Menu", without JavaScript'
   const page = await context.newPage();
   await page.goto('/');
 
-  const nav = page.getByRole('navigation', { name: 'Main Navigation' });
+  const nav = page.getByRole('navigation', { name: 'Main navigation' });
   await expect(nav).toBeHidden();
   await page.locator('header summary').click();
   await expect(nav).toBeVisible();
