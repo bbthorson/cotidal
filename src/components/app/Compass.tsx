@@ -10,7 +10,7 @@ import { AtprotoProvider, useAtprotoContext } from './AtprotoProvider';
 import { useProfile } from '@/hooks/useProfile';
 import { userFromProfile } from '@/lib/profile';
 import { WaitingPick } from './WaitingPick';
-import { GuestPrompt, ScreenHeader } from './ui';
+import { Empty, GuestPrompt, ScreenHeader } from './ui';
 import { BarCard, BarRows, NearPanel, useNearby } from './Near';
 import { metresBetween } from '@/lib/osm';
 import { readGeo } from '@/lib/atproto/location';
@@ -136,7 +136,7 @@ function CompassContent({
               <section className="mt-6 lg:mt-0">
                 <h2 className="section-title">{compass.drinksTitle}</h2>
                 {drinkHits.length === 0 ? (
-                  <p className="border-b border-border py-4 text-meta text-muted-foreground">{compass.noDrinks}</p>
+                  <Empty>{compass.noDrinks}</Empty>
                 ) : (
                   <ol>
                     {drinkHits.slice(0, 20).map((d) => (
@@ -171,16 +171,21 @@ function CompassContent({
               {!hasCoordinate ? (
                 // Without a coordinate the ranking is distance from the origin, which
                 // is nobody's menu: say what it needs instead of presenting one.
-                <section className="flex flex-col gap-2.5">
+                <section>
                   <h2 className="section-title">{menu.coldTitle}</h2>
-                  <p className="text-ui text-muted-foreground">{menu.coldBody}</p>
-                  <button
-                    type="button"
-                    onClick={() => window.location.assign(questionsHref)}
-                    className="btn btn-primary mt-1.5 w-full px-6"
+                  <Empty
+                    action={
+                      <button
+                        type="button"
+                        onClick={() => window.location.assign(questionsHref)}
+                        className="btn btn-primary w-full px-6"
+                      >
+                        {compass.findYours}
+                      </button>
+                    }
                   >
-                    {compass.findYours}
-                  </button>
+                    {menu.coldBody}
+                  </Empty>
                 </section>
               ) : top ? (
                 <>
@@ -201,7 +206,7 @@ function CompassContent({
                   </ol>
                 </>
               ) : (
-                <p className="font-serif text-prose italic text-muted-foreground">{menu.empty}</p>
+                <Empty>{menu.empty}</Empty>
               )}
               {bars.length > 0 && <BarList title={compass.yourBars} bars={bars} extra={null} />}
             </>

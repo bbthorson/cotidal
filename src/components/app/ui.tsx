@@ -65,6 +65,29 @@ export function GuestPrompt({
   );
 }
 
+/**
+ * A list with nothing in it yet: one sentence in the voice, italic, ruled
+ * beneath, and at most one action. It sits under the list's own heading, so
+ * it brings no heading of its own. A whole screen that cannot start without a
+ * coordinate is a different thing: `ColdState`, a `ScreenHeader` and its ways in.
+ */
+export function Empty({
+  children,
+  action,
+  className,
+}: {
+  children: ReactNode;
+  action?: ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className={cn('flex flex-col items-start gap-4 border-b border-border py-6', className)}>
+      <p className="font-serif text-prose italic text-muted-foreground">{children}</p>
+      {action}
+    </div>
+  );
+}
+
 /** Held in a list's place while it loads. */
 export function Loading() {
   return <p className="py-6 font-serif text-ui italic text-muted-foreground motion-safe:animate-pulse">…</p>;

@@ -193,12 +193,6 @@
     z-index: 0;
   }
 
-  /* Coaster-style card: nearly square edges, a faint ring stain */
-  .coaster {
-    @apply rounded-sm;
-    box-shadow: inset 0 0 0 1px hsl(var(--border));
-  }
-
   /* Wine-list leader: name ......... amount. The dotted rule is its own
      element rather than a ::after on the container, because a ::after can
      only ever land after both columns, never between them. */

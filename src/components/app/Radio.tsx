@@ -5,7 +5,7 @@ import type { PourRecord } from '@/lib/atproto/records';
 import { usePours } from '@/hooks/usePours';
 import { AtprotoProvider, useAtprotoContext } from './AtprotoProvider';
 import { WaitingPick } from './WaitingPick';
-import { GuestPrompt, Loading, ScreenHeader } from './ui';
+import { Empty, GuestPrompt, Loading, ScreenHeader } from './ui';
 
 type Filter = (typeof radio.filters)[number]['id'];
 
@@ -88,14 +88,12 @@ function RadioContent({
 
         <div className="lg:col-span-2 lg:col-start-1 lg:row-start-1">
           {filter !== 'all' ? (
-            <p className="border-y border-border py-6 font-serif text-prose italic text-muted-foreground">
-              {filter === 'following' ? radio.followingLater : radio.nearbyLater}
-            </p>
+            <Empty className="border-t">{filter === 'following' ? radio.followingLater : radio.nearbyLater}</Empty>
           ) : pours === null ? (
             <Loading />
           ) : pours.length === 0 ? (
             // "Pick a drink" floats over the page already; a second button here only repeats it.
-            <p className="border-y border-border py-6 font-serif text-prose italic text-muted-foreground">{radio.empty}</p>
+            <Empty className="border-t">{radio.empty}</Empty>
           ) : (
             days.map((day) => (
               <section key={day.label} aria-label={day.label} className="mt-2">

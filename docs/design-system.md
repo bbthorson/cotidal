@@ -123,7 +123,7 @@ Width and padding stay with the layout (`w-full`, `px-8`).
 - **Caps link**: `.link-caps` — 44px, condensed, wide-set; the colour is the caller's. The italic underlined link in running serif is `.link-serif` (grey-green underline, ink on hover).
 - **Section title**: `.section-title` — a rule of ink under a bold serif line.
 - **Text field**: `.field` — 16px, hairline border, terracotta on focus.
-- **Shared components** (`src/components/app/ui.tsx`, `PinnedCard.tsx`, `ColdState.tsx`): `ScreenHeader` (how an app screen opens: eyebrow, `text-title` heading, optional lede, left-aligned), `GuestPrompt` (what signing in buys, with the one button; ruled above and below, not boxed), `Loading`, `Chip`, `PinnedCard` (the drink card and the bar card: pinned above the app bar), and `ColdState` (what Log and Rate say to someone with no coordinate).
+- **Shared components** (`src/components/app/ui.tsx`, `PinnedCard.tsx`, `ColdState.tsx`): `ScreenHeader` (how an app screen opens: eyebrow, `text-title` heading, optional lede, left-aligned), `Empty` (a list with nothing in it yet: one italic sentence in the voice, ruled beneath, at most one action; it sits under the list's own heading), `GuestPrompt` (what signing in buys, with the one button; ruled above and below, not boxed), `Loading`, `Chip`, `PinnedCard` (the drink card and the bar card: pinned above the app bar), and `ColdState` (what Log and Rate say to someone with no coordinate).
 - **Paper Grain**: `.bar-texture` applies a subtle SVG fractal grain texture.
 
 ---
@@ -147,6 +147,7 @@ Navigation is unified across the entire site through `<SiteHeader.astro>` and `<
 10. **Pick a drink** (`PickButton.astro`): choosing what to have is the one thing you *do*, not a place, so it is a floating button rather than a tab — above the app bar on a phone; from `lg` at the foot of the content's right edge (`right-frame-edge`), not the window's corner. It opens the harbour. Not drawn on the harbour, while a drink card is open, or in focus mode.
 11. **Two tiers of page title.** Reading pages open with the centred `PageTitle`. App screens open with `ScreenHeader` — the tab's name as the eyebrow, then the screen's own title — left-aligned and at one size. Every app screen uses it: Radio, Compass and Log (eyebrow: the tab's name), the harbour (eyebrow "Pick a drink", the title the step's question, under the step strip), Rate ("Rate it" · "How was it?") and the cold state (`ColdState`). The two focused tasks, the harbour and Rate, keep a single centred form column on every width; the three tabs use the `frame` width and lay out in columns from `lg`.
 12. **One sheet per screen.** Only what is yours — the top pick, the chosen option, the pinned card — is a sheet with `shadow-mcm`. Everything else is a ruled section (`section-title`) or rows. A map sits in a frame on the ground, as a printed chart does; that is a figure, not a sheet.
+13. **Two kinds of empty.** A list with nothing in it yet is `Empty`: Radio's log and its Later dials, Log's ledger, Compass's menu without a coordinate, a search with no match, no bars near. A screen that cannot start without a coordinate is a `ScreenHeader` and its ways in: `ColdState` on Log and Rate, the harbour's own. Nothing else says "empty".
 
 ## The first-visit flow (`/questions`)
 

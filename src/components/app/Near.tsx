@@ -4,6 +4,7 @@ import { compass } from '@/lib/copy';
 import { harbourAt } from '@/lib/site-nav';
 import { cn } from '@/lib/utils';
 import { PinnedCard } from './PinnedCard';
+import { Empty } from './ui';
 
 const NearMap = lazy(() => import('./NearMap').then((m) => ({ default: m.NearMap })));
 
@@ -100,7 +101,7 @@ export function NearPanel({
         <div className="mt-4">
           <h2 className="section-title">{compass.nearTitle}</h2>
           {bars.length === 0 ? (
-            <p className="border-b border-border py-4 text-meta text-muted-foreground">{compass.noneNear}</p>
+            <Empty>{compass.noneNear}</Empty>
           ) : (
             <BarRows bars={bars.slice(0, 8)} known={known} selected={selected} onSelect={onSelect} />
           )}
