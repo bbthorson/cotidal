@@ -98,8 +98,9 @@ const description = name && region ? publicMap.description(name, region.name) : 
 
 const marks = subject
   ? [
-      { x: subject.x, y: subject.y, label: isSelf ? publicMap.you : publicMap.them, tone: 'primary' as const },
-      ...(viewer ? [{ x: viewer.x, y: viewer.y, label: publicMap.you, tone: 'secondary' as const }] : []),
+      // Terracotta is yours (docs/design-system.md): your own mark, wherever it is drawn.
+      { x: subject.x, y: subject.y, label: isSelf ? publicMap.you : publicMap.them, tone: isSelf ? ('primary' as const) : ('secondary' as const) },
+      ...(viewer ? [{ x: viewer.x, y: viewer.y, label: publicMap.you, tone: 'primary' as const }] : []),
     ]
   : [];
 
@@ -123,7 +124,7 @@ const ctaClass =
           <span class="label-caps text-secondary">{publicMap.lands}</span>
           <a
             href={`/regions/${region.id}`}
-            class="label-caps border border-border px-2.5 py-0.5 text-primary transition-colors hover:border-primary"
+            class="tag transition-colors hover:border-foreground"
           >
             {region.name}
           </a>
@@ -182,7 +183,7 @@ const ctaClass =
 
       {near.length > 0 && (
         <section class="space-y-3">
-          <h2 class="label-caps border-b border-foreground pb-2 text-foreground">{publicMap.nearLabel}</h2>
+          <h2 class="section-title">{publicMap.nearLabel}</h2>
           <ul class="divide-y divide-border">
             {near.map((drink) => {
               const href = entryHref(drink);

@@ -53,12 +53,12 @@ const grouped = quadrants.map((quadrant) => ({
                 <h2 class="font-serif text-heading font-bold text-foreground">{quadrant.name}</h2>
                 <span class="label-caps text-secondary">{quadrant.axis}</span>
               </div>
-              <p class="mt-2 font-serif text-label italic leading-relaxed text-muted-foreground">
+              <p class="mt-2 font-serif text-ui italic leading-relaxed text-muted-foreground">
                 {quadrant.gloss}
               </p>
 
               {items.length === 0 ? (
-                <p class="mt-5 font-serif text-label italic text-muted-foreground">
+                <p class="mt-5 font-serif text-ui italic text-muted-foreground">
                   {copy.emptyQuadrant}
                 </p>
               ) : (
@@ -77,7 +77,7 @@ const grouped = quadrants.map((quadrant) => ({
                             {drink.y}
                           </span>
                         </span>
-                        <p class="mt-1 max-w-xl font-serif text-label leading-relaxed text-muted-foreground">
+                        <p class="mt-1 max-w-xl text-meta leading-relaxed text-muted-foreground">
                           {entry.data.summary}
                         </p>
                       </a>

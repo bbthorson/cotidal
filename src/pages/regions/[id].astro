@@ -62,7 +62,7 @@ const others = quadrants.filter((q) => q.id !== id);
 
     <!-- What ordering from it says about you -->
     <section class="pb-12">
-      <h2 class="label-caps border-b border-foreground pb-2 text-foreground">
+      <h2 class="section-title">
         {copy.orderingLabel}
       </h2>
       <p class="mt-4 font-serif text-ui leading-relaxed text-foreground">
@@ -72,8 +72,8 @@ const others = quadrants.filter((q) => q.id !== id);
 
     <!-- The drinks that live there -->
     <section class="pb-12">
-      <div class="flex items-baseline justify-between border-b border-foreground pb-2">
-        <h2 class="label-caps text-foreground">{copy.drinksLabel}</h2>
+      <div class="flex items-baseline justify-between gap-4 border-b border-foreground pb-1.5">
+        <h2 class="font-serif text-heading font-bold text-foreground">{copy.drinksLabel}</h2>
         <a
           href={`/drinks#${region.id}`}
           class="label-caps text-muted-foreground transition-colors hover:text-foreground"
@@ -102,7 +102,7 @@ const others = quadrants.filter((q) => q.id !== id);
           ))
         }
       </ul>
-      <p class="mt-3 font-serif text-label italic leading-relaxed text-muted-foreground">
+      <p class="mt-3 font-serif text-ui italic leading-relaxed text-muted-foreground">
         {copy.placedNote}
       </p>
     </section>
@@ -111,7 +111,7 @@ const others = quadrants.filter((q) => q.id !== id);
     {
       shared.length > 0 && (
         <section class="pb-12">
-          <h2 class="label-caps border-b border-foreground pb-2 text-foreground">
+          <h2 class="section-title">
             {copy.sharedLabel}
           </h2>
           <ul class="border-b border-border">
@@ -125,7 +125,7 @@ const others = quadrants.filter((q) => q.id !== id);
               </li>
             ))}
           </ul>
-          <p class="mt-3 font-serif text-label italic leading-relaxed text-muted-foreground">
+          <p class="mt-3 font-serif text-ui italic leading-relaxed text-muted-foreground">
             {copy.sharedNote(placed.length)}
           </p>
         </section>
@@ -155,7 +155,7 @@ const others = quadrants.filter((q) => q.id !== id);
                   <span class="leader" aria-hidden="true" />
                   <span class="label-caps shrink-0">{other.axis}</span>
                 </span>
-                <p class="mt-1 font-serif text-label italic leading-relaxed text-muted-foreground">
+                <p class="mt-1 font-serif text-ui italic leading-relaxed text-muted-foreground">
                   {other.gloss}
                 </p>
               </a>

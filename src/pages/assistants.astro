@@ -32,13 +32,13 @@ const handle = account.kind === 'member' ? account.handle : null;
 
     <section class="space-y-3">
       <h2 class="label-caps text-foreground">{copy.urlLabel}</h2>
-      <p class="select-all break-all border border-foreground bg-card p-4 font-code text-ui text-foreground" data-testid="mcp-address">
+      <p class="select-all break-all rounded-sm border border-border bg-card px-3.5 py-3 font-code text-ui text-foreground" data-testid="mcp-address">
         {address}
       </p>
     </section>
 
     <section class="space-y-3">
-      <h2 class="font-serif text-title font-bold">{copy.stepsTitle}</h2>
+      <h2 class="section-title">{copy.stepsTitle}</h2>
       <ol class="list-decimal space-y-2 pl-6 text-ui text-foreground">
         {copy.steps.map((step) => <li>{step}</li>)}
       </ol>
@@ -46,7 +46,7 @@ const handle = account.kind === 'member' ? account.handle : null;
     </section>
 
     <section class="space-y-3">
-      <h2 class="font-serif text-title font-bold">{copy.canTitle}</h2>
+      <h2 class="section-title">{copy.canTitle}</h2>
       <ul class="list-disc space-y-2 pl-6 text-ui text-foreground">
         {copy.can.map((line) => <li>{line}</li>)}
       </ul>
@@ -54,7 +54,7 @@ const handle = account.kind === 'member' ? account.handle : null;
     </section>
 
     <section class="space-y-3">
-      <h2 class="font-serif text-title font-bold">{copy.readOnlyTitle}</h2>
+      <h2 class="section-title">{copy.readOnlyTitle}</h2>
       <p class="text-ui text-muted-foreground">{copy.readOnly}</p>
     </section>
   </div>
