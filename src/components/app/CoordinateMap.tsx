@@ -113,7 +113,7 @@ export function CoordinateMap({
       ))}
 
       {showAxes && (
-        <div aria-hidden="true" className={cn('font-condensed text-2xs uppercase tracking-label', ink ? 'text-reveal-muted' : 'text-muted-foreground')}>
+        <div aria-hidden="true" className={cn('font-condensed text-label uppercase tracking-label', ink ? 'text-reveal-muted' : 'text-muted-foreground')}>
           <span className="absolute left-1.5 top-1/2 -translate-y-full pb-1">{axes.rich}</span>
           <span className="absolute right-1.5 top-1/2 -translate-y-full pb-1">{axes.crisp}</span>
           <span className="absolute left-1/2 top-1.5 pl-2">{axes.sweet}</span>

@@ -21,7 +21,7 @@ const { enabled, error } = Astro.props;
     {
       connect.buys.map((b, i) => (
         <li class="flex gap-3 border-b border-border py-3">
-          <span class="w-3.5 shrink-0 font-condensed text-ui font-bold text-primary">{i + 1}</span>
+          <span class="w-3.5 shrink-0 font-condensed text-ui font-bold text-muted-foreground">{i + 1}</span>
           <div class="space-y-0.5">
             <p class="text-ui font-bold text-foreground">{b.title}</p>
             <p class="text-meta text-muted-foreground">{b.body}</p>
@@ -69,7 +69,7 @@ const { enabled, error } = Astro.props;
         </button>
       </form>
     ) : (
-      <p class="border border-border bg-muted px-3 py-2.5 text-meta text-muted-foreground">
+      <p class="border-y border-border py-2.5 text-meta text-muted-foreground">
         {connect.disabled}
       </p>
     )

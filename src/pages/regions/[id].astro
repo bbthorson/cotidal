@@ -62,7 +62,7 @@ const others = quadrants.filter((q) => q.id !== id);
 
     <!-- What ordering from it says about you -->
     <section class="pb-12">
-      <h2 class="label-caps border-b border-foreground pb-2 text-foreground">
+      <h2 class="section-title">
         {copy.orderingLabel}
       </h2>
       <p class="mt-4 font-serif text-ui leading-relaxed text-foreground">
@@ -72,11 +72,11 @@ const others = quadrants.filter((q) => q.id !== id);
 
     <!-- The drinks that live there -->
     <section class="pb-12">
-      <div class="flex items-baseline justify-between border-b border-foreground pb-2">
-        <h2 class="label-caps text-foreground">{copy.drinksLabel}</h2>
+      <div class="flex items-baseline justify-between gap-4 border-b border-foreground pb-1.5">
+        <h2 class="font-serif text-heading font-bold text-foreground">{copy.drinksLabel}</h2>
         <a
           href={`/drinks#${region.id}`}
-          class="label-caps text-muted-foreground transition-colors hover:text-primary"
+          class="label-caps text-muted-foreground transition-colors hover:text-foreground"
         >
           {sections.regionDrinks} &rarr;
         </a>
@@ -87,7 +87,7 @@ const others = quadrants.filter((q) => q.id !== id);
             <li class="menu-row first:border-t-0">
               <a href={`/drinks/${drinkEntry.id}`} class="group block py-3">
                 <span class="dot-leader">
-                  <span class="font-serif text-prose font-bold text-foreground transition-colors group-hover:text-primary">
+                  <span class="font-serif text-prose font-bold text-foreground transition-colors group-hover:underline group-hover:underline-offset-4">
                     {drinkEntry.data.title}
                   </span>
                   <span class="leader" aria-hidden="true" />
@@ -102,7 +102,7 @@ const others = quadrants.filter((q) => q.id !== id);
           ))
         }
       </ul>
-      <p class="mt-3 font-serif text-label italic leading-relaxed text-muted-foreground">
+      <p class="mt-3 font-serif text-ui italic leading-relaxed text-muted-foreground">
         {copy.placedNote}
       </p>
     </section>
@@ -111,7 +111,7 @@ const others = quadrants.filter((q) => q.id !== id);
     {
       shared.length > 0 && (
         <section class="pb-12">
-          <h2 class="label-caps border-b border-foreground pb-2 text-foreground">
+          <h2 class="section-title">
             {copy.sharedLabel}
           </h2>
           <ul class="border-b border-border">
@@ -125,7 +125,7 @@ const others = quadrants.filter((q) => q.id !== id);
               </li>
             ))}
           </ul>
-          <p class="mt-3 font-serif text-label italic leading-relaxed text-muted-foreground">
+          <p class="mt-3 font-serif text-ui italic leading-relaxed text-muted-foreground">
             {copy.sharedNote(placed.length)}
           </p>
         </section>
@@ -135,7 +135,7 @@ const others = quadrants.filter((q) => q.id !== id);
     {entry && <OnTheRecord {...entry.data} />}
 
     <p class="pb-10 text-center font-serif text-ui">
-      <a href={regionCoasterPath(region.id)} class="text-primary underline underline-offset-4" data-testid="region-coaster-link">
+      <a href={regionCoasterPath(region.id)} class="text-foreground underline decoration-muted-foreground underline-offset-4 hover:decoration-foreground" data-testid="region-coaster-link">
         {coaster.regionLink}
       </a>
     </p>
@@ -149,13 +149,13 @@ const others = quadrants.filter((q) => q.id !== id);
             <li class="menu-row first:border-t-0">
               <a href={`/regions/${other.id}`} class="group block py-3">
                 <span class="dot-leader">
-                  <span class="font-serif text-prose font-bold text-foreground transition-colors group-hover:text-primary">
+                  <span class="font-serif text-prose font-bold text-foreground transition-colors group-hover:underline group-hover:underline-offset-4">
                     {other.name}
                   </span>
                   <span class="leader" aria-hidden="true" />
                   <span class="label-caps shrink-0">{other.axis}</span>
                 </span>
-                <p class="mt-1 font-serif text-label italic leading-relaxed text-muted-foreground">
+                <p class="mt-1 font-serif text-ui italic leading-relaxed text-muted-foreground">
                   {other.gloss}
                 </p>
               </a>

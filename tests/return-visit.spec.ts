@@ -21,7 +21,7 @@ test('Rate: a guest logs a pour, sees the coordinate move, then the ledger', asy
 
   // Trying a pour as a guest opens the rating screen: the one pour form.
   await expect(page).toHaveURL(/\/rate$/);
-  await expect(page.getByRole('heading', { name: ratePage.title })).toBeVisible();
+  await expect(page.getByRole('heading', { name: ratePage.heading })).toBeVisible();
 
   const where = page.getByRole('group', { name: pour.whereLabel });
   await where.getByRole('button', { name: pour.atHome }).click();

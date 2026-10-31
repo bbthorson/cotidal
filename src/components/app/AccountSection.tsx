@@ -54,18 +54,18 @@ export function AccountSection({
         <div className="flex flex-wrap items-center gap-x-5">
           {handle && (
             <>
-              <a href={publicMapPath(handle)} className={cn(link, 'text-secondary hover:text-primary')}>
+              <a href={publicMapPath(handle)} className={cn(link, 'text-secondary hover:underline hover:underline-offset-4')}>
                 {account.publicMap}
               </a>
               <button
                 type="button"
                 onClick={share}
                 disabled={shareState !== 'idle'}
-                className={cn(link, 'text-secondary hover:text-primary disabled:text-muted-foreground')}
+                className={cn(link, 'text-secondary hover:text-foreground disabled:text-muted-foreground')}
               >
                 {shareState === 'shared' ? account.shared : account.share}
               </button>
-              <a href="/assistants" className={cn(link, 'text-secondary hover:text-primary')}>
+              <a href="/assistants" className={cn(link, 'text-secondary hover:underline hover:underline-offset-4')}>
                 {account.assistants}
               </a>
             </>
@@ -74,7 +74,7 @@ export function AccountSection({
             <button
               type="button"
               onClick={() => setConfirming(true)}
-              className={cn(link, 'text-muted-foreground hover:text-primary')}
+              className={cn(link, 'text-muted-foreground hover:text-foreground')}
             >
               {account.startOver}
             </button>

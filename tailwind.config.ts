@@ -25,6 +25,9 @@ export default {
         // The phone's bottom tab bar: its 56px row plus `safe-b` beneath it.
         // Whatever sits above the bar (the drink card) or must clear it (the page's foot) uses this.
         'tabbar': 'calc(3.5rem + max(env(safe-area-inset-bottom, 0px), 1rem))',
+        // The content's right edge inside the header's band (max-w-5xl, px-6),
+        // so a fixed control lines up with the page rather than the window.
+        'frame-edge': 'max(1.5rem, calc((100% - 64rem) / 2 + 1.5rem))',
         // 3px: the progress bar and the active tab's rule
         '0.75': '3px',
         // 7px: a drink on the map
@@ -55,10 +58,6 @@ export default {
         '3': '3px',
       },
       fontSize: {
-        // `text-2xs` / `text-3xs` are used ~40 times across the app but were
-        // never defined, so those elements silently rendered at inherited size.
-        '3xs': ['0.625rem', { lineHeight: '0.875rem' }],
-        '2xs': ['0.6875rem', { lineHeight: '1rem' }],
         // The specimen-book type scale (docs/design-system.md). Named for the
         // role, so a size is chosen once rather than approximated per screen.
         label: ['0.75rem', { lineHeight: '1rem' }], // 12 · condensed caps: labels, links, buttons

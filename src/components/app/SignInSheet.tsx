@@ -46,7 +46,7 @@ export function SignInSheet({ open, onOpenChange }: SignInSheetProps) {
           <ol className="border-t border-foreground">
             {connect.buys.map((b, i) => (
               <li key={b.title} className="flex gap-3 border-b border-border py-3">
-                <span className="w-3.5 shrink-0 font-condensed text-ui font-bold text-primary">{i + 1}</span>
+                <span className="w-3.5 shrink-0 font-condensed text-ui font-bold text-muted-foreground">{i + 1}</span>
                 <div className="flex flex-col gap-0.5">
                   <span className="text-ui font-bold">{b.title}</span>
                   <span className="text-meta text-muted-foreground">{b.body}</span>

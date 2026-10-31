@@ -137,7 +137,7 @@ test('Compass: search a drink, tap it, then "Log this" opens /rate on that drink
   await expect(page).toHaveURL(/\/rate\?drink=/);
   // A guest with no coordinate starts from the cold state; the drink waits.
   const asGuest = page.getByRole('button', { name: coldState.guestCta });
-  const form = page.getByRole('heading', { name: ratePage.title });
+  const form = page.getByRole('heading', { name: ratePage.heading });
   await expect(asGuest.or(form)).toBeVisible();
   if (await asGuest.isVisible()) await asGuest.click();
   await expect(form).toBeVisible();

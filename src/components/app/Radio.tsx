@@ -5,7 +5,7 @@ import type { PourRecord } from '@/lib/atproto/records';
 import { usePours } from '@/hooks/usePours';
 import { AtprotoProvider, useAtprotoContext } from './AtprotoProvider';
 import { WaitingPick } from './WaitingPick';
-import { GuestPrompt, Loading } from './ui';
+import { Empty, GuestPrompt, Loading, ScreenHeader } from './ui';
 
 type Filter = (typeof radio.filters)[number]['id'];
 
@@ -24,6 +24,9 @@ function dayLabel(iso: string, now = new Date()): string {
  * time in the margin, who sent it, what and where. Today it carries your
  * own pours; Following and Nearby are on the dial and say plainly they are
  * Later, rather than standing empty.
+ *
+ * From `lg` the log takes two thirds and the dial sits beside it, with a pick
+ * waiting and what signing in buys; on a phone the dial comes first.
  *
  * `member` is the server's answer (`accountFor`), so a guest is told what
  * signing in buys before anything loads.
@@ -55,87 +58,90 @@ function RadioContent({
   }, [pours]);
 
   return (
-    <div className="mx-auto max-w-xl pb-6 pt-4 lg:pt-8">
-      {/* Named for screen readers; on screen the app bar already says where you are. */}
-      <h1 className="sr-only">{radio.title}</h1>
+    <div className="mx-auto max-w-xl pb-6 pt-6 lg:max-w-none lg:pt-10">
+      <ScreenHeader eyebrow={radio.title} title={radio.heading} />
 
-      <div role="group" aria-label={radio.filterLabel} className="segmented grid grid-cols-3">
-        {radio.filters.map((f) => (
-          <button
-            key={f.id}
-            type="button"
-            aria-pressed={filter === f.id}
-            onClick={() => setFilter(f.id)}
-            className="segment"
-          >
-            {f.label}
-          </button>
-        ))}
+      <div className="lg:grid lg:grid-cols-3 lg:items-start lg:gap-12">
+        <div className="lg:sticky lg:top-8 lg:col-start-3 lg:row-start-1">
+          <div role="group" aria-label={radio.filterLabel} className="segmented grid grid-cols-3">
+            {radio.filters.map((f) => (
+              <button
+                key={f.id}
+                type="button"
+                aria-pressed={filter === f.id}
+                onClick={() => setFilter(f.id)}
+                className="segment"
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="mt-4">
+            <WaitingPick displayName={name} />
+          </div>
+
+          {!member && canSignIn && (
+            <GuestPrompt className="mb-4" title={radio.guestTitle} body={radio.guestBody} onSignIn={openSignIn} />
+          )}
+        </div>
+
+        <div className="lg:col-span-2 lg:col-start-1 lg:row-start-1">
+          {filter !== 'all' ? (
+            <Empty className="border-t">{filter === 'following' ? radio.followingLater : radio.nearbyLater}</Empty>
+          ) : pours === null ? (
+            <Loading />
+          ) : pours.length === 0 ? (
+            // "Pick a drink" floats over the page already; a second button here only repeats it.
+            <Empty className="border-t">{radio.empty}</Empty>
+          ) : (
+            days.map((day) => (
+              <section key={day.label} aria-label={day.label} className="mt-2">
+                <h2 className="label-caps border-b border-foreground pb-1 pt-3 text-secondary">{day.label}</h2>
+                <ol>
+                  {day.pours.map((p, i) => {
+                    const entry = register[p.drink.name];
+                    const where = p.isHomePour ? pour.home : p.venue?.entity?.name;
+                    return (
+                      <li key={`${p.createdAt}-${i}`} className="grid grid-cols-radio gap-x-3 border-b border-border py-3">
+                        <time
+                          dateTime={p.createdAt}
+                          className="pt-1 font-condensed text-meta tabular-nums text-muted-foreground"
+                        >
+                          {new Date(p.createdAt).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}
+                        </time>
+                        <div className="flex min-w-0 flex-col gap-0.5">
+                          <span className="text-meta font-bold text-secondary">
+                            {sender}
+                            {where && <span className="font-normal text-muted-foreground"> · {where}</span>}
+                          </span>
+                          <div className="dot-leader">
+                            {entry ? (
+                              <a
+                                href={`/drinks/${entry.slug}`}
+                                className="font-serif text-prose font-bold text-foreground transition-colors hover:underline hover:underline-offset-4"
+                              >
+                                {entry.title}
+                              </a>
+                            ) : (
+                              <span className="font-serif text-prose font-bold text-foreground">{p.drink.name}</span>
+                            )}
+                            <span aria-hidden="true" className="leader" />
+                            <span className="shrink-0 font-condensed text-ui font-semibold tabular-nums">
+                              {pour.scoreOf(p.rating.hedonic)}
+                            </span>
+                          </div>
+                          {p.note && <p className="font-serif text-ui italic text-foreground">“{p.note}”</p>}
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ol>
+              </section>
+            ))
+          )}
+        </div>
       </div>
-
-      <div className="mt-4">
-        <WaitingPick displayName={name} />
-      </div>
-
-      {!member && canSignIn && (
-        <GuestPrompt className="mb-4" title={radio.guestTitle} body={radio.guestBody} onSignIn={openSignIn} />
-      )}
-
-      {filter !== 'all' ? (
-        <p className="border-y border-border py-6 font-serif text-prose italic text-muted-foreground">
-          {filter === 'following' ? radio.followingLater : radio.nearbyLater}
-        </p>
-      ) : pours === null ? (
-        <Loading />
-      ) : pours.length === 0 ? (
-        // "Pick a drink" floats over the page already; a second button here only repeats it.
-        <p className="border-y border-border py-6 font-serif text-prose italic text-muted-foreground">{radio.empty}</p>
-      ) : (
-        days.map((day) => (
-          <section key={day.label} aria-label={day.label} className="mt-2">
-            <h2 className="label-caps border-b border-foreground pb-1 pt-3 text-secondary">{day.label}</h2>
-            <ol>
-              {day.pours.map((p, i) => {
-                const entry = register[p.drink.name];
-                const where = p.isHomePour ? pour.home : p.venue?.entity?.name;
-                return (
-                  <li key={`${p.createdAt}-${i}`} className="grid grid-cols-radio gap-x-3 border-b border-border py-3">
-                    <time
-                      dateTime={p.createdAt}
-                      className="pt-1 font-condensed text-meta tabular-nums text-muted-foreground"
-                    >
-                      {new Date(p.createdAt).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}
-                    </time>
-                    <div className="flex min-w-0 flex-col gap-0.5">
-                      <span className="font-condensed text-label font-semibold uppercase tracking-label text-secondary">
-                        {sender}
-                        {where && <span className="font-normal text-muted-foreground"> · {where}</span>}
-                      </span>
-                      <div className="dot-leader">
-                        {entry ? (
-                          <a
-                            href={`/drinks/${entry.slug}`}
-                            className="font-serif text-prose font-bold text-foreground transition-colors hover:text-primary"
-                          >
-                            {entry.title}
-                          </a>
-                        ) : (
-                          <span className="font-serif text-prose font-bold text-foreground">{p.drink.name}</span>
-                        )}
-                        <span aria-hidden="true" className="leader" />
-                        <span className="shrink-0 font-condensed text-ui font-semibold tabular-nums">
-                          {pour.scoreOf(p.rating.hedonic)}
-                        </span>
-                      </div>
-                      {p.note && <p className="font-serif text-ui italic text-foreground">“{p.note}”</p>}
-                    </div>
-                  </li>
-                );
-              })}
-            </ol>
-          </section>
-        ))
-      )}
     </div>
   );
 }

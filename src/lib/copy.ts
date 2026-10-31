@@ -49,6 +49,7 @@ export const appBar = {
  */
 export const radio = {
   title: 'Radio',
+  heading: 'On the air',
   filterLabel: 'Tune to',
   filters: [
     { id: 'all', label: 'All' },
@@ -72,6 +73,7 @@ export const radio = {
  */
 export const compass = {
   title: 'Compass',
+  heading: 'Where to next',
   findYours: 'Find your coordinate',
   searchLabel: 'Search drinks and bars',
   placeholder: 'Negroni, mezcal, Attaboy…',
@@ -100,6 +102,7 @@ export const compass = {
 /** /log: yours — where you are, what you have poured, and the account. */
 export const logPage = {
   title: 'Log',
+  heading: 'Where you stand',
   guestEyebrow: 'On this device',
   guestTitle: 'Keep this log',
   guestBody: 'As a guest your coordinate and pours live on this device only. Come aboard with your Bluesky account and they live in your own account, and move with you.',
@@ -120,6 +123,7 @@ export const logPage = {
 /** /rate: one pour, rated, and where the coordinate went. */
 export const ratePage = {
   title: 'Rate it',
+  heading: 'How was it?',
 } as const;
 
 /**
@@ -573,18 +577,18 @@ export const pour = {
    * (`CATA` in records.ts). Reword a label freely; never rename a key.
    */
   cata: {
-    'bright-citrus': 'Bright Citrus',
-    'lime-peel': 'Lime Peel',
-    'stone-fruit': 'Stone Fruit',
-    'dark-cherry': 'Dark Cherry',
-    'campfire-smoke': 'Campfire Smoke',
-    'botanical-herb': 'Botanical Herb',
-    'baking-spice': 'Baking Spice',
-    'toasted-oak': 'Toasted Oak',
-    'floral-blossom': 'Floral Blossom',
-    'bittersweet-cocoa': 'Bittersweet Cocoa',
-    'briny-mineral': 'Briny Mineral',
-    'rich-velvet-body': 'Rich Velvet Body',
+    'bright-citrus': 'Bright citrus',
+    'lime-peel': 'Lime peel',
+    'stone-fruit': 'Stone fruit',
+    'dark-cherry': 'Dark cherry',
+    'campfire-smoke': 'Campfire smoke',
+    'botanical-herb': 'Botanical herb',
+    'baking-spice': 'Baking spice',
+    'toasted-oak': 'Toasted oak',
+    'floral-blossom': 'Floral blossom',
+    'bittersweet-cocoa': 'Bittersweet cocoa',
+    'briny-mineral': 'Briny mineral',
+    'rich-velvet-body': 'Rich velvet body',
   },
   crosspost: 'Also post it to your Bluesky feed',
   submit: 'Log this pour',

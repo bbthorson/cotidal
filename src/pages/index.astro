@@ -81,7 +81,7 @@ const error = errorParam
       {
         howItGoes.steps.map((step, i) => (
           <li class="flex gap-3 border-b border-border py-4 md:flex-col md:gap-2 md:border-b-0 md:py-5">
-            <span class="w-3.5 shrink-0 font-condensed text-ui font-bold text-primary">{i + 1}</span>
+            <span class="w-3.5 shrink-0 font-condensed text-ui font-bold text-muted-foreground">{i + 1}</span>
             <div class="space-y-1">
               <span class="label-caps block">{step.where}</span>
               <h3 class="font-serif text-plate font-bold text-foreground">{step.title}</h3>
@@ -109,7 +109,7 @@ const error = errorParam
       <p class="max-w-md text-meta text-muted-foreground">{sections.registerNote}</p>
       <a
         href="/drinks"
-        class="link-caps shrink-0 self-end text-secondary hover:text-primary md:self-auto"
+        class="link-caps shrink-0 self-end text-secondary hover:underline hover:underline-offset-4 md:self-auto"
       >
         {drinks.navLabel} &rarr;
       </a>
@@ -118,7 +118,7 @@ const error = errorParam
 
   <!-- Sign in: the same promise as the in-app sheet -->
   <section id="connect" class="scroll-mt-8 pb-16 md:pb-20">
-    <h2 class="label-caps mb-5 border-b border-foreground pb-2 text-foreground">
+    <h2 class="section-title mb-5">
       {sections.connect}
     </h2>
     <div class="max-w-md">
@@ -135,7 +135,7 @@ const error = errorParam
 
   <!-- Principles -->
   <section>
-    <h2 class="label-caps mb-5 border-b border-foreground pb-2 text-foreground">
+    <h2 class="section-title mb-5">
       {sections.principles}
     </h2>
     <Principles />
