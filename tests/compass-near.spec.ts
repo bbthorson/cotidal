@@ -81,7 +81,7 @@ test('Compass: bars near you, then a pick there, then a pour that says where the
   await page.getByRole('link', { name: harbour.rateNow }).click();
 
   // Rated at the bar the map named: the pour records where it is.
-  await expect(page.getByRole('heading', { name: ratePage.title })).toBeVisible();
+  await expect(page.getByRole('heading', { name: ratePage.heading })).toBeVisible();
   await page.getByRole('radio', { name: /^7:/ }).click();
   await page.getByRole('button', { name: pour.submit }).click();
   await expect(page.getByRole('heading', { name: 'Your coordinate moved.' })).toBeVisible();

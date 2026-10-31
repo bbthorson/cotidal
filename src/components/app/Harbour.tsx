@@ -13,7 +13,7 @@ import { recentBarNames } from '@/lib/pour-history';
 import { cn } from '@/lib/utils';
 import { AtprotoProvider } from './AtprotoProvider';
 import { DrinkRow } from './Chart';
-import { Chip } from './ui';
+import { Chip, ScreenHeader } from './ui';
 
 type Step = 'where' | 'menu' | 'pick' | 'picked';
 const STEPS: Step[] = ['where', 'menu', 'pick'];
@@ -132,11 +132,9 @@ function HarbourContent({ register, member }: { register: Register; member: bool
   // The harbour ranks against a coordinate; without one there is nothing to rank against.
   if (!profile) {
     return (
-      <div className="mx-auto max-w-xl py-10">
-        <span className="label-caps text-secondary">{harbour.title}</span>
-        <h1 className="mt-3 font-serif text-title font-bold text-foreground">{harbour.coldTitle}</h1>
-        <p className="mt-3 font-serif text-prose text-muted-foreground">{harbour.coldBody}</p>
-        <a href={questionsHref} className="btn btn-primary btn-lg mt-8 w-full px-6">
+      <div className="mx-auto max-w-xl pb-10 pt-6 lg:pt-10">
+        <ScreenHeader eyebrow={harbour.title} title={harbour.coldTitle} lede={harbour.coldBody} />
+        <a href={questionsHref} className="btn btn-primary btn-lg mt-3 w-full px-6">
           {harbour.coldCta}
         </a>
       </div>
@@ -146,7 +144,7 @@ function HarbourContent({ register, member }: { register: Register; member: bool
   if (step === 'picked' && pick) {
     const title = titleOf(register, pick.drink);
     return (
-      <div className="mx-auto max-w-xl py-8 motion-safe:animate-in motion-safe:fade-in">
+      <div className="mx-auto max-w-xl pb-10 pt-6 motion-safe:animate-in motion-safe:fade-in lg:pt-10">
         <div className="flex flex-col gap-2.5 border border-foreground bg-card p-4.5 shadow-mcm">
           <span className="font-condensed text-label font-semibold uppercase tracking-label text-secondary">
             {harbour.pickedEyebrow} · {pick.atHome ? harbour.atHome : pick.bar}
@@ -176,7 +174,7 @@ function HarbourContent({ register, member }: { register: Register; member: bool
   const canNext = step === 'where' ? atHome || bar.trim().length > 0 : step === 'menu' ? ranked.length > 0 : true;
 
   return (
-    <div className="mx-auto flex max-w-xl flex-col py-5 lg:py-8">
+    <div className="mx-auto flex max-w-xl flex-col pb-10 pt-6 lg:pt-10">
       {/* Where you are in the composition: three numbered parts, the current one over an ink rule. */}
       <ol aria-label={harbour.title} className="grid grid-cols-3 border-b border-border">
         {STEPS.map((s, i) => (
@@ -196,10 +194,7 @@ function HarbourContent({ register, member }: { register: Register; member: bool
 
       {step === 'where' && (
         <section className="mt-6 flex flex-col gap-4">
-          <div>
-            <h1 className="font-serif text-title font-bold text-foreground">{harbour.whereTitle}</h1>
-            <p className="mt-2 text-ui text-muted-foreground">{harbour.whereBody}</p>
-          </div>
+          <ScreenHeader eyebrow={harbour.title} title={harbour.whereTitle} lede={harbour.whereBody} />
           <label className="flex flex-col gap-1.5">
             <span className="label-caps">{harbour.barLabel}</span>
             <input
@@ -230,10 +225,7 @@ function HarbourContent({ register, member }: { register: Register; member: bool
 
       {step === 'menu' && (
         <section className="mt-6 flex flex-col gap-4">
-          <div>
-            <h1 className="font-serif text-title font-bold text-foreground">{harbour.menuTitle}</h1>
-            <p className="mt-2 text-ui text-muted-foreground">{harbour.menuBody}</p>
-          </div>
+          <ScreenHeader eyebrow={harbour.title} title={harbour.menuTitle} lede={harbour.menuBody} />
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -294,11 +286,12 @@ function HarbourContent({ register, member }: { register: Register; member: bool
 
       {step === 'pick' && (
         <section className="mt-6 flex flex-col">
-          <h1 className="font-serif text-title font-bold text-foreground">
-            {where ? harbour.pickTitle(where) : harbour.pickTitleHome}
-          </h1>
-          <p className="mt-2 text-ui text-muted-foreground">{harbour.pickBody}</p>
-          <ol className="mt-4 border-t border-foreground">
+          <ScreenHeader
+            eyebrow={harbour.title}
+            title={where ? harbour.pickTitle(where) : harbour.pickTitleHome}
+            lede={harbour.pickBody}
+          />
+          <ol className="border-t border-foreground">
             {ranked.map(({ drink, score }, i) => (
               <li key={drink.name} className="border-b border-border">
                 <DrinkRow

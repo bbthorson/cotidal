@@ -123,6 +123,7 @@ export const logPage = {
 /** /rate: one pour, rated, and where the coordinate went. */
 export const ratePage = {
   title: 'Rate it',
+  heading: 'How was it?',
 } as const;
 
 /**

@@ -40,12 +40,12 @@ test('Log: a guest’s pour is kept on the device, in Log and on Radio', async (
   // Log shows the log, not a form: rating is a screen of its own.
   await page.goto('/log');
   await expect(page.getByRole('heading', { name: logPage.heading, level: 1 })).toBeVisible();
-  await expect(page.getByRole('heading', { name: ratePage.title })).toHaveCount(0);
+  await expect(page.getByRole('heading', { name: ratePage.heading })).toHaveCount(0);
   await expect(page.getByRole('link', { name: logPage.rateDrink })).toHaveAttribute('href', '/rate');
 
   // A drink handed over opens the form.
   await page.goto('/rate?drink=Negroni');
-  await expect(page.getByRole('heading', { name: ratePage.title })).toBeVisible();
+  await expect(page.getByRole('heading', { name: ratePage.heading })).toBeVisible();
   await page.getByRole('group', { name: pour.whereLabel }).getByRole('button', { name: pour.atHome }).click();
   await page.getByRole('radio', { name: /^7:/ }).click();
   await page.getByRole('button', { name: pour.submit }).click();
@@ -53,7 +53,7 @@ test('Log: a guest’s pour is kept on the device, in Log and on Radio', async (
 
   // Rated: back on the ledger, and the pour survives a reload.
   await expect(page).toHaveURL(/\/log$/);
-  await expect(page.getByRole('heading', { name: ratePage.title })).toHaveCount(0);
+  await expect(page.getByRole('heading', { name: ratePage.heading })).toHaveCount(0);
   await page.reload();
   await expect(page.locator('ol').filter({ hasText: '7 of 9' })).toContainText('Negroni');
 
