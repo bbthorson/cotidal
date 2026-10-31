@@ -2,7 +2,7 @@
 import AppShell from '../../../layouts/AppShell.astro';
 import PageTitle from '../../../components/marketing/PageTitle.astro';
 import Coaster from '../../../components/marketing/Coaster.astro';
-import { site, coaster, quadrants } from '../../../lib/copy';
+import { site, coaster, quadrants, regionPage } from '../../../lib/copy';
 import { QUADRANT_ORDER, type QuadrantId } from '../../../lib/quadrant';
 import { regionCodeUrl } from '../../../lib/coaster';
 
@@ -33,7 +33,7 @@ Astro.response.headers.set('Cache-Control', 'public, max-age=300, s-maxage=3600'
   width="standard"
 >
   <article class="space-y-10 pb-12">
-    <PageTitle eyebrow={region.axis} title={coaster.regionTitle(region.name)} lede={coaster.regionLede} />
+    <PageTitle eyebrow={regionPage.eyebrow(region.axis)} title={coaster.regionTitle(region.name)} lede={coaster.regionLede} />
     <div class="mx-auto w-full max-w-sm">
       <Coaster region={id} href={href} title={coaster.regionLabel(region.name)} />
     </div>

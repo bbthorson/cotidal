@@ -1,0 +1,38 @@
+---
+/**
+ * The ruled readout under a title plate: a few labelled figures side by side,
+ * ruled above and below, never boxed — a drink's coordinate and region, a
+ * public map's coordinate and where it lands. A cell with `href` links its value.
+ */
+interface Cell {
+  label: string;
+  value: string;
+  href?: string;
+  /** Set in condensed figures (a coordinate) rather than Playfair (a name). */
+  figure?: boolean;
+}
+
+const { cells } = Astro.props as { cells: Cell[] };
+---
+
+<div class="mt-8 inline-flex items-stretch border-y border-border">
+  {
+    cells.map((cell, i) => {
+      const valueClass = cell.figure
+        ? 'mt-0.5 block font-condensed text-prose tabular-nums text-foreground'
+        : 'mt-0.5 block font-serif text-prose font-bold text-foreground';
+      return (
+        <div class:list={['px-4 py-2 text-left', i > 0 && 'border-l border-border']}>
+          <span class="label-caps block">{cell.label}</span>
+          {cell.href ? (
+            <a href={cell.href} class:list={[valueClass, 'hover:underline hover:underline-offset-4']}>
+              {cell.value}
+            </a>
+          ) : (
+            <span class={valueClass}>{cell.value}</span>
+          )}
+        </div>
+      );
+    })
+  }
+</div>

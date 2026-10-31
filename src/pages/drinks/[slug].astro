@@ -4,6 +4,8 @@ import type { GetStaticPaths } from 'astro';
 import AppShell from '../../layouts/AppShell.astro';
 import PageTitle from '../../components/marketing/PageTitle.astro';
 import OnTheRecord from '../../components/marketing/OnTheRecord.astro';
+import Readout from '../../components/marketing/Readout.astro';
+import { formatCoordinate } from '../../lib/coordinate';
 import { site, drinks as copy } from '../../lib/copy';
 import { drinkDatabase } from '../../lib/data';
 import { quadrantFor } from '../../lib/quadrant';
@@ -36,25 +38,15 @@ const quadrant = drink ? quadrantFor(drink.x, drink.y) : null;
   width="prose"
 >
   <article>
-        <PageTitle eyebrow={d.family} title={d.title} lede={d.summary} ruled>
+        <PageTitle eyebrow={`${copy.eyebrow} · ${d.family}`} title={d.title} lede={d.summary} ruled>
           {
             drink && quadrant && (
-              <div class="mt-8 inline-flex items-stretch border-y border-border">
-                <div class="border-r border-border px-4 py-2 text-left">
-                  <span class="label-caps block">{copy.coordinateLabel}</span>
-                  <span class="mt-0.5 block font-condensed text-prose tabular-nums text-foreground">
-                    {drink.x > 0 ? '+' : ''}
-                    {drink.x}, {drink.y > 0 ? '+' : ''}
-                    {drink.y}
-                  </span>
-                </div>
-                <div class="px-4 py-2 text-left">
-                  <span class="label-caps block">{quadrant.axis}</span>
-                  <span class="mt-0.5 block font-serif text-prose font-bold text-foreground">
-                    {quadrant.name}
-                  </span>
-                </div>
-              </div>
+              <Readout
+                cells={[
+                  { label: copy.coordinateLabel, value: formatCoordinate(drink.x, drink.y), figure: true },
+                  { label: quadrant.axis, value: quadrant.name, href: `/regions/${quadrant.id}` },
+                ]}
+              />
             )
           }
         </PageTitle>

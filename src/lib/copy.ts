@@ -22,13 +22,13 @@ export const nav = {
   radio: 'Radio',
   compass: 'Compass',
   register: 'Drinks',
-  regions: 'The Four Regions',
+  regions: 'Regions',
   signIn: 'Come aboard',
   signOut: 'Go ashore',
   menu: 'Menu',
   footer: 'Site',
   log: 'Log',
-  bars: 'For Bars',
+  bars: 'For bars',
 } as const;
 
 /**
@@ -122,7 +122,7 @@ export const logPage = {
 
 /** /rate: one pour, rated, and where the coordinate went. */
 export const ratePage = {
-  title: 'Rate it',
+  title: 'Rate a drink',
   heading: 'How was it?',
 } as const;
 
@@ -201,7 +201,6 @@ export const account = {
 } as const;
 
 export const hero = {
-  edition: '[0, 0] · Origin point',
   headline: 'Every palate has',
   headlineAccent: 'a coordinate.',
   body:
@@ -433,7 +432,7 @@ export const principles = [
  * taste precisely should be the one that says which is which.
  */
 export const drinks = {
-  eyebrow: 'Every drink on the chart',
+  eyebrow: 'Drinks',
   title: 'What is known',
   intro:
     'Most of what gets said about a cocktail is repetition. Each entry gives the build, places the drink on the chart, and separates what is on the record from what bartenders only tell each other.',
@@ -456,14 +455,20 @@ export const drinks = {
  * these are the parts that are the same for all four, and they describe what
  * the product does rather than what a region means.
  */
+/** A quadrant's axis label as words: "Rich · Savory" → "Rich and savory". */
+export function axisWords(axis: string): string {
+  const [a, b] = axis.split(' · ');
+  return b ? `${a} and ${b.toLowerCase()}` : axis;
+}
+
 export const regionPage = {
-  backLabel: 'The four regions',
+  /** Over a region's title: where it sits in the site, then its axis in words ("Rich and savory"). */
+  eyebrow: (axis: string) => `Regions · ${axisWords(axis)}`,
+  backLabel: 'Regions',
   orderingLabel: 'What it says about you',
   /** `axis` is a quadrant's axis label, e.g. "Rich · Savory". */
   ordering: (name: string, axis: string) =>
-    `Your coordinate lands in ${name} when your answers lean ${axis
-      .toLowerCase()
-      .replace(' · ', ' and ')}. That is all it is: a position, worked out from the options you picked. The menu ranks every drink by its distance from that point, so the closer you sit to the drinks below, the sooner it reaches for them. Log what you drink and the point can move, across a border if that is where your pours take it.`,
+    `Your coordinate lands in ${name} when your answers lean ${axisWords(axis).toLowerCase()}. That is all it is: a position, worked out from the options you picked. The menu ranks every drink by its distance from that point, so the closer you sit to the drinks below, the sooner it reaches for them. Log what you drink and the point can move, across a border if that is where your pours take it.`,
   drinksLabel: 'The drinks here',
   /** Under the list: how a drink came to be in it. */
   placedNote:
@@ -647,7 +652,8 @@ export const venuesCopy = {
  * visitor, theirs beside it. Two dots and the distance between them.
  */
 export const publicMap = {
-  eyebrow: 'A coordinate',
+  eyebrow: 'Public map',
+  coordinateLabel: 'Coordinate',
   title: (name: string) => `@${name}`,
   lands: 'Lands in',
   pours: (n: number) => (n === 1 ? 'Moved by 1 pour' : `Moved by ${n} pours`),
@@ -681,7 +687,7 @@ export const publicMap = {
  * browser sees at `/mcp`, the address the chatbot is given.
  */
 export const assistants = {
-  eyebrow: 'In your chatbot',
+  eyebrow: 'Chat assistants',
   title: 'Ask about your palate anywhere.',
   lede: 'Add Cotidal to Claude, or any chat assistant that takes an MCP server, and ask it what to drink, with your coordinate in hand.',
   urlLabel: 'The address to add',

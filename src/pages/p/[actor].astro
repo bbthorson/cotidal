@@ -2,6 +2,7 @@
 import AppShell from '../../layouts/AppShell.astro';
 import PageTitle from '../../components/marketing/PageTitle.astro';
 import PalatePlot from '../../components/marketing/PalatePlot.astro';
+import Readout from '../../components/marketing/Readout.astro';
 import { site, publicMap, coaster } from '../../lib/copy';
 import { formatCoordinate } from '../../lib/coordinate';
 import { quadrantFor } from '../../lib/quadrant';
@@ -119,16 +120,13 @@ const ctaClass =
 <AppShell title={pageTitle} description={description} currentPath="/p" width="standard">
   {result.status === 'ok' && subject && region && name ? (
     <article class="space-y-12" data-testid="public-map">
-      <PageTitle title={publicMap.title(name)} lede={region.gloss} ruled>
-        <div slot="eyebrow" class="flex items-center justify-center gap-2">
-          <span class="label-caps text-secondary">{publicMap.lands}</span>
-          <a
-            href={`/regions/${region.id}`}
-            class="tag transition-colors hover:border-foreground"
-          >
-            {region.name}
-          </a>
-        </div>
+      <PageTitle eyebrow={publicMap.eyebrow} title={publicMap.title(name)} lede={region.gloss} ruled>
+        <Readout
+          cells={[
+            { label: publicMap.coordinateLabel, value: formatCoordinate(subject.x, subject.y), figure: true },
+            { label: publicMap.lands, value: region.name, href: `/regions/${region.id}` },
+          ]}
+        />
       </PageTitle>
 
       <PalatePlot marks={marks} title={publicMap.plotLabel(publicMap.title(name))} />

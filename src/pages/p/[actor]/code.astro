@@ -2,7 +2,7 @@
 import AppShell from '../../../layouts/AppShell.astro';
 import PageTitle from '../../../components/marketing/PageTitle.astro';
 import Coaster from '../../../components/marketing/Coaster.astro';
-import { site, coaster } from '../../../lib/copy';
+import { site, coaster, publicMap } from '../../../lib/copy';
 import { quadrantIdFor } from '../../../lib/quadrant';
 import { readPublicPalate } from '../../../lib/atproto/public-read';
 import { publicMapPath } from '../../../lib/atproto/paths';
@@ -42,7 +42,7 @@ const href = memberCodeUrl(Astro.url.origin, did);
   width="standard"
 >
   <article class="space-y-10 pb-12">
-    <PageTitle title={coaster.memberTitle} lede={coaster.memberLede} />
+    <PageTitle eyebrow={publicMap.eyebrow} title={coaster.memberTitle} lede={coaster.memberLede} />
     <div class="mx-auto w-full max-w-sm">
       <Coaster region={region} href={href} title={coaster.memberLabel(name)} />
     </div>
