@@ -167,7 +167,7 @@ const ctaClass =
                   <span class="label-caps text-muted-foreground">{label}</span>
                   <span class="leader" aria-hidden="true" />
                   {href ? (
-                    <a href={href} class="font-serif text-plate font-bold text-foreground transition-colors hover:text-primary">
+                    <a href={href} class="font-serif text-plate font-bold text-foreground transition-colors hover:underline hover:underline-offset-4">
                       {titleFor(drink)}
                     </a>
                   ) : (
@@ -189,7 +189,7 @@ const ctaClass =
               return (
                 <li class="py-3">
                   {href ? (
-                    <a href={href} class="font-serif text-plate font-bold text-foreground transition-colors hover:text-primary">
+                    <a href={href} class="font-serif text-plate font-bold text-foreground transition-colors hover:underline hover:underline-offset-4">
                       {titleFor(drink)}
                     </a>
                   ) : (
@@ -203,7 +203,7 @@ const ctaClass =
       )}
 
       {isSelf && selfLink && (
-        <section class="space-y-2 border-l-2 border-primary pl-4">
+        <section class="space-y-2 border-t border-foreground pt-4">
           <p class="font-serif text-ui italic text-foreground">{publicMap.selfNote}</p>
           <label class="block">
             <span class="label-caps text-muted-foreground">{publicMap.linkLabel}</span>
@@ -216,7 +216,7 @@ const ctaClass =
           </label>
           <p class="pt-2 font-serif text-ui text-muted-foreground">
             {coaster.makeCodeNote}{' '}
-            <a href={coasterPath(result.actor.did)} class="text-primary underline underline-offset-4" data-testid="make-code">
+            <a href={coasterPath(result.actor.did)} class="text-foreground underline decoration-muted-foreground underline-offset-4 hover:decoration-foreground" data-testid="make-code">
               {coaster.makeCode}
             </a>
           </p>

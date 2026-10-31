@@ -113,7 +113,7 @@ function RadioContent({
                           {new Date(p.createdAt).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}
                         </time>
                         <div className="flex min-w-0 flex-col gap-0.5">
-                          <span className="font-condensed text-label font-semibold uppercase tracking-label text-secondary">
+                          <span className="text-meta font-bold text-secondary">
                             {sender}
                             {where && <span className="font-normal text-muted-foreground"> · {where}</span>}
                           </span>
@@ -121,7 +121,7 @@ function RadioContent({
                             {entry ? (
                               <a
                                 href={`/drinks/${entry.slug}`}
-                                className="font-serif text-prose font-bold text-foreground transition-colors hover:text-primary"
+                                className="font-serif text-prose font-bold text-foreground transition-colors hover:underline hover:underline-offset-4"
                               >
                                 {entry.title}
                               </a>

@@ -96,9 +96,10 @@
   .btn-lg {
     @apply min-h-13 text-ui;
   }
-  /* The primary action: forest, terracotta on hover. */
+  /* The primary action: forest, deepening to ink on hover. Terracotta is
+     kept for what is yours, so the button does not borrow it. */
   .btn-primary {
-    @apply border-foreground bg-secondary text-secondary-foreground hover:bg-primary disabled:bg-muted disabled:text-muted-foreground;
+    @apply border-foreground bg-secondary text-secondary-foreground hover:bg-foreground disabled:bg-muted disabled:text-muted-foreground;
   }
   /* The second action beside or below a primary one: an ink edge on the
      ground, filled forest on hover. */
@@ -116,7 +117,17 @@
   }
   /* The italic underlined link in running serif: "Find your coordinate". The size is the caller's. */
   .link-serif {
-    @apply font-serif italic text-foreground underline decoration-primary underline-offset-4 transition-colors hover:text-primary;
+    @apply font-serif italic text-foreground underline decoration-muted-foreground underline-offset-4 transition-colors hover:decoration-foreground;
+  }
+
+  /* "You are here": a bold label over a heavy ink rule, like a printed tab —
+     the app bar, the harbour's steps. The caller says which edge carries the
+     rule (`border-t-3`, `border-b-3`) and the size; `aria-current` marks it. */
+  .tab {
+    @apply border-transparent text-muted-foreground transition-colors hover:text-foreground focus-ring-inset;
+  }
+  .tab[aria-current] {
+    @apply border-foreground font-bold text-foreground;
   }
 
   /* A section's heading: a rule of ink under a bold serif line. */
@@ -153,12 +164,14 @@
   }
 
   /* Tags: a static label, and a chip that toggles. Axis, region and status
-     tags are the other three; nothing else is a tag (docs/design-system.md). */
+     tags are the other three; nothing else is a tag (docs/design-system.md).
+     Sentence case in PT Sans: condensed caps are for structure — buttons,
+     navigation, eyebrows, field labels — not for what a reader picks from. */
   .tag {
-    @apply border border-border px-2 py-0.5 font-condensed text-label uppercase tracking-label text-secondary;
+    @apply border border-border px-2 py-0.5 font-body text-meta text-secondary;
   }
   .chip {
-    @apply min-h-9 border border-border px-2.5 font-condensed text-label uppercase tracking-label text-secondary transition-colors hover:border-foreground;
+    @apply min-h-9 border border-border px-2.5 font-body text-meta text-secondary transition-colors hover:border-foreground;
   }
   .chip[aria-pressed='true'] {
     @apply border-secondary bg-secondary text-secondary-foreground hover:border-secondary;
@@ -238,7 +251,7 @@
   }
   /* A region's prose names its drinks by linking them. */
   .prose-entry a {
-    @apply text-foreground underline underline-offset-4 transition-colors hover:text-primary;
+    @apply text-foreground underline decoration-muted-foreground underline-offset-4 transition-colors hover:decoration-foreground;
   }
 }
 
@@ -266,7 +279,7 @@
 .map-paper .leaflet-control-attribution {
   background: hsl(var(--card));
   color: hsl(var(--muted-foreground));
-  font-size: theme('fontSize.3xs');
+  font-size: theme('fontSize.label');
 }
 .map-paper .leaflet-control-zoom a {
   border-radius: 0;

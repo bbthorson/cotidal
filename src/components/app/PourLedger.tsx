@@ -40,7 +40,7 @@ export function PourLedger({ pours, register = {}, empty, loading = false }: Pou
               {entry ? (
                 <a
                   href={`/drinks/${entry.slug}`}
-                  className="font-serif text-prose font-bold text-foreground transition-colors hover:text-primary"
+                  className="font-serif text-prose font-bold text-foreground transition-colors hover:underline hover:underline-offset-4"
                 >
                   {name}
                 </a>

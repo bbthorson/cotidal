@@ -76,7 +76,7 @@ const others = quadrants.filter((q) => q.id !== id);
         <h2 class="label-caps text-foreground">{copy.drinksLabel}</h2>
         <a
           href={`/drinks#${region.id}`}
-          class="label-caps text-muted-foreground transition-colors hover:text-primary"
+          class="label-caps text-muted-foreground transition-colors hover:text-foreground"
         >
           {sections.regionDrinks} &rarr;
         </a>
@@ -87,7 +87,7 @@ const others = quadrants.filter((q) => q.id !== id);
             <li class="menu-row first:border-t-0">
               <a href={`/drinks/${drinkEntry.id}`} class="group block py-3">
                 <span class="dot-leader">
-                  <span class="font-serif text-prose font-bold text-foreground transition-colors group-hover:text-primary">
+                  <span class="font-serif text-prose font-bold text-foreground transition-colors group-hover:underline group-hover:underline-offset-4">
                     {drinkEntry.data.title}
                   </span>
                   <span class="leader" aria-hidden="true" />
@@ -135,7 +135,7 @@ const others = quadrants.filter((q) => q.id !== id);
     {entry && <OnTheRecord {...entry.data} />}
 
     <p class="pb-10 text-center font-serif text-ui">
-      <a href={regionCoasterPath(region.id)} class="text-primary underline underline-offset-4" data-testid="region-coaster-link">
+      <a href={regionCoasterPath(region.id)} class="text-foreground underline decoration-muted-foreground underline-offset-4 hover:decoration-foreground" data-testid="region-coaster-link">
         {coaster.regionLink}
       </a>
     </p>
@@ -149,7 +149,7 @@ const others = quadrants.filter((q) => q.id !== id);
             <li class="menu-row first:border-t-0">
               <a href={`/regions/${other.id}`} class="group block py-3">
                 <span class="dot-leader">
-                  <span class="font-serif text-prose font-bold text-foreground transition-colors group-hover:text-primary">
+                  <span class="font-serif text-prose font-bold text-foreground transition-colors group-hover:underline group-hover:underline-offset-4">
                     {other.name}
                   </span>
                   <span class="leader" aria-hidden="true" />

@@ -177,20 +177,15 @@ function HarbourContent({ register, member }: { register: Register; member: bool
 
   return (
     <div className="mx-auto flex max-w-xl flex-col py-5 lg:py-8">
-      {/* Where you are in the composition: three ruled cells, the way a form numbers its parts. */}
-      <ol aria-label={harbour.title} className="segmented grid grid-cols-3">
+      {/* Where you are in the composition: three numbered parts, the current one over an ink rule. */}
+      <ol aria-label={harbour.title} className="grid grid-cols-3 border-b border-border">
         {STEPS.map((s, i) => (
           <li
             key={s}
             aria-current={s === step ? 'step' : undefined}
             className={cn(
-              'flex min-h-9 items-center justify-center gap-1.5 font-condensed text-label uppercase tracking-label',
-              i > 0 && 'border-l border-foreground',
-              s === step
-                ? 'bg-secondary font-bold text-secondary-foreground'
-                : i < index
-                  ? 'bg-card font-semibold text-foreground'
-                  : 'bg-card text-muted-foreground'
+              'tab -mb-px flex min-h-11 items-center justify-center gap-1.5 border-b-3 font-condensed text-label uppercase tracking-label',
+              i < index && s !== step && 'font-semibold text-foreground'
             )}
           >
             <span className="tabular-nums">{i + 1}</span>
@@ -275,7 +270,7 @@ function HarbourContent({ register, member }: { register: Register; member: bool
                   <span className="font-serif text-prose font-bold text-foreground">{item.label}</span>
                   <span
                     className={cn(
-                      'mr-auto font-condensed text-2xs uppercase tracking-label',
+                      'mr-auto text-meta',
                       item.drink ? 'text-secondary' : 'text-muted-foreground'
                     )}
                   >
@@ -285,7 +280,7 @@ function HarbourContent({ register, member }: { register: Register; member: bool
                     type="button"
                     aria-label={harbour.remove(item.label)}
                     onClick={() => setItems((prev) => prev.filter((i) => i !== item))}
-                    className="flex min-h-11 min-w-11 items-center justify-center font-condensed text-title leading-none text-muted-foreground hover:text-primary"
+                    className="flex min-h-11 min-w-11 items-center justify-center font-condensed text-title leading-none text-muted-foreground hover:text-foreground"
                   >
                     &times;
                   </button>

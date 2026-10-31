@@ -30,7 +30,7 @@ export function ColdState({
         <button
           type="button"
           onClick={onGuest}
-          className="mt-1 min-h-11 self-center px-2 font-condensed text-meta uppercase tracking-label text-muted-foreground underline decoration-primary underline-offset-4 transition-colors hover:text-primary"
+          className="mt-1 min-h-11 self-center px-2 font-condensed text-meta uppercase tracking-label text-muted-foreground underline decoration-muted-foreground underline-offset-4 transition-colors hover:text-foreground"
         >
           {coldState.guestCta}
         </button>

@@ -31,7 +31,7 @@ All colors, typography, elevations, and layout metrics are defined centrally in 
 | `--muted-foreground` | `125 6% 39%` | `#5D6A61` | Warm grey-green for metadata & glosses |
 | `--destructive` | `0 65% 42%` | `#B12828` | Errors only |
 
-**Colour rules.** Terracotta marks what is *yours* (your dot, your top pick, focus); forest is for actions (primary buttons, active tabs). Text is full-strength ink, forest, terracotta or grey-green — de-emphasise with size and weight, never with opacity.
+**Colour rules.** Terracotta marks what is *yours* and nothing else: your dot, your region, your top pick, a value you gave and the app records (a rating, a chosen answer), and the focus ring. Forest is for acting and switching: the primary button, a pressed filter, segment or chip. **"You are here"** — the current page, tab or step — is neither: a bold label over a heavy ink (`foreground`) rule, like a printed tab (`.tab`, below). Links are underlined in grey-green and darken to ink on hover; text that is not underlined underlines on hover. Text is full-strength ink, forest, terracotta or grey-green — de-emphasise with size and weight, never with opacity.
 
 ### The reveal ground (`reveal-*`)
 Forest laid as the stock, paper as the ink. Used **only** where the product reveals something: the coordinate landing after the questions (`Reveal.tsx`) and moving after a pour (`Moved.tsx`). Never a theme the user switches to.
@@ -69,9 +69,9 @@ Sizes are named for the role, not the number. Tailwind's own sizes (`text-sm`, `
 | `font-body` | PT Sans | Normal | Editorial body prose, paragraphs |
 | `font-condensed` | Barlow Condensed | `tracking-label` (0.2em) | Metadata labels, coordinates, nav links |
 | `label-caps` | Barlow Condensed | `text-label uppercase tracking-label text-muted-foreground` | Standard field / column label |
+
+**Caps are for structure.** Condensed caps set buttons, navigation, eyebrows, field and column labels and map axes. What a reader picks from or reads — chips, tags, a pour's sender and place, a distance, a count — is sentence case in PT Sans (`text-meta`). Nothing is smaller than `text-label` (12px); the old 10px and 11px sizes are gone.
 | `tracking-wordmark` | `0.15em` | — | Site title wordmark |
-| `text-3xs` | 10px / 14px | — | Micro labels & colophons |
-| `text-2xs` | 11px / 16px | — | Footnotes, specimen markers |
 | `text-label` | 12px / 16px | — | Condensed caps: labels, links, buttons |
 | `text-meta` | 13px / 1.5 | — | PT Sans small: glosses, notes |
 | `text-ui` | 15px / 1.55 | — | PT Sans body; running text on the reading pages |
@@ -106,7 +106,7 @@ Drawn once, by the base `:focus-visible` rule in `globals.css`: a 2px terracotta
 
 ### Buttons
 `.btn` is the shape — square, ink edge, condensed bold caps, 44px tall; `.btn-lg` is the large size (52px, `text-sm`) for a screen's main action. A colour class says what it is:
-- `.btn-primary` — forest, terracotta on hover, muted when disabled.
+- `.btn-primary` — forest, deepening to ink on hover, muted when disabled.
 - `.btn-outline` — the second action beside or below a primary one: an ink edge on the ground, filled forest on hover.
 - `.btn-reveal` — paper on forest, for the reveal ground.
 
@@ -118,8 +118,9 @@ Width and padding stay with the layout (`w-full`, `px-8`).
 - **Top pick sheet**: the one sheet that is yours — ink edge, `bg-card`, `shadow-mcm`.
 - **Option plate**: the whole plate is the button; chosen = ink edge + `shadow-mcm`, struck through when the question asks what to push away.
 - **Segmented control**: `.segmented` frame with `.segment` cells (`aria-pressed` is forest; a radio's `aria-checked` is terracotta, for what is yours). The columns are the caller's (`grid grid-cols-3`), or `.segmented-stack` for a column.
-- **Tags**: axis (outline, forest), region (terracotta fill), status (sage fill). A static label is `.tag`; a toggle is `.chip` (`<Chip>`, `aria-pressed` is forest). No other tag styles.
-- **Caps link**: `.link-caps` — 44px, condensed, wide-set; the colour is the caller's. The italic underlined link in running serif is `.link-serif`.
+- **Tags**: axis (outline, forest), region (terracotta fill), status (sage fill). A static label is `.tag`; a toggle is `.chip` (`<Chip>`, `aria-pressed` is forest). Both are sentence case in PT Sans. No other tag styles.
+- **Tab** ("you are here"): `.tab` — muted until `aria-current`, then bold ink over a 3px `foreground` rule. The caller sets which edge carries it: the app bar `border-t-3`, the harbour's steps `border-b-3`. The header nav draws the same rule from `lg`; the questions' progress bar is the same ink.
+- **Caps link**: `.link-caps` — 44px, condensed, wide-set; the colour is the caller's. The italic underlined link in running serif is `.link-serif` (grey-green underline, ink on hover).
 - **Section title**: `.section-title` — a rule of ink under a bold serif line.
 - **Text field**: `.field` — 16px, hairline border, terracotta on focus.
 - **Shared components** (`src/components/app/ui.tsx`, `PinnedCard.tsx`, `ColdState.tsx`): `ScreenHeader` (how an app screen opens: eyebrow, `text-title` heading, optional lede, left-aligned), `GuestPrompt` (what signing in buys, with the one button; ruled above and below, not boxed), `Loading`, `Chip`, `PinnedCard` (the drink card and the bar card: pinned above the app bar), and `ColdState` (what Log and Rate say to someone with no coordinate).
@@ -138,7 +139,7 @@ Navigation is unified across the entire site through `<SiteHeader.astro>` and `<
    - a prerendered page (`/drinks`, `/regions/*`) was built before anyone visited, so it says **Account** (also `/log#account`) rather than guess. `/account` itself redirects there.
    - on an app page, **Sign in** opens the one sign-in sheet in place (`?signin=1`, handled by `AtprotoProvider`) rather than leaving for the landing page's form. On every other page it goes to `/#connect`.
 4. **Footer**: the reading pages only — Home, Drinks, The Four Regions, For Bars (`app: false` in `destinations`). The app destinations and the account are always in the header. On a page with a bar pinned along the bottom (`AppShell`'s `bottomBar`) it is left out below `lg`: the bar is that page's foot, and the header's Menu already lists the same pages.
-5. **Active State Indicators**: Routes are identified via `currentPath` and styled with `bg-secondary text-secondary-foreground shadow-bar`.
+5. **Active State Indicators**: Routes are identified via `currentPath` and styled as a tab: bold ink over a 3px `foreground` rule from `lg`, bold alone in the phone's folded menu.
 6. **Sub-Route Navigation**: In `/drinks/[slug]`, the header supports a semantic `backLink` while retaining global site navigation.
 7. **Phones**: on the reading pages the header collapses to wordmark · account · Menu. On the app pages there is no Menu — the app bar is the navigation, and the reading pages and Go ashore sit at the foot of Log (`SiteHeader`'s `appPage`). "Menu" is a `<details>` that opens the same `<nav>` through `peer-open`, so `/` still ships no JavaScript; a member's Sign out sits at the foot of it.
 8. **Focus mode**: any element marked `data-focus-mode` (the questions, the reveal, the after-a-pour screen) hides the site header and footer below `lg` (`globals.css`, pure CSS so nothing flashes before hydration).
@@ -225,7 +226,7 @@ To guarantee the design system never drifts, automated enforcement is active at 
 ### 1. ESLint Token Rules (`eslint.config.mjs`)
 - **Banned Arbitrary Values**: Rejects Tailwind brackets like `bg-[#hex]`, `text-[13px]`, `shadow-[...]`.
 - **Banned Raw Colors**: Rejects `#hex`, `rgba(...)`, `hsla(...)` in classes.
-- **Banned Hand-Built Components**: Rejects a focus ring spelled out (`focus-visible:ring-*`, `focus-visible:outline-*`) a primary button spelled out (`bg-secondary` with `hover:bg-primary`), and an outline button spelled out (`border-foreground` with `hover:bg-secondary`); use the classes above.
+- **Banned Hand-Built Components**: Rejects a focus ring spelled out (`focus-visible:ring-*`, `focus-visible:outline-*`) a primary button spelled out (`bg-secondary` with `hover:bg-foreground`), and an outline button spelled out (`border-foreground` with `hover:bg-secondary`); use the classes above.
 - **Banned Default Scale**: Rejects Tailwind's own type sizes (`text-xs`, `text-sm`, `text-base`, `text-lg`, `text-xl`, `text-2xl`…) and `tracking-wide`/`wider`/`widest`; use the named roles above and `tracking-label` / `tracking-wordmark`.
 - **Banned Opacity Modifiers**: Rejects a colour faded where it is used (`text-foreground/80`, `border-border/60`). De-emphasise text with size and weight; give a translucent colour a token.
 - **Error Level**: Enforced as an error on `src/pages/`, `src/layouts/` and all of `src/components/`.

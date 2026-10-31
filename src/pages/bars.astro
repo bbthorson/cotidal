@@ -59,7 +59,7 @@ import { exampleVenues } from '../lib/example-menus';
           <article class="coaster border border-border bg-card p-6 space-y-4">
             <div class="flex items-center justify-between border-b border-border pb-2">
               <span class="font-condensed text-label uppercase tracking-label text-muted-foreground">{venue.domain}</span>
-              <span class="rounded-sm border border-border px-2 py-0.5 font-condensed text-3xs uppercase tracking-label text-muted-foreground">
+              <span class="tag">
                 {venuesCopy.exampleTag}
               </span>
             </div>
@@ -74,7 +74,7 @@ import { exampleVenues } from '../lib/example-menus';
                 {venue.menu.map((item) => (
                   <li class="flex items-center justify-between">
                     <span class="font-medium">{item.name}</span>
-                    <span class="font-condensed text-3xs text-muted-foreground">[{item.x > 0 ? `+${item.x}` : item.x}, {item.y > 0 ? `+${item.y}` : item.y}]</span>
+                    <span class="font-condensed text-meta tabular-nums text-muted-foreground">[{item.x > 0 ? `+${item.x}` : item.x}, {item.y > 0 ? `+${item.y}` : item.y}]</span>
                   </li>
                 ))}
               </ul>

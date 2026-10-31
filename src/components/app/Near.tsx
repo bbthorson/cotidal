@@ -134,14 +134,14 @@ export function BarRows({
           >
             <span
               className={cn(
-                'font-serif text-prose font-bold transition-colors hover:text-primary',
+                'font-serif text-prose font-bold transition-colors hover:underline hover:underline-offset-4',
                 selected === b.id || known.has(b.id) ? 'text-primary' : 'text-foreground'
               )}
             >
               {b.name}
             </span>
             <span aria-hidden="true" className="leader" />
-            <span className="shrink-0 font-condensed text-meta uppercase tracking-label text-muted-foreground">
+            <span className="shrink-0 text-meta tabular-nums text-muted-foreground">
               {formatDistance(b.distance)}
             </span>
           </button>

@@ -71,7 +71,7 @@ const controlClass =
       href={control.href}
       class:list={[
         controlClass,
-        'order-2 min-w-0 shrink text-foreground hover:text-primary lg:order-3 lg:min-h-0 lg:border lg:border-foreground lg:px-3 lg:py-1.5 lg:text-label lg:hover:bg-secondary lg:hover:text-secondary-foreground',
+        'order-2 min-w-0 shrink text-foreground hover:underline hover:underline-offset-4 lg:order-3 lg:min-h-0 lg:border lg:border-foreground lg:px-3 lg:py-1.5 lg:text-label lg:hover:bg-secondary lg:hover:text-secondary-foreground',
       ]}
     >
       <span class:list={['max-w-40 truncate lg:max-w-48', control.isHandle && 'normal-case tracking-normal']}>
@@ -111,10 +111,11 @@ const controlClass =
             href={item.href}
             aria-current={active ? 'page' : undefined}
             class:list={[
-              'flex min-h-11 items-center whitespace-nowrap border-b border-border font-condensed text-meta uppercase tracking-label transition-colors lg:min-h-0 lg:border lg:px-2 lg:py-1.5 lg:text-label',
+              // "You are here" is a bold label over a heavy ink rule (`.tab`); on a phone's folded menu, bold alone.
+              'flex min-h-11 items-center whitespace-nowrap border-b border-border font-condensed text-meta uppercase tracking-label transition-colors lg:min-h-0 lg:border-b-3 lg:px-2 lg:py-1.5 lg:text-label',
               active
-                ? 'font-bold text-primary lg:border-foreground lg:bg-secondary lg:text-secondary-foreground'
-                : 'text-foreground hover:text-primary lg:border-transparent lg:text-muted-foreground lg:hover:bg-card lg:hover:text-foreground',
+                ? 'font-bold text-foreground lg:border-foreground'
+                : 'text-foreground lg:border-transparent lg:text-muted-foreground lg:hover:text-foreground',
             ]}
           >
             {item.label}

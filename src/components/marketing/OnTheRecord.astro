@@ -48,7 +48,7 @@ const { documented, claimed, sources } = Astro.props;
             <p class="font-serif text-meta italic leading-relaxed text-muted-foreground">
               {item.claim}
             </p>
-            <p class="mt-2 border-l-2 border-primary pl-3 font-serif text-label leading-relaxed text-muted-foreground">
+            <p class="mt-2 border-t border-border pt-2 font-serif text-label leading-relaxed text-muted-foreground">
               {item.note}
             </p>
           </li>
@@ -71,7 +71,7 @@ const { documented, claimed, sources } = Astro.props;
             <a
               href={s.url}
               rel="noopener noreferrer"
-              class="text-foreground underline underline-offset-4 transition-colors hover:text-primary"
+              class="text-foreground underline decoration-muted-foreground underline-offset-4 transition-colors hover:decoration-foreground"
             >
               {s.title}
             </a>

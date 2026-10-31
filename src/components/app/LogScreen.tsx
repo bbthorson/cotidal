@@ -135,7 +135,7 @@ function LogContent({
               <h2 className="font-serif text-heading font-bold">{logPage.ledgerTitle}</h2>
               <a
                 href={RATE_PATH}
-                className="link-caps text-secondary hover:text-primary"
+                className="link-caps text-secondary hover:underline hover:underline-offset-4"
               >
                 {logPage.rateDrink}
               </a>
@@ -163,7 +163,7 @@ function LogContent({
                 <a
                   key={d.href}
                   href={d.href}
-                  className="link-caps text-muted-foreground hover:text-primary"
+                  className="link-caps text-muted-foreground hover:text-foreground"
                 >
                   {d.label}
                 </a>

@@ -9,8 +9,6 @@ import { extendTailwindMerge } from "tailwind-merge"
  * (tests/class-merge.spec.ts holds the two lists equal).
  */
 export const FONT_SIZES = [
-  "3xs",
-  "2xs",
   "label",
   "meta",
   "ui",

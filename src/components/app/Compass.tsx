@@ -244,9 +244,9 @@ function BarList({ title, bars, extra }: { title: string; bars: BarVisits[]; ext
         {bars.map((b) => (
           <li key={b.name} className="border-b border-border">
             <a href={harbourAt(b.name)} className="dot-leader min-h-11 w-full py-3 focus-ring-inset">
-              <span className="font-serif text-prose font-bold text-foreground transition-colors hover:text-primary">{b.name}</span>
+              <span className="font-serif text-prose font-bold text-foreground transition-colors hover:underline hover:underline-offset-4">{b.name}</span>
               <span aria-hidden="true" className="leader" />
-              <span className="shrink-0 font-condensed text-meta uppercase tracking-label text-muted-foreground">
+              <span className="shrink-0 text-meta text-muted-foreground">
                 {compass.barPours(b.pours)}
               </span>
             </a>
@@ -256,7 +256,7 @@ function BarList({ title, bars, extra }: { title: string; bars: BarVisits[]; ext
           <li className="border-b border-border">
             <a
               href={harbourAt(extra)}
-              className="link-caps flex py-3 text-secondary hover:text-primary focus-ring-inset"
+              className="link-caps flex py-3 text-secondary hover:underline hover:underline-offset-4 focus-ring-inset"
             >
               {compass.pickAt(extra)} &rarr;
             </a>
@@ -319,7 +319,7 @@ function TopPick({
         onClick={onSelect}
         aria-pressed={selected}
         className={cn(
-          'text-left font-serif text-title font-bold transition-colors hover:text-primary',
+          'text-left font-serif text-title font-bold transition-colors hover:underline hover:underline-offset-4',
           selected ? 'text-primary' : 'text-foreground'
         )}
       >
