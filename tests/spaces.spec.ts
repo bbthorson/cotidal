@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { SpaceRef, isSpaceRefString, isSpaceAtUriString, parseAtUriString } from 'atproto-syntax-spaces';
+import { SpacePermission } from 'atproto-oauth-scopes-spaces';
 import {
   BAR_SPACE_POLICY,
   PATRON_BAR_SCOPE,
@@ -110,4 +111,37 @@ test('Spaces: scopes are the grant format', () => {
   expect(PATRON_BAR_SCOPE).not.toMatch(/action=read(&|$)/);
   expect(VENUE_BAR_SCOPE).toBe('space:app.cotidal.bar?action=read&manage=create&manage=update&manage=delete');
   expect(STAFF_BAR_SCOPE).toBe('space:app.cotidal.bar?authority=*&action=read');
+});
+
+test('Spaces: each scope parses in the reference implementation and grants what it should', () => {
+  // `atproto-oauth-scopes-spaces` is the Spaces alpha of @atproto/oauth-scopes,
+  // the code a PDS uses to decide what a token may do.
+  const grant = (scope: string) => {
+    const permission = SpacePermission.fromString(scope);
+    expect(permission, scope).not.toBeNull();
+    expect(String(permission), scope).toBe(scope);
+    return permission!;
+  };
+  const bar = { spaceType: BAR_SPACE_TYPE, authority: VENUE, skey: BAR_SPACE_KEY } as const;
+  const sharePour = { ...bar, action: 'create', collection: POUR_COLLECTION } as const;
+  const readAll = { ...bar, action: 'read' } as const;
+  const readOwn = { ...bar, action: 'read_self' } as const;
+  const openSpace = { ...bar, authority: 'self', manage: 'create' } as const;
+
+  const patron = grant(PATRON_BAR_SCOPE);
+  expect(patron.matches(sharePour)).toBe(true);
+  expect(patron.matches(readOwn)).toBe(true);
+  expect(patron.matches(readAll)).toBe(false);
+  expect(patron.matches({ ...sharePour, collection: 'app.cotidal.palate' })).toBe(false);
+  expect(patron.matches({ ...sharePour, spaceType: 'app.example.other' })).toBe(false);
+
+  const staff = grant(STAFF_BAR_SCOPE);
+  expect(staff.matches(readAll)).toBe(true);
+  expect(staff.matches(sharePour)).toBe(false);
+
+  const venue = grant(VENUE_BAR_SCOPE);
+  expect(venue.matches(openSpace)).toBe(true);
+  expect(venue.matches({ ...readAll, authority: 'self' })).toBe(true);
+  // Its own space only: `authority` defaults to the signed-in account.
+  expect(venue.matches(readAll)).toBe(false);
 });

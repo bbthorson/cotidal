@@ -215,7 +215,9 @@ in front of a server that would have signed people in.
 `public-read.ts` reads *other people's* palates with no session, for
 `/p/<handle>` — handle → DID → document → PDS → record. It runs on a public
 route, so it fetches only `https:` hosts, time-boxes every lookup, and parses
-the record down to the fields the page draws. Its unit tests use a fake
+the record down to the fields the page draws. The DID document is checked and
+read by `@atproto/did` (`didDocumentValidator`, `extractAtprotoData`), not a
+hand-written shape. Its unit tests use a fake
 `fetch`; the route tests use a reserved TLD (`nobody.invalid`), which is
 refused before any network call. `publicMapPath` lives in `paths.ts` because
 the island links to it and must not import the server package.
@@ -294,7 +296,8 @@ nothing calls a space endpoint until the Spaces public beta. An unclaimed bar
 has no space, and nothing stores a space ref — it is derived from the venue's
 DID. The released `@atproto/lexicon` and `@atproto/syntax` do not know spaces,
 so they are checked against the Spaces alpha, pinned as the dev aliases
-`atproto-lexicon-spaces` and `atproto-syntax-spaces`; `npm run lexicons` fails
+`atproto-lexicon-spaces`, `atproto-syntax-spaces` and
+`atproto-oauth-scopes-spaces`; `npm run lexicons` fails
 when the released parser catches up, so the aliases get removed.
 
 ## Conventions

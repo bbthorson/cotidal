@@ -77,9 +77,15 @@ Decisions, and why:
   `@atproto/syntax` (`SpaceRef`, `isSpaceRefString`, `parseAtUriString`),
   including what it refuses.
 
-Two dev dependencies are aliases of the Spaces alpha, pinned exactly:
-`atproto-lexicon-spaces` and `atproto-syntax-spaces`. They are only for
-checking, never imported by the app. `npm run lexicons` fails the day the
+- The scopes are parsed by the Spaces alpha of `@atproto/oauth-scopes`
+  (`SpacePermission`, what a PDS uses to decide what a token may do), and
+  checked to grant what they should: a patron may share a pour and read their
+  own, never the whole space; a venue manages only its own.
+
+Three dev dependencies are aliases of the Spaces alpha, pinned exactly:
+`atproto-lexicon-spaces`, `atproto-syntax-spaces` and
+`atproto-oauth-scopes-spaces`. They are only for checking, never imported by
+the app. `npm run lexicons` fails the day the
 released `@atproto/lexicon` accepts a space lexicon, so the alias is removed
 rather than forgotten.
 
@@ -111,7 +117,14 @@ here talks to a server yet, on purpose.
 5. **Reads for the venue.** Credentials (`getDelegationToken`,
    `authorizeSpaceSync`, a P-256 key bound to them, RFC 9421 request
    signatures) and sync (`listWriters`, `listRepoOps`, the LtHash check). This
-   is the Spaces SDK's job; do not hand-roll it.
+   is `@atproto/space`'s job (`sync/consumer`, `credential`,
+   `http-signature`); do not hand-roll it. It is not a dependency yet: there is
+   no caller, and the alpha shares nothing with the beta's wire format
+   guarantees. Add it with the first caller. It runs on Web Crypto, so check
+   it bundles for workerd as `@bbthorson/atproto-cf-auth` does.
+   The MACs use the author's `#atproto_kem` key from their DID document;
+   `@atproto/did` (already a dependency, behind `public-read.ts`) is where
+   that lookup belongs.
 6. **Interface copy** for "Shared with <bar> only" lives in `copy.ts`, and must
    not say private or encrypted.
 

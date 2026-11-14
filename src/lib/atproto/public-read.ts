@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { type AtprotoDidDocument, didDocumentValidator, extractAtprotoData } from '@atproto/did';
 import { isValidHandle, normalizeHandle } from '@bbthorson/atproto-cf-auth/server';
 import { LEGACY_PALATE_COLLECTION, PALATE_COLLECTION, PALATE_RKEY, decodeCoordinates } from './records';
 import { lexInteger } from './lex-string';
@@ -148,14 +149,6 @@ async function getJson(
   }
 }
 
-const DidDocSchema = z.object({
-  id: z.string(),
-  alsoKnownAs: z.array(z.string()).optional(),
-  service: z
-    .array(z.object({ id: z.string(), type: z.string(), serviceEndpoint: z.unknown() }))
-    .optional(),
-});
-
 interface ResolvedDid {
   pds: URL;
   /** The handle the document claims — unverified until it resolves back. */
@@ -180,19 +173,18 @@ async function resolveDidDoc(did: string, fetchImpl: typeof fetch): Promise<Reso
   if (status === 404 || status === 410) return null;
   if (!body) throw new Unavailable(`DID document ${status}`);
 
-  const doc = DidDocSchema.safeParse(body);
+  // The reference validator, not a hand-written shape: it checks the DID
+  // document as atproto defines it, and finds `#atproto_pds` the way every
+  // other atproto client does.
+  const doc = didDocumentValidator.safeParse(body);
   if (!doc.success || doc.data.id !== did) return null;
 
-  const service = doc.data.service?.find(
-    (s) =>
-      (s.id === '#atproto_pds' || s.id === `${did}#atproto_pds`) &&
-      s.type === 'AtprotoPersonalDataServer'
-  );
-  const pds = typeof service?.serviceEndpoint === 'string' ? safeUrl(service.serviceEndpoint) : null;
+  // `id` is the did:plc / did:web asked for, so the document is an atproto one.
+  const atproto = extractAtprotoData(doc.data as AtprotoDidDocument);
+  const pds = atproto.pds ? safeUrl(atproto.pds.serviceEndpoint) : null;
   if (!pds) return null;
 
-  const aka = doc.data.alsoKnownAs?.find((a) => a.startsWith('at://'));
-  const claimed = aka ? normalizeHandle(aka.slice('at://'.length), { defaultDomain: '' }) : null;
+  const claimed = atproto.aka ? normalizeHandle(atproto.aka, { defaultDomain: '' }) : null;
   return { pds, claimedHandle: claimed && isValidHandle(claimed) ? claimed : null };
 }
 
