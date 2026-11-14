@@ -22,6 +22,8 @@
  *      field that declares it
  *   8. every file loads in `@atproto/lexicon`, the protocol's reference
  *      parser, so a schema it would refuse never reaches a repository
+ *   9. every space type loads in the Spaces build of that parser, and lists
+ *      only record lexicons defined here
  *
  * Checks 1–5 once said "the two disagree" and compared nothing between them;
  * a pour lexicon with float fields and a route writing unchecked request
@@ -250,13 +252,43 @@ for (const id of Object.keys(RECORD_SCHEMAS)) {
  * `new Lexicons()`: the constructor loads anything, `"type": "foo"` included.
  */
 const { parseLexiconDoc } = await import('@atproto/lexicon');
-for (const [id, doc] of docs) {
+const isSpace = (doc) => doc.defs.main?.type === 'space';
+const refusal = (parse, doc) => {
   try {
-    parseLexiconDoc(doc);
+    parse(doc);
+    return null;
   } catch (e) {
     const issues = Array.isArray(e.issues) ? e.issues : [];
-    const where = issues.map((i) => i.path?.join('.')).filter(Boolean).join(', ');
-    errors.push(`${id}: @atproto/lexicon refuses it${where ? ` at ${where}` : ''}`);
+    return issues.map((i) => i.path?.join('.')).filter(Boolean).join(', ') || 'refused';
+  }
+};
+for (const [id, doc] of docs) {
+  if (isSpace(doc)) continue;
+  const why = refusal(parseLexiconDoc, doc);
+  if (why) errors.push(`${id}: @atproto/lexicon refuses it at ${why}`);
+}
+
+/**
+ * 9. Space types (docs/spaces.md). The released parser does not know
+ * `"type": "space"` yet, so a space lexicon is parsed by the Spaces alpha of
+ * the same package, pinned as `atproto-lexicon-spaces`. The day the released
+ * parser accepts it, this fails: drop the alias and let check 8 take over.
+ * Every collection a space lists must be a record lexicon here, or a write
+ * scope granted from the list would name a record nobody has defined.
+ */
+const { parseLexiconDoc: parseSpaceLexiconDoc } = await import('atproto-lexicon-spaces');
+for (const [id, doc] of docs) {
+  if (!isSpace(doc)) continue;
+  if (!refusal(parseLexiconDoc, doc)) {
+    errors.push(`${id}: @atproto/lexicon now accepts space lexicons — remove atproto-lexicon-spaces and check 9's exemption`);
+  }
+  const why = refusal(parseSpaceLexiconDoc, doc);
+  if (why) errors.push(`${id}: the Spaces reference parser refuses it at ${why}`);
+  const collections = doc.defs.main.collections ?? [];
+  if (collections.length === 0) errors.push(`${id}: a space with no collections grants no write scope`);
+  for (const c of collections) {
+    if (c.includes('*')) errors.push(`${id}: collection "${c}" — a space may not list a wildcard`);
+    else if (docs.get(c)?.defs.main?.type !== 'record') errors.push(`${id}: collection "${c}" is not a record lexicon here`);
   }
 }
 

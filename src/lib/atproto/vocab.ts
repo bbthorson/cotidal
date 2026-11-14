@@ -15,6 +15,13 @@ export const MAKER_COLLECTION = 'app.cotidal.maker';
 export const ELICITATION_COLLECTION = 'app.cotidal.elicitation';
 
 /**
+ * A bar's permissioned space (`app.cotidal.bar.json`, docs/spaces.md). Its
+ * authority is the venue's DID, and a venue has one, so the key is `self`.
+ */
+export const BAR_SPACE_TYPE = 'app.cotidal.bar';
+export const BAR_SPACE_KEY = 'self';
+
+/**
  * The namespace before the rename to Cotidal. Read-only: palates and pours
  * written under it are still read (publish.ts, public-read.ts) so nobody's
  * map empties, but nothing is written there and those records are never

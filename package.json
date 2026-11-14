@@ -45,6 +45,8 @@
     "@types/react": "^19.2.1",
     "@types/react-dom": "^19.2.1",
     "astro-eslint-parser": "^1.4.0",
+    "atproto-lexicon-spaces": "npm:@atproto/lexicon@0.0.0-spaces-alpha-20261113224550",
+    "atproto-syntax-spaces": "npm:@atproto/syntax@0.0.0-spaces-alpha-20261113224550",
     "eslint": "^9.17.0",
     "eslint-plugin-astro": "^1.7.0",
     "eslint-plugin-react-hooks": "^7.1.1",

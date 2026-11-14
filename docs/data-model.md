@@ -161,6 +161,7 @@ For full physiological and mathematical derivations, see **[docs/sensory-science
 | `app.cotidal.recipe` | tid | Author | An authored spec with technique, credits, and chemometric stimulus specs |
 | `app.cotidal.venue` | `self` | Venue | A bar claiming itself via domain handle |
 | `app.cotidal.maker` | `self` | Maker | A professional profile linking authored recipes |
+| `app.cotidal.bar` | space, `self` | Venue (authority) | A claimed bar's permissioned space: patrons' pours the venue reads and the public does not (`docs/spaces.md`) |
 | `app.cotidal.defs` | — | — | Shared types: `entityRef`, `venueRef`, `drinkRef`, `stimulus`, `credit`, `price` |
 
 `app.cotidal.pour` provides the clean sensory observation record, fully superseding legacy drift heuristics.

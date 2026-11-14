@@ -287,6 +287,16 @@ shown for them live in `copy.ts`.
 Records are signed by their authors and **never rewritten**. Reconciling an
 unclaimed reference to a later account is the app view's job.
 
+**A claimed bar is an atproto Space** (`app.cotidal.bar`, `spaces.ts`,
+`docs/spaces.md`): authority the venue's DID, key `self`, patrons write pours
+the venue and its staff read and other patrons do not. Prepared, not wired:
+nothing calls a space endpoint until the Spaces public beta. An unclaimed bar
+has no space, and nothing stores a space ref — it is derived from the venue's
+DID. The released `@atproto/lexicon` and `@atproto/syntax` do not know spaces,
+so they are checked against the Spaces alpha, pinned as the dev aliases
+`atproto-lexicon-spaces` and `atproto-syntax-spaces`; `npm run lexicons` fails
+when the released parser catches up, so the aliases get removed.
+
 ## Conventions
 
 - Test the contract, not the path. Order-independent logic (scoring, belief
@@ -339,6 +349,9 @@ interface; see `docs/brand.md`.
    `docs/design-system.md`.
 7. **Venue claim and menu publishing.** Handle-as-domain makes claiming and
    publishing the same act; the lexicons exist and nothing renders them.
+   Claiming also opens the bar's space, where patrons share pours with the
+   bar alone (`docs/spaces.md`; addressing and policy prepared, waiting on the
+   Spaces beta).
 8. **Rework elicitation.** Forced-choice pairs for precision *(landed; see
    Elicitation)* and the 9-point hedonic for post-drink feedback *(landed in
    `PourForm`)*. Answers are logged *(landed: `app.cotidal.elicitation`)*.

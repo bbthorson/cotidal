@@ -80,6 +80,7 @@ domain name), patrons who save or follow the venue are direct subscribers:
 | `app.cotidal.recipe` | Authored spec, technique, creator attribution |
 | `app.cotidal.maker` | Bartender professional profile and portable portfolio |
 | `app.cotidal.pour` | Patron check-in and re-order signal (`wouldOrderAgain`) |
+| `app.cotidal.bar` | The venue's space: pours patrons share with the bar alone, the source of palate intelligence without publishing anyone's log (`docs/spaces.md`) |
 | `site.standard.publication` | Canonical web publication (Standard.site), served at `/.well-known/site.standard.publication` |
 | `site.standard.document` | Individual syndicated menu release, announcement, or editorial post |
 
