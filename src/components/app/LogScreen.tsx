@@ -32,9 +32,11 @@ import { AccountSection } from './AccountSection';
 function LogContent({
   register,
   member,
+  mcpAddress,
 }: {
   register: Register;
   member: { handle: string | null } | null;
+  mcpAddress: string;
 }) {
   const { isEnabled, openSignIn } = useAtprotoContext();
   const isMember = !!member;
@@ -150,6 +152,7 @@ function LogContent({
 
           <AccountSection
             handle={member?.handle ?? null}
+            mcpAddress={mcpAddress}
             topName={name(nearest)}
             regionName={region.name}
             onStartOver={() => window.location.assign(startOverPath)}
@@ -193,15 +196,18 @@ export default function LogScreen({
   register,
   signInEnabled,
   member,
+  mcpAddress,
 }: {
   register: Register;
   signInEnabled: boolean;
   /** The server's answer (`accountFor`): who is reading, before anything loads. */
   member: { handle: string | null } | null;
+  /** The `/mcp` address on this host (the server knows the host). */
+  mcpAddress: string;
 }) {
   return (
     <AtprotoProvider enabled={signInEnabled}>
-      <LogContent register={register} member={member} />
+      <LogContent register={register} member={member} mcpAddress={mcpAddress} />
     </AtprotoProvider>
   );
 }

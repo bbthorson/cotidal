@@ -3,7 +3,6 @@ import AppShell from '../../layouts/AppShell.astro';
 import PageTitle from '../../components/marketing/PageTitle.astro';
 import PalatePlot from '../../components/marketing/PalatePlot.astro';
 import Readout from '../../components/marketing/Readout.astro';
-import AssistantSteps from '../../components/marketing/AssistantSteps.astro';
 import { site, publicMap, coaster, assistants, share } from '../../lib/copy';
 import { shareImagePath } from '../../lib/share';
 import { formatCoordinate } from '../../lib/coordinate';
@@ -115,9 +114,8 @@ const pairs: { label: string; drink: Drink }[] = overlap
     ].flatMap(({ label, drink }) => (drink ? [{ label, drink }] : []))
   : [];
 
-// What a chat assistant reads is this map: on your own, how to connect one;
-// on someone else's, what to ask yours about them.
-const mcpAddress = new URL('/mcp', Astro.url).toString();
+// What a chat assistant reads is this map: on someone else's, what to ask
+// yours about them. Setting one up is the member's own business, at /log.
 const subjectHandle = result.status === 'ok' ? result.actor.handle : null;
 
 const ctaClass =
@@ -232,14 +230,6 @@ const ctaClass =
               {coaster.makeCode}
             </a>
           </p>
-        </section>
-      )}
-
-      {isSelf && (
-        <section id="assistant" class="scroll-mt-8 space-y-6 border-t border-foreground pt-6" data-testid="assistant">
-          <h2 class="font-serif text-heading font-bold text-foreground">{assistants.sectionTitle}</h2>
-          <p class="text-ui text-muted-foreground">{assistants.lede}</p>
-          <AssistantSteps address={mcpAddress} handle={subjectHandle} />
         </section>
       )}
 

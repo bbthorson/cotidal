@@ -22,7 +22,7 @@ export const destinations = [
   { href: '/radio', label: nav.radio, match: '/radio', app: true, header: true, footer: false },
   { href: '/compass', label: nav.compass, match: '/compass', app: true, header: true, footer: false },
   { href: '/log', label: nav.log, match: '/log', app: true, header: true, footer: false },
-  { href: '/drinks', label: nav.register, match: '/drinks', app: false, header: true, footer: true },
+  { href: '/drinks', label: nav.register, match: '/drinks', app: false, header: false, footer: true },
   { href: '/how-it-works', label: nav.howItWorks, match: '/how-it-works', app: false, header: false, footer: true },
   { href: '/bars', label: nav.bars, match: '/bars', app: false, header: false, footer: true },
 ] as const;

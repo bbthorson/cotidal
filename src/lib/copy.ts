@@ -761,8 +761,8 @@ export const publicMap = {
 } as const;
 
 /**
- * How to reach a palate from a chat assistant: under your own map
- * (`/p/<handle>#assistant`), and what a browser sees at `/mcp`, the address
+ * How to reach a palate from a chat assistant: under your account
+ * at the foot of `/log` (`#assistant`), and what a browser sees at `/mcp`, the address
  * the assistant is given.
  */
 export const assistants = {
@@ -787,7 +787,7 @@ export const assistants = {
   ],
   askWith: (handle: string) => `Ask with your handle: “What does Cotidal say I should drink? I’m @${handle}.”`,
   askWithGuest: 'Ask with your Bluesky handle: “What does Cotidal say I should drink? I’m @you.bsky.social.”',
-  /** On your own map (`/p/<handle>`): the section's heading. */
+  /** Under your account (`/log#assistant`): the section's heading. */
   sectionTitle: 'Ask a chat assistant',
   /** On someone else's map: what to ask your own assistant about them. */
   visitorAsk: (handle: string) => `Ask your chat assistant: “How far is my map from @${handle}’s?”`,
