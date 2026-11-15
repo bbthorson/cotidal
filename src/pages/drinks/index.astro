@@ -50,7 +50,9 @@ const grouped = quadrants.map((quadrant) => ({
           grouped.map(({ quadrant, items }) => (
             <section id={quadrant.id} class="scroll-mt-8">
               <div class="flex items-baseline justify-between border-b border-foreground pb-2">
-                <h2 class="font-serif text-heading font-bold text-foreground">{quadrant.name}</h2>
+                <h2 class="font-serif text-heading font-bold text-foreground">
+                  <a href={`/regions/${quadrant.id}`} class="hover:underline hover:underline-offset-4">{quadrant.name}</a>
+                </h2>
                 <span class="label-caps text-secondary">{quadrant.axis}</span>
               </div>
               <p class="mt-2 font-serif text-ui italic leading-relaxed text-muted-foreground">

@@ -13,15 +13,20 @@ import { QUESTIONS_PATH, RATE_PATH } from './atproto/paths';
  * "For Bars" is the supply side, a different product from the drinker's app:
  * it is read from the footer and the landing page, not offered in the header
  * beside Radio, Compass and Log.
+ *
+ * `footer` marks the reading pages the footer lists. Drinks and the regions
+ * are one place there: `/drinks` is the drinks set under the four regions,
+ * each heading linking its region page, so the footer's Drinks is current on
+ * `/regions/*` too (`footerMatch`).
  */
 export const destinations = [
-  { href: '/radio', label: nav.radio, match: '/radio', app: true, header: true },
-  { href: '/compass', label: nav.compass, match: '/compass', app: true, header: true },
-  { href: '/log', label: nav.log, match: '/log', app: true, header: true },
-  { href: '/drinks', label: nav.register, match: '/drinks', app: false, header: true },
-  { href: '/#regions', label: nav.regions, match: '/regions', app: false, header: true },
-  { href: '/how-it-works', label: nav.howItWorks, match: '/how-it-works', app: false, header: false },
-  { href: '/bars', label: nav.bars, match: '/bars', app: false, header: false },
+  { href: '/radio', label: nav.radio, match: '/radio', app: true, header: true, footer: false },
+  { href: '/compass', label: nav.compass, match: '/compass', app: true, header: true, footer: false },
+  { href: '/log', label: nav.log, match: '/log', app: true, header: true, footer: false },
+  { href: '/drinks', label: nav.register, match: '/drinks', app: false, header: true, footer: true, footerMatch: ['/drinks', '/regions'] },
+  { href: '/#regions', label: nav.regions, match: '/regions', app: false, header: true, footer: false },
+  { href: '/how-it-works', label: nav.howItWorks, match: '/how-it-works', app: false, header: false, footer: true },
+  { href: '/bars', label: nav.bars, match: '/bars', app: false, header: false, footer: true },
 ] as const;
 
 export const signIn = { href: '/#connect', label: nav.signIn } as const;

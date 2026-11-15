@@ -79,6 +79,17 @@ test('Landing: each region links to its dedicated region page', async ({ page })
   }
 });
 
+test('Drinks: each region heading links its region page, and the footer reads it as Drinks', async ({ page }) => {
+  // The footer has no Regions: /drinks is where the regions are read from.
+  const register = await (await page.request.get('/drinks')).text();
+  for (const id of QUADRANT_ORDER) {
+    expect(register, `/drinks does not link /regions/${id}`).toContain(`href="/regions/${id}"`);
+  }
+  await page.goto(`/regions/${QUADRANT_ORDER[0]}`);
+  const current = page.getByRole('contentinfo').locator('a[aria-current="page"]');
+  await expect(current).toHaveAttribute('href', '/drinks');
+});
+
 test('Regions: the pages from before the water names redirect to their successors', async ({ request }) => {
   for (const [from, to] of Object.entries(formerQuadrantIds)) {
     const res = await request.get(`/regions/${from}`, { maxRedirects: 0 });

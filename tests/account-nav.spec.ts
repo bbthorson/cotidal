@@ -154,7 +154,11 @@ test('Navigation: the footer lists the reading pages; the app and the account ar
   const html = await (await request.get('/')).text();
   const footer = html.slice(html.lastIndexOf('<footer'), html.lastIndexOf('</footer>'));
   for (const d of destinations) {
-    expect(footer.includes(`href="${d.href}"`), d.href).toBe(!d.app);
+    expect(footer.includes(`href="${d.href}"`), d.href).toBe(d.footer);
+    // Everything in the footer is a reading page.
+    if (d.footer) expect(d.app, d.href).toBe(false);
   }
+  // Drinks and the regions are one place in the footer.
+  expect(footer).not.toContain('href="/#regions"');
   expect(footer).not.toContain(nav.signIn);
 });

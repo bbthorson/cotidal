@@ -12,8 +12,11 @@ const { currentPath = '/' } = Astro.props;
 const links = [
   { href: '/', label: nav.home, active: currentPath === '/' },
   ...destinations
-    .filter((d) => !d.app)
-    .map((d) => ({ href: d.href, label: d.label, active: isCurrent(currentPath, d.match) })),
+    .filter((d) => d.footer)
+    .map((d) => {
+      const matches: readonly string[] = 'footerMatch' in d ? d.footerMatch : [d.match];
+      return { href: d.href, label: d.label, active: matches.some((m) => isCurrent(currentPath, m)) };
+    }),
 ];
 ---
 
