@@ -5,24 +5,13 @@ import { site, logPage } from '../lib/copy';
 import { loadRegister } from '../lib/register.server';
 import { signInEnabled } from '../lib/atproto/auth';
 import { accountFor } from '../lib/atproto/session';
-import { RATE_PATH } from '../lib/atproto/paths';
 
 /**
  * Yours: your map, what your pours add up to, the ledger of what moved you,
  * and the account. `client:load` so the shell server-renders and paints
  * before hydration finishes.
- *
- * Rating used to happen here. Links to `/log?drink=…` and `/log?draft=1…`
- * (a chat assistant's draft) are in the wild, so they still arrive, and are
- * passed on to /rate with the query intact.
  */
 export const prerender = false;
-
-const url = Astro.url;
-const ratingTarget = RATE_PATH + url.search;
-if (url.searchParams.has('drink') || url.searchParams.has('draft')) {
-  return Astro.redirect(ratingTarget, 302);
-}
 
 const register = await loadRegister();
 const authEnabled = await signInEnabled();

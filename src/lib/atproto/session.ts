@@ -34,7 +34,7 @@ export async function restoredDid(request: Request): Promise<string | null> {
  *   refresh: rendering a page is not a reason to call the PDS).
  * - `guest`: nobody signed in. `canSignIn` is false when sign-in is off here.
  * - `unknown`: the page was prerendered at build time, before any visitor, so
- *   it cannot know and must not guess (`/drinks`, `/regions/*`).
+ *   it cannot know and must not guess (`/drinks`, `/drinks/regions/*`).
  */
 export type Account =
   | { kind: 'member'; did: string; handle: string | null }

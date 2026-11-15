@@ -83,13 +83,16 @@ test('MCP endpoint: a client asking for an event stream is never sent the page',
   expect((await post.json()).result.tools.length).toBe(6);
 });
 
-test('Assistants page: the address, the steps and what it cannot do', async ({ request }) => {
-  const res = await request.get('/assistants');
+test('MCP endpoint: the browser page is the one place for setup without a map, and /assistants is gone', async ({ request }) => {
+  const res = await request.get('/mcp', { headers: { accept: 'text/html' } });
   expect(res.status()).toBe(200);
   const html = await res.text();
-  expect(html).toContain('/mcp');
   expect(html).toContain(assistants.steps[1]);
   expect(html).toContain(assistants.readOnlyTitle);
+  // No handle to put in the example: the page cannot know whose it is.
+  expect(html).toContain(assistants.askWithGuest);
+  // A member reads this under their own map (`/p/<handle>#assistant`).
+  expect((await request.get('/assistants')).status()).toBe(404);
 });
 
 test('MCP endpoint: drafting a pour returns a link and writes nothing', async ({ request }) => {

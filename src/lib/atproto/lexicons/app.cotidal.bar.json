@@ -1,0 +1,13 @@
+{
+  "lexicon": 1,
+  "id": "app.cotidal.bar",
+  "defs": {
+    "main": {
+      "type": "space",
+      "key": "literal:self",
+      "title": "Cotidal bar",
+      "description": "A bar's permissioned space: what its patrons tell the bar and nobody else. The authority is the venue's own DID, the same account that holds its `app.cotidal.venue` at rkey `self`, so one claimed venue has exactly one bar space, at skey `self`. A patron's pour written here sits in the patron's own space repo and is read by the venue and the staff it names, not by the public and not by other patrons. An unclaimed bar has no space: no one else may be its authority, because a space cannot move to a different DID once records point at it.",
+      "collections": ["app.cotidal.pour"]
+    }
+  }
+}

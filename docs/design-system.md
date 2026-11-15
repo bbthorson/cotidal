@@ -85,7 +85,7 @@ Sizes are named for the role, not the number. Tailwind's own sizes (`text-sm`, `
 | `text-hero` / `text-hero-lg` | 40px / 60px, 1.05 | — | Landing headline (phone / from `md`) |
 | `text-region` | 56px / 1 | — | A region, revealed (Playfair 400 italic) |
 
-A new size is added to `fontSize` in `tailwind.config.ts` **and** to `FONT_SIZES` in `src/lib/utils.ts` (`tests/class-merge.spec.ts` holds the two equal), so `cn()` does not read it as a colour.
+A new size is added to `fontSize` in `tailwind.config.ts` **and** to `FONT_SIZES` in `src/lib/utils.ts` (`tests/unit/class-merge.test.ts` holds the two equal), so `cn()` does not read it as a colour.
 
 Fonts (`Base.astro`): Playfair Display 400, 400 italic and 700; PT Sans 400/700; Barlow Condensed 400/600/700. `font-mono` resolves to Barlow — monospace is not a brand face.
 
@@ -136,7 +136,7 @@ Navigation is unified across the entire site through `<SiteHeader.astro>` and `<
 3. **The account control** (header) says what the server knows (`accountFor` in `session.ts`, read once in `AppShell`):
    - a member sees `@handle`, which opens the account (the foot of Log, `/log#account`), and **Sign out** — a plain form post that answers with a redirect, like sign-in, so it needs no script;
    - a guest sees **Sign in**;
-   - a prerendered page (`/drinks`, `/regions/*`) was built before anyone visited, so it says **Account** (also `/log#account`) rather than guess. `/account` itself redirects there.
+   - a prerendered page (`/drinks`, `/drinks/regions/*`) was built before anyone visited, so it says **Account** (also `/log#account`) rather than guess.
    - on an app page, **Sign in** opens the one sign-in sheet in place (`?signin=1`, handled by `AtprotoProvider`) rather than leaving for the landing page's form. On every other page it goes to `/#connect`.
 4. **Footer**: the reading pages only — Home, Drinks, The Four Regions, For Bars (`app: false` in `destinations`). The app destinations and the account are always in the header. On a page with a bar pinned along the bottom (`AppShell`'s `bottomBar`) it is left out below `lg`: the bar is that page's foot, and the header's Menu already lists the same pages.
 5. **Active State Indicators**: Routes are identified via `currentPath` and styled as a tab: bold ink over a 3px `foreground` rule from `lg`, bold alone in the phone's folded menu.
@@ -245,7 +245,7 @@ To guarantee the design system never drifts, automated enforcement is active at 
 - `astro check`: Validates Astro component props and types.
 - `tsc --noEmit`: Validates TypeScript types across the entire project.
 
-### 4. Browser & Contract Tests (`npx playwright test`)
+### 4. Tests (`npm test`: Vitest in `tests/unit/`, Playwright in `tests/`)
 - `tests/landing-static.spec.ts`: Asserts zero client scripts or hydration islands on `/`, server-rendered quadrants, and non-JS form fallback.
 - `tests/visual-identity.spec.ts`: Asserts computed CSS colors match the exact token values for paper ground (`rgb(244, 241, 230)`) and forest ink (`rgb(35, 52, 43)`).
-- `tests/drink-content.spec.ts`: Asserts all drink entries join cleanly to the coordinate database and contain primary sources.
+- `tests/unit/drink-content.test.ts`: Asserts all drink entries join cleanly to the coordinate database and contain primary sources.

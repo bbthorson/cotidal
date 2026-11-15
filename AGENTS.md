@@ -19,8 +19,8 @@ landing page included. Astro was being used as a slower Next.js.
 - Prefer `client:load` over `client:only` so the shell server-renders.
 - The header's account control is server truth: `@handle` and a Sign out
   form for a member, Sign in for a guest, a neutral Account link on a
-  prerendered page that cannot know. The account is the foot of `/log`
-  (`/account` redirects there). Signing out lands on `/compass?signed_out=1`,
+  prerendered page that cannot know. The account is the foot of `/log`.
+  Signing out lands on `/compass?signed_out=1`,
   where `AtprotoProvider` — every island mounts it — clears the device's
   copy of the palate.
 - Never add an island to `/`. `tests/landing-static.spec.ts` fails if you do.
@@ -39,8 +39,8 @@ something that drifts from the first. Three had already happened:
 | Records | `src/lib/atproto/lexicons/*.json` | `npm run lexicons` |
 | Styling | `globals.css` tokens + `tailwind.config.ts` | `npm run lint` — arbitrary values, raw colours, and Tailwind's own type sizes are an error in `pages/`, `layouts/` and `components/` |
 | Interface copy | `src/lib/copy.ts` | `npm run lint` — words typed into JSX text or a `placeholder` / `aria-label` / `title` / `alt` are an error. Quiz questions (`discovery-questions.ts`, beside their scoring) and the drink and region prose are the exceptions |
-| Drink prose | `src/content/drinks/*.md` | `tests/drink-content.spec.ts` |
-| Region prose | `src/content/regions/*.md` | `tests/region-content.spec.ts` |
+| Drink prose | `src/content/drinks/*.md` | `tests/unit/drink-content.test.ts` |
+| Region prose | `src/content/regions/*.md` | `tests/unit/region-content.test.ts` |
 | What the device keeps | `src/lib/device-store.ts` | *(convention)* — nothing else touches `localStorage` |
 
 Found in the wild, each silent:
@@ -123,6 +123,11 @@ The quiz's x/y variance travels
 in `UserProfile.variance` and becomes the 5D starting covariance, so a
 confident quiz makes early pours move the dot less.
 Nothing in the quiz calls a model, so the flow runs offline.
+`/how-it-works` is the public account of this section and of how a pour
+moves the dot, in plain words (`howItWorks` in `copy.ts`).
+`tests/unit/how-it-works.test.ts` holds its numbers to `MIN_QUESTIONS`,
+`MAX_QUESTIONS`, `MAX_POUR_STEP` and the 7/3 rating thresholds: change one
+and update the page in the same commit.
 What may call a model, and who sees the result, is `docs/generation.md`.
 
 ### Drink prose — `src/content/drinks/`, `src/content.config.ts`
@@ -149,15 +154,18 @@ enum in `src/content.config.ts`; extend it there before using a new value. Then:
 
 ```bash
 npm run typecheck   # the frontmatter schema is checked at build time
-npx playwright test tests/drink-content.spec.ts
+npm run test:unit -- tests/unit/drink-content.test.ts
 ```
 
-### Region prose — `src/content/regions/`, `src/pages/regions/[id].astro`
-`/regions/<id>`, prerendered and script-free. Same format as a drink
+### Region prose — `src/content/regions/`, `src/pages/drinks/regions/[id].astro`
+**A region is a filter on the drinks**, not a page of its own:
+`/drinks/regions/<id>` (`regionPath`) is `/drinks` narrowed to one region,
+with `RegionFilter` across the top, the drinks first and the region's prose
+under them. Prerendered and script-free. There is no Regions item in the
+navigation; Drinks is current there. Same format as a drink
 (`documented` required, `claimed`, `sources`), one entry per region, and the
-filename is the id — which is a URL: the landing page, `/drinks#<id>` and
-`/p/<handle>` link to it. Never rename one; a rename adds a redirect
-(`formerQuadrantIds`).
+filename is the id — which is a URL: the landing page, `/drinks`, `/p/<handle>`,
+the chat tools and the region coasters link to it.
 
 The entry holds only prose. Name, axis and gloss come from `quadrants` in
 `copy.ts`; the drinks come from the map; what they share is counted from the
@@ -215,12 +223,14 @@ in front of a server that would have signed people in.
 `public-read.ts` reads *other people's* palates with no session, for
 `/p/<handle>` — handle → DID → document → PDS → record. It runs on a public
 route, so it fetches only `https:` hosts, time-boxes every lookup, and parses
-the record down to the fields the page draws. Its unit tests use a fake
+the record down to the fields the page draws. The DID document is checked and
+read by `@atproto/did` (`didDocumentValidator`, `extractAtprotoData`), not a
+hand-written shape. Its unit tests use a fake
 `fetch`; the route tests use a reserved TLD (`nobody.invalid`), which is
 refused before any network call. `publicMapPath` lives in `paths.ts` because
 the island links to it and must not import the server package.
 
-`/mcp` (`src/pages/mcp.ts`, `src/lib/mcp/`) offers the same reads to chat
+`/mcp` (`src/pages/mcp.astro`, `src/lib/mcp/`) offers the same reads to chat
 assistants as MCP tools: read a palate, recommend, rank a menu, compare two,
 search drinks. Stateless and read-only; the tools are plain functions over
 `readPublicPalate` and `overlap.ts`, so they give the answers `/p/<handle>`
@@ -228,14 +238,16 @@ gives. Their descriptions are interface copy and live in `copy.ts`.
 A pour is logged from a chat by drafting, not writing: `draft_pour` returns a
 `/rate?draft=1` link (`src/lib/pour-draft.ts`) that opens the form filled in,
 with no rating, and the member taps one and logs it (`docs/mcp.md`).
+How to connect an assistant is one component, `AssistantSteps`: under your
+own map at `/p/<handle>#assistant`, with your handle in the example, and at
+`/mcp` for a browser (the same page answers an MCP client with the tools).
 
 **No floats in records.** The AT Protocol data model has none, and
 `@atproto/lex-data` treats one as an invalid value. Fractional quantities are
 stored as integer hundredths or tenths under a name that says so
 (`xHundredths`, `dxTenths`). The palate is held in memory as `Palate` (plain
 numbers) and converted only at the edge: `encodePalate` on every write,
-`decodePalate` / `decodeCoordinates` on every read, which also accept the
-float records written before the encoding. No lexicon may declare a
+`decodePalate` / `decodeCoordinates` on every read. No lexicon may declare a
 `number` — it is not a Lexicon type — and `npm run lexicons` fails on one.
 
 **Places are `community.lexicon.location.*`, never our own.** A pour's
@@ -255,7 +267,7 @@ reference implementation, never a look-alike regex. Integers are
 `Number.MAX_SAFE_INTEGER` that the reference validator accepts. `npm run lexicons`
 compares every schema in `RECORD_SCHEMAS` with its lexicon field by field and
 parses every file with `@atproto/lexicon`'s `parseLexiconDoc` (not
-`new Lexicons()`, which accepts anything). `tests/lexicon-conformance.spec.ts`
+`new Lexicons()`, which accepts anything). `tests/unit/lexicon-conformance.test.ts`
 runs Zod and the reference validator over the same records.
 
 **Datetimes** follow https://atproto.com/specs/lexicon#datetime. Reads accept
@@ -279,7 +291,7 @@ The browser loads `vocab.ts` (names and vocabularies) and
 server needs (`@atproto/lex-data`, for CIDs) are registered there. Writes go through the schema: a pour is
 validated (`PourWriteSchema`) before the palate or the pour is written —
 by `logPour` in `src/lib/pours.server.ts`, the one pipeline every caller
-uses (`tests/log-pour.spec.ts` holds the order of writes) — and
+uses (`tests/unit/log-pour.test.ts` holds the order of writes) — and
 reads are parsed (`readPour`) rather than cast. Vocabularies the app writes
 (`DEVIATIONS`, `CATA`) are stable ids declared as `knownValues`; the words
 shown for them live in `copy.ts`.
@@ -287,11 +299,44 @@ shown for them live in `copy.ts`.
 Records are signed by their authors and **never rewritten**. Reconciling an
 unclaimed reference to a later account is the app view's job.
 
+**A claimed bar is an atproto Space** (`app.cotidal.bar`, `spaces.ts`,
+`docs/spaces.md`): authority the venue's DID, key `self`, patrons write pours
+the venue and its staff read and other patrons do not. Prepared, not wired:
+nothing calls a space endpoint until the Spaces public beta. An unclaimed bar
+has no space, and nothing stores a space ref — it is derived from the venue's
+DID. The released `@atproto/lexicon` and `@atproto/syntax` do not know spaces,
+so they are checked against the Spaces alpha, pinned as the dev aliases
+`atproto-lexicon-spaces`, `atproto-syntax-spaces` and
+`atproto-oauth-scopes-spaces`; `npm run lexicons` fails
+when the released parser catches up, so the aliases get removed.
+
 ## Conventions
 
-- Test the contract, not the path. Order-independent logic (scoring, belief
-  state) belongs in unit tests; browser tests cover routing, rendering, and
-  degradation.
+- **There are no members yet.** Nothing is kept only because it already
+  exists: no redirect for a moved page, no read path for an old record
+  shape, no shim for a renamed id. Change it and update every link. This
+  ends the day real people's records or printed codes point at the site.
+- Test the contract, not the path. Logic (scoring, belief state, records,
+  the chat tools) is a Vitest test in `tests/unit/*.test.ts`: no server, no
+  browser, seconds (`npm run test:unit`). Pages and routes are Playwright
+  specs in `tests/*.spec.ts`, against the preview build (`npm run test:e2e`).
+  A test that needs neither a page nor a request goes in `tests/unit/`.
+- **Install scripts are approved by name** (`allowScripts` in
+  `package.json`; npm 11 runs none it has not been told to). esbuild and
+  workerd install or check their native binaries and are allowed; core-js
+  only prints a banner and is denied. A new dependency with an install script
+  is reviewed with `npm install-scripts ls`, then approved or denied by name.
+- **Held back on purpose:** TypeScript 7 (typescript-eslint and
+  `@astrojs/check` support below 6.1 only) and Tailwind 4 (a CSS-first
+  config that replaces `tailwind.config.ts`, which the token lint rules and
+  `FONT_SIZES` are written against; a migration of its own).
+- **Vite+ (`vite-plus`) is not adopted, on purpose.** Vitest is pinned to the
+  version it bundles, so moving later is a config change. What blocks it
+  today: it replaces `vite` across the tree with its own core build, under
+  Astro and `@astrojs/cloudflare`; Oxlint lints an `.astro` file's
+  frontmatter but not its template, where the copy and token rules matter
+  most; and `vp check` does not run `astro check`. Revisit when Astro
+  supports Vite+ and Oxlint reads `.astro` templates.
 - Model routes are gated, metered, and always answer with usable content —
   session gate, per-DID limiter, deterministic fallback, `x-generation` header.
   A new one inherits all four (`docs/generation.md`).
@@ -301,8 +346,8 @@ unclaimed reference to a later account is the app view's job.
   Builds installs (the one bundled with `.nvmrc`'s Node).
 - In Claude Code on the web, `.claude/hooks/session-start.sh` installs
   dependencies and sets the env vars the suite needs there. Run the suite the
-  way CI does, against the preview build: `npm run build && CI=1 npx
-  playwright test`. Against `npm run dev`, server rendering throws "The
+  way CI does: `npm test` (the unit tests, then the build and the browser
+  tests against its preview). Against `npm run dev`, server rendering throws "The
   Console.createTask method is not implemented" (React 19's dev build on
   workerd) and about a third of the suite fails.
 
@@ -314,49 +359,32 @@ interface; see `docs/brand.md`.
 
 ## Roadmap
 
-1. **Namespace.** `app.cotidal.*`, renamed from `app.crystalcoupe.*`. NSID
-   authority comes from the reversed domain, so it holds once `cotidal.app`
-   is registered. Old palates and pours are still read from the legacy
-   collections (`LEGACY_*_COLLECTION` in `records.ts`), never written.
-2. **Migrate `drinkLog` → `pour`** *(Completed)*. Clean-slate implementation
-   with 5D EKF dynamic state, gLMS hedonic ratings, CATA volatile descriptors,
-   and prandial satiety normalization. Legacy `drinkLog` replaced by `pour`.
-3. **Carry the palette into the app pages** *(Completed)*. The app's components
-   are on tokens too: the token rule is an error across `src/components/`, and
-   nothing violates it.
-4. **Menu capture.** The harbour (`/harbour`) is its front half *(landed)*:
-   type a bar's menu, get it ranked, pick one, and rate it later. Still to do:
-   photograph the menu instead of typing it. Photograph a menu, get a recommendation, no account
-   required — value before signup, and it builds the venue/menu corpus as a
-   byproduct.
-5. **Region pages** (`/regions/<id>`) *(Completed)*. Sourced prose in
-   `src/content/regions/`, linked from the landing page, `/drinks` and
-   `/p/<handle>`; see Region prose.
-6. **The return visit.** Logging a pour and watching the point move is the
-   only recurring behaviour in the product. The app is three tabs —
-   Radio (`/radio`), Compass (`/compass`), Log (`/log`) — and a "Pick a drink" button
-   into the harbour (`/harbour`); signed in versus signed out is a table in
-   `docs/design-system.md`.
-7. **Venue claim and menu publishing.** Handle-as-domain makes claiming and
+Open work only; what is built is described above.
+
+1. **Namespace.** `app.cotidal.*`. NSID authority comes from the reversed
+   domain, so it holds once `cotidal.app` is registered.
+2. **Menu capture.** The harbour (`/harbour`) takes a typed menu. Next:
+   photograph the menu instead. Photograph a menu, get a recommendation, no
+   account required — value before signup, and it builds the venue/menu
+   corpus as a byproduct.
+3. **Venue claim and menu publishing.** Handle-as-domain makes claiming and
    publishing the same act; the lexicons exist and nothing renders them.
-8. **Rework elicitation.** Forced-choice pairs for precision *(landed; see
-   Elicitation)* and the 9-point hedonic for post-drink feedback *(landed in
-   `PourForm`)*. Answers are logged *(landed: `app.cotidal.elicitation`)*.
-   Still to do: swipes for breadth, and calibrating `NOISE_LEVELS`,
-   `EVIDENCE_SCALE` and `PAIR_NOISE_SCALE` from those logs against pours. Never swipe on drink *names* — that measures
-   familiarity, not taste.
-9. **The Overlap.** First step shipped: `/p/<handle>` draws a coordinate at
-   a public URL and, for a signed-in visitor, theirs beside it with the
-   distance and three drinks (`src/lib/overlap.ts`). Next: two people in the
-   same bar, conversation starters from what their maps share. Discovery comes from the user's existing follow
-   graph, not a second one built here. Surface only the intersection; lead
-   with disagreement about drinks.
-   **Region badge** (planned): an opt-in Bluesky label showing a member's
-   region on their profile to anyone who subscribes to Cotidal's labeler — the
-   first step into the follow graph. Waits on working sign-in, region pages
-   and enough members to show it to. Reasoning and constraints:
-   `docs/routes.md` § Friends.
-   **Coasters** (planned): the chart on a coaster, a member's QR code as
-   their profile, and first a four-sector chart. `docs/coasters.md`.
+   Claiming also opens the bar's space, where patrons share pours with the
+   bar alone (`docs/spaces.md`; addressing and policy prepared, waiting on the
+   Spaces beta).
+4. **Elicitation.** Swipes for breadth, and fitting `NOISE_LEVELS`,
+   `EVIDENCE_SCALE` and `PAIR_NOISE_SCALE` from the logged answers against
+   pours. Never swipe on drink *names* — that measures familiarity, not taste.
+5. **The Overlap.** `/p/<handle>` draws a coordinate and, for a signed-in
+   visitor, theirs beside it (`src/lib/overlap.ts`). Next: two people in the
+   same bar, conversation starters from what their maps share. Discovery
+   comes from the user's existing follow graph, not a second one built here.
+   Surface only the intersection; lead with disagreement about drinks.
+   **Region badge**: an opt-in Bluesky label showing a member's region to
+   anyone who subscribes to Cotidal's labeler — the first step into the follow
+   graph. Waits on working sign-in and enough members to show it to
+   (`docs/routes.md` § Friends).
+   **Coasters**: the chart on a coaster, a member's QR code as their profile
+   (`docs/coasters.md`).
 
 Sequencing and the reasoning behind it: `docs/routes.md`.

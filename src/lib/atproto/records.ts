@@ -10,7 +10,6 @@
  *
  * `app.cotidal.palate`, `app.cotidal.pour` and
  * `app.cotidal.elicitation` live here.
- * The legacy `drinkLog` has been superseded by `pour`.
  */
 import { z } from 'zod';
 // Relative imports name their `.ts` file: `npm run lexicons` loads these modules
@@ -23,15 +22,12 @@ import {
   DEVIATIONS,
   GLASSWARE,
   ELICITATION_COLLECTION,
-  LEGACY_PALATE_COLLECTION,
-  LEGACY_POUR_COLLECTION,
   MAKER_COLLECTION,
   MENU_COLLECTION,
   PALATE_COLLECTION,
   POUR_COLLECTION,
   RECIPE_COLLECTION,
   VENUE_COLLECTION,
-  cataId,
 } from './vocab.ts';
 import { datetime, lexInteger, lexString, registerFormat, writtenDatetime } from './lex-string.ts';
 import { ElicitationRecordSchema } from './elicitation-record.ts';
@@ -48,12 +44,9 @@ export {
   VENUE_COLLECTION,
   MAKER_COLLECTION,
   ELICITATION_COLLECTION,
-  LEGACY_PALATE_COLLECTION,
-  LEGACY_POUR_COLLECTION,
   SELF_RKEY,
   DEVIATIONS,
   CATA,
-  cataId,
   BASE_SPIRITS,
   GLASSWARE,
   VIBE_TAGS,
@@ -228,14 +221,6 @@ export const PalateRecordSchema = z.object({
 });
 export type PalateRecord = z.infer<typeof PalateRecordSchema>;
 
-/**
- * The hundredths encoding before `vibeTagWeights`: tags as an open object,
- * which Lexicon cannot describe. Read, never written.
- */
-const PreviousPalateRecordSchema = PalateRecordSchema.omit({ vibeTagWeights: true }).extend({
-  vibeTagsHundredths: z.record(z.string(), hundredths),
-});
-
 const toHundredths = (v: number) => Math.round(v * 100);
 const fromHundredths = (v: number) => v / 100;
 const clampCoordinate = (v: number) => Math.max(-1000, Math.min(1000, toHundredths(v)));
@@ -266,64 +251,41 @@ export function encodePalate(palate: Palate): PalateRecord {
   };
 }
 
-/**
- * Where a palate record puts its owner, in either encoding: hundredths, or
- * the plain floats written before them. `null` when it is neither.
- */
+/** Where a palate record puts its owner, or `null` when it does not say. */
 export function decodeCoordinates(raw: unknown): { x: number; y: number } | null {
   const c = (raw as { mapCoordinates?: Record<string, unknown> } | null)?.mapCoordinates;
   if (!c || typeof c !== 'object') return null;
-  const point =
-    Number.isInteger(c.xHundredths) && Number.isInteger(c.yHundredths)
-      ? { x: fromHundredths(c.xHundredths as number), y: fromHundredths(c.yHundredths as number) }
-      : typeof c.x === 'number' && typeof c.y === 'number'
-        ? { x: c.x, y: c.y }
-        : null;
-  if (!point || !Number.isFinite(point.x) || !Number.isFinite(point.y)) return null;
+  if (!Number.isInteger(c.xHundredths) || !Number.isInteger(c.yHundredths)) return null;
+  const point = { x: fromHundredths(c.xHundredths as number), y: fromHundredths(c.yHundredths as number) };
   if (Math.abs(point.x) > 10 || Math.abs(point.y) > 10) return null;
   return point;
 }
 
 /**
- * A palate record read from a repository, in any encoding it has been written
- * in and under either namespace, as the app works with it. A `phenotypes`
- * field on an older record is ignored. Records written before the hundredths encoding still read;
- * the next write migrates them. `null` for anything that is not a palate.
+ * A palate record read from a repository, as the app works with it. `null`
+ * for anything that is not a palate.
  */
 export function decodePalate(input: unknown): Palate | null {
-  // A record from before the rename carries the old $type; its body is the same.
-  const raw =
-    input && typeof input === 'object' && (input as { $type?: unknown }).$type === LEGACY_PALATE_COLLECTION
-      ? { ...(input as object), $type: PALATE_COLLECTION }
-      : input;
-  const current = PalateRecordSchema.safeParse(raw);
-  const previous = current.success ? null : PreviousPalateRecordSchema.safeParse(raw);
-  if (current.success || previous?.success) {
-    const r = current.success ? current.data : previous!.data!;
-    const weights: [string, number][] =
-      'vibeTagWeights' in r
-        ? r.vibeTagWeights.map((w) => [w.tag, w.weightHundredths])
-        : Object.entries(r.vibeTagsHundredths);
-    return {
-      $type: PALATE_COLLECTION,
-      mapCoordinates: {
-        x: fromHundredths(r.mapCoordinates.xHundredths),
-        y: fromHundredths(r.mapCoordinates.yHundredths),
-      },
-      dynamicState: {
-        latentVector: r.dynamicState.latentVectorHundredths.map(fromHundredths),
-        covarianceDiagonal: r.dynamicState.covarianceDiagonalHundredths.map(fromHundredths),
-        eventCount: r.dynamicState.eventCount,
-        ...(r.dynamicState.lastUpdate ? { lastUpdate: r.dynamicState.lastUpdate } : {}),
-      },
-      aversions: r.aversions,
-      vibeTags: Object.fromEntries(weights.map(([tag, weight]) => [tag, fromHundredths(weight)])),
-      createdAt: r.createdAt,
-      ...(r.updatedAt ? { updatedAt: r.updatedAt } : {}),
-    };
-  }
-  const legacy = PalateSchema.safeParse(raw);
-  return legacy.success ? legacy.data : null;
+  const parsed = PalateRecordSchema.safeParse(input);
+  if (!parsed.success) return null;
+  const r = parsed.data;
+  return {
+    $type: PALATE_COLLECTION,
+    mapCoordinates: {
+      x: fromHundredths(r.mapCoordinates.xHundredths),
+      y: fromHundredths(r.mapCoordinates.yHundredths),
+    },
+    dynamicState: {
+      latentVector: r.dynamicState.latentVectorHundredths.map(fromHundredths),
+      covarianceDiagonal: r.dynamicState.covarianceDiagonalHundredths.map(fromHundredths),
+      eventCount: r.dynamicState.eventCount,
+      ...(r.dynamicState.lastUpdate ? { lastUpdate: r.dynamicState.lastUpdate } : {}),
+    },
+    aversions: r.aversions,
+    vibeTags: Object.fromEntries(r.vibeTagWeights.map((w) => [w.tag, fromHundredths(w.weightHundredths)])),
+    createdAt: r.createdAt,
+    ...(r.updatedAt ? { updatedAt: r.updatedAt } : {}),
+  };
 }
 
 
@@ -392,20 +354,13 @@ export const PourWriteSchema = PourRecordSchema.extend({
 });
 
 /**
- * A pour as read from a repository, or `null` when it is not one. Accepts the
- * collection before the rename, and maps CATA labels stored before the ids.
- * Anything can be written to a collection in someone's repo, so a pour is
- * parsed before it is trusted, not cast.
+ * A pour as read from a repository, or `null` when it is not one. Anything
+ * can be written to a collection in someone's repo, so a pour is parsed
+ * before it is trusted, not cast.
  */
 export function readPour(value: unknown): PourRecord | null {
-  const raw =
-    value && typeof value === 'object' && (value as { $type?: unknown }).$type === LEGACY_POUR_COLLECTION
-      ? { ...(value as object), $type: POUR_COLLECTION }
-      : value;
-  const parsed = PourRecordSchema.safeParse(raw);
-  if (!parsed.success) return null;
-  const pour = parsed.data;
-  return pour.cata ? { ...pour, cata: pour.cata.map(cataId) } : pour;
+  const parsed = PourRecordSchema.safeParse(value);
+  return parsed.success ? parsed.data : null;
 }
 
 // ---------------------------------------------------------------------------

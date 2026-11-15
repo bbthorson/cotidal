@@ -18,15 +18,14 @@ reads the sectors as categories will expect six regions. The monogram
 
 **Decision: four.** The map has two axes, so four quadrants come from the
 model; six regions would be arbitrary angular slices, and would cost new
-region prose, `quadrants` in `copy.ts`, `formerQuadrantIds` redirects and
-tests.
+region prose, `quadrants` in `copy.ts` and tests.
 
 *Done.* The landing chart has four cotidal lines three hours apart (0h /
 3h / 6h / 9h), drawn from `src/lib/chart-geometry.ts`. Each line leaves the
 centre along an axis and sweeps toward the ring, so a band is exactly a
 region near the centre and leans a little past the axis at the rim — the
 cost of curved lines over straight axes. `SECTORS` names each band by its
-region, which is what the coaster fills. `tests/chart-geometry.spec.ts`
+region, which is what the coaster fills. `tests/unit/chart-geometry.test.ts`
 holds the generator to the six-line figure it replaced and fails if the
 sector count stops matching the regions. The monogram already read as four
 (three lines and the C's opening), so only its comment changed.
@@ -80,8 +79,8 @@ the move.
 
 ## Region coasters
 
-*Built* at `/regions/<id>/coaster`, linked from each region page. The region's
-band is filled and the code opens the region's page: "which one did you get?"
+*Built* at `/drinks/regions/<id>/coaster`, linked from each region's page. The region's
+band is filled and the code opens the drinks filtered to that region: "which one did you get?"
 starts the conversation, and the page it opens leads to the questions. Public
 and cached; server-rendered rather than prerendered only so the code can use
 the request's origin. Placing each region's drinks on the rings is still to do.
@@ -111,7 +110,7 @@ inside the ring, no moon.
 ## Later
 
 - **Venue coasters.** A bar's menu placed on the chart, with a QR code to its
-  published menu. Waits on menu capture and venue claim (roadmap 4 and 7,
+  published menu. Waits on menu capture and venue claim (the AGENTS.md roadmap,
   `docs/venues.md`).
 - **Analog quiz.** A blank chart to mark with a pen. A toy rather than a data
   source: it bypasses the elicitation model.

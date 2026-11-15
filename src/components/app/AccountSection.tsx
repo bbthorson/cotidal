@@ -8,9 +8,8 @@ const link = 'link-caps';
 
 /**
  * The account, in one block under the ledger: who you are, your public map,
- * sharing, chat assistants, start over, and signing out. It used to be a page
- * of its own (`/account`), which now lands here. A guest has no account to
- * manage, so sees only start over.
+ * sharing, chat assistants, start over, and signing out. A guest has no
+ * account to manage, so sees only start over.
  */
 export function AccountSection({
   handle,
@@ -65,7 +64,7 @@ export function AccountSection({
               >
                 {shareState === 'shared' ? account.shared : account.share}
               </button>
-              <a href="/assistants" className={cn(link, 'text-secondary hover:underline hover:underline-offset-4')}>
+              <a href={`${publicMapPath(handle)}#assistant`} className={cn(link, 'text-secondary hover:underline hover:underline-offset-4')}>
                 {account.assistants}
               </a>
             </>

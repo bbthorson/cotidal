@@ -41,20 +41,12 @@ reached from inside, or from a link someone was sent.
 
 > "Read about tastes first, then explore drinks that match."
 
-This was the missing spine, and most of it already existed unconnected:
-`/drinks` groups every entry under the four regions as section heads
-(`quadrantIdFor` sorts them), while `QuadrantGrid` on the home page named those
-same four regions and linked nowhere.
-
-**Now:** the four rows link to their section of the register
-(`/drinks#deep`). One edit, no new content, and the site's own vocabulary
-finally leads somewhere. `tests/landing-static.spec.ts` asserts the two lists
-of ids still agree, because two hand-written copies of the same list is the
-drift this codebase keeps producing.
-
-**Then:** `/regions/<id>` as a page of its own — what the region is, what
-ordering from it says about you, the drinks that live there and the
-ingredients they share. Done, and the four parts come from four places:
+The landing page names the four regions, and each opens the drinks filtered
+to it: `/drinks/regions/<id>`, the region's drinks first, then what the
+region is, what ordering from it says about you and the ingredients its
+drinks share. A reader treats a region as a way to narrow the drinks, not a
+destination, so the regions are a filter on `/drinks` rather than pages of
+their own. The four parts come from four places:
 
 - **What it is** is prose in `src/content/regions/<id>.md`, a content
   collection held to the drinks' format — what is on the record, what is
@@ -66,9 +58,7 @@ ingredients they share. Done, and the four parts come from four places:
   with the reason it is not on the record.
 - **The drinks** come from the map, as on `/drinks`.
 - **What they share** is counted from those drinks' own ingredient lists
-  (`src/lib/ingredients.ts`), so it cannot disagree with them. The first
-  version hand-listed ingredients and named drinks that the map placed in
-  other regions.
+  (`src/lib/ingredients.ts`), so it cannot disagree with them.
 
 The reading path is the third door. Today a visitor may take the quiz or look
 at the map; both ask to measure them. Some people want to read first, and they
@@ -81,10 +71,8 @@ again on Thursday* — and the thing that would is already built and has no fron
 door: logging a pour and watching the point move.
 
 **The loop is: drink → log → the map changes.** That is the entire premise of a
-taste profile that lives in a repository and accumulates. It used to be
-reachable only from inside the results screen, which made the product's one
-recurring behaviour also its best-hidden one. "Your map, and what moved it"
-is now a route: `/log`, in the site navigation, where a guest can log on this
+taste profile that lives in a repository and accumulates, so it is a route
+of its own: `/log`, in the site navigation, where a guest can log on this
 device and a member to their repository.
 
 ## The supply side
@@ -179,7 +167,7 @@ accounts or posts; clients show the tags of the labelers a user has chosen.
 Most are for moderation, but opt-in badge labelers (pronouns and the like)
 are common. Cotidal would declare four values, one per region id (`deep`,
 `salt-line`, `eddy`, `surf`), shown as badges, never as warnings, each with a
-description that points to `/regions/<id>`. Members are signed in with their
+description that points to `/drinks/regions/<id>`. Members are signed in with their
 Bluesky identity already, so the opt-in is a button, not the like-a-post
 ritual those labelers use.
 
@@ -238,15 +226,12 @@ namespace is `app.cotidal.*`, real once `cotidal.app` is registered
 
 ## Build order
 
-1. **Region links.** Done — the reading path exists.
-2. **Region pages** (`/regions/<id>`). Done — sourced, and derived from the
-   map and the register wherever they can be.
-3. **Close the generative surface** (`docs/generation.md`) — before any route
+What is left, in order:
+
+1. **Close the generative surface** (`docs/generation.md`) — before any route
    is promoted, because promotion means traffic.
-4. **The return visit.** Done — `/log` is the log-and-watch-it-move loop's
-   front door.
-5. **Venue claim and menu publishing.** The supply side, and the first thing
+2. **Venue claim and menu publishing.** The supply side, and the first thing
    this product offers a non-drinker.
-6. **Menu capture.** The patron half of the same corpus.
-7. **Friends**, discovered through the existing follow graph — starting with
+3. **Menu capture.** The patron half of the same corpus.
+4. **Friends**, discovered through the existing follow graph — starting with
    the region badge (above), the first step that needs no friends page.

@@ -22,13 +22,13 @@ export const nav = {
   radio: 'Radio',
   compass: 'Compass',
   register: 'Drinks',
-  regions: 'Regions',
   signIn: 'Sign in',
   signOut: 'Sign out',
   menu: 'Menu',
   footer: 'Site',
   log: 'Log',
   bars: 'For bars',
+  howItWorks: 'How it works',
 } as const;
 
 /**
@@ -220,6 +220,7 @@ export const hero = {
 export const howItGoes = {
   title: 'How it goes',
   label: 'Three steps',
+  more: 'How your answers and ratings move your point',
   steps: [
     {
       where: 'The questions',
@@ -275,12 +276,6 @@ export const quadrants = [
 ] as const;
 
 /**
- * Region ids before the water vocabulary, kept only so their URLs redirect
- * (`astro.config.mjs`). Nothing else may use them.
- */
-export const formerQuadrantIds = { ember: 'deep', vault: 'eddy', orchard: 'surf' } as const;
-
-/**
  * Section labels. The page reads as a printed menu, and a menu names its
  * sections — these are the equivalent of "Plates" and "Cocktails" at the head
  * of a column.
@@ -293,7 +288,6 @@ export const sections = {
   /** Under the four regions: the way into the register, with its premise. */
   registerNote: 'Every drink on the chart has an entry: the build, and what is on the record apart from what is only told.',
   /** From a region to its section of /drinks. */
-  regionDrinks: 'Its drinks',
   principles: 'Whose log it is',
   connect: 'Sign in',
 } as const;
@@ -448,10 +442,13 @@ export const drinks = {
   methodLabel: 'Method',
   garnishLabel: 'Garnish',
   emptyQuadrant: 'Nothing written up here yet.',
+  /** The regions as a filter on the list (`RegionFilter.astro`). */
+  filterLabel: 'Filter by region',
+  filterAll: 'All',
 } as const;
 
 /**
- * `/regions/<id>`. The prose of each region lives in `src/content/regions/`;
+ * `/drinks/regions/<id>`. The prose of each region lives in `src/content/regions/`;
  * these are the parts that are the same for all four, and they describe what
  * the product does rather than what a region means.
  */
@@ -463,13 +460,13 @@ export function axisWords(axis: string): string {
 
 export const regionPage = {
   /** Over a region's title: where it sits in the site, then its axis in words ("Rich and savory"). */
-  eyebrow: (axis: string) => `Regions · ${axisWords(axis)}`,
-  backLabel: 'Regions',
+  eyebrow: (axis: string) => `Drinks · ${axisWords(axis)}`,
+  /** Over the region's prose, under its drinks. */
+  aboutLabel: (name: string) => `About ${name}`,
   orderingLabel: 'What it says about you',
   /** `axis` is a quadrant's axis label, e.g. "Rich · Savory". */
   ordering: (name: string, axis: string) =>
     `Your coordinate lands in ${name} when your answers lean ${axisWords(axis).toLowerCase()}. That is all it is: a position, worked out from the options you picked. The menu ranks every drink by its distance from that point, so the closer you sit to the drinks below, the sooner it reaches for them. Log what you drink and the point can move, across a border if that is where your pours take it.`,
-  drinksLabel: 'The drinks here',
   /** Under the list: how a drink came to be in it. */
   placedNote:
     'A drink is here because the chart places it here. Places are set by hand, not computed from a recipe’s proportions.',
@@ -477,7 +474,6 @@ export const regionPage = {
   sharedNote: (total: number) =>
     `Counted from the ingredients of the ${total} drinks written up here; an ingredient given as alternatives counts toward each. Wines, beers and spirits served alone list what they are made from, and share nothing on this list.`,
   sharedCount: (count: number, total: number) => `${count} of ${total}`,
-  otherLabel: 'The other three',
 } as const;
 
 /**
@@ -609,6 +605,83 @@ export const pour = {
   home: 'Home',
 } as const;
 
+/**
+ * /how-it-works: how answers and ratings place and move a coordinate, said
+ * as the code does it today (docs/brand.md, Claims). Every number here is a
+ * constant in belief-state.ts or palate-state.ts, and
+ * tests/unit/how-it-works.test.ts holds the two equal. Never the code's words:
+ * no calibration, no latent, no triangulation.
+ */
+export const howItWorks = {
+  eyebrow: 'How it works',
+  title: 'How your answers and ratings move your point',
+  lede:
+    'Your coordinate comes from two things only: the answers you give and the drinks you rate. This is how each one counts, and where it is kept.',
+  sections: [
+    {
+      id: 'questions',
+      title: 'The questions',
+      paragraphs: [
+        'The first 4 questions are the same for everyone. After those, each question is the one whose answer would say the most about where you sit, given what you have answered so far, or settle whether you avoid smoke, bitterness or anise. The questions stop once both directions on the chart are sure enough and those three are settled: never fewer than 4, never more than 8.',
+        'Each answer is weighed against every point on the chart: how likely is it that someone sitting there would have picked what you picked, from the options shown? Your point is where all your answers, taken together, agree best. The order you answered in makes no difference.',
+        'People don’t answer like machines, so it also works out how steady your answers are. If they disagree with each other, your point stays unsure, rather than settling confidently halfway between them.',
+      ],
+    },
+    {
+      id: 'sure',
+      title: 'How sure it is',
+      paragraphs: [
+        'The questions settle how sure your point is, as well as where it is. A point the questions placed firmly moves less with your first ratings than one they left loose.',
+      ],
+    },
+    {
+      id: 'ratings',
+      title: 'Rating a drink',
+      paragraphs: [
+        'You rate a drink from 1 to 9. A 7 or higher pulls your point toward that drink, a 3 or lower pushes it away, and anything in between leaves it where it is. The step shrinks as your point grows surer, so your hundredth rating moves it less than your first.',
+        '“What was off” adds a fixed nudge of its own: too sweet moves you toward savory, too rich toward crisp, and so on. Too smoky, too bitter or too anise marks it as something you avoid, and those drinks leave your menu. No rating turns that off again.',
+        'However you rate it, one drink never moves your point more than a tenth of the way across the chart. A drink that isn’t on the map has no place to pull toward, so only “what was off” counts for it.',
+      ],
+    },
+    {
+      id: 'menu',
+      title: 'Your menu',
+      paragraphs: [
+        'Your menu ranks every drink, mostly by how close it sits to your point. The kinds of drink your answers and your liked drinks point to count too, and so does what you rated a drink last time. A drink you rated 3 or less last time comes off your menu, and so does any drink with something you avoid.',
+      ],
+    },
+    {
+      id: 'unseen',
+      title: 'What the chart doesn’t show',
+      paragraphs: [
+        'Each rating of a drink on the map also updates three readings that aren’t drawn on the chart: how you take bitterness, tannin and a drink with a lot going on. They are saved with your coordinate. Today they don’t change your menu.',
+      ],
+    },
+    {
+      id: 'kept',
+      title: 'What is kept, and where',
+      paragraphs: [
+        'Before you sign in, your coordinate, your answers and your ratings stay on this device.',
+        'Once you sign in, your coordinate, every answer as you gave it (the question, what each option offered and which one you picked) and every drink you rate are saved to your own Bluesky account. They’re public there, and they’re yours. A set of answers is never edited: retaking the questions adds a new set beside the old one.',
+        account.signOutBody,
+      ],
+    },
+    {
+      id: 'not',
+      title: 'What it doesn’t use',
+      paragraphs: [
+        'Only your answers and your ratings move your point. Not the season, the hour or the weather, and not what other people rate. No AI model is involved in placing or moving it.',
+      ],
+    },
+  ],
+  laterTitle: 'How far to trust it',
+  later: [
+    'Today, how much each answer counts was set by testing the questions against simulated answers, not real ones.',
+    'Later: using the answers people have saved, next to how they later rated drinks, to check which questions work and how much each answer should count.',
+  ],
+  start: 'Find your coordinate',
+} as const;
+
 export const venuesCopy = {
   eyebrow: 'For bars',
   title: 'A bar claims itself by publishing one record.',
@@ -682,8 +755,9 @@ export const publicMap = {
 } as const;
 
 /**
- * `/assistants` — how to reach your palate from a chatbot. Also what a
- * browser sees at `/mcp`, the address the chatbot is given.
+ * How to reach a palate from a chat assistant: under your own map
+ * (`/p/<handle>#assistant`), and what a browser sees at `/mcp`, the address
+ * the assistant is given.
  */
 export const assistants = {
   eyebrow: 'Chat assistants',
@@ -707,10 +781,14 @@ export const assistants = {
   ],
   askWith: (handle: string) => `Ask with your handle: “What does Cotidal say I should drink? I’m @${handle}.”`,
   askWithGuest: 'Ask with your Bluesky handle: “What does Cotidal say I should drink? I’m @you.bsky.social.”',
+  /** On your own map (`/p/<handle>`): the section's heading. */
+  sectionTitle: 'Ask a chat assistant',
+  /** On someone else's map: what to ask your own assistant about them. */
+  visitorAsk: (handle: string) => `Ask your chat assistant: “How far is my map from @${handle}’s?”`,
+  setUp: 'Set it up',
   readOnlyTitle: 'Only you log',
   readOnly:
     'The assistant reads the same public coordinate anyone can open at your public map. It can draft a pour, as a link to the form here, but only you log it: you check it, tap how it landed, and press the button. It cannot retake the questions or change your map.',
-  back: 'Account',
 } as const;
 
 /**

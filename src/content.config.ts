@@ -9,7 +9,7 @@ import { z } from 'astro/zod';
  *
  * 1. **No coordinates here.** `src/lib/data.ts` is the single source of truth
  *    for where a drink sits on the map. An entry joins to it by `name`, and
- *    `tests/drink-content.spec.ts` fails if the join breaks. Copying `x`/`y`
+ *    `tests/unit/drink-content.test.ts` fails if the join breaks. Copying `x`/`y`
  *    into frontmatter would be the fourth instance of the drift this codebase
  *    keeps producing.
  *
@@ -86,10 +86,10 @@ const drinks = defineCollection({
 });
 
 /**
- * Region entries — the prose behind `/regions/<id>`.
+ * Region entries — the prose behind `/drinks/regions/<id>`.
  *
  * The filename is the region id, and must be one of `quadrants` in `src/lib/copy.ts`
- * (`tests/region-content.spec.ts`). Name, axis and gloss are not repeated
+ * (`tests/unit/region-content.test.ts`). Name, axis and gloss are not repeated
  * here, and neither is anything the page can derive: which drinks live in a
  * region comes from the map, and what they share from their own entries'
  * ingredient lists. What is left is prose, held to the same rule as a drink:

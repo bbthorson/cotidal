@@ -1,0 +1,58 @@
+---
+import { WebStandardStreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js';
+import AppShell from '../layouts/AppShell.astro';
+import PageTitle from '../components/marketing/PageTitle.astro';
+import AssistantSteps from '../components/marketing/AssistantSteps.astro';
+import { createMcpServer } from '@/lib/mcp/server';
+import { readPublicPalate } from '@/lib/atproto/public-read';
+import { loadRegister } from '@/lib/register.server';
+import { assistants as copy, site } from '@/lib/copy';
+
+/**
+ * The palate map as an MCP server, for chat assistants: add
+ * `https://<host>/mcp` as a custom connector. Streamable HTTP, stateless and
+ * writing nothing: the tools read public records the way `/p/<handle>` does,
+ * so they need no sign-in, and a pour is only drafted, as a link the member
+ * opens to log it themselves (`draft_pour`); see docs/mcp.md.
+ *
+ * A person who opens the address in a browser gets the instructions instead,
+ * at the same URL, so the address bar shows what to paste. An MCP client asks
+ * for JSON or an event stream and never for HTML. A member reads the same
+ * instructions, with their handle in them, under their own map
+ * (`/p/<handle>#assistant`).
+ */
+export const prerender = false;
+
+const { request } = Astro;
+const accept = request.headers.get('accept') ?? '';
+const isBrowser = request.method === 'GET' && accept.includes('text/html') && !accept.includes('text/event-stream');
+
+if (!isBrowser) {
+  const server = createMcpServer({
+    readPalate: (actor) => readPublicPalate(actor),
+    register: await loadRegister(),
+    origin: Astro.url.origin,
+  });
+  // No session id: each request stands alone, and plain JSON answers rather
+  // than an event stream, since no tool streams or notifies.
+  const transport = new WebStandardStreamableHTTPServerTransport({
+    sessionIdGenerator: undefined,
+    enableJsonResponse: true,
+  });
+  await server.connect(transport);
+  try {
+    return await transport.handleRequest(request);
+  } finally {
+    await server.close();
+  }
+}
+
+const address = new URL('/mcp', Astro.url).toString();
+---
+
+<AppShell title={`${site.name} — ${copy.eyebrow}`} currentPath="/mcp" width="prose">
+  <div class="space-y-12 pb-6">
+    <PageTitle eyebrow={copy.eyebrow} title={copy.title} lede={copy.lede} />
+    <AssistantSteps address={address} />
+  </div>
+</AppShell>

@@ -43,13 +43,9 @@ let auth: BlueskyAuth | null | undefined;
  * and `process.env` on the server (read on the Worker) — so a variable set in
  * one place but not the other left the page and the server disagreeing about
  * whether sign-in existed. Pages now ask `signInEnabled()` instead.
- *
- * `PUBLIC_ATPROTO_ENABLED` is still accepted because deployments already set
- * it; the prefix no longer means anything.
  */
 function enabled(env: Record<string, unknown> | undefined): boolean {
-  const read = (name: string) => (env?.[name] as string | undefined) ?? process.env[name];
-  return !!(read('ATPROTO_ENABLED') || read('PUBLIC_ATPROTO_ENABLED'));
+  return !!((env?.ATPROTO_ENABLED as string | undefined) ?? process.env.ATPROTO_ENABLED);
 }
 
 /**

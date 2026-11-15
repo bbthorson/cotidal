@@ -1,6 +1,7 @@
 import { z } from 'zod';
+import { type AtprotoDidDocument, didDocumentValidator, extractAtprotoData } from '@atproto/did';
 import { isValidHandle, normalizeHandle } from '@bbthorson/atproto-cf-auth/server';
-import { LEGACY_PALATE_COLLECTION, PALATE_COLLECTION, PALATE_RKEY, decodeCoordinates } from './records';
+import { PALATE_COLLECTION, PALATE_RKEY, decodeCoordinates } from './records';
 import { lexInteger } from './lex-string';
 
 /**
@@ -42,8 +43,7 @@ const RESERVED_TLDS = new Set([
 
 /**
  * The fields of `app.cotidal.palate` this page uses, and nothing else.
- * The coordinate is read by `decodeCoordinates`, which accepts the record's
- * current hundredths encoding and the floats written before it.
+ * The coordinate is read by `decodeCoordinates`.
  */
 const PublicPalateSchema = z.object({
   aversions: z
@@ -148,14 +148,6 @@ async function getJson(
   }
 }
 
-const DidDocSchema = z.object({
-  id: z.string(),
-  alsoKnownAs: z.array(z.string()).optional(),
-  service: z
-    .array(z.object({ id: z.string(), type: z.string(), serviceEndpoint: z.unknown() }))
-    .optional(),
-});
-
 interface ResolvedDid {
   pds: URL;
   /** The handle the document claims — unverified until it resolves back. */
@@ -180,19 +172,18 @@ async function resolveDidDoc(did: string, fetchImpl: typeof fetch): Promise<Reso
   if (status === 404 || status === 410) return null;
   if (!body) throw new Unavailable(`DID document ${status}`);
 
-  const doc = DidDocSchema.safeParse(body);
+  // The reference validator, not a hand-written shape: it checks the DID
+  // document as atproto defines it, and finds `#atproto_pds` the way every
+  // other atproto client does.
+  const doc = didDocumentValidator.safeParse(body);
   if (!doc.success || doc.data.id !== did) return null;
 
-  const service = doc.data.service?.find(
-    (s) =>
-      (s.id === '#atproto_pds' || s.id === `${did}#atproto_pds`) &&
-      s.type === 'AtprotoPersonalDataServer'
-  );
-  const pds = typeof service?.serviceEndpoint === 'string' ? safeUrl(service.serviceEndpoint) : null;
+  // `id` is the did:plc / did:web asked for, so the document is an atproto one.
+  const atproto = extractAtprotoData(doc.data as AtprotoDidDocument);
+  const pds = atproto.pds ? safeUrl(atproto.pds.serviceEndpoint) : null;
   if (!pds) return null;
 
-  const aka = doc.data.alsoKnownAs?.find((a) => a.startsWith('at://'));
-  const claimed = aka ? normalizeHandle(aka.slice('at://'.length), { defaultDomain: '' }) : null;
+  const claimed = atproto.aka ? normalizeHandle(atproto.aka, { defaultDomain: '' }) : null;
   return { pds, claimedHandle: claimed && isValidHandle(claimed) ? claimed : null };
 }
 
@@ -268,20 +259,16 @@ export async function readPublicPalate(
     }
     actor = { did, handle };
 
-    // The current namespace first, then the one before the rename to Cotidal.
-    for (const collection of [PALATE_COLLECTION, LEGACY_PALATE_COLLECTION]) {
-      const recordUrl = new URL('/xrpc/com.atproto.repo.getRecord', doc.pds);
-      recordUrl.searchParams.set('repo', did);
-      recordUrl.searchParams.set('collection', collection);
-      recordUrl.searchParams.set('rkey', PALATE_RKEY);
-      const { status, body } = await getJson(recordUrl, fetchImpl);
-      // A missing record is a 400 RecordNotFound from most PDSes.
-      if (status === 400 || status === 404) continue;
-      if (!body) throw new Unavailable(`getRecord ${status}`);
-      const palate = toPalate((body as { value?: unknown }).value);
-      if (palate) return { status: 'ok', actor, palate };
-    }
-    return { status: 'no-palate', actor };
+    const recordUrl = new URL('/xrpc/com.atproto.repo.getRecord', doc.pds);
+    recordUrl.searchParams.set('repo', did);
+    recordUrl.searchParams.set('collection', PALATE_COLLECTION);
+    recordUrl.searchParams.set('rkey', PALATE_RKEY);
+    const { status, body } = await getJson(recordUrl, fetchImpl);
+    // A missing record is a 400 RecordNotFound from most PDSes.
+    if (status === 400 || status === 404) return { status: 'no-palate', actor };
+    if (!body) throw new Unavailable(`getRecord ${status}`);
+    const palate = toPalate((body as { value?: unknown }).value);
+    return palate ? { status: 'ok', actor, palate } : { status: 'no-palate', actor };
   } catch (e) {
     if (e instanceof Unavailable) return { status: 'unavailable', actor };
     console.error('readPublicPalate:', e);

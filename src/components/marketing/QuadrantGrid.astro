@@ -1,10 +1,11 @@
 ---
-import { quadrants, sections } from '../../lib/copy';
+import { quadrants } from '../../lib/copy';
+import { regionPath } from '../../lib/quadrant';
 
 /**
  * The four regions as a wine-list index: name · leader · axis, the gloss on
- * the line below. The name opens the region page; the drinks link reaches
- * the same region's section of /drinks (asserted in landing-static.spec.ts).
+ * the line below. The name opens the drinks filtered to that region
+ * (asserted in landing-static.spec.ts).
  */
 ---
 
@@ -14,7 +15,7 @@ import { quadrants, sections } from '../../lib/copy';
       <li class="border-b border-border py-3.5">
         <div class="dot-leader">
           <a
-            href={`/regions/${q.id}`}
+            href={regionPath(q.id)}
             class="font-serif text-prose font-bold leading-snug text-foreground transition-colors hover:underline hover:underline-offset-4 md:text-heading"
           >
             {q.name}
@@ -24,15 +25,7 @@ import { quadrants, sections } from '../../lib/copy';
             {q.axis}
           </span>
         </div>
-        <div class="mt-1 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-          <p class="text-meta text-muted-foreground">{q.gloss}</p>
-          <a
-            href={`/drinks#${q.id}`}
-            class="font-condensed text-label uppercase tracking-label text-muted-foreground transition-colors hover:text-foreground"
-          >
-            {sections.regionDrinks} &rarr;
-          </a>
-        </div>
+        <p class="mt-1 text-meta text-muted-foreground">{q.gloss}</p>
       </li>
     ))
   }

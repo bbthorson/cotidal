@@ -113,11 +113,6 @@ renaming the files in `src/lib/atproto/lexicons/` and updating the constants
 in `src/lib/atproto/records.ts`; `npm run lexicons` enforces that every schema
 sits under one namespace, so the rename cannot go half-done.
 
-Records written before the rename from The Crystal Coupe sit under
-`app.crystalcoupe.*`. They are never rewritten: the app still *reads* a palate
-or pours from there (`LEGACY_PALATE_COLLECTION`, `LEGACY_POUR_COLLECTION`) so
-nobody's map empties, and writes only under `app.cotidal.*`.
-
 **We can use `community.lexicon.*` types; we cannot define new ones under it.**
 Referencing their schemas is the entire point and needs no permission.
 Publishing new NSIDs in that namespace goes through the Lexicon Community
@@ -161,6 +156,7 @@ For full physiological and mathematical derivations, see **[docs/sensory-science
 | `app.cotidal.recipe` | tid | Author | An authored spec with technique, credits, and chemometric stimulus specs |
 | `app.cotidal.venue` | `self` | Venue | A bar claiming itself via domain handle |
 | `app.cotidal.maker` | `self` | Maker | A professional profile linking authored recipes |
+| `app.cotidal.bar` | space, `self` | Venue (authority) | A claimed bar's permissioned space: patrons' pours the venue reads and the public does not (`docs/spaces.md`) |
 | `app.cotidal.defs` | — | — | Shared types: `entityRef`, `venueRef`, `drinkRef`, `stimulus`, `credit`, `price` |
 
 `app.cotidal.pour` provides the clean sensory observation record, fully superseding legacy drift heuristics.

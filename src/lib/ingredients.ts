@@ -11,7 +11,7 @@
  * version listed rum under The Deep, where no drink on the map contains any.
  *
  * An ingredient written as alternatives counts toward each ("Angostura or
- * orange bitters"). `tests/region-content.spec.ts` fails on a group that
+ * orange bitters"). `tests/unit/region-content.test.ts` fails on a group that
  * matches nothing, so a renamed ingredient cannot quietly drop out.
  */
 export const INGREDIENT_GROUPS: readonly { name: string; match: RegExp }[] = [
