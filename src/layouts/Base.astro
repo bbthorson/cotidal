@@ -1,14 +1,36 @@
 ---
 import '../styles/globals.css';
-import { site, nav } from '../lib/copy';
+import { site, nav, share } from '../lib/copy';
+import { SHARE_IMAGES, SHARE_SIZE } from '../lib/share';
 import { MARK_COLOURS } from '../lib/mark';
 
 interface Props {
   title?: string;
   description?: string;
+  /**
+   * The share card a link to this page unfurls into: a path under
+   * `public/share/` (`npm run images`). Defaults to the site's.
+   */
+  image?: { path: string; alt: string };
+  /** Keep the page out of search: the share cards' own source pages. */
+  noindex?: boolean;
 }
 
-const { title = site.name, description = site.description } = Astro.props;
+const {
+  title = site.name,
+  description = site.description,
+  image = { path: SHARE_IMAGES.site, alt: share.siteAlt },
+  noindex = false,
+} = Astro.props;
+
+/**
+ * A scraper wants an absolute image URL. A server-rendered page knows the
+ * origin it was asked on (the app answers on more than one, and sets no
+ * `site`). A prerendered page was built with no request, so it gives the
+ * path, which the scrapers that matter here resolve against the page.
+ */
+const imageUrl = Astro.isPrerendered ? image.path : new URL(image.path, Astro.url).toString();
+const pageUrl = Astro.isPrerendered ? null : new URL(Astro.url.pathname, Astro.url).toString();
 ---
 
 <!DOCTYPE html>
@@ -22,7 +44,14 @@ const { title = site.name, description = site.description } = Astro.props;
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
-    <!-- Generated from src/lib/mark.ts by `npm run icons`. -->
+    {pageUrl && <meta property="og:url" content={pageUrl} />}
+    <meta property="og:image" content={imageUrl} />
+    <meta property="og:image:width" content={String(SHARE_SIZE.width)} />
+    <meta property="og:image:height" content={String(SHARE_SIZE.height)} />
+    <meta property="og:image:alt" content={image.alt} />
+    <meta name="twitter:card" content="summary_large_image" />
+    {noindex && <meta name="robots" content="noindex" />}
+    <!-- Generated from src/lib/mark.ts by `npm run images`. -->
     <link rel="icon" href="/favicon.ico" sizes="48x48" />
     <link rel="icon" type="image/svg+xml" href="/icon.svg" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />

@@ -36,3 +36,31 @@ test('Visual Identity: the headline accent is a different ink from the body', as
   expect(accentColor).not.toBe(bodyColor);
   expect(accentColor).toMatch(/^rgb\(1[45]\d, \d{2}, \d{2}\)$/);
 });
+
+/**
+ * What a link unfurls into (src/lib/share.ts). A server-rendered page names
+ * its card by absolute URL, as scrapers want; a region page names its own
+ * region's card; and the card is a real PNG at that address.
+ */
+test('Share: the landing page unfurls into the site card', async ({ page, request }) => {
+  await page.goto('/');
+  const image = await page.locator('meta[property="og:image"]').getAttribute('content');
+  expect(image).toMatch(/^https?:\/\/[^/]+\/share\/site\.png$/);
+  await expect(page.locator('meta[name="twitter:card"]')).toHaveAttribute('content', 'summary_large_image');
+  await expect(page.locator('meta[property="og:image:alt"]')).toHaveAttribute('content', /.+/);
+  await expect(page.locator('link[rel="apple-touch-icon"]')).toHaveAttribute('href', '/apple-touch-icon.png');
+
+  const res = await request.get(new URL(image!).pathname);
+  expect(res.ok()).toBe(true);
+  expect(res.headers()['content-type']).toBe('image/png');
+});
+
+test('Share: a region page unfurls into its region', async ({ page }) => {
+  await page.goto('/drinks/regions/deep');
+  await expect(page.locator('meta[property="og:image"]')).toHaveAttribute('content', /\/share\/deep\.png$/);
+});
+
+test('Share: a map that cannot be read falls back to the site card', async ({ page }) => {
+  await page.goto('/p/nobody.invalid');
+  await expect(page.locator('meta[property="og:image"]')).toHaveAttribute('content', /\/share\/site\.png$/);
+});

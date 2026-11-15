@@ -6,7 +6,7 @@ import { COTIDAL_LINES, CENTRE } from '../../src/lib/chart-geometry';
 /**
  * The mark is generated from the chart, and the icon files from the mark.
  * These fail when a hand edit, or a change to the geometry or the tokens,
- * leaves one of them behind. Fix by running `npm run icons`.
+ * leaves one of them behind. Fix by running `npm run images`.
  */
 
 function token(name: string): string {
@@ -28,7 +28,7 @@ test('Mark: the icon colours are the tokens', () => {
   expect(MARK_COLOURS.paper).toBe(token('background'));
 });
 
-test('Mark: public/icon.svg is what src/lib/mark.ts draws (run `npm run icons`)', () => {
+test('Mark: public/icon.svg is what src/lib/mark.ts draws (run `npm run images`)', () => {
   expect(readFileSync('public/icon.svg', 'utf8')).toBe(iconSvg());
 });
 

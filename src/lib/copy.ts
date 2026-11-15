@@ -869,6 +869,16 @@ export const feedPost = {
 } as const;
 
 /** Coasters: a member's code, and one per region (docs/coasters.md). */
+/**
+ * The share cards: the image a link to `/`, a region, or someone's map
+ * unfurls into (`src/pages/share/[card].astro`, `npm run images`). Alt text is
+ * read aloud where the card is shown, so it says what is drawn.
+ */
+export const share = {
+  siteAlt: 'The cotidal chart: four lines from a centre point, one band filled, a coordinate inside it.',
+  regionAlt: (name: string) => `The cotidal chart with ${name} filled.`,
+} as const;
+
 export const coaster = {
   makeCode: 'Make my code',
   makeCodeNote: 'A coaster with your region on it and a code that opens this map.',

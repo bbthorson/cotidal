@@ -4,7 +4,8 @@ import PageTitle from '../../components/marketing/PageTitle.astro';
 import PalatePlot from '../../components/marketing/PalatePlot.astro';
 import Readout from '../../components/marketing/Readout.astro';
 import AssistantSteps from '../../components/marketing/AssistantSteps.astro';
-import { site, publicMap, coaster, assistants } from '../../lib/copy';
+import { site, publicMap, coaster, assistants, share } from '../../lib/copy';
+import { shareImagePath } from '../../lib/share';
 import { formatCoordinate } from '../../lib/coordinate';
 import { quadrantFor, regionPath } from '../../lib/quadrant';
 import { readPublicPalate } from '../../lib/atproto/public-read';
@@ -123,7 +124,13 @@ const ctaClass =
   'btn btn-primary btn-lg w-full px-8';
 ---
 
-<AppShell title={pageTitle} description={description} currentPath="/p" width="standard">
+<AppShell
+  title={pageTitle}
+  description={description}
+  image={region ? { path: shareImagePath(region.id), alt: share.regionAlt(region.name) } : undefined}
+  currentPath="/p"
+  width="standard"
+>
   {result.status === 'ok' && subject && region && name ? (
     <article class="space-y-12" data-testid="public-map">
       <PageTitle eyebrow={publicMap.eyebrow} title={publicMap.title(name)} lede={region.gloss} ruled>

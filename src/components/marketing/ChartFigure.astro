@@ -1,4 +1,5 @@
 ---
+import type { QuadrantId } from '../../lib/quadrant';
 import { band, cotidalLine, labelPoint, COTIDAL_LINES, SECTORS, RINGS, CENTRE, TILT, FILLED_REGION } from '../../lib/chart-geometry';
 
 /**
@@ -21,12 +22,22 @@ import { band, cotidalLine, labelPoint, COTIDAL_LINES, SECTORS, RINGS, CENTRE, T
  * Inline SVG, no island. Token classes, not colour attributes.
  */
 
+interface Props {
+  /** The band to fill. The landing page fills the mark's; a region's share card fills its own. */
+  region?: QuadrantId;
+  /** The coordinate in the band. Drawn only in the landing figure's band, where it was placed. */
+  dot?: boolean;
+}
+
+const { region = FILLED_REGION, dot = true } = Astro.props;
+
 const lines = COTIDAL_LINES.map(({ hour, param }) => ({
   hour,
   d: cotidalLine(param).d,
   label: labelPoint(param),
 }));
-const filled = band(SECTORS[FILLED_REGION].from, SECTORS[FILLED_REGION].to);
+const filled = band(SECTORS[region].from, SECTORS[region].to);
+const showDot = dot && region === FILLED_REGION;
 const rotate = `rotate(${TILT} ${CENTRE.x} ${CENTRE.y})`;
 const inner = RINGS.slice(0, -1);
 const outer = RINGS[RINGS.length - 1];
@@ -61,7 +72,11 @@ const outer = RINGS[RINGS.length - 1];
     <circle cx="130" cy="98" r="2.5" class="fill-card stroke-foreground" stroke-width="1" />
 
     <!-- The coordinate, sitting in the band -->
-    <path d="M168.3 47 V79 M152.3 63 H184.3" class="stroke-chart-cross" stroke-width="1" />
-    <circle cx="168.3" cy="63" r="4" class="fill-foreground" />
+    {showDot && (
+      <>
+        <path d="M168.3 47 V79 M152.3 63 H184.3" class="stroke-chart-cross" stroke-width="1" />
+        <circle cx="168.3" cy="63" r="4" class="fill-foreground" />
+      </>
+    )}
   </svg>
 </figure>

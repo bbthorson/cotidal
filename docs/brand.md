@@ -170,12 +170,21 @@ at the same phase.
 
 The mark is drawn once, in `src/lib/mark.ts`, from the figure's geometry
 (`markGeometry` in `chart-geometry.ts`). The header renders it with token
-classes; `npm run icons` writes the three icon files from it. Icon files
+classes; `npm run images` writes the three icon files from it. Icon files
 cannot read CSS, so they carry the tokens as hex, and
 `tests/unit/mark.test.ts` fails when those leave `globals.css` or when
 `icon.svg` is not what the module draws. On a browser's dark tab strip the
 icon draws in paper with a lighter terracotta: that is the browser's chrome,
 not a dark theme for the site.
+
+**Share cards** are what a link unfurls into: the chart beside the
+headline for the site, and beside a region's name for that region. A link to
+someone's map unfurls into their region's card, as a coaster shows a region
+and not a dot: a coordinate moves with every pour, and a scraper's cached
+image does not. Each card is a page (`/share/<card>`) drawn with the site's
+own components, captured to `public/share/<card>.png` by `npm run images`
+after a build. Re-run it when the chart, a token, or the words on a card
+change.
 
 ## Rules
 
