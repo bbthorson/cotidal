@@ -154,7 +154,7 @@ enum in `src/content.config.ts`; extend it there before using a new value. Then:
 
 ```bash
 npm run typecheck   # the frontmatter schema is checked at build time
-npx playwright test tests/drink-content.spec.ts
+npm test -- tests/drink-content.spec.ts
 ```
 
 ### Region prose — `src/content/regions/`, `src/pages/drinks/regions/[id].astro`
@@ -328,8 +328,8 @@ when the released parser catches up, so the aliases get removed.
   Builds installs (the one bundled with `.nvmrc`'s Node).
 - In Claude Code on the web, `.claude/hooks/session-start.sh` installs
   dependencies and sets the env vars the suite needs there. Run the suite the
-  way CI does, against the preview build: `npm run build && CI=1 npx
-  playwright test`. Against `npm run dev`, server rendering throws "The
+  way CI does, against the preview build: `npm test` (the build, then
+  `CI=1 playwright test`). Against `npm run dev`, server rendering throws "The
   Console.createTask method is not implemented" (React 19's dev build on
   workerd) and about a third of the suite fails.
 

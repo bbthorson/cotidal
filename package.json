@@ -10,7 +10,8 @@
     "typecheck": "npm run lexicons && ASTRO_TELEMETRY_DISABLED=1 astro check && tsc --noEmit",
     "lexicons": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/check-lexicons.mjs",
     "lint": "eslint .",
-    "check": "npm run lint && npm run typecheck"
+    "check": "npm run lint && npm run typecheck",
+    "test": "npm run build && CI=1 playwright test"
   },
   "dependencies": {
     "@astrojs/cloudflare": "^14.1.7",

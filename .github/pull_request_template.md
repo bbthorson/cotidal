@@ -24,7 +24,7 @@ something that drifts from the first, and every instance so far has failed
 ## Checks
 
 - [ ] `npm run check`
-- [ ] `npx playwright test`
+- [ ] `npm test`
 
 ## Screenshots
 

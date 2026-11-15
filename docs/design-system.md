@@ -245,7 +245,7 @@ To guarantee the design system never drifts, automated enforcement is active at 
 - `astro check`: Validates Astro component props and types.
 - `tsc --noEmit`: Validates TypeScript types across the entire project.
 
-### 4. Browser & Contract Tests (`npx playwright test`)
+### 4. Browser & Contract Tests (`npm test`)
 - `tests/landing-static.spec.ts`: Asserts zero client scripts or hydration islands on `/`, server-rendered quadrants, and non-JS form fallback.
 - `tests/visual-identity.spec.ts`: Asserts computed CSS colors match the exact token values for paper ground (`rgb(244, 241, 230)`) and forest ink (`rgb(35, 52, 43)`).
 - `tests/drink-content.spec.ts`: Asserts all drink entries join cleanly to the coordinate database and contain primary sources.
