@@ -321,6 +321,15 @@ when the released parser catches up, so the aliases get removed.
   browser, seconds (`npm run test:unit`). Pages and routes are Playwright
   specs in `tests/*.spec.ts`, against the preview build (`npm run test:e2e`).
   A test that needs neither a page nor a request goes in `tests/unit/`.
+- **Install scripts are approved by name** (`allowScripts` in
+  `package.json`; npm 11 runs none it has not been told to). esbuild and
+  workerd install or check their native binaries and are allowed; core-js
+  only prints a banner and is denied. A new dependency with an install script
+  is reviewed with `npm install-scripts ls`, then approved or denied by name.
+- **Held back on purpose:** TypeScript 7 (typescript-eslint and
+  `@astrojs/check` support below 6.1 only) and Tailwind 4 (a CSS-first
+  config that replaces `tailwind.config.ts`, which the token lint rules and
+  `FONT_SIZES` are written against; a migration of its own).
 - **Vite+ (`vite-plus`) is not adopted, on purpose.** Vitest is pinned to the
   version it bundles, so moving later is a config change. What blocks it
   today: it replaces `vite` across the tree with its own core build, under

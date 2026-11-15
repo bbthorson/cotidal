@@ -102,11 +102,13 @@ here talks to a server yet, on purpose.
    accepted — the proposal only shows `"any"`.
 2. **Ask for space scopes at sign-in.** `auth.ts` asks for
    `atproto transition:generic`, which does not cover spaces. Adding
-   `PATRON_BAR_SCOPE` changes the consent screen for everyone, and a PDS that
-   does not know `space:` may refuse it, so it waits until the members' hosts
-   run the beta. The venue scope (`VENUE_BAR_SCOPE`) belongs to the venue
-   sign-in, which does not exist yet (venue claim, on the roadmap). This is a change in
-   `@bbthorson/atproto-cf-auth` as much as here.
+   `PATRON_BAR_SCOPE` changes the consent screen, and a PDS that does not know
+   `space:` may refuse the whole sign-in over it. `@bbthorson/atproto-cf-auth`
+   0.3 answers the second half: pass it under `conditionalScopes` with
+   `when: pdsServesMethod('com.atproto.space.createSpace')`, and it is asked
+   for only where the member's PDS serves spaces. The venue scope
+   (`VENUE_BAR_SCOPE`) belongs to the venue sign-in, which does not exist yet
+   (venue claim, on the roadmap).
 3. **Writes.** `logPour` gains a destination: public repo, or a bar space via
    `com.atproto.space.createRecord`, after checking `pourBelongsInBarSpace`
    and that the venue's host says the space exists (`getSpace`). The order of
