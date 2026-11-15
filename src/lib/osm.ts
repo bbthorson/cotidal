@@ -46,11 +46,14 @@ export function metresBetween(a: { lat: number; lon: number }, b: { lat: number;
   return 2 * R * Math.asin(Math.sqrt(h));
 }
 
+/** How long Overpass may spend on the query, in seconds; the request waits a little longer. */
+const QUERY_TIMEOUT_S = 25;
+
 /** The Overpass QL for named drinking places within `radius` metres. */
 export function overpassQuery(at: { lat: number; lon: number }, radius: number): string {
   const kinds = KINDS.join('|');
   const around = `(around:${radius},${at.lat},${at.lon})`;
-  return `[out:json][timeout:15];(node["amenity"~"^(${kinds})$"]["name"]${around};way["amenity"~"^(${kinds})$"]["name"]${around};);out center 80;`;
+  return `[out:json][timeout:${QUERY_TIMEOUT_S}];(node["amenity"~"^(${kinds})$"]["name"]${around};way["amenity"~"^(${kinds})$"]["name"]${around};);out center 80;`;
 }
 
 interface OverpassElement {
@@ -63,6 +66,16 @@ interface OverpassElement {
 }
 
 const isNum = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v);
+
+/**
+ * Overpass reports a query it gave up on (timed out, out of memory) as a 200
+ * with a `remark` and whatever elements it had — usually none. Read as an
+ * answer, that would say "no bars here" when the truth is "no answer".
+ */
+export function overpassFailure(json: unknown): string | null {
+  const remark = (json as { remark?: unknown })?.remark;
+  return typeof remark === 'string' && /error/i.test(remark) ? remark : null;
+}
 
 /**
  * Overpass's answer, parsed down to named bars with a point, nearest first.
@@ -89,7 +102,7 @@ export function parseOverpass(json: unknown, from: { lat: number; lon: number },
 /** Named bars within `radius` metres of a point, rounded before it leaves the device. */
 export async function barsNear(
   point: { lat: number; lon: number },
-  { radius = 1200, timeoutMs = 15_000 }: { radius?: number; timeoutMs?: number } = {}
+  { radius = 1200, timeoutMs = (QUERY_TIMEOUT_S + 5) * 1000 }: { radius?: number; timeoutMs?: number } = {}
 ): Promise<OsmBar[]> {
   const at = roundPoint(point);
   const controller = new AbortController();
@@ -102,8 +115,11 @@ export async function barsNear(
       signal: controller.signal,
     });
     if (!res.ok) throw new Error(`Overpass answered ${res.status}`);
+    const json: unknown = await res.json();
+    const failure = overpassFailure(json);
+    if (failure) throw new Error(`Overpass gave up: ${failure}`);
     // Distances from the true point: it never left the device.
-    return parseOverpass(await res.json(), point);
+    return parseOverpass(json, point);
   } finally {
     clearTimeout(timer);
   }

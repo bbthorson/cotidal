@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { compass, harbour, menu, pour, ratePage } from '../src/lib/copy';
+import { compass, harbour, menu, moved, pour, ratePage } from '../src/lib/copy';
 import { GEO_TYPE } from '../src/lib/atproto/location';
 
 const profile = { x: 4, y: -2, dislikesSmoke: false, dislikesBitter: false, dislikesAnise: false, vibeTags: {} };
@@ -21,6 +21,33 @@ test('Compass: without location, the map waits to be asked, and nothing is sent'
   await expect(page.getByRole('button', { name: compass.showNear })).toBeVisible();
   await expect(page.getByText(compass.nearNote)).toBeVisible();
   expect(asked).toBe(false);
+});
+
+test('Compass: a device that cannot find itself is not told location is off, and can try again', async ({ page }) => {
+  await page.addInitScript((p) => {
+    localStorage.setItem('user_profile', JSON.stringify(p));
+    // A timeout (code 3), as a desktop without a fix gives.
+    navigator.geolocation.getCurrentPosition = (_ok, fail) =>
+      fail?.({ code: 3, PERMISSION_DENIED: 1, POSITION_UNAVAILABLE: 2, TIMEOUT: 3, message: 'Timeout' } as GeolocationPositionError);
+  }, profile);
+  await page.goto('/compass');
+  await page.getByRole('button', { name: compass.showNear }).click();
+  await expect(page.getByText(compass.unlocated)).toBeVisible();
+  await expect(page.getByText(compass.denied)).toHaveCount(0);
+  await expect(page.getByRole('button', { name: compass.retry })).toBeVisible();
+});
+
+test('Compass: Overpass giving up reads as no answer, not as no bars', async ({ browser }) => {
+  const context = await browser.newContext({ permissions: ['geolocation'], geolocation: here });
+  const page = await context.newPage();
+  await page.route('https://overpass-api.de/**', (r) =>
+    r.fulfill({ json: { elements: [], remark: 'runtime error: Query timed out in "query" at line 1 after 26 seconds.' } })
+  );
+  await page.addInitScript((p) => localStorage.setItem('user_profile', JSON.stringify(p)), profile);
+  await page.goto('/compass');
+  await expect(page.getByText(compass.failed)).toBeVisible();
+  await expect(page.getByText(compass.noneNear)).toHaveCount(0);
+  await context.close();
 });
 
 test('Compass: the map sits beside the menu on a wide screen, above it on a phone', async ({ page }) => {
@@ -92,4 +119,34 @@ test('Compass: bars near you, then a pick there, then a pour that says where the
     address: { $type: GEO_TYPE, latitude: '40.722400', longitude: '-73.988300', name: 'Attaboy' },
   });
   await context.close();
+});
+
+test('Compass: a drink the map does not know can still be rated, and the pour says it moved nothing', async ({ page }) => {
+  await page.addInitScript((p) => {
+    if (!sessionStorage.getItem('seeded')) {
+      localStorage.setItem('user_profile', JSON.stringify(p));
+      sessionStorage.setItem('seeded', '1');
+    }
+  }, profile);
+  await page.goto('/compass');
+  await page.getByRole('searchbox').fill('Retsina');
+  await expect(page.getByText(compass.noDrinks)).toBeVisible();
+  await page.getByRole('link', { name: compass.rateUnlisted('Retsina') }).click();
+
+  await expect(page).toHaveURL(/\/rate\?drink=Retsina$/);
+  await expect(page.getByText(pour.unlisted('Retsina'))).toBeVisible();
+  await page.getByRole('button', { name: pour.atHome }).click();
+  await page.getByRole('button', { name: pour.submit }).click();
+
+  await expect(page.getByRole('heading', { name: moved.unlistedTitle })).toBeVisible();
+  await expect(page.getByText(moved.unlisted('Retsina'), { exact: false })).toBeVisible();
+  await expect(page.getByText(moved.offMenu)).toHaveCount(0);
+});
+
+test('Compass: a drink found by another name it goes by', async ({ page }) => {
+  await page.addInitScript((p) => localStorage.setItem('user_profile', JSON.stringify(p)), profile);
+  await page.goto('/compass');
+  await page.getByRole('searchbox').fill('Prosecco DOC');
+  await expect(page.getByRole('button', { name: /Prosecco/ })).toBeVisible();
+  await expect(page.getByText(compass.noDrinks)).toHaveCount(0);
 });

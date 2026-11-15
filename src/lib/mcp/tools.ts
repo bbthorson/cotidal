@@ -8,6 +8,7 @@ import { publicMapPath } from '../atproto/paths';
 import type { PublicPalateResult } from '../atproto/public-read';
 import type { Register } from '../register';
 import { cleanDraft, draftPath, type PourDraft } from '../pour-draft';
+import { matchDrink, normalizeName } from '../drink-match';
 
 /**
  * What the `/mcp` tools answer, as plain functions.
@@ -92,36 +93,10 @@ function summarize(drink: Drink, ctx: ToolContext): DrinkSummary {
 }
 
 /** Lower case, no accents or punctuation, `&` as "and". */
-function normalize(s: string): string {
-  return s
-    .normalize('NFKD')
-    .replace(/[̀-ͯ]/g, '')
-    .toLowerCase()
-    .replace(/&/g, ' and ')
-    .replace(/[’'`]/g, '')
-    .replace(/[^a-z0-9]+/g, ' ')
-    .trim();
-}
+/** Re-exported: the chat tools match names the way every other caller does. */
+export { matchDrink };
+const normalize = normalizeName;
 
-/** "Daiquiri (Classic)" → "daiquiri". No two drinks share one (tests/unit/mcp-tools.test.ts). */
-function baseName(name: string): string {
-  return normalize(name.replace(/\([^)]*\)/g, ' '));
-}
-
-/**
- * The drink a name means: its full name, or its name without the
- * parenthetical. Nothing looser, because a menu item matched to the wrong
- * drink would be ranked with confidence it has not earned.
- */
-export function matchDrink(input: string, drinks: Drink[] = drinkDatabase): Drink | null {
-  const wanted = normalize(input);
-  if (!wanted) return null;
-  return (
-    drinks.find((d) => normalize(d.name) === wanted) ??
-    drinks.find((d) => baseName(d.name) === wanted) ??
-    null
-  );
-}
 
 async function palateOf(
   input: string,

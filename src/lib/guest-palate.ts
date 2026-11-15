@@ -1,4 +1,4 @@
-import { drinkDatabase } from '@/lib/data';
+import { matchDrink } from '@/lib/drink-match';
 import {
   createInitialPalateState,
   applyPour,
@@ -55,7 +55,7 @@ function guestPrior(profile: UserProfile | null) {
  * applyPour rules the server applies.
  */
 export function guestShift(profile: UserProfile | null, entry: PourEntry): UserProfile {
-  const drink = drinkDatabase.find((d) => d.name.toLowerCase() === entry.drinkName.toLowerCase());
+  const drink = matchDrink(entry.drinkName) ?? undefined;
   const next = applyPour(guestPrior(profile), drink, { hedonic: entry.hedonic, cata: entry.cata }, entry.deviations);
   const coords = projectTo2D(next);
   // Stored at the rounded coordinate so guestPrior recognises it next time.

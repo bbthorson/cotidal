@@ -1,5 +1,6 @@
 import { useId, useState, type SubmitEvent, type ReactNode } from 'react';
 import { drinkDatabase } from '@/lib/data';
+import { matchDrink } from '@/lib/drink-match';
 import {
   ASKED_INTENSITIES,
   BASE_SPIRITS,
@@ -167,6 +168,8 @@ export function PourForm({
   };
 
   const shownError = localError ?? error;
+  // A drink the map has no point for: logged all the same, and said so before it is.
+  const unlisted = !!drinkName.trim() && !matchDrink(drinkName);
 
   return (
     <form onSubmit={submit} className="flex flex-col gap-6">
@@ -189,6 +192,7 @@ export function PourForm({
           autoComplete="off"
           className={inputClass}
         />
+        {unlisted && <p className="text-meta text-muted-foreground">{pour.unlisted(drinkName.trim())}</p>}
         <datalist id={`${id}-catalog`}>
           {drinkDatabase.map((d) => (
             <option key={d.name} value={d.name} />

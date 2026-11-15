@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { drinkDatabase } from '@/lib/data';
+import { matchDrink } from '@/lib/drink-match';
 import { quadrantFor } from '@/lib/quadrant';
 import { describeMove } from '@/lib/coordinate';
 import { chart, moved } from '@/lib/copy';
@@ -45,10 +45,13 @@ export function Moved({
 
   const before = quadrantFor(from.x, from.y);
   const after = quadrantFor(to.x, to.y);
-  const drink = drinkDatabase.find((d) => d.name.toLowerCase() === drinkName.toLowerCase());
+  const drink = matchDrink(drinkName);
+  // A drink the map has no point for moves nothing (unless a deviation did): say why, not "barely a step".
+  const stayed = !drink && from.x === to.x && from.y === to.y;
 
   const rows: { name: string; note: string }[] = [];
-  if (menuChange) {
+  // A drink with no point has no place on the menu to report.
+  if (menuChange && drink) {
     rows.push({
       name: displayName(drink?.name ?? drinkName),
       note: menuChange.rank ? moved.rankOnMenu(menuChange.rank) : moved.offMenu,
@@ -66,10 +69,18 @@ export function Moved({
           {moved.eyebrow} · {displayName(drink?.name ?? drinkName)} · {scoreLabel}
         </span>
         <h1 ref={heading} tabIndex={-1} className="font-serif text-hero font-normal italic outline-none">
-          {moved.title}
+          {stayed ? moved.unlistedTitle : moved.title}
         </h1>
         <p className="mt-1 font-serif text-prose">
-          {describeMove(from, to)} {before.id === after.id ? moved.stillIn : moved.nowIn} {after.name}.
+          {stayed ? (
+            <>
+              {moved.unlisted(drinkName)} {moved.stillIn} {after.name}.
+            </>
+          ) : (
+            <>
+              {describeMove(from, to)} {before.id === after.id ? moved.stillIn : moved.nowIn} {after.name}.
+            </>
+          )}
         </p>
       </div>
 

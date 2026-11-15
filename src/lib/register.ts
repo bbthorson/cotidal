@@ -1,3 +1,5 @@
+import { matchDrink } from './drink-match';
+
 /**
  * What the menu needs from the drinks register (src/content/drinks/): a
  * printable name, the build as one line, and where the full entry lives.
@@ -22,9 +24,9 @@ export type Register = Record<string, RegisterEntry>;
  * `/drinks/daiquiri`).
  */
 export function catalogSlug(register: Register, drinkName: string): string | undefined {
-  const wanted = drinkName.trim().toLowerCase();
-  const name = Object.keys(register).find((n) => n.toLowerCase() === wanted);
-  return name ? register[name].slug : undefined;
+  // By the drink the name means ("margarita" is the Tommy's), as every lookup is.
+  const name = matchDrink(drinkName)?.name;
+  return name ? register[name]?.slug : undefined;
 }
 
 /** The printed name for a drink: its register title, or the name it goes by on the map. */

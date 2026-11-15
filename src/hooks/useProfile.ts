@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useState } from 'react';
 import type { UserProfile } from '@/hooks/useDiscoveryQuiz';
 import { flushPendingElicitation, getConnectedPalate, publishPalate } from '@/lib/api-client';
 import { loadProfile, saveProfile } from '@/lib/device-store';
@@ -11,16 +11,22 @@ import { loadProfile, saveProfile } from '@/lib/device-store';
  * A member's first visit also settles what a guest did before signing in:
  * the coordinate and quiz answers waiting on the device are written to the
  * account, unless the account already has a coordinate, which wins.
+ *
+ * The first render is the server's — no coordinate — because the server
+ * cannot see the device. Reading it during render made the browser draw a
+ * different page from the one it was handed, and React threw that page away
+ * (error #418). The device's copy is read straight after, before paint.
  */
 export function useProfile(member: boolean) {
-  const [profile, setProfile] = useState<UserProfile | null>(loadProfile);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+
+  useLayoutEffect(() => {
+    const local = loadProfile();
+    if (local) setProfile(local);
+  }, []);
 
   useEffect(() => {
-    if (!member) {
-      const local = loadProfile();
-      if (local) setProfile(local);
-      return;
-    }
+    if (!member) return;
     let cancelled = false;
     void flushPendingElicitation();
     getConnectedPalate().then(async (remote) => {

@@ -1,4 +1,5 @@
 import { VIBE_TAGS } from './atproto/vocab';
+import { placeStyle, type StyleProfile } from './placement';
 
 /** Declared once, in vocab.ts, because the palate lexicon lists them as `knownValues`. */
 export type VibeTag = (typeof VIBE_TAGS)[number];
@@ -20,7 +21,25 @@ export type Drink = {
     hasAnise: boolean;
     isBitter: boolean;
     tags: VibeTag[];
+    /**
+     * Other names the same drink is ordered by ("Prosecco DOC", "Lambrusco
+     * di Sorbara"). Matched by `matchDrink`, folded as names are. Never a
+     * different drink: a pour matched by alias moves the coordinate.
+     */
+    aliases?: string[];
+    /**
+     * For a drink placed by its style (`placement.ts`), what placed it: `x`
+     * and `y` are computed from this, never typed. Absent for a hand-placed drink.
+     */
+    profile?: StyleProfile;
 };
+
+/** A drink placed by its style profile: the coordinate comes from `placeStyle`, not by eye. */
+const styled = (d: Omit<Drink, 'x' | 'y'> & { profile: StyleProfile }): Drink => ({ ...d, ...placeStyle(d.profile) });
+
+type Flags = Pick<Drink, 'hasSmoke' | 'hasAnise' | 'isBitter'>;
+const plain: Flags = { hasSmoke: false, hasAnise: false, isBitter: false };
+const gripping: Flags = { hasSmoke: false, hasAnise: false, isBitter: true };
 
 export const drinkDatabase: Drink[] = [
     // --- QUADRANT 1: LUSH & LIVELY (Crisp & Sweet) [x > 0, y > 0] ---
@@ -123,7 +142,38 @@ export const drinkDatabase: Drink[] = [
     { name: "Absinthe Drip", type: "Spirit", x: -6, y: -2, hasSmoke: false, hasAnise: true, isBitter: true, tags: ['polarizing', 'complex', 'visual'] },
     { name: "Sambuca (with coffee beans)", type: "Spirit", x: -2, y: -4, hasSmoke: false, hasAnise: true, isBitter: false, tags: ['sweet', 'classic', 'polarizing'] },
     { name: "Tipperary", type: "Cocktail", x: -7, y: -6, hasSmoke: false, hasAnise: true, isBitter: true, tags: ['complex', 'bold', 'classic'] },
-    { name: "Monte Carlo", type: "Cocktail", x: -7, y: -4, hasSmoke: false, hasAnise: false, isBitter: true, tags: ['bold', 'complex', 'comfort'] }
+    { name: "Monte Carlo", type: "Cocktail", x: -7, y: -4, hasSmoke: false, hasAnise: false, isBitter: true, tags: ['bold', 'complex', 'comfort'] },
+    // --- PLACED BY STYLE (placement.ts): body, residual sugar g/L, structure ---
+    // Wine
+    styled({ name: "Lambrusco", type: "Wine", ...plain, tags: ['social', 'crushable', 'comfort'], aliases: ["Lambrusco Secco", "Lambrusco di Sorbara", "Lambrusco Grasparossa"], profile: { body: 2, residualSugarGpl: 8, structure: 1 } }),
+    styled({ name: "Lambrusco Amabile", type: "Wine", ...plain, tags: ['social', 'sweet', 'crushable'], profile: { body: 2, residualSugarGpl: 45, structure: 1 } }),
+    styled({ name: "Prosecco", type: "Wine", ...plain, tags: ['social', 'crushable', 'visual'], aliases: ["Prosecco DOC", "Prosecco Superiore", "Prosecco Extra Dry"], profile: { body: 1, residualSugarGpl: 14, structure: 0 } }),
+    styled({ name: "Champagne (Brut)", type: "Wine", ...plain, tags: ['prestige', 'classic', 'social'], aliases: ["Brut Champagne"], profile: { body: 2, residualSugarGpl: 8, structure: 0 } }),
+    styled({ name: "Cava (Brut)", type: "Wine", ...plain, tags: ['social', 'crushable'], profile: { body: 1, residualSugarGpl: 8, structure: 0 } }),
+    styled({ name: "Pinot Grigio", type: "Wine", ...plain, tags: ['social', 'crushable'], aliases: ["Pinot Gris"], profile: { body: 1, residualSugarGpl: 3, structure: 0 } }),
+    styled({ name: "Albariño", type: "Wine", ...plain, tags: ['crushable', 'social'], aliases: ["Alvarinho"], profile: { body: 2, residualSugarGpl: 2, structure: 0 } }),
+    styled({ name: "Grüner Veltliner", type: "Wine", ...plain, tags: ['crushable', 'classic'], aliases: ["Gruner"], profile: { body: 2, residualSugarGpl: 2, structure: 0 } }),
+    styled({ name: "Chablis (Chardonnay)", type: "Wine", ...plain, tags: ['classic', 'prestige'], profile: { body: 2, residualSugarGpl: 1, structure: 0 } }),
+    styled({ name: "Chardonnay (Oaked)", type: "Wine", ...plain, tags: ['comfort', 'bold'], aliases: ["California Chardonnay", "Oaked Chardonnay"], profile: { body: 4, residualSugarGpl: 4, structure: 0 } }),
+    styled({ name: "Provence Rosé", type: "Wine", ...plain, tags: ['social', 'crushable', 'visual'], aliases: ["Rosé", "Rose"], profile: { body: 1, residualSugarGpl: 2, structure: 0 } }),
+    styled({ name: "Orange Wine", type: "Wine", ...gripping, tags: ['complex', 'polarizing'], aliases: ["Skin-Contact White", "Skin Contact"], profile: { body: 3, residualSugarGpl: 1, structure: 2 } }),
+    styled({ name: "Beaujolais (Gamay)", type: "Wine", ...plain, tags: ['crushable', 'social'], profile: { body: 1, residualSugarGpl: 1, structure: 1 } }),
+    styled({ name: "Pinot Noir (Burgundy)", type: "Wine", ...plain, tags: ['classic', 'prestige', 'complex'], aliases: ["Red Burgundy", "Bourgogne Rouge"], profile: { body: 2, residualSugarGpl: 1, structure: 1 } }),
+    styled({ name: "Chianti Classico (Sangiovese)", type: "Wine", ...gripping, tags: ['classic', 'comfort'], aliases: ["Chianti"], profile: { body: 3, residualSugarGpl: 1, structure: 3 } }),
+    styled({ name: "Rioja (Tempranillo)", type: "Wine", ...gripping, tags: ['classic', 'warm', 'comfort'], aliases: ["Rioja Reserva", "Rioja Crianza"], profile: { body: 4, residualSugarGpl: 2, structure: 3 } }),
+    styled({ name: "Malbec (Mendoza)", type: "Wine", ...gripping, tags: ['bold', 'comfort', 'warm'], profile: { body: 4, residualSugarGpl: 3, structure: 3 } }),
+    styled({ name: "Cabernet Sauvignon (Napa)", type: "Wine", ...gripping, tags: ['bold', 'prestige'], aliases: ["Napa Cabernet", "Napa Cab"], profile: { body: 5, residualSugarGpl: 4, structure: 4 } }),
+    // Beer
+    styled({ name: "Helles Lager", type: "Beer", ...plain, tags: ['crushable', 'social', 'classic'], aliases: ["Helles", "Lager"], profile: { body: 2, residualSugarGpl: 3, structure: 1 } }),
+    styled({ name: "Pilsner (German)", type: "Beer", ...gripping, tags: ['crushable', 'classic'], aliases: ["Pils", "German Pils"], profile: { body: 1, residualSugarGpl: 2, structure: 3 } }),
+    styled({ name: "Kölsch", type: "Beer", ...plain, tags: ['crushable', 'social'], profile: { body: 1, residualSugarGpl: 2, structure: 1 } }),
+    styled({ name: "Pale Ale", type: "Beer", ...gripping, tags: ['social', 'classic'], aliases: ["American Pale Ale", "APA"], profile: { body: 2, residualSugarGpl: 3, structure: 3 } }),
+    styled({ name: "IPA (West Coast)", type: "Beer", ...gripping, tags: ['bold', 'polarizing'], aliases: ["India Pale Ale", "West Coast IPA"], profile: { body: 3, residualSugarGpl: 3, structure: 4 } }),
+    styled({ name: "Hazy IPA", type: "Beer", ...plain, tags: ['crushable', 'social', 'visual'], aliases: ["New England IPA", "NEIPA"], profile: { body: 3, residualSugarGpl: 8, structure: 1 } }),
+    styled({ name: "Hefeweizen", type: "Beer", ...plain, tags: ['comfort', 'social'], aliases: ["Weissbier", "Wheat Beer"], profile: { body: 3, residualSugarGpl: 4, structure: 0 } }),
+    styled({ name: "Witbier", type: "Beer", ...plain, tags: ['crushable', 'social'], aliases: ["Belgian Wit", "Wit"], profile: { body: 2, residualSugarGpl: 4, structure: 0 } }),
+    styled({ name: "Belgian Tripel", type: "Beer", ...plain, tags: ['complex', 'warm'], aliases: ["Tripel"], profile: { body: 4, residualSugarGpl: 10, structure: 1 } }),
+    styled({ name: "Imperial Stout", type: "Beer", ...gripping, tags: ['bold', 'warm', 'complex'], aliases: ["Russian Imperial Stout"], profile: { body: 5, residualSugarGpl: 25, structure: 3 } }),
 ];
 
 import { QuestionTier, QuestionOption, Question, questions } from './discovery-questions';

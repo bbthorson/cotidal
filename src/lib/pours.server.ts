@@ -1,7 +1,8 @@
 import type { OAuthSession } from '@bbthorson/atproto-cf-auth/server';
 import type { UserProfile } from '@/hooks/useDiscoveryQuiz';
 import type { LogDrinkOptions } from '@/lib/api-client';
-import { drinkDatabase, type Drink } from '@/lib/data';
+import type { Drink } from '@/lib/data';
+import { matchDrink } from '@/lib/drink-match';
 import { catalogSlug, type Register } from '@/lib/register';
 import { derivePalateRecord } from '@/lib/sensory';
 import {
@@ -99,7 +100,7 @@ export function buildPour(
 
   const hedonic = Math.max(1, Math.min(9, Math.round(rating * 0.8 + 1)));
   const finalLocation = isHomePour ? 'Home Pour' : (venue?.name || location || UNKNOWN_VENUE);
-  const drink = drinkDatabase.find((d) => d.name.toLowerCase() === drinkName.toLowerCase());
+  const drink = matchDrink(drinkName) ?? undefined;
 
   // Notes arrive as labels from a page loaded before CATA ids existed.
   const name = (s: string) => fitString(s, 200, 100);
