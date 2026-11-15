@@ -84,8 +84,28 @@ An axis learns only if `predictHedonic` reads it — otherwise its Jacobian
 entry is zero and so is its gain. Every drink-side input to that function is
 derived from `Drink` (see `complexityDemand`), never stored alongside it.
 
+A name becomes a drink through `matchDrink` (`src/lib/drink-match.ts`) and
+nothing else — a pour, the form, the harbour, Compass search and the chat
+tools: folded case and accents, the name without its parenthetical
+("margarita" is the Tommy's), or one of the drink's `aliases`. No name, bare
+name or alias may mean two drinks (`tests/unit/drink-match.test.ts`). A pour
+of a drink with no match is kept, and moves nothing but its deviations.
+
 The dot on the map is not the filter's estimate: `applyPour` moves crisp/sweet
 by a capped, simpler rule and leaves the other three axes to the EKF.
+
+### Placement — `src/lib/placement.ts`
+The first 94 drinks were placed by hand. A wine or beer added since is placed
+by its style: `profile` (body 1–5, residual sugar g/L, structure 0–4 —
+tannin or hop bitterness) through `placeStyle`, whose coefficients are a
+least-squares fit to the 15 hand-placed wines and beers (`CALIBRATION`).
+Rich ↔ Crisp is body; Savory ↔ Sweet is log sugar less structure; it misses
+the hand placements by 2.9 points RMS. `x`/`y` of a styled drink are computed,
+never typed; `tests/unit/placement.test.ts` refits the coefficients and holds
+every styled drink to its profile. The profiles are style typicals, not
+measurements — check them before a drink is written up.
+A drink needs no prose entry to be on the map; without one it has no page and
+nothing links to one (`catalogSlug` is `undefined`).
 
 ### Elicitation — `belief-state.ts`, `question-selector.ts`, `useDiscoveryQuiz.ts`
 `belief-state` holds an exact posterior over the map (a half-point grid)

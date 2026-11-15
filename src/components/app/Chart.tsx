@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { drinkDatabase, type Drink } from '@/lib/data';
+import { matchDrink } from '@/lib/drink-match';
 import { quadrantFor } from '@/lib/quadrant';
 import { formatCoordinate } from '@/lib/coordinate';
 import { chart, menu, pour } from '@/lib/copy';
@@ -25,7 +26,7 @@ export function useLastPours(pours: PourRecord[]) {
   return useMemo(() => {
     const byName = new Map<string, PourRecord>();
     for (const p of pours) {
-      const drink = drinkDatabase.find((d) => d.name.toLowerCase() === p.drink.name.toLowerCase());
+      const drink = matchDrink(p.drink.name);
       if (!drink) continue;
       const prev = byName.get(drink.name);
       if (!prev || new Date(p.createdAt) > new Date(prev.createdAt)) byName.set(drink.name, p);

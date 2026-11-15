@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { drinkDatabase, type Drink } from '@/lib/data';
+import { baseName, matchDrink } from '@/lib/drink-match';
 import { calculateWeightedRelevance, type MinimalDrinkLog } from '@/lib/scoring';
 import { chart, harbour } from '@/lib/copy';
 import { titleOf, type Register } from '@/lib/register';
@@ -24,15 +25,11 @@ interface MenuItem {
   drink: Drink | null;
 }
 
-const drinkKey = (s: string) => s.trim().toLowerCase().replace(/\s*\(.*\)\s*$/, '');
-
-/** The drink on the map a menu line names, by catalogue name or register title. */
+/** The drink on the map a menu line names: by name or alias (`matchDrink`), or by register title. */
 function placeDrink(label: string, register: Register): Drink | null {
-  const want = drinkKey(label);
+  const want = baseName(label);
   if (!want) return null;
-  return (
-    drinkDatabase.find((d) => drinkKey(d.name) === want || drinkKey(register[d.name]?.title ?? '') === want) ?? null
-  );
+  return matchDrink(label) ?? drinkDatabase.find((d) => baseName(register[d.name]?.title ?? '') === want) ?? null;
 }
 
 /**
@@ -109,7 +106,7 @@ function HarbourContent({ register, member }: { register: Register; member: bool
     if (!label) return;
     const drink = placeDrink(label, register);
     const shown = drink ? titleOf(register, drink.name) : label;
-    setItems((prev) => (prev.some((i) => drinkKey(i.label) === drinkKey(shown)) ? prev : [...prev, { label: shown, drink }]));
+    setItems((prev) => (prev.some((i) => baseName(i.label) === baseName(shown)) ? prev : [...prev, { label: shown, drink }]));
     setEntry('');
   };
 

@@ -1,5 +1,6 @@
 import { useId, useState, type SubmitEvent, type ReactNode } from 'react';
 import { drinkDatabase } from '@/lib/data';
+import { matchDrink } from '@/lib/drink-match';
 import {
   ASKED_INTENSITIES,
   BASE_SPIRITS,
@@ -168,7 +169,7 @@ export function PourForm({
 
   const shownError = localError ?? error;
   // A drink the map has no point for: logged all the same, and said so before it is.
-  const unlisted = !!drinkName.trim() && !drinkDatabase.some((d) => d.name.toLowerCase() === drinkName.trim().toLowerCase());
+  const unlisted = !!drinkName.trim() && !matchDrink(drinkName);
 
   return (
     <form onSubmit={submit} className="flex flex-col gap-6">

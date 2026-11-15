@@ -1,5 +1,6 @@
 import { useMemo, useState, useEffect, useCallback } from 'react';
 import { drinkDatabase, type User } from '@/lib/data';
+import { matchDrink } from '@/lib/drink-match';
 import { chart, compass, menu } from '@/lib/copy';
 import { harbourAt, logPathFor, questionsHref } from '@/lib/site-nav';
 import { titleOf, type Register } from '@/lib/register';
@@ -76,13 +77,20 @@ function CompassContent({
   };
 
   const q = foldName(query);
-  // A drink matches by its name or by what is in it ("mezcal", "lime").
+  // A drink matches by its name, by another name it goes by ("Prosecco DOC"),
+  // or by what is in it ("mezcal", "lime").
+  const named = useMemo(() => matchDrink(query)?.name ?? null, [query]);
   const drinkHits = useMemo(
     () =>
       q
-        ? scored.filter((d) => foldName(titleOf(register, d.name)).includes(q) || foldName(register[d.name]?.build ?? '').includes(q))
+        ? scored.filter(
+            (d) =>
+              d.name === named ||
+              foldName(titleOf(register, d.name)).includes(q) ||
+              foldName(register[d.name]?.build ?? '').includes(q)
+          )
         : [],
-    [q, scored, register]
+    [q, named, scored, register]
   );
   const barHits = q ? bars.filter((b) => foldName(b.name).includes(q)) : bars;
   const nearHits = q ? nearby.bars.filter((b) => foldName(b.name).includes(q)) : [];

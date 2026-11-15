@@ -129,16 +129,24 @@ test('Compass: a drink the map does not know can still be rated, and the pour sa
     }
   }, profile);
   await page.goto('/compass');
-  await page.getByRole('searchbox').fill('Lambrusco');
+  await page.getByRole('searchbox').fill('Retsina');
   await expect(page.getByText(compass.noDrinks)).toBeVisible();
-  await page.getByRole('link', { name: compass.rateUnlisted('Lambrusco') }).click();
+  await page.getByRole('link', { name: compass.rateUnlisted('Retsina') }).click();
 
-  await expect(page).toHaveURL(/\/rate\?drink=Lambrusco$/);
-  await expect(page.getByText(pour.unlisted('Lambrusco'))).toBeVisible();
+  await expect(page).toHaveURL(/\/rate\?drink=Retsina$/);
+  await expect(page.getByText(pour.unlisted('Retsina'))).toBeVisible();
   await page.getByRole('button', { name: pour.atHome }).click();
   await page.getByRole('button', { name: pour.submit }).click();
 
   await expect(page.getByRole('heading', { name: moved.unlistedTitle })).toBeVisible();
-  await expect(page.getByText(moved.unlisted('Lambrusco'), { exact: false })).toBeVisible();
+  await expect(page.getByText(moved.unlisted('Retsina'), { exact: false })).toBeVisible();
   await expect(page.getByText(moved.offMenu)).toHaveCount(0);
+});
+
+test('Compass: a drink found by another name it goes by', async ({ page }) => {
+  await page.addInitScript((p) => localStorage.setItem('user_profile', JSON.stringify(p)), profile);
+  await page.goto('/compass');
+  await page.getByRole('searchbox').fill('Prosecco DOC');
+  await expect(page.getByRole('button', { name: /Prosecco/ })).toBeVisible();
+  await expect(page.getByText(compass.noDrinks)).toHaveCount(0);
 });
