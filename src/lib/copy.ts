@@ -19,7 +19,6 @@ export const site = {
 export const nav = {
   skipToContent: 'Skip to content',
   home: 'Home',
-  radio: 'Radio',
   compass: 'Compass',
   register: 'Drinks',
   signIn: 'Sign in',
@@ -32,39 +31,14 @@ export const nav = {
 } as const;
 
 /**
- * The bar along the foot of the app on a phone: listen, navigate, record.
+ * The bar along the foot of the app on a phone: navigate, record.
  * Picking a drink is not a place, so it is a button (`PickButton.astro`), not a tab.
  */
 export const appBar = {
   label: 'App',
-  radio: 'Radio',
   compass: 'Compass',
   log: 'Log',
   pick: 'Pick a drink',
-} as const;
-
-/**
- * /radio: what is on the air — pours, newest first. Today that is your own;
- * the people you follow and the bars near you are Later, and say so.
- */
-export const radio = {
-  title: 'Radio',
-  heading: 'On the air',
-  filterLabel: 'Tune to',
-  filters: [
-    { id: 'all', label: 'All' },
-    { id: 'following', label: 'Following' },
-    { id: 'nearby', label: 'Nearby' },
-  ],
-  followingLater: 'Later: pours from the people you follow on Bluesky.',
-  nearbyLater: 'Later: pours at bars near you.',
-  you: 'You',
-  onDevice: 'On this device',
-  empty: 'Nothing on the air yet. Pick a drink, rate it, and it goes out here.',
-  guestTitle: 'Keep your log with you',
-  guestBody: 'Radio carries your pours, on this device. Sign in with Bluesky and they’re kept in your own account. Later: pours from the people you follow.',
-  today: 'Today',
-  yesterday: 'Yesterday',
 } as const;
 
 /**
@@ -324,7 +298,7 @@ export const connect = {
     },
     {
       title: 'In your chat assistant',
-      body: 'Ask a chat assistant what to drink, with your coordinate in hand. Later: Radio carries the pours of the people you follow.',
+      body: 'Ask a chat assistant what to drink, with your coordinate in hand. Later: the pours of the people you follow.',
     },
   ],
 } as const;

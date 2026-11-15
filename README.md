@@ -47,8 +47,8 @@ releases the Worker on push. There is deliberately no deploy workflow in
 
 - **`/`** — the landing page. Pure Astro, **zero client JavaScript**; sign-in
   is a plain form post that works without it.
-- **`/radio`**, **`/compass`**, **`/log`** — the three tabs of the app, each a
-  React island. Radio is activity (pours as they go out); Compass is finding a
+- **`/compass`**, **`/log`** — the two tabs of the app, each a
+  React island. Compass is finding a
   drink or a bar (a street map of bars near you, search, your menu); Log is
   you (your map, your ledger, the account).
 - **`/harbour`** — "Pick a drink": at a bar, type its menu, get it ranked.

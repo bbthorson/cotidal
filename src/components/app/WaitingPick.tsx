@@ -4,7 +4,7 @@ import { clearPick, loadPick, type DrinkPick } from '@/lib/device-store';
 import { draftPath } from '@/lib/pour-draft';
 
 /**
- * A drink picked in the harbour, waiting to be rated: on Radio, Compass and Log
+ * A drink picked in the harbour, waiting to be rated: on Compass and Log
  * alike, until it is rated (`/log` clears it) or set aside. It is on the
  * device, so it is read after mount.
  *

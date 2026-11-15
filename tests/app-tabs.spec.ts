@@ -1,14 +1,14 @@
 import { test, expect } from '@playwright/test';
-import { appBar, chart, logPage, moved, pour, radio, ratePage } from '../src/lib/copy';
+import { appBar, chart, logPage, moved, pour, ratePage } from '../src/lib/copy';
 
 const profile = { x: 4, y: -2, dislikesSmoke: false, dislikesBitter: false, dislikesAnise: false, vibeTags: {} };
 
-test('App bar: Radio · Compass · Log, and picking a drink is a button, not a tab', async ({ page }) => {
+test('App bar: Compass · Log, and picking a drink is a button, not a tab', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto('/radio');
+  await page.goto('/compass');
   const bar = page.getByRole('navigation', { name: appBar.label });
-  await expect(bar.getByRole('link')).toHaveText([appBar.radio, appBar.compass, appBar.log]);
-  await expect(bar.getByRole('link', { name: appBar.radio })).toHaveAttribute('aria-current', 'page');
+  await expect(bar.getByRole('link')).toHaveText([appBar.compass, appBar.log]);
+  await expect(bar.getByRole('link', { name: appBar.compass })).toHaveAttribute('aria-current', 'page');
   await expect(page.getByRole('link', { name: appBar.pick, exact: true })).toHaveAttribute('href', '/harbour');
 
   // The app bar is a phone's navigation here: no Menu repeating it in the header.
@@ -19,17 +19,7 @@ test('App bar: Radio · Compass · Log, and picking a drink is a button, not a t
   await expect(page.getByRole('link', { name: appBar.pick, exact: true })).toHaveCount(0);
 });
 
-test('Radio: a guest with nothing logged is told how to put something on the air', async ({ page }) => {
-  await page.goto('/radio');
-  await expect(page.getByText(radio.empty)).toBeVisible();
-  await expect(page.getByRole('link', { name: appBar.pick })).toHaveAttribute('href', '/harbour');
-
-  // Following is on the dial, and says it is Later rather than standing empty.
-  await page.getByRole('group', { name: radio.filterLabel }).getByRole('button', { name: 'Following' }).click();
-  await expect(page.getByText(radio.followingLater)).toBeVisible();
-});
-
-test('Log: a guest’s pour is kept on the device, in Log and on Radio', async ({ page }) => {
+test('Log: a guest’s pour is kept on the device', async ({ page }) => {
   await page.addInitScript((p) => {
     if (!sessionStorage.getItem('seeded')) {
       localStorage.setItem('user_profile', JSON.stringify(p));
@@ -57,10 +47,6 @@ test('Log: a guest’s pour is kept on the device, in Log and on Radio', async (
   await page.reload();
   await expect(page.locator('ol').filter({ hasText: '7 of 9' })).toContainText('Negroni');
 
-  await page.goto('/radio');
-  const today = page.getByRole('region', { name: radio.today });
-  await expect(today).toContainText('Negroni');
-  await expect(today).toContainText(radio.onDevice);
 });
 
 test('Log: the map is yours — your menu filled in, or your pours', async ({ page }) => {
@@ -99,20 +85,4 @@ test('Log: the chart sits beside the ledger on a wide screen, above it on a phon
   await page.setViewportSize({ width: 390, height: 844 });
   const [m2, l2] = [(await map.boundingBox())!, (await ledger.boundingBox())!];
   expect(m2.y + m2.height).toBeLessThan(l2.y);
-});
-
-test('Radio: the dial sits beside the log on a wide screen, above it on a phone', async ({ page }) => {
-  const dial = page.getByRole('group', { name: radio.filterLabel });
-  const air = page.getByText(radio.empty);
-
-  await page.setViewportSize({ width: 1280, height: 900 });
-  await page.goto('/radio');
-  await expect(page.getByRole('heading', { level: 1, name: radio.heading })).toBeVisible();
-  await expect(air).toBeVisible();
-  const [d, a] = [(await dial.boundingBox())!, (await air.boundingBox())!];
-  expect(a.x + a.width).toBeLessThan(d.x);
-
-  await page.setViewportSize({ width: 390, height: 844 });
-  const [d2, a2] = [(await dial.boundingBox())!, (await air.boundingBox())!];
-  expect(d2.y + d2.height).toBeLessThan(a2.y);
 });

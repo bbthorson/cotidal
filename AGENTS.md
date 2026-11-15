@@ -7,7 +7,7 @@ is about the code.
 ## Rendering: keep the front door static
 
 `/` is pure Astro with **zero client JavaScript**, and so is `/p/<handle>`
-(a link sent to a stranger). The app pages (`/radio`, `/compass`, `/log`,
+(a link sent to a stranger). The app pages (`/compass`, `/log`,
 `/harbour`, `/questions`, `/rate`) mount React islands.
 
 The whole app was previously one `client:only` island, so nothing painted

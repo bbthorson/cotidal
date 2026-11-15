@@ -17,7 +17,7 @@ const KEYS = {
   guestState: 'palate_state',
   /** The drink picked in the harbour, until it is rated (or set aside). Kept under its first name. */
   pick: 'open_order',
-  /** A guest's pours, newest first, so Radio and Log have them after a reload. */
+  /** A guest's pours, newest first, so Log has them after a reload. */
   guestPours: 'guest_pours',
 } as const;
 

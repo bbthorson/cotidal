@@ -67,7 +67,6 @@ nautical where a plain word allows it.
 
 | Word | Means | |
 |---|---|---|
-| **Radio** | The feed | How you hear the boats around you |
 | **Compass** | The map and your menu | Which way to go next |
 | **Log** | Yours: coordinate, pours, account | A ship's log is its own record |
 | **Pick a drink** | The harbour's steps | Never *order*: Cotidal is not connected to the bar, and the bartender takes the order |
