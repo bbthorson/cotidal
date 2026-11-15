@@ -30,7 +30,7 @@
  * bodies both passed. Check 6 is the comparison.
  *
  * It imports records.ts directly, which needs Node's built-in TypeScript type
- * stripping (on by default from Node 22.18; .nvmrc pins 22.22).
+ * stripping (on by default from Node 22.18; .nvmrc pins a later 22).
  */
 import { readFileSync, readdirSync } from 'node:fs';
 import { join, basename } from 'node:path';
