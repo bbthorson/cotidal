@@ -113,6 +113,22 @@ export const SECTORS: Record<QuadrantId, { from: number; to: number }> = (() => 
 })();
 
 /**
+ * Every hour of the semidiurnal tide, 0h to 11h, as a real cotidal chart
+ * draws them. The four region boundaries (`COTIDAL_LINES`) are the index
+ * lines, as on a contour map: every third line, heavier and labelled. The
+ * two between each pair are spaced evenly round the sector, so they divide
+ * a region without making new ones. Only the landing figure draws these;
+ * the mark and the coaster keep the four, which survive being small.
+ */
+export const HOUR_LINES: readonly { hour: number; param: number; index: boolean }[] = COTIDAL_LINES.flatMap(
+  ({ hour, param }, i) => {
+    const next = COTIDAL_LINES[(i + 1) % COTIDAL_LINES.length].param;
+    const to = next <= param ? next + 360 : next;
+    return [0, 1, 2].map((k) => ({ hour: hour + k, param: param + (k * (to - param)) / 3, index: k === 0 }));
+  }
+);
+
+/**
  * The mark: this chart reduced to a disc, the way the coaster draws it —
  * stretched along the map's axes until the outer ring is nearly round, every
  * label and inner ring dropped, the four lines and one band kept. The header,

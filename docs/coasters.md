@@ -20,8 +20,8 @@ reads the sectors as categories will expect six regions. The monogram
 model; six regions would be arbitrary angular slices, and would cost new
 region prose, `quadrants` in `copy.ts` and tests.
 
-*Done.* The landing chart has four cotidal lines three hours apart (0h /
-3h / 6h / 9h), drawn from `src/lib/chart-geometry.ts`. Each line leaves the
+*Done.* The landing chart has four index lines three hours apart (0h /
+3h / 6h / 9h), with unlabelled hairlines for the hours between (`HOUR_LINES`), drawn from `src/lib/chart-geometry.ts`. Each line leaves the
 centre along an axis and sweeps toward the ring, so a band is exactly a
 region near the centre and leans a little past the axis at the rim — the
 cost of curved lines over straight axes. `SECTORS` names each band by its

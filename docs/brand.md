@@ -158,8 +158,11 @@ geometry — a zero point at the centre of the map, and lines joining everyone
 at the same phase.
 
 - **The figure** (`ChartFigure.astro`, the landing page's one large move):
-  co-range rings and four cotidal lines labelled by hour, one per region
-  boundary, over the map's axes; the band between 0h and 3h (The Surf) filled
+  a cotidal line for every hour of the tide, 0h to 11h, over the map's axes.
+  Every third is an index line, heavier and labelled, as on a contour map:
+  those four are the region boundaries, and the hairlines between them divide
+  a region without making new ones. The co-range rings are dashed, as tide
+  charts draw them, so they read as a different kind of line; the band between 0h and 3h (The Surf) filled
   in terracotta, with the coordinate sitting in it. Nothing else is drawn.
   There was a sage moon in the corner; it was removed because it was the one
   element that said nothing about a palate, it appeared in no other drawing
@@ -168,7 +171,8 @@ at the same phase.
   of the map.
 - **The mark** (`Monogram.astro`, `public/icon.svg`, `favicon.ico`,
   `apple-touch-icon.png`): the same chart reduced to a disc, the way the
-  coaster draws it — the outer ring, the four lines, and the same band filled.
+  coaster draws it — the outer ring, the four index lines only (the hourly
+  hairlines turn to mush at 16px), and the same band filled.
   Ink lines, terracotta band, so the header and the hero read as one drawing.
   The filled band is what keeps it legible at 16px.
 

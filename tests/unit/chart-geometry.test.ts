@@ -1,5 +1,5 @@
 import { test, expect } from 'vitest';
-import { band, cotidalLine, COTIDAL_LINES, SECTORS, ringPoint, CENTRE } from '../../src/lib/chart-geometry';
+import { band, cotidalLine, COTIDAL_LINES, HOUR_LINES, SECTORS, ringPoint, CENTRE } from '../../src/lib/chart-geometry';
 import { quadrants } from '../../src/lib/copy';
 import { quadrantIdFor } from '../../src/lib/quadrant';
 
@@ -48,4 +48,18 @@ test('Chart: each line leaves the centre along an axis', () => {
     [0, 1],
     [-1, 0],
   ]);
+});
+
+test('Chart: an hour line for each hour, with the region boundaries as index lines', () => {
+  expect(HOUR_LINES.map((l) => l.hour)).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
+  expect(HOUR_LINES.filter((l) => l.index).map((l) => l.param)).toEqual(COTIDAL_LINES.map((l) => l.param));
+  // The hairlines stay inside their sector, so no region gains a boundary.
+  for (const [id, { from, to }] of Object.entries(SECTORS)) {
+    const inside = HOUR_LINES.filter(({ param }) => {
+      const p = param < from ? param + 360 : param;
+      return p > from && p < to;
+    });
+    expect(inside, id).toHaveLength(2);
+    expect(inside.every((l) => !l.index), id).toBe(true);
+  }
 });
