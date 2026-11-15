@@ -3,9 +3,8 @@
 The palate map as tools a chat assistant can call, at `/mcp`: a Streamable
 HTTP MCP server, so any assistant that takes a remote connector can use it.
 In Claude: *Settings → Connectors → Add custom connector*, URL
-`https://cotidal.app/mcp`. A member reads this under their own map
-(`/p/<handle>#assistant`, linked from the account at the foot of `/log`),
-with their handle in the example. A browser opening `/mcp` is shown the same
+`https://cotidal.app/mcp`. A member reads this under their account at the foot of `/log`
+(`/log#assistant`), with their handle in the example. A browser opening `/mcp` is shown the same
 instructions at that URL (an MCP client never asks for HTML), so the address
 bar holds the address to paste.
 

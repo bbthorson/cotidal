@@ -185,7 +185,7 @@ npm run test:unit -- tests/unit/drink-content.test.ts
 `/drinks/regions/<id>` (`regionPath`) is `/drinks` narrowed to one region,
 with `RegionFilter` across the top, the drinks first and the region's prose
 under them. Prerendered and script-free. There is no Regions item in the
-navigation; Drinks is current there. Same format as a drink
+navigation (Drinks is a footer page, current there). Same format as a drink
 (`documented` required, `claimed`, `sources`), one entry per region, and the
 filename is the id — which is a URL: the landing page, `/drinks`, `/p/<handle>`,
 the chat tools and the region coasters link to it.
@@ -261,8 +261,9 @@ gives. Their descriptions are interface copy and live in `copy.ts`.
 A pour is logged from a chat by drafting, not writing: `draft_pour` returns a
 `/rate?draft=1` link (`src/lib/pour-draft.ts`) that opens the form filled in,
 with no rating, and the member taps one and logs it (`docs/mcp.md`).
-How to connect an assistant is one component, `AssistantSteps`: under your
-own map at `/p/<handle>#assistant`, with your handle in the example, and at
+How to connect an assistant is one component, `AssistantSteps` (React,
+server-rendered with no script at `/mcp`): under your account at the foot of
+`/log` (`#assistant`), with your handle in the example, and at
 `/mcp` for a browser (the same page answers an MCP client with the tools).
 
 **No floats in records.** The AT Protocol data model has none, and

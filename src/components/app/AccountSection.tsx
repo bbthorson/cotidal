@@ -1,24 +1,28 @@
 import { useState } from 'react';
-import { account } from '@/lib/copy';
+import { account, assistants } from '@/lib/copy';
 import { AUTH_BASE_PATH, publicMapPath } from '@/lib/atproto/paths';
 import { sharePalateToFeed } from '@/lib/api-client';
 import { cn } from '@/lib/utils';
+import { AssistantSteps } from './AssistantSteps';
 
 const link = 'link-caps';
 
 /**
  * The account, in one block under the ledger: who you are, your public map,
- * sharing, chat assistants, start over, and signing out. A guest has no
+ * sharing, chat assistant setup, start over, and signing out. A guest has no
  * account to manage, so sees only start over.
  */
 export function AccountSection({
   handle,
+  mcpAddress,
   topName,
   regionName,
   onStartOver,
 }: {
   /** Null for a guest. */
   handle: string | null;
+  /** The `/mcp` address on this host, for the assistant setup. */
+  mcpAddress: string;
   topName: string;
   regionName: string;
   onStartOver: () => void;
@@ -64,7 +68,7 @@ export function AccountSection({
               >
                 {shareState === 'shared' ? account.shared : account.share}
               </button>
-              <a href={`${publicMapPath(handle)}#assistant`} className={cn(link, 'text-secondary hover:underline hover:underline-offset-4')}>
+              <a href="#assistant" className={cn(link, 'text-secondary hover:underline hover:underline-offset-4')}>
                 {account.assistants}
               </a>
             </>
@@ -86,6 +90,14 @@ export function AccountSection({
         )}
         {confirming && <StartOver onConfirm={onStartOver} onCancel={() => setConfirming(false)} />}
       </div>
+
+      {handle && (
+        <div id="assistant" className="mt-4 scroll-mt-4 space-y-4 border-t border-border pt-4" data-testid="assistant">
+          <h3 className="font-serif text-plate font-bold">{assistants.sectionTitle}</h3>
+          <p className="text-ui text-muted-foreground">{assistants.lede}</p>
+          <AssistantSteps address={mcpAddress} handle={handle} />
+        </div>
+      )}
 
       {handle && (
         <div className="mt-4 flex flex-col gap-2 border-t border-border pt-4">
