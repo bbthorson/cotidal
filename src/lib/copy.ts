@@ -84,6 +84,7 @@ export const compass = {
   locating: 'Finding bars near you…',
   denied: 'Location is off for this site. Search instead, or turn it on to see bars near you.',
   failed: 'OpenStreetMap did not answer.',
+  unlocated: 'Your device could not find where you are.',
   retry: 'Try again',
   noneNear: 'OpenStreetMap has no bars mapped within about a kilometre.',
   nearTitle: 'Near you',

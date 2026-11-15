@@ -8,7 +8,11 @@ import { Empty } from './ui';
 
 const NearMap = lazy(() => import('./NearMap').then((m) => ({ default: m.NearMap })));
 
-type Status = 'idle' | 'locating' | 'ready' | 'denied' | 'failed';
+/**
+ * `denied` is the reader's no, and only that; `unlocated` is the device not
+ * finding itself in time, which a retry can fix; `failed` is OpenStreetMap.
+ */
+type Status = 'idle' | 'locating' | 'ready' | 'denied' | 'unlocated' | 'failed';
 
 /**
  * Bars near you, from OpenStreetMap. Nothing is asked for until the reader
@@ -39,8 +43,8 @@ export function useNearby() {
           setStatus('failed');
         }
       },
-      () => setStatus('denied'),
-      { timeout: 10_000, maximumAge: 5 * 60_000 }
+      (err) => setStatus(err.code === err.PERMISSION_DENIED ? 'denied' : 'unlocated'),
+      { timeout: 20_000, maximumAge: 5 * 60_000 }
     );
   }, []);
 
@@ -87,8 +91,9 @@ export function NearPanel({
             ) : (
               <>
                 {status === 'failed' && <p className="text-meta text-destructive">{compass.failed}</p>}
+                {status === 'unlocated' && <p className="text-meta text-destructive">{compass.unlocated}</p>}
                 <button type="button" onClick={locate} className="btn btn-primary px-5">
-                  {status === 'failed' ? compass.retry : compass.showNear}
+                  {status === 'failed' || status === 'unlocated' ? compass.retry : compass.showNear}
                 </button>
                 <p className="max-w-xs text-meta text-muted-foreground">{compass.nearNote}</p>
               </>

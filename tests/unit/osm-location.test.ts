@@ -1,7 +1,7 @@
 import { test, expect } from 'vitest';
 import { readFileSync, readdirSync } from 'node:fs';
 import { Lexicons } from '@atproto/lexicon';
-import { formatDistance, overpassQuery, parseOverpass, roundPoint } from '../../src/lib/osm';
+import { formatDistance, overpassFailure, overpassQuery, parseOverpass, roundPoint } from '../../src/lib/osm';
 import { GEO_TYPE, geoLocation, readGeo } from '../../src/lib/atproto/location';
 import { draftPath, parseDraft } from '../../src/lib/pour-draft';
 import { buildPour } from '../../src/lib/pours.server';
@@ -29,6 +29,14 @@ test('OSM: only named places to drink, with a point, nearest first', () => {
   expect(bars[1].id).toBe('way/3');
   expect(bars[0].distance).toBeLessThan(bars[2].distance);
   expect(parseOverpass('not json', here)).toEqual([]);
+});
+
+test('OSM: a query Overpass gave up on is a failure, not an empty street', () => {
+  const gaveUp = { elements: [], remark: 'runtime error: Query timed out in "query" at line 1 after 26 seconds.' };
+  expect(overpassFailure(gaveUp)).toMatch(/timed out/);
+  expect(overpassFailure({ elements: [] })).toBeNull();
+  expect(overpassFailure({ elements: [], remark: 'nothing to see' })).toBeNull();
+  expect(overpassFailure('not json')).toBeNull();
 });
 
 test('OSM: the point is rounded to about 100 m before it leaves the device', () => {
