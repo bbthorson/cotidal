@@ -12,8 +12,8 @@ import { band, cotidalLine, labelPoint, COTIDAL_LINES, SECTORS, RINGS, CENTRE, T
  * and lines that divide it into the four regions. So the figure is that chart
  * drawn over the map's axes — four cotidal lines, each leaving the centre
  * along an axis — with one region's band filled and the coordinate sitting
- * in it, the same mark as on the map itself. The accent disc is the moon,
- * which is what moves a tide.
+ * in it, the same mark as on the map itself. Nothing else: no moon or
+ * other ornament, so the figure is the mark drawn large (docs/brand.md).
  *
  * Geometry comes from `src/lib/chart-geometry.ts`, which the coaster and
  * the mark share (docs/coasters.md, `src/lib/mark.ts`). The band filled here
@@ -45,9 +45,6 @@ const outer = RINGS[RINGS.length - 1];
 
 <figure class="mx-auto w-full max-w-sm">
   <svg viewBox="0 0 260 184" class="w-full" fill="none" role="presentation">
-    <!-- The moon, clear of the outer ring: it pulls the tide, it is not on the chart -->
-    <circle cx="40" cy="30" r="20" class="fill-accent" />
-
     <!-- The band between the 0h and 3h lines, one region: the one filled shape -->
     <path d={filled} class="fill-primary" />
 

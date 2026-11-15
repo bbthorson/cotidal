@@ -160,8 +160,12 @@ at the same phase.
 - **The figure** (`ChartFigure.astro`, the landing page's one large move):
   co-range rings and four cotidal lines labelled by hour, one per region
   boundary, over the map's axes; the band between 0h and 3h (The Surf) filled
-  in terracotta, with the coordinate sitting in it; the sage disc is the moon,
-  clear of the rings.
+  in terracotta, with the coordinate sitting in it. Nothing else is drawn.
+  There was a sage moon in the corner; it was removed because it was the one
+  element that said nothing about a palate, it appeared in no other drawing
+  of the chart, and it made the hero something other than the mark drawn
+  large. Don't add ornament back to the chart: a new element has to be part
+  of the map.
 - **The mark** (`Monogram.astro`, `public/icon.svg`, `favicon.ico`,
   `apple-touch-icon.png`): the same chart reduced to a disc, the way the
   coaster draws it — the outer ring, the four lines, and the same band filled.

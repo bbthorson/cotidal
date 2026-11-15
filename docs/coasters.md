@@ -106,7 +106,7 @@ the coaster, say. Three ways to get there, cheapest first:
   unit, so it belongs with print.
 
 The coaster's chart is a first pass too: stretched to fill the disc, labels
-inside the ring, no moon.
+inside the ring. Like the landing figure and the mark, it has no moon.
 
 ## Later
 
