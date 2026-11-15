@@ -4,8 +4,9 @@ import { pickHref } from '../../lib/site-nav';
 
 /**
  * Pick a drink: the one thing you *do* here, so it is a button, not a tab — the way
- * a social app's compose button floats over the feed. It opens the harbour,
- * composed in steps. On a phone it sits just above the app bar, under the
+ * a social app's compose button floats over the feed. It opens Compass on a menu with no
+ * bar (`pickHref`); on Compass itself, "Have a menu?" is the same entry, so
+ * the button is not drawn there (`AppShell`). On a phone it sits just above the app bar, under the
  * thumb; from `lg` at the foot of the content's right edge, not the window's. A plain link, so it needs no script.
  * Hidden while a drink card is open, and in focus mode (globals.css).
  */

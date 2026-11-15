@@ -6,7 +6,7 @@
  * `latitude` and `longitude` are required strings — the AT Protocol has no
  * floats — and `name` is optional.
  *
- * Browser-safe: the harbour, the pour form and the guest ledger use it too.
+ * Browser-safe: Compass, the pour form and the guest ledger use it too.
  */
 
 export const GEO_TYPE = 'community.lexicon.location.geo';

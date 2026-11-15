@@ -73,6 +73,29 @@ export const compass = {
   yourBars: 'Your bars',
   barPours: (n: number) => (n === 1 ? '1 pour' : `${n} pours`),
   pickAt: (bar: string) => `Pick a drink at ${bar}`,
+  /** The entry to a menu with no bar to start from. */
+  haveMenu: 'Have a menu?',
+  /**
+   * A menu on Compass, a bar's or not: what they pour, ranked for you, and
+   * the pick kept until it is rated. It orders nothing: Cotidal is not
+   * connected to the bar.
+   */
+  atMenu: {
+    back: 'Back to Compass',
+    homeTitle: 'Have a menu?',
+    body: 'Add what they pour. Anything on the map is placed and ranked for you; anything else is kept, unplaced.',
+    barLabel: 'Bar name (optional)',
+    addLabel: 'A drink on their menu',
+    addPlaceholder: 'Last Word, house Negroni…',
+    add: 'Add',
+    remove: (name: string) => `Remove ${name}`,
+    placed: 'On the map',
+    unplaced: 'Not on the map',
+    photoLater: 'Later: photograph the menu instead of typing it.',
+    rankedAt: (bar: string) => `What to have at ${bar}`,
+    rankedHome: 'What to have',
+    rankedBody: 'Ranked by how close each drink sits to your coordinate.',
+  },
 } as const;
 
 /** /log: yours — where you are, what you have poured, and the account. */
@@ -116,41 +139,11 @@ export const coldState = {
 } as const;
 
 /**
- * /harbour (shown as "Pick a drink"): at a bar, deciding. Composed in steps like a post — where you
- * are, what's pouring, which to have — and the pick is kept as a draft
- * until you rate it. It orders nothing: Cotidal is not connected to the bar.
+ * A drink picked on Compass, kept on the device until it is rated: the strip
+ * on Compass and Log that says so.
  */
-export const harbour = {
-  title: 'Pick a drink',
-  steps: ['Where', 'Menu', 'Pick'],
-  back: 'Back',
-  next: 'Next',
-  whereTitle: 'Where are you?',
-  whereBody: 'The bar, so your pick and its rating land in the same place.',
-  barLabel: 'Bar name',
+export const waitingPick = {
   atHome: 'At home',
-  recentLabel: 'Recently',
-  menuTitle: 'What’s on the menu?',
-  menuBody: 'Add what they pour. Anything on the map is placed; anything else is kept, unplaced.',
-  addLabel: 'A drink on their menu',
-  addPlaceholder: 'Last Word, house Negroni…',
-  add: 'Add',
-  remove: (name: string) => `Remove ${name}`,
-  placed: 'On the map',
-  unplaced: 'Not on the map',
-  photoLater: 'Later: photograph the menu instead of typing it.',
-  pickTitle: (where: string) => `What to have at ${where}`,
-  pickTitleHome: 'What to pour at home',
-  pickBody: 'Ranked by how close each drink sits to your coordinate.',
-  unplacedTitle: 'Can’t place these yet',
-  pickThis: 'Pick this',
-  pickedEyebrow: 'Your pick',
-  pickedBody: 'Kept on this device until you rate it. Rate it once you’ve tasted it. That is what moves your coordinate.',
-  rateNow: 'Rate it now',
-  rateLater: 'Rate it later',
-  coldTitle: 'Find your coordinate first.',
-  coldBody: 'Pick a drink ranks a bar’s menu against your coordinate. A few questions place it.',
-  coldCta: 'Find your coordinate',
   waiting: 'Waiting to be rated',
   rate: 'Rate it',
   dismiss: 'Set it aside',
@@ -354,6 +347,7 @@ export const chart = {
   youNowIn: (region: string) => `Your coordinate, now in ${region}`,
   lastPour: 'Your last pour',
   logThis: 'Rate this',
+  pickThis: 'Pick this',
   readEntry: 'Read the entry',
   close: 'Close',
   sameSpot: 'Also here',

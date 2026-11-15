@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { drinkDatabase, type Drink, type User } from '@/lib/data';
 import { calculateWeightedRelevance } from '@/lib/scoring';
+import { pourLogs } from '@/lib/menu-rank';
 import type { PourRecord } from '@/lib/atproto/records';
 
 export type ScoredDrink = Drink & { score: number };
@@ -20,12 +21,7 @@ export function useMenu(user: User, vibeTags: Record<string, number> | undefined
     const dislikesBitter = user.filters.includes('noBitter');
     const dislikesAnise = user.filters.includes('noAnise');
 
-    const logs = history.map((pour) => ({
-      drinkName: pour.drink.name,
-      location: pour.isHomePour ? 'Home Pour' : pour.venue?.entity?.name,
-      hedonicScale: pour.rating.hedonic,
-      createdAt: pour.createdAt,
-    }));
+    const logs = pourLogs(history);
 
     return drinkDatabase
       .filter((d) => !(dislikesSmoke && d.hasSmoke) && !(dislikesBitter && d.isBitter) && !(dislikesAnise && d.hasAnise))
@@ -38,7 +34,7 @@ export function useMenu(user: User, vibeTags: Record<string, number> | undefined
       })
       .map((drink) => ({
         ...drink,
-        // No venue here: the venue term is for the harbour, which knows the bar.
+        // No venue here: the venue term is for a bar's menu (`rankMenu`), which knows the bar.
         score: calculateWeightedRelevance({ x: user.x, y: user.y, vibeTags: vibeTags || null }, drink, logs, null),
       }))
       .sort((a, b) => b.score - a.score);

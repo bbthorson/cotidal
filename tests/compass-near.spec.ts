@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { compass, harbour, menu, moved, pour, ratePage } from '../src/lib/copy';
+import { chart, compass, menu, moved, pour, ratePage, waitingPick } from '../src/lib/copy';
 import { GEO_TYPE } from '../src/lib/atproto/location';
 
 const profile = { x: 4, y: -2, dislikesSmoke: false, dislikesBitter: false, dislikesAnise: false, vibeTags: {} };
@@ -94,18 +94,20 @@ test('Compass: bars near you, then a pick there, then a pour that says where the
 
   // A bar opens in the card, and "Pick a drink here" carries where it is.
   await page.getByRole('button', { name: /Attaboy/ }).click();
-  const pickHere = page.getByRole('link', { name: compass.pickHere });
-  await expect(pickHere).toHaveAttribute('href', '/harbour?bar=Attaboy&lat=40.7224&lon=-73.9883');
-  await pickHere.click();
+  await page.getByRole('button', { name: compass.pickHere }).click();
 
-  // The harbour starts at the bar's menu.
-  await expect(page.getByRole('heading', { name: harbour.menuTitle })).toBeVisible();
-  const add = page.getByLabel(harbour.addLabel);
+  // Compass shows that bar's menu, still on /compass.
+  await expect(page).toHaveURL(/\/compass$/);
+  await expect(page.getByRole('heading', { name: 'Attaboy' })).toBeVisible();
+  await expect(page.getByLabel(compass.atMenu.barLabel)).toHaveCount(0);
+  const add = page.getByLabel(compass.atMenu.addLabel);
   await add.fill('Negroni');
   await add.press('Enter');
-  await page.getByRole('button', { name: harbour.next }).click();
-  await page.getByRole('button', { name: harbour.pickThis }).click();
-  await page.getByRole('link', { name: harbour.rateNow }).click();
+  await page.getByRole('button', { name: chart.pickThis }).click();
+
+  // The pick waits on Compass, and rating it opens the draft.
+  await expect(page.getByText(waitingPick.waiting)).toBeVisible();
+  await page.getByRole('link', { name: new RegExp(waitingPick.rate) }).click();
 
   // Rated at the bar the map named: the pour records where it is.
   await expect(page.getByRole('heading', { name: ratePage.heading })).toBeVisible();
@@ -147,6 +149,6 @@ test('Compass: a drink found by another name it goes by', async ({ page }) => {
   await page.addInitScript((p) => localStorage.setItem('user_profile', JSON.stringify(p)), profile);
   await page.goto('/compass');
   await page.getByRole('searchbox').fill('Prosecco DOC');
-  await expect(page.getByRole('button', { name: /Prosecco/ })).toBeVisible();
+  await expect(page.getByRole('button', { name: /^Prosecco/ })).toBeVisible();
   await expect(page.getByText(compass.noDrinks)).toHaveCount(0);
 });

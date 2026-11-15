@@ -31,7 +31,7 @@ interface LastPour {
 /**
  * Rating one pour: the form, then the screen that shows the coordinate
  * moving. It opens with a drink in it when one was handed over ("Log this", a
- * pick from the harbour, a chat assistant's draft) and on the drink closest
+ * pick from Compass, a chat assistant's draft) and on the drink closest
  * to you when not. It belongs to no tab; "Back" returns to the ledger.
  */
 function RateContent({
@@ -111,7 +111,7 @@ function RateContent({
         addGuestPour(guestPour);
         await reload();
       }
-      // A pick from the harbour, now rated.
+      // A pick from Compass, now rated.
       if (loadPick()?.drink.toLowerCase() === entry.drinkName.toLowerCase()) clearPick();
       if (draft) setDraft(undefined);
       // Rated: a reload must not offer the same pour again.
