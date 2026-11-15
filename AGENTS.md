@@ -103,7 +103,9 @@ Rich ↔ Crisp is body; Savory ↔ Sweet is log sugar less structure; it misses
 the hand placements by 2.9 points RMS. `x`/`y` of a styled drink are computed,
 never typed; `tests/unit/placement.test.ts` refits the coefficients and holds
 every styled drink to its profile. The profiles are style typicals, not
-measurements — check them before a drink is written up.
+measurements — check them before a drink is written up. Which outside sources
+can supply profiles, names and recipes, and on what terms, is
+`docs/drink-sources.md`; none is called at runtime.
 A drink needs no prose entry to be on the map; without one it has no page and
 nothing links to one (`catalogSlug` is `undefined`).
 
