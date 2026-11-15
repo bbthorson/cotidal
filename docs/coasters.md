@@ -110,7 +110,7 @@ inside the ring, no moon.
 ## Later
 
 - **Venue coasters.** A bar's menu placed on the chart, with a QR code to its
-  published menu. Waits on menu capture and venue claim (roadmap 4 and 7,
+  published menu. Waits on menu capture and venue claim (the AGENTS.md roadmap,
   `docs/venues.md`).
 - **Analog quiz.** A blank chart to mark with a pen. A toy rather than a data
   source: it bypasses the elicitation model.

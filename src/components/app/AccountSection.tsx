@@ -64,7 +64,7 @@ export function AccountSection({
               >
                 {shareState === 'shared' ? account.shared : account.share}
               </button>
-              <a href="/assistants" className={cn(link, 'text-secondary hover:underline hover:underline-offset-4')}>
+              <a href={`${publicMapPath(handle)}#assistant`} className={cn(link, 'text-secondary hover:underline hover:underline-offset-4')}>
                 {account.assistants}
               </a>
             </>

@@ -3,7 +3,8 @@ import AppShell from '../../layouts/AppShell.astro';
 import PageTitle from '../../components/marketing/PageTitle.astro';
 import PalatePlot from '../../components/marketing/PalatePlot.astro';
 import Readout from '../../components/marketing/Readout.astro';
-import { site, publicMap, coaster } from '../../lib/copy';
+import AssistantSteps from '../../components/marketing/AssistantSteps.astro';
+import { site, publicMap, coaster, assistants } from '../../lib/copy';
 import { formatCoordinate } from '../../lib/coordinate';
 import { quadrantFor, regionPath } from '../../lib/quadrant';
 import { readPublicPalate } from '../../lib/atproto/public-read';
@@ -113,6 +114,11 @@ const pairs: { label: string; drink: Drink }[] = overlap
     ].flatMap(({ label, drink }) => (drink ? [{ label, drink }] : []))
   : [];
 
+// What a chat assistant reads is this map: on your own, how to connect one;
+// on someone else's, what to ask yours about them.
+const mcpAddress = new URL('/mcp', Astro.url).toString();
+const subjectHandle = result.status === 'ok' ? result.actor.handle : null;
+
 const ctaClass =
   'btn btn-primary btn-lg w-full px-8';
 ---
@@ -220,6 +226,23 @@ const ctaClass =
             </a>
           </p>
         </section>
+      )}
+
+      {isSelf && (
+        <section id="assistant" class="scroll-mt-8 space-y-6 border-t border-foreground pt-6" data-testid="assistant">
+          <h2 class="font-serif text-heading font-bold text-foreground">{assistants.sectionTitle}</h2>
+          <p class="text-ui text-muted-foreground">{assistants.lede}</p>
+          <AssistantSteps address={mcpAddress} handle={subjectHandle} />
+        </section>
+      )}
+
+      {!isSelf && subjectHandle && (
+        <p class="text-center font-serif text-ui italic text-muted-foreground" data-testid="assistant-ask">
+          {assistants.visitorAsk(subjectHandle)}{' '}
+          <a href="/mcp" class="not-italic text-foreground underline decoration-muted-foreground underline-offset-4 hover:decoration-foreground">
+            {assistants.setUp}
+          </a>
+        </p>
       )}
 
       {!isSelf && !viewer && (

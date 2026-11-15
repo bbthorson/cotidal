@@ -230,7 +230,7 @@ hand-written shape. Its unit tests use a fake
 refused before any network call. `publicMapPath` lives in `paths.ts` because
 the island links to it and must not import the server package.
 
-`/mcp` (`src/pages/mcp.ts`, `src/lib/mcp/`) offers the same reads to chat
+`/mcp` (`src/pages/mcp.astro`, `src/lib/mcp/`) offers the same reads to chat
 assistants as MCP tools: read a palate, recommend, rank a menu, compare two,
 search drinks. Stateless and read-only; the tools are plain functions over
 `readPublicPalate` and `overlap.ts`, so they give the answers `/p/<handle>`
@@ -238,6 +238,9 @@ gives. Their descriptions are interface copy and live in `copy.ts`.
 A pour is logged from a chat by drafting, not writing: `draft_pour` returns a
 `/rate?draft=1` link (`src/lib/pour-draft.ts`) that opens the form filled in,
 with no rating, and the member taps one and logs it (`docs/mcp.md`).
+How to connect an assistant is one component, `AssistantSteps`: under your
+own map at `/p/<handle>#assistant`, with your handle in the example, and at
+`/mcp` for a browser (the same page answers an MCP client with the tools).
 
 **No floats in records.** The AT Protocol data model has none, and
 `@atproto/lex-data` treats one as an invalid value. Fractional quantities are
@@ -338,52 +341,32 @@ interface; see `docs/brand.md`.
 
 ## Roadmap
 
-1. **Namespace.** `app.cotidal.*`, renamed from `app.crystalcoupe.*`. NSID
-   authority comes from the reversed domain, so it holds once `cotidal.app`
-   is registered. Nothing reads the old `app.crystalcoupe.*` collections.
-2. **Migrate `drinkLog` → `pour`** *(Completed)*. Clean-slate implementation
-   with 5D EKF dynamic state, gLMS hedonic ratings, CATA volatile descriptors,
-   and prandial satiety normalization. Legacy `drinkLog` replaced by `pour`.
-3. **Carry the palette into the app pages** *(Completed)*. The app's components
-   are on tokens too: the token rule is an error across `src/components/`, and
-   nothing violates it.
-4. **Menu capture.** The harbour (`/harbour`) is its front half *(landed)*:
-   type a bar's menu, get it ranked, pick one, and rate it later. Still to do:
-   photograph the menu instead of typing it. Photograph a menu, get a recommendation, no account
-   required — value before signup, and it builds the venue/menu corpus as a
-   byproduct.
-5. **Region pages** *(Completed; now a filter on the drinks,
-   `/drinks/regions/<id>`)*. Sourced prose in
-   `src/content/regions/`, linked from the landing page, `/drinks` and
-   `/p/<handle>`; see Region prose.
-6. **The return visit.** Logging a pour and watching the point move is the
-   only recurring behaviour in the product. The app is three tabs —
-   Radio (`/radio`), Compass (`/compass`), Log (`/log`) — and a "Pick a drink" button
-   into the harbour (`/harbour`); signed in versus signed out is a table in
-   `docs/design-system.md`.
-7. **Venue claim and menu publishing.** Handle-as-domain makes claiming and
+Open work only; what is built is described above.
+
+1. **Namespace.** `app.cotidal.*`. NSID authority comes from the reversed
+   domain, so it holds once `cotidal.app` is registered.
+2. **Menu capture.** The harbour (`/harbour`) takes a typed menu. Next:
+   photograph the menu instead. Photograph a menu, get a recommendation, no
+   account required — value before signup, and it builds the venue/menu
+   corpus as a byproduct.
+3. **Venue claim and menu publishing.** Handle-as-domain makes claiming and
    publishing the same act; the lexicons exist and nothing renders them.
    Claiming also opens the bar's space, where patrons share pours with the
    bar alone (`docs/spaces.md`; addressing and policy prepared, waiting on the
    Spaces beta).
-8. **Rework elicitation.** Forced-choice pairs for precision *(landed; see
-   Elicitation)* and the 9-point hedonic for post-drink feedback *(landed in
-   `PourForm`)*. Answers are logged *(landed: `app.cotidal.elicitation`)*.
-   Still to do: swipes for breadth, and calibrating `NOISE_LEVELS`,
-   `EVIDENCE_SCALE` and `PAIR_NOISE_SCALE` from those logs against pours. Never swipe on drink *names* — that measures
-   familiarity, not taste.
-9. **The Overlap.** First step shipped: `/p/<handle>` draws a coordinate at
-   a public URL and, for a signed-in visitor, theirs beside it with the
-   distance and three drinks (`src/lib/overlap.ts`). Next: two people in the
-   same bar, conversation starters from what their maps share. Discovery comes from the user's existing follow
-   graph, not a second one built here. Surface only the intersection; lead
-   with disagreement about drinks.
-   **Region badge** (planned): an opt-in Bluesky label showing a member's
-   region on their profile to anyone who subscribes to Cotidal's labeler — the
-   first step into the follow graph. Waits on working sign-in, region pages
-   and enough members to show it to. Reasoning and constraints:
-   `docs/routes.md` § Friends.
-   **Coasters** (planned): the chart on a coaster, a member's QR code as
-   their profile, and first a four-sector chart. `docs/coasters.md`.
+4. **Elicitation.** Swipes for breadth, and fitting `NOISE_LEVELS`,
+   `EVIDENCE_SCALE` and `PAIR_NOISE_SCALE` from the logged answers against
+   pours. Never swipe on drink *names* — that measures familiarity, not taste.
+5. **The Overlap.** `/p/<handle>` draws a coordinate and, for a signed-in
+   visitor, theirs beside it (`src/lib/overlap.ts`). Next: two people in the
+   same bar, conversation starters from what their maps share. Discovery
+   comes from the user's existing follow graph, not a second one built here.
+   Surface only the intersection; lead with disagreement about drinks.
+   **Region badge**: an opt-in Bluesky label showing a member's region to
+   anyone who subscribes to Cotidal's labeler — the first step into the follow
+   graph. Waits on working sign-in and enough members to show it to
+   (`docs/routes.md` § Friends).
+   **Coasters**: the chart on a coaster, a member's QR code as their profile
+   (`docs/coasters.md`).
 
 Sequencing and the reasoning behind it: `docs/routes.md`.

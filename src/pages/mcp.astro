@@ -1,8 +1,12 @@
-import type { APIRoute } from 'astro';
+---
 import { WebStandardStreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js';
+import AppShell from '../layouts/AppShell.astro';
+import PageTitle from '../components/marketing/PageTitle.astro';
+import AssistantSteps from '../components/marketing/AssistantSteps.astro';
 import { createMcpServer } from '@/lib/mcp/server';
 import { readPublicPalate } from '@/lib/atproto/public-read';
 import { loadRegister } from '@/lib/register.server';
+import { assistants as copy, site } from '@/lib/copy';
 
 /**
  * The palate map as an MCP server, for chat assistants: add
@@ -10,27 +14,24 @@ import { loadRegister } from '@/lib/register.server';
  * writing nothing: the tools read public records the way `/p/<handle>` does,
  * so they need no sign-in, and a pour is only drafted, as a link the member
  * opens to log it themselves (`draft_pour`); see docs/mcp.md.
+ *
+ * A person who opens the address in a browser gets the instructions instead,
+ * at the same URL, so the address bar shows what to paste. An MCP client asks
+ * for JSON or an event stream and never for HTML. A member reads the same
+ * instructions, with their handle in them, under their own map
+ * (`/p/<handle>#assistant`).
  */
-
 export const prerender = false;
 
-/**
- * A person who opens the address in a browser gets the page explaining it,
- * at the same URL, so the address bar still shows what to paste. An MCP
- * client asks for JSON or an event stream and never for HTML.
- */
-function isBrowser(request: Request): boolean {
-  const accept = request.headers.get('accept') ?? '';
-  return request.method === 'GET' && accept.includes('text/html') && !accept.includes('text/event-stream');
-}
+const { request } = Astro;
+const accept = request.headers.get('accept') ?? '';
+const isBrowser = request.method === 'GET' && accept.includes('text/html') && !accept.includes('text/event-stream');
 
-const handle: APIRoute = async ({ request, rewrite }) => {
-  if (isBrowser(request)) return rewrite('/assistants');
-
+if (!isBrowser) {
   const server = createMcpServer({
     readPalate: (actor) => readPublicPalate(actor),
     register: await loadRegister(),
-    origin: new URL(request.url).origin,
+    origin: Astro.url.origin,
   });
   // No session id: each request stands alone, and plain JSON answers rather
   // than an event stream, since no tool streams or notifies.
@@ -44,8 +45,14 @@ const handle: APIRoute = async ({ request, rewrite }) => {
   } finally {
     await server.close();
   }
-};
+}
 
-export const POST = handle;
-export const GET = handle;
-export const DELETE = handle;
+const address = new URL('/mcp', Astro.url).toString();
+---
+
+<AppShell title={`${site.name} — ${copy.eyebrow}`} currentPath="/mcp" width="prose">
+  <div class="space-y-12 pb-6">
+    <PageTitle eyebrow={copy.eyebrow} title={copy.title} lede={copy.lede} />
+    <AssistantSteps address={address} />
+  </div>
+</AppShell>

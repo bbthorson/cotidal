@@ -73,18 +73,6 @@ test('draft_pour: names a drink on the map by its map name, and keeps anything e
   expect(off.ok && off.data.message).toContain('Nothing is logged yet');
 });
 
-test('Draft: a chat assistant\'s old /log link still arrives, query intact', async ({ request }) => {
-  const res = await request.get('/log?draft=1&drink=Negroni&bar=Dante', { maxRedirects: 0 });
-  expect(res.status()).toBe(302);
-  const to = new URL(res.headers()['location'], 'http://x');
-  expect(to.pathname).toBe('/rate');
-  expect(to.searchParams.get('draft')).toBe('1');
-  expect(to.searchParams.get('bar')).toBe('Dante');
-
-  const drink = await request.get('/log?drink=Negroni', { maxRedirects: 0 });
-  expect(new URL(drink.headers()['location'], 'http://x').search).toBe('?drink=Negroni');
-});
-
 test('Draft on /rate: the form opens on it, will not log without a rating, and logs once', async ({ page }) => {
   const path = draftPath({ drink: 'Negroni', bar: 'Dante', deviations: ['too-bitter'], note: 'Big orange peel' });
   await page.goto(path);

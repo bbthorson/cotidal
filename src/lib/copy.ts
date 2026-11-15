@@ -755,8 +755,9 @@ export const publicMap = {
 } as const;
 
 /**
- * `/assistants` — how to reach your palate from a chatbot. Also what a
- * browser sees at `/mcp`, the address the chatbot is given.
+ * How to reach a palate from a chat assistant: under your own map
+ * (`/p/<handle>#assistant`), and what a browser sees at `/mcp`, the address
+ * the assistant is given.
  */
 export const assistants = {
   eyebrow: 'Chat assistants',
@@ -780,10 +781,14 @@ export const assistants = {
   ],
   askWith: (handle: string) => `Ask with your handle: “What does Cotidal say I should drink? I’m @${handle}.”`,
   askWithGuest: 'Ask with your Bluesky handle: “What does Cotidal say I should drink? I’m @you.bsky.social.”',
+  /** On your own map (`/p/<handle>`): the section's heading. */
+  sectionTitle: 'Ask a chat assistant',
+  /** On someone else's map: what to ask your own assistant about them. */
+  visitorAsk: (handle: string) => `Ask your chat assistant: “How far is my map from @${handle}’s?”`,
+  setUp: 'Set it up',
   readOnlyTitle: 'Only you log',
   readOnly:
     'The assistant reads the same public coordinate anyone can open at your public map. It can draft a pour, as a link to the form here, but only you log it: you check it, tap how it landed, and press the button. It cannot retake the questions or change your map.',
-  back: 'Account',
 } as const;
 
 /**

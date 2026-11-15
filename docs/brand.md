@@ -1,8 +1,6 @@
 # Brand
 
-Superseded `docs/blueprint.md`, which specified Rust / Cream / Olive while
-`AGENTS.md` specified "Mystic Pharmacy" sage and terracotta and the CSS
-actually shipped amber on charcoal. One definition now, and it is the CSS.
+One definition of the palette, and it is the CSS (`src/styles/globals.css`).
 
 ## Voice
 
@@ -47,9 +45,8 @@ recognise "rich and savory". The drinks named must be ones the map puts in
 that region (`drinkDatabase`); a gloss that names a drink placed elsewhere
 is the drift this codebase keeps producing.
 
-The names are one vocabulary — water and motion, as on a chart — rather than
-the ember / vault / orchard set they replaced, which mixed fire, a room and a
-field. They are still a little astrological: a coordinate you *have*, a place
+The names are one vocabulary — water and motion, as on a chart — never a
+mix of registers (fire, a room and a field read as three products). They are still a little astrological: a coordinate you *have*, a place
 you belong, glossed but never justified. They live in `src/lib/copy.ts` and
 can be replaced in one file. The ids are URLs (`/drinks/regions/<id>`); with
 no members yet, a rename needs no redirect, but once codes are printed on
@@ -58,12 +55,9 @@ coasters it will.
 Chart words carry the brand — *the chart*, *drift*, *reckoned* — but links,
 buttons and navigation use plain words ("Drinks", "Sign in"): a
 reader should never have to decode where a link goes. A chart word has to be
-one a reader already knows. *The rutter* (a mariner's book of sailing
-directions) named the drinks register until a reader pointed out that nobody
-knows it; it is gone from the interface. *Come aboard* and *Go ashore* named
-signing in and out until the copy pass of October 2026: they sat in the header
-of every page, which is navigation, so they are "Sign in" and "Sign out" now.
-*Within hail* went with them.
+one a reader already knows: not *rutter* (a mariner's book of sailing
+directions), and nothing nautical in navigation — signing in is "Sign in",
+never *come aboard*.
 
 The register is solitary hydrography, not dress-up: never *ahoy*, pirates,
 treasure, setting sail or shanties.
@@ -171,9 +165,6 @@ at the same phase.
   chart reduced to a letter — an open ring for the C, three cotidal lines, and
   the one filled band, which is what keeps it legible at 16px.
 
-The coupe glass they replace belonged to the old name, and to the speakeasy
-register this document already warned about.
-
 ## Rules
 
 Everything user-facing is a pure function of tokens, schema, content, and
@@ -194,9 +185,7 @@ state — none of which may be authored inside a component.
 
 Items 1 and 2 are enforced: `eslint.config.mjs` bans arbitrary Tailwind values, raw
 colours, and words typed into markup (JSX text, or a literal `placeholder`,
-`aria-label`, `title` or `alt`), as an error in `src/pages/`, `src/layouts/` and every component. The
-app's components once carried ~38 hard-coded colours as warnings; they are
-tokens now, and none remain.
+`aria-label`, `title` or `alt`), as an error in `src/pages/`, `src/layouts/` and every component.
 
 Item 3 is still a convention.
 

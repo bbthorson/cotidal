@@ -113,10 +113,6 @@ renaming the files in `src/lib/atproto/lexicons/` and updating the constants
 in `src/lib/atproto/records.ts`; `npm run lexicons` enforces that every schema
 sits under one namespace, so the rename cannot go half-done.
 
-Records written before the rename from The Crystal Coupe sit under
-`app.crystalcoupe.*`. The app neither reads nor writes them: there were no
-members to carry over.
-
 **We can use `community.lexicon.*` types; we cannot define new ones under it.**
 Referencing their schemas is the entire point and needs no permission.
 Publishing new NSIDs in that namespace goes through the Lexicon Community

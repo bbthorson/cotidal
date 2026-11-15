@@ -41,9 +41,7 @@ than to people. The reasoning is in **[docs/data-model.md](docs/data-model.md)**
 
 Deploys are handled by Cloudflare's own Git integration — it builds and
 releases the Worker on push. There is deliberately no deploy workflow in
-`.github/workflows/`; the one that used to live there duplicated that job and
-uploaded `dist` as a static directory, which is not what an `output: 'server'`
-build produces. CI (`ci.yml`) only lints, typechecks, builds and tests.
+`.github/workflows/`: CI (`ci.yml`) only lints, typechecks, builds and tests.
 
 ### Routes
 
@@ -58,19 +56,21 @@ build produces. CI (`ci.yml`) only lints, typechecks, builds and tests.
 - **`/questions`** — the questions that place a coordinate, then the reveal.
   An island.
 - **`/rate`** — rate one pour and watch the coordinate move. An island.
-  `/log?drink=…` and `/log?draft=…` still arrive here.
 - **`/drinks`** — the register: what is actually known about a drink, separated
-  from what is only repeated about it. Static, zero client JavaScript.
-- **`/regions/<id>`** — one page per region. Static.
+  from what is only repeated about it. **`/drinks/regions/<id>`** is the same
+  list filtered to one region, with the region's prose. Static, zero client
+  JavaScript.
 - **`/p/<handle>`** — someone's coordinate at a public URL, with yours beside
-  it if you are signed in. Server-rendered, zero client JavaScript.
-- **`/bars`** — the placeholder for venues.
+  it if you are signed in; on your own, how to ask a chat assistant about it.
+  Server-rendered, zero client JavaScript.
+- **`/mcp`** — the map as MCP tools for chat assistants; opened in a browser,
+  how to connect one.
+- **`/how-it-works`** — how answers and ratings move a coordinate. Static.
+- **`/bars`** — for venues.
 
-`/taste` (now `/compass`) and `/account` (now the foot of `/log`) redirect.
-
-Only the app pages above mount islands. Keep it that way: `client:only` on the whole app previously meant ~860 KB of
-JavaScript had to download and hydrate before anything painted at all,
-including on the landing page. `tests/landing-static.spec.ts` guards it.
+Only the app pages above mount islands. Keep it that way: one `client:only`
+island for the whole app means ~860 KB of JavaScript to download and hydrate
+before anything paints. `tests/landing-static.spec.ts` guards it.
 
 ## Getting started
 
@@ -130,6 +130,11 @@ does not affect CI or a normal terminal, where no agent is detected.
   and the Kalman filter behind a pour moving the palate
 - **[docs/venues.md](docs/venues.md)** — the supply side: bars publishing
   menus to the protocol
+- **[docs/spaces.md](docs/spaces.md)** — bars as atproto Spaces: what patrons
+  share with a bar alone
+- **[docs/mcp.md](docs/mcp.md)** — the chat-assistant tools
+- **[docs/coasters.md](docs/coasters.md)** — the chart, and a member's code, on
+  a coaster
 - **[AGENTS.md](AGENTS.md)** — architecture notes for contributors
 
 ## License

@@ -105,7 +105,7 @@ here talks to a server yet, on purpose.
    `PATRON_BAR_SCOPE` changes the consent screen for everyone, and a PDS that
    does not know `space:` may refuse it, so it waits until the members' hosts
    run the beta. The venue scope (`VENUE_BAR_SCOPE`) belongs to the venue
-   sign-in, which does not exist yet (roadmap 7). This is a change in
+   sign-in, which does not exist yet (venue claim, on the roadmap). This is a change in
    `@bbthorson/atproto-cf-auth` as much as here.
 3. **Writes.** `logPour` gains a destination: public repo, or a bar space via
    `com.atproto.space.createRecord`, after checking `pourBelongsInBarSpace`
@@ -129,7 +129,7 @@ here talks to a server yet, on purpose.
    not say private or encrypted.
 
 Later, not planned: a patron-readable space for "two people in the same bar"
-(roadmap 9) would be a second space type with its own policy, not a change to
+(the Overlap, on the roadmap) would be a second space type with its own policy, not a change to
 this one — patrons reading each other is exactly what this policy rules out.
 
 [proposal]: https://github.com/bluesky-social/proposals/blob/main/0016-permissioned-data/README.md

@@ -174,8 +174,8 @@ adaptive questions and validates the response — including a check that the
 options actually spread along the target axis, which is the hard part. It has
 **no call sites in `src/` or `tests/`**.
 
-It is parked, not abandoned: model-driven elicitation is roadmap item 8 in
-`AGENTS.md` ("Rework elicitation"). It stays in the tree so that work does not
+It is parked, not abandoned: model-driven elicitation is the Elicitation item
+of the roadmap in `AGENTS.md`. It stays in the tree so that work does not
 start from nothing. Until then it is dead code by definition, and this section
 is what stops it reading as live.
 
