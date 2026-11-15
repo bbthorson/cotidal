@@ -1,7 +1,6 @@
 import { lazy, Suspense, useCallback, useEffect, useState } from 'react';
 import { barsNear, formatDistance, type OsmBar } from '@/lib/osm';
 import { compass } from '@/lib/copy';
-import { harbourAt } from '@/lib/site-nav';
 import { cn } from '@/lib/utils';
 import { PinnedCard } from './PinnedCard';
 import { Empty } from './ui';
@@ -159,18 +158,28 @@ export function BarRows({
 
 /**
  * A bar, opened: pinned above the app bar like the drink card, with the one
- * thing to do there — pick a drink — carrying where the bar is, so the pour
- * can record it (`community.lexicon.location.geo`).
+ * thing to do there — pick a drink — which opens its menu on Compass carrying
+ * where the bar is, so the pour can record it (`community.lexicon.location.geo`).
  */
-export function BarCard({ bar, poured, onClose }: { bar: OsmBar; poured: number; onClose: () => void }) {
+export function BarCard({
+  bar,
+  poured,
+  onPick,
+  onClose,
+}: {
+  bar: OsmBar;
+  poured: number;
+  onPick: () => void;
+  onClose: () => void;
+}) {
   return (
     <PinnedCard eyebrow={`${compass.kinds[bar.kind]} · ${formatDistance(bar.distance)}`} onClose={onClose}>
       <span className="font-serif text-subtitle font-bold leading-tight text-foreground">{bar.name}</span>
       {poured > 0 && <span className="text-meta text-primary">{compass.pouredHere(poured)}</span>}
       <div className="mt-1 flex flex-wrap items-center gap-x-5 gap-y-2">
-        <a href={harbourAt(bar.name, { lat: bar.lat, lon: bar.lon })} className="btn btn-primary px-5">
+        <button type="button" onClick={onPick} className="btn btn-primary px-5">
           {compass.pickHere}
-        </a>
+        </button>
         <a
           href={`https://www.openstreetmap.org/${bar.id}`}
           target="_blank"

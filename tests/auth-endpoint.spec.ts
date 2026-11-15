@@ -81,7 +81,7 @@ test('Auth: the landing form is offered exactly when the server will sign in', a
 
 test('Auth: the sign-in sheet on every app page agrees with the server', async ({ page, request }) => {
   const enabled = await serverSignInEnabled(request);
-  for (const path of ['/compass', '/log', '/harbour', '/rate', '/questions']) {
+  for (const path of ['/compass', '/log', '/rate', '/questions']) {
     await page.goto(`${path}?signin=1`);
     const dialog = page.getByRole('dialog');
     await expect(dialog, path).toBeVisible();

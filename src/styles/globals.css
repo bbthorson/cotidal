@@ -121,7 +121,7 @@
   }
 
   /* "You are here": a bold label over a heavy ink rule, like a printed tab —
-     the app bar, the harbour's steps. The caller says which edge carries the
+     the app bar, the header nav. The caller says which edge carries the
      rule (`border-t-3`, `border-b-3`) and the size; `aria-current` marks it. */
   .tab {
     @apply border-transparent text-muted-foreground transition-colors hover:text-foreground focus-ring-inset;

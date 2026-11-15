@@ -49,10 +49,9 @@ releases the Worker on push. There is deliberately no deploy workflow in
   is a plain form post that works without it.
 - **`/compass`**, **`/log`** — the two tabs of the app, each a
   React island. Compass is finding a
-  drink or a bar (a street map of bars near you, search, your menu); Log is
-  you (your map, your ledger, the account).
-- **`/harbour`** — "Pick a drink": at a bar, type its menu, get it ranked.
-  An island.
+  drink or a bar (a street map of bars near you, search, your menu) and
+  choosing what to have: open a bar, or "Have a menu?", type what they pour,
+  get it ranked, pick one. Log is you (your map, your ledger, the account).
 - **`/questions`** — the questions that place a coordinate, then the reveal.
   An island.
 - **`/rate`** — rate one pour and watch the coordinate move. An island.

@@ -8,7 +8,7 @@ is about the code.
 
 `/` is pure Astro with **zero client JavaScript**, and so is `/p/<handle>`
 (a link sent to a stranger). The app pages (`/compass`, `/log`,
-`/harbour`, `/questions`, `/rate`) mount React islands.
+`/questions`, `/rate`) mount React islands.
 
 The whole app was previously one `client:only` island, so nothing painted
 until ~860 KB of JavaScript had downloaded and hydrated — on every route,
@@ -85,11 +85,18 @@ entry is zero and so is its gain. Every drink-side input to that function is
 derived from `Drink` (see `complexityDemand`), never stored alongside it.
 
 A name becomes a drink through `matchDrink` (`src/lib/drink-match.ts`) and
-nothing else — a pour, the form, the harbour, Compass search and the chat
+nothing else — a pour, the form, a menu on Compass, Compass search and the chat
 tools: folded case and accents, the name without its parenthetical
 ("margarita" is the Tommy's), or one of the drink's `aliases`. No name, bare
 name or alias may mean two drinks (`tests/unit/drink-match.test.ts`). A pour
 of a drink with no match is kept, and moves nothing but its deviations.
+
+Choosing what to have is one screen, Compass. A bar (from search, the map or
+your past bars) or "Have a menu?" opens `MenuView` in place of the list: type
+what they pour, `addMenuLine` matches each line through `matchDrink`,
+`rankMenu` (`src/lib/menu-rank.ts`) orders the placed ones, and "Pick this"
+saves a `DrinkPick` on the device, the waiting pick that `WaitingPick`
+shows and `/rate` clears. There is no separate harbour page.
 
 The dot on the map is not the filter's estimate: `applyPour` moves crisp/sweet
 by a capped, simpler rule and leaves the other three axes to the EKF.
@@ -386,7 +393,7 @@ Open work only; what is built is described above.
 
 1. **Namespace.** `app.cotidal.*`. NSID authority comes from the reversed
    domain, so it holds once `cotidal.app` is registered.
-2. **Menu capture.** The harbour (`/harbour`) takes a typed menu. Next:
+2. **Menu capture.** A bar's menu on Compass (`MenuView`) takes a typed menu. Next:
    photograph the menu instead. Photograph a menu, get a recommendation, no
    account required — value before signup, and it builds the venue/menu
    corpus as a byproduct.

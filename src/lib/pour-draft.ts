@@ -20,7 +20,7 @@ export interface PourDraft {
   drink: string;
   atHome?: boolean;
   bar?: string;
-  /** Where the bar is, when it came from a map (Compass, through the harbour). */
+  /** Where the bar is, when it came from a map (Compass, through a bar's menu). */
   at?: { lat: number; lon: number };
   deviations?: Deviation[];
   cata?: CataNote[];

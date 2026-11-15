@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { appBar, chart, logPage, moved, pour, ratePage } from '../src/lib/copy';
+import { appBar, chart, compass, logPage, moved, pour, ratePage } from '../src/lib/copy';
 
 const profile = { x: 4, y: -2, dislikesSmoke: false, dislikesBitter: false, dislikesAnise: false, vibeTags: {} };
 
@@ -9,14 +9,15 @@ test('App bar: Compass · Log, and picking a drink is a button, not a tab', asyn
   const bar = page.getByRole('navigation', { name: appBar.label });
   await expect(bar.getByRole('link')).toHaveText([appBar.compass, appBar.log]);
   await expect(bar.getByRole('link', { name: appBar.compass })).toHaveAttribute('aria-current', 'page');
-  await expect(page.getByRole('link', { name: appBar.pick, exact: true })).toHaveAttribute('href', '/harbour');
+  // Compass has its own entry to a menu, so the floating button is not drawn there.
+  await expect(page.getByRole('link', { name: appBar.pick, exact: true })).toHaveCount(0);
 
   // The app bar is a phone's navigation here: no Menu repeating it in the header.
   await expect(page.locator('header summary')).toBeHidden();
 
-  // Not on the harbour itself.
-  await page.goto('/harbour');
-  await expect(page.getByRole('link', { name: appBar.pick, exact: true })).toHaveCount(0);
+  // On Log it opens Compass on a menu.
+  await page.goto('/log');
+  await expect(page.getByRole('link', { name: appBar.pick, exact: true })).toHaveAttribute('href', '/compass?menu=1');
 });
 
 test('Log: a guest’s pour is kept on the device', async ({ page }) => {
@@ -64,10 +65,14 @@ test('Log: the map is yours — your menu filled in, or your pours', async ({ pa
   await expect(reading.getByRole('link', { name: 'Drinks' })).toHaveAttribute('href', '/drinks');
 });
 
-test('Harbour: from a bar on Compass, it starts at that bar’s menu', async ({ page }) => {
+test('Pick a drink: from Log it opens Compass on a menu with no bar', async ({ page }) => {
   await page.addInitScript((p) => localStorage.setItem('user_profile', JSON.stringify(p)), profile);
-  await page.goto('/harbour?bar=Attaboy');
-  await expect(page.getByRole('heading', { name: 'What’s on the menu?' })).toBeVisible();
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/log');
+  await page.getByRole('link', { name: appBar.pick, exact: true }).click();
+  await expect(page).toHaveURL(/\/compass\?menu=1/);
+  await expect(page.getByLabel(compass.atMenu.addLabel)).toBeVisible();
+  await expect(page.getByLabel(compass.atMenu.barLabel)).toBeVisible();
 });
 
 test('Log: the chart sits beside the ledger on a wide screen, above it on a phone', async ({ page }) => {

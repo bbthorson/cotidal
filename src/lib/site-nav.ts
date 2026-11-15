@@ -34,7 +34,7 @@ export const signIn = { href: '/#connect', label: nav.signIn } as const;
  * back to the landing page's form; the island reads `?signin=1`. Everywhere
  * else the static form is the target, so it keeps working without JavaScript.
  */
-const sheetPaths = ['/compass', '/log', '/harbour', QUESTIONS_PATH, RATE_PATH];
+const sheetPaths = ['/compass', '/log', QUESTIONS_PATH, RATE_PATH];
 
 export const signInHref = (currentPath: string) =>
   sheetPaths.some((p) => currentPath.startsWith(p)) ? `${currentPath}?signin=1` : signIn.href;
@@ -45,21 +45,11 @@ export const appDestinations = [
   { href: '/log', label: appBar.log, match: '/log' },
 ] as const;
 
-/** Where "Pick a drink" goes: the harbour, composed in steps. */
-export const pickHref = '/harbour';
+/** Where "Pick a drink" goes: Compass, opened on a menu with no bar (`?menu=1`). */
+export const pickHref = '/compass?menu=1';
 
 /** The questions that place a coordinate (`startOverPath` clears the old one first). */
 export const questionsHref = QUESTIONS_PATH;
-
-/** The harbour, already at a bar (a bar on Compass), and where it is when the map knows. */
-export function harbourAt(bar: string, at?: { lat: number; lon: number }): string {
-  const params = new URLSearchParams({ bar });
-  if (at) {
-    params.set('lat', String(at.lat));
-    params.set('lon', String(at.lon));
-  }
-  return `${pickHref}?${params.toString()}`;
-}
 
 /** /rate with its form opened on a drink ("Log this" on the map). */
 export const logPathFor = (drinkName: string) => `${RATE_PATH}?drink=${encodeURIComponent(drinkName)}`;

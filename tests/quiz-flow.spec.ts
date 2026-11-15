@@ -124,11 +124,8 @@ test('Compass: search a drink, tap it, then "Rate this" opens /rate on that drin
   await expect(first).toBeVisible();
   const drink = (await first.locator('.font-serif').textContent())!.trim();
 
-  // A typed bar the log has never seen still opens the harbour there.
-  await expect(page.getByRole('link', { name: new RegExp(compass.pickAt('mezcal')) })).toHaveAttribute(
-    'href',
-    '/harbour?bar=mezcal'
-  );
+  // A typed bar the log has never seen still opens its menu there.
+  await expect(page.getByRole('button', { name: new RegExp(compass.pickAt('mezcal')) })).toBeVisible();
 
   await first.getByRole('button').click();
   await expect(page.getByText('Closeness', { exact: true })).toBeVisible();
