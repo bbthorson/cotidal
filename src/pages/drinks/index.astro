@@ -2,16 +2,20 @@
 import { getCollection } from 'astro:content';
 import AppShell from '../../layouts/AppShell.astro';
 import PageTitle from '../../components/marketing/PageTitle.astro';
+import RegionFilter from '../../components/marketing/RegionFilter.astro';
+import DrinkRow from '../../components/marketing/DrinkRow.astro';
 import { site, drinks as copy, quadrants } from '../../lib/copy';
 import { drinkDatabase } from '../../lib/data';
-import { quadrantIdFor } from '../../lib/quadrant';
+import { quadrantIdFor, regionPath } from '../../lib/quadrant';
 
 /**
  * Static, like `/`. Nothing on this route is interactive, so nothing here
  * mounts an island — see AGENTS.md on keeping the front door script-free.
  *
  * Set as a printed list: quadrants are section heads the way a wine list uses
- * regions, and each drink is a ruled row.
+ * regions, and each drink is a ruled row. The regions are also a filter
+ * (`RegionFilter`): each narrows this list to one region at
+ * `/drinks/regions/<id>`.
  */
 export const prerender = true;
 
@@ -44,51 +48,29 @@ const grouped = quadrants.map((quadrant) => ({
   width="standard"
 >
   <PageTitle eyebrow={copy.eyebrow} title={copy.title} lede={copy.intro} />
+  <RegionFilter />
 
-      <div class="space-y-14">
-        {
-          grouped.map(({ quadrant, items }) => (
-            <section id={quadrant.id} class="scroll-mt-8">
-              <div class="flex items-baseline justify-between border-b border-foreground pb-2">
-                <h2 class="font-serif text-heading font-bold text-foreground">
-                  <a href={`/regions/${quadrant.id}`} class="hover:underline hover:underline-offset-4">{quadrant.name}</a>
-                </h2>
-                <span class="label-caps text-secondary">{quadrant.axis}</span>
-              </div>
-              <p class="mt-2 font-serif text-ui italic leading-relaxed text-muted-foreground">
-                {quadrant.gloss}
-              </p>
+  <div class="mt-12 space-y-14">
+    {
+      grouped.map(({ quadrant, items }) => (
+        <section>
+          <div class="flex items-baseline justify-between border-b border-foreground pb-2">
+            <h2 class="font-serif text-heading font-bold text-foreground">
+              <a href={regionPath(quadrant.id)} class="hover:underline hover:underline-offset-4">{quadrant.name}</a>
+            </h2>
+            <span class="label-caps text-secondary">{quadrant.axis}</span>
+          </div>
+          <p class="mt-2 font-serif text-ui italic leading-relaxed text-muted-foreground">{quadrant.gloss}</p>
 
-              {items.length === 0 ? (
-                <p class="mt-5 font-serif text-ui italic text-muted-foreground">
-                  {copy.emptyQuadrant}
-                </p>
-              ) : (
-                <ul class="mt-4 border-b border-border">
-                  {items.map(({ entry, drink }) => (
-                    <li class="menu-row">
-                      <a href={`/drinks/${entry.id}`} class="group block py-4">
-                        <span class="dot-leader">
-                          <span class="font-serif text-prose font-bold text-foreground transition-colors group-hover:underline group-hover:underline-offset-4">
-                            {entry.data.title}
-                          </span>
-                          <span class="leader" aria-hidden="true" />
-                          <span class="label-caps shrink-0 tabular-nums">
-                            {drink.x > 0 ? '+' : ''}
-                            {drink.x}, {drink.y > 0 ? '+' : ''}
-                            {drink.y}
-                          </span>
-                        </span>
-                        <p class="mt-1 max-w-xl text-meta leading-relaxed text-muted-foreground">
-                          {entry.data.summary}
-                        </p>
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </section>
-          ))
-        }
-      </div>
+          {items.length === 0 ? (
+            <p class="mt-5 font-serif text-ui italic text-muted-foreground">{copy.emptyQuadrant}</p>
+          ) : (
+            <ul class="mt-4 border-b border-border">
+              {items.map(({ entry, drink }) => <DrinkRow entry={entry} drink={drink} />)}
+            </ul>
+          )}
+        </section>
+      ))
+    }
+  </div>
 </AppShell>

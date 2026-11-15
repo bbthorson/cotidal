@@ -18,8 +18,7 @@ reads the sectors as categories will expect six regions. The monogram
 
 **Decision: four.** The map has two axes, so four quadrants come from the
 model; six regions would be arbitrary angular slices, and would cost new
-region prose, `quadrants` in `copy.ts`, `formerQuadrantIds` redirects and
-tests.
+region prose, `quadrants` in `copy.ts` and tests.
 
 *Done.* The landing chart has four cotidal lines three hours apart (0h /
 3h / 6h / 9h), drawn from `src/lib/chart-geometry.ts`. Each line leaves the
@@ -80,8 +79,8 @@ the move.
 
 ## Region coasters
 
-*Built* at `/regions/<id>/coaster`, linked from each region page. The region's
-band is filled and the code opens the region's page: "which one did you get?"
+*Built* at `/drinks/regions/<id>/coaster`, linked from each region's page. The region's
+band is filled and the code opens the drinks filtered to that region: "which one did you get?"
 starts the conversation, and the page it opens leads to the questions. Public
 and cached; server-rendered rather than prerendered only so the code can use
 the request's origin. Placing each region's drinks on the rings is still to do.

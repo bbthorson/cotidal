@@ -7,24 +7,22 @@ import { QUESTIONS_PATH, RATE_PATH } from './atproto/paths';
  * destinations and the account are always one tap away in the header, and
  * seven links wrapped into three ragged rows on a phone.
  *
- * `match` is the path prefix that marks an item current. "The Four Regions"
- * links to the landing section but is current on any `/regions/*` page.
+ * `match` is the path prefix that marks an item current.
  *
  * "For Bars" is the supply side, a different product from the drinker's app:
  * it is read from the footer and the landing page, not offered in the header
  * beside Radio, Compass and Log.
  *
- * `footer` marks the reading pages the footer lists. Drinks and the regions
- * are one place there: `/drinks` is the drinks set under the four regions,
- * each heading linking its region page, so the footer's Drinks is current on
- * `/regions/*` too (`footerMatch`).
+ * `footer` marks the reading pages the footer lists.
+ *
+ * There is no Regions item: a region is a filter on the drinks
+ * (`/drinks/regions/<id>`), so Drinks is current there too.
  */
 export const destinations = [
   { href: '/radio', label: nav.radio, match: '/radio', app: true, header: true, footer: false },
   { href: '/compass', label: nav.compass, match: '/compass', app: true, header: true, footer: false },
   { href: '/log', label: nav.log, match: '/log', app: true, header: true, footer: false },
-  { href: '/drinks', label: nav.register, match: '/drinks', app: false, header: true, footer: true, footerMatch: ['/drinks', '/regions'] },
-  { href: '/#regions', label: nav.regions, match: '/regions', app: false, header: true, footer: false },
+  { href: '/drinks', label: nav.register, match: '/drinks', app: false, header: true, footer: true },
   { href: '/how-it-works', label: nav.howItWorks, match: '/how-it-works', app: false, header: false, footer: true },
   { href: '/bars', label: nav.bars, match: '/bars', app: false, header: false, footer: true },
 ] as const;

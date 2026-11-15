@@ -35,3 +35,9 @@ export function quadrantFor(x: number, y: number): Quadrant {
 
 /** Reading order on the map, as listed in `copy.ts`. */
 export const QUADRANT_ORDER: readonly QuadrantId[] = quadrants.map((q) => q.id);
+
+/**
+ * A region is a filter on the drinks: `/drinks/regions/<id>` is `/drinks`
+ * narrowed to one region, with the region's prose under its drinks.
+ */
+export const regionPath = (id: QuadrantId) => `/drinks/regions/${id}`;

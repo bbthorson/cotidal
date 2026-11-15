@@ -1,5 +1,6 @@
 import { encode } from 'uqr';
 import { publicMapPath } from './atproto/paths';
+import { regionPath, type QuadrantId } from './quadrant';
 
 /**
  * What a coaster's QR code says, and the code itself (docs/coasters.md).
@@ -13,9 +14,9 @@ export function memberCodeUrl(origin: string, did: string): string {
   return new URL(publicMapPath(did), origin).href;
 }
 
-/** A region coaster's code: the region's page. */
-export function regionCodeUrl(origin: string, id: string): string {
-  return new URL(`/regions/${id}`, origin).href;
+/** A region coaster's code: the drinks, filtered to the region. */
+export function regionCodeUrl(origin: string, id: QuadrantId): string {
+  return new URL(regionPath(id), origin).href;
 }
 
 /** Where a member's coaster is shown: under their own map, by DID. */
@@ -24,8 +25,8 @@ export function coasterPath(did: string): string {
 }
 
 /** Where a region's coaster is shown. */
-export function regionCoasterPath(id: string): string {
-  return `/regions/${id}/coaster`;
+export function regionCoasterPath(id: QuadrantId): string {
+  return `${regionPath(id)}/coaster`;
 }
 
 /**

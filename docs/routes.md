@@ -52,9 +52,13 @@ finally leads somewhere. `tests/landing-static.spec.ts` asserts the two lists
 of ids still agree, because two hand-written copies of the same list is the
 drift this codebase keeps producing.
 
-**Then:** `/regions/<id>` as a page of its own — what the region is, what
+**Then:** a page per region — what the region is, what
 ordering from it says about you, the drinks that live there and the
-ingredients they share. Done, and the four parts come from four places:
+ingredients they share. Done, and the four parts come from four places.
+It was `/regions/<id>`; it is now `/drinks/regions/<id>`, the drinks list
+filtered to the region with the rest under it, because a reader treats a
+region as a way to narrow the drinks rather than a destination. The old
+addresses redirect:
 
 - **What it is** is prose in `src/content/regions/<id>.md`, a content
   collection held to the drinks' format — what is on the record, what is
@@ -179,7 +183,7 @@ accounts or posts; clients show the tags of the labelers a user has chosen.
 Most are for moderation, but opt-in badge labelers (pronouns and the like)
 are common. Cotidal would declare four values, one per region id (`deep`,
 `salt-line`, `eddy`, `surf`), shown as badges, never as warnings, each with a
-description that points to `/regions/<id>`. Members are signed in with their
+description that points to `/drinks/regions/<id>`. Members are signed in with their
 Bluesky identity already, so the opt-in is a button, not the like-a-post
 ritual those labelers use.
 
@@ -239,7 +243,7 @@ namespace is `app.cotidal.*`, real once `cotidal.app` is registered
 ## Build order
 
 1. **Region links.** Done — the reading path exists.
-2. **Region pages** (`/regions/<id>`). Done — sourced, and derived from the
+2. **Region pages** (now `/drinks/regions/<id>`). Done — sourced, and derived from the
    map and the register wherever they can be.
 3. **Close the generative surface** (`docs/generation.md`) — before any route
    is promoted, because promotion means traffic.

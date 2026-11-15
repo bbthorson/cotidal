@@ -1,6 +1,6 @@
 import { drinkDatabase, type Drink } from '../data';
 import { calculateDistance } from '../scoring';
-import { quadrantFor } from '../quadrant';
+import { quadrantFor, regionPath } from '../quadrant';
 import { formatCoordinate } from '../coordinate';
 import { compareMaps, nearestDrinks, type MapPoint } from '../overlap';
 import { mcp } from '../copy';
@@ -158,7 +158,7 @@ async function palateOf(
           name: region.name,
           axis: region.axis,
           gloss: region.gloss,
-          url: new URL(`/regions/${region.id}`, ctx.origin).toString(),
+          url: new URL(regionPath(region.id), ctx.origin).toString(),
         },
         avoids: avoidedFlavours(palate.aversions),
         pours: palate.pours,

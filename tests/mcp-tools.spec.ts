@@ -53,7 +53,7 @@ test('MCP: a palate reads as its region, flavours avoided and public map', async
   if (!result.ok) return;
   expect(result.data.x).toBe(6);
   expect(result.data.region.id).toBe('surf');
-  expect(result.data.region.url).toBe('https://cotidal.example/regions/surf');
+  expect(result.data.region.url).toBe('https://cotidal.example/drinks/regions/surf');
   expect(result.data.avoids).toEqual(['bitterness']);
   expect(result.data.pours).toBe(4);
   expect(result.data.url).toBe('https://cotidal.example/p/alice.bsky.social');

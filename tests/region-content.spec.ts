@@ -3,7 +3,7 @@ import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { drinkDatabase } from '../src/lib/data';
 import { INGREDIENT_GROUPS } from '../src/lib/ingredients';
-import { quadrantIdFor, QUADRANT_ORDER } from '../src/lib/quadrant';
+import { quadrantIdFor, QUADRANT_ORDER, regionPath } from '../src/lib/quadrant';
 
 /**
  * Region prose is held to the drinks' discipline, and checked the same way:
@@ -95,7 +95,7 @@ test('Shared ingredients: every group still matches a drink', () => {
 });
 
 test('Region routes: mount no island', () => {
-  const dir = join(process.cwd(), 'src/pages/regions');
+  const dir = join(process.cwd(), 'src/pages/drinks/regions');
   for (const file of readdirSync(dir, { recursive: true, encoding: 'utf8' })) {
     if (!file.endsWith('.astro')) continue;
     const source = readFileSync(join(dir, file), 'utf8');
@@ -112,10 +112,10 @@ test('Region pages: ship no client JavaScript', async ({ page }) => {
       }
     };
     page.on('response', listener);
-    await page.goto(`/regions/${id}`, { waitUntil: 'networkidle' });
+    await page.goto(regionPath(id), { waitUntil: 'networkidle' });
     page.off('response', listener);
 
-    expect(scripts, `/regions/${id} loads ${scripts.join(', ')}`).toHaveLength(0);
-    expect(await page.locator('astro-island').count(), `/regions/${id} hydrates`).toBe(0);
+    expect(scripts, `${regionPath(id)} loads ${scripts.join(', ')}`).toHaveLength(0);
+    expect(await page.locator('astro-island').count(), `${regionPath(id)} hydrates`).toBe(0);
   }
 });

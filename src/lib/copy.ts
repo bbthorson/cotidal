@@ -22,7 +22,6 @@ export const nav = {
   radio: 'Radio',
   compass: 'Compass',
   register: 'Drinks',
-  regions: 'Regions',
   signIn: 'Sign in',
   signOut: 'Sign out',
   menu: 'Menu',
@@ -277,12 +276,6 @@ export const quadrants = [
 ] as const;
 
 /**
- * Region ids before the water vocabulary, kept only so their URLs redirect
- * (`astro.config.mjs`). Nothing else may use them.
- */
-export const formerQuadrantIds = { ember: 'deep', vault: 'eddy', orchard: 'surf' } as const;
-
-/**
  * Section labels. The page reads as a printed menu, and a menu names its
  * sections — these are the equivalent of "Plates" and "Cocktails" at the head
  * of a column.
@@ -295,7 +288,6 @@ export const sections = {
   /** Under the four regions: the way into the register, with its premise. */
   registerNote: 'Every drink on the chart has an entry: the build, and what is on the record apart from what is only told.',
   /** From a region to its section of /drinks. */
-  regionDrinks: 'Its drinks',
   principles: 'Whose log it is',
   connect: 'Sign in',
 } as const;
@@ -450,10 +442,13 @@ export const drinks = {
   methodLabel: 'Method',
   garnishLabel: 'Garnish',
   emptyQuadrant: 'Nothing written up here yet.',
+  /** The regions as a filter on the list (`RegionFilter.astro`). */
+  filterLabel: 'Filter by region',
+  filterAll: 'All',
 } as const;
 
 /**
- * `/regions/<id>`. The prose of each region lives in `src/content/regions/`;
+ * `/drinks/regions/<id>`. The prose of each region lives in `src/content/regions/`;
  * these are the parts that are the same for all four, and they describe what
  * the product does rather than what a region means.
  */
@@ -465,13 +460,13 @@ export function axisWords(axis: string): string {
 
 export const regionPage = {
   /** Over a region's title: where it sits in the site, then its axis in words ("Rich and savory"). */
-  eyebrow: (axis: string) => `Regions · ${axisWords(axis)}`,
-  backLabel: 'Regions',
+  eyebrow: (axis: string) => `Drinks · ${axisWords(axis)}`,
+  /** Over the region's prose, under its drinks. */
+  aboutLabel: (name: string) => `About ${name}`,
   orderingLabel: 'What it says about you',
   /** `axis` is a quadrant's axis label, e.g. "Rich · Savory". */
   ordering: (name: string, axis: string) =>
     `Your coordinate lands in ${name} when your answers lean ${axisWords(axis).toLowerCase()}. That is all it is: a position, worked out from the options you picked. The menu ranks every drink by its distance from that point, so the closer you sit to the drinks below, the sooner it reaches for them. Log what you drink and the point can move, across a border if that is where your pours take it.`,
-  drinksLabel: 'The drinks here',
   /** Under the list: how a drink came to be in it. */
   placedNote:
     'A drink is here because the chart places it here. Places are set by hand, not computed from a recipe’s proportions.',
@@ -479,7 +474,6 @@ export const regionPage = {
   sharedNote: (total: number) =>
     `Counted from the ingredients of the ${total} drinks written up here; an ingredient given as alternatives counts toward each. Wines, beers and spirits served alone list what they are made from, and share nothing on this list.`,
   sharedCount: (count: number, total: number) => `${count} of ${total}`,
-  otherLabel: 'The other three',
 } as const;
 
 /**

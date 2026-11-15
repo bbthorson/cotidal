@@ -73,7 +73,8 @@ test('Drink routes: mount no island', () => {
   // same kind of route — static prose — and needs the same guard, but checked
   // in the source so it holds without a dev server.
   const dir = join(process.cwd(), 'src/pages/drinks');
-  for (const file of readdirSync(dir)) {
+  for (const file of readdirSync(dir, { recursive: true, encoding: 'utf8' })) {
+    if (!file.endsWith('.astro')) continue;
     const source = readFileSync(join(dir, file), 'utf8');
     expect(source, `${file} mounts an island`).not.toMatch(/client:(load|only|idle|visible|media)/);
   }

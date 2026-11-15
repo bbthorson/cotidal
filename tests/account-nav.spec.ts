@@ -158,7 +158,7 @@ test('Navigation: the footer lists the reading pages; the app and the account ar
     // Everything in the footer is a reading page.
     if (d.footer) expect(d.app, d.href).toBe(false);
   }
-  // Drinks and the regions are one place in the footer.
-  expect(footer).not.toContain('href="/#regions"');
+  // A region is a filter on the drinks, not a destination of its own.
+  expect(html).not.toContain('href="/#regions"');
   expect(footer).not.toContain(nav.signIn);
 });

@@ -1,6 +1,8 @@
 import { test, expect } from '@playwright/test';
-import { QUADRANT_ORDER } from '../src/lib/quadrant';
-import { quadrants, formerQuadrantIds, nav as nav_ } from '../src/lib/copy';
+import { readFileSync } from 'node:fs';
+import { QUADRANT_ORDER, quadrantIdFor, regionPath } from '../src/lib/quadrant';
+import { drinkDatabase } from '../src/lib/data';
+import { quadrants, drinks, nav as nav_ } from '../src/lib/copy';
 import { AUTH_ERROR_MESSAGES } from '@bbthorson/atproto-cf-auth/client';
 
 /**
@@ -52,50 +54,46 @@ test('Landing: hero and quadrants are server-rendered', async ({ page }) => {
 });
 
 /**
- * The landing page names the four regions and the register groups its entries
- * under the same four. Those are two hand-written lists of the same ids, which
- * is the drift this codebase keeps producing — so the link between them is
- * asserted rather than assumed.
+ * The landing page names the four regions; a region is the drinks filtered to
+ * it. Asserted rather than assumed, because the ids are written into links in
+ * more than one place.
  */
-test('Landing: each region links to its section of the register', async ({ page }) => {
+test('Landing: each region opens the drinks filtered to it', async ({ page }) => {
   const landing = await (await page.request.get('/')).text();
   const register = await (await page.request.get('/drinks')).text();
 
   for (const id of QUADRANT_ORDER) {
-    expect(landing, `no landing link to the ${id} region`).toContain(`/drinks#${id}`);
-    expect(register, `no ${id} section for the landing link to reach`).toContain(`id="${id}"`);
-  }
-});
+    const path = regionPath(id);
+    expect(landing, `no landing link to ${path}`).toContain(`href="${path}"`);
+    expect(register, `/drinks does not offer the ${id} filter`).toContain(`href="${path}"`);
 
-test('Landing: each region links to its dedicated region page', async ({ page }) => {
-  const landing = await (await page.request.get('/')).text();
-
-  for (const id of QUADRANT_ORDER) {
-    expect(landing, `no landing link to /regions/${id}`).toContain(`/regions/${id}`);
-    const regionPage = await (await page.request.get(`/regions/${id}`)).text();
+    const filtered = await (await page.request.get(path)).text();
     const name = quadrants.find((q) => q.id === id)!.name;
-    expect(regionPage, `/regions/${id} does not name its region`).toContain(name);
-    expect(regionPage, `/regions/${id} does not link its drinks`).toContain(`/drinks#${id}`);
+    expect(filtered, `${path} does not name its region`).toContain(name);
   }
 });
 
-test('Drinks: each region heading links its region page, and the footer reads it as Drinks', async ({ page }) => {
-  // The footer has no Regions: /drinks is where the regions are read from.
-  const register = await (await page.request.get('/drinks')).text();
-  for (const id of QUADRANT_ORDER) {
-    expect(register, `/drinks does not link /regions/${id}`).toContain(`href="/regions/${id}"`);
+test('Drinks: a region filter lists only that region’s drinks, and is read as Drinks', async ({ page }) => {
+  const [first] = QUADRANT_ORDER;
+  await page.goto(regionPath(first));
+  const filter = page.getByRole('navigation', { name: drinks.filterLabel });
+  await expect(filter.locator('a[aria-current="page"]')).toHaveAttribute('href', regionPath(first));
+  await expect(filter.getByRole('link', { name: drinks.filterAll })).toHaveAttribute('href', '/drinks');
+
+  // Every drink listed is one the map places in this region.
+  const listed = await page.locator('main a[href^="/drinks/"]:not([href^="/drinks/regions"])').evaluateAll(
+    (links) => links.map((a) => a.getAttribute('href')!.slice('/drinks/'.length))
+  );
+  expect(listed.length).toBeGreaterThan(0);
+  for (const slug of listed) {
+    const entry = readFileSync(`src/content/drinks/${slug}.md`, 'utf8');
+    const name = /^name:\s*["']?(.+?)["']?\s*$/m.exec(entry)![1];
+    const drink = drinkDatabase.find((d) => d.name === name)!;
+    expect(quadrantIdFor(drink.x, drink.y), slug).toBe(first);
   }
-  await page.goto(`/regions/${QUADRANT_ORDER[0]}`);
-  const current = page.getByRole('contentinfo').locator('a[aria-current="page"]');
+
+  const current = page.locator('footer a[aria-current="page"]');
   await expect(current).toHaveAttribute('href', '/drinks');
-});
-
-test('Regions: the pages from before the water names redirect to their successors', async ({ request }) => {
-  for (const [from, to] of Object.entries(formerQuadrantIds)) {
-    const res = await request.get(`/regions/${from}`, { maxRedirects: 0 });
-    expect(res.status(), from).toBe(301);
-    expect(new URL(res.headers()['location'], 'http://x').pathname).toBe(`/regions/${to}`);
-  }
 });
 
 test('Landing: sign-in works without JavaScript', async ({ browser }) => {
@@ -125,7 +123,6 @@ test('Navigation: unified header navigation renders on landing and register', as
   expect(landing).toContain('aria-label="Main navigation"');
   expect(landing).toContain('href="/compass"');
   expect(landing).toContain('href="/drinks"');
-  expect(landing).toContain('href="/#regions"');
   expect(landing).toContain('href="/#connect"');
 
   const register = await (await page.request.get('/drinks')).text();

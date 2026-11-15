@@ -51,8 +51,9 @@ The names are one vocabulary — water and motion, as on a chart — rather than
 the ember / vault / orchard set they replaced, which mixed fire, a room and a
 field. They are still a little astrological: a coordinate you *have*, a place
 you belong, glossed but never justified. They live in `src/lib/copy.ts` and
-can be replaced in one file; the ids are URLs, so a rename adds a redirect
-(`astro.config.mjs`, `formerQuadrantIds`).
+can be replaced in one file. The ids are URLs (`/drinks/regions/<id>`); with
+no members yet, a rename needs no redirect, but once codes are printed on
+coasters it will.
 
 Chart words carry the brand — *the chart*, *drift*, *reckoned* — but links,
 buttons and navigation use plain words ("Drinks", "Sign in"): a

@@ -5,7 +5,7 @@ import PalatePlot from '../../components/marketing/PalatePlot.astro';
 import Readout from '../../components/marketing/Readout.astro';
 import { site, publicMap, coaster } from '../../lib/copy';
 import { formatCoordinate } from '../../lib/coordinate';
-import { quadrantFor } from '../../lib/quadrant';
+import { quadrantFor, regionPath } from '../../lib/quadrant';
 import { readPublicPalate } from '../../lib/atproto/public-read';
 import { publicMapPath } from '../../lib/atproto/paths';
 import { questionsHref } from '../../lib/site-nav';
@@ -124,7 +124,7 @@ const ctaClass =
         <Readout
           cells={[
             { label: publicMap.coordinateLabel, value: formatCoordinate(subject.x, subject.y), figure: true },
-            { label: publicMap.lands, value: region.name, href: `/regions/${region.id}` },
+            { label: publicMap.lands, value: region.name, href: regionPath(region.id) },
           ]}
         />
       </PageTitle>

@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { coasterPath, memberCodeUrl, qrPath, regionCodeUrl, regionCoasterPath } from '../src/lib/coaster';
-import { QUADRANT_ORDER } from '../src/lib/quadrant';
+import { QUADRANT_ORDER, regionPath } from '../src/lib/quadrant';
 
 /**
  * Coasters (docs/coasters.md). A member's code is their map by DID with
@@ -45,9 +45,9 @@ test('Coaster: every region has one, encoding the region’s page, with no scrip
     const coaster = page.getByTestId('coaster');
     await expect(coaster).toBeVisible();
     expect(await coaster.getAttribute('data-code')).toBe(regionCodeUrl(new URL(baseURL!).origin, id));
-    await page.goto(`/regions/${id}`);
+    await page.goto(regionPath(id));
     await expect(page.getByTestId('region-coaster-link')).toHaveAttribute('href', regionCoasterPath(id));
   }
   expect(scripts).toEqual([]);
-  expect((await page.request.get('/regions/nowhere/coaster')).status()).toBe(404);
+  expect((await page.request.get('/drinks/regions/nowhere/coaster')).status()).toBe(404);
 });

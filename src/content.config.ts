@@ -86,7 +86,7 @@ const drinks = defineCollection({
 });
 
 /**
- * Region entries — the prose behind `/regions/<id>`.
+ * Region entries — the prose behind `/drinks/regions/<id>`.
  *
  * The filename is the region id, and must be one of `quadrants` in `src/lib/copy.ts`
  * (`tests/region-content.spec.ts`). Name, axis and gloss are not repeated

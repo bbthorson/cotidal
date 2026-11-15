@@ -157,12 +157,15 @@ npm run typecheck   # the frontmatter schema is checked at build time
 npx playwright test tests/drink-content.spec.ts
 ```
 
-### Region prose — `src/content/regions/`, `src/pages/regions/[id].astro`
-`/regions/<id>`, prerendered and script-free. Same format as a drink
+### Region prose — `src/content/regions/`, `src/pages/drinks/regions/[id].astro`
+**A region is a filter on the drinks**, not a page of its own:
+`/drinks/regions/<id>` (`regionPath`) is `/drinks` narrowed to one region,
+with `RegionFilter` across the top, the drinks first and the region's prose
+under them. Prerendered and script-free. There is no Regions item in the
+navigation; Drinks is current there. Same format as a drink
 (`documented` required, `claimed`, `sources`), one entry per region, and the
-filename is the id — which is a URL: the landing page, `/drinks#<id>` and
-`/p/<handle>` link to it. Never rename one; a rename adds a redirect
-(`formerQuadrantIds`).
+filename is the id — which is a URL: the landing page, `/drinks`, `/p/<handle>`,
+the chat tools and the region coasters link to it.
 
 The entry holds only prose. Name, axis and gloss come from `quadrants` in
 `copy.ts`; the drinks come from the map; what they share is counted from the
@@ -307,6 +310,10 @@ when the released parser catches up, so the aliases get removed.
 
 ## Conventions
 
+- **There are no members yet.** Nothing is kept only because it already
+  exists: no redirect for a moved page, no read path for an old record
+  shape, no shim for a renamed id. Change it and update every link. This
+  ends the day real people's records or printed codes point at the site.
 - Test the contract, not the path. Order-independent logic (scoring, belief
   state) belongs in unit tests; browser tests cover routing, rendering, and
   degradation.
@@ -347,7 +354,8 @@ interface; see `docs/brand.md`.
    photograph the menu instead of typing it. Photograph a menu, get a recommendation, no account
    required — value before signup, and it builds the venue/menu corpus as a
    byproduct.
-5. **Region pages** (`/regions/<id>`) *(Completed)*. Sourced prose in
+5. **Region pages** *(Completed; now a filter on the drinks,
+   `/drinks/regions/<id>`)*. Sourced prose in
    `src/content/regions/`, linked from the landing page, `/drinks` and
    `/p/<handle>`; see Region prose.
 6. **The return visit.** Logging a pour and watching the point move is the
