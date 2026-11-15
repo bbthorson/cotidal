@@ -1,5 +1,5 @@
 import { test, expect } from 'vitest';
-import { cleanDraft, draftPath, parseDraft, withoutDraft } from '../../src/lib/pour-draft';
+import { cleanDraft, draftPath, parseDraft, parseRateRequest, withoutRateRequest } from '../../src/lib/pour-draft';
 import { draftPour, type ToolContext } from '../../src/lib/mcp/tools';
 
 /**
@@ -46,25 +46,38 @@ test('Draft: only what the form can show, cut to what it accepts', () => {
 
 test('Draft: no drink, no draft; and a plain “Log this” link is not one', () => {
   expect(cleanDraft({ drink: '   ' })).toBeNull();
-  expect(parseDraft(paramsOf('/rate?draft=1'))).toBeNull();
-  expect(parseDraft(paramsOf('/rate?drink=Negroni'))).toBeNull();
+  expect(parseDraft(paramsOf('/log?draft=1'))).toBeNull();
+  expect(parseDraft(paramsOf('/log?drink=Negroni'))).toBeNull();
 });
 
 test('Draft: a rating in the link is ignored, because a draft has none', () => {
-  const draft = parseDraft(paramsOf('/rate?draft=1&drink=Negroni&hedonic=9&rating=10'));
+  const draft = parseDraft(paramsOf('/log?draft=1&drink=Negroni&hedonic=9&rating=10'));
   expect(draft).toEqual({ drink: 'Negroni' });
+});
+
+test('Rate request: ?rate= names a drink, empty means the nearest, a draft carries its fields', () => {
+  expect(parseRateRequest(paramsOf('/compass?rate=Negroni'))).toEqual({ drink: 'Negroni' });
+  expect(parseRateRequest(paramsOf('/log?rate='))).toEqual({});
+  expect(parseRateRequest(paramsOf('/log?rate=%20%20'))).toEqual({});
+  const draft = parseRateRequest(paramsOf(draftPath({ drink: 'Negroni', bar: 'Dante' })));
+  expect(draft).toEqual({ drink: 'Negroni', draft: { drink: 'Negroni', bar: 'Dante' } });
+  // Nothing asked for, nothing opened; and a bare drink= is not a request.
+  expect(parseRateRequest(paramsOf('/log'))).toBeNull();
+  expect(parseRateRequest(paramsOf('/log?drink=Negroni'))).toBeNull();
+  expect(parseRateRequest(paramsOf('/log?draft=1'))).toBeNull();
 });
 
 test('Draft: taking it out of the URL leaves everything else', () => {
   const url = new URL(`https://x${draftPath({ drink: 'Negroni', bar: 'Dante' })}&utm=chat`);
-  expect(withoutDraft(url).search).toBe('?utm=chat');
+  expect(withoutRateRequest(url).search).toBe('?utm=chat');
+  expect(withoutRateRequest(new URL('https://x/compass?rate=Negroni&menu=1#top')).href).toBe('https://x/compass?menu=1#top');
 });
 
 test('draft_pour: names a drink on the map by its map name, and keeps anything else as said', () => {
   const onMap = draftPour({ drink: 'daiquiri', bar: 'Attaboy' }, ctx);
   expect(onMap.ok && onMap.data.draft.drink).toBe('Daiquiri (Classic)');
   expect(onMap.ok && onMap.data.onMap).toBe(true);
-  expect(onMap.ok && onMap.data.url.startsWith('https://cotidal.example/rate?draft=1&')).toBe(true);
+  expect(onMap.ok && onMap.data.url.startsWith('https://cotidal.example/log?draft=1&')).toBe(true);
 
   const off = draftPour({ drink: 'Grandma’s Punch', atHome: true }, ctx);
   expect(off.ok && off.data.draft).toEqual({ drink: 'Grandma’s Punch', atHome: true });

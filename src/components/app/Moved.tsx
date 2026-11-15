@@ -12,7 +12,7 @@ interface MovedProps {
   /** "7 of 9" */
   scoreLabel: string;
   /**
-   * What the pour did to the go-to menu, where there is one (on /rate): the
+   * What the pour did to the go-to menu, where there is one (in the rating sheet): the
    * logged drink's new rank, and a drink that was not on it before.
    */
   menuChange?: { rank: number | null; newcomer: string | null };
@@ -22,7 +22,7 @@ interface MovedProps {
 }
 
 /**
- * After a pour, on /rate. The payoff of logging, shown every time:
+ * After a pour, in the rating sheet. The payoff of logging, shown every time:
  * where you were, where you are, what changed on the menu. The second and
  * last use of the ink ground.
  */
@@ -60,10 +60,7 @@ export function Moved({
   }
 
   return (
-    <div
-      data-focus-mode
-      className="-mx-6 flex min-h-dvh flex-col bg-reveal px-6 pb-8 pt-14 text-reveal-foreground lg:mx-auto lg:my-6 lg:min-h-0 lg:max-w-md lg:pt-12"
-    >
+    <div className="flex min-h-dvh flex-col bg-reveal px-6 pb-8 pt-14 text-reveal-foreground sm:min-h-0 sm:pt-12">
       <div className="flex flex-col gap-2.5">
         <span className="font-condensed text-label font-semibold uppercase tracking-label text-reveal-muted">
           {moved.eyebrow} · {displayName(drink?.name ?? drinkName)} · {scoreLabel}
@@ -105,7 +102,7 @@ export function Moved({
       <button
         type="button"
         onClick={onDone}
-        className="btn btn-reveal btn-lg mt-auto w-full lg:mt-8"
+        className="btn btn-reveal btn-lg mt-auto w-full sm:mt-8"
       >
         {backLabel}
       </button>

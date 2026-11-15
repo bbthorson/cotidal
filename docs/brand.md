@@ -67,11 +67,10 @@ nautical where a plain word allows it.
 
 | Word | Means | |
 |---|---|---|
-| **Radio** | The feed | How you hear the boats around you |
 | **Compass** | The map and your menu | Which way to go next |
 | **Log** | Yours: coordinate, pours, account | A ship's log is its own record |
-| **Pick a drink** | The harbour's steps | Never *order*: Cotidal is not connected to the bar, and the bartender takes the order |
-| **Rate** | Open the form for a drink you had | "Rate this", "Rate a drink", "Rate it". The form's button says **Log it** |
+| **Pick a drink** | A bar's menu on Compass (`MenuView`), and the button that opens it | Never *order*: Cotidal is not connected to the bar, and the bartender takes the order |
+| **Rate** | Open the sheet for a drink you had | "Rate this", "Rate a drink", "Rate it". The sheet's button says **Log it**, and **Done** closes it |
 | **Log** (the record) | Where a rated pour lands | Never *ledger* in the interface |
 | **Sign in / Sign out** | Bluesky sign-in | Plain words: they are navigation |
 

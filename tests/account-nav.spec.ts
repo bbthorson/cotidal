@@ -20,7 +20,7 @@ test('Header: a server-rendered page says Sign in to a guest', async ({ request 
 });
 
 test('Header: on an app page, Sign in opens the sheet there instead of leaving', async ({ request }) => {
-  for (const path of ['/radio', '/compass', '/log']) {
+  for (const path of ['/compass', '/log']) {
     const html = await (await request.get(path)).text();
     const header = html.slice(html.indexOf('<header'), html.indexOf('</header>'));
     expect(header, path).toContain(`href="${path}?signin=1"`);

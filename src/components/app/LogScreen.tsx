@@ -3,14 +3,15 @@ import { drinkDatabase } from '@/lib/data';
 import { quadrantFor } from '@/lib/quadrant';
 import { calculateDistance } from '@/lib/scoring';
 import { logPage } from '@/lib/copy';
-import { RATE_PATH, startOverPath } from '@/lib/atproto/paths';
+import { startOverPath } from '@/lib/atproto/paths';
 import { titleOf, type Register } from '@/lib/register';
 import { barsFromPours } from '@/lib/pour-history';
 import { userFromProfile } from '@/lib/profile';
 import { neutralProfile } from '@/lib/guest-palate';
-import { destinations, logPathFor, questionsHref } from '@/lib/site-nav';
+import { destinations, questionsHref } from '@/lib/site-nav';
 import { useMenu } from '@/hooks/useMenu';
 import { usePours } from '@/hooks/usePours';
+import { useRateSheet } from '@/hooks/useRateSheet';
 import { useProfile } from '@/hooks/useProfile';
 import { cn } from '@/lib/utils';
 import { AtprotoProvider, useAtprotoContext } from './AtprotoProvider';
@@ -18,13 +19,15 @@ import { Chart, DrinkCard, useLastPours, type Lens } from './Chart';
 import { ColdState } from './ColdState';
 import { PourLedger } from './PourLedger';
 import { WaitingPick } from './WaitingPick';
+import { RateSheet } from './RateSheet';
 import { GuestPrompt, ScreenHeader } from './ui';
 import { AccountSection } from './AccountSection';
 
 /**
  * Log: yours. Where you are on the map, what your pours add up to, the
- * ledger of what moved you, and the account. Rating a pour is its own screen
- * (`/rate`); this is where its result is kept.
+ * ledger of what moved you, and the account. Rating a pour is a sheet over
+ * this screen (`RateSheet`); this is where its result is kept, and a link from
+ * outside the app (a chat assistant's draft) lands here to open it.
  *
  * From `lg` the chart and its figures hold the left column while the ledger
  * and the account scroll beside them; on a phone they stack, chart first.
@@ -32,14 +35,17 @@ import { AccountSection } from './AccountSection';
 function LogContent({
   register,
   member,
+  mcpAddress,
 }: {
   register: Register;
   member: { handle: string | null } | null;
+  mcpAddress: string;
 }) {
   const { isEnabled, openSignIn } = useAtprotoContext();
   const isMember = !!member;
   const [profile, setProfile] = useProfile(isMember);
-  const { pours } = usePours(isMember);
+  const { pours, reload } = usePours(isMember);
+  const rate = useRateSheet();
   const history = useMemo(() => pours ?? [], [pours]);
 
   const x = profile?.x ?? 0;
@@ -61,17 +67,34 @@ function LogContent({
     [x, y]
   );
 
+  // Rating opens over this screen, with or without a coordinate yet.
+  const sheet = (
+    <RateSheet
+      request={rate.request}
+      onClose={rate.close}
+      register={register}
+      member={member}
+      profile={profile}
+      setProfile={setProfile}
+      pours={pours}
+      reload={reload}
+    />
+  );
+
   // A stranger with no coordinate: say what this page is, and the ways in.
   if (!profile && !isMember) {
     return (
-      <ColdState
-        eyebrow={logPage.title}
-        onSignIn={openSignIn}
-        onGuest={() => {
-          setProfile(neutralProfile);
-          window.location.assign(RATE_PATH);
-        }}
-      />
+      <>
+        <ColdState
+          eyebrow={logPage.title}
+          onSignIn={openSignIn}
+          onGuest={() => {
+            setProfile(neutralProfile);
+            rate.open();
+          }}
+        />
+        {sheet}
+      </>
     );
   }
 
@@ -128,17 +151,18 @@ function LogContent({
         </div>
 
         <div className="mt-8 lg:mt-0">
-          <WaitingPick displayName={name} />
+          <WaitingPick displayName={name} version={rate.version} onRate={(draft) => rate.open({ drink: draft.drink, draft })} />
 
           <section>
             <div className="mb-1 flex items-baseline justify-between gap-4">
               <h2 className="font-serif text-heading font-bold">{logPage.ledgerTitle}</h2>
-              <a
-                href={RATE_PATH}
+              <button
+                type="button"
+                onClick={() => rate.open()}
                 className="link-caps text-secondary hover:underline hover:underline-offset-4"
               >
                 {logPage.rateDrink}
-              </a>
+              </button>
             </div>
             <PourLedger pours={history} register={register} empty={logPage.ledgerEmpty} loading={pours === null} />
           </section>
@@ -150,6 +174,7 @@ function LogContent({
 
           <AccountSection
             handle={member?.handle ?? null}
+            mcpAddress={mcpAddress}
             topName={name(nearest)}
             regionName={region.name}
             onStartOver={() => window.location.assign(startOverPath)}
@@ -181,10 +206,11 @@ function LogContent({
             (d) => d.name !== selectedDrink.name && d.x === selectedDrink.x && d.y === selectedDrink.y
           )}
           onPick={setSelected}
-          onLog={() => window.location.assign(logPathFor(selectedDrink.name))}
+          onLog={() => rate.open({ drink: selectedDrink.name })}
           onClose={() => setSelected(null)}
         />
       )}
+      {sheet}
     </div>
   );
 }
@@ -193,15 +219,18 @@ export default function LogScreen({
   register,
   signInEnabled,
   member,
+  mcpAddress,
 }: {
   register: Register;
   signInEnabled: boolean;
   /** The server's answer (`accountFor`): who is reading, before anything loads. */
   member: { handle: string | null } | null;
+  /** The `/mcp` address on this host (the server knows the host). */
+  mcpAddress: string;
 }) {
   return (
     <AtprotoProvider enabled={signInEnabled}>
-      <LogContent register={register} member={member} />
+      <LogContent register={register} member={member} mcpAddress={mcpAddress} />
     </AtprotoProvider>
   );
 }

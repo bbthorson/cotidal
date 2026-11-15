@@ -9,8 +9,8 @@ interface Props {
 const { currentPath } = Astro.props;
 
 /**
- * Radio · Compass · Log along the foot of a phone, within thumb reach: listen,
- * navigate, record. Plain links, so it needs no script. From `lg` the header
+ * Compass · Log along the foot of a phone, within thumb reach: navigate,
+ * record. Plain links, so it needs no script. From `lg` the header
  * carries the same destinations and this is not drawn.
  *
  * `data-site-chrome`: the quiz and the reveal hide it with the header
@@ -21,7 +21,7 @@ const { currentPath } = Astro.props;
 <nav
   data-site-chrome
   aria-label={appBar.label}
-  class="fixed inset-x-0 bottom-0 z-30 grid grid-cols-3 border-t border-foreground bg-background pb-safe-b lg:hidden"
+  class="fixed inset-x-0 bottom-0 z-30 grid grid-cols-2 border-t border-foreground bg-background pb-safe-b lg:hidden"
 >
   {
     appDestinations.map((d) => {

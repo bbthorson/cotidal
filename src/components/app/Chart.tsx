@@ -237,6 +237,7 @@ export function DrinkCard({
   sameSpot,
   onPick,
   onLog,
+  onChoose,
   onClose,
 }: {
   drink: Drink;
@@ -246,6 +247,8 @@ export function DrinkCard({
   sameSpot: Drink[];
   onPick: (name: string) => void;
   onLog: () => void;
+  /** Keep this as the pick, waiting to be rated. Absent where picking is not offered (Log). */
+  onChoose?: () => void;
   onClose: () => void;
 }) {
   const entry = register[drink.name];
@@ -306,7 +309,12 @@ export function DrinkCard({
       )}
 
       <div className="mt-1 flex flex-wrap items-center gap-x-5 gap-y-2">
-        <button type="button" onClick={onLog} className="btn btn-primary px-5">
+        {onChoose && (
+          <button type="button" onClick={onChoose} className="btn btn-primary px-5">
+            {chart.pickThis}
+          </button>
+        )}
+        <button type="button" onClick={onLog} className={onChoose ? 'btn btn-outline px-5' : 'btn btn-primary px-5'}>
           {chart.logThis}
         </button>
         {entry && (

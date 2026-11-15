@@ -118,22 +118,25 @@ test('Landing: surfaces sign-in errors from the callback', async ({ page }) => {
   await expect(page.getByRole('alert')).toContainText(AUTH_ERROR_MESSAGES.callback_failed);
 });
 
-test('Navigation: unified header navigation renders on landing and register', async ({ page }) => {
+test('Navigation: unified header navigation renders on landing, drinks and compass', async ({ page }) => {
   const landing = await (await page.request.get('/')).text();
   expect(landing).toContain('aria-label="Main navigation"');
   expect(landing).toContain('href="/compass"');
-  expect(landing).toContain('href="/drinks"');
   expect(landing).toContain('href="/#connect"');
 
   const register = await (await page.request.get('/drinks')).text();
   expect(register).toContain('aria-label="Main navigation"');
   expect(register).toContain('href="/compass"');
-  expect(register).toContain('href="/drinks"');
 
   const compass = await (await page.request.get('/compass')).text();
   expect(compass).toContain('aria-label="Main navigation"');
   expect(compass).toContain('href="/compass"');
-  expect(compass).toContain('href="/drinks"');
+
+  // Drinks is a reading page: the footer carries it, the header does not.
+  for (const html of [landing, register, compass]) {
+    const header = html.slice(html.indexOf('<header'), html.indexOf('</header>'));
+    expect(header).not.toContain('href="/drinks"');
+  }
 });
 
 
@@ -146,7 +149,7 @@ test('Header: on a phone the destinations fold under "Menu", without JavaScript'
   await expect(nav).toBeHidden();
   await page.locator('header summary').click();
   await expect(nav).toBeVisible();
-  await expect(nav.getByRole('link', { name: nav_.register, exact: true })).toBeVisible();
+  await expect(nav.getByRole('link', { name: nav_.log, exact: true })).toBeVisible();
   await context.close();
 });
 

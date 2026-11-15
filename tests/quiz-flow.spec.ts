@@ -115,7 +115,7 @@ test('Menu: one ranked list, with no occasion switch', async ({ page }) => {
   await expect(page.getByRole('region', { name: 'The chart' })).toHaveCount(0);
 });
 
-test('Compass: search a drink, tap it, then "Rate this" opens /rate on that drink', async ({ page }) => {
+test('Compass: search a drink, tap it, then "Rate this" opens the rating sheet on that drink', async ({ page }) => {
   await page.goto('/compass');
 
   // A drink is found by what is in it, not only by its name.
@@ -124,20 +124,19 @@ test('Compass: search a drink, tap it, then "Rate this" opens /rate on that drin
   await expect(first).toBeVisible();
   const drink = (await first.locator('.font-serif').textContent())!.trim();
 
-  // A typed bar the log has never seen still opens the harbour there.
-  await expect(page.getByRole('link', { name: new RegExp(compass.pickAt('mezcal')) })).toHaveAttribute(
-    'href',
-    '/harbour?bar=mezcal'
-  );
+  // A typed bar the log has never seen still opens its menu there.
+  await expect(page.getByRole('button', { name: new RegExp(compass.pickAt('mezcal')) })).toBeVisible();
 
   await first.getByRole('button').click();
   await expect(page.getByText('Closeness', { exact: true })).toBeVisible();
 
   await page.getByRole('button', { name: 'Rate this' }).click();
-  await expect(page).toHaveURL(/\/rate\?drink=/);
+  // A sheet over Compass, not a page: the address does not change.
+  await expect(page).toHaveURL(/\/compass$/);
+  const sheet = page.getByRole('dialog', { name: ratePage.title });
   // A guest with no coordinate starts from the cold state; the drink waits.
-  const asGuest = page.getByRole('button', { name: coldState.guestCta });
-  const form = page.getByRole('heading', { name: ratePage.heading });
+  const asGuest = sheet.getByRole('button', { name: coldState.guestCta });
+  const form = sheet.getByRole('heading', { name: ratePage.heading });
   await expect(asGuest.or(form)).toBeVisible();
   if (await asGuest.isVisible()) await asGuest.click();
   await expect(form).toBeVisible();

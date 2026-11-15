@@ -7,8 +7,8 @@ is about the code.
 ## Rendering: keep the front door static
 
 `/` is pure Astro with **zero client JavaScript**, and so is `/p/<handle>`
-(a link sent to a stranger). The app pages (`/radio`, `/compass`, `/log`,
-`/harbour`, `/questions`, `/rate`) mount React islands.
+(a link sent to a stranger). The app pages (`/compass`, `/log`,
+`/questions`) mount React islands.
 
 The whole app was previously one `client:only` island, so nothing painted
 until ~860 KB of JavaScript had downloaded and hydrated — on every route,
@@ -23,6 +23,12 @@ landing page included. Astro was being used as a slower Next.js.
   Signing out lands on `/compass?signed_out=1`,
   where `AtprotoProvider` — every island mounts it — clears the device's
   copy of the palate.
+- Rating a pour is a sheet over Compass or Log, never a page (`RateSheet.tsx`,
+  `useRateSheet`; the contract is `docs/design-system.md` § Rating a pour):
+  `?rate=<drink>` or `?draft=1&…` opens it on either, handled once, and a
+  screen that can rate gives the sheet its own coordinate and pours so it is
+  current the moment the sheet closes. A new trigger calls `open()`; it does
+  not navigate.
 - Never add an island to `/`. `tests/landing-static.spec.ts` fails if you do.
 - Sign-in is `@bbthorson/atproto-cf-auth`, content-negotiated at
   `/api/auth/atproto/login`: JSON in, JSON out for the island; form-encoded in,
@@ -85,11 +91,18 @@ entry is zero and so is its gain. Every drink-side input to that function is
 derived from `Drink` (see `complexityDemand`), never stored alongside it.
 
 A name becomes a drink through `matchDrink` (`src/lib/drink-match.ts`) and
-nothing else — a pour, the form, the harbour, Compass search and the chat
+nothing else — a pour, the form, a menu on Compass, Compass search and the chat
 tools: folded case and accents, the name without its parenthetical
 ("margarita" is the Tommy's), or one of the drink's `aliases`. No name, bare
 name or alias may mean two drinks (`tests/unit/drink-match.test.ts`). A pour
 of a drink with no match is kept, and moves nothing but its deviations.
+
+Choosing what to have is one screen, Compass. A bar (from search, the map or
+your past bars) or "Have a menu?" opens `MenuView` in place of the list: type
+what they pour, `addMenuLine` matches each line through `matchDrink`,
+`rankMenu` (`src/lib/menu-rank.ts`) orders the placed ones, and "Pick this"
+saves a `DrinkPick` on the device, the waiting pick that `WaitingPick`
+shows and the rating sheet clears. There is no separate harbour page.
 
 The dot on the map is not the filter's estimate: `applyPour` moves crisp/sweet
 by a capped, simpler rule and leaves the other three axes to the EKF.
@@ -185,7 +198,7 @@ npm run test:unit -- tests/unit/drink-content.test.ts
 `/drinks/regions/<id>` (`regionPath`) is `/drinks` narrowed to one region,
 with `RegionFilter` across the top, the drinks first and the region's prose
 under them. Prerendered and script-free. There is no Regions item in the
-navigation; Drinks is current there. Same format as a drink
+navigation (Drinks is a footer page, current there). Same format as a drink
 (`documented` required, `claimed`, `sources`), one entry per region, and the
 filename is the id — which is a URL: the landing page, `/drinks`, `/p/<handle>`,
 the chat tools and the region coasters link to it.
@@ -259,10 +272,11 @@ search drinks. Stateless and read-only; the tools are plain functions over
 `readPublicPalate` and `overlap.ts`, so they give the answers `/p/<handle>`
 gives. Their descriptions are interface copy and live in `copy.ts`.
 A pour is logged from a chat by drafting, not writing: `draft_pour` returns a
-`/rate?draft=1` link (`src/lib/pour-draft.ts`) that opens the form filled in,
-with no rating, and the member taps one and logs it (`docs/mcp.md`).
-How to connect an assistant is one component, `AssistantSteps`: under your
-own map at `/p/<handle>#assistant`, with your handle in the example, and at
+`/log?draft=1` link (`src/lib/pour-draft.ts`) that opens the rating sheet
+filled in, with no rating, and the member taps one and logs it (`docs/mcp.md`).
+How to connect an assistant is one component, `AssistantSteps` (React,
+server-rendered with no script at `/mcp`): under your account at the foot of
+`/log` (`#assistant`), with your handle in the example, and at
 `/mcp` for a browser (the same page answers an MCP client with the tools).
 
 **No floats in records.** The AT Protocol data model has none, and
@@ -386,7 +400,7 @@ Open work only; what is built is described above.
 
 1. **Namespace.** `app.cotidal.*`. NSID authority comes from the reversed
    domain, so it holds once `cotidal.app` is registered.
-2. **Menu capture.** The harbour (`/harbour`) takes a typed menu. Next:
+2. **Menu capture.** A bar's menu on Compass (`MenuView`) takes a typed menu. Next:
    photograph the menu instead. Photograph a menu, get a recommendation, no
    account required — value before signup, and it builds the venue/menu
    corpus as a byproduct.

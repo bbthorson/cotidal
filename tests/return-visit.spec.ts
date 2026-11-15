@@ -19,9 +19,10 @@ test('Rate: a guest logs a pour, sees the coordinate move, then the ledger', asy
   await expect(page.getByText(coldState.body)).toBeVisible();
   await page.getByRole('button', { name: coldState.guestCta }).click();
 
-  // Trying a pour as a guest opens the rating screen: the one pour form.
-  await expect(page).toHaveURL(/\/rate$/);
-  await expect(page.getByRole('heading', { name: ratePage.heading })).toBeVisible();
+  // Trying a pour as a guest opens the rating sheet over Log: the one pour form.
+  await expect(page).toHaveURL(/\/log$/);
+  const sheet = page.getByRole('dialog', { name: ratePage.title });
+  await expect(sheet.getByRole('heading', { name: ratePage.heading })).toBeVisible();
 
   const where = page.getByRole('group', { name: pour.whereLabel });
   await where.getByRole('button', { name: pour.atHome }).click();
@@ -36,9 +37,10 @@ test('Rate: a guest logs a pour, sees the coordinate move, then the ledger', asy
 
   // The after-a-pour screen: where it went, and what it did to the menu.
   await expect(page.getByRole('heading', { name: moved.title })).toBeVisible();
-  await expect(page.getByText(/8 of 9/)).toBeVisible();
-  await expect(page.getByText(/^Now No\. \d on your menu$|^Not on your menu$/)).toBeVisible();
+  await expect(sheet.getByText(/8 of 9/)).toBeVisible();
+  await expect(sheet.getByText(/^Now No\. \d on your menu$|^Not on your menu$/)).toBeVisible();
   await page.getByRole('button', { name: moved.back }).click();
+  await expect(sheet).toHaveCount(0);
 
   // Back on Log: where you are now, and the pour in the ledger.
   await expect(page).toHaveURL(/\/log$/);

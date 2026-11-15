@@ -2,7 +2,7 @@
 import { WebStandardStreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js';
 import AppShell from '../layouts/AppShell.astro';
 import PageTitle from '../components/marketing/PageTitle.astro';
-import AssistantSteps from '../components/marketing/AssistantSteps.astro';
+import { AssistantSteps } from '../components/app/AssistantSteps';
 import { createMcpServer } from '@/lib/mcp/server';
 import { readPublicPalate } from '@/lib/atproto/public-read';
 import { loadRegister } from '@/lib/register.server';
@@ -18,8 +18,8 @@ import { assistants as copy, site } from '@/lib/copy';
  * A person who opens the address in a browser gets the instructions instead,
  * at the same URL, so the address bar shows what to paste. An MCP client asks
  * for JSON or an event stream and never for HTML. A member reads the same
- * instructions, with their handle in them, under their own map
- * (`/p/<handle>#assistant`).
+ * instructions, with their handle in them, under their account
+ * at the foot of `/log`.
  */
 export const prerender = false;
 

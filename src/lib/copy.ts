@@ -19,7 +19,6 @@ export const site = {
 export const nav = {
   skipToContent: 'Skip to content',
   home: 'Home',
-  radio: 'Radio',
   compass: 'Compass',
   register: 'Drinks',
   signIn: 'Sign in',
@@ -32,39 +31,14 @@ export const nav = {
 } as const;
 
 /**
- * The bar along the foot of the app on a phone: listen, navigate, record.
+ * The bar along the foot of the app on a phone: navigate, record.
  * Picking a drink is not a place, so it is a button (`PickButton.astro`), not a tab.
  */
 export const appBar = {
   label: 'App',
-  radio: 'Radio',
   compass: 'Compass',
   log: 'Log',
   pick: 'Pick a drink',
-} as const;
-
-/**
- * /radio: what is on the air — pours, newest first. Today that is your own;
- * the people you follow and the bars near you are Later, and say so.
- */
-export const radio = {
-  title: 'Radio',
-  heading: 'On the air',
-  filterLabel: 'Tune to',
-  filters: [
-    { id: 'all', label: 'All' },
-    { id: 'following', label: 'Following' },
-    { id: 'nearby', label: 'Nearby' },
-  ],
-  followingLater: 'Later: pours from the people you follow on Bluesky.',
-  nearbyLater: 'Later: pours at bars near you.',
-  you: 'You',
-  onDevice: 'On this device',
-  empty: 'Nothing on the air yet. Pick a drink, rate it, and it goes out here.',
-  guestTitle: 'Keep your log with you',
-  guestBody: 'Radio carries your pours, on this device. Sign in with Bluesky and they’re kept in your own account. Later: pours from the people you follow.',
-  today: 'Today',
-  yesterday: 'Yesterday',
 } as const;
 
 /**
@@ -99,6 +73,29 @@ export const compass = {
   yourBars: 'Your bars',
   barPours: (n: number) => (n === 1 ? '1 pour' : `${n} pours`),
   pickAt: (bar: string) => `Pick a drink at ${bar}`,
+  /** The entry to a menu with no bar to start from. */
+  haveMenu: 'Have a menu?',
+  /**
+   * A menu on Compass, a bar's or not: what they pour, ranked for you, and
+   * the pick kept until it is rated. It orders nothing: Cotidal is not
+   * connected to the bar.
+   */
+  atMenu: {
+    back: 'Back to Compass',
+    homeTitle: 'Have a menu?',
+    body: 'Add what they pour. Anything on the map is placed and ranked for you; anything else is kept, unplaced.',
+    barLabel: 'Bar name (optional)',
+    addLabel: 'A drink on their menu',
+    addPlaceholder: 'Last Word, house Negroni…',
+    add: 'Add',
+    remove: (name: string) => `Remove ${name}`,
+    placed: 'On the map',
+    unplaced: 'Not on the map',
+    photoLater: 'Later: photograph the menu instead of typing it.',
+    rankedAt: (bar: string) => `What to have at ${bar}`,
+    rankedHome: 'What to have',
+    rankedBody: 'Ranked by how close each drink sits to your coordinate.',
+  },
 } as const;
 
 /** /log: yours — where you are, what you have poured, and the account. */
@@ -114,7 +111,7 @@ export const logPage = {
     since: 'Since',
     best: 'Best so far',
   },
-  /** The way into rating a drink that was not handed over (a pick, "Log this", a chat's draft). */
+  /** The way into rating a drink that was not handed over (a pick, "Rate this", a chat's draft). */
   rateDrink: 'Rate a drink',
   ledgerTitle: 'What moved it',
   ledgerEmpty: 'No pours yet. Pick a drink, rate it, and it lands here.',
@@ -122,14 +119,17 @@ export const logPage = {
   readingLabel: 'Read',
 } as const;
 
-/** /rate: one pour, rated, and where the coordinate went. */
+/** The rating sheet, over Compass or Log: one pour, rated, and where the coordinate went. */
 export const ratePage = {
   title: 'Rate a drink',
   heading: 'How was it?',
+  /** For a screen reader: what the sheet that just opened is for. */
+  description: 'Say how it was, and see where your coordinate goes.',
+  close: 'Close',
 } as const;
 
 /**
- * What /log and /rate say to someone with no coordinate yet: what the loop
+ * What Log and the rating sheet say to someone with no coordinate yet: what the loop
  * is, and the ways in.
  */
 export const coldState = {
@@ -142,41 +142,11 @@ export const coldState = {
 } as const;
 
 /**
- * /harbour (shown as "Pick a drink"): at a bar, deciding. Composed in steps like a post — where you
- * are, what's pouring, which to have — and the pick is kept as a draft
- * until you rate it. It orders nothing: Cotidal is not connected to the bar.
+ * A drink picked on Compass, kept on the device until it is rated: the strip
+ * on Compass and Log that says so.
  */
-export const harbour = {
-  title: 'Pick a drink',
-  steps: ['Where', 'Menu', 'Pick'],
-  back: 'Back',
-  next: 'Next',
-  whereTitle: 'Where are you?',
-  whereBody: 'The bar, so your pick and its rating land in the same place.',
-  barLabel: 'Bar name',
+export const waitingPick = {
   atHome: 'At home',
-  recentLabel: 'Recently',
-  menuTitle: 'What’s on the menu?',
-  menuBody: 'Add what they pour. Anything on the map is placed; anything else is kept, unplaced.',
-  addLabel: 'A drink on their menu',
-  addPlaceholder: 'Last Word, house Negroni…',
-  add: 'Add',
-  remove: (name: string) => `Remove ${name}`,
-  placed: 'On the map',
-  unplaced: 'Not on the map',
-  photoLater: 'Later: photograph the menu instead of typing it.',
-  pickTitle: (where: string) => `What to have at ${where}`,
-  pickTitleHome: 'What to pour at home',
-  pickBody: 'Ranked by how close each drink sits to your coordinate.',
-  unplacedTitle: 'Can’t place these yet',
-  pickThis: 'Pick this',
-  pickedEyebrow: 'Your pick',
-  pickedBody: 'Kept on this device until you rate it. Rate it once you’ve tasted it. That is what moves your coordinate.',
-  rateNow: 'Rate it now',
-  rateLater: 'Rate it later',
-  coldTitle: 'Find your coordinate first.',
-  coldBody: 'Pick a drink ranks a bar’s menu against your coordinate. A few questions place it.',
-  coldCta: 'Find your coordinate',
   waiting: 'Waiting to be rated',
   rate: 'Rate it',
   dismiss: 'Set it aside',
@@ -324,7 +294,7 @@ export const connect = {
     },
     {
       title: 'In your chat assistant',
-      body: 'Ask a chat assistant what to drink, with your coordinate in hand. Later: Radio carries the pours of the people you follow.',
+      body: 'Ask a chat assistant what to drink, with your coordinate in hand. Later: the pours of the people you follow.',
     },
   ],
 } as const;
@@ -380,6 +350,7 @@ export const chart = {
   youNowIn: (region: string) => `Your coordinate, now in ${region}`,
   lastPour: 'Your last pour',
   logThis: 'Rate this',
+  pickThis: 'Pick this',
   readEntry: 'Read the entry',
   close: 'Close',
   sameSpot: 'Also here',
@@ -400,7 +371,7 @@ export const moved = {
   rankOnMenu: (n: number) => `Now No. ${n} on your menu`,
   offMenu: 'Not on your menu',
   newOnMenu: 'New on your menu',
-  back: 'Back to your log',
+  back: 'Done',
 } as const;
 
 export const principles = [
@@ -761,8 +732,8 @@ export const publicMap = {
 } as const;
 
 /**
- * How to reach a palate from a chat assistant: under your own map
- * (`/p/<handle>#assistant`), and what a browser sees at `/mcp`, the address
+ * How to reach a palate from a chat assistant: under your account
+ * at the foot of `/log` (`#assistant`), and what a browser sees at `/mcp`, the address
  * the assistant is given.
  */
 export const assistants = {
@@ -787,7 +758,7 @@ export const assistants = {
   ],
   askWith: (handle: string) => `Ask with your handle: “What does Cotidal say I should drink? I’m @${handle}.”`,
   askWithGuest: 'Ask with your Bluesky handle: “What does Cotidal say I should drink? I’m @you.bsky.social.”',
-  /** On your own map (`/p/<handle>`): the section's heading. */
+  /** Under your account (`/log#assistant`): the section's heading. */
   sectionTitle: 'Ask a chat assistant',
   /** On someone else's map: what to ask your own assistant about them. */
   visitorAsk: (handle: string) => `Ask your chat assistant: “How far is my map from @${handle}’s?”`,

@@ -15,9 +15,9 @@ const KEYS = {
   pendingAnswers: 'pending_elicitation',
   /** A guest's filter state, so their steps shrink as pours accumulate. */
   guestState: 'palate_state',
-  /** The drink picked in the harbour, until it is rated (or set aside). Kept under its first name. */
+  /** The drink picked on Compass, until it is rated (or set aside). Kept under its first name. */
   pick: 'open_order',
-  /** A guest's pours, newest first, so Radio and Log have them after a reload. */
+  /** A guest's pours, newest first, so Log has them after a reload. */
   guestPours: 'guest_pours',
 } as const;
 

@@ -3,9 +3,8 @@
 The palate map as tools a chat assistant can call, at `/mcp`: a Streamable
 HTTP MCP server, so any assistant that takes a remote connector can use it.
 In Claude: *Settings → Connectors → Add custom connector*, URL
-`https://cotidal.app/mcp`. A member reads this under their own map
-(`/p/<handle>#assistant`, linked from the account at the foot of `/log`),
-with their handle in the example. A browser opening `/mcp` is shown the same
+`https://cotidal.app/mcp`. A member reads this under their account at the foot of `/log`
+(`/log#assistant`), with their handle in the example. A browser opening `/mcp` is shown the same
 instructions at that URL (an MCP client never asks for HTML), so the address
 bar holds the address to paste.
 
@@ -37,9 +36,9 @@ JSON answers — because nothing streams and nothing is kept.
 
 ## Drafting a pour: the person confirms in the app
 
-`draft_pour` writes nothing. It returns `/rate?draft=1&…` with what the person
-said (drink, where, what was off, tasting notes, a note), and the form opens
-on it; they check it, tap the rating and log it as any other pour, through
+`draft_pour` writes nothing. It returns `/log?draft=1&…` with what the person
+said (drink, where, what was off, tasting notes, a note), and the rating sheet
+opens over Log on it; they check it, tap the rating and log it as any other pour, through
 the same `logPour`. The draft lives only in the link (`src/lib/pour-draft.ts`),
 so there is nothing to store, sign in for or protect.
 
