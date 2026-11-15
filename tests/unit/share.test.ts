@@ -15,5 +15,7 @@ test('Share: one card for the site and one per region, each 1200×630', () => {
     expect(png.subarray(1, 4).toString(), card).toBe('PNG');
     // IHDR: width and height, big-endian, at bytes 16 and 20.
     expect([png.readUInt32BE(16), png.readUInt32BE(20)], card).toEqual([SHARE_SIZE.width, SHARE_SIZE.height]);
+    // WhatsApp shows no preview for an image much over 300 KB.
+    expect(png.length, card).toBeLessThan(300_000);
   }
 });

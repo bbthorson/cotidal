@@ -10,6 +10,10 @@ import { SHARE_CARDS, type ShareCard } from '../../lib/share';
  * components and tokens, then captured to `public/share/<card>.png` by
  * `npm run images`. Laid out at 600×315 and captured at 2×, so the type
  * scale is the site's own. Not linked from anywhere, and kept out of search.
+ *
+ * Flat paper, without the site's grain (`bar-texture`): noise does not
+ * compress, and it put each card near 400 KB, past the ~300 KB WhatsApp
+ * will show. `tests/unit/share.test.ts` holds them under that.
  */
 
 export const prerender = true;
@@ -26,7 +30,7 @@ const lede = region ? region.gloss.split('. ')[0] + '.' : null;
 
 <Base title={region ? `${region.name} · ${site.name}` : site.name} noindex>
   <div
-    class="bar-texture flex h-screen w-screen items-center gap-4 overflow-hidden bg-background px-8 text-foreground"
+    class="flex h-screen w-screen items-center gap-4 overflow-hidden bg-background px-8 text-foreground"
     data-share-card={card}
   >
     <div class="flex h-full min-w-0 flex-1 flex-col justify-between py-8">
