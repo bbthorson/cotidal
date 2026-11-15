@@ -156,10 +156,10 @@ test('Psychophysics: palate records dynamicState and pour records CATA/gLMS', as
   expect(PalateSchema.safeParse(palate).success).toBe(true);
   // As written to a repository it is integers only, and that is the record.
   expect(PalateRecordSchema.safeParse(encodePalate(palate)).success).toBe(true);
-  // The float shape is no longer a valid record — but records written in it
-  // still read.
+  // The float shape is not a record, and is not read as one.
   expect(PalateRecordSchema.safeParse(palate).success).toBe(false);
-  expect(decodePalate(palate)?.mapCoordinates).toEqual({ x: 2.5, y: -4.0 });
+  expect(decodePalate(palate)).toBeNull();
+  expect(decodePalate(encodePalate(palate))?.mapCoordinates).toEqual({ x: 2.5, y: -4.0 });
 
   const psychophysicalPour = {
     $type: POUR_COLLECTION,

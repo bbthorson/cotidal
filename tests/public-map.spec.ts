@@ -39,9 +39,9 @@ const didDoc = (handle = 'alice.bsky.social', endpoint = PDS) => ({
 
 const palate = {
   $type: 'app.cotidal.palate',
-  mapCoordinates: { x: -4.2, y: -3.1 },
+  mapCoordinates: { xHundredths: -420, yHundredths: -310 },
   aversions: { smoke: true, bitter: false, anise: false },
-  dynamicState: { latentVector: [0, 0, 0, 0, 0], covarianceDiagonal: [1, 1, 1, 1, 1], eventCount: 3 },
+  dynamicState: { latentVectorHundredths: [0, 0, 0, 0, 0], covarianceDiagonalHundredths: [100, 100, 100, 100, 100], eventCount: 3 },
   createdAt: '2026-10-01T00:00:00.000Z',
 };
 
@@ -84,49 +84,24 @@ test('Public map: a handle resolves through its DID document to the palate recor
   expect(calls.some((c) => c.includes('collection=app.cotidal.palate') && c.includes('rkey=self'))).toBe(true);
 });
 
-test('Public map: a record in the hundredths encoding reads the same as a legacy one', async () => {
-  // The fixture above is a legacy float record; this is the same palate as
-  // written now, coordinates in integer hundredths.
-  const current = {
-    ...palate,
-    mapCoordinates: { xHundredths: -420, yHundredths: -310 },
-    dynamicState: { latentVectorHundredths: [0, 0, 0, 0, 0], covarianceDiagonalHundredths: [100, 100, 100, 100, 100], eventCount: 3 },
-  };
-  const { fetch } = fakeFetch(world({ record: current }));
-  const result = await readPublicPalate('alice.bsky.social', { fetch, handleResolver: 'https://resolver.example.com' });
-  expect(result.status).toBe('ok');
-  if (result.status !== 'ok') return;
-  expect(result.palate).toMatchObject({ x: -4.2, y: -3.1, pours: 3 });
-  expect(result.palate.aversions.smoke).toBe(true);
-});
-
-test('Public map: a palate from before the rename is read from the old collection', async () => {
-  const { LEGACY_PALATE_COLLECTION, PALATE_COLLECTION } = await import('../src/lib/atproto/records');
+test('Public map: only the current collection is asked for, and a record with floats is not a palate', async () => {
   const asked: string[] = [];
-  const base = world({ record: palate });
-  const route: Route = (url) => {
-    if (url.pathname === '/xrpc/com.atproto.repo.getRecord') {
-      const collection = url.searchParams.get('collection')!;
-      asked.push(collection);
-      if (collection === PALATE_COLLECTION) return { status: 400, body: { error: 'RecordNotFound' } };
-    }
-    return base(url);
-  };
-  const result = await readPublicPalate('alice.bsky.social', { fetch: fakeFetch(route).fetch, handleResolver: 'https://resolver.example.com' });
-  expect(result.status).toBe('ok');
-  expect(asked).toEqual([PALATE_COLLECTION, LEGACY_PALATE_COLLECTION]);
-
-  // Present under the current name, the old one is never asked for.
-  asked.length = 0;
-  const current = await readPublicPalate('alice.bsky.social', {
+  const result = await readPublicPalate('alice.bsky.social', {
     fetch: fakeFetch((url) => {
       if (url.pathname === '/xrpc/com.atproto.repo.getRecord') asked.push(url.searchParams.get('collection')!);
-      return base(url);
+      return world({ record: palate })(url);
     }).fetch,
     handleResolver: 'https://resolver.example.com',
   });
-  expect(current.status).toBe('ok');
-  expect(asked).toEqual([PALATE_COLLECTION]);
+  expect(result.status).toBe('ok');
+  expect(asked).toEqual(['app.cotidal.palate']);
+
+  const floats = { ...palate, mapCoordinates: { x: -4.2, y: -3.1 } };
+  const read = await readPublicPalate('alice.bsky.social', {
+    fetch: fakeFetch(world({ record: floats })).fetch,
+    handleResolver: 'https://resolver.example.com',
+  });
+  expect(read.status).toBe('no-palate');
 });
 
 test('Public map: a DID shows its handle only when the handle resolves back', async () => {
@@ -153,7 +128,7 @@ test('Public map: every failure is a status, never a throw', async () => {
   expect((await readPublicPalate('alice.bsky.social', opts(world()))).status).toBe('no-palate');
 
   // A record that is not a palate the page can draw.
-  const offMap = { ...palate, mapCoordinates: { x: 40, y: 0 } };
+  const offMap = { ...palate, mapCoordinates: { xHundredths: 4000, yHundredths: 0 } };
   expect((await readPublicPalate('alice.bsky.social', opts(world({ record: offMap })))).status).toBe('no-palate');
 
   // A document pointing its PDS at a host the server must not fetch.

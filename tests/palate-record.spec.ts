@@ -1,7 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import {
-  LEGACY_PALATE_COLLECTION,
   PALATE_COLLECTION,
   PalateRecordSchema,
   decodeCoordinates,
@@ -77,8 +76,8 @@ test('Palate record: decoding what was encoded gives the palate back to the hund
   expect(encodePalate(back)).toEqual(encodePalate(palate));
 });
 
-test('Palate record: a record written with floats still reads', () => {
-  const legacy = {
+test('Palate record: a record written with floats is not a palate', () => {
+  const floats = {
     $type: PALATE_COLLECTION,
     mapCoordinates: { x: -4.2, y: 3.1 },
     dynamicState: { latentVector: [-4.2, 3.1, 5, 5, 5], covarianceDiagonal: [25, 25, 16, 16, 16], eventCount: 0 },
@@ -86,12 +85,8 @@ test('Palate record: a record written with floats still reads', () => {
     vibeTags: { classic: 1.25 },
     createdAt: '2026-09-01T00:00:00.000Z',
   };
-  const read = decodePalate(legacy)!;
-  expect(read.mapCoordinates).toEqual({ x: -4.2, y: 3.1 });
-  expect(read.vibeTags).toEqual({ classic: 1.25 });
-  expect(decodeCoordinates(legacy)).toEqual({ x: -4.2, y: 3.1 });
-  // And the next write migrates it.
-  expect(PalateRecordSchema.safeParse(encodePalate(read)).success).toBe(true);
+  expect(decodePalate(floats)).toBeNull();
+  expect(decodeCoordinates(floats)).toBeNull();
 });
 
 test('Palate record: anything else is not a palate', () => {
@@ -133,14 +128,8 @@ test('Palate record: the lexicon and the Zod schema describe the same record', (
   expect(types).not.toContain('number');
 });
 
-test('Palate record: a palate from before the rename to Cotidal still reads', () => {
-  const old = { ...encodePalate(palate), $type: LEGACY_PALATE_COLLECTION };
-  const read = decodePalate(old)!;
-  expect(read).not.toBeNull();
-  expect(read.$type).toBe(PALATE_COLLECTION);
-  expect(read.mapCoordinates.x).toBeCloseTo(-4.24, 10);
-  // Written back, it goes under the current namespace.
-  expect(encodePalate(read).$type).toBe(PALATE_COLLECTION);
+test('Palate record: a palate under another collection is not read as one', () => {
+  expect(decodePalate({ ...encodePalate(palate), $type: 'app.crystalcoupe.palate' })).toBeNull();
 });
 
 test('Palate record: vibe tags are a list of pairs, in a stable order', () => {
@@ -155,17 +144,9 @@ test('Palate record: vibe tags are a list of pairs, in a stable order', () => {
   expect(decodePalate(record)?.vibeTags).toEqual(palate.vibeTags);
 });
 
-test('Palate record: one written with tags as an object, and a phenotypes guess, still reads', () => {
+test('Palate record: one written with tags as an object is not a palate', () => {
   const { vibeTagWeights: _, ...rest } = encodePalate(palate);
-  const previous = {
-    ...rest,
-    vibeTagsHundredths: { crushable: 225, social: 100, bold: 75 },
-    phenotypes: { tas2r38BitterSensitivity: 'super-taster', trigeminalTolerance: 'moderate' },
-  };
+  const previous = { ...rest, vibeTagsHundredths: { crushable: 225, social: 100, bold: 75 } };
   expect(PalateRecordSchema.safeParse(previous).success).toBe(false);
-  const read = decodePalate(previous)!;
-  expect(read.vibeTags).toEqual(palate.vibeTags);
-  expect(read).not.toHaveProperty('phenotypes');
-  // The next write is the current encoding.
-  expect(PalateRecordSchema.safeParse(encodePalate(read)).success).toBe(true);
+  expect(decodePalate(previous)).toBeNull();
 });

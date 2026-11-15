@@ -19,8 +19,8 @@ landing page included. Astro was being used as a slower Next.js.
 - Prefer `client:load` over `client:only` so the shell server-renders.
 - The header's account control is server truth: `@handle` and a Sign out
   form for a member, Sign in for a guest, a neutral Account link on a
-  prerendered page that cannot know. The account is the foot of `/log`
-  (`/account` redirects there). Signing out lands on `/compass?signed_out=1`,
+  prerendered page that cannot know. The account is the foot of `/log`.
+  Signing out lands on `/compass?signed_out=1`,
   where `AtprotoProvider` — every island mounts it — clears the device's
   copy of the palate.
 - Never add an island to `/`. `tests/landing-static.spec.ts` fails if you do.
@@ -244,8 +244,7 @@ with no rating, and the member taps one and logs it (`docs/mcp.md`).
 stored as integer hundredths or tenths under a name that says so
 (`xHundredths`, `dxTenths`). The palate is held in memory as `Palate` (plain
 numbers) and converted only at the edge: `encodePalate` on every write,
-`decodePalate` / `decodeCoordinates` on every read, which also accept the
-float records written before the encoding. No lexicon may declare a
+`decodePalate` / `decodeCoordinates` on every read. No lexicon may declare a
 `number` — it is not a Lexicon type — and `npm run lexicons` fails on one.
 
 **Places are `community.lexicon.location.*`, never our own.** A pour's
@@ -341,8 +340,7 @@ interface; see `docs/brand.md`.
 
 1. **Namespace.** `app.cotidal.*`, renamed from `app.crystalcoupe.*`. NSID
    authority comes from the reversed domain, so it holds once `cotidal.app`
-   is registered. Old palates and pours are still read from the legacy
-   collections (`LEGACY_*_COLLECTION` in `records.ts`), never written.
+   is registered. Nothing reads the old `app.crystalcoupe.*` collections.
 2. **Migrate `drinkLog` → `pour`** *(Completed)*. Clean-slate implementation
    with 5D EKF dynamic state, gLMS hedonic ratings, CATA volatile descriptors,
    and prandial satiety normalization. Legacy `drinkLog` replaced by `pour`.

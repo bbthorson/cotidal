@@ -5,8 +5,6 @@ import {
   PALATE_COLLECTION,
   PALATE_RKEY,
   POUR_COLLECTION,
-  LEGACY_PALATE_COLLECTION,
-  LEGACY_POUR_COLLECTION,
   decodePalate,
   encodePalate,
   type Palate,
@@ -24,21 +22,14 @@ import { fitString, graphemeLength, utf8Length } from './lex-string';
 const POST_MAX_GRAPHEMES = 300;
 const POST_MAX_BYTES = 3000;
 
-/**
- * The user's own palate record, from the current namespace or, failing that,
- * the one before the rename. `null` when neither holds a palate.
- */
+/** The user's own palate record, or `null` when there is none. */
 async function readOwnPalate(agent: Agent, did: string): Promise<Palate | null> {
-  for (const collection of [PALATE_COLLECTION, LEGACY_PALATE_COLLECTION]) {
-    try {
-      const response = await agent.com.atproto.repo.getRecord({ repo: did, collection, rkey: PALATE_RKEY });
-      const palate = decodePalate(response.data.value);
-      if (palate) return palate;
-    } catch {
-      // Not in this collection; try the next.
-    }
+  try {
+    const response = await agent.com.atproto.repo.getRecord({ repo: did, collection: PALATE_COLLECTION, rkey: PALATE_RKEY });
+    return decodePalate(response.data.value);
+  } catch {
+    return null;
   }
-  return null;
 }
 
 export async function publishPalateProfile(
@@ -158,36 +149,26 @@ export async function publishPour(
   return { uri: response.data.uri, cid: response.data.cid };
 }
 
-/**
- * The user's pours, newest first, from the current namespace and the one
- * before the rename, so a ledger started before it keeps its history.
- */
+/** The user's pours, newest first. */
 export async function getPours(session: OAuthSession, limit?: number): Promise<PourRecord[]> {
   const agent = new Agent(session);
   const max = limit || 50;
-  const lists = await Promise.all(
-    [POUR_COLLECTION, LEGACY_POUR_COLLECTION].map(async (collection) => {
-      try {
-        const response = await agent.com.atproto.repo.listRecords({
-          repo: session.did,
-          collection,
-          limit: max,
-          reverse: true,
-        });
-        return response.data.records
-          .map((r) => readPour(r.value))
-          .filter((p): p is PourRecord => p !== null);
-      } catch (e) {
-        if (collection === POUR_COLLECTION) console.error('Failed to get pours:', e);
-        return [];
-      }
-    })
-  );
-  return lists
-    .flat()
-    // By instant, not by string: `+02:00` and `Z` order differently as text.
-    .sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))
-    .slice(0, max);
+  try {
+    const response = await agent.com.atproto.repo.listRecords({
+      repo: session.did,
+      collection: POUR_COLLECTION,
+      limit: max,
+      reverse: true,
+    });
+    return response.data.records
+      .map((r) => readPour(r.value))
+      .filter((p): p is PourRecord => p !== null)
+      // By instant, not by string: `+02:00` and `Z` order differently as text.
+      .sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt));
+  } catch (e) {
+    console.error('Failed to get pours:', e);
+    return [];
+  }
 }
 
 /**

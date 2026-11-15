@@ -38,23 +38,6 @@ test('Header: a prerendered page cannot know who is reading, and says Account', 
   expect(header).not.toContain(nav.signIn);
 });
 
-test('Account: the old address lands on the account, at the foot of Log', async ({ request, page }) => {
-  const res = await request.get('/account', { maxRedirects: 0 });
-  expect(res.status()).toBe(302);
-  expect(res.headers()['location']).toBe('/log#account');
-
-  await page.addInitScript((p) => localStorage.setItem('user_profile', JSON.stringify(p)), profile);
-  await page.goto('/account');
-  await expect(page).toHaveURL(/\/log#account$/);
-  await expect(page.getByRole('heading', { name: account.title })).toBeVisible();
-});
-
-test('Old Compass address: /taste lands on /compass with its query', async ({ request }) => {
-  const res = await request.get('/taste?signin=1', { maxRedirects: 0 });
-  expect(res.status()).toBe(301);
-  expect(res.headers()['location']).toBe('/compass?signin=1');
-});
-
 test('Sign out: the form post lands on Compass marked, with the cleared cookie kept', () => {
   const request = new Request('https://cotidal.app/api/auth/atproto/logout', { method: 'POST' });
   const packaged = new Response(null, {

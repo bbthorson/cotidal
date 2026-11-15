@@ -3,11 +3,9 @@ import { readFileSync, readdirSync } from 'node:fs';
 import {
   CATA,
   DEVIATIONS,
-  LEGACY_POUR_COLLECTION,
   POUR_COLLECTION,
   PourRecordSchema,
   PourWriteSchema,
-  cataId,
   fitString,
   graphemeLength,
   readPour,
@@ -76,24 +74,12 @@ test('Strings: free text is cut to fit on a character boundary', () => {
 
 test('Read: a pour is parsed, not cast', () => {
   expect(readPour({ ...base })).not.toBeNull();
-  // From before the rename.
-  expect(readPour({ ...base, $type: LEGACY_POUR_COLLECTION })?.$type).toBe(POUR_COLLECTION);
+  // Under another collection.
+  expect(readPour({ ...base, $type: 'app.crystalcoupe.pour' })).toBeNull();
   // Not a pour at all, or one with a float in it.
   expect(readPour({ $type: POUR_COLLECTION, hello: 'world' })).toBeNull();
   expect(readPour({ ...base, rating: { hedonic: 7.5 } })).toBeNull();
   expect(readPour(null)).toBeNull();
-});
-
-test('Read: notes stored as labels, before the ids, read back as ids', () => {
-  const pour = readPour({ ...base, cata: ['Bright Citrus', 'lime-peel', 'Rich Velvet Body', 'sugarcane'] });
-  expect(pour?.cata).toEqual(['bright-citrus', 'lime-peel', 'rich-velvet-body', 'sugarcane']);
-  // The labels pours stored before the ids, frozen here: rewording one in
-  // copy.ts later must not change how these read.
-  const stored = [
-    'Bright Citrus', 'Lime Peel', 'Stone Fruit', 'Dark Cherry', 'Campfire Smoke', 'Botanical Herb',
-    'Baking Spice', 'Toasted Oak', 'Floral Blossom', 'Bittersweet Cocoa', 'Briny Mineral', 'Rich Velvet Body',
-  ];
-  expect(stored.map(cataId)).toEqual([...CATA]);
 });
 
 test('Pour: spirit and glass are stored as ids, and only those the app declares', () => {

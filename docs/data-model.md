@@ -114,9 +114,8 @@ in `src/lib/atproto/records.ts`; `npm run lexicons` enforces that every schema
 sits under one namespace, so the rename cannot go half-done.
 
 Records written before the rename from The Crystal Coupe sit under
-`app.crystalcoupe.*`. They are never rewritten: the app still *reads* a palate
-or pours from there (`LEGACY_PALATE_COLLECTION`, `LEGACY_POUR_COLLECTION`) so
-nobody's map empties, and writes only under `app.cotidal.*`.
+`app.crystalcoupe.*`. The app neither reads nor writes them: there were no
+members to carry over.
 
 **We can use `community.lexicon.*` types; we cannot define new ones under it.**
 Referencing their schemas is the entire point and needs no permission.

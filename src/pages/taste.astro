@@ -1,9 +1,0 @@
----
-/**
- * Compass used to live here, with the questions in front of it. Links to the
- * old address keep working and carry their query (`?signin=1`, `?signed_out=1`).
- */
-export const prerender = false;
-
-return Astro.redirect(`/compass${Astro.url.search}`, 301);
----

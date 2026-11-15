@@ -21,16 +21,6 @@ export const ELICITATION_COLLECTION = 'app.cotidal.elicitation';
 export const BAR_SPACE_TYPE = 'app.cotidal.bar';
 export const BAR_SPACE_KEY = 'self';
 
-/**
- * The namespace before the rename to Cotidal. Read-only: palates and pours
- * written under it are still read (publish.ts, public-read.ts) so nobody's
- * map empties, but nothing is written there and those records are never
- * rewritten or deleted by the app. The next palate write lands under
- * `app.cotidal.*`.
- */
-export const LEGACY_PALATE_COLLECTION = 'app.crystalcoupe.palate';
-export const LEGACY_POUR_COLLECTION = 'app.crystalcoupe.pour';
-
 /** Records held at a fixed key, one per repo. */
 export const SELF_RKEY = 'self';
 
@@ -46,8 +36,7 @@ export type Deviation = (typeof DEVIATIONS)[number];
 /**
  * Check-all-that-apply notes, as stored. Stable ids rather than the labels
  * shown (`pour.cata` in copy.ts), so rewording a label does not split the
- * data. Each id is its label slugified, which is also how a pour written
- * before the ids — when the label itself was stored — is read back.
+ * data.
  */
 export const CATA = [
   'bright-citrus', 'lime-peel', 'stone-fruit', 'dark-cherry',
@@ -55,16 +44,6 @@ export const CATA = [
   'floral-blossom', 'bittersweet-cocoa', 'briny-mineral', 'rich-velvet-body',
 ] as const;
 export type CataNote = (typeof CATA)[number];
-
-const slugify = (s: string) =>
-  s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-
-/** A stored note as its id: an id stays, a pre-id label maps, anything else is kept as written. */
-export function cataId(note: string): string {
-  if ((CATA as readonly string[]).includes(note)) return note;
-  const slug = slugify(note);
-  return (CATA as readonly string[]).includes(slug) ? slug : note;
-}
 
 /** A drink's base spirit, as stored on `drinkRef.baseSpirit`. Labels: `pour.spirits` in copy.ts. */
 export const BASE_SPIRITS = [

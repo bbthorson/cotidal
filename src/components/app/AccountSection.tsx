@@ -8,9 +8,8 @@ const link = 'link-caps';
 
 /**
  * The account, in one block under the ledger: who you are, your public map,
- * sharing, chat assistants, start over, and signing out. It used to be a page
- * of its own (`/account`), which now lands here. A guest has no account to
- * manage, so sees only start over.
+ * sharing, chat assistants, start over, and signing out. A guest has no
+ * account to manage, so sees only start over.
  */
 export function AccountSection({
   handle,
