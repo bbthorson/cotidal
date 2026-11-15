@@ -94,6 +94,7 @@ export const compass = {
   onOsm: 'On OpenStreetMap',
   drinksTitle: 'Drinks',
   noDrinks: 'No drink on the map by that name or ingredient.',
+  rateUnlisted: (name: string) => `Rate ${name} anyway`,
   barsTitle: 'Bars',
   yourBars: 'Your bars',
   barPours: (n: number) => (n === 1 ? '1 pour' : `${n} pours`),
@@ -392,6 +393,8 @@ export const chart = {
 export const moved = {
   eyebrow: 'Logged',
   title: 'Your coordinate moved.',
+  unlistedTitle: 'Logged.',
+  unlisted: (name: string) => `${name} is not on the map yet, so your coordinate stayed where it was.`,
   stillIn: 'Still in',
   nowIn: 'Now in',
   rankOnMenu: (n: number) => `Now No. ${n} on your menu`,
@@ -484,6 +487,8 @@ export const regionPage = {
 export const pour = {
   drinkLabel: 'What you’re drinking',
   drinkPlaceholder: 'A drink on the map, or anything else',
+  unlisted: (name: string) =>
+    `${name} is not on the map yet. The pour goes in your log, but it cannot move your coordinate.`,
   suggestionsLabel: 'From your menu',
   nearLabel: 'Close to you',
   whereLabel: 'Where',

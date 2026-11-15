@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { compass, harbour, menu, pour, ratePage } from '../src/lib/copy';
+import { compass, harbour, menu, moved, pour, ratePage } from '../src/lib/copy';
 import { GEO_TYPE } from '../src/lib/atproto/location';
 
 const profile = { x: 4, y: -2, dislikesSmoke: false, dislikesBitter: false, dislikesAnise: false, vibeTags: {} };
@@ -119,4 +119,26 @@ test('Compass: bars near you, then a pick there, then a pour that says where the
     address: { $type: GEO_TYPE, latitude: '40.722400', longitude: '-73.988300', name: 'Attaboy' },
   });
   await context.close();
+});
+
+test('Compass: a drink the map does not know can still be rated, and the pour says it moved nothing', async ({ page }) => {
+  await page.addInitScript((p) => {
+    if (!sessionStorage.getItem('seeded')) {
+      localStorage.setItem('user_profile', JSON.stringify(p));
+      sessionStorage.setItem('seeded', '1');
+    }
+  }, profile);
+  await page.goto('/compass');
+  await page.getByRole('searchbox').fill('Lambrusco');
+  await expect(page.getByText(compass.noDrinks)).toBeVisible();
+  await page.getByRole('link', { name: compass.rateUnlisted('Lambrusco') }).click();
+
+  await expect(page).toHaveURL(/\/rate\?drink=Lambrusco$/);
+  await expect(page.getByText(pour.unlisted('Lambrusco'))).toBeVisible();
+  await page.getByRole('button', { name: pour.atHome }).click();
+  await page.getByRole('button', { name: pour.submit }).click();
+
+  await expect(page.getByRole('heading', { name: moved.unlistedTitle })).toBeVisible();
+  await expect(page.getByText(moved.unlisted('Lambrusco'), { exact: false })).toBeVisible();
+  await expect(page.getByText(moved.offMenu)).toHaveCount(0);
 });

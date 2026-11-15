@@ -136,7 +136,16 @@ function CompassContent({
               <section className="mt-6 lg:mt-0">
                 <h2 className="section-title">{compass.drinksTitle}</h2>
                 {drinkHits.length === 0 ? (
-                  <Empty>{compass.noDrinks}</Empty>
+                  // Not on the map is not undrinkable: it can still be logged.
+                  <Empty
+                    action={
+                      <a href={logPathFor(query.trim())} className="link-caps text-secondary hover:underline hover:underline-offset-4">
+                        {compass.rateUnlisted(query.trim())} &rarr;
+                      </a>
+                    }
+                  >
+                    {compass.noDrinks}
+                  </Empty>
                 ) : (
                   <ol>
                     {drinkHits.slice(0, 20).map((d) => (
