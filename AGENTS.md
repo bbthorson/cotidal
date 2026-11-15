@@ -8,7 +8,7 @@ is about the code.
 
 `/` is pure Astro with **zero client JavaScript**, and so is `/p/<handle>`
 (a link sent to a stranger). The app pages (`/compass`, `/log`,
-`/questions`, `/rate`) mount React islands.
+`/questions`) mount React islands.
 
 The whole app was previously one `client:only` island, so nothing painted
 until ~860 KB of JavaScript had downloaded and hydrated — on every route,
@@ -23,6 +23,12 @@ landing page included. Astro was being used as a slower Next.js.
   Signing out lands on `/compass?signed_out=1`,
   where `AtprotoProvider` — every island mounts it — clears the device's
   copy of the palate.
+- Rating a pour is a sheet over Compass or Log, never a page (`RateSheet.tsx`,
+  `useRateSheet`; the contract is `docs/design-system.md` § Rating a pour):
+  `?rate=<drink>` or `?draft=1&…` opens it on either, handled once, and a
+  screen that can rate gives the sheet its own coordinate and pours so it is
+  current the moment the sheet closes. A new trigger calls `open()`; it does
+  not navigate.
 - Never add an island to `/`. `tests/landing-static.spec.ts` fails if you do.
 - Sign-in is `@bbthorson/atproto-cf-auth`, content-negotiated at
   `/api/auth/atproto/login`: JSON in, JSON out for the island; form-encoded in,
@@ -96,7 +102,7 @@ your past bars) or "Have a menu?" opens `MenuView` in place of the list: type
 what they pour, `addMenuLine` matches each line through `matchDrink`,
 `rankMenu` (`src/lib/menu-rank.ts`) orders the placed ones, and "Pick this"
 saves a `DrinkPick` on the device, the waiting pick that `WaitingPick`
-shows and `/rate` clears. There is no separate harbour page.
+shows and the rating sheet clears. There is no separate harbour page.
 
 The dot on the map is not the filter's estimate: `applyPour` moves crisp/sweet
 by a capped, simpler rule and leaves the other three axes to the EKF.
@@ -266,8 +272,8 @@ search drinks. Stateless and read-only; the tools are plain functions over
 `readPublicPalate` and `overlap.ts`, so they give the answers `/p/<handle>`
 gives. Their descriptions are interface copy and live in `copy.ts`.
 A pour is logged from a chat by drafting, not writing: `draft_pour` returns a
-`/rate?draft=1` link (`src/lib/pour-draft.ts`) that opens the form filled in,
-with no rating, and the member taps one and logs it (`docs/mcp.md`).
+`/log?draft=1` link (`src/lib/pour-draft.ts`) that opens the rating sheet
+filled in, with no rating, and the member taps one and logs it (`docs/mcp.md`).
 How to connect an assistant is one component, `AssistantSteps` (React,
 server-rendered with no script at `/mcp`): under your account at the foot of
 `/log` (`#assistant`), with your handle in the example, and at

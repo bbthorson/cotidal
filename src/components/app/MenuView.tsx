@@ -21,8 +21,8 @@ export interface Venue {
  * A menu, on Compass: a bar's, or one with no bar. Type what they pour (each
  * line is matched to the map, `addMenuLine`), see it ranked for you
  * (`rankMenu`), pick one. The pick is kept on the device as a waiting pick
- * (`savePick`), and rating it opens /rate on a draft (`draftPath`), the same
- * hand-off a chat assistant uses, so the rating is still the member's own tap.
+ * (`savePick`), and rating it opens the rating sheet on a draft (`WaitingPick`), the same
+ * hand-off a chat assistant uses (`draftPath`), so the rating is still the member's own tap.
  * It orders nothing: Cotidal is not connected to the bar.
  */
 export function MenuView({

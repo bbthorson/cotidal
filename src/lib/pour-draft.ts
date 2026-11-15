@@ -1,10 +1,10 @@
 import { CATA, DEVIATIONS, type CataNote, type Deviation } from './atproto/vocab';
 import { geoLocation } from './atproto/location';
-import { RATE_PATH } from './atproto/paths';
+import { RATE_LANDING_PATH, RATE_PARAM } from './atproto/paths';
 
 /**
  * A pour drafted somewhere else — a chat assistant, through `/mcp` — for the
- * member to confirm in the form at `/rate`. It travels in the link, so nothing
+ * member to confirm in the rating sheet (`/log?draft=1&…`). It travels in the link, so nothing
  * is stored and nothing is written until they press the button.
  *
  * It carries no rating, on purpose: the rating is what moves the coordinate,
@@ -30,7 +30,7 @@ export interface PourDraft {
 /** The form's own limits: the drink and bar inputs keep 200, the note textarea 1000. */
 export const DRAFT_LIMITS = { drink: 200, bar: 200, note: 1000 } as const;
 
-/** Marks a link as a draft, so `/rate?drink=` from "Log this" keeps its meaning. */
+/** Marks a link as a draft: `drink=` alone means nothing, `rate=` is the plain way to open the sheet. */
 const MARKER = 'draft';
 
 const known = <T extends string>(vocab: readonly T[], values: string[] | undefined): T[] =>
@@ -79,7 +79,7 @@ const num = (value: string | null) => (value === null || value.trim() === '' ? u
 
 const list = (value: string | null) => (value ? value.split(',').map((v) => v.trim()) : undefined);
 
-/** The draft in a `/rate` URL, or `null` when the URL is not a draft. */
+/** The draft in a URL, or `null` when the URL is not a draft. */
 export function parseDraft(params: URLSearchParams): PourDraft | null {
   if (params.get(MARKER) !== '1') return null;
   return cleanDraft({
@@ -94,7 +94,7 @@ export function parseDraft(params: URLSearchParams): PourDraft | null {
   });
 }
 
-/** `/rate?draft=1&…`, the link a draft is handed over in. */
+/** `/log?draft=1&…`, the link a draft is handed over in. */
 export function draftPath(draft: PourDraft): string {
   const params = new URLSearchParams({ [MARKER]: '1', drink: draft.drink });
   if (draft.atHome) params.set('at', 'home');
@@ -106,12 +106,33 @@ export function draftPath(draft: PourDraft): string {
   if (draft.deviations?.length) params.set('off', draft.deviations.join(','));
   if (draft.cata?.length) params.set('notes', draft.cata.join(','));
   if (draft.note) params.set('note', draft.note);
-  return `${RATE_PATH}?${params.toString()}`;
+  return `${RATE_LANDING_PATH}?${params.toString()}`;
 }
 
-/** The URL with the draft taken out, once it has been logged or set aside. */
-export function withoutDraft(url: URL): URL {
+/**
+ * What a URL asks the rating sheet to open on: a drink (`?rate=Negroni`; empty
+ * for the drink closest to you) or a whole draft. Handled once, by
+ * `useRateSheet`, on every app page.
+ */
+export interface RateRequest {
+  drink?: string;
+  draft?: PourDraft;
+}
+
+/** The rating the URL asks for, or `null` when it asks for none. */
+export function parseRateRequest(params: URLSearchParams): RateRequest | null {
+  const draft = parseDraft(params);
+  if (draft) return { drink: draft.drink, draft };
+  if (!params.has(RATE_PARAM)) return null;
+  const drink = text(params.get(RATE_PARAM), DRAFT_LIMITS.drink);
+  return drink ? { drink } : {};
+}
+
+/** The URL with the request taken out, once the sheet is closed. */
+export function withoutRateRequest(url: URL): URL {
   const next = new URL(url);
-  for (const key of [MARKER, 'drink', 'at', 'bar', 'lat', 'lon', 'off', 'notes', 'note']) next.searchParams.delete(key);
+  for (const key of [RATE_PARAM, MARKER, 'drink', 'at', 'bar', 'lat', 'lon', 'off', 'notes', 'note']) {
+    next.searchParams.delete(key);
+  }
   return next;
 }

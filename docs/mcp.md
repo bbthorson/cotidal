@@ -36,9 +36,9 @@ JSON answers — because nothing streams and nothing is kept.
 
 ## Drafting a pour: the person confirms in the app
 
-`draft_pour` writes nothing. It returns `/rate?draft=1&…` with what the person
-said (drink, where, what was off, tasting notes, a note), and the form opens
-on it; they check it, tap the rating and log it as any other pour, through
+`draft_pour` writes nothing. It returns `/log?draft=1&…` with what the person
+said (drink, where, what was off, tasting notes, a note), and the rating sheet
+opens over Log on it; they check it, tap the rating and log it as any other pour, through
 the same `logPour`. The draft lives only in the link (`src/lib/pour-draft.ts`),
 so there is nothing to store, sign in for or protect.
 

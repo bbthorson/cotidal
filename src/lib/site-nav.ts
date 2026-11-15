@@ -1,5 +1,5 @@
 import { appBar, nav } from './copy';
-import { QUESTIONS_PATH, RATE_PATH } from './atproto/paths';
+import { QUESTIONS_PATH } from './atproto/paths';
 
 /**
  * The one list of destinations. The header renders the ones marked `header`;
@@ -34,7 +34,7 @@ export const signIn = { href: '/#connect', label: nav.signIn } as const;
  * back to the landing page's form; the island reads `?signin=1`. Everywhere
  * else the static form is the target, so it keeps working without JavaScript.
  */
-const sheetPaths = ['/compass', '/log', QUESTIONS_PATH, RATE_PATH];
+const sheetPaths = ['/compass', '/log', QUESTIONS_PATH];
 
 export const signInHref = (currentPath: string) =>
   sheetPaths.some((p) => currentPath.startsWith(p)) ? `${currentPath}?signin=1` : signIn.href;
@@ -50,9 +50,6 @@ export const pickHref = '/compass?menu=1';
 
 /** The questions that place a coordinate (`startOverPath` clears the old one first). */
 export const questionsHref = QUESTIONS_PATH;
-
-/** /rate with its form opened on a drink ("Log this" on the map). */
-export const logPathFor = (drinkName: string) => `${RATE_PATH}?drink=${encodeURIComponent(drinkName)}`;
 
 /** Where a member manages their account, and where a page that cannot know sends everyone. */
 export const accountHref = '/log#account';

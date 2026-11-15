@@ -26,5 +26,12 @@ export const QUESTIONS_PATH = '/questions';
 export const START_OVER_PARAM = 'startover';
 export const startOverPath = `${QUESTIONS_PATH}?${START_OVER_PARAM}=1`;
 
-/** Where a pour is rated; a draft from a chat assistant arrives here too (pour-draft.ts). */
-export const RATE_PATH = '/rate';
+/**
+ * Rating a pour is a sheet over an app page, not a page of its own. A URL asks
+ * for it with `?rate=<drink>` (an empty value opens on the drink closest to
+ * you) or `?draft=1&drink=…` (pour-draft.ts), on Compass or Log. A link made
+ * outside the app — a chat assistant's draft — lands on Log, where the pour
+ * is kept.
+ */
+export const RATE_PARAM = 'rate';
+export const RATE_LANDING_PATH = '/log';

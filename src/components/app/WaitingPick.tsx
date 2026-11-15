@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
 import { waitingPick } from '@/lib/copy';
 import { clearPick, loadPick, type DrinkPick } from '@/lib/device-store';
-import { draftPath } from '@/lib/pour-draft';
+import { cleanDraft, type PourDraft } from '@/lib/pour-draft';
 
 /**
  * A drink picked on Compass, waiting to be rated: on Compass and Log
- * alike, until it is rated (`/log` clears it) or set aside. It is on the
+ * alike, until it is rated (the rating sheet clears it) or set aside. It is on the
  * device, so it is read after mount.
  *
  * A strip ruled in ink, not a sheet: the one sheet on Compass is the top pick,
@@ -14,8 +14,11 @@ import { draftPath } from '@/lib/pour-draft';
 export function WaitingPick({
   displayName,
   version,
+  onRate,
 }: {
   displayName: (name: string) => string;
+  /** Open the rating sheet on the pick, as a draft: where it was had, with no rating. */
+  onRate: (draft: PourDraft) => void;
   /** Changes when the screen has just kept a pick, so the strip reads the device again. */
   version?: number;
 }) {
@@ -38,12 +41,22 @@ export function WaitingPick({
         </span>
       </div>
       <div className="flex items-center gap-x-5">
-        <a
-          href={draftPath({ drink: pick.drink, atHome: pick.atHome, bar: pick.bar, at: pick.at })}
+        <button
+          type="button"
+          onClick={() => {
+            const draft = cleanDraft({
+              drink: pick.drink,
+              atHome: pick.atHome,
+              bar: pick.bar,
+              lat: pick.at?.lat,
+              lon: pick.at?.lon,
+            });
+            if (draft) onRate(draft);
+          }}
           className="link-caps font-bold text-secondary hover:underline hover:underline-offset-4"
         >
           {waitingPick.rate} &rarr;
-        </a>
+        </button>
         <button
           type="button"
           onClick={() => {

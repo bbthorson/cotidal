@@ -2,16 +2,18 @@ import { useMemo, useState, useEffect, useCallback } from 'react';
 import { drinkDatabase, type User } from '@/lib/data';
 import { matchDrink } from '@/lib/drink-match';
 import { chart, compass, menu } from '@/lib/copy';
-import { logPathFor, questionsHref } from '@/lib/site-nav';
+import { questionsHref } from '@/lib/site-nav';
 import { savePick } from '@/lib/device-store';
 import { titleOf, type Register } from '@/lib/register';
 import { usePours } from '@/hooks/usePours';
+import { useRateSheet } from '@/hooks/useRateSheet';
 import { useMenu, type ScoredDrink } from '@/hooks/useMenu';
 import { DrinkCard, DrinkRow, useLastPours } from './Chart';
 import { AtprotoProvider, useAtprotoContext } from './AtprotoProvider';
 import { useProfile } from '@/hooks/useProfile';
 import { userFromProfile } from '@/lib/profile';
 import { WaitingPick } from './WaitingPick';
+import { RateSheet } from './RateSheet';
 import { Empty, GuestPrompt, ScreenHeader } from './ui';
 import { BarCard, BarRows, NearPanel, useNearby } from './Near';
 import { MenuView, type Venue } from './MenuView';
@@ -42,7 +44,8 @@ function CompassContent({
   member: { handle: string | null } | null;
 }) {
   const { isEnabled, openSignIn } = useAtprotoContext();
-  const [profile] = useProfile(!!member);
+  const [profile, setProfile] = useProfile(!!member);
+  const rate = useRateSheet();
   const user = useMemo(() => userFromProfile(profile), [profile]);
   const hasCoordinate = !!profile;
   const vibeTags = profile?.vibeTags;
@@ -54,7 +57,7 @@ function CompassContent({
   // Bumped when a pick is kept, so the waiting strip reads the device again.
   const [pickVersion, setPickVersion] = useState(0);
   const nearby = useNearby();
-  const { pours } = usePours(!!member);
+  const { pours, reload } = usePours(!!member);
   const history = useMemo(() => pours ?? [], [pours]);
   const lastPour = useLastPours(history);
   const { scored, menu: goTo, closeness } = useMenu(user, vibeTags, history);
@@ -132,8 +135,23 @@ function CompassContent({
   };
   const selectedDrink = selected ? drinkDatabase.find((d) => d.name === selected) ?? null : null;
 
+  // Rating opens over whichever of the two views is showing.
+  const sheet = (
+    <RateSheet
+      request={rate.request}
+      onClose={rate.close}
+      register={register}
+      member={member}
+      profile={profile}
+      setProfile={setProfile}
+      pours={pours}
+      reload={reload}
+    />
+  );
+
   if (venue) {
     return (
+      <>
       <MenuView
         // A different bar is a different menu.
         key={venue.name ?? ''}
@@ -144,6 +162,8 @@ function CompassContent({
         onBack={() => setVenue(null)}
         onPicked={kept}
       />
+      {sheet}
+      </>
     );
   }
 
@@ -156,7 +176,7 @@ function CompassContent({
       )}
     >
       <ScreenHeader eyebrow={compass.title} title={compass.heading} />
-      <WaitingPick displayName={displayName} version={pickVersion} />
+      <WaitingPick displayName={displayName} version={pickVersion + rate.version} onRate={(draft) => rate.open({ drink: draft.drink, draft })} />
 
       <search className="flex">
         <label className="flex flex-1 flex-col">
@@ -199,9 +219,13 @@ function CompassContent({
                   // Not on the map is not undrinkable: it can still be logged.
                   <Empty
                     action={
-                      <a href={logPathFor(query.trim())} className="link-caps text-secondary hover:underline hover:underline-offset-4">
+                      <button
+                        type="button"
+                        onClick={() => rate.open({ drink: query.trim() })}
+                        className="link-caps text-secondary hover:underline hover:underline-offset-4"
+                      >
                         {compass.rateUnlisted(query.trim())} &rarr;
-                      </a>
+                      </button>
                     }
                   >
                     {compass.noDrinks}
@@ -308,7 +332,7 @@ function CompassContent({
             (d) => d.name !== selectedDrink.name && d.x === selectedDrink.x && d.y === selectedDrink.y
           )}
           onPick={setSelected}
-          onLog={() => window.location.assign(logPathFor(selectedDrink.name))}
+          onLog={() => rate.open({ drink: selectedDrink.name })}
           onChoose={() => {
             savePick({ drink: selectedDrink.name, pickedAt: new Date().toISOString() });
             kept();
@@ -316,6 +340,7 @@ function CompassContent({
           onClose={() => setSelected(null)}
         />
       )}
+      {sheet}
     </div>
   );
 }

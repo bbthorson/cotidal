@@ -111,7 +111,7 @@ export const logPage = {
     since: 'Since',
     best: 'Best so far',
   },
-  /** The way into rating a drink that was not handed over (a pick, "Log this", a chat's draft). */
+  /** The way into rating a drink that was not handed over (a pick, "Rate this", a chat's draft). */
   rateDrink: 'Rate a drink',
   ledgerTitle: 'What moved it',
   ledgerEmpty: 'No pours yet. Pick a drink, rate it, and it lands here.',
@@ -119,14 +119,17 @@ export const logPage = {
   readingLabel: 'Read',
 } as const;
 
-/** /rate: one pour, rated, and where the coordinate went. */
+/** The rating sheet, over Compass or Log: one pour, rated, and where the coordinate went. */
 export const ratePage = {
   title: 'Rate a drink',
   heading: 'How was it?',
+  /** For a screen reader: what the sheet that just opened is for. */
+  description: 'Say how it was, and see where your coordinate goes.',
+  close: 'Close',
 } as const;
 
 /**
- * What /log and /rate say to someone with no coordinate yet: what the loop
+ * What Log and the rating sheet say to someone with no coordinate yet: what the loop
  * is, and the ways in.
  */
 export const coldState = {
@@ -368,7 +371,7 @@ export const moved = {
   rankOnMenu: (n: number) => `Now No. ${n} on your menu`,
   offMenu: 'Not on your menu',
   newOnMenu: 'New on your menu',
-  back: 'Back to your log',
+  back: 'Done',
 } as const;
 
 export const principles = [

@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { chart, compass, menu, waitingPick } from '../src/lib/copy';
+import { chart, compass, menu, pour, ratePage, waitingPick } from '../src/lib/copy';
 
 const profile = { x: 4, y: -2, dislikesSmoke: false, dislikesBitter: false, dislikesAnise: false, vibeTags: {} };
 
@@ -45,14 +45,15 @@ test('Compass menu: a menu with a bar, ranked, picked — then the pick waits an
   await page.getByRole('button', { name: /Negroni.*Closeness/ }).click();
   await page.getByRole('button', { name: chart.pickThis }).click();
 
-  // Back on Compass, the pick waits, and rating hands the draft to /rate with no rating in it.
+  // Back on Compass, the pick waits, and rating opens the sheet on a draft with no rating in it.
   await expect(page.getByText(waitingPick.waiting)).toBeVisible();
-  const rate = page.getByRole('link', { name: new RegExp(waitingPick.rate) });
-  const href = new URL((await rate.getAttribute('href'))!, 'http://x');
-  expect(href.pathname).toBe('/rate');
-  expect(href.searchParams.get('draft')).toBe('1');
-  expect(href.searchParams.get('drink')).toBe('Negroni');
-  expect(href.searchParams.get('bar')).toBe('Attaboy');
+  await page.getByRole('button', { name: new RegExp(waitingPick.rate) }).click();
+  const sheet = page.getByRole('dialog', { name: ratePage.title });
+  await expect(sheet.getByLabel(pour.drinkLabel)).toHaveValue('Negroni');
+  await expect(sheet.getByLabel(pour.barLabel)).toHaveValue('Attaboy');
+  await expect(sheet.getByText(pour.tapRating, { exact: true })).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(sheet).toHaveCount(0);
 
   await page.getByRole('button', { name: waitingPick.dismiss }).click();
   await expect(page.getByText(waitingPick.waiting)).toHaveCount(0);

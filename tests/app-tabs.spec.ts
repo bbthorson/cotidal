@@ -28,23 +28,31 @@ test('Log: a guest’s pour is kept on the device', async ({ page }) => {
     }
   }, profile);
 
-  // Log shows the log, not a form: rating is a screen of its own.
+  // Log shows the log, not a form: rating is a sheet it opens.
   await page.goto('/log');
   await expect(page.getByRole('heading', { name: logPage.heading, level: 1 })).toBeVisible();
-  await expect(page.getByRole('heading', { name: ratePage.heading })).toHaveCount(0);
-  await expect(page.getByRole('link', { name: logPage.rateDrink })).toHaveAttribute('href', '/rate');
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  const sheet = page.getByRole('dialog', { name: ratePage.title });
+  await page.getByRole('button', { name: logPage.rateDrink }).click();
+  await expect(sheet.getByRole('heading', { name: ratePage.heading })).toBeVisible();
+  // Escape closes it, and focus returns to what opened it.
+  await page.keyboard.press('Escape');
+  await expect(sheet).toHaveCount(0);
+  await expect(page.getByRole('button', { name: logPage.rateDrink })).toBeFocused();
 
-  // A drink handed over opens the form.
-  await page.goto('/rate?drink=Negroni');
-  await expect(page.getByRole('heading', { name: ratePage.heading })).toBeVisible();
-  await page.getByRole('group', { name: pour.whereLabel }).getByRole('button', { name: pour.atHome }).click();
+  // A drink handed over in the address opens the form on it; the address is cleaned on close.
+  await page.goto('/log?rate=Negroni');
+  await expect(sheet.getByRole('heading', { name: ratePage.heading })).toBeVisible();
+  await expect(sheet.getByLabel(pour.drinkLabel)).toHaveValue('Negroni');
+  await sheet.getByRole('group', { name: pour.whereLabel }).getByRole('button', { name: pour.atHome }).click();
   await page.getByRole('radio', { name: /^7:/ }).click();
   await page.getByRole('button', { name: pour.submit }).click();
   await page.getByRole('button', { name: moved.back }).click();
 
-  // Rated: back on the ledger, and the pour survives a reload.
+  // Rated: back on the ledger, which already shows it, and the pour survives a reload.
   await expect(page).toHaveURL(/\/log$/);
-  await expect(page.getByRole('heading', { name: ratePage.heading })).toHaveCount(0);
+  await expect(sheet).toHaveCount(0);
+  await expect(page.locator('ol').filter({ hasText: '7 of 9' })).toContainText('Negroni');
   await page.reload();
   await expect(page.locator('ol').filter({ hasText: '7 of 9' })).toContainText('Negroni');
 

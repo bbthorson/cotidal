@@ -107,7 +107,7 @@ test('Compass: bars near you, then a pick there, then a pour that says where the
 
   // The pick waits on Compass, and rating it opens the draft.
   await expect(page.getByText(waitingPick.waiting)).toBeVisible();
-  await page.getByRole('link', { name: new RegExp(waitingPick.rate) }).click();
+  await page.getByRole('button', { name: new RegExp(waitingPick.rate) }).click();
 
   // Rated at the bar the map named: the pour records where it is.
   await expect(page.getByRole('heading', { name: ratePage.heading })).toBeVisible();
@@ -133,9 +133,10 @@ test('Compass: a drink the map does not know can still be rated, and the pour sa
   await page.goto('/compass');
   await page.getByRole('searchbox').fill('Retsina');
   await expect(page.getByText(compass.noDrinks)).toBeVisible();
-  await page.getByRole('link', { name: compass.rateUnlisted('Retsina') }).click();
+  await page.getByRole('button', { name: compass.rateUnlisted('Retsina') }).click();
 
-  await expect(page).toHaveURL(/\/rate\?drink=Retsina$/);
+  await expect(page).toHaveURL(/\/compass$/);
+  await expect(page.getByLabel(pour.drinkLabel)).toHaveValue('Retsina');
   await expect(page.getByText(pour.unlisted('Retsina'))).toBeVisible();
   await page.getByRole('button', { name: pour.atHome }).click();
   await page.getByRole('button', { name: pour.submit }).click();

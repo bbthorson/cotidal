@@ -3,7 +3,7 @@ import { drinkDatabase, type Drink } from './data';
 /**
  * The one way a name finds its drink on the map. Every caller that turns
  * words — a pour, a menu line, a chat assistant's query — into a `Drink`
- * comes through here, so "margarita" means the same drink on /rate, in a menu on
+ * comes through here, so "margarita" means the same drink in the rating sheet, in a menu on
  * Compass and in a chat. It used to be three lookups that disagreed: exact
  * lower case in the pour pipeline, a looser one in the menu screen, this one in
  * the MCP tools.
