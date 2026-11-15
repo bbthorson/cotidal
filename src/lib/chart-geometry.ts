@@ -111,3 +111,96 @@ export const SECTORS: Record<QuadrantId, { from: number; to: number }> = (() => 
     eddy: { from: p[3], to: next(3) },
   };
 })();
+
+/**
+ * Every hour of the semidiurnal tide, 0h to 11h, as a real cotidal chart
+ * draws them. The four region boundaries (`COTIDAL_LINES`) are the index
+ * lines, as on a contour map: every third line, heavier and labelled. The
+ * two between each pair are spaced evenly round the sector, so they divide
+ * a region without making new ones. Only the landing figure draws these;
+ * the mark and the coaster keep the four, which survive being small.
+ */
+export const HOUR_LINES: readonly { hour: number; param: number; index: boolean }[] = COTIDAL_LINES.flatMap(
+  ({ hour, param }, i) => {
+    const next = COTIDAL_LINES[(i + 1) % COTIDAL_LINES.length].param;
+    const to = next <= param ? next + 360 : next;
+    return [0, 1, 2].map((k) => ({ hour: hour + k, param: param + (k * (to - param)) / 3, index: k === 0 }));
+  }
+);
+
+/**
+ * The mark: this chart reduced to a disc, the way the coaster draws it —
+ * stretched along the map's axes until the outer ring is nearly round, every
+ * label and inner ring dropped, the four lines and one band kept. The header,
+ * the favicon and the touch icon all draw it (`src/lib/mark.ts`), and the
+ * band is the landing figure's, so the logo and the hero are one drawing.
+ *
+ * Quadratics are stretched exactly by moving their points. The ring is
+ * stretched by working out the ellipse it becomes, so no stroke has to be
+ * kept from scaling with `vector-effect`, which an icon cannot rely on.
+ */
+export const DISC_STRETCH = { x: 1.12, y: 1.5 } as const;
+
+/** The band the landing figure and the mark both fill: crisp and sweet, The Surf. */
+export const FILLED_REGION: QuadrantId = 'surf';
+
+const stretch = (p: Point): Point => ({
+  x: CENTRE.x + (p.x - CENTRE.x) * DISC_STRETCH.x,
+  y: CENTRE.y + (p.y - CENTRE.y) * DISC_STRETCH.y,
+});
+
+/** The outer ring after the stretch: semi-axes and tilt (degrees). */
+export function discRing(): { rx: number; ry: number; tilt: number } {
+  // The ring is M·(unit circle) with M = S·R(tilt)·diag(rx, ry); its axes are
+  // the square roots of the eigenvalues of M·Mᵀ.
+  const t = rad(TILT);
+  const [c, s] = [Math.cos(t), Math.sin(t)];
+  const m = [
+    [DISC_STRETCH.x * c * OUTER.rx, -DISC_STRETCH.x * s * OUTER.ry],
+    [DISC_STRETCH.y * s * OUTER.rx, DISC_STRETCH.y * c * OUTER.ry],
+  ];
+  const a = m[0][0] ** 2 + m[0][1] ** 2;
+  const b = m[0][0] * m[1][0] + m[0][1] * m[1][1];
+  const d = m[1][0] ** 2 + m[1][1] ** 2;
+  const mean = (a + d) / 2;
+  const spread = Math.hypot((a - d) / 2, b);
+  const tilt = (Math.atan2(2 * b, a - d) / 2) * (180 / Math.PI);
+  return { rx: round(Math.sqrt(mean + spread)), ry: round(Math.sqrt(mean - spread)), tilt: round(tilt) };
+}
+
+export interface MarkGeometry {
+  /** Square, centred on the amphidrome, with room for a stroke of `pad`. */
+  viewBox: string;
+  ring: string;
+  lines: string[];
+  band: string;
+}
+
+export function markGeometry(pad: number): MarkGeometry {
+  const ring = discRing();
+  const half = Math.ceil(Math.max(ring.rx, ring.ry) + pad);
+  const arc = `A${ring.rx} ${ring.ry} ${ring.tilt}`;
+  const lineOf = (param: number) => {
+    const { control, end } = cotidalLine(param);
+    return { control: stretch(control), end: stretch(end) };
+  };
+  const top = stretch(ringPoint(-90 - TILT));
+  const bottom = stretch(ringPoint(90 - TILT));
+  const { from, to } = SECTORS[FILLED_REGION];
+  const a = lineOf(from);
+  const b = lineOf(to);
+  return {
+    viewBox: `${CENTRE.x - half} ${CENTRE.y - half} ${2 * half} ${2 * half}`,
+    ring: `M${fmt(top)} ${arc} 0 1 ${fmt(bottom)} ${arc} 0 1 ${fmt(top)} Z`,
+    lines: COTIDAL_LINES.map(({ param }) => {
+      const { control, end } = lineOf(param);
+      return `M${fmt(CENTRE)} Q${fmt(control)} ${fmt(end)}`;
+    }),
+    // Affine maps keep which side of the centre an arc passes, so the
+    // large-arc flag carries over from `band`.
+    band:
+      `M${fmt(CENTRE)} Q${fmt(a.control)} ${fmt(a.end)} ` +
+      `${arc} ${to - from > 180 ? 1 : 0} 1 ${fmt(b.end)} ` +
+      `Q${fmt(b.control)} ${fmt(CENTRE)} Z`,
+  };
+}

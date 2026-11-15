@@ -1,5 +1,6 @@
 ---
-import { band, cotidalLine, labelPoint, COTIDAL_LINES, SECTORS, RINGS, CENTRE, TILT } from '../../lib/chart-geometry';
+import type { QuadrantId } from '../../lib/quadrant';
+import { band, cotidalLine, labelPoint, HOUR_LINES, SECTORS, RINGS, CENTRE, TILT, FILLED_REGION } from '../../lib/chart-geometry';
 
 /**
  * The one big move on the landing page: a cotidal chart.
@@ -9,23 +10,38 @@ import { band, cotidalLine, labelPoint, COTIDAL_LINES, SECTORS, RINGS, CENTRE, T
  * at the same hour; the rings around it (co-range lines) join places with the
  * same range. The palate map has the same shape: a zero point at its centre,
  * and lines that divide it into the four regions. So the figure is that chart
- * drawn over the map's axes — four cotidal lines, each leaving the centre
- * along an axis — with one region's band filled and the coordinate sitting
- * in it, the same mark as on the map itself. The accent disc is the moon,
- * which is what moves a tide.
+ * drawn over the map's axes: a cotidal line for every hour, with every
+ * third (the four region boundaries, each leaving the centre along an axis)
+ * drawn heavier and labelled, dashed co-range rings, and one region's band filled and the coordinate sitting
+ * in it, the same mark as on the map itself. Nothing else: no moon or
+ * other ornament, so the figure is the mark drawn large (docs/brand.md).
  *
- * Geometry comes from `src/lib/chart-geometry.ts`, which the coaster will
- * share (docs/coasters.md).
+ * Geometry comes from `src/lib/chart-geometry.ts`, which the coaster and
+ * the mark share (docs/coasters.md, `src/lib/mark.ts`). The band filled here
+ * is the one the mark fills, so the header and the hero are one drawing.
  *
  * Inline SVG, no island. Token classes, not colour attributes.
  */
 
-const lines = COTIDAL_LINES.map(({ hour, param }) => ({
+interface Props {
+  /** The band to fill. The landing page fills the mark's; a region's share card fills its own. */
+  region?: QuadrantId;
+  /** The coordinate in the band. Drawn only in the landing figure's band, where it was placed. */
+  dot?: boolean;
+}
+
+const { region = FILLED_REGION, dot = true } = Astro.props;
+
+const lines = HOUR_LINES.map(({ hour, param, index }) => ({
   hour,
+  index,
   d: cotidalLine(param).d,
   label: labelPoint(param),
 }));
-const filled = band(SECTORS.surf.from, SECTORS.surf.to);
+const indexLines = lines.filter((l) => l.index);
+const hourLines = lines.filter((l) => !l.index);
+const filled = band(SECTORS[region].from, SECTORS[region].to);
+const showDot = dot && region === FILLED_REGION;
 const rotate = `rotate(${TILT} ${CENTRE.x} ${CENTRE.y})`;
 const inner = RINGS.slice(0, -1);
 const outer = RINGS[RINGS.length - 1];
@@ -33,34 +49,37 @@ const outer = RINGS[RINGS.length - 1];
 
 <figure class="mx-auto w-full max-w-sm">
   <svg viewBox="0 0 260 184" class="w-full" fill="none" role="presentation">
-    <!-- The moon -->
-    <circle cx="58" cy="34" r="22" class="fill-accent" />
-
     <!-- The band between the 0h and 3h lines, one region: the one filled shape -->
     <path d={filled} class="fill-primary" />
 
     <!-- The palate map's axes, running past the chart on both sides -->
     <path d="M0 98 H260 M130 6 V178" class="stroke-chart-axis" stroke-width="1" />
 
-    <!-- Co-range rings -->
+    <!-- Co-range rings, dashed as a tide chart dashes them: a different kind of line from the hours -->
     {inner.map(({ rx, ry }) => (
-      <ellipse cx={CENTRE.x} cy={CENTRE.y} rx={rx} ry={ry} transform={rotate} class="stroke-chart-ring" stroke-width="1" />
+      <ellipse cx={CENTRE.x} cy={CENTRE.y} rx={rx} ry={ry} transform={rotate} class="stroke-chart-ring" stroke-width="1" stroke-dasharray="3 2.5" />
     ))}
     <ellipse cx={CENTRE.x} cy={CENTRE.y} rx={outer.rx} ry={outer.ry} transform={rotate} class="stroke-foreground" stroke-width="1.5" />
 
-    <!-- Cotidal lines, three hours apart: one per region boundary -->
-    {lines.map(({ d }) => <path d={d} class="stroke-foreground" stroke-width="1" />)}
+    <!-- Cotidal lines, one an hour. Every third is an index line, heavier and
+         labelled, as on a contour map: those are the region boundaries. -->
+    {hourLines.map(({ d }) => <path d={d} class="stroke-chart-ring" stroke-width="0.75" />)}
+    {indexLines.map(({ d }) => <path d={d} class="stroke-foreground" stroke-width="1.25" />)}
 
-    <!-- Hour of high water, as a cotidal chart labels its lines -->
+    <!-- Hour of high water on the index lines, as a cotidal chart labels them -->
     <g class="fill-muted-foreground font-condensed" font-size="8" letter-spacing="0.5" text-anchor="middle" aria-hidden="true">
-      {lines.map(({ hour, label }) => <text x={label.x} y={label.y}>{hour}h</text>)}
+      {indexLines.map(({ hour, label }) => <text x={label.x} y={label.y}>{hour}h</text>)}
     </g>
 
     <!-- The amphidrome: the map's zero point -->
     <circle cx="130" cy="98" r="2.5" class="fill-card stroke-foreground" stroke-width="1" />
 
     <!-- The coordinate, sitting in the band -->
-    <path d="M168.3 47 V79 M152.3 63 H184.3" class="stroke-chart-cross" stroke-width="1" />
-    <circle cx="168.3" cy="63" r="4" class="fill-foreground" />
+    {showDot && (
+      <>
+        <path d="M168.3 47 V79 M152.3 63 H184.3" class="stroke-chart-cross" stroke-width="1" />
+        <circle cx="168.3" cy="63" r="4" class="fill-foreground" />
+      </>
+    )}
   </svg>
 </figure>

@@ -42,6 +42,7 @@ something that drifts from the first. Three had already happened:
 | Drink prose | `src/content/drinks/*.md` | `tests/unit/drink-content.test.ts` |
 | Region prose | `src/content/regions/*.md` | `tests/unit/region-content.test.ts` |
 | What the device keeps | `src/lib/device-store.ts` | *(convention)* — nothing else touches `localStorage` |
+| Icons and share cards | `src/lib/mark.ts` (the mark), `src/pages/share/[card].astro` (the cards); `npm run images` writes `public/` from them | `tests/unit/mark.test.ts`, `tests/unit/share.test.ts` |
 
 Found in the wild, each silent:
 

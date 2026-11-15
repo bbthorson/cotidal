@@ -1,5 +1,6 @@
 ---
 import { site } from '../../lib/copy';
+import { mark } from '../../lib/mark';
 
 interface Props {
   class?: string;
@@ -8,30 +9,27 @@ interface Props {
 const { class: className = '' } = Astro.props;
 
 /**
- * The mark: the landing page's cotidal chart reduced to a letter. An open
- * ring makes the C; three cotidal lines run from the centre to it, and the
- * C's opening is the fourth boundary, so the mark has the chart's four
- * regions. The band between two of them is filled, as on the large figure,
- * which is what keeps the mark legible at favicon size where hairlines alone
- * disappear.
- * `public/icon.svg` is the same drawing with heavier strokes.
+ * The mark: the landing page's cotidal chart reduced to a disc, as the
+ * coaster draws it — the outer ring, the four cotidal lines, and the same
+ * band filled. Geometry and weights come from `src/lib/mark.ts`, which also
+ * generates `public/icon.svg` and the favicons, so the header, the tab and
+ * the hero are one drawing.
  *
  * Inline SVG rather than an icon library: this renders on `/`, which ships
  * no client JavaScript, so nothing here may pull an island.
  *
  * Colours come from Tailwind token classes rather than fill/stroke attributes
- * — a literal `hsl(...)` in an attribute trips the token rule in
+ * — a literal colour in an attribute trips the token rule in
  * eslint.config.mjs, which is the point of that rule.
  */
+const m = mark('header');
 ---
 
 <span class={`inline-flex items-center justify-center ${className}`} aria-hidden="true">
-  <svg viewBox="0 0 48 48" class="h-full w-full" fill="none">
-    <path d="M24 24 Q16.12 18.69 5 24 A19 19 0 0 1 24 5 Q29.31 16.12 24 24 Z" class="fill-primary" />
-    <path d="M38.12 36.71 A19 19 0 1 1 38.12 11.29" class="stroke-primary" stroke-width="1.5" stroke-linecap="round" />
-    <path d="M24 24 Q18.69 31.88 24 43" class="stroke-primary" stroke-width="1.5" stroke-linecap="round" />
-    <path d="M24 24 Q16.12 18.69 5 24" class="stroke-primary" stroke-width="1.5" stroke-linecap="round" />
-    <path d="M24 24 Q29.31 16.12 24 5" class="stroke-primary" stroke-width="1.5" stroke-linecap="round" />
+  <svg viewBox={m.viewBox} class="h-full w-full" fill="none">
+    <path d={m.band} class="fill-primary" />
+    {m.lines.map((d) => <path d={d} class="stroke-foreground" stroke-width={m.lineWidth} stroke-linecap="round" />)}
+    <path d={m.ring} class="stroke-foreground" stroke-width={m.ringWidth} />
   </svg>
   <span class="sr-only">{site.name}</span>
 </span>
