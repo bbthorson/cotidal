@@ -158,12 +158,24 @@ geometry — a zero point at the centre of the map, and lines joining everyone
 at the same phase.
 
 - **The figure** (`ChartFigure.astro`, the landing page's one large move):
-  co-range rings and six cotidal lines labelled by hour, over the map's axes;
-  one band between two lines filled in terracotta, with the coordinate sitting
-  in it; the sage disc is the moon.
-- **The mark** (`Monogram.astro`, `public/icon.svg`, `favicon.ico`): the same
-  chart reduced to a letter — an open ring for the C, three cotidal lines, and
-  the one filled band, which is what keeps it legible at 16px.
+  co-range rings and four cotidal lines labelled by hour, one per region
+  boundary, over the map's axes; the band between 0h and 3h (The Surf) filled
+  in terracotta, with the coordinate sitting in it; the sage disc is the moon,
+  clear of the rings.
+- **The mark** (`Monogram.astro`, `public/icon.svg`, `favicon.ico`,
+  `apple-touch-icon.png`): the same chart reduced to a disc, the way the
+  coaster draws it — the outer ring, the four lines, and the same band filled.
+  Ink lines, terracotta band, so the header and the hero read as one drawing.
+  The filled band is what keeps it legible at 16px.
+
+The mark is drawn once, in `src/lib/mark.ts`, from the figure's geometry
+(`markGeometry` in `chart-geometry.ts`). The header renders it with token
+classes; `npm run icons` writes the three icon files from it. Icon files
+cannot read CSS, so they carry the tokens as hex, and
+`tests/unit/mark.test.ts` fails when those leave `globals.css` or when
+`icon.svg` is not what the module draws. On a browser's dark tab strip the
+icon draws in paper with a lighter terracotta: that is the browser's chrome,
+not a dark theme for the site.
 
 ## Rules
 

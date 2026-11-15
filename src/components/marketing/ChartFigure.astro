@@ -1,5 +1,5 @@
 ---
-import { band, cotidalLine, labelPoint, COTIDAL_LINES, SECTORS, RINGS, CENTRE, TILT } from '../../lib/chart-geometry';
+import { band, cotidalLine, labelPoint, COTIDAL_LINES, SECTORS, RINGS, CENTRE, TILT, FILLED_REGION } from '../../lib/chart-geometry';
 
 /**
  * The one big move on the landing page: a cotidal chart.
@@ -14,8 +14,9 @@ import { band, cotidalLine, labelPoint, COTIDAL_LINES, SECTORS, RINGS, CENTRE, T
  * in it, the same mark as on the map itself. The accent disc is the moon,
  * which is what moves a tide.
  *
- * Geometry comes from `src/lib/chart-geometry.ts`, which the coaster will
- * share (docs/coasters.md).
+ * Geometry comes from `src/lib/chart-geometry.ts`, which the coaster and
+ * the mark share (docs/coasters.md, `src/lib/mark.ts`). The band filled here
+ * is the one the mark fills, so the header and the hero are one drawing.
  *
  * Inline SVG, no island. Token classes, not colour attributes.
  */
@@ -25,7 +26,7 @@ const lines = COTIDAL_LINES.map(({ hour, param }) => ({
   d: cotidalLine(param).d,
   label: labelPoint(param),
 }));
-const filled = band(SECTORS.surf.from, SECTORS.surf.to);
+const filled = band(SECTORS[FILLED_REGION].from, SECTORS[FILLED_REGION].to);
 const rotate = `rotate(${TILT} ${CENTRE.x} ${CENTRE.y})`;
 const inner = RINGS.slice(0, -1);
 const outer = RINGS[RINGS.length - 1];
@@ -33,8 +34,8 @@ const outer = RINGS[RINGS.length - 1];
 
 <figure class="mx-auto w-full max-w-sm">
   <svg viewBox="0 0 260 184" class="w-full" fill="none" role="presentation">
-    <!-- The moon -->
-    <circle cx="58" cy="34" r="22" class="fill-accent" />
+    <!-- The moon, clear of the outer ring: it pulls the tide, it is not on the chart -->
+    <circle cx="40" cy="30" r="20" class="fill-accent" />
 
     <!-- The band between the 0h and 3h lines, one region: the one filled shape -->
     <path d={filled} class="fill-primary" />

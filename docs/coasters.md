@@ -27,8 +27,9 @@ region near the centre and leans a little past the axis at the rim — the
 cost of curved lines over straight axes. `SECTORS` names each band by its
 region, which is what the coaster fills. `tests/unit/chart-geometry.test.ts`
 holds the generator to the six-line figure it replaced and fails if the
-sector count stops matching the regions. The monogram already read as four
-(three lines and the C's opening), so only its comment changed.
+sector count stops matching the regions. The monogram now draws the same four
+lines and the same band from that generator (`markGeometry`, `src/lib/mark.ts`),
+stretched to a disc as the coaster is.
 
 ## The personal coaster is the user's QR code
 
