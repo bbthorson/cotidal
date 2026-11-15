@@ -20,6 +20,7 @@ export const destinations = [
   { href: '/log', label: nav.log, match: '/log', app: true, header: true },
   { href: '/drinks', label: nav.register, match: '/drinks', app: false, header: true },
   { href: '/#regions', label: nav.regions, match: '/regions', app: false, header: true },
+  { href: '/how-it-works', label: nav.howItWorks, match: '/how-it-works', app: false, header: false },
   { href: '/bars', label: nav.bars, match: '/bars', app: false, header: false },
 ] as const;
 

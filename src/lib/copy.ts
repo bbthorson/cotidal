@@ -29,6 +29,7 @@ export const nav = {
   footer: 'Site',
   log: 'Log',
   bars: 'For bars',
+  howItWorks: 'How it works',
 } as const;
 
 /**
@@ -220,6 +221,7 @@ export const hero = {
 export const howItGoes = {
   title: 'How it goes',
   label: 'Three steps',
+  more: 'How your answers and ratings move your point',
   steps: [
     {
       where: 'The questions',
@@ -607,6 +609,83 @@ export const pour = {
     'Drafted in your chat. Check each field and tap how it landed; nothing is saved until you log it.',
   failed: 'That pour did not save. Try again.',
   home: 'Home',
+} as const;
+
+/**
+ * /how-it-works: how answers and ratings place and move a coordinate, said
+ * as the code does it today (docs/brand.md, Claims). Every number here is a
+ * constant in belief-state.ts or palate-state.ts, and
+ * tests/how-it-works.spec.ts holds the two equal. Never the code's words:
+ * no calibration, no latent, no triangulation.
+ */
+export const howItWorks = {
+  eyebrow: 'How it works',
+  title: 'How your answers and ratings move your point',
+  lede:
+    'Your coordinate comes from two things only: the answers you give and the drinks you rate. This is how each one counts, and where it is kept.',
+  sections: [
+    {
+      id: 'questions',
+      title: 'The questions',
+      paragraphs: [
+        'The first 4 questions are the same for everyone. After those, each question is the one whose answer would say the most about where you sit, given what you have answered so far, or settle whether you avoid smoke, bitterness or anise. The questions stop once both directions on the chart are sure enough and those three are settled: never fewer than 4, never more than 8.',
+        'Each answer is weighed against every point on the chart: how likely is it that someone sitting there would have picked what you picked, from the options shown? Your point is where all your answers, taken together, agree best. The order you answered in makes no difference.',
+        'People don’t answer like machines, so it also works out how steady your answers are. If they disagree with each other, your point stays unsure, rather than settling confidently halfway between them.',
+      ],
+    },
+    {
+      id: 'sure',
+      title: 'How sure it is',
+      paragraphs: [
+        'The questions settle how sure your point is, as well as where it is. A point the questions placed firmly moves less with your first ratings than one they left loose.',
+      ],
+    },
+    {
+      id: 'ratings',
+      title: 'Rating a drink',
+      paragraphs: [
+        'You rate a drink from 1 to 9. A 7 or higher pulls your point toward that drink, a 3 or lower pushes it away, and anything in between leaves it where it is. The step shrinks as your point grows surer, so your hundredth rating moves it less than your first.',
+        '“What was off” adds a fixed nudge of its own: too sweet moves you toward savory, too rich toward crisp, and so on. Too smoky, too bitter or too anise marks it as something you avoid, and those drinks leave your menu. No rating turns that off again.',
+        'However you rate it, one drink never moves your point more than a tenth of the way across the chart. A drink that isn’t on the map has no place to pull toward, so only “what was off” counts for it.',
+      ],
+    },
+    {
+      id: 'menu',
+      title: 'Your menu',
+      paragraphs: [
+        'Your menu ranks every drink, mostly by how close it sits to your point. The kinds of drink your answers and your liked drinks point to count too, and so does what you rated a drink last time. A drink you rated 3 or less last time comes off your menu, and so does any drink with something you avoid.',
+      ],
+    },
+    {
+      id: 'unseen',
+      title: 'What the chart doesn’t show',
+      paragraphs: [
+        'Each rating of a drink on the map also updates three readings that aren’t drawn on the chart: how you take bitterness, tannin and a drink with a lot going on. They are saved with your coordinate. Today they don’t change your menu.',
+      ],
+    },
+    {
+      id: 'kept',
+      title: 'What is kept, and where',
+      paragraphs: [
+        'Before you sign in, your coordinate, your answers and your ratings stay on this device.',
+        'Once you sign in, your coordinate, every answer as you gave it (the question, what each option offered and which one you picked) and every drink you rate are saved to your own Bluesky account. They’re public there, and they’re yours. A set of answers is never edited: retaking the questions adds a new set beside the old one.',
+        account.signOutBody,
+      ],
+    },
+    {
+      id: 'not',
+      title: 'What it doesn’t use',
+      paragraphs: [
+        'Only your answers and your ratings move your point. Not the season, the hour or the weather, and not what other people rate. No AI model is involved in placing or moving it.',
+      ],
+    },
+  ],
+  laterTitle: 'How far to trust it',
+  later: [
+    'Today, how much each answer counts was set by testing the questions against simulated answers, not real ones.',
+    'Later: using the answers people have saved, next to how they later rated drinks, to check which questions work and how much each answer should count.',
+  ],
+  start: 'Find your coordinate',
 } as const;
 
 export const venuesCopy = {

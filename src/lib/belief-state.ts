@@ -108,7 +108,7 @@ const PRIOR_VARIANCE = 25;
 // slightly fewer questions. Lower buys accuracy for length (4 adds about
 // 0.7 questions for a few percent).
 const COMPLETION_THRESHOLD = 5;
-const MIN_QUESTIONS = 4;
+export const MIN_QUESTIONS = 4;
 export const MAX_QUESTIONS = 8;
 
 const GRID_STEP = 0.5;

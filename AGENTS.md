@@ -123,6 +123,11 @@ The quiz's x/y variance travels
 in `UserProfile.variance` and becomes the 5D starting covariance, so a
 confident quiz makes early pours move the dot less.
 Nothing in the quiz calls a model, so the flow runs offline.
+`/how-it-works` is the public account of this section and of how a pour
+moves the dot, in plain words (`howItWorks` in `copy.ts`).
+`tests/how-it-works.spec.ts` holds its numbers to `MIN_QUESTIONS`,
+`MAX_QUESTIONS`, `MAX_POUR_STEP` and the 7/3 rating thresholds: change one
+and update the page in the same commit.
 What may call a model, and who sees the result, is `docs/generation.md`.
 
 ### Drink prose — `src/content/drinks/`, `src/content.config.ts`
