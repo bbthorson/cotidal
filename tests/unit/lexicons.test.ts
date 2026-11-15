@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from 'vitest';
 import { readFileSync, readdirSync } from 'node:fs';
 import {
   PourRecordSchema,
@@ -8,7 +8,7 @@ import {
   POUR_COLLECTION,
   MENU_COLLECTION,
   MAKER_COLLECTION,
-} from '../src/lib/atproto/records';
+} from '../../src/lib/atproto/records';
 
 const DIR = 'src/lib/atproto/lexicons';
 const lexicon = (id: string) => JSON.parse(readFileSync(`${DIR}/${id}.json`, 'utf8'));
@@ -128,7 +128,7 @@ test('Locations: place vocabulary is borrowed, not reinvented', async () => {
 
 test('Psychophysics: palate records dynamicState and pour records CATA/gLMS', async () => {
   const { PalateRecordSchema, PalateSchema, encodePalate, decodePalate, PALATE_COLLECTION } = await import(
-    '../src/lib/atproto/records'
+    '../../src/lib/atproto/records'
   );
 
   // The palate as the app holds it: plain numbers.

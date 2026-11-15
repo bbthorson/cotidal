@@ -609,7 +609,7 @@ export const pour = {
  * /how-it-works: how answers and ratings place and move a coordinate, said
  * as the code does it today (docs/brand.md, Claims). Every number here is a
  * constant in belief-state.ts or palate-state.ts, and
- * tests/how-it-works.spec.ts holds the two equal. Never the code's words:
+ * tests/unit/how-it-works.test.ts holds the two equal. Never the code's words:
  * no calibration, no latent, no triangulation.
  */
 export const howItWorks = {

@@ -142,7 +142,7 @@ to rotate than an address. Order in every route: validate → authenticate →
 meter → call. **Malformed and unauthenticated requests cost nothing and consume
 no quota.**
 
-`tests/generation-gate.spec.ts` asserts the limiter refuses past its allowance,
+`tests/unit/generation-gate.test.ts` asserts the limiter refuses past its allowance,
 meters per key, and does not fail open when a binding throws.
 
 ## Reaching a binding

@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from 'vitest';
 import {
   comparePalates,
   getPalate,
@@ -7,10 +7,10 @@ import {
   recommendDrinks,
   searchDrinks,
   type ToolContext,
-} from '../src/lib/mcp/tools';
-import { drinkDatabase } from '../src/lib/data';
-import { compareMaps, nearestDrinks } from '../src/lib/overlap';
-import type { PublicPalateResult } from '../src/lib/atproto/public-read';
+} from '../../src/lib/mcp/tools';
+import { drinkDatabase } from '../../src/lib/data';
+import { compareMaps, nearestDrinks } from '../../src/lib/overlap';
+import type { PublicPalateResult } from '../../src/lib/atproto/public-read';
 
 /**
  * `/mcp`: the palate map as tools a chat assistant can call.

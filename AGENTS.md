@@ -39,8 +39,8 @@ something that drifts from the first. Three had already happened:
 | Records | `src/lib/atproto/lexicons/*.json` | `npm run lexicons` |
 | Styling | `globals.css` tokens + `tailwind.config.ts` | `npm run lint` — arbitrary values, raw colours, and Tailwind's own type sizes are an error in `pages/`, `layouts/` and `components/` |
 | Interface copy | `src/lib/copy.ts` | `npm run lint` — words typed into JSX text or a `placeholder` / `aria-label` / `title` / `alt` are an error. Quiz questions (`discovery-questions.ts`, beside their scoring) and the drink and region prose are the exceptions |
-| Drink prose | `src/content/drinks/*.md` | `tests/drink-content.spec.ts` |
-| Region prose | `src/content/regions/*.md` | `tests/region-content.spec.ts` |
+| Drink prose | `src/content/drinks/*.md` | `tests/unit/drink-content.test.ts` |
+| Region prose | `src/content/regions/*.md` | `tests/unit/region-content.test.ts` |
 | What the device keeps | `src/lib/device-store.ts` | *(convention)* — nothing else touches `localStorage` |
 
 Found in the wild, each silent:
@@ -125,7 +125,7 @@ confident quiz makes early pours move the dot less.
 Nothing in the quiz calls a model, so the flow runs offline.
 `/how-it-works` is the public account of this section and of how a pour
 moves the dot, in plain words (`howItWorks` in `copy.ts`).
-`tests/how-it-works.spec.ts` holds its numbers to `MIN_QUESTIONS`,
+`tests/unit/how-it-works.test.ts` holds its numbers to `MIN_QUESTIONS`,
 `MAX_QUESTIONS`, `MAX_POUR_STEP` and the 7/3 rating thresholds: change one
 and update the page in the same commit.
 What may call a model, and who sees the result, is `docs/generation.md`.
@@ -154,7 +154,7 @@ enum in `src/content.config.ts`; extend it there before using a new value. Then:
 
 ```bash
 npm run typecheck   # the frontmatter schema is checked at build time
-npm test -- tests/drink-content.spec.ts
+npm run test:unit -- tests/unit/drink-content.test.ts
 ```
 
 ### Region prose — `src/content/regions/`, `src/pages/drinks/regions/[id].astro`
@@ -267,7 +267,7 @@ reference implementation, never a look-alike regex. Integers are
 `Number.MAX_SAFE_INTEGER` that the reference validator accepts. `npm run lexicons`
 compares every schema in `RECORD_SCHEMAS` with its lexicon field by field and
 parses every file with `@atproto/lexicon`'s `parseLexiconDoc` (not
-`new Lexicons()`, which accepts anything). `tests/lexicon-conformance.spec.ts`
+`new Lexicons()`, which accepts anything). `tests/unit/lexicon-conformance.test.ts`
 runs Zod and the reference validator over the same records.
 
 **Datetimes** follow https://atproto.com/specs/lexicon#datetime. Reads accept
@@ -291,7 +291,7 @@ The browser loads `vocab.ts` (names and vocabularies) and
 server needs (`@atproto/lex-data`, for CIDs) are registered there. Writes go through the schema: a pour is
 validated (`PourWriteSchema`) before the palate or the pour is written —
 by `logPour` in `src/lib/pours.server.ts`, the one pipeline every caller
-uses (`tests/log-pour.spec.ts` holds the order of writes) — and
+uses (`tests/unit/log-pour.test.ts` holds the order of writes) — and
 reads are parsed (`readPour`) rather than cast. Vocabularies the app writes
 (`DEVIATIONS`, `CATA`) are stable ids declared as `knownValues`; the words
 shown for them live in `copy.ts`.
@@ -316,9 +316,18 @@ when the released parser catches up, so the aliases get removed.
   exists: no redirect for a moved page, no read path for an old record
   shape, no shim for a renamed id. Change it and update every link. This
   ends the day real people's records or printed codes point at the site.
-- Test the contract, not the path. Order-independent logic (scoring, belief
-  state) belongs in unit tests; browser tests cover routing, rendering, and
-  degradation.
+- Test the contract, not the path. Logic (scoring, belief state, records,
+  the chat tools) is a Vitest test in `tests/unit/*.test.ts`: no server, no
+  browser, seconds (`npm run test:unit`). Pages and routes are Playwright
+  specs in `tests/*.spec.ts`, against the preview build (`npm run test:e2e`).
+  A test that needs neither a page nor a request goes in `tests/unit/`.
+- **Vite+ (`vite-plus`) is not adopted, on purpose.** Vitest is pinned to the
+  version it bundles, so moving later is a config change. What blocks it
+  today: it replaces `vite` across the tree with its own core build, under
+  Astro and `@astrojs/cloudflare`; Oxlint lints an `.astro` file's
+  frontmatter but not its template, where the copy and token rules matter
+  most; and `vp check` does not run `astro check`. Revisit when Astro
+  supports Vite+ and Oxlint reads `.astro` templates.
 - Model routes are gated, metered, and always answer with usable content —
   session gate, per-DID limiter, deterministic fallback, `x-generation` header.
   A new one inherits all four (`docs/generation.md`).
@@ -328,8 +337,8 @@ when the released parser catches up, so the aliases get removed.
   Builds installs (the one bundled with `.nvmrc`'s Node).
 - In Claude Code on the web, `.claude/hooks/session-start.sh` installs
   dependencies and sets the env vars the suite needs there. Run the suite the
-  way CI does, against the preview build: `npm test` (the build, then
-  `CI=1 playwright test`). Against `npm run dev`, server rendering throws "The
+  way CI does: `npm test` (the unit tests, then the build and the browser
+  tests against its preview). Against `npm run dev`, server rendering throws "The
   Console.createTask method is not implemented" (React 19's dev build on
   workerd) and about a third of the suite fails.
 

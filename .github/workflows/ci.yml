@@ -35,6 +35,10 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
+      # Logic tests (Vitest): no server, no browser, seconds.
+      - name: Unit tests
+        run: npm run test:unit
+
       - name: Build
         run: npm run build
 
@@ -53,7 +57,8 @@ jobs:
         if: steps.playwright-cache.outputs.cache-hit == 'true'
         run: npx playwright install-deps chromium
 
-      - name: Test
+      # Pages and routes (Playwright), against the preview of the build above.
+      - name: Browser tests
         run: npx playwright test
 
       - uses: actions/upload-artifact@v4

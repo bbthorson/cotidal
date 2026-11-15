@@ -86,11 +86,14 @@ npm run build      # production build
 npm run typecheck  # lexicons + astro check + tsc
 npm run lexicons   # validate lexicon schemas and their refs
 npm run check      # lint + typecheck
-npm test           # build, then the suite against the preview, as CI runs it
+npm test           # everything, as CI runs it
+npm run test:unit  # logic tests (Vitest, tests/unit): no server, seconds
+npm run test:e2e   # build, then pages and routes (Playwright) against the preview
 ```
 
-`npm test` runs the suite against the preview build: with `CI` set, Playwright
-serves `npm run preview`. One file: `npm test -- tests/drink-content.spec.ts`. Against `npm run dev`, React 19's development build
+The browser tests run against the preview build: with `CI` set, Playwright
+serves `npm run preview`. One file: `npm run test:unit -- tests/unit/drink-content.test.ts`
+or `npm run test:e2e -- tests/landing-static.spec.ts`. Against `npm run dev`, React 19's development build
 on workerd breaks server rendering and about a third of the suite fails.
 
 The suite needs no model key: nothing in the quiz calls a model, and model

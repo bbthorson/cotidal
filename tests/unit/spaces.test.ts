@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { SpaceRef, isSpaceRefString, isSpaceAtUriString, parseAtUriString } from 'atproto-syntax-spaces';
 import { SpacePermission } from 'atproto-oauth-scopes-spaces';
@@ -14,8 +14,8 @@ import {
   parseSpaceUri,
   pourBelongsInBarSpace,
   spaceScope,
-} from '../src/lib/atproto/spaces';
-import { BAR_SPACE_KEY, BAR_SPACE_TYPE, POUR_COLLECTION } from '../src/lib/atproto/vocab';
+} from '../../src/lib/atproto/spaces';
+import { BAR_SPACE_KEY, BAR_SPACE_TYPE, POUR_COLLECTION } from '../../src/lib/atproto/vocab';
 
 /*
  * The released @atproto/syntax cannot parse a space URI, so the Spaces alpha

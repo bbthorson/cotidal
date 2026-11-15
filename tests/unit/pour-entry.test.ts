@@ -1,8 +1,8 @@
-import { test, expect } from '@playwright/test';
-import { glmsWord, toLogOptions, type PourEntry } from '../src/components/app/PourForm';
-import { catalogSlug, type Register } from '../src/lib/register';
-import { GLMS_ANCHORS } from '../src/lib/atproto/vocab';
-import { pour } from '../src/lib/copy';
+import { test, expect } from 'vitest';
+import { glmsWord, toLogOptions, type PourEntry } from '../../src/components/app/PourForm';
+import { catalogSlug, type Register } from '../../src/lib/register';
+import { GLMS_ANCHORS } from '../../src/lib/atproto/vocab';
+import { pour } from '../../src/lib/copy';
 
 /**
  * What the pour form sends is what the drinker said: a field they did not

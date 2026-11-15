@@ -1,11 +1,8 @@
 import { test, expect } from '@playwright/test';
-import { isFormSignOut, toSignedOut } from '../src/lib/atproto/sign-out';
 import { SIGNED_OUT_PARAM, START_OVER_PARAM, signedOutPath, startOverPath } from '../src/lib/atproto/paths';
-import { derivePalateRecord } from '../src/lib/sensory';
 import { account, compass, menu, nav } from '../src/lib/copy';
 import { destinations } from '../src/lib/site-nav';
 import { questions } from '../src/lib/discovery-questions';
-import type { Palate } from '../src/lib/atproto/records';
 
 /**
  * Who is signed in, how to stop being, and how to start over. The suite runs
@@ -36,23 +33,6 @@ test('Header: a prerendered page cannot know who is reading, and says Account', 
   expect(header).toContain('href="/log#account"');
   expect(header).toContain(`>${account.neutral}<`);
   expect(header).not.toContain(nav.signIn);
-});
-
-test('Sign out: the form post lands on Compass marked, with the cleared cookie kept', () => {
-  const request = new Request('https://cotidal.app/api/auth/atproto/logout', { method: 'POST' });
-  const packaged = new Response(null, {
-    status: 303,
-    headers: { location: '/compass', 'set-cookie': 'bsky_sid=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax; Secure' },
-  });
-  expect(isFormSignOut(request, packaged)).toBe(true);
-  const out = toSignedOut(packaged);
-  expect(out.status).toBe(303);
-  expect(out.headers.get('location')).toBe(signedOutPath);
-  expect(out.headers.get('set-cookie')).toContain('bsky_sid=;');
-
-  // The island's JSON calls and the other routes pass through untouched.
-  expect(isFormSignOut(new Request('https://cotidal.app/api/auth/atproto/session'), packaged)).toBe(false);
-  expect(isFormSignOut(request, new Response(null, { status: 204 }))).toBe(false);
 });
 
 test('Sign out: the page it lands on forgets the coordinate on this device', async ({ page }) => {
@@ -107,22 +87,6 @@ test('Start over: the questions clear the old coordinate and take the marker off
   // Server-rendered before hydration removes the marker; wait for it.
   await expect.poll(() => new URL(page.url()).searchParams.has(START_OVER_PARAM)).toBe(false);
   await expect.poll(() => page.evaluate(() => localStorage.getItem('user_profile'))).toBeNull();
-});
-
-test('Start over: a retake restarts the filter instead of keeping the old one', () => {
-  const existing: Palate = {
-    $type: 'app.cotidal.palate',
-    mapCoordinates: { x: -6, y: 5 },
-    dynamicState: { latentVector: [-6, 5, 7, 6, 8], covarianceDiagonal: [1, 1, 2, 2, 2], eventCount: 14 },
-    aversions: { smoke: false, bitter: false, anise: false },
-    vibeTags: {},
-    createdAt: '2026-09-01T00:00:00.000Z',
-  };
-  const record = derivePalateRecord(profile, existing);
-  // The old state pulled the next pour back toward (-6, 5).
-  expect(record.dynamicState.latentVector.slice(0, 2)).toEqual([4, -2]);
-  expect(record.dynamicState.eventCount).toBe(0);
-  expect(record.createdAt).toBe(existing.createdAt);
 });
 
 test('Navigation: the header is the drinker\'s app; For Bars is read from the footer', async ({ request }) => {

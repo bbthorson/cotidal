@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from 'vitest';
 import {
   createInitialPalateState,
   updatePalateEKF,
@@ -10,8 +10,8 @@ import {
   getDiagonal,
   vibeTagsAfterPour,
   aversionsAfterPour,
-} from '../src/lib/palate-state';
-import type { Drink } from '../src/lib/data';
+} from '../../src/lib/palate-state';
+import type { Drink } from '../../src/lib/data';
 
 const testDrink: Drink = {
   name: 'Test Daiquiri',

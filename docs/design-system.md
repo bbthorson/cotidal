@@ -85,7 +85,7 @@ Sizes are named for the role, not the number. Tailwind's own sizes (`text-sm`, `
 | `text-hero` / `text-hero-lg` | 40px / 60px, 1.05 | — | Landing headline (phone / from `md`) |
 | `text-region` | 56px / 1 | — | A region, revealed (Playfair 400 italic) |
 
-A new size is added to `fontSize` in `tailwind.config.ts` **and** to `FONT_SIZES` in `src/lib/utils.ts` (`tests/class-merge.spec.ts` holds the two equal), so `cn()` does not read it as a colour.
+A new size is added to `fontSize` in `tailwind.config.ts` **and** to `FONT_SIZES` in `src/lib/utils.ts` (`tests/unit/class-merge.test.ts` holds the two equal), so `cn()` does not read it as a colour.
 
 Fonts (`Base.astro`): Playfair Display 400, 400 italic and 700; PT Sans 400/700; Barlow Condensed 400/600/700. `font-mono` resolves to Barlow — monospace is not a brand face.
 
@@ -245,7 +245,7 @@ To guarantee the design system never drifts, automated enforcement is active at 
 - `astro check`: Validates Astro component props and types.
 - `tsc --noEmit`: Validates TypeScript types across the entire project.
 
-### 4. Browser & Contract Tests (`npm test`)
+### 4. Tests (`npm test`: Vitest in `tests/unit/`, Playwright in `tests/`)
 - `tests/landing-static.spec.ts`: Asserts zero client scripts or hydration islands on `/`, server-rendered quadrants, and non-JS form fallback.
 - `tests/visual-identity.spec.ts`: Asserts computed CSS colors match the exact token values for paper ground (`rgb(244, 241, 230)`) and forest ink (`rgb(35, 52, 43)`).
-- `tests/drink-content.spec.ts`: Asserts all drink entries join cleanly to the coordinate database and contain primary sources.
+- `tests/unit/drink-content.test.ts`: Asserts all drink entries join cleanly to the coordinate database and contain primary sources.

@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from 'vitest';
 import { readFileSync, readdirSync } from 'node:fs';
 import {
   CATA,
@@ -10,8 +10,8 @@ import {
   graphemeLength,
   readPour,
   utf8Length,
-} from '../src/lib/atproto/records';
-import { pour as pourCopy } from '../src/lib/copy';
+} from '../../src/lib/atproto/records';
+import { pour as pourCopy } from '../../src/lib/copy';
 
 /**
  * A pour is a signed record nobody can rewrite, so what this app writes must

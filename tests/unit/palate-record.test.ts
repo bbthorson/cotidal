@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import {
   PALATE_COLLECTION,
@@ -7,8 +7,8 @@ import {
   decodePalate,
   encodePalate,
   type Palate,
-} from '../src/lib/atproto/records';
-import { derivePalateRecord } from '../src/lib/sensory';
+} from '../../src/lib/atproto/records';
+import { derivePalateRecord } from '../../src/lib/sensory';
 
 /**
  * `app.cotidal.palate` on the wire. The AT Protocol data model has no

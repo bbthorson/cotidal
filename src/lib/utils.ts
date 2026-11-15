@@ -6,7 +6,7 @@ import { extendTailwindMerge } from "tailwind-merge"
  * `text-prose` or `text-title` as a colour and drops it when a colour class
  * follows (`text-title … text-foreground`), so a drink name rendered at body
  * size. These are the `fontSize` keys in tailwind.config.ts
- * (tests/class-merge.spec.ts holds the two lists equal).
+ * (tests/unit/class-merge.test.ts holds the two lists equal).
  */
 export const FONT_SIZES = [
   "label",

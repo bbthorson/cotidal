@@ -73,7 +73,7 @@ Decisions, and why:
 - `spaces.ts`: space refs and space record URIs, built from parts checked by
   the released `@atproto/syntax`; the bar policy; the staff member entry; the
   OAuth scopes a patron, a venue and staff would ask for.
-- `tests/spaces.spec.ts` holds the URIs equal to the Spaces alpha of
+- `tests/unit/spaces.test.ts` holds the URIs equal to the Spaces alpha of
   `@atproto/syntax` (`SpaceRef`, `isSpaceRefString`, `parseAtUriString`),
   including what it refuses.
 
@@ -97,7 +97,7 @@ here talks to a server yet, on purpose.
 
 1. **Repoint the aliases** at the beta packages, or drop them once the released
    `@atproto/syntax` and `@atproto/lexicon` know spaces. Rerun
-   `npm run lexicons` and `tests/spaces.spec.ts`; a change of URI or lexicon
+   `npm run lexicons` and `tests/unit/spaces.test.ts`; a change of URI or lexicon
    shape fails there first. Check whether `key: "literal:self"` is still
    accepted — the proposal only shows `"any"`.
 2. **Ask for space scopes at sign-in.** `auth.ts` asks for
@@ -110,7 +110,7 @@ here talks to a server yet, on purpose.
 3. **Writes.** `logPour` gains a destination: public repo, or a bar space via
    `com.atproto.space.createRecord`, after checking `pourBelongsInBarSpace`
    and that the venue's host says the space exists (`getSpace`). The order of
-   writes in `tests/log-pour.spec.ts` stays the same; the palate still updates
+   writes in `tests/unit/log-pour.test.ts` stays the same; the palate still updates
    either way.
 4. **The venue opens its space** with `createSpace` and `BAR_SPACE_POLICY` as
    part of claiming itself, and adds staff with `putMembers`.

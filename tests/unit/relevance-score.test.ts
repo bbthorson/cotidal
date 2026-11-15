@@ -1,6 +1,6 @@
-import { test, expect } from '@playwright/test';
-import { calculateWeightedRelevance, type MinimalDrinkLog } from '../src/lib/scoring';
-import type { Drink } from '../src/lib/data';
+import { test, expect } from 'vitest';
+import { calculateWeightedRelevance, type MinimalDrinkLog } from '../../src/lib/scoring';
+import type { Drink } from '../../src/lib/data';
 
 test('Relevance Score: Perfect match without logs', async () => {
   const user = {

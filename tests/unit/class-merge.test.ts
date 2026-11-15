@@ -1,6 +1,6 @@
-import { test, expect } from '@playwright/test';
-import config from '../tailwind.config';
-import { cn, FONT_SIZES } from '../src/lib/utils';
+import { test, expect } from 'vitest';
+import config from '../../tailwind.config';
+import { cn, FONT_SIZES } from '../../src/lib/utils';
 
 test('cn: knows every type size the config defines', () => {
   const sizes = Object.keys(config.theme?.extend?.fontSize ?? {});

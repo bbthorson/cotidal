@@ -29,7 +29,7 @@ const region = quadrants.find((q) => q.id === id)!;
 /**
  * The prose, from `src/content/regions/<id>.md`. A region without an entry
  * still has a page — everything else is derived — and
- * `tests/region-content.spec.ts` is what insists all four are written.
+ * `tests/unit/region-content.test.ts` is what insists all four are written.
  */
 const entry = await getEntry('regions', id);
 const Content = entry ? (await render(entry)).Content : null;

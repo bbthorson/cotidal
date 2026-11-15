@@ -1,7 +1,7 @@
-import { test, expect } from '@playwright/test';
-import { createInitialBelief, answerQuestion } from '../src/lib/belief-state';
-import { selectNextQuestion, expectedGain } from '../src/lib/question-selector';
-import { questions, type Question } from '../src/lib/discovery-questions';
+import { test, expect } from 'vitest';
+import { createInitialBelief, answerQuestion } from '../../src/lib/belief-state';
+import { selectNextQuestion, expectedGain } from '../../src/lib/question-selector';
+import { questions, type Question } from '../../src/lib/discovery-questions';
 
 /**
  * The selector's contract, not its path: what makes a question worth asking.

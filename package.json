@@ -11,7 +11,9 @@
     "lexicons": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/check-lexicons.mjs",
     "lint": "eslint .",
     "check": "npm run lint && npm run typecheck",
-    "test": "npm run build && CI=1 playwright test"
+    "test": "npm run test:unit && npm run test:e2e",
+    "test:unit": "vitest run",
+    "test:e2e": "npm run build && CI=1 playwright test"
   },
   "dependencies": {
     "@astrojs/cloudflare": "^14.1.7",
@@ -57,6 +59,7 @@
     "postcss": "^8",
     "tsx": "^4.21.0",
     "typescript": "^6.0.3",
-    "typescript-eslint": "^8.68.0"
+    "typescript-eslint": "^8.68.0",
+    "vitest": "5.1.0"
   }
 }

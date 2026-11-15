@@ -1,7 +1,7 @@
-import { test, expect } from '@playwright/test';
-import { band, cotidalLine, COTIDAL_LINES, SECTORS, ringPoint, CENTRE } from '../src/lib/chart-geometry';
-import { quadrants } from '../src/lib/copy';
-import { quadrantIdFor } from '../src/lib/quadrant';
+import { test, expect } from 'vitest';
+import { band, cotidalLine, COTIDAL_LINES, SECTORS, ringPoint, CENTRE } from '../../src/lib/chart-geometry';
+import { quadrants } from '../../src/lib/copy';
+import { quadrantIdFor } from '../../src/lib/quadrant';
 
 /**
  * The chart's geometry is generated, not hand-placed. These hold the generator

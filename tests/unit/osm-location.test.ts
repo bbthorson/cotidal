@@ -1,11 +1,11 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from 'vitest';
 import { readFileSync, readdirSync } from 'node:fs';
 import { Lexicons } from '@atproto/lexicon';
-import { formatDistance, overpassQuery, parseOverpass, roundPoint } from '../src/lib/osm';
-import { GEO_TYPE, geoLocation, readGeo } from '../src/lib/atproto/location';
-import { draftPath, parseDraft } from '../src/lib/pour-draft';
-import { buildPour } from '../src/lib/pours.server';
-import { POUR_COLLECTION } from '../src/lib/atproto/records';
+import { formatDistance, overpassQuery, parseOverpass, roundPoint } from '../../src/lib/osm';
+import { GEO_TYPE, geoLocation, readGeo } from '../../src/lib/atproto/location';
+import { draftPath, parseDraft } from '../../src/lib/pour-draft';
+import { buildPour } from '../../src/lib/pours.server';
+import { POUR_COLLECTION } from '../../src/lib/atproto/records';
 
 const here = { lat: 40.7223, lon: -73.9883 };
 

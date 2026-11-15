@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from 'vitest';
 import { readFileSync, readdirSync } from 'node:fs';
 import { Lexicons, parseLexiconDoc } from '@atproto/lexicon';
 import { parseLexiconDoc as parseSpaceLexiconDoc } from 'atproto-lexicon-spaces';
@@ -11,7 +11,7 @@ import {
   PourWriteSchema,
   RECORD_SCHEMAS,
   encodePalate,
-} from '../src/lib/atproto/records';
+} from '../../src/lib/atproto/records';
 
 /**
  * Our schemas against the protocol's own: the datetime examples from the

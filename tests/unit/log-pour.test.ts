@@ -1,12 +1,12 @@
-import { test, expect } from '@playwright/test';
-import { buildPour, logPour, palateAfterPour, pourPostText, type PourStore } from '../src/lib/pours.server';
-import { feedPostRecord } from '../src/lib/atproto/publish';
-import { graphemeLength } from '../src/lib/atproto/lex-string';
-import type { Palate, PourRecord } from '../src/lib/atproto/records';
-import type { LogDrinkOptions } from '../src/lib/api-client';
-import { calculateDistance } from '../src/lib/scoring';
-import { drinkDatabase } from '../src/lib/data';
-import { apiErrors, pour as pourCopy } from '../src/lib/copy';
+import { test, expect } from 'vitest';
+import { buildPour, logPour, palateAfterPour, pourPostText, type PourStore } from '../../src/lib/pours.server';
+import { feedPostRecord } from '../../src/lib/atproto/publish';
+import { graphemeLength } from '../../src/lib/atproto/lex-string';
+import type { Palate, PourRecord } from '../../src/lib/atproto/records';
+import type { LogDrinkOptions } from '../../src/lib/api-client';
+import { calculateDistance } from '../../src/lib/scoring';
+import { drinkDatabase } from '../../src/lib/data';
+import { apiErrors, pour as pourCopy } from '../../src/lib/copy';
 
 /**
  * Logging a pour — the one pipeline the page and (later) a chat assistant

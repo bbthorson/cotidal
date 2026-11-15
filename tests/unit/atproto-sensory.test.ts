@@ -1,7 +1,7 @@
-import { test, expect } from '@playwright/test';
-import { derivePalateRecord, getDrinkSensoryVector } from '../src/lib/sensory';
-import type { UserProfile } from '../src/hooks/useDiscoveryQuiz';
-import type { Drink } from '../src/lib/data';
+import { test, expect } from 'vitest';
+import { derivePalateRecord, getDrinkSensoryVector } from '../../src/lib/sensory';
+import type { UserProfile } from '../../src/hooks/useDiscoveryQuiz';
+import type { Drink } from '../../src/lib/data';
 
 test('AT Protocol: derivePalateRecord should correctly build structured dynamic state', async () => {
   const profile: UserProfile = {
@@ -61,7 +61,7 @@ test('AT Protocol: getDrinkSensoryVector should correctly map drink properties',
 });
 
 test('AT Protocol: PourRecordSchema should validate pour records conforming to pour lexicon', async () => {
-  const { PourRecordSchema } = await import('../src/lib/atproto/records');
+  const { PourRecordSchema } = await import('../../src/lib/atproto/records');
 
   const validRecord = {
     $type: 'app.cotidal.pour' as const,

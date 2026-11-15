@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from 'vitest';
 import {
   createInitialBelief,
   answerQuestion,
@@ -11,9 +11,9 @@ import {
   beliefToProfile,
   isComplete,
   getConfidenceProgress,
-} from '../src/lib/belief-state';
-import { questions, type Question } from '../src/lib/discovery-questions';
-import { drinkDatabase } from '../src/lib/data';
+} from '../../src/lib/belief-state';
+import { questions, type Question } from '../../src/lib/discovery-questions';
+import { drinkDatabase } from '../../src/lib/data';
 
 /**
  * Coordinate and vibe-tag accumulation used to be checked by walking the UI,

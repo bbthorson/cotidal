@@ -23,7 +23,7 @@ const entries = await getCollection('drinks');
 
 /**
  * Coordinates come from `drinkDatabase`, never from frontmatter. An entry that
- * does not join is a bug, and `tests/drink-content.spec.ts` fails on it — but
+ * does not join is a bug, and `tests/unit/drink-content.test.ts` fails on it — but
  * a missing join must not take the whole page down at build time either.
  */
 const placed = entries

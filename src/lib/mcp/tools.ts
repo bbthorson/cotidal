@@ -103,7 +103,7 @@ function normalize(s: string): string {
     .trim();
 }
 
-/** "Daiquiri (Classic)" → "daiquiri". No two drinks share one (tests/mcp-tools.spec.ts). */
+/** "Daiquiri (Classic)" → "daiquiri". No two drinks share one (tests/unit/mcp-tools.test.ts). */
 function baseName(name: string): string {
   return normalize(name.replace(/\([^)]*\)/g, ' '));
 }

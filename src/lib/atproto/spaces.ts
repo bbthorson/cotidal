@@ -9,7 +9,7 @@
  *
  * URIs are put together from parts checked by `@atproto/syntax`, the
  * protocol's reference implementation; the released version does not parse
- * space URIs yet, so `tests/spaces.spec.ts` holds these functions equal to
+ * space URIs yet, so `tests/unit/spaces.test.ts` holds these functions equal to
  * the Spaces alpha of that package.
  */
 import { isValidDid, isValidNsid, isValidRecordKey } from '@atproto/syntax';
