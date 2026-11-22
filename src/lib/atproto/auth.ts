@@ -1,9 +1,9 @@
 import {
-  createBlueskyAuth,
+  createAtprotoAuth,
   durableObjectLock,
   kvStore,
   memoryStore,
-  type BlueskyAuth,
+  type AtprotoAuth,
 } from '@bbthorson/atproto-cf-auth/server';
 import { AUTH_BASE_PATH } from './paths';
 import { durableObjectBinding, kvBinding, workersEnv } from '../runtime';
@@ -35,7 +35,7 @@ export const AUTH_LOCK_BINDING = 'AUTH_LOCK';
 /** Used only off-platform, where there is no secret to configure and nothing to protect. */
 const DEV_SECRET = 'crystal-coupe-local-development-secret-not-for-production';
 
-let auth: BlueskyAuth | null | undefined;
+let auth: AtprotoAuth | null | undefined;
 
 /**
  * The switch, read at runtime and only here. It used to be read three ways —
@@ -55,7 +55,7 @@ function enabled(env: Record<string, unknown> | undefined): boolean {
  * and its absence means "not configured": sessions sealed under a guessable
  * key are worse than no sessions.
  */
-export async function getAuth(): Promise<BlueskyAuth | null> {
+export async function getAuth(): Promise<AtprotoAuth | null> {
   if (auth !== undefined) return auth;
 
   const env = await workersEnv();
@@ -72,7 +72,7 @@ export async function getAuth(): Promise<BlueskyAuth | null> {
   const kv = await kvBinding(SESSION_KV_BINDING);
   const lock = await durableObjectBinding(AUTH_LOCK_BINDING);
 
-  return (auth = createBlueskyAuth({
+  return (auth = createAtprotoAuth({
     appName: 'Cotidal',
     basePath: AUTH_BASE_PATH,
     redirectTo: '/compass',
