@@ -7,7 +7,11 @@ if [ "${CLAUDE_CODE_REMOTE:-}" != "true" ]; then
 fi
 
 cd "$CLAUDE_PROJECT_DIR"
-npm install --no-audit --no-fund
+# Install with the npm `packageManager` pins, not the container's. The sandbox
+# ships an older npm, which rewrites package-lock.json on every session start
+# (it drops the `libc` fields of the native packages) and leaves that change
+# for the session to commit by mistake.
+npx -y "$(node -p 'require("./package.json").packageManager')" install --no-audit --no-fund
 
 # Astro 7 backgrounds `astro dev` / `astro preview` when it detects an agent,
 # which Playwright's webServer reads as the server exiting. Setting these turns
