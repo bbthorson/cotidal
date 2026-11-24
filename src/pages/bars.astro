@@ -19,7 +19,15 @@ import { exampleVenues } from '../lib/example-menus';
   width="wide"
 >
   <div class="space-y-16">
-    <PageTitle eyebrow={venuesCopy.eyebrow} title={venuesCopy.title} lede={venuesCopy.subtitle} />
+    <div class="space-y-6">
+      <PageTitle eyebrow={venuesCopy.eyebrow} title={venuesCopy.title} lede={venuesCopy.subtitle} />
+      <div class="flex flex-wrap items-center gap-x-5 gap-y-2">
+        <a href="/bars/audit" class="btn btn-primary px-6">
+          {venuesCopy.auditCta}
+        </a>
+        <p class="text-meta text-muted-foreground">{venuesCopy.auditNote}</p>
+      </div>
+    </div>
 
     {/* Ruled sections, not cards: a spec sheet reads down the page (docs/design-system.md, One sheet per screen). */}
     <section>

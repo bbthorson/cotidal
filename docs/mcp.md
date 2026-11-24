@@ -3,10 +3,10 @@
 The palate map as tools a chat assistant can call, at `/mcp`: a Streamable
 HTTP MCP server, so any assistant that takes a remote connector can use it.
 In Claude: *Settings → Connectors → Add custom connector*, URL
-`https://cotidal.app/mcp`. A member reads this under their account at the foot of `/log`
-(`/log#assistant`), with their handle in the example. A browser opening `/mcp` is shown the same
-instructions at that URL (an MCP client never asks for HTML), so the address
-bar holds the address to paste.
+`https://cotidal.app/mcp`. Once a member has a coordinate, `/log` links to
+`/mcp` from under their account. A browser opening `/mcp` is shown the
+instructions at that URL (an MCP client never asks for HTML), personalized
+with their handle when signed in, so the address bar holds the address to paste.
 
 ## What it does today: read
 
@@ -146,9 +146,9 @@ outlive weeks between visits.
 3. `wrangler kv namespace create cotidal-oauth`, and uncomment `OAUTH_KV`.
 4. Deploy, then add `https://cotidal.app/mcp/me` as a connector in Claude.
 
-`/mcp` (to a browser) and `/log#assistant` explain both addresses, yours
+`/mcp` (to a browser) explains both addresses, yours
 first, once `/mcp/me` is on (`memberMcpAddress`, the same check the routes
-make); until then they show the one read-only address, as before.
+make); until then it shows the one read-only address, as before.
 
 ### Disconnecting an assistant
 

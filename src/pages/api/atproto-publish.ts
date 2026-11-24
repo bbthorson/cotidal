@@ -16,6 +16,7 @@ import { oauthSession } from '@/lib/atproto/session';
 import { publicMapPath } from '@/lib/atproto/paths';
 import { logPour, sessionStore } from '@/lib/pours.server';
 import { apiErrors } from '@/lib/copy';
+import { tolerancesFromDynamic } from '@/lib/profile';
 
 const ProfileSchema = z.object({
   x: z.number().min(-10).max(10),
@@ -57,6 +58,7 @@ export const POST: APIRoute = async ({ request }) => {
         dislikesBitter: record.aversions?.bitter ?? false,
         dislikesAnise: record.aversions?.anise ?? false,
         vibeTags: (record.vibeTags as Record<string, number>) || {},
+        ...(record.dynamicState ? { tolerances: tolerancesFromDynamic(record.dynamicState) } : {}),
       };
       return json({ profile });
     } catch (e) {

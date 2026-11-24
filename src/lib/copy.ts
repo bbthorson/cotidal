@@ -60,7 +60,7 @@ export const compass = {
   mapLabel: 'Bars near you',
   you: 'You',
   showNear: 'Show bars near me',
-  nearNote: 'Your location goes to OpenStreetMap, rounded to about 100 m, to find the bars around you. Cotidal keeps none of it.',
+  nearNote: 'Your approximate location (rounded to ~100 m) is sent to OpenStreetMap to find nearby bars. Cotidal keeps none of it.',
   locating: 'Finding bars near you…',
   denied: 'Location is off for this site. Search instead, or turn it on to see bars near you.',
   failed: 'OpenStreetMap did not answer.',
@@ -97,7 +97,14 @@ export const compass = {
     remove: (name: string) => `Remove ${name}`,
     placed: 'On the map',
     unplaced: 'Not on the map',
-    photoLater: 'Later: photograph the menu instead of typing it.',
+    pasteToggle: 'Paste a whole menu',
+    pasteLabel: 'Menu lines (one drink per line)',
+    pastePlaceholder: 'Negroni\nPaper Tiger — mezcal, lime, agave\nLast Word',
+    pasteAdd: 'Add menu',
+    pasteCancel: 'Cancel',
+    nearClassic: (name: string) => `Near ${name}`,
+    clashes: (flavours: string[]) => `Has ${flavours.join(' and ')}`,
+    photoLater: 'Later: photograph the menu directly here (or share a photo in your chat assistant today).',
     rankedAt: (bar: string) => `What to have at ${bar}`,
     rankedHome: 'What to have',
     rankedBody: 'Ranked by how close each drink sits to your coordinate.',
@@ -131,6 +138,18 @@ export const logPage = {
   rateDrink: 'Rate a drink',
   ledgerTitle: 'What moved it',
   ledgerEmpty: 'No pours yet. Pick a drink, rate it, and it lands here.',
+  /** The three EKF readings beyond x/y, shown once at least 3 pours have trained them. */
+  tolerancesTitle: 'Beyond the chart',
+  tolerances: {
+    bitter: 'Bitter',
+    tannin: 'Structure',
+    complexity: 'Complexity',
+  },
+  /** Quick ATProto friend comparison, shown once you have a coordinate. */
+  compareTitle: 'Compare with a friend',
+  compareLabel: 'Friend’s Bluesky handle',
+  comparePlaceholder: 'friend.bsky.social',
+  compareSubmit: 'Compare',
   /** The reading pages, at the foot of Log: on a phone the app pages have no Menu. */
   readingLabel: 'Read',
 } as const;
@@ -199,7 +218,7 @@ export const settings = {
   publicMap: 'Your public map',
   assistantsTitle: 'Connected assistants',
   assistantsLede:
-    'Chat assistants you have let use Cotidal as you, at your own address. Disconnecting one stops it at once: its next question is refused, and if it asks again you will see the page that asked the first time.',
+    'Chat assistants you have let use Cotidal as you. Disconnecting one revokes its access at once; to reconnect, you will have to approve it again.',
   assistantsNone: 'No assistant is connected.',
   howToConnect: 'Connect one',
   assistantsOff:
@@ -213,7 +232,7 @@ export const settings = {
   canLog: 'Reads your palate and pours, and logs pours you tell it about',
   disconnect: 'Disconnect',
   disconnected:
-    'Disconnected. To tidy up, also remove Cotidal from that assistant’s own connectors, or it will ask you to connect again.',
+    'Disconnected. Remove Cotidal from that assistant’s connectors too, or it will ask to connect again.',
   disconnectFailed: 'That did not go through. Try again.',
   signOutTitle: 'Sign out',
   signOutBody: 'Signing out clears your coordinate from this device. It stays in your account, and connected assistants keep working.',
@@ -454,7 +473,7 @@ export const regionPage = {
     `Your coordinate lands in ${name} when your answers lean ${axisWords(axis).toLowerCase()}. That is all it is: a position, worked out from the options you picked. The menu ranks every drink by its distance from that point, so the closer you sit to the drinks below, the sooner it reaches for them. Log what you drink and the point can move, across a border if that is where your pours take it.`,
   /** Under the list: how a drink came to be in it. */
   placedNote:
-    'A drink is here because the chart places it here. Places are set by hand, not computed from a recipe’s proportions.',
+    'A drink is here because the chart places it here. Cocktails and spirits are placed by hand; wines and beers are placed from their style profile, never from a recipe’s proportions.',
   sharedLabel: 'What they share',
   sharedNote: (total: number) =>
     `Counted from the ingredients of the ${total} drinks written up here; an ingredient given as alternatives counts toward each. Wines, beers and spirits served alone list what they are made from, and share nothing on this list.`,
@@ -609,47 +628,50 @@ export const howItWorks = {
       id: 'questions',
       title: 'The questions',
       paragraphs: [
-        'The first 4 questions are the same for everyone. After those, each question is the one whose answer would say the most about where you sit, given what you have answered so far, or settle whether you avoid smoke, bitterness or anise. The questions stop once both directions on the chart are sure enough and those three are settled: never fewer than 4, never more than 8.',
-        'Each answer is weighed against every point on the chart: how likely is it that someone sitting there would have picked what you picked, from the options shown? Your point is where all your answers, taken together, agree best. The order you answered in makes no difference.',
-        'People don’t answer like machines, so it also works out how steady your answers are. If they disagree with each other, your point stays unsure, rather than settling confidently halfway between them.',
+        'The first 4 questions are the same for everyone. After those, each question is chosen to tell us the most about where you sit, or to settle whether you avoid smoke, bitterness or anise.',
+        'The questions stop once both directions on the chart are sure enough and those three aversions are settled: never fewer than 4, never more than 8.',
+        'Each answer is weighed against every point on the chart: how likely is someone sitting there to pick what you picked? Your point is where all your answers agree best. The order makes no difference.',
+        'People don’t answer like machines, so the chart also estimates how steady your answers are. When answers disagree, your point stays unsure rather than settling confidently halfway between them.',
       ],
     },
     {
       id: 'sure',
       title: 'How sure it is',
       paragraphs: [
-        'The questions settle how sure your point is, as well as where it is. A point the questions placed firmly moves less with your first ratings than one they left loose.',
+        'The questions settle how sure your point is, as well as where it is. A point placed firmly moves less with your first ratings than one left loose.',
       ],
     },
     {
       id: 'ratings',
       title: 'Rating a drink',
       paragraphs: [
-        'You rate a drink from 1 to 9. A 7 or higher pulls your point toward that drink, a 3 or lower pushes it away, and anything in between leaves it where it is. The step shrinks as your point grows surer, so your hundredth rating moves it less than your first.',
-        '“What was off” adds a fixed nudge of its own: too sweet moves you toward savory, too rich toward crisp, and so on. Too smoky, too bitter or too anise marks it as something you avoid, and those drinks leave your menu. No rating turns that off again.',
-        'However you rate it, one drink never moves your point more than a tenth of the way across the chart. A drink that isn’t on the map has no place to pull toward, so only “what was off” counts for it.',
+        'You rate a drink from 1 to 9. A 7 or higher pulls your point toward that drink, a 3 or lower pushes it away, and anything in between leaves it where it is.',
+        'Each step shrinks as your point grows surer, so your hundredth rating moves it less than your first. One drink never moves your point more than a tenth of the way across the chart.',
+        '“What was off” adds a fixed nudge: too sweet moves you toward savory, too rich toward crisp. Too smoky, too bitter or too anise marks a flavour you avoid, and those drinks leave your menu.',
+        'A drink not on the map has no place to pull toward, so only “what was off” counts for it.',
       ],
     },
     {
       id: 'menu',
       title: 'Your menu',
       paragraphs: [
-        'Your menu ranks every drink, mostly by how close it sits to your point. The kinds of drink your answers and your liked drinks point to count too, and so does what you rated a drink last time. A drink you rated 3 or less last time comes off your menu, and so does any drink with something you avoid.',
+        'Your menu ranks every drink, mostly by how close it sits to your point. The kinds of drink your answers and liked pours point to count too, along with your last rating of that drink.',
+        'Anything you rated 3 or less last time comes off your menu, and so does any drink with a flavour you avoid.',
       ],
     },
     {
       id: 'unseen',
       title: 'What the chart doesn’t show',
       paragraphs: [
-        'Each rating of a drink on the map also updates three readings that aren’t drawn on the chart: how you take bitterness, tannin and a drink with a lot going on. They are saved with your coordinate. Today they don’t change your menu.',
+        'Each rating of a drink on the map also updates three readings that aren’t drawn on the chart: how you take bitterness, structure and complexity. They are saved with your coordinate and refine how your menu ranks drinks as your pours add up.',
       ],
     },
     {
       id: 'kept',
       title: 'What is kept, and where',
       paragraphs: [
-        'Before you sign in, your coordinate, your answers and your ratings stay on this device.',
-        'Once you sign in, your coordinate, every answer as you gave it (the question, what each option offered and which one you picked) and every drink you rate are saved to your own Bluesky account. They’re public there, and they’re yours. A set of answers is never edited: retaking the questions adds a new set beside the old one.',
+        'Before you sign in, your coordinate, answers and ratings stay on this device.',
+        'Once you sign in, your coordinate, every answer as you gave it and every drink you rate are saved to your own Bluesky account. They’re public there, and they’re yours. Retaking the questions adds a new set beside the old one.',
         account.signOutBody,
       ],
     },
@@ -657,14 +679,14 @@ export const howItWorks = {
       id: 'not',
       title: 'What it doesn’t use',
       paragraphs: [
-        'Only your answers and your ratings move your point. Not the season, the hour or the weather, and not what other people rate. No AI model is involved in placing or moving it.',
+        'Only your answers and ratings move your point: not the season, the hour, the weather or what other people rate. No AI model places or moves it.',
       ],
     },
   ],
   laterTitle: 'How far to trust it',
   later: [
     'Today, how much each answer counts was set by testing the questions against simulated answers, not real ones.',
-    'Later: using the answers people have saved, next to how they later rated drinks, to check which questions work and how much each answer should count.',
+    'Later: checking saved answers against how people later rated drinks, to refine which questions work and how much each should count.',
   ],
   start: 'Find your coordinate',
 } as const;
@@ -674,25 +696,25 @@ export const venuesCopy = {
   title: 'A bar claims itself by publishing one record.',
   subtitle:
     'Prove your domain as your AT Protocol handle, publish a venue record from that account, and the bar is yours on the protocol. No approval queue, no registry, nothing for us to grant.',
-  todayTitle: 'What works today',
+  todayTitle: 'On the protocol today',
   today: [
     {
       title: 'The venue record',
       description:
-        'app.cotidal.venue, held at rkey self in the bar’s own repository. The record is defined and any AT Protocol client can publish it. Cotidal does not read it yet.',
+        'app.cotidal.venue, held at rkey self in the bar’s own repository. Publish it from your domain handle and Cotidal renders your bar live at /v/your-domain.',
     },
     {
-      title: 'Menus as posts',
+      title: 'Menus as snapshots',
       description:
-        'app.cotidal.menu: a dated snapshot, re-published rather than edited, so a menu from March stays true about March. Defined; nothing here renders one yet.',
+        'app.cotidal.menu: a dated snapshot, re-published rather than edited, so a menu from March stays true about March. Point currentMenu at it and Cotidal renders it with sensory coordinates.',
     },
     {
-      title: 'Pours that name the bar',
+      title: 'Pours that name your bar',
       description:
-        'A member’s pour records the bar by the name the drinker typed. When the bar later proves its domain, reconciling those pours to it is the app’s job, and no one’s record is rewritten.',
+        'Every pour a member logs records the bar by name. When you claim your domain, reconciling those pours to your bar happens without rewriting anyone’s record.',
     },
   ],
-  laterTitle: 'Not built yet',
+  laterTitle: 'Coming next',
   later: [
     'Later: a page here that claims your venue and publishes your menu for you.',
     'Later: what your patrons have logged at your bar, and where their palates sit on the map.',
@@ -702,9 +724,51 @@ export const venuesCopy = {
   ],
   examplesTitle: 'Example menus',
   examplesSubtitle:
-    'Drinks from well-known bars, placed on the map by us to show what a published menu would carry. These bars have published nothing here and are not affiliated with Cotidal.',
+    'Drinks from well-known bars, placed on the map by us to show what a published menu carries. These bars have published nothing here and are not affiliated with Cotidal.',
   exampleTag: 'Example',
   examplesSpecs: (n: number) => `On the map (${n})`,
+  auditCta: 'Audit your menu',
+  auditNote: 'Paste your cocktail list to see how it covers the four regions — no account needed.',
+} as const;
+
+/** `/bars/audit` — free sensory balance check for any bar's menu. */
+export const barAudit = {
+  eyebrow: 'For bars · Menu audit',
+  title: 'See where your menu sits.',
+  lede: 'Paste your drinks, one per line. Placed drinks plot onto the chart so you can see region coverage, blind spots, and aversion exposure at a glance.',
+  inputLabel: 'Your menu (one drink per line)',
+  inputPlaceholder: 'Negroni\nDry Martini\nDaiquiri\nPaper Tiger — mezcal, Aperol, lime',
+  sampleCta: 'Load an example menu',
+  clearCta: 'Clear',
+  coverageTitle: 'Region coverage',
+  blindSpotsTitle: 'Blind spots',
+  blindSpotsNone: 'All four regions are covered.',
+  blindSpotsNote: (names: string[]) => `No placed drinks in ${names.join(' or ')}.`,
+  aversionsTitle: 'Aversion exposure',
+  aversionLine: (smoke: number, bitter: number, anise: number) =>
+    `${smoke} smoky · ${bitter} bitter · ${anise} anise`,
+  placedTitle: (n: number) => `Placed (${n})`,
+  unplacedTitle: (n: number) => `Not on the map (${n})`,
+  empty: 'Paste a few drinks above to plot your menu.',
+  countOf: (count: number, percent: number) => `${count} (${percent}%)`,
+} as const;
+
+/** `/v/<handle>` — live AT Protocol venue & menu page. */
+export const venuePage = {
+  eyebrow: 'Venue',
+  menuTitle: 'Current menu',
+  noMenu: 'This venue has claimed its handle, but has not published a menu yet.',
+  noVenueTitle: 'No venue record here yet.',
+  noVenueBody: 'This account exists, but it has not published an app.cotidal.venue record.',
+  notFoundTitle: 'No bar by that handle.',
+  notFoundBody: 'That handle does not resolve to an AT Protocol account.',
+  unavailableTitle: 'The venue’s server did not answer.',
+  unavailableBody: 'Try again in a moment.',
+  publishedOn: (date: string) => `Published ${date}`,
+  websiteLabel: 'Website',
+  rankForMe: 'Rank this menu for my palate',
+  onMap: 'On the map',
+  unplaced: 'House pour',
 } as const;
 
 /**
@@ -742,14 +806,13 @@ export const publicMap = {
 } as const;
 
 /**
- * How to reach a palate from a chat assistant: under your account
- * at the foot of `/log` (`#assistant`), and what a browser sees at `/mcp`, the address
- * the assistant is given.
+ * How to reach a palate from a chat assistant: linked from `/log` once a
+ * member has a coordinate, and what a browser sees at `/mcp`.
  */
 export const assistants = {
   eyebrow: 'Chat assistants',
   title: 'Ask your chat assistant what to drink.',
-  lede: 'Add Cotidal to Claude, or any chat assistant that takes an MCP server, and ask it what to drink, with your coordinate in hand.',
+  lede: 'Connect Cotidal to Claude or any assistant that supports MCP. Share a bar’s menu, ask what to drink, compare with a friend, or log a pour with your coordinate in hand.',
   urlLabel: 'The address to add',
   stepsTitle: 'In Claude',
   steps: [
@@ -761,22 +824,20 @@ export const assistants = {
   canTitle: 'What you can ask',
   can: [
     'Where your palate lands, and what is closest to it.',
-    'Which drink to pick from a menu you paste in.',
+    'Which drink to pick from a menu you paste or photograph.',
     'How far your map is from a friend’s.',
     'Where a drink sits on the map.',
     'To draft a pour you had, for you to log here.',
   ],
   askWith: (handle: string) => `Ask with your handle: “What does Cotidal say I should drink? I’m @${handle}.”`,
   askWithGuest: 'Ask with your Bluesky handle: “What does Cotidal say I should drink? I’m @you.bsky.social.”',
-  /** Under your account (`/log#assistant`): the section's heading. */
-  sectionTitle: 'Ask a chat assistant',
   /** On someone else's map: what to ask your own assistant about them. */
   visitorAsk: (handle: string) => `Ask your chat assistant: “How far is my map from @${handle}’s?”`,
   setUp: 'Set it up',
   /** Where `/mcp/me` is on: the two addresses, yours first. */
   memberUrlLabel: 'Your own address',
   memberUrlNote:
-    'Recommended. Your assistant signs you in once, then knows whose palate it is, and can log a pour you tell it about.',
+    'Recommended. Your assistant signs you in once, knows whose palate it is, and can log a pour you tell it about.',
   publicUrlLabel: 'Anyone’s map',
   publicUrlNote: 'No sign-in. Reads any public palate by handle, and drafts pours as links for you to log here.',
   memberSteps: [
@@ -789,7 +850,7 @@ export const assistants = {
     'Other assistants that accept an MCP server URL take the same addresses. Anyone’s map needs no sign-in, so it skips the last step.',
   memberCan: [
     'What to drink tonight, without saying who you are.',
-    'Which drink to pick from a menu you paste in.',
+    'Which drink to pick from a menu you paste or photograph.',
     'To log a pour you had: tell it the drink and how much you liked it.',
     'What you have had lately, and how each one landed.',
     'How far your map is from a friend’s.',
@@ -797,10 +858,10 @@ export const assistants = {
   memberAsk: 'Ask: “What should I drink tonight?” It already knows it’s you.',
   memberLimitsTitle: 'Only what you tell it',
   memberLimits:
-    'It logs a pour only when you tell it about one, with the rating you give: it asks rather than guesses. It cannot retake the questions, edit or delete a pour, or post to Bluesky. Untick logging when you allow it to keep it read-only, and remove the connector to stop it altogether.',
+    'It logs a pour only when you tell it about one, with the rating you give: it asks rather than guesses. It cannot retake the questions, edit or delete a pour, or post to Bluesky. Untick logging on the approval screen to keep it read-only, or disconnect it anytime in Settings.',
   readOnlyTitle: 'Only you log',
   readOnly:
-    'The assistant reads the same public coordinate anyone can open at your public map. It can draft a pour, as a link to the form here, but only you log it: you check it, tap how it landed, and press the button. It cannot retake the questions or change your map.',
+    'The assistant reads the same public coordinate anyone can open at your public map. It can draft a pour as a link to the form here, but only you log it: you check it, tap how it landed, and press the button. It cannot retake the questions or change your map.',
 } as const;
 
 /**
@@ -860,14 +921,28 @@ export const mcp = {
     rankMenu: {
       title: 'Rank a menu',
       description:
-        'Order the drinks on a menu by how close each sits to someone’s coordinate. Pass the drink names as they appear on the menu, one per item. Items Cotidal cannot place are returned as unplaced rather than guessed at, and drinks with a flavour the person avoids are flagged, not dropped.',
-      items: 'Drink names from the menu, one per item.',
+        'Order the drinks on a menu by how close each sits to someone’s coordinate. Pass each item as a drink name or an object with name and ingredients/description as written on the menu. Items Cotidal cannot place are returned as unplaced with any avoided-flavour cautions and closest known classic when the ingredients make it clear; placed drinks with an avoided flavour are flagged, not dropped.',
+      items: 'Menu items: each a drink name, or { name, description?, ingredients? } as printed on the menu.',
     },
     compare: {
       title: 'Compare two palates',
       description:
         'Put two people’s coordinates side by side: how far apart they are, a drink each would order that the other would not, and one they would both order. This compares maps; it never ranks the people on them.',
       other: 'The second person’s Bluesky handle or DID.',
+    },
+    recommendForGroup: {
+      title: 'Recommend for a group',
+      description:
+        'Find drinks or bottles a group of 2 to 8 people can share: respects every person’s avoided flavours and minimizes the worst-case distance across the table.',
+      handles: 'Bluesky handles or DIDs for the people at the table (at least 2; on /mcp/me the signed-in member is included automatically if omitted).',
+      count: 'How many shared drinks to return.',
+      type: 'Only drinks of this kind.',
+    },
+    getDrink: {
+      title: 'Read a drink',
+      description:
+        'Look up a drink on the Cotidal map by name: its coordinate, region, flavour flags, tags, and recipe build from the register.',
+      name: 'The drink’s name (use search_drinks if unsure).',
     },
     draftPour: {
       title: 'Draft a pour',
@@ -886,6 +961,11 @@ export const mcp = {
         'The signed-in member’s own pours, newest first: the drink, how much they liked it on the 9-point scale, where, what was off and what they tasted. Nobody else’s log can be read.',
       count: 'How many pours to return, up to 50.',
     },
+    myBars: {
+      title: 'Read my bars',
+      description:
+        'Summarize the bars the signed-in member has logged pours at: visit count, average rating, last visit, and top drinks at each bar.',
+    },
     logPour: {
       title: 'Log a pour',
       description:
@@ -901,6 +981,26 @@ export const mcp = {
       query: 'Part of a drink’s name.',
     },
   },
+  prompts: {
+    orderFromMenu: {
+      title: 'Order from a menu',
+      description: 'Read a pasted or photographed bar menu, rank it against a Cotidal palate, and recommend the top picks.',
+    },
+    pickForTable: {
+      title: 'Pick for the table',
+      description: 'Compare a group of palates and pick a shared bottle or round that works for everyone.',
+    },
+    logDrink: {
+      title: 'Log a drink',
+      description: 'Walk through logging a pour on Cotidal by asking for the 1–9 rating and optional notes.',
+    },
+  },
+  resources: {
+    regionsTitle: 'Cotidal regions',
+    regionsDescription: 'The four regions of the Cotidal palate chart, their axes, and glosses.',
+  },
+  needGroup: 'Group recommendations need at least two Bluesky handles.',
+  noDrinkFound: (name: string) => `No drink on the map matches “${name}”.`,
   noPalate: (name: string) => `@${name} has an account, but has not published a palate yet.`,
   notFound: (input: string) => `“${input}” does not resolve to an account.`,
   invalid: (input: string) => `“${input}” is not a Bluesky handle or DID.`,

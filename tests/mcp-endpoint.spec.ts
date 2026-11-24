@@ -35,7 +35,16 @@ test('MCP endpoint: lists the read-only tools', async ({ request }) => {
   const body = await rpc(request, 'tools/list');
   const tools = body.result?.tools as { name: string; annotations?: { readOnlyHint?: boolean } }[];
   expect(tools.map((t) => t.name).sort()).toEqual(
-    ["compare_palates", "draft_pour", "get_palate", "rank_menu", "recommend_drinks", "search_drinks"].sort()
+    [
+      'compare_palates',
+      'draft_pour',
+      'get_drink',
+      'get_palate',
+      'rank_menu',
+      'recommend_drinks',
+      'recommend_for_group',
+      'search_drinks',
+    ].sort()
   );
   for (const tool of tools) expect(tool.annotations?.readOnlyHint).toBe(true);
 });
@@ -80,7 +89,7 @@ test('MCP endpoint: a client asking for an event stream is never sent the page',
     data: { jsonrpc: '2.0', id: 1, method: 'tools/list', params: {} },
   });
   expect(post.status()).toBe(200);
-  expect((await post.json()).result.tools.length).toBe(6);
+  expect((await post.json()).result.tools.length).toBe(8);
 });
 
 test('MCP endpoint: the browser page is the one place for setup without a map, and /assistants is gone', async ({ request }) => {

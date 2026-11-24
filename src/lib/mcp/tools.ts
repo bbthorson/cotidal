@@ -2,13 +2,14 @@ import { drinkDatabase, type Drink } from '../data';
 import { calculateDistance } from '../scoring';
 import { quadrantFor, regionPath } from '../quadrant';
 import { formatCoordinate } from '../coordinate';
-import { compareMaps, nearestDrinks, type MapPoint } from '../overlap';
+import { compareMaps, describeDistance, nearestDrinks, type MapPoint } from '../overlap';
 import { mcp } from '../copy';
 import { publicMapPath } from '../atproto/paths';
 import type { PublicPalateResult } from '../atproto/public-read';
 import type { Register } from '../register';
 import { cleanDraft, draftPath, type PourDraft } from '../pour-draft';
 import { matchDrink, normalizeName } from '../drink-match';
+import { clashingAversions, splitMenuLine, suggestClosestDrink } from '../ingredient-match';
 import { pour as pourCopy } from '../copy';
 import { hedonicToRating } from '../pour-entry';
 import type { LogDrinkOptions } from '../api-client';
@@ -198,28 +199,55 @@ export interface RankedItem extends DrinkSummary {
   caution: string | null;
 }
 
+export type MenuEntry = string | { name: string; description?: string; ingredients?: string[] };
+
+export interface UnplacedItem {
+  item: string;
+  reason: string;
+  /** Avoided-flavour warning inferred from the item's description/ingredients, when any. */
+  caution?: string | null;
+  /** Closest structural classic on the map when ingredients make it clear. */
+  closestClassic?: DrinkSummary | null;
+}
+
 export async function rankMenu(
   input: string,
-  items: string[],
+  items: MenuEntry[],
   ctx: ToolContext
 ): Promise<
-  ToolResult<{ palate: PalateSummary; ranked: RankedItem[]; unplaced: { item: string; reason: string }[] }>
+  ToolResult<{ palate: PalateSummary; ranked: RankedItem[]; unplaced: UnplacedItem[] }>
 > {
   const found = await palateOf(input, ctx);
   if (!found.ok) return found;
   const { point, summary } = found.data;
 
   const ranked: RankedItem[] = [];
-  const unplaced: { item: string; reason: string }[] = [];
-  for (const item of items) {
-    const drink = matchDrink(item);
+  const unplaced: UnplacedItem[] = [];
+  for (const raw of items) {
+    const parsed =
+      typeof raw === 'string'
+        ? splitMenuLine(raw)
+        : {
+            name: raw.name.trim(),
+            description: [raw.description, ...(raw.ingredients ?? [])].filter(Boolean).join(', ') || undefined,
+          };
+    const label = typeof raw === 'string' ? raw : raw.name;
+    const drink = matchDrink(parsed.name || label);
     if (!drink) {
-      unplaced.push({ item, reason: mcp.unplaced });
+      const text = [parsed.name, parsed.description].filter(Boolean).join(' ');
+      const avoided = clashingAversions(text, point.aversions).map((k) => mcp.flavours[k]);
+      const relative = parsed.description ? suggestClosestDrink(text) : null;
+      unplaced.push({
+        item: label,
+        reason: mcp.unplaced,
+        ...(avoided.length > 0 ? { caution: mcp.avoids(avoided) } : {}),
+        ...(relative ? { closestClassic: summarize(relative, ctx) } : {}),
+      });
       continue;
     }
     const avoided = clashes(drink, point.aversions);
     ranked.push({
-      item,
+      item: label,
       ...summarize(drink, ctx),
       distance: round(calculateDistance(point, drink)),
       caution: avoided.length > 0 ? mcp.avoids(avoided) : null,
@@ -265,6 +293,108 @@ export async function comparePalates(
       firstWouldOrder: maybe(overlap.theirs),
       secondWouldOrder: maybe(overlap.yours),
       shared: maybe(overlap.shared),
+    },
+  };
+}
+
+export interface GroupDrink extends DrinkSummary {
+  /** Largest distance to any person at the table (minimax objective). */
+  maxDistance: number;
+  /** Average distance across the table. */
+  meanDistance: number;
+}
+
+/**
+ * Shared recommendations for a table of 2–8 people: respects every person's
+ * aversions and minimizes the worst-case distance across the group.
+ */
+export async function recommendForGroup(
+  handles: string[],
+  options: { count?: number; type?: Drink['type'] },
+  ctx: ToolContext
+): Promise<
+  ToolResult<{
+    people: PalateSummary[];
+    drinks: GroupDrink[];
+    widestContrast: { first: string; second: string; distance: number; description: string } | null;
+  }>
+> {
+  const unique = [...new Set(handles.map((h) => h.trim()).filter(Boolean))];
+  if (unique.length < 2) return { ok: false, message: mcp.needGroup };
+
+  const results = await Promise.all(unique.map((h) => palateOf(h, ctx)));
+  const resolved: { point: MapPoint; summary: PalateSummary }[] = [];
+  for (const r of results) {
+    if (!r.ok) return r;
+    resolved.push(r.data);
+  }
+
+  const pool = (options.type ? drinkDatabase.filter((d) => d.type === options.type) : drinkDatabase).filter((drink) =>
+    resolved.every(({ point }) => clashes(drink, point.aversions).length === 0)
+  );
+
+  const count = Math.min(Math.max(options.count ?? 5, 1), 15);
+  const drinks: GroupDrink[] = pool
+    .map((drink) => {
+      const dists = resolved.map(({ point }) => calculateDistance(point, drink));
+      const maxDistance = Math.max(...dists);
+      const meanDistance = dists.reduce((a, b) => a + b, 0) / dists.length;
+      return {
+        ...summarize(drink, ctx),
+        maxDistance: round(maxDistance),
+        meanDistance: round(meanDistance),
+      };
+    })
+    .sort((a, b) => a.maxDistance - b.maxDistance || a.meanDistance - b.meanDistance || a.name.localeCompare(b.name))
+    .slice(0, count);
+
+  let widestContrast: { first: string; second: string; distance: number; description: string } | null = null;
+  for (let i = 0; i < resolved.length; i++) {
+    for (let j = i + 1; j < resolved.length; j++) {
+      const d = calculateDistance(resolved[i].point, resolved[j].point);
+      if (!widestContrast || d > widestContrast.distance) {
+        widestContrast = {
+          first: resolved[i].summary.handle ?? resolved[i].summary.did,
+          second: resolved[j].summary.handle ?? resolved[j].summary.did,
+          distance: round(d),
+          description: describeDistance(d),
+        };
+      }
+    }
+  }
+
+  return {
+    ok: true,
+    data: {
+      people: resolved.map((r) => r.summary),
+      drinks,
+      widestContrast,
+    },
+  };
+}
+
+export interface DrinkDetail extends DrinkSummary {
+  hasSmoke: boolean;
+  isBitter: boolean;
+  hasAnise: boolean;
+  tags: Drink['tags'];
+  /** Required ingredients from the register, when written up. */
+  build: string | null;
+}
+
+export function getDrink(name: string, ctx: ToolContext): ToolResult<DrinkDetail> {
+  const drink = matchDrink(name);
+  if (!drink) return { ok: false, message: mcp.noDrinkFound(name) };
+  const entry = ctx.register[drink.name];
+  return {
+    ok: true,
+    data: {
+      ...summarize(drink, ctx),
+      hasSmoke: drink.hasSmoke,
+      isBitter: drink.isBitter,
+      hasAnise: drink.hasAnise,
+      tags: drink.tags,
+      build: entry?.build ?? null,
     },
   };
 }
@@ -359,6 +489,56 @@ export async function myPours(
   const pours = await ctx.member.recentPours(Math.min(Math.max(count ?? 10, 1), 50));
   if (!pours) return { ok: false, message: mcp.sessionGone };
   return { ok: true, data: { pours: pours.map(summarizePour) } };
+}
+
+export interface BarSummary {
+  bar: string;
+  pours: number;
+  averageHedonic: number;
+  lastVisit: string;
+  topDrinks: string[];
+}
+
+/** Summary of bars the signed-in member has poured at, most visited first. */
+export async function myBars(ctx: ToolContext): Promise<ToolResult<{ bars: BarSummary[] }>> {
+  if (!ctx.member) return { ok: false, message: mcp.memberOnly };
+  const pours = await ctx.member.recentPours(50);
+  if (!pours) return { ok: false, message: mcp.sessionGone };
+
+  const byBar = new Map<string, { name: string; pours: PourRecord[] }>();
+  for (const p of pours) {
+    if (p.isHomePour) continue;
+    const raw = p.venue?.entity.name?.trim();
+    if (!raw || raw === 'Unknown Venue') continue;
+    const key = normalize(raw);
+    const group = byBar.get(key);
+    if (group) group.pours.push(p);
+    else byBar.set(key, { name: raw, pours: [p] });
+  }
+
+  const bars: BarSummary[] = [...byBar.values()]
+    .map(({ name, pours: list }) => {
+      const sorted = [...list].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      const avg = list.reduce((s, p) => s + p.rating.hedonic, 0) / list.length;
+      const topDrinks = [
+        ...new Set(
+          [...list]
+            .filter((p) => p.rating.hedonic >= 7)
+            .sort((a, b) => b.rating.hedonic - a.rating.hedonic)
+            .map((p) => p.drink.name)
+        ),
+      ].slice(0, 3);
+      return {
+        bar: name,
+        pours: list.length,
+        averageHedonic: round(avg),
+        lastVisit: sorted[0].createdAt,
+        topDrinks,
+      };
+    })
+    .sort((a, b) => b.pours - a.pours || new Date(b.lastVisit).getTime() - new Date(a.lastVisit).getTime());
+
+  return { ok: true, data: { bars } };
 }
 
 export interface LogPourInput {

@@ -1,10 +1,13 @@
 import { test, expect } from 'vitest';
 import {
   comparePalates,
+  getDrink,
   getPalate,
   matchDrink,
+  myBars,
   rankMenu,
   recommendDrinks,
+  recommendForGroup,
   searchDrinks,
   type ToolContext,
 } from '../../src/lib/mcp/tools';
@@ -155,4 +158,97 @@ test('MCP: search puts the exact match first, then names containing the query', 
   const daiquiri = searchDrinks('daiquiri', ctx);
   expect(daiquiri.ok && daiquiri.data.drinks[0].name).toBe('Daiquiri (Classic)');
   expect(searchDrinks('zzzz', ctx).ok).toBe(false);
+});
+
+test('MCP: rankMenu flags avoided flavours and suggests close classics on unplaced house cocktails', async () => {
+  const result = await rankMenu(
+    'alice.bsky.social',
+    [
+      'Daiquiri',
+      { name: 'House Bitter', description: 'bourbon, Campari, sweet vermouth' },
+      'Velvet Smoke — mezcal, Aperol, lime',
+    ],
+    ctx
+  );
+  expect(result.ok).toBe(true);
+  if (!result.ok) return;
+  expect(result.data.ranked).toHaveLength(1);
+  expect(result.data.unplaced).toHaveLength(2);
+  // Alice avoids bitterness: both Campari and Aperol trigger a caution.
+  expect(result.data.unplaced[0].caution).toContain('bitterness');
+  expect(result.data.unplaced[0].closestClassic?.name).toBe('Boulevardier');
+  expect(result.data.unplaced[1].caution).toContain('bitterness');
+  expect(result.data.unplaced[1].closestClassic?.name).toBe('Naked & Famous');
+});
+
+test('MCP: getDrink returns coordinate, flags, tags, and register build', () => {
+  const withBuild: ToolContext = {
+    ...ctx,
+    register: {
+      Negroni: { slug: 'negroni', title: 'Negroni', build: 'Gin · Campari · Sweet vermouth' },
+    },
+  };
+  const found = getDrink('negroni', withBuild);
+  expect(found.ok).toBe(true);
+  if (!found.ok) return;
+  expect(found.data.name).toBe('Negroni');
+  expect(found.data.isBitter).toBe(true);
+  expect(found.data.build).toBe('Gin · Campari · Sweet vermouth');
+  expect(getDrink('not a real drink', withBuild).ok).toBe(false);
+});
+
+test('MCP: recommendForGroup respects every person’s aversions and returns widestContrast', async () => {
+  const result = await recommendForGroup(['alice.bsky.social', 'bob.bsky.social'], { count: 3 }, ctx);
+  expect(result.ok).toBe(true);
+  if (!result.ok) return;
+  expect(result.data.people).toHaveLength(2);
+  expect(result.data.drinks).toHaveLength(3);
+  for (const d of result.data.drinks) {
+    const full = drinkDatabase.find((x) => x.name === d.name)!;
+    expect(full.isBitter).toBe(false);
+  }
+  expect(result.data.widestContrast?.distance).toBeGreaterThan(10);
+});
+
+test('MCP: myBars summarizes visited bars and excludes home pours', async () => {
+  const memberCtx: ToolContext = {
+    ...ctx,
+    member: {
+      did: DID_A,
+      recentPours: async () => [
+        {
+          $type: 'app.cotidal.pour',
+          drink: { name: 'Negroni' },
+          rating: { hedonic: 8 },
+          venue: { entity: { name: 'Attaboy' } },
+          createdAt: '2026-11-02T00:00:00.000Z',
+        },
+        {
+          $type: 'app.cotidal.pour',
+          drink: { name: 'Last Word' },
+          rating: { hedonic: 9 },
+          venue: { entity: { name: 'Attaboy' } },
+          createdAt: '2026-11-01T00:00:00.000Z',
+        },
+        {
+          $type: 'app.cotidal.pour',
+          drink: { name: 'Daiquiri (Classic)' },
+          rating: { hedonic: 7 },
+          isHomePour: true,
+          createdAt: '2026-11-03T00:00:00.000Z',
+        },
+      ],
+      logPour: async () => null,
+    },
+  };
+  const result = await myBars(memberCtx);
+  expect(result.ok).toBe(true);
+  if (!result.ok) return;
+  expect(result.data.bars).toHaveLength(1);
+  expect(result.data.bars[0]).toMatchObject({
+    bar: 'Attaboy',
+    pours: 2,
+    averageHedonic: 8.5,
+    topDrinks: ['Last Word', 'Negroni'],
+  });
 });

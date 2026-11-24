@@ -1,6 +1,7 @@
+import { useState } from 'react';
 import { logPage, menu } from '@/lib/copy';
 import { formatCoordinate } from '@/lib/coordinate';
-import { startOverPath } from '@/lib/atproto/paths';
+import { publicMapPath, startOverPath } from '@/lib/atproto/paths';
 import type { Register } from '@/lib/register';
 import { neutralProfile } from '@/lib/guest-palate';
 import { destinations } from '@/lib/site-nav';
@@ -28,17 +29,14 @@ import { AccountSection } from './AccountSection';
 function LogContent({
   register,
   member,
-  mcpAddress,
-  memberMcpAddress,
 }: {
   register: Register;
   member: { handle: string | null } | null;
-  mcpAddress: string;
-  memberMcpAddress: string | null;
 }) {
   const { isEnabled, openSignIn } = useAtprotoContext();
   const log = useLog(register, member);
   const { rate, isMember, profile, setProfile, pours, reload, history, name } = log;
+  const [friendHandle, setFriendHandle] = useState('');
 
   // Rating opens over this screen, with or without a coordinate yet.
   const sheet = (
@@ -99,6 +97,19 @@ function LogContent({
               </div>
             ))}
           </dl>
+          {log.tolerances && (
+            <div>
+              <p className="label-caps mb-1.5">{logPage.tolerancesTitle}</p>
+              <dl className="grid grid-cols-3 border-t border-border">
+                {log.tolerances.map((item, i) => (
+                  <div key={item.label} className={`flex flex-col gap-0.5 border-b border-border py-2 ${i > 0 ? 'border-l pl-3' : 'pr-3'}`}>
+                    <dt className="label-caps">{item.label}</dt>
+                    <dd className="font-condensed text-ui font-semibold tabular-nums text-foreground">{item.value}</dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
+          )}
         </div>
 
         <div className="mt-8 lg:mt-0">
@@ -125,6 +136,34 @@ function LogContent({
             />
           </section>
 
+          {/* Quick ATProto comparison: type a friend's Bluesky handle to open `/p/<handle>`. */}
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              const cleaned = friendHandle.trim().replace(/^@/, '');
+              if (cleaned) window.location.assign(publicMapPath(cleaned));
+            }}
+            className="mt-8 border-t border-border pt-6"
+          >
+            <h2 className="section-title">{logPage.compareTitle}</h2>
+            <div className="mt-3 flex gap-2">
+              <label className="flex flex-1 flex-col">
+                <span className="sr-only">{logPage.compareLabel}</span>
+                <input
+                  value={friendHandle}
+                  onChange={(e) => setFriendHandle(e.target.value)}
+                  placeholder={logPage.comparePlaceholder}
+                  autoComplete="off"
+                  autoCapitalize="none"
+                  className="field min-h-11"
+                />
+              </label>
+              <button type="submit" className="btn btn-outline px-4">
+                {logPage.compareSubmit}
+              </button>
+            </div>
+          </form>
+
           {/* A guest, once a pour is here to keep: what signing in buys, under the log it would keep. */}
           {!isMember && isEnabled && history.length > 0 && (
             <GuestPrompt className="mt-6" title={logPage.guestTitle} body={logPage.guestBody} onSignIn={openSignIn} />
@@ -132,8 +171,6 @@ function LogContent({
 
           <AccountSection
             handle={member?.handle ?? null}
-            mcpAddress={mcpAddress}
-            memberMcpAddress={memberMcpAddress}
             topName={log.nearestName}
             regionName={log.region.name}
             onStartOver={() => window.location.assign(startOverPath)}
@@ -164,21 +201,15 @@ export default function LogScreen({
   register,
   signInEnabled,
   member,
-  mcpAddress,
-  memberMcpAddress = null,
 }: {
   register: Register;
   signInEnabled: boolean;
   /** The server's answer (`accountFor`): who is reading, before anything loads. */
   member: { handle: string | null } | null;
-  /** The `/mcp` address on this host (the server knows the host). */
-  mcpAddress: string;
-  /** The `/mcp/me` address, when an assistant can be signed in here. */
-  memberMcpAddress?: string | null;
 }) {
   return (
     <AtprotoProvider enabled={signInEnabled}>
-      <LogContent register={register} member={member} mcpAddress={mcpAddress} memberMcpAddress={memberMcpAddress} />
+      <LogContent register={register} member={member} />
     </AtprotoProvider>
   );
 }

@@ -1,0 +1,21 @@
+---
+import AppShell from '../../layouts/AppShell.astro';
+import PageTitle from '../../components/marketing/PageTitle.astro';
+import { MenuAudit } from '../../components/app/MenuAudit';
+import { barAudit, nav, site } from '../../lib/copy';
+import { loadRegister } from '../../lib/register.server';
+
+const register = await loadRegister();
+---
+
+<AppShell
+  title={`${site.name} — ${barAudit.eyebrow}`}
+  currentPath="/bars/audit"
+  backLink={{ href: '/bars', label: nav.bars }}
+  width="wide"
+>
+  <div class="space-y-10 pb-8 pt-6">
+    <PageTitle eyebrow={barAudit.eyebrow} title={barAudit.title} lede={barAudit.lede} />
+    <MenuAudit client:load register={register} />
+  </div>
+</AppShell>

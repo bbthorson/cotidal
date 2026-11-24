@@ -4,12 +4,21 @@ import { placeStyle, type StyleProfile } from './placement';
 /** Declared once, in vocab.ts, because the palate lexicon lists them as `knownValues`. */
 export type VibeTag = (typeof VIBE_TAGS)[number];
 
+/** The three EKF readings not drawn on the 2D chart (`latentVector[2..4]`). */
+export interface Tolerances {
+  bitter: number;
+  tannin: number;
+  complexity: number;
+  eventCount: number;
+}
+
 export type User = {
   x: number;
   y: number;
   filters: string[]; // e.g. 'noSmoke', 'noBitter', 'noAnise'
   dislikesAnise?: boolean; // Explicit field for type safety, mapped to filters
   vibeTags?: Record<string, number>;
+  tolerances?: Tolerances;
 };
 
 export type Drink = {

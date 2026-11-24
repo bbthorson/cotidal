@@ -5,6 +5,7 @@ import { AssistantSteps } from '../components/app/AssistantSteps';
 import { serveMcp } from '@/lib/mcp/serve';
 import { memberMcpAddress } from '@/lib/mcp/authorize-context.server';
 import { readPublicPalate } from '@/lib/atproto/public-read';
+import { accountFor } from '@/lib/atproto/session';
 import { loadRegister } from '@/lib/register.server';
 import { assistants as copy, site } from '@/lib/copy';
 
@@ -17,9 +18,7 @@ import { assistants as copy, site } from '@/lib/copy';
  *
  * A person who opens the address in a browser gets the instructions instead,
  * at the same URL, so the address bar shows what to paste. An MCP client asks
- * for JSON or an event stream and never for HTML. A member reads the same
- * instructions, with their handle in them, under their account
- * at the foot of `/log`.
+ * for JSON or an event stream and never for HTML.
  */
 export const prerender = false;
 
@@ -37,11 +36,13 @@ if (!isBrowser) {
 
 const address = new URL('/mcp', Astro.url).toString();
 const memberAddress = await memberMcpAddress(Astro.url);
+const account = await accountFor(request, false);
+const handle = account.kind === 'member' ? account.handle : null;
 ---
 
 <AppShell title={`${site.name} — ${copy.eyebrow}`} currentPath="/mcp" width="prose">
   <div class="space-y-12 pb-6">
     <PageTitle eyebrow={copy.eyebrow} title={copy.title} lede={copy.lede} />
-    <AssistantSteps address={address} memberAddress={memberAddress} />
+    <AssistantSteps address={address} memberAddress={memberAddress} handle={handle} />
   </div>
 </AppShell>

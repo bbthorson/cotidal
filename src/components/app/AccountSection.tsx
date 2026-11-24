@@ -1,34 +1,28 @@
 import { useState } from 'react';
-import { account, assistants, settings } from '@/lib/copy';
+import { account, settings } from '@/lib/copy';
 import { AUTH_BASE_PATH, publicMapPath } from '@/lib/atproto/paths';
 import { sharePalateToFeed } from '@/lib/api-client';
 import { cn } from '@/lib/utils';
-import { AssistantSteps } from './AssistantSteps';
 
 const link = 'link-caps';
 
 /** A member's settings page: connected assistants, and the account as one page. */
 const SETTINGS_PATH = '/settings';
+const MCP_PATH = '/mcp';
 
 /**
- * The account, in one block under the ledger: who you are, your public map,
- * sharing, chat assistant setup, start over, and signing out. A guest has no
- * account to manage, so sees only start over.
+ * The account, in one compact block under the ledger: who you are, your public
+ * map, sharing, chat assistant setup (/mcp), settings, start over, and sign out.
+ * A guest has no account to manage, so sees only start over.
  */
 export function AccountSection({
   handle,
-  mcpAddress,
-  memberMcpAddress = null,
   topName,
   regionName,
   onStartOver,
 }: {
   /** Null for a guest. */
   handle: string | null;
-  /** The `/mcp` address on this host, for the assistant setup. */
-  mcpAddress: string;
-  /** The `/mcp/me` address, when an assistant can be signed in here. */
-  memberMcpAddress?: string | null;
   topName: string;
   regionName: string;
   onStartOver: () => void;
@@ -74,7 +68,7 @@ export function AccountSection({
               >
                 {shareState === 'shared' ? account.shared : account.share}
               </button>
-              <a href="#assistant" className={cn(link, 'text-secondary hover:underline hover:underline-offset-4')}>
+              <a href={MCP_PATH} className={cn(link, 'text-secondary hover:underline hover:underline-offset-4')}>
                 {account.assistants}
               </a>
               <a href={SETTINGS_PATH} className={cn(link, 'text-secondary hover:underline hover:underline-offset-4')}>
@@ -91,6 +85,13 @@ export function AccountSection({
               {account.startOver}
             </button>
           )}
+          {handle && (
+            <form method="POST" action={`${AUTH_BASE_PATH}/logout`} className="inline-flex">
+              <button type="submit" className={cn(link, 'text-muted-foreground hover:text-foreground')}>
+                {account.signOutTitle}
+              </button>
+            </form>
+          )}
         </div>
         {shareError && (
           <p role="alert" className="text-meta text-destructive">
@@ -99,27 +100,6 @@ export function AccountSection({
         )}
         {confirming && <StartOver onConfirm={onStartOver} onCancel={() => setConfirming(false)} />}
       </div>
-
-      {handle && (
-        <div id="assistant" className="mt-4 scroll-mt-4 space-y-4 border-t border-border pt-4" data-testid="assistant">
-          <h3 className="font-serif text-plate font-bold">{assistants.sectionTitle}</h3>
-          <p className="text-ui text-muted-foreground">{assistants.lede}</p>
-          <AssistantSteps address={mcpAddress} memberAddress={memberMcpAddress} handle={handle} />
-        </div>
-      )}
-
-      {handle && (
-        <div className="mt-4 flex flex-col gap-2 border-t border-border pt-4">
-          <h3 className="font-serif text-plate font-bold">{account.signOutTitle}</h3>
-          <p className="text-ui text-muted-foreground">{account.signOutBody}</p>
-          {/* A form post that answers with a redirect, like the header's: no script needed. */}
-          <form method="POST" action={`${AUTH_BASE_PATH}/logout`}>
-            <button type="submit" className="btn btn-outline px-4">
-              {account.signOutTitle}
-            </button>
-          </form>
-        </div>
-      )}
     </section>
   );
 }
