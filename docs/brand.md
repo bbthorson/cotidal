@@ -73,6 +73,8 @@ nautical where a plain word allows it.
 | **Rate** | Open the sheet for a drink you had | "Rate this", "Rate a drink", "Rate it". The sheet's button says **Log it**, and **Done** closes it |
 | **Log** (the record) | Where a rated pour lands | Never *ledger* in the interface |
 | **Sign in / Sign out** | Bluesky sign-in | Plain words: they are navigation |
+| **Your track** | The way your coordinate came, from the questions through each pour | A chart word a reader knows. Not *wake*, not *course* |
+| **Moved** / **held** | What one pour did to your coordinate | "Moved 0.7", or "held" for a rating between 4 and 6, which moves nothing. Never *fix*, which is ours |
 
 ## Claims
 
@@ -119,6 +121,7 @@ The ground is **warm paper**, not obsidian. Everything is ink on stock.
 | `--accent` | `80 24% 76%` | Sage |
 | `--border` | `41 29% 81%` | Tan hairline |
 | `--muted-foreground` | `125 6% 39%` | Warm grey-green |
+| `--shoal` | `156 17% 88%` | Pale water: where you probably are, and nothing else |
 
 **The open question is closed.** The previous palette paired amber with
 burnished copper and noted that the two sat too close to create any tension.

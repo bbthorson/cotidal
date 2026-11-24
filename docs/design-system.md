@@ -30,6 +30,7 @@ All colors, typography, elevations, and layout metrics are defined centrally in 
 | `--border` | `41 29% 81%` | `#D6CEBA` | Tan hairline border |
 | `--muted-foreground` | `125 6% 39%` | `#5D6A61` | Warm grey-green for metadata & glosses |
 | `--destructive` | `0 65% 42%` | `#B12828` | Errors only |
+| `--shoal` | `156 17% 88%` | `#DCE6E2` | Pale water: where you probably are on the chart, and where the questions' answers point. Nothing else |
 
 **Colour rules.** Terracotta marks what is *yours* and nothing else: your dot, your region, your top pick, a value you gave and the app records (a rating, a chosen answer), and the focus ring. Forest is for acting and switching: the primary button, a pressed filter, segment or chip. **"You are here"** — the current page, tab or step — is neither: a bold label over a heavy ink (`foreground`) rule, like a printed tab (`.tab`, below). Links are underlined in grey-green and darken to ink on hover; text that is not underlined underlines on hover. Text is full-strength ink, forest, terracotta or grey-green — de-emphasise with size and weight, never with opacity.
 
@@ -151,6 +152,20 @@ Navigation is unified across the entire site through `<SiteHeader.astro>` and `<
 14. **One section heading.** A section inside any page, reading or app, opens with `section-title`: a bold Playfair line over an ink rule. A heading with a link beside it ("Rate a drink", "Its drinks →") draws the same rule under the row. Small caps label a field or a column, never a section.
 15. **Nothing smaller than 13px is prose.** `text-label` (12px) is for condensed caps only. A note or citation under an item is `text-meta` in PT Sans; an italic gloss is Playfair at `text-ui`.
 16. **The eyebrow is the name of the way in.** The small caps line over a title is the label of the nav item, tab or button that opens the page — Drinks, Regions, For bars, Chat assistants, Public map, Compass, Log, Pick a drink, Rate a drink — and a page about one item adds what kind of item after a middle dot (`Drinks · Aperitivo`, `Regions · Rich and savory`). The landing page has none. Write it in sentence case in `copy.ts`; the caps are CSS.
+
+## The chart redesign (in progress)
+
+The app is being redrawn as a printed chart: the screens show what the model already knows — where you are, how sure it is, the way you came, which way a drink lies and how far — instead of describing it. The target is the design canvas reviewed on 24 November 2026; each screen's section below is rewritten in the commit that ships it, so this list is what is still to come.
+
+1. **Log as a log**: your track drawn large, then numbered entries — the drink, when and where, the rating, how far it moved you (or "held", for a rating between 4 and 6).
+2. **After a pour**: where you were, where you are, and the drink that pulled you.
+3. **The front door** (`/`): the chart, the headline, one line and **Find your coordinate**. Everything else is on How it works and Drinks.
+4. **Compass, chart first**: the chart with your position, the shoal around it and your track; your menu in a sheet along the foot, each drink with which way it lies ("richer, more savory") and how far. Before you have a position: every drink, one line, **Find your coordinate**, and "or look up a drink" — no search, bar map or menu until there is something to rank.
+5. **The questions**: the shoal over the map, narrowing as you answer.
+
+**Signed out is one thing per screen.** A stranger is asked to do one thing: find their coordinate. A guest with a coordinate sees what a member sees; what signing in keeps is said once, at the foot of Log, after the first pour — the first moment it would keep something.
+
+**Which way and how far, never a predicted score.** The filter's hedonic prediction sits near 9 for any drink close to you (see `applyPour`), so the interface does not show it as a forecast. Direction words are the axes' own: richer or crisper, sweeter or more savory.
 
 ## The first-visit flow (`/questions`)
 
