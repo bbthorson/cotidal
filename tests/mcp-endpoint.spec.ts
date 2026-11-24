@@ -38,6 +38,7 @@ test('MCP endpoint: lists the read-only tools', async ({ request }) => {
     [
       'compare_palates',
       'draft_pour',
+      'get_bar_menu',
       'get_drink',
       'get_palate',
       'rank_menu',
@@ -89,7 +90,7 @@ test('MCP endpoint: a client asking for an event stream is never sent the page',
     data: { jsonrpc: '2.0', id: 1, method: 'tools/list', params: {} },
   });
   expect(post.status()).toBe(200);
-  expect((await post.json()).result.tools.length).toBe(8);
+  expect((await post.json()).result.tools.length).toBe(9);
 });
 
 test('MCP endpoint: the browser page is the one place for setup without a map, and /assistants is gone', async ({ request }) => {

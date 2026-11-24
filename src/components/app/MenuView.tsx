@@ -36,7 +36,9 @@ export function MenuView({
   onBack: () => void;
   onPicked: (pick: DrinkPick) => void;
 }) {
-  const [items, setItems] = useState<MenuItem[]>([]);
+  const [items, setItems] = useState<MenuItem[]>(() =>
+    venue.initialLines?.length ? addMenuLines([], venue.initialLines.join('\n'), register) : []
+  );
   const [entry, setEntry] = useState('');
   const [pasting, setPasting] = useState(false);
   const [pasteText, setPasteText] = useState('');

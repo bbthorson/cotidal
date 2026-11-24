@@ -2,6 +2,7 @@ import type { APIRoute } from 'astro';
 import { answerMember, type ProviderContext } from '@/lib/mcp/member-endpoint';
 import { memberTools } from '@/lib/mcp/member-tools.server';
 import { readPublicPalate } from '@/lib/atproto/public-read';
+import { readPublicVenue } from '@/lib/atproto/venue-read';
 import { loadRegister } from '@/lib/register.server';
 
 /**
@@ -22,7 +23,12 @@ export const ALL: APIRoute = async ({ request, locals, url }) => {
   return answerMember(
     request,
     (locals as { cfContext?: ProviderContext }).cfContext,
-    { readPalate: (actor) => readPublicPalate(actor), register, origin: url.origin },
+    {
+      readPalate: (actor) => readPublicPalate(actor),
+      readVenue: (actor) => readPublicVenue(actor),
+      register,
+      origin: url.origin,
+    },
     (did) => memberTools(did, url.origin, register)
   );
 };

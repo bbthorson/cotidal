@@ -44,17 +44,25 @@ const formatDate = (iso: string) => {
             title={result.venue.name}
             lede={result.venue.description ?? undefined}
           />
-          {result.venue.website && (
-            <p class="text-meta text-muted-foreground">
+          <div class="flex flex-wrap items-center gap-x-5 gap-y-2">
+            {result.venue.menu && (
+              <a
+                href={`/compass?venue=${encodeURIComponent(result.actor.handle ?? result.actor.did)}`}
+                class="btn btn-primary px-6"
+              >
+                {copy.rankForMe}
+              </a>
+            )}
+            {result.venue.website && (
               <a
                 href={result.venue.website}
                 rel="noopener noreferrer"
-                class="underline decoration-muted-foreground underline-offset-4 hover:text-foreground"
+                class="link-caps text-muted-foreground underline decoration-muted-foreground underline-offset-4 hover:text-foreground"
               >
                 {copy.websiteLabel}
               </a>
-            </p>
-          )}
+            )}
+          </div>
         </div>
 
         {result.venue.menu ? (
