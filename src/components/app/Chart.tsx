@@ -1,16 +1,15 @@
 import { useMemo } from 'react';
 import { drinkDatabase, type Drink } from '@/lib/data';
-import { matchDrink } from '@/lib/drink-match';
 import { quadrantFor } from '@/lib/quadrant';
 import { formatCoordinate } from '@/lib/coordinate';
 import { chart, menu, pour } from '@/lib/copy';
 import { titleOf, type Register } from '@/lib/register';
 import type { PourRecord } from '@/lib/atproto/records';
+import type { Lens } from '@/hooks/useLog';
 import { cn } from '@/lib/utils';
 import { CoordinateMap, DrinkSpot, YouMark } from './CoordinateMap';
 import { PinnedCard } from './PinnedCard';
 
-export type Lens = (typeof chart.lenses)[number]['id'];
 
 interface Spot {
   key: string;
@@ -20,20 +19,6 @@ interface Spot {
 }
 
 const key = (d: { x: number; y: number }) => `${d.x},${d.y}`;
-
-/** The latest pour of each drink on the map, by catalogue name. */
-export function useLastPours(pours: PourRecord[]) {
-  return useMemo(() => {
-    const byName = new Map<string, PourRecord>();
-    for (const p of pours) {
-      const drink = matchDrink(p.drink.name);
-      if (!drink) continue;
-      const prev = byName.get(drink.name);
-      if (!prev || new Date(p.createdAt) > new Date(prev.createdAt)) byName.set(drink.name, p);
-    }
-    return byName;
-  }, [pours]);
-}
 
 /**
  * The chart: every drink at its coordinate, your position, and a title block

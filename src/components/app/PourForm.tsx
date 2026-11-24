@@ -1,6 +1,5 @@
-import { useId, useState, type SubmitEvent, type ReactNode } from 'react';
+import { useId, type ReactNode } from 'react';
 import { drinkDatabase } from '@/lib/data';
-import { matchDrink } from '@/lib/drink-match';
 import {
   ASKED_INTENSITIES,
   BASE_SPIRITS,
@@ -8,69 +7,15 @@ import {
   DEVIATIONS,
   GLASSWARE,
   GLMS_ANCHORS,
-  type AskedIntensity,
   type BaseSpirit,
-  type CataNote,
   type Glassware,
 } from '@/lib/atproto/vocab';
 import { pour } from '@/lib/copy';
-import type { LogDrinkOptions } from '@/lib/api-client';
+import { glmsWord, type PourEntry } from '@/lib/pour-entry';
 import type { PourDraft } from '@/lib/pour-draft';
+import { usePourForm } from '@/hooks/usePourForm';
 import { cn } from '@/lib/utils';
 import { Chip } from './ui';
-
-export type Deviation = (typeof DEVIATIONS)[number];
-
-/** What the form hands back. `hedonic` is the stored 9-point scale. */
-export interface PourEntry {
-  drinkName: string;
-  hedonic: number;
-  isHomePour: boolean;
-  venue: string;
-  deviations: Deviation[];
-  cata?: CataNote[];
-  note: string;
-  crosspost: boolean;
-  /** Only what the drinker set: an untouched field is absent, never a default. */
-  detail?: {
-    baseSpirit?: BaseSpirit;
-    glassware?: Glassware;
-    garnish?: string;
-    /** gLMS, 0–100 (`perceivedIntensities` on the pour). */
-    intensities?: Partial<Record<AskedIntensity, number>>;
-  };
-}
-
-/**
- * The server's 0–10 rating for a hedonic score. It maps back with
- * round(rating × 0.8 + 1), so the stored score is exactly the one tapped.
- */
-const hedonicToRating = (hedonic: number) => (hedonic - 1) * 1.25;
-
-/** What the log route is sent for an entry. One mapping for the one form. */
-export function toLogOptions(entry: PourEntry): LogDrinkOptions {
-  return {
-    drinkName: entry.drinkName,
-    rating: hedonicToRating(entry.hedonic),
-    isHomePour: entry.isHomePour,
-    location: entry.isHomePour ? 'Home Pour' : entry.venue,
-    venue: entry.isHomePour ? undefined : { name: entry.venue },
-    deviations: entry.deviations,
-    cata: entry.cata,
-    note: entry.note || undefined,
-    crosspostToFeed: entry.crosspost,
-    baseSpirit: entry.detail?.baseSpirit,
-    glassware: entry.detail?.glassware,
-    garnish: entry.detail?.garnish,
-    perceivedIntensities: entry.detail?.intensities,
-  };
-}
-
-/** The gLMS word for a position on the scale: the highest anchor at or below it. */
-export function glmsWord(value: number): string {
-  const anchor = [...GLMS_ANCHORS].reverse().find((a) => value >= a.at);
-  return anchor ? pour.glms[anchor.id] : pour.glmsNone;
-}
 
 interface PourFormProps {
   /** Quick picks shown under the drink field, e.g. the top of your menu. */
@@ -98,7 +43,8 @@ interface PourFormProps {
 
 /**
  * The one pour form (design system: plates, segmented controls, tags). One
- * field per idea, labels above, 16px values so iOS does not zoom.
+ * field per idea, labels above, 16px values so iOS does not zoom. It draws;
+ * the fields and what a tap does to them are `usePourForm`.
  */
 export function PourForm({
   suggestions,
@@ -115,64 +61,10 @@ export function PourForm({
   onSubmit,
 }: PourFormProps) {
   const id = useId();
-  const [drinkName, setDrinkName] = useState(draft?.drink ?? initialDrink);
-  const [isHomePour, setIsHomePour] = useState(draft?.atHome ?? false);
-  // `null` until tapped, for a draft only: what was said in a chat is not a rating.
-  const [hedonic, setHedonic] = useState<number | null>(draft ? null : 7);
-  const [deviations, setDeviations] = useState<Deviation[]>(draft?.deviations ?? []);
-  const [cata, setCata] = useState<CataNote[]>(draft?.cata ?? []);
-  const [note, setNote] = useState(draft?.note ?? '');
-  const [crosspost, setCrosspost] = useState(false);
-  const [baseSpirit, setBaseSpirit] = useState<BaseSpirit | ''>('');
-  const [glassware, setGlassware] = useState<Glassware | ''>('');
-  const [garnish, setGarnish] = useState('');
-  const [intensities, setIntensities] = useState<Partial<Record<AskedIntensity, number>>>({});
-  const [localError, setLocalError] = useState<string | null>(null);
-
-  /** The detail fields the drinker set, or nothing. */
-  const chosenDetail = (): PourEntry['detail'] => {
-    const detail: NonNullable<PourEntry['detail']> = {
-      ...(baseSpirit ? { baseSpirit } : {}),
-      ...(glassware ? { glassware } : {}),
-      ...(garnish.trim() ? { garnish: garnish.trim() } : {}),
-      ...(Object.keys(intensities).length > 0 ? { intensities } : {}),
-    };
-    return Object.keys(detail).length > 0 ? detail : undefined;
-  };
-
-  const submit = (e: SubmitEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!drinkName.trim()) return setLocalError(pour.needDrink);
-    if (!isHomePour && !venue.trim()) return setLocalError(pour.needBar);
-    if (hedonic === null) return setLocalError(pour.needRating);
-    setLocalError(null);
-    onSubmit({
-      drinkName: drinkName.trim(),
-      hedonic,
-      isHomePour,
-      venue: venue.trim(),
-      deviations,
-      cata: cata.length > 0 ? cata : undefined,
-      note: note.trim(),
-      crosspost: isMember && crosspost,
-      detail: isMember ? chosenDetail() : undefined,
-    });
-    setDeviations([]);
-    setCata([]);
-    setNote('');
-    // Detail belongs to the drink just logged, not the next one.
-    setBaseSpirit('');
-    setGlassware('');
-    setGarnish('');
-    setIntensities({});
-  };
-
-  const shownError = localError ?? error;
-  // A drink the map has no point for: logged all the same, and said so before it is.
-  const unlisted = !!drinkName.trim() && !matchDrink(drinkName);
+  const f = usePourForm({ draft, initialDrink, isMember, venue, error, onSubmit });
 
   return (
-    <form onSubmit={submit} className="flex flex-col gap-6">
+    <form onSubmit={f.submit} className="flex flex-col gap-6">
       {draft && (
         <p className="border-l-2 border-secondary pl-3 text-ui text-foreground" data-testid="pour-draft-note">
           {pour.draftNote}
@@ -186,13 +78,13 @@ export function PourForm({
           id={`${id}-drink`}
           type="text"
           list={`${id}-catalog`}
-          value={drinkName}
-          onChange={(e) => setDrinkName(e.target.value)}
+          value={f.drinkName}
+          onChange={(e) => f.setDrinkName(e.target.value)}
           placeholder={pour.drinkPlaceholder}
           autoComplete="off"
           className={inputClass}
         />
-        {unlisted && <p className="text-meta text-muted-foreground">{pour.unlisted(drinkName.trim())}</p>}
+        {f.unlisted && <p className="text-meta text-muted-foreground">{pour.unlisted(f.drinkName.trim())}</p>}
         <datalist id={`${id}-catalog`}>
           {drinkDatabase.map((d) => (
             <option key={d.name} value={d.name} />
@@ -204,7 +96,7 @@ export function PourForm({
               {suggestionsLabel}
             </span>
             {suggestions.slice(0, 4).map((name) => (
-              <Chip key={name} active={drinkName === name} onClick={() => setDrinkName(name)}>
+              <Chip key={name} active={f.drinkName === name} onClick={() => f.setDrinkName(name)}>
                 {labelFor(name)}
               </Chip>
             ))}
@@ -220,15 +112,15 @@ export function PourForm({
             <button
               key={String(home)}
               type="button"
-              aria-pressed={isHomePour === home}
-              onClick={() => setIsHomePour(home)}
+              aria-pressed={f.isHomePour === home}
+              onClick={() => f.setIsHomePour(home)}
               className="segment"
             >
               {home ? pour.atHome : pour.atBar}
             </button>
           ))}
         </div>
-        {!isHomePour && (
+        {!f.isHomePour && (
           <>
             <label htmlFor={`${id}-bar`} className="sr-only">
               {pour.barLabel}
@@ -262,16 +154,16 @@ export function PourForm({
         <div className="flex items-baseline justify-between">
           <FieldLabel as="span">{pour.ratingLabel}</FieldLabel>
           <span
-            className={cn('font-serif text-ui italic', hedonic === null ? 'text-muted-foreground' : 'text-foreground')}
+            className={cn('font-serif text-ui italic', f.hedonic === null ? 'text-muted-foreground' : 'text-foreground')}
             aria-live="polite"
           >
-            {hedonic === null ? pour.tapRating : pour.hedonic[hedonic - 1]}
+            {f.hedonic === null ? pour.tapRating : pour.hedonic[f.hedonic - 1]}
           </span>
         </div>
         <div role="radiogroup" aria-label={pour.ratingLabel} className="segmented grid grid-cols-9">
           {pour.hedonic.map((label, i) => {
             const n = i + 1;
-            const active = n === hedonic;
+            const active = n === f.hedonic;
             return (
               <button
                 key={n}
@@ -279,7 +171,7 @@ export function PourForm({
                 role="radio"
                 aria-checked={active}
                 aria-label={`${n}: ${label}`}
-                onClick={() => setHedonic(n)}
+                onClick={() => f.setHedonic(n)}
                 className="segment text-ui font-bold tabular-nums"
               >
                 {n}
@@ -300,12 +192,12 @@ export function PourForm({
         </FieldLabel>
         <div className="flex flex-wrap gap-2">
           {DEVIATIONS.map((dev) => {
-            const active = deviations.includes(dev);
+            const active = f.deviations.includes(dev);
             return (
               <Chip
                 key={dev}
                 active={active}
-                onClick={() => setDeviations((prev) => (active ? prev.filter((d) => d !== dev) : [...prev, dev]))}
+                onClick={() => f.toggleDeviation(dev)}
               >
                 {pour.deviations[dev]}
               </Chip>
@@ -321,12 +213,12 @@ export function PourForm({
         </FieldLabel>
         <div className="flex flex-wrap gap-2">
           {CATA.map((item) => {
-            const active = cata.includes(item);
+            const active = f.cata.includes(item);
             return (
               <Chip
                 key={item}
                 active={active}
-                onClick={() => setCata((prev) => (active ? prev.filter((c) => c !== item) : [...prev, item]))}
+                onClick={() => f.toggleCata(item)}
               >
                 {pour.cata[item]}
               </Chip>
@@ -341,8 +233,8 @@ export function PourForm({
         </FieldLabel>
         <textarea
           id={`${id}-note`}
-          value={note}
-          onChange={(e) => setNote(e.target.value)}
+          value={f.note}
+          onChange={(e) => f.setNote(e.target.value)}
           placeholder={pour.notePlaceholder}
           rows={2}
           maxLength={1000}
@@ -362,15 +254,15 @@ export function PourForm({
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <SelectField
                 label={pour.spiritLabel}
-                value={baseSpirit}
+                value={f.baseSpirit}
                 options={BASE_SPIRITS.map((v) => ({ value: v, label: pour.spirits[v] }))}
-                onChange={(v) => setBaseSpirit(v as BaseSpirit | '')}
+                onChange={(v) => f.setBaseSpirit(v as BaseSpirit | '')}
               />
               <SelectField
                 label={pour.glassLabel}
-                value={glassware}
+                value={f.glassware}
                 options={GLASSWARE.map((v) => ({ value: v, label: pour.glasses[v] }))}
-                onChange={(v) => setGlassware(v as Glassware | '')}
+                onChange={(v) => f.setGlassware(v as Glassware | '')}
               />
             </div>
             <div className="flex flex-col gap-2">
@@ -378,8 +270,8 @@ export function PourForm({
               <input
                 id={`${id}-garnish`}
                 type="text"
-                value={garnish}
-                onChange={(e) => setGarnish(e.target.value)}
+                value={f.garnish}
+                onChange={(e) => f.setGarnish(e.target.value)}
                 placeholder={pour.garnishPlaceholder}
                 className={inputClass}
               />
@@ -397,7 +289,7 @@ export function PourForm({
               </datalist>
               <div className="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
                 {ASKED_INTENSITIES.map((quality) => {
-                  const value = intensities[quality];
+                  const value = f.intensities[quality];
                   const word = value === undefined ? pour.notRated : glmsWord(value);
                   return (
                     <label key={quality} className="flex flex-col gap-1">
@@ -416,9 +308,7 @@ export function PourForm({
                         list={`${id}-glms`}
                         value={value ?? 0}
                         aria-valuetext={word}
-                        onChange={(e) =>
-                          setIntensities((prev) => ({ ...prev, [quality]: Number(e.target.value) }))
-                        }
+                        onChange={(e) => f.setIntensity(quality, Number(e.target.value))}
                         className={cn('w-full cursor-pointer accent-secondary', value === undefined && 'opacity-50')}
                       />
                     </label>
@@ -434,8 +324,8 @@ export function PourForm({
         <label className="flex min-h-11 cursor-pointer items-center gap-3 text-ui">
           <input
             type="checkbox"
-            checked={crosspost}
-            onChange={(e) => setCrosspost(e.target.checked)}
+            checked={f.crosspost}
+            onChange={(e) => f.setCrosspost(e.target.checked)}
             className="h-4 w-4 cursor-pointer accent-secondary"
           />
           {pour.crosspost}
@@ -450,9 +340,9 @@ export function PourForm({
         >
           {submitting ? pour.submitting : pour.submit}
         </button>
-        {shownError && (
+        {f.shownError && (
           <p role="alert" className="text-meta text-destructive">
-            {shownError}
+            {f.shownError}
           </p>
         )}
       </div>

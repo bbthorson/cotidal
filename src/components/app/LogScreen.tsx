@@ -1,21 +1,12 @@
-import { useMemo, useState } from 'react';
-import { drinkDatabase } from '@/lib/data';
-import { quadrantFor } from '@/lib/quadrant';
-import { calculateDistance } from '@/lib/scoring';
 import { logPage } from '@/lib/copy';
 import { startOverPath } from '@/lib/atproto/paths';
-import { titleOf, type Register } from '@/lib/register';
-import { barsFromPours } from '@/lib/pour-history';
-import { userFromProfile } from '@/lib/profile';
+import type { Register } from '@/lib/register';
 import { neutralProfile } from '@/lib/guest-palate';
 import { destinations, questionsHref } from '@/lib/site-nav';
-import { useMenu } from '@/hooks/useMenu';
-import { usePours } from '@/hooks/usePours';
-import { useRateSheet } from '@/hooks/useRateSheet';
-import { useProfile } from '@/hooks/useProfile';
+import { useLog } from '@/hooks/useLog';
 import { cn } from '@/lib/utils';
 import { AtprotoProvider, useAtprotoContext } from './AtprotoProvider';
-import { Chart, DrinkCard, useLastPours, type Lens } from './Chart';
+import { Chart, DrinkCard } from './Chart';
 import { ColdState } from './ColdState';
 import { PourLedger } from './PourLedger';
 import { WaitingPick } from './WaitingPick';
@@ -31,6 +22,8 @@ import { AccountSection } from './AccountSection';
  *
  * From `lg` the chart and its figures hold the left column while the ledger
  * and the account scroll beside them; on a phone they stack, chart first.
+ *
+ * This file draws; what it draws and what a tap does is `useLog`.
  */
 function LogContent({
   register,
@@ -42,30 +35,8 @@ function LogContent({
   mcpAddress: string;
 }) {
   const { isEnabled, openSignIn } = useAtprotoContext();
-  const isMember = !!member;
-  const [profile, setProfile] = useProfile(isMember);
-  const { pours, reload } = usePours(isMember);
-  const rate = useRateSheet();
-  const history = useMemo(() => pours ?? [], [pours]);
-
-  const x = profile?.x ?? 0;
-  const y = profile?.y ?? 0;
-  const region = quadrantFor(x, y);
-
-  // The map: your menu filled in, or your pours, and any drink opened in the card.
-  const [lens, setLens] = useState<Lens>('drinks');
-  const [selected, setSelected] = useState<string | null>(null);
-  const user = useMemo(() => userFromProfile(profile), [profile]);
-  const { menu, closeness } = useMenu(user, profile?.vibeTags, history);
-  const lastPourOf = useLastPours(history);
-  const selectedDrink = selected ? drinkDatabase.find((d) => d.name === selected) ?? null : null;
-  const name = (n: string) => titleOf(register, n);
-
-  // The drink closest to you, for the account's "share" line.
-  const nearest = useMemo(
-    () => [...drinkDatabase].sort((a, b) => calculateDistance({ x, y }, a) - calculateDistance({ x, y }, b))[0]?.name ?? '',
-    [x, y]
-  );
+  const log = useLog(register, member);
+  const { rate, isMember, profile, setProfile, pours, reload, history, selectedDrink, name } = log;
 
   // Rating opens over this screen, with or without a coordinate yet.
   const sheet = (
@@ -82,7 +53,7 @@ function LogContent({
   );
 
   // A stranger with no coordinate: say what this page is, and the ways in.
-  if (!profile && !isMember) {
+  if (log.cold) {
     return (
       <>
         <ColdState
@@ -98,26 +69,6 @@ function LogContent({
     );
   }
 
-  const bars = barsFromPours(history).length;
-  const first = history.length > 0 ? history[history.length - 1] : null;
-  const best = history.reduce<(typeof history)[number] | null>(
-    (top, p) => (!top || p.rating.hedonic > top.rating.hedonic ? p : top),
-    null
-  );
-  const stats = [
-    { label: logPage.stats.pours, value: String(history.length) },
-    { label: logPage.stats.bars, value: String(bars) },
-    ...(first
-      ? [
-          {
-            label: logPage.stats.since,
-            value: new Date(first.createdAt).toLocaleDateString(undefined, { month: 'short', year: 'numeric' }),
-          },
-        ]
-      : []),
-    ...(best ? [{ label: logPage.stats.best, value: name(best.drink.name) }] : []),
-  ];
-
   return (
     <div className={cn('mx-auto max-w-xl pb-6 pt-6 lg:max-w-none lg:pt-10', selectedDrink && 'pb-card-clearance')}>
       <ScreenHeader eyebrow={logPage.title} title={logPage.heading} />
@@ -126,22 +77,19 @@ function LogContent({
         <div className="lg:sticky lg:top-8">
           {/* Where you are: the map is yours, so it lives here */}
           <Chart
-            you={{ x, y }}
-            menuNames={menu.map((d) => d.name)}
-            lastPour={lastPourOf}
-            lens={lens}
-            onLens={(l) => {
-              setLens(l);
-              setSelected(null);
-            }}
-            selected={selected}
-            onSelect={(n) => setSelected((cur) => (cur === n ? null : n))}
+            you={log.you}
+            menuNames={log.menuNames}
+            lastPour={log.lastPour}
+            lens={log.lens}
+            onLens={log.setLens}
+            selected={log.selected}
+            onSelect={log.toggleDrink}
             register={register}
             onTakeQuiz={() => window.location.assign(questionsHref)}
             eyebrow={isMember ? undefined : logPage.guestEyebrow}
           />
           <dl className="mt-4 grid grid-cols-2 border-t border-foreground">
-            {stats.map((st, i) => (
+            {log.stats.map((st, i) => (
               <div key={st.label} className={`flex flex-col gap-0.5 border-b border-border py-2.5 ${i % 2 ? 'pl-4' : 'border-r pr-4'}`}>
                 <dt className="label-caps">{st.label}</dt>
                 <dd className="truncate font-condensed text-ui font-semibold tabular-nums text-foreground">{st.value}</dd>
@@ -175,8 +123,8 @@ function LogContent({
           <AccountSection
             handle={member?.handle ?? null}
             mcpAddress={mcpAddress}
-            topName={name(nearest)}
-            regionName={region.name}
+            topName={log.nearestName}
+            regionName={log.region.name}
             onStartOver={() => window.location.assign(startOverPath)}
           />
 
@@ -200,14 +148,12 @@ function LogContent({
         <DrinkCard
           drink={selectedDrink}
           register={register}
-          closeness={closeness[selectedDrink.name]}
-          last={lastPourOf.get(selectedDrink.name)}
-          sameSpot={drinkDatabase.filter(
-            (d) => d.name !== selectedDrink.name && d.x === selectedDrink.x && d.y === selectedDrink.y
-          )}
-          onPick={setSelected}
+          closeness={log.closeness[selectedDrink.name]}
+          last={log.lastPour.get(selectedDrink.name)}
+          sameSpot={log.sameSpot}
+          onPick={log.setSelected}
           onLog={() => rate.open({ drink: selectedDrink.name })}
-          onClose={() => setSelected(null)}
+          onClose={log.closeDrink}
         />
       )}
       {sheet}

@@ -29,6 +29,19 @@ landing page included. Astro was being used as a slower Next.js.
   screen that can rate gives the sheet its own coordinate and pours so it is
   current the moment the sheet closes. A new trigger calls `open()`; it does
   not navigate.
+- **An app screen is a hook and a drawing.** `useCompass`, `useLog`,
+  `useRatePour` and `usePourForm` (`src/hooks/`) hold a screen's state and
+  what a tap does; `Compass.tsx`, `LogScreen.tsx`, `RateSheet.tsx` and
+  `PourForm.tsx` only draw it, so a redesign changes the component and
+  leaves the hook alone. The rules a screen applies are plain functions in
+  `src/lib/` — `drink-search.ts`, `pour-entry.ts`, `pour-history.ts`,
+  `scoreDrinks` in `menu-rank.ts` — tested in `tests/unit/`. Nothing in
+  `src/lib/` or `src/hooks/` imports from `src/components/`.
+- There is no separate API layer for the screens, on purpose: a guest's
+  palate and the quiz run on the device, so the rules run in the browser,
+  and server pages import the same functions rather than calling
+  themselves over HTTP. What an outside client reads goes through `/mcp`,
+  built on those functions.
 - Never add an island to `/`. `tests/landing-static.spec.ts` fails if you do.
 - Sign-in is `@bbthorson/atproto-cf-auth`, content-negotiated at
   `/api/auth/atproto/login`: JSON in, JSON out for the island; form-encoded in,
