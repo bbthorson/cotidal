@@ -1,6 +1,7 @@
 import { Fragment } from 'react';
 import type { PourRecord, Deviation, CataNote } from '@/lib/atproto/records';
 import type { Register } from '@/lib/register';
+import { drinkOf } from '@/lib/drink-match';
 import type { TrackPoint } from '@/lib/track';
 import { formatCoordinate } from '@/lib/coordinate';
 import { logPage, pour } from '@/lib/copy';
@@ -58,7 +59,8 @@ export function PourLedger({ pours, register = {}, empty, loading = false, track
     <ol>
       {pours.map((p, i) => {
         const moved = moves.get(p);
-        const entry = register[p.drink.name];
+        // The entry of the drink the pour means (by slug, then name), not of the name as typed.
+        const entry = register[drinkOf(p.drink)?.name ?? p.drink.name];
         const name = entry?.title ?? p.drink.name;
         const where = p.isHomePour ? pour.home : p.venue?.entity?.name;
         const when = dateOf(p.createdAt);

@@ -79,3 +79,18 @@ test('Drink routes: mount no island', () => {
     expect(source, `${file} mounts an island`).not.toMatch(/client:(load|only|idle|visible|media)/);
   }
 });
+
+test('Drink slugs: one per drink, unique, URL-safe, and an entry is filed under its drink\'s', () => {
+  const slugs = drinkDatabase.map((d) => d.slug);
+  expect(new Set(slugs).size, 'two drinks share a slug').toBe(slugs.length);
+  for (const d of drinkDatabase) {
+    // What app.cotidal.defs#drinkSlug allows, and what a URL path segment can carry as is.
+    expect(d.slug, d.name).toMatch(/^[a-z0-9]+(-[a-z0-9]+)*$/);
+    expect(d.slug.length, d.name).toBeLessThanOrEqual(64);
+  }
+  // The register files a drink under its slug, so the page and the records agree on one key.
+  for (const entry of entries) {
+    const drink = drinkDatabase.find((d) => d.name === entry.name);
+    expect(drink?.slug, `${entry.file} is filed under a slug its drink does not have`).toBe(entry.slug);
+  }
+});

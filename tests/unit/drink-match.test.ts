@@ -1,6 +1,6 @@
 import { test, expect } from 'vitest';
 import { drinkDatabase } from '../../src/lib/data';
-import { baseName, matchDrink, normalizeName } from '../../src/lib/drink-match';
+import { baseName, drinkOf, matchDrink, normalizeName } from '../../src/lib/drink-match';
 
 test('Drink match: a name finds its drink without the parenthetical, its case or its accents', () => {
   expect(matchDrink('margarita')?.name).toBe("Margarita (Tommy's Style)");
@@ -29,4 +29,15 @@ test('Drink match: no name, bare name or alias means two drinks', () => {
       owner.set(k, d.name);
     }
   }
+});
+
+test('drinkOf: a stored reference finds its drink by slug first, then by name', () => {
+  // The slug wins: a drink renamed since the pour was written is still found.
+  expect(drinkOf({ name: 'A name the map no longer uses', slug: 'negroni' })?.name).toBe('Negroni');
+  // So does a house name: what the pour was called, and which drink it was, are separate.
+  expect(drinkOf({ name: 'House Negroni', slug: 'negroni' })?.name).toBe('Negroni');
+  // No slug, or one the catalog no longer has: by name, as matchDrink reads it.
+  expect(drinkOf({ name: 'margarita' })?.name).toBe("Margarita (Tommy's Style)");
+  expect(drinkOf({ name: 'margarita', slug: 'retired-drink' })?.name).toBe("Margarita (Tommy's Style)");
+  expect(drinkOf({ name: 'House Sour' })).toBeNull();
 });

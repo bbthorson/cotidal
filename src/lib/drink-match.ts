@@ -42,3 +42,14 @@ export function matchDrink(input: string, drinks: readonly Drink[] = drinkDataba
     null
   );
 }
+
+/**
+ * The drink a stored reference means — a pour's `drink`, a menu item's — by
+ * its `slug` when it carries one the catalog still has, and otherwise by its
+ * name (`matchDrink`). Every reader of a record goes through this, so a
+ * renamed drink or an edited alias does not cut its old pours off from it.
+ */
+export function drinkOf(ref: { name: string; slug?: string }, drinks: readonly Drink[] = drinkDatabase): Drink | null {
+  const bySlug = ref.slug ? drinks.find((d) => d.slug === ref.slug) : undefined;
+  return bySlug ?? matchDrink(ref.name, drinks);
+}

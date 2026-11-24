@@ -14,7 +14,7 @@
           "slug": {
             "type": "ref",
             "ref": "app.cotidal.defs#drinkSlug",
-            "description": "The drink this is a spec of, e.g. `negroni` for a bar's own Negroni. Absent for an original with no entry yet."
+            "description": "The drink this is a spec of, e.g. `negroni` for a bar's own Negroni. Absent for an original that is not on the map."
           },
           "description": { "type": "string", "maxLength": 2000, "maxGraphemes": 1000 },
           "ingredients": {

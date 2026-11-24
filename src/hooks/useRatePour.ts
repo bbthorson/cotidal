@@ -4,7 +4,7 @@ import type { UserProfile } from '@/hooks/useDiscoveryQuiz';
 import { logDrinkFeedback } from '@/lib/api-client';
 import { addGuestPour, clearPick, loadPick } from '@/lib/device-store';
 import { pour } from '@/lib/copy';
-import { catalogSlug, type Register } from '@/lib/register';
+import { catalogSlug } from '@/lib/register';
 import { recentBarNames } from '@/lib/pour-history';
 import { userFromProfile } from '@/lib/profile';
 import { guestShift } from '@/lib/guest-palate';
@@ -30,7 +30,6 @@ export interface LastPour {
  */
 export function useRatePour({
   request,
-  register,
   isMember,
   profile,
   setProfile,
@@ -38,7 +37,6 @@ export function useRatePour({
   reload,
 }: {
   request: RateRequest;
-  register: Register;
   isMember: boolean;
   profile: UserProfile | null;
   setProfile: (profile: UserProfile) => void;
@@ -83,7 +81,7 @@ export function useRatePour({
       } else {
         setProfile(guestShift(profile, entry));
         addGuestPour(
-          guestPourRecord(entry, { slug: catalogSlug(register, entry.drinkName), at, createdAt: new Date().toISOString() })
+          guestPourRecord(entry, { slug: catalogSlug(entry.drinkName), at, createdAt: new Date().toISOString() })
         );
         await reload();
       }

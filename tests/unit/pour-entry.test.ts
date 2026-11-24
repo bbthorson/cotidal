@@ -9,7 +9,7 @@ import {
   type PourEntry,
   type PourFields,
 } from '../../src/lib/pour-entry';
-import { catalogSlug, type Register } from '../../src/lib/register';
+import { catalogSlug } from '../../src/lib/register';
 import { GLMS_ANCHORS } from '../../src/lib/atproto/vocab';
 import { pour } from '../../src/lib/copy';
 
@@ -51,15 +51,14 @@ test('gLMS: a position reads as the anchor at or below it', () => {
   expect(glmsWord(99)).toBe(pour.glms['very-strong']);
 });
 
-test('Catalog slug: the /drinks entry, or nothing', () => {
-  const register: Register = {
-    'Daiquiri (Classic)': { slug: 'daiquiri', title: 'Daiquiri', build: '' },
-    'Naked & Famous': { slug: 'naked-and-famous', title: 'Naked & Famous', build: '' },
-  };
-  expect(catalogSlug(register, 'daiquiri (classic)')).toBe('daiquiri');
-  expect(catalogSlug(register, ' Naked & Famous ')).toBe('naked-and-famous');
-  // Not slugified from the name: that would point at a page that does not exist.
-  expect(catalogSlug(register, 'House Sour')).toBeUndefined();
+test('Catalog slug: the drink the name means, page or no page', () => {
+  expect(catalogSlug('daiquiri (classic)')).toBe('daiquiri');
+  expect(catalogSlug(' Naked & Famous ')).toBe('naked-and-famous');
+  expect(catalogSlug('margarita')).toBe('margarita'); // the Tommy's, as every lookup reads it
+  // A drink with no register entry still has a slug: a pour of it can be found without its name.
+  expect(catalogSlug('Prosecco DOC')).toBe('prosecco');
+  // A drink the map does not know has none; nothing is made up from the name.
+  expect(catalogSlug('House Sour')).toBeUndefined();
 });
 
 const fields: PourFields = {

@@ -63,6 +63,16 @@ describe('your menu', () => {
     expect(scored.some((d) => d.hasSmoke || d.isBitter)).toBe(false);
   });
 
+  it('reads a pour as the drink it means, not the name as typed', () => {
+    // Saved as typed ("margarita") or under a house name with the slug: both are the Tommy's,
+    // so a 2 takes it off the menu either way. Comparing raw names missed both.
+    const user = { x: 6, y: 4, filters: [] };
+    const typed = scoreDrinks(user, undefined, [pour('margarita', 2, '2026-11-02T00:00:00.000Z')]);
+    expect(typed.some((d) => d.slug === 'margarita')).toBe(false);
+    const house = { ...pour('Our Margarita', 2, '2026-11-02T00:00:00.000Z'), drink: { name: 'Our Margarita', slug: 'margarita' } };
+    expect(scoreDrinks(user, undefined, [house]).some((d) => d.slug === 'margarita')).toBe(false);
+  });
+
   it('leaves out a drink whose latest rating was 3 or lower, and keeps one rated up since', () => {
     const user = { x: -6, y: -8, filters: [] };
     const off = scoreDrinks(user, undefined, [pour('Negroni', 2, '2026-11-02T00:00:00.000Z'), pour('Negroni', 9, '2026-10-01T00:00:00.000Z')]);

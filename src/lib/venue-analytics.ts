@@ -1,5 +1,5 @@
 import type { PourRecord } from './atproto/records';
-import { matchDrink } from './drink-match';
+import { drinkOf } from './drink-match';
 import { quadrantFor, type Quadrant } from './quadrant';
 import { quadrants } from './copy';
 
@@ -43,7 +43,7 @@ export function analyzeVenuePours(pours: readonly PourRecord[]): VenueIntelligen
   >();
 
   for (const p of pours) {
-    const matched = matchDrink(p.drink.name);
+    const matched = drinkOf(p.drink);
     if (matched) {
       const q = quadrantFor(matched.x, matched.y);
       quadCounts.set(q.id, (quadCounts.get(q.id) ?? 0) + 1);

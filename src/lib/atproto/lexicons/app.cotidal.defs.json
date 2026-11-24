@@ -55,7 +55,7 @@
     },
     "drinkSlug": {
       "type": "string",
-      "description": "A drink as the open catalog knows it: its entry in the register (`/drinks/<slug>`), e.g. `negroni`. Unowned by design: nobody's Negroni is the Negroni. The one key a pour and a recipe share, so a spec and the pours of it join without matching on names. Never a family (`sour`, `stirred`): that is derived from the entry, not stored.",
+      "description": "A drink as the open catalog knows it, e.g. `negroni`: its key in the catalog, and its page (`/drinks/<slug>`) when the register has one. Unowned by design: nobody's Negroni is the Negroni. The one key a pour and a recipe share, so a spec and the pours of it join without matching on names. Never a family (`sour`, `stirred`): that is derived from the entry, not stored.",
       "maxLength": 64
     },
     "drinkRef": {
@@ -72,7 +72,7 @@
         "slug": {
           "type": "ref",
           "ref": "#drinkSlug",
-          "description": "Which drink this was, as the catalog knows it. Absent when the drink has no entry."
+          "description": "Which drink this was, as the catalog knows it. Absent when the drink is not on the map."
         },
         "baseSpirit": {
           "type": "string",

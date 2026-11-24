@@ -57,7 +57,7 @@ function RateDialog({
 }: Omit<RateSheetProps, 'request'> & { request: RateRequest }) {
   const { openSignIn } = useAtprotoContext();
   const isMember = !!member;
-  const r = useRatePour({ request, register, isMember, profile, setProfile, pours, reload });
+  const r = useRatePour({ request, isMember, profile, setProfile, pours, reload });
   const content = useRef<HTMLDivElement>(null);
   // Whatever opened the sheet gets focus back (there is no trigger element to hand Radix).
   const [opener] = useState(() => (document.activeElement instanceof HTMLElement ? document.activeElement : null));
