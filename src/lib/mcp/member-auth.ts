@@ -1,4 +1,4 @@
-import { OAuthProvider } from '@cloudflare/workers-oauth-provider';
+import { OAuthProvider, getOAuthApi, type OAuthHelpers, type OAuthProviderOptions } from '@cloudflare/workers-oauth-provider';
 
 /**
  * Signing a member in to a chat assistant, so `/mcp/me` can act as them.
@@ -93,6 +93,46 @@ function issuerOrigin(url: URL): string | null {
 }
 
 /**
+ * The provider's configuration for one origin. The Worker and the authorize
+ * page (`oauthApi`) must agree on it exactly, so there is one copy.
+ */
+function providerOptions<E extends Env>(origin: string, app: FetchHandler<E>): OAuthProviderOptions<E> {
+  return {
+    apiRoute: MEMBER_MCP_PATH,
+    // The same Astro handler: `/mcp/me` reads the member from `ctx.props`. The
+    // provider types its handlers with @cloudflare/workers-types'
+    // ExecutionContext; at runtime it is the same object.
+    apiHandler: app as never,
+    defaultHandler: app as never,
+    authorizeEndpoint: OAUTH_AUTHORIZE_PATH,
+    tokenEndpoint: OAUTH_TOKEN_PATH,
+    clientRegistrationEndpoint: OAUTH_REGISTER_PATH,
+    scopesSupported: [MEMBER_SCOPES.read, MEMBER_SCOPES.write],
+    requiredScopes: [MEMBER_SCOPES.read],
+    resourceMetadata: {
+      resource: `${origin}${MEMBER_MCP_PATH}`,
+      authorization_servers: [origin],
+      resource_name: 'Cotidal',
+    },
+  };
+}
+
+/** Never called: `getOAuthApi` reads the options, not the handlers. */
+const NO_HANDLER: FetchHandler<Env> = { fetch: () => new Response(null, { status: 404 }) };
+
+/**
+ * The provider's helpers for the authorize page, which runs inside Astro and
+ * so cannot see the `env.OAUTH_PROVIDER` the provider gives its own handlers.
+ * `null` when sign-in for assistants is off (no `OAUTH_KV`) or the origin
+ * cannot be an issuer.
+ */
+export function oauthApi(requestUrl: URL, env: Env | undefined): OAuthHelpers | null {
+  const origin = issuerOrigin(requestUrl);
+  if (!env?.[OAUTH_KV_BINDING] || !origin) return null;
+  return getOAuthApi(providerOptions(origin, NO_HANDLER), env);
+}
+
+/**
  * Wrap the Worker's handler. The provider names one canonical resource and
  * issuer, and this app answers on several origins (workers.dev, the custom
  * domain, loopback), the way `@bbthorson/atproto-cf-auth` derives its
@@ -105,24 +145,7 @@ export function withMemberSignIn<E extends Env>(app: FetchHandler<E>): FetchHand
   function providerFor(origin: string): FetchHandler<E> {
     let provider = providers.get(origin);
     if (!provider) {
-      // The provider types its handlers with @cloudflare/workers-types'
-      // ExecutionContext; at runtime it is the same object.
-      provider = new OAuthProvider<E>({
-        apiRoute: MEMBER_MCP_PATH,
-        // The same Astro handler: `/mcp/me` reads the member from `ctx.props`.
-        apiHandler: app as never,
-        defaultHandler: app as never,
-        authorizeEndpoint: OAUTH_AUTHORIZE_PATH,
-        tokenEndpoint: OAUTH_TOKEN_PATH,
-        clientRegistrationEndpoint: OAUTH_REGISTER_PATH,
-        scopesSupported: [MEMBER_SCOPES.read, MEMBER_SCOPES.write],
-        requiredScopes: [MEMBER_SCOPES.read],
-        resourceMetadata: {
-          resource: `${origin}${MEMBER_MCP_PATH}`,
-          authorization_servers: [origin],
-          resource_name: 'Cotidal',
-        },
-      }) as unknown as FetchHandler<E>;
+      provider = new OAuthProvider<E>(providerOptions(origin, app)) as unknown as FetchHandler<E>;
       providers.set(origin, provider);
     }
     return provider;
@@ -135,4 +158,25 @@ export function withMemberSignIn<E extends Env>(app: FetchHandler<E>): FetchHand
       return providerFor(origin).fetch(request, env, ctx);
     },
   };
+}
+
+/**
+ * Whether an MCP request calls one of `tools`, read from a copy of its body.
+ * `/mcp/me` uses it to ask for `pours:write` by step-up: the call is answered
+ * `403 insufficient_scope` before it runs, and the assistant asks the member
+ * again, for the wider grant. A batch counts if any call in it does.
+ */
+export async function callsTool(request: Request, tools: readonly string[]): Promise<boolean> {
+  if (request.method !== 'POST') return false;
+  let body: unknown;
+  try {
+    body = await request.clone().json();
+  } catch {
+    return false;
+  }
+  const messages = Array.isArray(body) ? body : [body];
+  return messages.some((m) => {
+    const msg = m as { method?: unknown; params?: { name?: unknown } } | null;
+    return msg?.method === 'tools/call' && typeof msg.params?.name === 'string' && tools.includes(msg.params.name);
+  });
 }

@@ -71,10 +71,34 @@ new_sqlite_classes = ["AuthLock"]
 # Member sign-in for chat assistants (src/lib/mcp/member-auth.ts): the OAuth
 # provider in front of the Worker keeps registered clients, grants and tokens
 # here, hashed or sealed. Until this namespace is bound the provider is off,
-# `/mcp/me` does not exist, and `/mcp` is unchanged. Bind it once the
-# `/oauth/authorize` page exists: create a namespace in the dashboard, then
-# uncomment with its id (a placeholder id fails the deploy; see above).
+# `/mcp/me`, `/oauth/authorize` and `/oauth/callback` answer 404, and `/mcp`
+# is unchanged. To turn it on, create a namespace (`wrangler kv namespace
+# create cotidal-oauth`) and uncomment with its id (a placeholder id fails
+# the deploy; see above).
 #
 # [[kv_namespaces]]
 # binding = "OAUTH_KV"
 # id = "<namespace id>"
+
+# Sign-in sessions, moving from KV to D1 (src/lib/atproto/auth.ts,
+# `SESSION_D1_BINDING`). D1 is strongly consistent, which makes `AUTH_LOCK`
+# a guarantee: with KV, a request at another location can read a spent
+# refresh token for up to a minute after a refresh, and an assistant's
+# parallel tool calls make that likely. While both are bound, each member
+# is copied across the first time they are seen; nobody is signed out.
+# Leave `ATPROTO_SESSIONS` bound for 30 days after this goes live, then
+# remove it. Create with `wrangler d1 create cotidal-auth`; the package
+# creates its table on first use.
+#
+# [[d1_databases]]
+# binding = "ATPROTO_DB"
+# database_name = "cotidal-auth"
+# database_id = "<database id>"
+
+# Secrets, set with `wrangler secret put` and never written here:
+# - SESSION_SECRET: seals sessions (above).
+# - OAUTH_PRIVATE_KEY: an ES256 private JWK with a `kid`, as JSON. It makes
+#   sign-in a confidential client, which Bluesky gives much longer sessions:
+#   what an assistant acting between visits needs. To rotate, set
+#   OAUTH_PRIVATE_KEYS to a JSON array, new key first. docs/mcp.md has the
+#   command that makes one.

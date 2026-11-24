@@ -9,6 +9,11 @@ import type { PublicPalateResult } from '../atproto/public-read';
 import type { Register } from '../register';
 import { cleanDraft, draftPath, type PourDraft } from '../pour-draft';
 import { matchDrink, normalizeName } from '../drink-match';
+import { pour as pourCopy } from '../copy';
+import { hedonicToRating } from '../pour-entry';
+import type { LogDrinkOptions } from '../api-client';
+import type { PourRecord } from '../atproto/records';
+import type { LogPourResult } from '../pours.server';
 
 /**
  * What the `/mcp` tools answer, as plain functions.
@@ -31,6 +36,21 @@ export interface ToolContext {
   register: Register;
   /** The origin links are written against, e.g. `https://cotidal.app`. */
   origin: string;
+  /** At `/mcp/me` only: the member the assistant was signed in as. */
+  member?: MemberTools;
+}
+
+/**
+ * What `/mcp/me` can do as its member, through their own AT-Proto session
+ * (restored from the DID the grant carries). Each answers `null` when that
+ * session cannot be restored: the member signed out here, or their host
+ * revoked it.
+ */
+export interface MemberTools {
+  did: string;
+  recentPours(limit: number): Promise<PourRecord[] | null>;
+  /** The one pipeline every pour goes through (`logPour`, src/lib/pours.server.ts). */
+  logPour(options: Partial<LogDrinkOptions>): Promise<LogPourResult | null>;
 }
 
 export type ToolResult<T> = { ok: true; data: T } | { ok: false; message: string };
@@ -297,6 +317,121 @@ export function draftPour(
       draft,
       onMap: !!onMap,
       message: mcp.draftReady,
+    },
+  };
+}
+
+export interface PourSummary {
+  drink: string;
+  /** The point tapped on the 9-point scale, and its words. */
+  hedonic: number;
+  liked: string;
+  where: string | null;
+  atHome: boolean;
+  whatWasOff: string[];
+  notes: string[];
+  note: string | null;
+  wouldOrderAgain: boolean | null;
+  at: string;
+}
+
+function summarizePour(p: PourRecord): PourSummary {
+  return {
+    drink: p.drink.name,
+    hedonic: p.rating.hedonic,
+    liked: pourCopy.hedonic[p.rating.hedonic - 1] ?? pourCopy.scoreOf(p.rating.hedonic),
+    where: p.isHomePour ? null : (p.venue?.entity.name ?? null),
+    atHome: !!p.isHomePour,
+    whatWasOff: p.deviations ?? [],
+    notes: p.cata ?? [],
+    note: p.note ?? null,
+    wouldOrderAgain: p.rating.wouldOrderAgain ?? null,
+    at: p.createdAt,
+  };
+}
+
+/** The member's own pours, newest first. Only at `/mcp/me`: nobody else's log is read. */
+export async function myPours(
+  count: number | undefined,
+  ctx: ToolContext
+): Promise<ToolResult<{ pours: PourSummary[] }>> {
+  if (!ctx.member) return { ok: false, message: mcp.memberOnly };
+  const pours = await ctx.member.recentPours(Math.min(Math.max(count ?? 10, 1), 50));
+  if (!pours) return { ok: false, message: mcp.sessionGone };
+  return { ok: true, data: { pours: pours.map(summarizePour) } };
+}
+
+export interface LogPourInput {
+  drink: string;
+  /** 1–9, as the member said it. Required: the tool never estimates one. */
+  hedonic: number;
+  atHome?: boolean;
+  bar?: string;
+  whatWasOff?: string[];
+  notes?: string[];
+  note?: string;
+  wouldOrderAgain?: boolean;
+}
+
+/**
+ * Log a pour as the member, through the same `logPour` the form uses. What
+ * goes in is only what they said, cut and checked as a draft is
+ * (`cleanDraft`): no bar for a pour at home, known fault and note ids only,
+ * text cut to the form's limits. The rating is theirs and required.
+ * Nothing is cross-posted to Bluesky from here.
+ */
+export async function logMemberPour(
+  input: LogPourInput,
+  ctx: ToolContext
+): Promise<ToolResult<{ logged: PourSummary & { onMap: boolean }; coordinate: string; uri: string; message: string }>> {
+  if (!ctx.member) return { ok: false, message: mcp.memberOnly };
+  if (!Number.isInteger(input.hedonic) || input.hedonic < 1 || input.hedonic > 9) {
+    return { ok: false, message: mcp.needRating };
+  }
+  const onMap = matchDrink(input.drink);
+  const draft = cleanDraft({
+    drink: onMap?.name ?? input.drink,
+    atHome: input.atHome,
+    bar: input.bar,
+    deviations: input.whatWasOff,
+    cata: input.notes,
+    note: input.note,
+  });
+  if (!draft) return { ok: false, message: mcp.noDrink };
+
+  const options: Partial<LogDrinkOptions> = {
+    drinkName: draft.drink,
+    rating: hedonicToRating(input.hedonic),
+    isHomePour: !!draft.atHome,
+    ...(draft.bar ? { venue: { name: draft.bar } } : {}),
+    ...(draft.deviations?.length ? { deviations: draft.deviations } : {}),
+    ...(draft.cata?.length ? { cata: draft.cata } : {}),
+    ...(draft.note ? { note: draft.note } : {}),
+    ...(typeof input.wouldOrderAgain === 'boolean' ? { wouldOrderAgain: input.wouldOrderAgain } : {}),
+  };
+  const result = await ctx.member.logPour(options);
+  if (!result) return { ok: false, message: mcp.sessionGone };
+  if (!result.ok) return { ok: false, message: result.error };
+
+  return {
+    ok: true,
+    data: {
+      logged: {
+        drink: draft.drink,
+        hedonic: input.hedonic,
+        liked: pourCopy.hedonic[input.hedonic - 1],
+        where: draft.atHome ? null : (draft.bar ?? null),
+        atHome: !!draft.atHome,
+        whatWasOff: draft.deviations ?? [],
+        notes: draft.cata ?? [],
+        note: draft.note ?? null,
+        wouldOrderAgain: input.wouldOrderAgain ?? null,
+        at: new Date().toISOString(),
+        onMap: !!onMap,
+      },
+      coordinate: formatCoordinate(result.profile.x, result.profile.y),
+      uri: result.uri,
+      message: mcp.logged,
     },
   };
 }

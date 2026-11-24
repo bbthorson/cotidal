@@ -69,9 +69,8 @@ Cotidal is the OAuth authorization server the assistant talks to, through
    its authorization server.
 2. The assistant registers at `/oauth/register` and sends the person to
    `/oauth/authorize`.
-3. That page signs them in through the existing Bluesky flow
-   (`auth.authorize` with the pending request in its sealed `context`) and,
-   in `onSignIn`, completes the grant with `props: { did }`.
+3. That page asks for consent and signs them in through the existing Bluesky
+   flow, then completes the grant with `props: { did }` (below).
 4. The assistant exchanges the code at `/oauth/token` and calls `/mcp/me`
    with the token. The provider checks it and hands the page the DID as
    `ctx.props` (`Astro.locals.cfContext`); the page reads the member from
@@ -80,9 +79,9 @@ Cotidal is the OAuth authorization server the assistant talks to, through
    `auth.restore(did)` (`@bbthorson/atproto-cf-auth` 0.5) under the existing
    `AUTH_LOCK`. The assistant never holds an AT-Proto token.
 
-Scopes: `palate:read` is the baseline every client asks for first;
-`pours:write` is asked for by step-up (`insufficientScope`) only when a tool
-that logs a pour is called. A grant's `userId` is the DID percent-encoded
+Scopes: `palate:read` is the baseline every client asks for first, and
+`pours:write` lets it log pours: granted on the consent page, or asked for by
+step-up (`insufficientScope`) when `log_pour` is called without it. A grant's `userId` is the DID percent-encoded
 (`grantUserId`), because the provider refuses `:`; it is how a member's
 assistants are listed and revoked.
 
@@ -91,14 +90,67 @@ deploy serves workers.dev, the custom domain and loopback; a token is good
 only on the origin that issued it. It stays off, and `/mcp/me` answers `404`,
 until the `OAUTH_KV` namespace is bound (`wrangler.toml`).
 
-Done: the wrapper, discovery, registration, tokens, and `/mcp/me` serving
-`/mcp`'s tools to a signed-in member. To do: the `/oauth/authorize` page and
-its consent screen, tools that default to the member and write, a
-confidential AT-Proto client (`privateKeys`) so the Bluesky session outlives
-a few weeks of chat, and sessions in D1 rather than KV so parallel tool calls
-cannot read a refreshed token late.
+### The consent page
 
-The rules the write path must keep:
+`/oauth/authorize` (src/lib/mcp/authorize.server.ts, drawn by
+`src/pages/oauth/authorize.astro`, no JavaScript) shows what the MCP spec
+asks for: the assistant's name (marked unverified for a self-registered
+client), the host access is sent to, a warning when that is an app on this
+computer, and what Allow grants. Reading the member's palate is always
+granted; logging pours is a box, ticked by default, so an assistant that asks
+only for the baseline can still be let write without a second round trip,
+and a member who unticks it is asked again by step-up the first time.
+
+- **Allow as @handle** (a member already signed in here): granted at once, if
+  their AT-Proto session still restores.
+- **Sign in with Bluesky and allow**: the approved request is held
+  server-side (`beginUpstream`), the ordinary sign-in runs with
+  `returnTo=/oauth/callback?state=…`, and the callback grants for whoever the
+  sign-in just signed in. A session older than the sign-in, or a sign-in that
+  came back with `auth_error`, answers `access_denied`.
+- **Deny**: back to the assistant with `access_denied`.
+
+The consent handle and the upstream `state` are each bound to the browser by
+a `__Host-` cookie and work once.
+
+### What `/mcp/me` adds
+
+- Every handle is optional and means the member.
+- `my_pours`: the member's own log, newest first. Nobody else's log is read,
+  at either address.
+- `log_pour`: writes through `logPour` with the member's restored session.
+  `hedonic` (1–9, the form's own labels) is required and described as their
+  answer, never an estimate; the rest goes through `cleanDraft`, as a draft
+  does; nothing is cross-posted. Needs `pours:write`.
+
+### Sessions that last
+
+A grant is only as good as the AT-Proto session behind it, which has to
+outlive weeks between visits.
+
+- **Confidential client.** Set `OAUTH_PRIVATE_KEY` (a Worker secret) to an
+  ES256 private JWK and sign-in becomes a `private_key_jwt` client, which
+  authorization servers give much longer sessions. Make one with
+  `node -e "import('@atproto/jwk-jose').then(async ({JoseKey}) => console.log(JSON.stringify((await JoseKey.generate(['ES256'], 'k1')).privateJwk)))"`.
+  Sessions made before the key keep the method they were made with; if an
+  authorization server refuses one at its next refresh, that member signs in
+  once more.
+- **D1.** With `ATPROTO_DB` bound, sessions are kept in D1, where the refresh
+  lock is a guarantee; members already in KV are copied across as they are
+  seen (`movingStore`). Remove the KV binding 30 days later.
+
+### Turning it on
+
+1. `wrangler secret put OAUTH_PRIVATE_KEY` with a key made as above.
+2. `wrangler d1 create cotidal-auth`, and uncomment `ATPROTO_DB` with its id.
+3. `wrangler kv namespace create cotidal-oauth`, and uncomment `OAUTH_KV`.
+4. Deploy, then add `https://cotidal.app/mcp/me` as a connector in Claude.
+
+Not yet: telling members about `/mcp/me` on `/mcp` and `/log#assistant`, and
+a list of connected assistants a member can revoke from here
+(`listUserGrants` / `revokeGrant`, keyed by `grantUserId`).
+
+The rules the write path keeps:
 
 - **A record holds what its author said.** The rating is required and asked
   for, never estimated by the assistant; every other field is absent unless

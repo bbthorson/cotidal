@@ -1,0 +1,156 @@
+---
+import AppShell from '../../layouts/AppShell.astro';
+import PageTitle from '../../components/marketing/PageTitle.astro';
+import { decide, showConsent, type AuthorizeView } from '@/lib/mcp/authorize.server';
+import { authorizeContext } from '@/lib/mcp/authorize-context.server';
+import { MEMBER_SCOPES, OAUTH_AUTHORIZE_PATH } from '@/lib/mcp/member-auth';
+import { assistantConsent as copy, connect, site } from '@/lib/copy';
+
+/**
+ * A chat assistant asking to act as a member at `/mcp/me`: who is asking,
+ * where access goes, what it may do, and Allow or Deny. The flow is
+ * src/lib/mcp/authorize.server.ts; this page only draws it. A plain form post,
+ * like `/sign-in`, so it ships no JavaScript.
+ *
+ * Every string about the client (its name, its host) is the client's own:
+ * Astro escapes it, and the page says when the name is unverified.
+ */
+export const prerender = false;
+
+const context = await authorizeContext(Astro.url);
+if (!context) return new Response('Not found', { status: 404 });
+
+const { request } = Astro;
+const result =
+  request.method === 'POST'
+    ? await decide(request, context.oauth, context.signIn)
+    : await showConsent(request, context.oauth, context.signIn);
+if (result instanceof Response) return result;
+
+const view: AuthorizeView = result;
+if (view.kind === 'consent') {
+  view.headers.forEach((value, name) => {
+    if (name.toLowerCase() === 'set-cookie') return;
+    Astro.response.headers.set(name, value);
+  });
+  for (const cookie of view.headers.getSetCookie()) Astro.response.headers.append('Set-Cookie', cookie);
+} else {
+  Astro.response.status = 400;
+}
+Astro.response.headers.set('Cache-Control', 'no-store');
+
+const member = view.kind === 'consent' ? view.member : null;
+const memberName = member ? (member.handle ?? member.did) : null;
+const label = 'font-condensed text-label uppercase tracking-label text-muted-foreground';
+---
+
+<AppShell title={`${site.name} — ${copy.eyebrow}`} currentPath={OAUTH_AUTHORIZE_PATH} width="prose">
+  {
+    view.kind === 'refused' ? (
+      <div class="space-y-6 pb-6">
+        <PageTitle eyebrow={copy.eyebrow} title={copy.refusedTitle} />
+        <p role="alert" class="text-meta text-destructive">
+          {view.message}
+        </p>
+      </div>
+    ) : (
+      <div class="space-y-10 pb-6">
+        <PageTitle eyebrow={copy.eyebrow} title={copy.title(view.details.clientName)} />
+
+        <section class="space-y-3">
+          <p class="font-serif text-prose text-muted-foreground">
+            {view.details.clientDomain ? copy.verified(view.details.clientDomain) : copy.unverified}
+          </p>
+          <p class="text-ui">
+            <span class={label}>{copy.sendsTo}</span>{' '}
+            <strong class="font-bold text-foreground">{view.details.redirectHost}</strong>
+          </p>
+          {view.details.redirectIsLoopback && (
+            <p role="alert" class="border-y border-border py-2.5 text-meta text-destructive">
+              {copy.loopback}
+            </p>
+          )}
+        </section>
+
+        <form method="POST" action={OAUTH_AUTHORIZE_PATH} class="space-y-10">
+          <input type="hidden" name="consent" value={view.consent} />
+          <input type="hidden" name="decision" value="allow" />
+
+          <section>
+            <h2 class="section-title mb-4">{copy.canTitle}</h2>
+            <ul class="border-t border-foreground">
+              <li class="border-b border-border py-3 text-meta text-foreground">{copy.scopes[MEMBER_SCOPES.read]}</li>
+              <li class="border-b border-border py-3">
+                <label class="flex items-start gap-3 text-meta text-foreground">
+                  <input
+                    type="checkbox"
+                    name="scope"
+                    value={MEMBER_SCOPES.write}
+                    checked
+                    class="mt-0.5 shrink-0 accent-primary"
+                  />
+                  <span>{copy.scopes[MEMBER_SCOPES.write]}</span>
+                </label>
+              </li>
+            </ul>
+          </section>
+
+          <section class="space-y-5">
+            {view.error && (
+              <p role="alert" class="text-meta text-destructive">
+                {view.error}
+              </p>
+            )}
+
+            {memberName && (
+              <button
+                type="submit"
+                name="as"
+                value="member"
+                formnovalidate
+                class="btn btn-primary btn-lg w-full px-4"
+              >
+                {copy.continueAs(memberName)}
+              </button>
+            )}
+
+            <label for="handle" class="flex flex-col gap-1.5">
+              <span class={label}>{memberName ? copy.orSomeoneElse : connect.label}</span>
+              <input
+                id="handle"
+                name="handle"
+                type="text"
+                required
+                autocomplete="username"
+                autocapitalize="none"
+                spellcheck="false"
+                placeholder={connect.placeholder}
+                value={view.handle}
+                class="field"
+              />
+            </label>
+            <button
+              type="submit"
+              name="as"
+              value="handle"
+              class:list={['btn btn-lg w-full px-4', memberName ? 'btn-outline' : 'btn-primary']}
+            >
+              {copy.signInAndAllow}
+            </button>
+          </section>
+        </form>
+
+        <section class="space-y-5">
+          <form method="POST" action={OAUTH_AUTHORIZE_PATH}>
+            <input type="hidden" name="consent" value={view.consent} />
+            <button type="submit" name="decision" value="deny" class="btn btn-outline btn-lg w-full px-4">
+              {copy.deny}
+            </button>
+          </form>
+
+          <p class="text-meta text-muted-foreground">{copy.revoke}</p>
+        </section>
+      </div>
+    )
+  }
+</AppShell>
