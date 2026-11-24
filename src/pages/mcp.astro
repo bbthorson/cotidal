@@ -1,9 +1,9 @@
 ---
-import { WebStandardStreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js';
 import AppShell from '../layouts/AppShell.astro';
 import PageTitle from '../components/marketing/PageTitle.astro';
 import { AssistantSteps } from '../components/app/AssistantSteps';
-import { createMcpServer } from '@/lib/mcp/server';
+import { serveMcp } from '@/lib/mcp/serve';
+import { memberMcpAddress } from '@/lib/mcp/authorize-context.server';
 import { readPublicPalate } from '@/lib/atproto/public-read';
 import { loadRegister } from '@/lib/register.server';
 import { assistants as copy, site } from '@/lib/copy';
@@ -28,31 +28,20 @@ const accept = request.headers.get('accept') ?? '';
 const isBrowser = request.method === 'GET' && accept.includes('text/html') && !accept.includes('text/event-stream');
 
 if (!isBrowser) {
-  const server = createMcpServer({
+  return serveMcp(request, {
     readPalate: (actor) => readPublicPalate(actor),
     register: await loadRegister(),
     origin: Astro.url.origin,
   });
-  // No session id: each request stands alone, and plain JSON answers rather
-  // than an event stream, since no tool streams or notifies.
-  const transport = new WebStandardStreamableHTTPServerTransport({
-    sessionIdGenerator: undefined,
-    enableJsonResponse: true,
-  });
-  await server.connect(transport);
-  try {
-    return await transport.handleRequest(request);
-  } finally {
-    await server.close();
-  }
 }
 
 const address = new URL('/mcp', Astro.url).toString();
+const memberAddress = await memberMcpAddress(Astro.url);
 ---
 
 <AppShell title={`${site.name} — ${copy.eyebrow}`} currentPath="/mcp" width="prose">
   <div class="space-y-12 pb-6">
     <PageTitle eyebrow={copy.eyebrow} title={copy.title} lede={copy.lede} />
-    <AssistantSteps address={address} />
+    <AssistantSteps address={address} memberAddress={memberAddress} />
   </div>
 </AppShell>

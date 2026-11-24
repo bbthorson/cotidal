@@ -8,6 +8,8 @@ import {
   comparePalates,
   draftPour,
   getPalate,
+  logMemberPour,
+  myPours,
   rankMenu,
   recommendDrinks,
   searchDrinks,
@@ -34,23 +36,33 @@ function answer<T>(result: ToolResult<T>): CallToolResult {
   };
 }
 
+/** The tools that write as the member, and so need `pours:write` (step-up at `/mcp/me`). */
+export const WRITE_TOOLS: readonly string[] = ['log_pour'];
+
 export function createMcpServer(ctx: ToolContext): McpServer {
+  const member = ctx.member;
   const server = new McpServer(
     { name: mcp.name, version: '0.1.0' },
-    { instructions: mcp.instructions }
+    { instructions: `${mcp.about} ${member ? mcp.memberInstructions : mcp.instructions}` }
   );
   const t = mcp.tools;
   const readOnly = { readOnlyHint: true, openWorldHint: true } as const;
+
+  // At `/mcp/me` a handle may be left out to mean the member; at `/mcp` it is required.
+  const who = member
+    ? z.string().trim().min(1).max(256).optional().describe(mcp.memberHandle)
+    : handle(t.getPalate.handle);
+  const actor = (input: string | undefined) => input ?? member?.did ?? '';
 
   server.registerTool(
     'get_palate',
     {
       title: t.getPalate.title,
       description: t.getPalate.description,
-      inputSchema: { handle: handle(t.getPalate.handle) },
+      inputSchema: { handle: who },
       annotations: readOnly,
     },
-    async ({ handle }) => answer(await getPalate(handle, ctx))
+    async ({ handle }) => answer(await getPalate(actor(handle), ctx))
   );
 
   server.registerTool(
@@ -59,13 +71,13 @@ export function createMcpServer(ctx: ToolContext): McpServer {
       title: t.recommend.title,
       description: t.recommend.description,
       inputSchema: {
-        handle: handle(t.getPalate.handle),
+        handle: who,
         count: z.number().int().min(1).max(20).optional().describe(t.recommend.count),
         type: z.enum(DRINK_TYPES).optional().describe(t.recommend.type),
       },
       annotations: readOnly,
     },
-    async ({ handle, count, type }) => answer(await recommendDrinks(handle, { count, type }, ctx))
+    async ({ handle, count, type }) => answer(await recommendDrinks(actor(handle), { count, type }, ctx))
   );
 
   server.registerTool(
@@ -74,12 +86,12 @@ export function createMcpServer(ctx: ToolContext): McpServer {
       title: t.rankMenu.title,
       description: t.rankMenu.description,
       inputSchema: {
-        handle: handle(t.getPalate.handle),
+        handle: who,
         items: z.array(z.string().trim().min(1).max(200)).min(1).max(100).describe(t.rankMenu.items),
       },
       annotations: readOnly,
     },
-    async ({ handle, items }) => answer(await rankMenu(handle, items, ctx))
+    async ({ handle, items }) => answer(await rankMenu(actor(handle), items, ctx))
   );
 
   server.registerTool(
@@ -87,10 +99,10 @@ export function createMcpServer(ctx: ToolContext): McpServer {
     {
       title: t.compare.title,
       description: t.compare.description,
-      inputSchema: { handle: handle(t.getPalate.handle), other: handle(t.compare.other) },
+      inputSchema: { handle: who, other: handle(t.compare.other) },
       annotations: readOnly,
     },
-    async ({ handle, other }) => answer(await comparePalates(handle, other, ctx))
+    async ({ handle, other }) => answer(await comparePalates(actor(handle), other, ctx))
   );
 
   server.registerTool(
@@ -122,6 +134,40 @@ export function createMcpServer(ctx: ToolContext): McpServer {
     },
     async ({ query }) => answer(searchDrinks(query, ctx))
   );
+
+  if (member) {
+    server.registerTool(
+      'my_pours',
+      {
+        title: t.myPours.title,
+        description: t.myPours.description,
+        inputSchema: { count: z.number().int().min(1).max(50).optional().describe(t.myPours.count) },
+        annotations: { readOnlyHint: true, openWorldHint: false },
+      },
+      async ({ count }) => answer(await myPours(count, ctx))
+    );
+
+    server.registerTool(
+      'log_pour',
+      {
+        title: t.logPour.title,
+        description: t.logPour.description,
+        inputSchema: {
+          drink: z.string().trim().min(1).max(DRAFT_LIMITS.drink).describe(t.draftPour.drink),
+          hedonic: z.number().int().min(1).max(9).describe(t.logPour.hedonic),
+          atHome: z.boolean().optional().describe(t.draftPour.atHome),
+          bar: z.string().trim().max(DRAFT_LIMITS.bar).optional().describe(t.draftPour.bar),
+          whatWasOff: z.array(z.enum(DEVIATIONS)).max(DEVIATIONS.length).optional().describe(t.draftPour.whatWasOff),
+          notes: z.array(z.enum(CATA)).max(CATA.length).optional().describe(t.draftPour.notes),
+          note: z.string().trim().max(DRAFT_LIMITS.note).optional().describe(t.draftPour.note),
+          wouldOrderAgain: z.boolean().optional().describe(t.logPour.wouldOrderAgain),
+        },
+        // It writes a record and moves the coordinate; logging twice is two pours.
+        annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
+      },
+      async (input) => answer(await logMemberPour(input, ctx))
+    );
+  }
 
   return server;
 }

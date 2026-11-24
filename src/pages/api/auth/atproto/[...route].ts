@@ -6,7 +6,8 @@ import { isFormSignOut, toSignedOut } from '../../../../lib/atproto/sign-out';
 /**
  * `@bbthorson/atproto-cf-auth` serves everything under this path:
  * `POST login`, `GET callback`, `POST logout`, `GET session` and
- * `GET client-metadata.json`.
+ * `GET client-metadata.json`, and `GET jwks.json` once a private key makes
+ * this a confidential client (src/lib/atproto/auth.ts).
  *
  * Login is content-negotiated by the package the same way it was here before:
  * form-encoded in, 303 out (so `/` stays script-free); JSON in, JSON out for

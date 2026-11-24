@@ -1,11 +1,14 @@
 import { useState } from 'react';
-import { account, assistants } from '@/lib/copy';
+import { account, assistants, settings } from '@/lib/copy';
 import { AUTH_BASE_PATH, publicMapPath } from '@/lib/atproto/paths';
 import { sharePalateToFeed } from '@/lib/api-client';
 import { cn } from '@/lib/utils';
 import { AssistantSteps } from './AssistantSteps';
 
 const link = 'link-caps';
+
+/** A member's settings page: connected assistants, and the account as one page. */
+const SETTINGS_PATH = '/settings';
 
 /**
  * The account, in one block under the ledger: who you are, your public map,
@@ -15,6 +18,7 @@ const link = 'link-caps';
 export function AccountSection({
   handle,
   mcpAddress,
+  memberMcpAddress = null,
   topName,
   regionName,
   onStartOver,
@@ -23,6 +27,8 @@ export function AccountSection({
   handle: string | null;
   /** The `/mcp` address on this host, for the assistant setup. */
   mcpAddress: string;
+  /** The `/mcp/me` address, when an assistant can be signed in here. */
+  memberMcpAddress?: string | null;
   topName: string;
   regionName: string;
   onStartOver: () => void;
@@ -71,6 +77,9 @@ export function AccountSection({
               <a href="#assistant" className={cn(link, 'text-secondary hover:underline hover:underline-offset-4')}>
                 {account.assistants}
               </a>
+              <a href={SETTINGS_PATH} className={cn(link, 'text-secondary hover:underline hover:underline-offset-4')}>
+                {settings.title}
+              </a>
             </>
           )}
           {!confirming && (
@@ -95,7 +104,7 @@ export function AccountSection({
         <div id="assistant" className="mt-4 scroll-mt-4 space-y-4 border-t border-border pt-4" data-testid="assistant">
           <h3 className="font-serif text-plate font-bold">{assistants.sectionTitle}</h3>
           <p className="text-ui text-muted-foreground">{assistants.lede}</p>
-          <AssistantSteps address={mcpAddress} handle={handle} />
+          <AssistantSteps address={mcpAddress} memberAddress={memberMcpAddress} handle={handle} />
         </div>
       )}
 

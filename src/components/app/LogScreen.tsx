@@ -29,10 +29,12 @@ function LogContent({
   register,
   member,
   mcpAddress,
+  memberMcpAddress,
 }: {
   register: Register;
   member: { handle: string | null } | null;
   mcpAddress: string;
+  memberMcpAddress: string | null;
 }) {
   const { isEnabled, openSignIn } = useAtprotoContext();
   const log = useLog(register, member);
@@ -131,6 +133,7 @@ function LogContent({
           <AccountSection
             handle={member?.handle ?? null}
             mcpAddress={mcpAddress}
+            memberMcpAddress={memberMcpAddress}
             topName={log.nearestName}
             regionName={log.region.name}
             onStartOver={() => window.location.assign(startOverPath)}
@@ -162,6 +165,7 @@ export default function LogScreen({
   signInEnabled,
   member,
   mcpAddress,
+  memberMcpAddress = null,
 }: {
   register: Register;
   signInEnabled: boolean;
@@ -169,10 +173,12 @@ export default function LogScreen({
   member: { handle: string | null } | null;
   /** The `/mcp` address on this host (the server knows the host). */
   mcpAddress: string;
+  /** The `/mcp/me` address, when an assistant can be signed in here. */
+  memberMcpAddress?: string | null;
 }) {
   return (
     <AtprotoProvider enabled={signInEnabled}>
-      <LogContent register={register} member={member} mcpAddress={mcpAddress} />
+      <LogContent register={register} member={member} mcpAddress={mcpAddress} memberMcpAddress={memberMcpAddress} />
     </AtprotoProvider>
   );
 }

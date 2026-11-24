@@ -33,6 +33,16 @@ export interface DurableObjectNamespace {
   get(id: never): { fetch(input: string, init?: RequestInit): Promise<Response> };
 }
 
+/** The subset of a D1 database binding we use: what `d1Store` needs. */
+export interface D1PreparedStatement {
+  bind(...values: unknown[]): D1PreparedStatement;
+  first<T = Record<string, unknown>>(): Promise<T | null>;
+  run(): Promise<unknown>;
+}
+export interface D1Database {
+  prepare(query: string): D1PreparedStatement;
+}
+
 /** The subset of Cloudflare's Workers AI interface we use. */
 export interface AiBinding {
   run(
@@ -75,6 +85,10 @@ export function rateLimiterBinding(name: string): Promise<RateLimiterBinding | u
 
 export function durableObjectBinding(name: string): Promise<DurableObjectNamespace | undefined> {
   return bindingWith<DurableObjectNamespace>(name, 'idFromName');
+}
+
+export function d1Binding(name: string): Promise<D1Database | undefined> {
+  return bindingWith<D1Database>(name, 'prepare');
 }
 
 export function aiBinding(name = 'AI'): Promise<AiBinding | undefined> {

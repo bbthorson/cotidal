@@ -5,6 +5,7 @@ import { site, logPage } from '../lib/copy';
 import { loadRegister } from '../lib/register.server';
 import { signInEnabled } from '../lib/atproto/auth';
 import { accountFor } from '../lib/atproto/session';
+import { memberMcpAddress } from '../lib/mcp/authorize-context.server';
 
 /**
  * Yours: your map, what your pours add up to, the ledger of what moved you,
@@ -17,9 +18,10 @@ const register = await loadRegister();
 const authEnabled = await signInEnabled();
 const account = await accountFor(Astro.request, false);
 const mcpAddress = new URL('/mcp', Astro.url).toString();
+const memberAddress = await memberMcpAddress(Astro.url);
 const member = account.kind === 'member' ? { handle: account.handle } : null;
 ---
 
 <AppShell title={`${site.name} — ${logPage.title}`} currentPath="/log" width="frame" bottomBar>
-  <LogScreen client:load register={register} signInEnabled={authEnabled} member={member} mcpAddress={mcpAddress} />
+  <LogScreen client:load register={register} signInEnabled={authEnabled} member={member} mcpAddress={mcpAddress} memberMcpAddress={memberAddress} />
 </AppShell>

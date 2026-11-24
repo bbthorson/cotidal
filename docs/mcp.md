@@ -52,18 +52,117 @@ so there is nothing to store, sign in for or protect.
 - **Once.** After it is logged the draft leaves the form's state and the URL,
   so the form that comes back, or a reload, cannot offer it again.
 
-## Not yet: writing from a chat
+## Signing a member in: `/mcp/me`
 
-Drafting covers logging for now. If the extra step proves to be friction,
-writing directly needs the assistant to act as the member, which means
-`/mcp` becomes an OAuth authorization server for the assistant
-(`@cloudflare/workers-oauth-provider`), handing sign-in to the existing
-Bluesky flow. It also needs a way, in `@bbthorson/atproto-cf-auth`, to
-restore a session from a DID rather than a cookie. The lock that keeps
-parallel restores from racing a token refresh is already there (0.2.0,
-`AUTH_LOCK`).
+`/mcp` stays public. Writing as a member, and answering "my palate" without a
+handle, happen at a second address, `/mcp/me`, which needs the assistant to
+sign the member in. Keeping two addresses keeps the public reads open to
+anyone: an endpoint that answers without a token is never offered a sign-in by
+an MCP client, and one that demands a token shuts out strangers.
 
-The rules the write path must keep:
+Cotidal is the OAuth authorization server the assistant talks to, through
+`@cloudflare/workers-oauth-provider` wrapped around the Worker in
+`src/worker.ts` (`withMemberSignIn`, `src/lib/mcp/member-auth.ts`):
+
+1. An unauthenticated request to `/mcp/me` gets a `401` naming
+   `/.well-known/oauth-protected-resource/mcp/me`, which names this origin as
+   its authorization server.
+2. The assistant registers at `/oauth/register` and sends the person to
+   `/oauth/authorize`.
+3. That page asks for consent and signs them in through the existing Bluesky
+   flow, then completes the grant with `props: { did }` (below).
+4. The assistant exchanges the code at `/oauth/token` and calls `/mcp/me`
+   with the token. The provider checks it and hands the page the DID as
+   `ctx.props` (`Astro.locals.cfContext`); the page reads the member from
+   there and from nothing in the request.
+5. A tool that writes restores the member's AT-Proto session with
+   `auth.restore(did)` (`@bbthorson/atproto-cf-auth` 0.5) under the existing
+   `AUTH_LOCK`. The assistant never holds an AT-Proto token.
+
+Scopes: `palate:read` is the baseline every client asks for first, and
+`pours:write` lets it log pours: granted on the consent page, or asked for by
+step-up (`insufficientScope`) when `log_pour` is called without it. A grant's `userId` is the DID percent-encoded
+(`grantUserId`), because the provider refuses `:`; it is how a member's
+assistants are listed and revoked.
+
+The provider is built per origin, as the sign-in's `client_id` is, so one
+deploy serves workers.dev, the custom domain and loopback; a token is good
+only on the origin that issued it. It stays off, and `/mcp/me` answers `404`,
+until the `OAUTH_KV` namespace is bound (`wrangler.toml`).
+
+### The consent page
+
+`/oauth/authorize` (src/lib/mcp/authorize.server.ts, drawn by
+`src/pages/oauth/authorize.astro`, no JavaScript) shows what the MCP spec
+asks for: the assistant's name (marked unverified for a self-registered
+client), the host access is sent to, a warning when that is an app on this
+computer, and what Allow grants. Reading the member's palate is always
+granted; logging pours is a box, ticked by default, so an assistant that asks
+only for the baseline can still be let write without a second round trip,
+and a member who unticks it is asked again by step-up the first time.
+
+- **Allow as @handle** (a member already signed in here): granted at once, if
+  their AT-Proto session still restores.
+- **Sign in with Bluesky and allow**: the approved request is held
+  server-side (`beginUpstream`), the ordinary sign-in runs with
+  `returnTo=/oauth/callback?state=…`, and the callback grants for whoever the
+  sign-in just signed in. A session older than the sign-in, or a sign-in that
+  came back with `auth_error`, answers `access_denied`.
+- **Deny**: back to the assistant with `access_denied`.
+
+The consent handle and the upstream `state` are each bound to the browser by
+a `__Host-` cookie and work once.
+
+### What `/mcp/me` adds
+
+- Every handle is optional and means the member.
+- `my_pours`: the member's own log, newest first. Nobody else's log is read,
+  at either address.
+- `log_pour`: writes through `logPour` with the member's restored session.
+  `hedonic` (1–9, the form's own labels) is required and described as their
+  answer, never an estimate; the rest goes through `cleanDraft`, as a draft
+  does; nothing is cross-posted. Needs `pours:write`.
+
+### Sessions that last
+
+A grant is only as good as the AT-Proto session behind it, which has to
+outlive weeks between visits.
+
+- **Confidential client.** Set `OAUTH_PRIVATE_KEY` (a Worker secret) to an
+  ES256 private JWK and sign-in becomes a `private_key_jwt` client, which
+  authorization servers give much longer sessions. Make one with
+  `node -e "import('@atproto/jwk-jose').then(async ({JoseKey}) => console.log(JSON.stringify((await JoseKey.generate(['ES256'], 'k1')).privateJwk)))"`.
+  Sessions made before the key keep the method they were made with; if an
+  authorization server refuses one at its next refresh, that member signs in
+  once more.
+- **D1.** With `ATPROTO_DB` bound, sessions are kept in D1, where the refresh
+  lock is a guarantee; members already in KV are copied across as they are
+  seen (`movingStore`). Remove the KV binding 30 days later.
+
+### Turning it on
+
+1. `wrangler secret put OAUTH_PRIVATE_KEY` with a key made as above.
+2. `wrangler d1 create cotidal-auth`, and uncomment `ATPROTO_DB` with its id.
+3. `wrangler kv namespace create cotidal-oauth`, and uncomment `OAUTH_KV`.
+4. Deploy, then add `https://cotidal.app/mcp/me` as a connector in Claude.
+
+`/mcp` (to a browser) and `/log#assistant` explain both addresses, yours
+first, once `/mcp/me` is on (`memberMcpAddress`, the same check the routes
+make); until then they show the one read-only address, as before.
+
+### Disconnecting an assistant
+
+`/settings` (linked from the account on `/log`) lists the assistants a member
+has connected: the name each gave (marked as its own claim), where its access
+goes, whether it may log pours, and when. Disconnect revokes the grant and
+every token under it (`src/lib/settings/assistants.server.ts`, over
+`listUserGrants` / `revokeGrant` keyed by `grantUserId`), so the assistant's
+next call gets a `401`. The member is taken from their session, never the
+form, and a grant id that is not theirs revokes nothing. Signing out does not
+disconnect assistants: it ends this browser's session, not the AT-Proto
+session they use.
+
+The rules the write path keeps:
 
 - **A record holds what its author said.** The rating is required and asked
   for, never estimated by the assistant; every other field is absent unless

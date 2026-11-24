@@ -188,6 +188,37 @@ export const account = {
   signOutBody: 'Signing out clears your coordinate from this device. It stays in your account.',
 } as const;
 
+/**
+ * `/settings` — a member's account, as one page: who they are signed in as,
+ * the chat assistants they have let act as them, and signing out.
+ */
+export const settings = {
+  title: 'Settings',
+  eyebrow: 'Your account',
+  signedInAs: 'Signed in as',
+  publicMap: 'Your public map',
+  assistantsTitle: 'Connected assistants',
+  assistantsLede:
+    'Chat assistants you have let use Cotidal as you, at your own address. Disconnecting one stops it at once: its next question is refused, and if it asks again you will see the page that asked the first time.',
+  assistantsNone: 'No assistant is connected.',
+  howToConnect: 'Connect one',
+  assistantsOff:
+    'Assistants can read your public map at the public address. Connecting one to act as you is not switched on here yet.',
+  unnamed: 'An assistant with no name',
+  unverified: 'Name given by the assistant',
+  verified: (domain: string) => `From ${domain}`,
+  sendsTo: (host: string) => `Access goes to ${host}`,
+  connectedOn: (date: string) => `Connected ${date}`,
+  canRead: 'Reads your palate and your pours',
+  canLog: 'Reads your palate and pours, and logs pours you tell it about',
+  disconnect: 'Disconnect',
+  disconnected:
+    'Disconnected. To tidy up, also remove Cotidal from that assistant’s own connectors, or it will ask you to connect again.',
+  disconnectFailed: 'That did not go through. Try again.',
+  signOutTitle: 'Sign out',
+  signOutBody: 'Signing out clears your coordinate from this device. It stays in your account, and connected assistants keep working.',
+} as const;
+
 export const hero = {
   headline: 'Every palate has',
   headlineAccent: 'a coordinate.',
@@ -742,9 +773,62 @@ export const assistants = {
   /** On someone else's map: what to ask your own assistant about them. */
   visitorAsk: (handle: string) => `Ask your chat assistant: “How far is my map from @${handle}’s?”`,
   setUp: 'Set it up',
+  /** Where `/mcp/me` is on: the two addresses, yours first. */
+  memberUrlLabel: 'Your own address',
+  memberUrlNote:
+    'Recommended. Your assistant signs you in once, then knows whose palate it is, and can log a pour you tell it about.',
+  publicUrlLabel: 'Anyone’s map',
+  publicUrlNote: 'No sign-in. Reads any public palate by handle, and drafts pours as links for you to log here.',
+  memberSteps: [
+    'Open Settings, then Connectors.',
+    'Choose Add custom connector.',
+    'Name it Cotidal and paste your own address.',
+    'Choose Connect. Cotidal opens: sign in with Bluesky and choose Allow.',
+  ],
+  memberOtherClients:
+    'Other assistants that accept an MCP server URL take the same addresses. Anyone’s map needs no sign-in, so it skips the last step.',
+  memberCan: [
+    'What to drink tonight, without saying who you are.',
+    'Which drink to pick from a menu you paste in.',
+    'To log a pour you had: tell it the drink and how much you liked it.',
+    'What you have had lately, and how each one landed.',
+    'How far your map is from a friend’s.',
+  ],
+  memberAsk: 'Ask: “What should I drink tonight?” It already knows it’s you.',
+  memberLimitsTitle: 'Only what you tell it',
+  memberLimits:
+    'It logs a pour only when you tell it about one, with the rating you give: it asks rather than guesses. It cannot retake the questions, edit or delete a pour, or post to Bluesky. Untick logging when you allow it to keep it read-only, and remove the connector to stop it altogether.',
   readOnlyTitle: 'Only you log',
   readOnly:
     'The assistant reads the same public coordinate anyone can open at your public map. It can draft a pour, as a link to the form here, but only you log it: you check it, tap how it landed, and press the button. It cannot retake the questions or change your map.',
+} as const;
+
+/**
+ * `/oauth/authorize` — letting a chat assistant act for a member at `/mcp/me`.
+ * The client's name and host come from the assistant itself: the page shows
+ * them as data, never as a claim Cotidal makes.
+ */
+export const assistantConsent = {
+  eyebrow: 'Chat assistant',
+  title: (client: string) => `Let ${client} use Cotidal as you?`,
+  verified: (domain: string) => `Published by ${domain}.`,
+  unverified: 'This assistant gave its own name when it registered. Cotidal cannot check it.',
+  sendsTo: 'Access goes to',
+  loopback:
+    'That is an app on this computer, and any app here could be listening. Continue only if you just started connecting one.',
+  canTitle: 'It will be able to',
+  scopes: {
+    'palate:read': 'Answer from your palate without being told your handle: where it lands, what is near it, menus ranked for it.',
+    'pours:write':
+      'Log a pour you tell it about, with the rating you give it. Nothing else: it cannot change your answers, edit a pour or post to Bluesky.',
+  } as Record<string, string>,
+  unknownScope: (scope: string) => `Something Cotidal does not offer: ${scope}`,
+  continueAs: (handle: string) => `Allow as @${handle}`,
+  orSomeoneElse: 'Or sign in as someone else',
+  signInAndAllow: 'Sign in with Bluesky and allow',
+  deny: 'Deny',
+  revoke: 'To stop it later, remove Cotidal from the assistant’s connectors.',
+  refusedTitle: 'This request can’t go ahead',
 } as const;
 
 /**
@@ -754,8 +838,11 @@ export const assistants = {
  */
 export const mcp = {
   name: 'cotidal',
+  /** What both endpoints say first; each adds how a pour gets logged there. */
+  about:
+    'Cotidal places a person’s taste in drinks on a map: x runs Rich (−10) to Crisp (+10), y runs Savory (−10) to Sweet (+10). Each person’s palate is a public record on their Bluesky account, read by handle. Drinks are recommended by how close they sit to that coordinate, never by a score of the person. Use search_drinks to turn a drink someone names into the name Cotidal knows it by.',
   instructions:
-    'Cotidal places a person’s taste in drinks on a map: x runs Rich (−10) to Crisp (+10), y runs Savory (−10) to Sweet (+10). Each person’s palate is a public record on their Bluesky account, read by handle. Drinks are recommended by how close they sit to that coordinate, never by a score of the person. Use search_drinks to turn a drink someone names into the name Cotidal knows it by. Nothing you call changes anyone’s map: to log a pour, draft_pour returns a link the person opens to check it, rate it and log it themselves.',
+    'Nothing you call changes anyone’s map: to log a pour, draft_pour returns a link the person opens to check it, rate it and log it themselves.',
   tools: {
     getPalate: {
       title: 'Read a palate',
@@ -793,6 +880,20 @@ export const mcp = {
       notes: 'What they tasted in it, as these ids.',
       note: 'Anything else they said about it, in their words.',
     },
+    myPours: {
+      title: 'Read my pours',
+      description:
+        'The signed-in member’s own pours, newest first: the drink, how much they liked it on the 9-point scale, where, what was off and what they tasted. Nobody else’s log can be read.',
+      count: 'How many pours to return, up to 50.',
+    },
+    logPour: {
+      title: 'Log a pour',
+      description:
+        'Log a drink the signed-in member had, to their own account, and move their coordinate. Call it only after they have told you how much they liked it: hedonic is their answer on the 9-point scale, never your estimate. Include only what they said: no guessed bar, notes or faults, and wouldOrderAgain only if you asked them.',
+      // The form's own labels, so the scale the assistant asks on is the one the form shows.
+      hedonic: `How much they liked it, as they said: ${pour.hedonic.map((label, i) => `${i + 1} ${label}`).join(', ')}.`,
+      wouldOrderAgain: 'Whether they would order it again, only if you asked them.',
+    },
     searchDrinks: {
       title: 'Search drinks',
       description:
@@ -806,6 +907,15 @@ export const mcp = {
   unavailable: (name: string) => `${name}’s server did not respond in time. Try again in a moment.`,
   noMatches: (query: string) => `No drink on the map matches “${query}”.`,
   noDrink: 'A draft needs the drink’s name.',
+  /** `/mcp/me` only: the member the assistant was signed in as. */
+  memberInstructions:
+    'You are signed in to Cotidal as one member. Leave out the handle to mean them. log_pour writes a pour to their own Bluesky account and moves their coordinate, so call it only for a drink they told you they had, with the rating they gave: ask how much they liked it on the 9-point scale and never estimate it. Include only what they said. my_pours reads their own log; nobody else’s log can be read.',
+  memberHandle: 'A Bluesky handle or DID. Leave it out to mean the member you are signed in as.',
+  memberOnly: 'Only for the member this assistant is signed in as, at /mcp/me.',
+  sessionGone:
+    'Their Bluesky session on Cotidal has ended, so nothing was read or written. They can sign in on Cotidal again, then reconnect this assistant.',
+  needRating: 'A pour needs the rating they gave, a whole number from 1 to 9. Ask them; do not estimate it.',
+  logged: 'Logged to their own account. Their coordinate has moved; tell them where it is now.',
   draftReady: 'Drafted. Nothing is logged yet: they open the link, tap how much they liked it, and log it.',
   unplaced: 'Not on the Cotidal map, so it cannot be placed.',
   avoids: (flavours: string[]) => `Has ${flavours.join(' and ')}, which they avoid.`,
