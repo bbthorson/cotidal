@@ -167,15 +167,16 @@ test('Header: on a phone the destinations fold under "Menu", without JavaScript'
   await context.close();
 });
 
-test('Landing: the header and the front door fill the first screen exactly, the action at its foot', async ({ page }) => {
+test('Landing: the whole page is the screen — header, front door and footer, nothing to scroll', async ({ page }) => {
   for (const viewport of [{ width: 375, height: 667 }, { width: 390, height: 844 }, { width: 1280, height: 800 }]) {
+    const at = `${viewport.width}×${viewport.height}`;
     await page.setViewportSize(viewport);
     await page.goto('/');
-    const cta = (await page.getByRole('link', { name: hero.primaryCta }).boundingBox())!;
+    expect(await page.evaluate(() => document.documentElement.scrollHeight), at).toBe(viewport.height);
     const footer = (await page.locator('footer').boundingBox())!;
-    expect(cta.y + cta.height, `${viewport.width}×${viewport.height}`).toBeLessThanOrEqual(viewport.height);
-    // The footer starts below the first screen, not inside it.
-    expect(Math.round(footer.y), `${viewport.width}×${viewport.height}`).toBeGreaterThanOrEqual(viewport.height);
+    expect(footer.y + footer.height, at).toBeLessThanOrEqual(viewport.height);
+    const cta = (await page.getByRole('link', { name: hero.primaryCta }).boundingBox())!;
+    expect(cta.y + cta.height, at).toBeLessThanOrEqual(footer.y);
   }
 });
 

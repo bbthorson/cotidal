@@ -28,9 +28,15 @@ interface Props {
   region?: QuadrantId;
   /** The coordinate in the band. Drawn only in the landing figure's band, where it was placed. */
   dot?: boolean;
+  /**
+   * Fill the height it is given rather than set it from its width: the
+   * front door's first screen gives the chart what the words and the action
+   * leave, so it shrinks on a short phone instead of pushing the page long.
+   */
+  fit?: boolean;
 }
 
-const { region = FILLED_REGION, dot = true } = Astro.props;
+const { region = FILLED_REGION, dot = true, fit = false } = Astro.props;
 
 const lines = HOUR_LINES.map(({ hour, param, index }) => ({
   hour,
@@ -47,8 +53,8 @@ const inner = RINGS.slice(0, -1);
 const outer = RINGS[RINGS.length - 1];
 ---
 
-<figure class="mx-auto w-full max-w-sm">
-  <svg viewBox="0 0 260 184" class="w-full" fill="none" role="presentation">
+<figure class:list={['mx-auto w-full max-w-sm', fit && 'h-full']}>
+  <svg viewBox="0 0 260 184" class:list={['w-full', fit && 'h-full']} fill="none" role="presentation">
     <!-- The band between the 0h and 3h lines, one region: the one filled shape -->
     <path d={filled} class="fill-primary" />
 

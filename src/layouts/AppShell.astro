@@ -23,10 +23,10 @@ interface Props {
    */
   bottomBar?: boolean;
   /**
-   * The header and the content fill the first screen exactly (100dvh, the
-   * viewport less a phone browser's own bars), and the footer starts below
-   * it. The front door uses it so its one action sits at the foot of the
-   * first screen; the content lays itself out in the space with flex.
+   * The whole page is the screen, exactly: header, content and footer fill
+   * 100dvh (the viewport less a phone browser's own bars) and nothing
+   * scrolls. The front door uses it; its content lays itself out in what
+   * the header and footer leave, with flex.
    */
   fill?: boolean;
 }
@@ -52,12 +52,12 @@ const widthClass = {
 
 <Base title={title} description={description} image={image}>
   <div class="bar-texture min-h-dvh bg-background text-foreground">
-    <div class:list={[fill && 'flex min-h-dvh flex-col']}>
+    <div class:list={[fill && 'flex h-dvh flex-col']}>
     <div data-site-chrome class="mx-auto w-full max-w-5xl px-6 pt-5 md:pt-14">
       <SiteHeader currentPath={currentPath} account={account} appPage={bottomBar} />
     </div>
 
-    <div class:list={['mx-auto w-full px-6', widthClass, bottomBar && 'pb-tabbar lg:pb-0', fill && 'flex flex-1 flex-col']}>
+    <div class:list={['mx-auto w-full px-6', widthClass, bottomBar && 'pb-tabbar lg:pb-0', fill && 'flex min-h-0 flex-1 flex-col']}>
       {backLink && (
         <nav aria-label={a11y.breadcrumb} class="pt-6">
           <a
@@ -72,13 +72,17 @@ const widthClass = {
       {/* Room to scroll the last of the content out from under "Pick a drink". */}
       {bottomBar && <div aria-hidden="true" class="h-16" />}
     </div>
-    </div>
 
     <div
       data-site-chrome
-      class:list={['mx-auto w-full max-w-5xl px-6 pt-16 pb-10 md:pb-14', bottomBar && 'hidden lg:block']}
+      class:list={[
+        'mx-auto w-full max-w-5xl px-6',
+        fill ? 'pb-5 md:pb-8' : 'pt-16 pb-10 md:pb-14',
+        bottomBar && 'hidden lg:block',
+      ]}
     >
       <SiteFooter currentPath={currentPath} />
+    </div>
     </div>
 
     {bottomBar && <AppBar currentPath={currentPath} />}

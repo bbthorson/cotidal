@@ -15,24 +15,22 @@ import { questionsHref } from '../lib/site-nav';
 ---
 
 <AppShell currentPath="/" width="standard" fill>
-  <!-- The first screen, exactly: the chart and the words in the middle, the one action at its foot. -->
-  <section class="flex flex-1 flex-col pb-6 pt-6 text-center md:pb-10 md:pt-8">
-    <div class="my-auto">
-    <div class="mx-auto w-full max-w-xs">
-      <ChartFigure />
+  <!-- The whole page is one screen. The chart takes what the words, the action and the footer leave. -->
+  <section class="flex min-h-0 flex-1 flex-col pb-6 pt-4 text-center md:pb-8 md:pt-6">
+    <div class="mx-auto flex min-h-0 w-full max-w-xs flex-1 items-center">
+      <ChartFigure fit />
     </div>
 
-    <h1 class="mx-auto mt-6 max-w-2xl font-serif text-hero font-bold text-foreground md:mt-8 md:text-hero-lg">
+    <h1 class="mx-auto mt-4 max-w-2xl font-serif text-hero font-bold text-foreground md:mt-6 md:text-hero-lg">
       {hero.headline}<br />
       <em class="font-normal italic text-primary">{hero.headlineAccent}</em>
     </h1>
 
-    <p class="mx-auto mt-4.5 max-w-xs font-serif text-prose text-muted-foreground md:max-w-md md:text-plate">
+    <p class="mx-auto mt-3 max-w-xs font-serif text-prose text-muted-foreground md:max-w-md md:text-plate">
       {hero.body}
     </p>
-    </div>
 
-    <div class="mx-auto mt-auto flex w-full max-w-sm flex-col items-center pt-6">
+    <div class="mx-auto mt-6 flex w-full max-w-sm flex-col items-center">
       <a href={questionsHref} class="btn btn-primary btn-lg w-full px-8">
         {hero.primaryCta}
       </a>

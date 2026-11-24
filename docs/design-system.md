@@ -253,6 +253,6 @@ To guarantee the design system never drifts, automated enforcement is active at 
 - `tsc --noEmit`: Validates TypeScript types across the entire project.
 
 ### 4. Tests (`npm test`: Vitest in `tests/unit/`, Playwright in `tests/`)
-- `tests/landing-static.spec.ts`: Asserts zero client scripts or hydration islands on `/` and `/sign-in`, a front door that asks one thing and fills the first screen exactly (header and content are `100dvh`, AppShell's `fill`, with the action at its foot), and the non-JS sign-in form.
+- `tests/landing-static.spec.ts`: Asserts zero client scripts or hydration islands on `/` and `/sign-in`, a front door that asks one thing and is exactly one screen (AppShell's `fill`: header, content and footer in `100dvh`, nothing to scroll; the chart takes what the words, the action and the footer leave, `ChartFigure fit`), and the non-JS sign-in form.
 - `tests/visual-identity.spec.ts`: Asserts computed CSS colors match the exact token values for paper ground (`rgb(244, 241, 230)`) and forest ink (`rgb(35, 52, 43)`).
 - `tests/unit/drink-content.test.ts`: Asserts all drink entries join cleanly to the coordinate database and contain primary sources.
