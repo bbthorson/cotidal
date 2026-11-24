@@ -11,6 +11,7 @@ import { readFollowedPalates, type FollowedOverlap } from '../atproto/follows-ov
 import type { Register } from '../register';
 import { cleanDraft, draftPath, type PourDraft } from '../pour-draft';
 import { matchDrink, normalizeName } from '../drink-match';
+import { wayTo } from '../drink-search';
 import { clashingAversions, splitMenuLine, suggestClosestDrink } from '../ingredient-match';
 import { pour as pourCopy } from '../copy';
 import { hedonicToRating } from '../pour-entry';
@@ -105,6 +106,21 @@ function clashes(drink: Drink, aversions: Aversions): string[] {
   return out;
 }
 
+/**
+ * How far a drink sits from someone and which way, in the words the app uses
+ * ("crisper, more savory"), so an assistant repeats Cotidal's reading of the
+ * map instead of making its own from the coordinates.
+ */
+export interface Bearing {
+  distance: number;
+  way: string;
+}
+
+function bearing(from: MapPoint, drink: Drink): Bearing {
+  const { words, distance } = wayTo(from, drink);
+  return { distance, way: words };
+}
+
 function summarize(drink: Drink, ctx: ToolContext): DrinkSummary {
   const entry = ctx.register[drink.name];
   return {
@@ -183,22 +199,21 @@ export async function recommendDrinks(
   input: string,
   options: { count?: number; type?: Drink['type'] },
   ctx: ToolContext
-): Promise<ToolResult<{ palate: PalateSummary; drinks: (DrinkSummary & { distance: number })[] }>> {
+): Promise<ToolResult<{ palate: PalateSummary; drinks: (DrinkSummary & Bearing)[] }>> {
   const found = await palateOf(input, ctx);
   if (!found.ok) return found;
   const { point, summary } = found.data;
   const pool = options.type ? drinkDatabase.filter((d) => d.type === options.type) : drinkDatabase;
   const drinks = nearestDrinks(point, options.count ?? 5, pool).map((d) => ({
     ...summarize(d, ctx),
-    distance: round(calculateDistance(point, d)),
+    ...bearing(point, d),
   }));
   return { ok: true, data: { palate: summary, drinks } };
 }
 
-export interface RankedItem extends DrinkSummary {
+export interface RankedItem extends DrinkSummary, Bearing {
   /** The name as it was on the menu. */
   item: string;
-  distance: number;
   /** Why they might pass on it, when a flavour they avoid is in it. */
   caution: string | null;
 }
@@ -253,7 +268,7 @@ export async function rankMenu(
     ranked.push({
       item: label,
       ...summarize(drink, ctx),
-      distance: round(calculateDistance(point, drink)),
+      ...bearing(point, drink),
       caution: avoided.length > 0 ? mcp.avoids(avoided) : null,
     });
   }
@@ -384,22 +399,33 @@ export interface DrinkDetail extends DrinkSummary {
   tags: Drink['tags'];
   /** Required ingredients from the register, when written up. */
   build: string | null;
+  /**
+   * How far it sits from the person asked about, and which way, when a handle
+   * was given: what an assistant needs to answer "would I like X?" from the
+   * map instead of guessing for a drink no list happened to include.
+   */
+  fromThem?: Bearing & { handle: string | null; avoided: string[] };
 }
 
-export function getDrink(name: string, ctx: ToolContext): ToolResult<DrinkDetail> {
+export async function getDrink(name: string, ctx: ToolContext, from?: string): Promise<ToolResult<DrinkDetail>> {
   const drink = matchDrink(name);
   if (!drink) return { ok: false, message: mcp.noDrinkFound(name) };
   const entry = ctx.register[drink.name];
+  const detail: DrinkDetail = {
+    ...summarize(drink, ctx),
+    hasSmoke: drink.hasSmoke,
+    isBitter: drink.isBitter,
+    hasAnise: drink.hasAnise,
+    tags: drink.tags,
+    build: entry?.build ?? null,
+  };
+  if (!from) return { ok: true, data: detail };
+  const found = await palateOf(from, ctx);
+  if (!found.ok) return found;
+  const { point, summary } = found.data;
   return {
     ok: true,
-    data: {
-      ...summarize(drink, ctx),
-      hasSmoke: drink.hasSmoke,
-      isBitter: drink.isBitter,
-      hasAnise: drink.hasAnise,
-      tags: drink.tags,
-      build: entry?.build ?? null,
-    },
+    data: { ...detail, fromThem: { handle: summary.handle, ...bearing(point, drink), avoided: clashes(drink, point.aversions) } },
   };
 }
 

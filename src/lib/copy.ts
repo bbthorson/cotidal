@@ -940,7 +940,7 @@ export const mcp = {
   name: 'cotidal',
   /** What both endpoints say first; each adds how a pour gets logged there. */
   about:
-    'Cotidal places a person’s taste in drinks on a map: x runs Rich (−10) to Crisp (+10), y runs Savory (−10) to Sweet (+10). Each person’s palate is a public record on their Bluesky account, read by handle. Drinks are recommended by how close they sit to that coordinate, never by a score of the person. Use search_drinks to turn a drink someone names into the name Cotidal knows it by.',
+    'Cotidal places a person’s taste in drinks on a map: x runs Rich (−10) to Crisp (+10), y runs Savory (−10) to Sweet (+10). Each person’s palate is a public record on their Bluesky account, read by handle. Drinks are recommended by how close they sit to that coordinate, never by a score of the person. A distance is where a drink sits, not a forecast: say a drink is close to them and which way it lies (each result says, in Cotidal’s words), never that they will like it. To answer about a drink no list included, call get_drink with their handle rather than guess. Use search_drinks to turn a drink someone names into the name Cotidal knows it by.',
   instructions:
     'Nothing you call changes anyone’s map: to log a pour, draft_pour returns a link the person opens to check it, rate it and log it themselves.',
   tools: {
@@ -953,7 +953,7 @@ export const mcp = {
     recommend: {
       title: 'Recommend drinks',
       description:
-        'The drinks on the Cotidal map closest to someone’s coordinate, nearest first, leaving out anything with a flavour they avoid.',
+        'The drinks on the Cotidal map closest to someone’s coordinate, nearest first, leaving out anything with a flavour they avoid. Each comes with its distance and which way it lies from them (“crisper, more savory”).',
       count: 'How many drinks to return.',
       type: 'Only drinks of this kind.',
     },
@@ -980,8 +980,9 @@ export const mcp = {
     getDrink: {
       title: 'Read a drink',
       description:
-        'Look up a drink on the Cotidal map by name: its coordinate, region, flavour flags, tags, and recipe build from the register.',
+        'Look up a drink on the Cotidal map by name: its coordinate, region, flavour flags, tags, and recipe build from the register. Given someone’s handle, also how far it sits from their coordinate, which way, and any flavour in it they avoid: use this for “what about X?” instead of guessing.',
       name: 'The drink’s name (use search_drinks if unsure).',
+      handle: 'A Bluesky handle or DID, to measure the drink from their coordinate.',
     },
     getBarMenu: {
       title: 'Read a bar’s menu',
