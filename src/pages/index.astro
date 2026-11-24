@@ -14,13 +14,15 @@ import { questionsHref } from '../lib/site-nav';
  */
 ---
 
-<AppShell currentPath="/" width="standard">
-  <section class="pb-14 pt-8 text-center md:pb-20 md:pt-14">
-    <div class="mx-auto max-w-xs md:max-w-sm">
+<AppShell currentPath="/" width="standard" fill>
+  <!-- The first screen, exactly: the chart and the words in the middle, the one action at its foot. -->
+  <section class="flex flex-1 flex-col pb-6 pt-6 text-center md:pb-10 md:pt-8">
+    <div class="my-auto">
+    <div class="mx-auto w-full max-w-xs">
       <ChartFigure />
     </div>
 
-    <h1 class="mx-auto mt-8 max-w-2xl font-serif text-hero font-bold text-foreground md:mt-12 md:text-hero-lg">
+    <h1 class="mx-auto mt-6 max-w-2xl font-serif text-hero font-bold text-foreground md:mt-8 md:text-hero-lg">
       {hero.headline}<br />
       <em class="font-normal italic text-primary">{hero.headlineAccent}</em>
     </h1>
@@ -28,8 +30,9 @@ import { questionsHref } from '../lib/site-nav';
     <p class="mx-auto mt-4.5 max-w-xs font-serif text-prose text-muted-foreground md:max-w-md md:text-plate">
       {hero.body}
     </p>
+    </div>
 
-    <div class="mx-auto mt-8 flex max-w-sm flex-col items-center md:mt-10">
+    <div class="mx-auto mt-auto flex w-full max-w-sm flex-col items-center pt-6">
       <a href={questionsHref} class="btn btn-primary btn-lg w-full px-8">
         {hero.primaryCta}
       </a>

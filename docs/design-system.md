@@ -135,13 +135,13 @@ Navigation is unified across the entire site through `<SiteHeader.astro>` and `<
 2. **Destinations** (header): Compass (`/compass`), Log (`/log`). Drinks (`/drinks`) and For Bars (`/bars`) are reading pages, so they are in the footer, not the header; For Bars is also the supply side, a different product from the drinker's app; `/bars/*` is reserved for it and will get its own layout.
 3. **The account control** (header) says what the server knows (`accountFor` in `session.ts`, read once in `AppShell`):
    - a member sees `@handle`, which opens the account (the foot of Log, `/log#account`), and **Sign out** — a plain form post that answers with a redirect, like sign-in, so it needs no script;
-   - a guest sees **Sign in**;
+   - a guest sees **Sign in** (on a phone's reading pages, inside Menu);
    - a prerendered page (`/drinks`, `/drinks/regions/*`) was built before anyone visited, so it says **Account** (also `/log#account`) rather than guess.
    - on an app page, **Sign in** opens the one sign-in sheet in place (`?signin=1`, handled by `AtprotoProvider`) rather than leaving for a page. On every other page it goes to `/sign-in`, a script-free page with the same form and promise.
 4. **Footer**: the reading pages only — How it works, Drinks, For Bars (`app: false` in `destinations`); a region page marks Drinks current here. The app destinations and the account are always in the header. On a page with a bar pinned along the bottom (`AppShell`'s `bottomBar`) it is left out below `lg`: the bar is that page's foot, and the header's Menu already lists the same pages.
 5. **Active State Indicators**: Routes are identified via `currentPath` and styled as a tab: bold ink over a 3px `foreground` rule from `lg`, bold alone in the phone's folded menu.
 6. **Sub-Route Navigation**: In `/drinks/[slug]`, the header supports a semantic `backLink` while retaining global site navigation.
-7. **Phones**: on the reading pages the header collapses to wordmark · account · Menu. On the app pages there is no Menu — the app bar is the navigation, and the reading pages and Sign out sit at the foot of Log (`SiteHeader`'s `appPage`). "Menu" is a `<details>` that opens the same `<nav>` through `peer-open`, so `/` still ships no JavaScript; a member's Sign out sits at the foot of it.
+7. **Phones**: on the reading pages the header collapses to wordmark · Menu — one control; the destinations and the account (Sign in, your handle, or Account) open under it. On the app pages there is no Menu — the app bar is the navigation, and the reading pages and Sign out sit at the foot of Log (`SiteHeader`'s `appPage`). "Menu" is a `<details>` that opens the same `<nav>` through `peer-open`, so `/` still ships no JavaScript; a member's Sign out sits at the foot of it.
 8. **Focus mode**: any element marked `data-focus-mode` (the questions, the reveal) hides the site header and footer below `lg` (`globals.css`, pure CSS so nothing flashes before hydration).
 9. **The app bar** (`AppBar.astro`): **Compass · Log** along the foot of a phone on the app pages (`AppShell`'s `bottomBar`) — navigate, record. Plain links, no script; hidden in focus mode and from `lg`, where the header carries the same destinations. A card pinned above it (`PinnedCard`) uses the `tabbar` spacing token.
 10. **Pick a drink** (`PickButton.astro`): choosing what to have is the one thing you *do*, not a place, so it is a floating button rather than a tab — above the app bar on a phone; from `lg` at the foot of the content's right edge (`right-frame-edge`), not the window's corner. It opens Compass on a menu with no bar (`/compass?menu=1`). Not drawn on Compass (which has "Have a menu?" under its search), while a drink card is open, or in focus mode.
@@ -253,6 +253,6 @@ To guarantee the design system never drifts, automated enforcement is active at 
 - `tsc --noEmit`: Validates TypeScript types across the entire project.
 
 ### 4. Tests (`npm test`: Vitest in `tests/unit/`, Playwright in `tests/`)
-- `tests/landing-static.spec.ts`: Asserts zero client scripts or hydration islands on `/` and `/sign-in`, a front door that asks one thing, and the non-JS sign-in form.
+- `tests/landing-static.spec.ts`: Asserts zero client scripts or hydration islands on `/` and `/sign-in`, a front door that asks one thing and fills the first screen exactly (header and content are `100dvh`, AppShell's `fill`, with the action at its foot), and the non-JS sign-in form.
 - `tests/visual-identity.spec.ts`: Asserts computed CSS colors match the exact token values for paper ground (`rgb(244, 241, 230)`) and forest ink (`rgb(35, 52, 43)`).
 - `tests/unit/drink-content.test.ts`: Asserts all drink entries join cleanly to the coordinate database and contain primary sources.
