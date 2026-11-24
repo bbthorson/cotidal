@@ -51,7 +51,7 @@ const plain: Flags = { hasSmoke: false, hasAnise: false, isBitter: false };
 const gripping: Flags = { hasSmoke: false, hasAnise: false, isBitter: true };
 
 export const drinkDatabase: Drink[] = [
-    // --- QUADRANT 1: LUSH & LIVELY (Crisp & Sweet) [x > 0, y > 0] ---
+    // --- Crisp · Sweet, x > 0, y > 0: region `surf` (its name is `quadrants` in copy.ts) ---
     { name: "Aperol Spritz", type: "Cocktail", x: 6, y: 7, hasSmoke: false, hasAnise: false, isBitter: true, tags: ['visual', 'social', 'crushable'] },
     { name: "Daiquiri (Classic)", type: "Cocktail", x: 7, y: 5, hasSmoke: false, hasAnise: false, isBitter: false, tags: ['classic', 'social', 'crushable'] },
     { name: "Margarita (Tommy's Style)", type: "Cocktail", x: 6, y: 4, hasSmoke: false, hasAnise: false, isBitter: false, tags: ['social', 'classic', 'crushable'] },
@@ -79,7 +79,7 @@ export const drinkDatabase: Drink[] = [
     { name: "Bee's Knees", type: "Cocktail", x: 6, y: 5, hasSmoke: false, hasAnise: false, isBitter: false, tags: ['classic', 'social', 'sweet'] },
     { name: "El Diablo", type: "Cocktail", x: 5, y: 6, hasSmoke: false, hasAnise: false, isBitter: false, tags: ['social', 'crushable', 'visual'] },
 
-    // --- QUADRANT 2: DECADENT & DEEP (Rich & Sweet) [x < 0, y > 0] ---
+    // --- Rich · Sweet, x < 0, y > 0: region `eddy` ---
     { name: "Espresso Martini", type: "Cocktail", x: -5, y: 6, hasSmoke: false, hasAnise: false, isBitter: true, tags: ['visual', 'social', 'bold', 'messy'] },
     { name: "White Russian", type: "Cocktail", x: -8, y: 9, hasSmoke: false, hasAnise: false, isBitter: false, tags: ['comfort', 'sweet', 'messy'] },
     { name: "Amaretto Sour", type: "Cocktail", x: -4, y: 7, hasSmoke: false, hasAnise: false, isBitter: false, tags: ['visual', 'social', 'sweet'] },
@@ -102,7 +102,7 @@ export const drinkDatabase: Drink[] = [
     { name: "Late-Harvest Riesling", type: "Wine", x: -8, y: 5, hasSmoke: false, hasAnise: false, isBitter: false, tags: ['comfort', 'complex', 'sweet'] },
     { name: "20th Century", type: "Cocktail", x: -3, y: 4, hasSmoke: false, hasAnise: false, isBitter: false, tags: ['classic', 'complex', 'prestige'] },
 
-    // --- QUADRANT 3: CRISP & CLEAN (Crisp & Savory) [x > 0, y < 0] ---
+    // --- Crisp · Savory, x > 0, y < 0: region `salt-line` ---
     { name: "Gin & Tonic", type: "Cocktail", x: 8, y: -5, hasSmoke: false, hasAnise: false, isBitter: true, tags: ['classic', 'social', 'crushable'] },
     { name: "Dry Martini", type: "Cocktail", x: 9, y: -8, hasSmoke: false, hasAnise: false, isBitter: false, tags: ['classic', 'bold', 'prestige'] },
     { name: "Vodka Soda", type: "Cocktail", x: 10, y: -2, hasSmoke: false, hasAnise: false, isBitter: false, tags: ['social', 'crushable'] },
@@ -125,7 +125,7 @@ export const drinkDatabase: Drink[] = [
     { name: "Corpse Reviver No. 2", type: "Cocktail", x: 5, y: -3, hasSmoke: false, hasAnise: true, isBitter: true, tags: ['classic', 'complex', 'prestige'] },
     { name: "Enzoni", type: "Cocktail", x: 5, y: -4, hasSmoke: false, hasAnise: false, isBitter: true, tags: ['complex', 'social', 'visual'] },
 
-    // --- QUADRANT 4: BOLD & COMPLEX (Rich & Savory) [x < 0, y < 0] ---
+    // --- Rich · Savory, x < 0, y < 0: region `deep` ---
     { name: "Negroni", type: "Cocktail", x: -6, y: -8, hasSmoke: false, hasAnise: false, isBitter: true, tags: ['bold', 'classic', 'complex', 'prestige', 'polarizing'] },
     { name: "Old Fashioned", type: "Cocktail", x: -7, y: -5, hasSmoke: false, hasAnise: false, isBitter: false, tags: ['classic', 'bold', 'prestige'] },
     { name: "Manhattan", type: "Cocktail", x: -6, y: -6, hasSmoke: false, hasAnise: false, isBitter: true, tags: ['classic', 'bold', 'prestige', 'warm'] },
@@ -152,7 +152,7 @@ export const drinkDatabase: Drink[] = [
     { name: "Sambuca (with coffee beans)", type: "Spirit", x: -2, y: -4, hasSmoke: false, hasAnise: true, isBitter: false, tags: ['sweet', 'classic', 'polarizing'] },
     { name: "Tipperary", type: "Cocktail", x: -7, y: -6, hasSmoke: false, hasAnise: true, isBitter: true, tags: ['complex', 'bold', 'classic'] },
     { name: "Monte Carlo", type: "Cocktail", x: -7, y: -4, hasSmoke: false, hasAnise: false, isBitter: true, tags: ['bold', 'complex', 'comfort'] },
-    // --- PLACED BY STYLE (placement.ts): body, residual sugar g/L, structure ---
+    // --- Placed by style (placement.ts): body, residual sugar g/L, structure. Any region. ---
     // Wine
     styled({ name: "Lambrusco", type: "Wine", ...plain, tags: ['social', 'crushable', 'comfort'], aliases: ["Lambrusco Secco", "Lambrusco di Sorbara", "Lambrusco Grasparossa"], profile: { body: 2, residualSugarGpl: 8, structure: 1 } }),
     styled({ name: "Lambrusco Amabile", type: "Wine", ...plain, tags: ['social', 'sweet', 'crushable'], profile: { body: 2, residualSugarGpl: 45, structure: 1 } }),
