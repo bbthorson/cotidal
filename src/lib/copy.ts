@@ -814,6 +814,14 @@ export const venuePage = {
  * `/p/<handle>` — someone's coordinate at a public URL, and, for a signed-in
  * visitor, theirs beside it. Two dots and the distance between them.
  */
+/** A page that is not there (`src/pages/404.astro`). */
+export const notFound = {
+  title: 'Nothing charted here.',
+  lede: 'That address does not lead to a page. The link may be old, or mistyped.',
+  cta: 'Find your coordinate',
+  drinks: 'or look through every drink',
+} as const;
+
 export const publicMap = {
   eyebrow: 'Public map',
   coordinateLabel: 'Coordinate',

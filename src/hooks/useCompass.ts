@@ -153,7 +153,8 @@ export function useCompass(register: Register, member: { handle: string | null }
 
     // Your menu, each drink with which way it lies and how far
     menu: menu.map((d) => ({ ...d, way: wayTo(user, d) })),
-    menuNames: menu.map((d) => d.name),
+    // No position, no menu: the chart fills nothing ranked around a point nobody chose.
+    menuNames: profile ? menu.map((d) => d.name) : [],
     closeness,
     lastPour,
 

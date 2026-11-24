@@ -139,6 +139,10 @@ test('Compass: a drink the map does not know can still be rated, and the pour sa
   await expect(page.getByLabel(pour.drinkLabel)).toHaveValue('Retsina');
   await expect(page.getByText(pour.unlisted('Retsina'))).toBeVisible();
   await page.getByRole('button', { name: pour.atHome }).click();
+  // No rating is preset: logging asks for one first.
+  await page.getByRole('button', { name: pour.submit }).click();
+  await expect(page.getByText(pour.needRating)).toBeVisible();
+  await page.getByRole('radio', { name: /^7:/ }).click();
   await page.getByRole('button', { name: pour.submit }).click();
 
   await expect(page.getByRole('heading', { name: moved.unlistedTitle })).toBeVisible();

@@ -32,8 +32,9 @@ export function usePourForm({
 }) {
   const [drinkName, setDrinkName] = useState(draft?.drink ?? initialDrink);
   const [isHomePour, setIsHomePour] = useState(draft?.atHome ?? false);
-  // `null` until tapped, for a draft only: what was said in a chat is not a rating.
-  const [hedonic, setHedonic] = useState<number | null>(draft ? null : 7);
+  // `null` until tapped: a rating is what the drinker said, never a default
+  // (an untouched 7 would pull the coordinate in their name).
+  const [hedonic, setHedonic] = useState<number | null>(null);
   const [deviations, setDeviations] = useState<Deviation[]>(draft?.deviations ?? []);
   const [cata, setCata] = useState<CataNote[]>(draft?.cata ?? []);
   const [note, setNote] = useState(draft?.note ?? '');

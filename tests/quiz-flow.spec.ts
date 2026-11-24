@@ -32,6 +32,8 @@ test('Compass: with no coordinate it asks one thing, and still browses when aske
   await expect(page.getByRole('heading', { level: 1, name: compass.startTitle })).toBeVisible();
   await expect(page.getByRole('region', { name: chart.label })).toBeVisible();
   await expect(page.getByRole('heading', { name: compass.menuTitle })).toHaveCount(0);
+  // Nor does the chart fill any drink as "on your menu".
+  await expect(page.getByRole('region', { name: chart.label }).locator('button > span.bg-foreground')).toHaveCount(0);
   await expect(page.getByRole('searchbox')).toHaveCount(0);
   await page.getByRole('button', { name: compass.lookUp }).click();
   await expect(page.getByRole('searchbox', { name: compass.searchLabel })).toBeVisible();
