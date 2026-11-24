@@ -1,6 +1,7 @@
 import { test, expect } from 'vitest';
 import {
   comparePalates,
+  getBarMenu,
   getDrink,
   getPalate,
   matchDrink,
@@ -251,4 +252,53 @@ test('MCP: myBars summarizes visited bars and excludes home pours', async () => 
     averageHedonic: 8.5,
     topDrinks: ['Last Word', 'Negroni'],
   });
+});
+
+test('MCP: getBarMenu reads a claimed bar’s menu and ranks it when a drinker handle is given', async () => {
+  const venueCtx: ToolContext = {
+    ...ctx,
+    readVenue: async (bar) =>
+      bar === 'attaboy.nyc'
+        ? {
+            status: 'ok',
+            actor: { did: 'did:plc:bar111111111111111111111', handle: 'attaboy.nyc' },
+            venue: {
+              name: 'Attaboy',
+              description: 'Bespoke cocktails.',
+              website: 'https://attaboy.nyc',
+              menu: {
+                title: 'House Classics',
+                publishedAt: '2026-11-01T00:00:00.000Z',
+                sections: [
+                  {
+                    name: null,
+                    items: [
+                      {
+                        name: 'Daiquiri',
+                        description: null,
+                        price: null,
+                        placed: drinkDatabase.find((d) => d.name === 'Daiquiri (Classic)')!,
+                      },
+                      {
+                        name: 'House Smoke',
+                        description: 'mezcal, Campari, lime',
+                        price: null,
+                        placed: null,
+                      },
+                    ],
+                  },
+                ],
+              },
+            },
+          }
+        : { status: 'not-found' },
+  };
+
+  const result = await getBarMenu('attaboy.nyc', 'alice.bsky.social', venueCtx);
+  expect(result.ok).toBe(true);
+  if (!result.ok) return;
+  expect(result.data.venue.name).toBe('Attaboy');
+  expect(result.data.venue.url).toContain('/v/attaboy.nyc');
+  expect(result.data.ranking?.ranked).toHaveLength(1);
+  expect(result.data.ranking?.unplaced[0].caution).toContain('bitterness');
 });

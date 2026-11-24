@@ -8,10 +8,12 @@ import { regionPath } from '../quadrant';
 import {
   comparePalates,
   draftPour,
+  getBarMenu,
   getDrink,
   getPalate,
   logMemberPour,
   myBars,
+  myFollows,
   myPours,
   rankMenu,
   recommendDrinks,
@@ -149,6 +151,20 @@ export function createMcpServer(ctx: ToolContext): McpServer {
   );
 
   server.registerTool(
+    'get_bar_menu',
+    {
+      title: t.getBarMenu.title,
+      description: t.getBarMenu.description,
+      inputSchema: {
+        bar: handle(t.getBarMenu.bar),
+        handle: z.string().trim().min(1).max(256).optional().describe(member ? mcp.memberHandle : t.getPalate.handle),
+      },
+      annotations: readOnly,
+    },
+    async ({ bar, handle: drinker }) => answer(await getBarMenu(bar, drinker ?? member?.did, ctx))
+  );
+
+  server.registerTool(
     'draft_pour',
     {
       title: t.draftPour.title,
@@ -199,6 +215,17 @@ export function createMcpServer(ctx: ToolContext): McpServer {
         annotations: { readOnlyHint: true, openWorldHint: false },
       },
       async () => answer(await myBars(ctx))
+    );
+
+    server.registerTool(
+      'my_follows',
+      {
+        title: t.myFollows.title,
+        description: t.myFollows.description,
+        inputSchema: {},
+        annotations: readOnly,
+      },
+      async () => answer(await myFollows(ctx))
     );
 
     server.registerTool(

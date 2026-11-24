@@ -4,9 +4,10 @@ import { destinations, isCurrent } from '../../lib/site-nav';
 
 interface Props {
   currentPath?: string;
+  compact?: boolean;
 }
 
-const { currentPath = '/' } = Astro.props;
+const { currentPath = '/', compact = false } = Astro.props;
 
 // The reading pages; the app and the account live in the header (site-nav.ts).
 const links = [
@@ -17,7 +18,7 @@ const links = [
 ];
 ---
 
-<footer class="border-t border-foreground pt-8 text-center">
+<footer class:list={['border-t border-foreground text-center', compact ? 'pt-3' : 'pt-8']}>
   <nav
     aria-label={nav.footer}
     class="flex flex-wrap items-center justify-center gap-x-5 gap-y-1 font-condensed text-label uppercase tracking-label text-muted-foreground"
@@ -27,7 +28,8 @@ const links = [
         href={link.href}
         aria-current={link.active ? 'page' : undefined}
         class:list={[
-          'flex min-h-11 items-center',
+          'flex items-center',
+          compact ? 'min-h-9' : 'min-h-11',
           link.active ? 'font-bold text-foreground' : 'transition-colors hover:underline hover:underline-offset-4',
         ]}
       >
@@ -36,7 +38,7 @@ const links = [
     ))}
   </nav>
 
-  <div class="mt-5 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-meta text-muted-foreground">
+  <div class:list={['flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-meta text-muted-foreground', compact ? 'mt-1.5' : 'mt-5']}>
     <span>{footer.note}</span>
     <span aria-hidden="true">·</span>
     <span>{footer.drinkResponsibly}</span>

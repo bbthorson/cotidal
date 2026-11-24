@@ -6,6 +6,8 @@ import { compareMaps, describeDistance, nearestDrinks, type MapPoint } from '../
 import { mcp } from '../copy';
 import { publicMapPath } from '../atproto/paths';
 import type { PublicPalateResult } from '../atproto/public-read';
+import type { PublicVenueResult } from '../atproto/venue-read';
+import { readFollowedPalates, type FollowedOverlap } from '../atproto/follows-overlap';
 import type { Register } from '../register';
 import { cleanDraft, draftPath, type PourDraft } from '../pour-draft';
 import { matchDrink, normalizeName } from '../drink-match';
@@ -31,9 +33,11 @@ import type { LogPourResult } from '../pours.server';
  */
 
 export type ReadPalate = (actor: string) => Promise<PublicPalateResult>;
+export type ReadVenue = (actor: string) => Promise<PublicVenueResult>;
 
 export interface ToolContext {
   readPalate: ReadPalate;
+  readVenue?: ReadVenue;
   register: Register;
   /** The origin links are written against, e.g. `https://cotidal.app`. */
   origin: string;
@@ -399,6 +403,81 @@ export function getDrink(name: string, ctx: ToolContext): ToolResult<DrinkDetail
   };
 }
 
+/**
+ * Read a claimed bar's live `app.cotidal.venue` + `app.cotidal.menu` by handle.
+ * When `drinker` is supplied (or on `/mcp/me` for the signed-in member), ranks
+ * the bar's menu against their palate automatically.
+ */
+export async function getBarMenu(
+  bar: string,
+  drinker: string | undefined,
+  ctx: ToolContext
+): Promise<
+  ToolResult<{
+    venue: {
+      name: string;
+      handle: string | null;
+      did: string;
+      description: string | null;
+      website: string | null;
+      url: string;
+    };
+    menuTitle: string | null;
+    publishedAt: string | null;
+    items: { name: string; description: string | null; placed: DrinkSummary | null }[];
+    ranking?: { palate: PalateSummary; ranked: RankedItem[]; unplaced: UnplacedItem[] };
+  }>
+> {
+  if (!ctx.readVenue) return { ok: false, message: mcp.unavailable(bar) };
+  const res = await ctx.readVenue(bar);
+  switch (res.status) {
+    case 'invalid':
+      return { ok: false, message: mcp.invalid(bar) };
+    case 'not-found':
+      return { ok: false, message: mcp.notFound(bar) };
+    case 'unavailable':
+      return { ok: false, message: mcp.unavailable(res.actor?.handle ?? res.actor?.did ?? bar) };
+    case 'no-venue':
+      return { ok: false, message: `${res.actor.handle ?? res.actor.did} has not published a venue record yet.` };
+  }
+
+  const { actor, venue } = res;
+  const flatItems = (venue.menu?.sections ?? []).flatMap((s) => s.items);
+  const items = flatItems.map((i) => ({
+    name: i.name,
+    description: i.description,
+    placed: i.placed ? summarize(i.placed, ctx) : null,
+  }));
+
+  let ranking: { palate: PalateSummary; ranked: RankedItem[]; unplaced: UnplacedItem[] } | undefined;
+  if (drinker && flatItems.length > 0) {
+    const entries: MenuEntry[] = flatItems.map((i) => ({
+      name: i.name,
+      ...(i.description ? { description: i.description } : {}),
+    }));
+    const ranked = await rankMenu(drinker, entries, ctx);
+    if (ranked.ok) ranking = ranked.data;
+  }
+
+  return {
+    ok: true,
+    data: {
+      venue: {
+        name: venue.name,
+        handle: actor.handle,
+        did: actor.did,
+        description: venue.description,
+        website: venue.website,
+        url: new URL(`/v/${encodeURIComponent(actor.handle ?? actor.did)}`, ctx.origin).toString(),
+      },
+      menuTitle: venue.menu?.title ?? null,
+      publishedAt: venue.menu?.publishedAt ?? null,
+      items,
+      ...(ranking ? { ranking } : {}),
+    },
+  };
+}
+
 export function searchDrinks(query: string, ctx: ToolContext, limit = 10): ToolResult<{ drinks: DrinkSummary[] }> {
   const wanted = normalize(query);
   const exact = matchDrink(query);
@@ -539,6 +618,18 @@ export async function myBars(ctx: ToolContext): Promise<ToolResult<{ bars: BarSu
     .sort((a, b) => b.pours - a.pours || new Date(b.lastVisit).getTime() - new Date(a.lastVisit).getTime());
 
   return { ok: true, data: { bars } };
+}
+
+/** Bluesky follows of the signed-in member who have published a Cotidal palate. */
+export async function myFollows(
+  ctx: ToolContext,
+  readFollows: typeof import('../atproto/follows-overlap').readFollowedPalates = readFollowedPalates
+): Promise<ToolResult<{ friends: FollowedOverlap[] }>> {
+  if (!ctx.member) return { ok: false, message: mcp.memberOnly };
+  const own = await palateOf(ctx.member.did, ctx);
+  if (!own.ok) return own;
+  const friends = await readFollows(ctx.member.did, own.data.point, { readPalate: ctx.readPalate });
+  return { ok: true, data: { friends } };
 }
 
 export interface LogPourInput {

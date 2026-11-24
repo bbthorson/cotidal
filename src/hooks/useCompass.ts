@@ -20,6 +20,8 @@ export type Lens = (typeof chart.lenses)[number]['id'];
 export interface Venue {
   name: string | null;
   at?: { lat: number; lon: number };
+  /** Preloaded menu lines (e.g. from `/v/<handle>`). */
+  initialLines?: string[];
 }
 
 /**
@@ -70,9 +72,36 @@ export function useCompass(register: Register, member: { handle: string | null }
     setSelected(null);
   };
 
-  // "Pick a drink" from another screen arrives with `?menu=1`: straight to a menu.
+  // "Pick a drink" arrives with `?menu=1`; `/v/<handle>` arrives with `?venue=<handle>`.
   useEffect(() => {
-    if (new URLSearchParams(window.location.search).get('menu') === '1') setVenue({ name: null });
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('menu') === '1') {
+      setVenue({ name: null });
+      return;
+    }
+    const handle = params.get('venue')?.trim();
+    if (!handle) return;
+    let cancelled = false;
+    fetch(`/api/venue?handle=${encodeURIComponent(handle)}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then(
+        (
+          data: {
+            status?: string;
+            venue?: { name: string; menu?: { sections: { items: { name: string; description: string | null }[] }[] } | null };
+          } | null
+        ) => {
+          if (cancelled || !data || data.status !== 'ok' || !data.venue) return;
+          const initialLines = (data.venue.menu?.sections ?? []).flatMap((s) =>
+            s.items.map((item) => (item.description ? `${item.name} — ${item.description}` : item.name))
+          );
+          setVenue({ name: data.venue.name, initialLines });
+        }
+      )
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
   }, []);
   useEffect(() => {
     window.scrollTo(0, 0);

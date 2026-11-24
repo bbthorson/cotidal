@@ -5,6 +5,7 @@ import { AssistantSteps } from '../components/app/AssistantSteps';
 import { serveMcp } from '@/lib/mcp/serve';
 import { memberMcpAddress } from '@/lib/mcp/authorize-context.server';
 import { readPublicPalate } from '@/lib/atproto/public-read';
+import { readPublicVenue } from '@/lib/atproto/venue-read';
 import { accountFor } from '@/lib/atproto/session';
 import { loadRegister } from '@/lib/register.server';
 import { assistants as copy, site } from '@/lib/copy';
@@ -29,6 +30,7 @@ const isBrowser = request.method === 'GET' && accept.includes('text/html') && !a
 if (!isBrowser) {
   return serveMcp(request, {
     readPalate: (actor) => readPublicPalate(actor),
+    readVenue: (actor) => readPublicVenue(actor),
     register: await loadRegister(),
     origin: Astro.url.origin,
   });

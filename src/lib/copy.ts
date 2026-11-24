@@ -150,6 +150,9 @@ export const logPage = {
   compareLabel: 'Friend’s Bluesky handle',
   comparePlaceholder: 'friend.bsky.social',
   compareSubmit: 'Compare',
+  /** Bluesky follow-graph intersection on `/log`, shown only when at least one follow has a palate. */
+  followsTitle: 'People you follow on the chart',
+  followsContrast: (drink: string) => `They’d order ${drink}`,
   /** The reading pages, at the foot of Log: on a phone the app pages have no Menu. */
   readingLabel: 'Read',
 } as const;
@@ -716,7 +719,6 @@ export const venuesCopy = {
   ],
   laterTitle: 'Coming next',
   later: [
-    'Later: a page here that claims your venue and publishes your menu for you.',
     'Later: what your patrons have logged at your bar, and where their palates sit on the map.',
     'Later: your menu on your own domain, rendered from your own records.',
     'Later: syncing the menu from your point-of-sale system.',
@@ -727,8 +729,31 @@ export const venuesCopy = {
     'Drinks from well-known bars, placed on the map by us to show what a published menu carries. These bars have published nothing here and are not affiliated with Cotidal.',
   exampleTag: 'Example',
   examplesSpecs: (n: number) => `On the map (${n})`,
+  publishCta: 'Claim your bar',
   auditCta: 'Audit your menu',
   auditNote: 'Paste your cocktail list to see how it covers the four regions — no account needed.',
+} as const;
+
+/** `/bars/publish` — self-serve AT Protocol venue claim & menu publisher. */
+export const barPublish = {
+  eyebrow: 'For bars · Claim & publish',
+  title: 'Claim your bar on the protocol.',
+  lede: 'Sign in with your bar’s Bluesky or domain handle. Publishing writes app.cotidal.venue at rkey self and a dated app.cotidal.menu snapshot directly to your own repository.',
+  publishingAs: 'Publishing as',
+  nameLabel: 'Bar name',
+  namePlaceholder: 'Attaboy',
+  descriptionLabel: 'Short description (optional)',
+  descriptionPlaceholder: 'Classic and bespoke cocktails on the Lower East Side.',
+  websiteLabel: 'Website (optional)',
+  websitePlaceholder: 'https://attaboy.nyc',
+  menuTitleLabel: 'Menu title (optional)',
+  menuTitlePlaceholder: 'Winter Cocktails',
+  menuLinesLabel: 'Menu items (one drink per line, optional — ingredients)',
+  menuLinesPlaceholder: 'Paper Plane — bourbon, Aperol, Amaro Nonino, lemon\nNegroni\nDry Martini',
+  submit: 'Publish venue & menu',
+  needName: 'Enter your bar’s name first.',
+  invalidWebsite: 'Website must start with https:// or http://.',
+  publishFailed: 'Could not publish your venue record. Try again.',
 } as const;
 
 /** `/bars/audit` — free sensory balance check for any bar's menu. */
@@ -944,6 +969,12 @@ export const mcp = {
         'Look up a drink on the Cotidal map by name: its coordinate, region, flavour flags, tags, and recipe build from the register.',
       name: 'The drink’s name (use search_drinks if unsure).',
     },
+    getBarMenu: {
+      title: 'Read a bar’s menu',
+      description:
+        'Read a claimed bar’s live AT Protocol venue and menu by its Bluesky/domain handle. When a drinker’s handle is also given (or on /mcp/me), ranks the bar’s menu for their palate automatically.',
+      bar: 'The bar’s Bluesky or domain handle (e.g. attaboy.nyc) or DID.',
+    },
     draftPour: {
       title: 'Draft a pour',
       description:
@@ -965,6 +996,11 @@ export const mcp = {
       title: 'Read my bars',
       description:
         'Summarize the bars the signed-in member has logged pours at: visit count, average rating, last visit, and top drinks at each bar.',
+    },
+    myFollows: {
+      title: 'People I follow on Cotidal',
+      description:
+        'Find people the signed-in member follows on Bluesky who have published a Cotidal palate, with distance, contrast drinks, and a shared pick for each.',
     },
     logPour: {
       title: 'Log a pour',
