@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { logPage, menu } from '@/lib/copy';
 import { formatCoordinate } from '@/lib/coordinate';
 import { publicMapPath, startOverPath } from '@/lib/atproto/paths';
+import type { FollowedOverlap } from '@/lib/atproto/follows-overlap';
 import type { Register } from '@/lib/register';
 import { neutralProfile } from '@/lib/guest-palate';
 import { destinations } from '@/lib/site-nav';
@@ -37,6 +38,21 @@ function LogContent({
   const log = useLog(register, member);
   const { rate, isMember, profile, setProfile, pours, reload, history, name } = log;
   const [friendHandle, setFriendHandle] = useState('');
+  const [follows, setFollows] = useState<FollowedOverlap[]>([]);
+
+  useEffect(() => {
+    if (!isMember) return;
+    let cancelled = false;
+    fetch('/api/follows-overlap')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data: { friends?: FollowedOverlap[] } | null) => {
+        if (!cancelled && Array.isArray(data?.friends)) setFollows(data.friends);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [isMember]);
 
   // Rating opens over this screen, with or without a coordinate yet.
   const sheet = (
@@ -135,6 +151,31 @@ function LogContent({
               startLabel={log.startLabel}
             />
           </section>
+
+          {follows.length > 0 && (
+            <section className="mt-8 border-t border-border pt-6">
+              <h2 className="section-title">{logPage.followsTitle}</h2>
+              <ul className="mt-2 border-t border-foreground">
+                {follows.map((f) => (
+                  <li key={f.did} className="border-b border-border py-3">
+                    <a href={f.path} className="group block">
+                      <div className="dot-leader">
+                        <span className="font-serif text-prose font-bold text-foreground group-hover:underline group-hover:underline-offset-4">
+                          @{f.handle}
+                        </span>
+                        <span aria-hidden="true" className="leader" />
+                        <span className="shrink-0 font-condensed text-meta text-secondary">{f.region}</span>
+                      </div>
+                      <p className="mt-0.5 text-meta text-muted-foreground">
+                        {f.description}
+                        {f.theirs ? ` · ${logPage.followsContrast(name(f.theirs))}` : ''}
+                      </p>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
 
           {/* Quick ATProto comparison: type a friend's Bluesky handle to open `/p/<handle>`. */}
           <form

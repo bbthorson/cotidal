@@ -7,6 +7,7 @@ import { mcp } from '../copy';
 import { publicMapPath } from '../atproto/paths';
 import type { PublicPalateResult } from '../atproto/public-read';
 import type { PublicVenueResult } from '../atproto/venue-read';
+import { readFollowedPalates, type FollowedOverlap } from '../atproto/follows-overlap';
 import type { Register } from '../register';
 import { cleanDraft, draftPath, type PourDraft } from '../pour-draft';
 import { matchDrink, normalizeName } from '../drink-match';
@@ -617,6 +618,18 @@ export async function myBars(ctx: ToolContext): Promise<ToolResult<{ bars: BarSu
     .sort((a, b) => b.pours - a.pours || new Date(b.lastVisit).getTime() - new Date(a.lastVisit).getTime());
 
   return { ok: true, data: { bars } };
+}
+
+/** Bluesky follows of the signed-in member who have published a Cotidal palate. */
+export async function myFollows(
+  ctx: ToolContext,
+  readFollows: typeof import('../atproto/follows-overlap').readFollowedPalates = readFollowedPalates
+): Promise<ToolResult<{ friends: FollowedOverlap[] }>> {
+  if (!ctx.member) return { ok: false, message: mcp.memberOnly };
+  const own = await palateOf(ctx.member.did, ctx);
+  if (!own.ok) return own;
+  const friends = await readFollows(ctx.member.did, own.data.point, { readPalate: ctx.readPalate });
+  return { ok: true, data: { friends } };
 }
 
 export interface LogPourInput {

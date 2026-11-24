@@ -13,6 +13,7 @@ import {
   getPalate,
   logMemberPour,
   myBars,
+  myFollows,
   myPours,
   rankMenu,
   recommendDrinks,
@@ -214,6 +215,17 @@ export function createMcpServer(ctx: ToolContext): McpServer {
         annotations: { readOnlyHint: true, openWorldHint: false },
       },
       async () => answer(await myBars(ctx))
+    );
+
+    server.registerTool(
+      'my_follows',
+      {
+        title: t.myFollows.title,
+        description: t.myFollows.description,
+        inputSchema: {},
+        annotations: readOnly,
+      },
+      async () => answer(await myFollows(ctx))
     );
 
     server.registerTool(

@@ -150,6 +150,9 @@ export const logPage = {
   compareLabel: 'Friend’s Bluesky handle',
   comparePlaceholder: 'friend.bsky.social',
   compareSubmit: 'Compare',
+  /** Bluesky follow-graph intersection on `/log`, shown only when at least one follow has a palate. */
+  followsTitle: 'People you follow on the chart',
+  followsContrast: (drink: string) => `They’d order ${drink}`,
   /** The reading pages, at the foot of Log: on a phone the app pages have no Menu. */
   readingLabel: 'Read',
 } as const;
@@ -993,6 +996,11 @@ export const mcp = {
       title: 'Read my bars',
       description:
         'Summarize the bars the signed-in member has logged pours at: visit count, average rating, last visit, and top drinks at each bar.',
+    },
+    myFollows: {
+      title: 'People I follow on Cotidal',
+      description:
+        'Find people the signed-in member follows on Bluesky who have published a Cotidal palate, with distance, contrast drinks, and a shared pick for each.',
     },
     logPour: {
       title: 'Log a pour',
