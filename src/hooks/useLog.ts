@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { quadrantFor } from '@/lib/quadrant';
-import { chart, logPage } from '@/lib/copy';
+import { logPage } from '@/lib/copy';
 import { titleOf, type Register } from '@/lib/register';
 import { logTotals } from '@/lib/pour-history';
 import { distanceRun } from '@/lib/track';
@@ -9,9 +9,6 @@ import { usePours } from '@/hooks/usePours';
 import { useProfile } from '@/hooks/useProfile';
 import { useRateSheet } from '@/hooks/useRateSheet';
 import { useTrack } from '@/hooks/useTrack';
-
-/** What the chart shows: your menu filled in, or your pours. */
-export type Lens = (typeof chart.lenses)[number]['id'];
 
 /**
  * Everything Log knows and can do, so `LogScreen.tsx` only draws it: your

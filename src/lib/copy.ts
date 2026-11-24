@@ -48,6 +48,12 @@ export const appBar = {
 export const compass = {
   title: 'Compass',
   heading: 'Where to next',
+  /** Before you have a position: the chart, one line, and the one way on. */
+  startTitle: 'No position yet',
+  startBody: 'Every drink is on the chart. A few questions put you on it too.',
+  lookUp: 'or look up a drink',
+  menuTitle: 'Your menu',
+  menuNote: 'Which way it lies, and how far',
   findYours: 'Find your coordinate',
   searchLabel: 'Search drinks and bars',
   placeholder: 'Negroni, mezcal, Attaboy…',
@@ -333,12 +339,6 @@ export const reveal = {
 /** Your menu on Compass: the top pick and the drinks after it. */
 export const menu = {
   youAreIn: 'You are in',
-  topPrefix: 'No. 1',
-  topTitle: 'Your go-to',
-  keepTitle: 'Keep your log with you',
-  keepBody: 'Your coordinate lives on this device. Sign in and it’s kept in your own account.',
-  /** In the top pick's place, for someone with no coordinate: the menu needs one. */
-  coldTitle: 'Your menu starts with a few questions',
   coldBody: 'Answer them and this list ranks every drink by how close it sits to you. Until then, search away.',
   empty: 'Nothing on the map fits these limits yet.',
 } as const;
@@ -354,6 +354,8 @@ export const chart = {
   findYours: 'Find your coordinate',
   closeness: 'Closeness',
   closenessOf: (n: number) => `Closeness ${n}`,
+  legendTrack: 'Your track',
+  legendShoal: 'Where you probably are',
   /** Which way a drink lies from you, in the axes' own words (`wayTo`). */
   way: { richer: 'richer', crisper: 'crisper', sweeter: 'sweeter', savory: 'more savory', here: 'right here' },
   wayOf: (words: string[]) => words.join(', '),

@@ -32,7 +32,7 @@ All colors, typography, elevations, and layout metrics are defined centrally in 
 | `--destructive` | `0 65% 42%` | `#B12828` | Errors only |
 | `--shoal` | `156 17% 88%` | `#DCE6E2` | Pale water: where you probably are on the chart, and where the questions' answers point. Nothing else |
 
-**Colour rules.** Terracotta marks what is *yours* and nothing else: your dot, your region, your top pick, a value you gave and the app records (a rating, a chosen answer), and the focus ring. Forest is for acting and switching: the primary button, a pressed filter, segment or chip. **"You are here"** — the current page, tab or step — is neither: a bold label over a heavy ink (`foreground`) rule, like a printed tab (`.tab`, below). Links are underlined in grey-green and darken to ink on hover; text that is not underlined underlines on hover. Text is full-strength ink, forest, terracotta or grey-green — de-emphasise with size and weight, never with opacity.
+**Colour rules.** Terracotta marks what is *yours* and nothing else: your dot, your region, your track, the first drink on your menu, a value you gave and the app records (a rating, a chosen answer), and the focus ring. Forest is for acting and switching: the primary button, a pressed filter, segment or chip. **"You are here"** — the current page, tab or step — is neither: a bold label over a heavy ink (`foreground`) rule, like a printed tab (`.tab`, below). Links are underlined in grey-green and darken to ink on hover; text that is not underlined underlines on hover. Text is full-strength ink, forest, terracotta or grey-green — de-emphasise with size and weight, never with opacity.
 
 ### The reveal ground (`reveal-*`)
 Forest laid as the stock, paper as the ink. Used **only** where the product reveals something: the coordinate landing after the questions (`Reveal.tsx`) and moving after a pour (`Moved.tsx`). Never a theme the user switches to.
@@ -116,7 +116,6 @@ Width and padding stay with the layout (`w-full`, `px-8`).
 ### Form & Component Patterns
 - **Dot Leader**: `.dot-leader` with `.leader` spacer for wine-list style alignments (`Name .......... Amount`).
 - **Menu Row**: `.menu-row` creates a clean hairline top rule with generous breathing room.
-- **Top pick sheet**: the one sheet that is yours — ink edge, `bg-card`, `shadow-mcm`.
 - **Option plate**: the whole plate is the button; chosen = ink edge + `shadow-mcm`, struck through when the question asks what to push away.
 - **Segmented control**: `.segmented` frame with `.segment` cells (`aria-pressed` is forest; a radio's `aria-checked` is terracotta, for what is yours). The columns are the caller's (`grid grid-cols-3`), or `.segmented-stack` for a column.
 - **Tags**: axis (outline, forest), region (terracotta fill), status (sage fill). A static label is `.tag`; a toggle is `.chip` (`<Chip>`, `aria-pressed` is forest). Both are sentence case in PT Sans. No other tag styles.
@@ -147,7 +146,7 @@ Navigation is unified across the entire site through `<SiteHeader.astro>` and `<
 9. **The app bar** (`AppBar.astro`): **Compass · Log** along the foot of a phone on the app pages (`AppShell`'s `bottomBar`) — navigate, record. Plain links, no script; hidden in focus mode and from `lg`, where the header carries the same destinations. A card pinned above it (`PinnedCard`) uses the `tabbar` spacing token.
 10. **Pick a drink** (`PickButton.astro`): choosing what to have is the one thing you *do*, not a place, so it is a floating button rather than a tab — above the app bar on a phone; from `lg` at the foot of the content's right edge (`right-frame-edge`), not the window's corner. It opens Compass on a menu with no bar (`/compass?menu=1`). Not drawn on Compass (which has "Have a menu?" under its search), while a drink card is open, or in focus mode.
 11. **Two tiers of page title.** Reading pages open with the centred `PageTitle`. App screens open with `ScreenHeader` — the tab's name as the eyebrow, then the screen's own title — left-aligned and at one size. Every app screen uses it: Compass and Log (eyebrow: the tab's name), a bar's menu on Compass (eyebrow "Compass", the title the bar's name), and the cold state (`ColdState`). A menu on Compass keeps a single centred column on every width; the two tabs use the `frame` width and lay out in columns from `lg`.
-12. **One sheet per screen.** Only what is yours — the top pick, the chosen option, the pinned card — is a sheet with `shadow-mcm`. Everything else is a ruled section (`section-title`) or rows. A map sits in a frame on the ground, as a printed chart does; that is a figure, not a sheet — and so is the chart's title block (`Chart.tsx`), which the frame continues around. A pick waiting to be rated (`WaitingPick`) is a strip ruled in ink, not a sheet, so it never competes with the top pick under it.
+12. **One sheet per screen.** Only what is yours — the chosen option, the pinned card — is a sheet with `shadow-mcm`. Everything else is a ruled section (`section-title`) or rows. A map sits in a frame on the ground, as a printed chart does; that is a figure, not a sheet — and so is the chart's title block (`Chart.tsx`), which the frame continues around. A pick waiting to be rated (`WaitingPick`) is a strip ruled in ink, not a sheet, so it never competes with the chart.
 13. **Two kinds of empty.** A list with nothing in it yet is `Empty`: Log's ledger, Compass's menu without a coordinate, a search with no match, no bars near. A screen that cannot start without a coordinate is a `ScreenHeader` and its ways in: `ColdState` on Log and in the rating sheet; a menu on Compass says what it needs in an `Empty`. Nothing else says "empty".
 14. **One section heading.** A section inside any page, reading or app, opens with `section-title`: a bold Playfair line over an ink rule. A heading with a link beside it ("Rate a drink", "Its drinks →") draws the same rule under the row. Small caps label a field or a column, never a section.
 15. **Nothing smaller than 13px is prose.** `text-label` (12px) is for condensed caps only. A note or citation under an item is `text-meta` in PT Sans; an italic gloss is Playfair at `text-ui`.
@@ -159,8 +158,7 @@ The app is being redrawn as a printed chart: the screens show what the model alr
 
 1. **After a pour**: where you were, where you are, and the drink that pulled you.
 2. **The front door** (`/`): the chart, the headline, one line and **Find your coordinate**. Everything else is on How it works and Drinks.
-3. **Compass, chart first**: the chart with your position, the shoal around it and your track; your menu in a sheet along the foot, each drink with which way it lies ("richer, more savory") and how far. Before you have a position: every drink, one line, **Find your coordinate**, and "or look up a drink" — no search, bar map or menu until there is something to rank.
-4. **The questions**: the shoal over the map, narrowing as you answer.
+3. **The questions**: the shoal over the map, narrowing as you answer.
 
 **Signed out is one thing per screen.** A stranger is asked to do one thing: find their coordinate. A guest with a coordinate sees what a member sees; what signing in keeps is said once, at the foot of Log, after the first pour — the first moment it would keep something.
 
@@ -168,7 +166,7 @@ The app is being redrawn as a printed chart: the screens show what the model alr
 
 ## The first-visit flow (`/questions`)
 
-Questions → reveal → Compass. The questions are a page of their own (`Questions.tsx`): no tab is current and the bar along the foot is left out. Someone who already has a coordinate is sent on to Compass — the landing page's "Find your coordinate" is the same link for everyone — unless they came to start over (`/questions?startover=1`, from the account on Log), which clears the device's copy first. Skipping goes to Compass, which browses and searches without a coordinate; in the top pick's place it says the menu starts with the questions, rather than ranking drinks around a point nobody chose.
+Questions → reveal → Compass. The questions are a page of their own (`Questions.tsx`): no tab is current and the bar along the foot is left out. Someone who already has a coordinate is sent on to Compass — the landing page's "Find your coordinate" is the same link for everyone — unless they came to start over (`/questions?startover=1`, from the account on Log), which clears the device's copy first. Skipping goes to Compass, which says there is no position yet and offers the questions first, and search when asked for, rather than ranking drinks around a point nobody chose.
 
 Sign-in is offered where it would keep something, as one sheet (`SignInSheet.tsx`, mounted once by `AtprotoProvider`) that states what it buys; the landing page's form (`ConnectForm.astro`) renders the same promise from `connect.buys` in `copy.ts`. The radar chart, the archetypes and the Oracle tab are retired from the interface; the region is the only identity.
 
@@ -178,7 +176,7 @@ Everything works signed out, on the device; signing in moves the record into the
 
 | | Signed out (guest) | Signed in (member) |
 |---|---|---|
-| **Compass** | Everything | Everything |
+| **Compass** | Before a position: the chart, **Find your coordinate**, and search when asked for. After: everything | Everything |
 | **A menu** (Compass) | Everything; the pick waits on the device | The same |
 | **Rating** | Moves the coordinate on this device; the pour is kept there (`guestPours`, `device-store.ts`) | Written to the member's repository |
 | **Log** | Coordinate, track and pours, marked *On this device*; what signing in keeps, once there is a pour; start over | `@handle`, coordinate, pours, the account (public map, share, chat assistants, start over, sign out) |
@@ -201,9 +199,13 @@ A guest is told what signing in keeps once, under the log, after the first pour 
 
 ## Compass (`/compass`, `Compass.tsx`)
 
-Finding something, not looking at yourself: the taste map is Log's. It opens with its `ScreenHeader` ("Where to next"), then one search over drinks — by name or by what is in them ("mezcal") — and bars, across the page. Under it, a **street map** of the bars around you (`Near.tsx`, `NearMap.tsx`) and then your menu: the top-pick sheet and seven rows (`useMenu`, the same ranking Log's map fills in), then **Your bars** from your pours. Without a coordinate the menu's place is a ruled section that offers the questions.
+The chart first. It opens with its `ScreenHeader` ("Where to next"), then **the chart** (`Chart.tsx`): every drink at its place, you, the **shoal** around you (`ShoalMark`: pale water whose radius is the track's spread, dashed, with no number), **your track** (`TrackLine`) when it adds up, and the title block (where you are, the legend, Drinks or Your pours). Then one search over drinks — by name or by what is in them ("mezcal") — and bars, **Have a menu?**, **Your menu** (`useMenu`: eight drinks, each with which way it lies from you and how far, `wayTo`; the first in terracotta), **Your bars** from your pours, and the bars near you (`Near.tsx`, `NearMap.tsx`).
 
-- **From `lg` the map and the menu sit side by side** (the page uses AppShell's `frame` width, the header's own band): the map, taller, with the bars near you under it, on the left; the menu, or the search results, on the right. On a phone they stack, map first, and the map steps aside while a search is typed.
+The menu is ranked by relevance (`scoreDrinks`): closeness, the vibe tags, and how you rated a drink before. So a drink you liked can rank above a nearer one, and the distances need not be in order.
+
+**Before you have a position** Compass asks one thing: "No position yet", one line, **Find your coordinate** and "or look up a drink" above the chart, which shows every drink and no title block. Search and bars appear when asked for; there is no menu, because ranking around a point nobody chose would be nobody's.
+
+- **From `lg` the chart sits beside the menu** (sticky, in AppShell's `frame` width); on a phone they stack, chart first, and the chart steps aside while a search is typed.
 
 - **Bars come from OpenStreetMap** through the Overpass API (`src/lib/osm.ts`): named places tagged bar, pub, beer garden or club within about 1.2 km. Nothing is asked for until the reader taps **Show bars near me** — unless the browser already holds their yes for this site, and then the map opens on its own. The point leaves the device rounded to three decimal places (about 100 m), only to OpenStreetMap, and Cotidal keeps none of it; the panel says so.
 - **The map is quieter than the chart.** OpenStreetMap's tiles are washed toward paper (`.map-paper` in `globals.css`) and carry no graticule or cartouche, so the two maps in the app do not look alike. Bars you have poured at — by name, or by where a pour said the bar was — are terracotta, the colour for what is yours. Leaflet loads only when the map shows.
@@ -212,7 +214,7 @@ Finding something, not looking at yourself: the taste map is Log's. It opens wit
 
 **The drink card** (`DrinkCard`, a `PinnedCard`, on Compass and Log alike): pinned above the app bar, the way a maps app opens a place — region and coordinate, build, closeness, your last pour, "Log this" and the register entry.
 
-**Nothing moves under the reader.** A tap opens something where the thumb is rather than inserting it above what was tapped; anything that loads after paint (the top pick's line) holds its space while it does.
+**Nothing moves under the reader.** A tap opens something where the thumb is rather than inserting it above what was tapped; anything that loads after paint holds its space while it does.
 
 ## A menu on Compass (`MenuView.tsx`, `menu-rank.ts`)
 

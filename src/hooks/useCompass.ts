@@ -1,16 +1,20 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { drinkDatabase, type User } from '@/lib/data';
+import { drinkDatabase } from '@/lib/data';
 import { savePick } from '@/lib/device-store';
 import { titleOf, type Register } from '@/lib/register';
+import { chart } from '@/lib/copy';
 import { userFromProfile } from '@/lib/profile';
 import { barsFromPours, foldName, lastPourByDrink, poursAtBars } from '@/lib/pour-history';
-import { drinksAtSameSpot, namesMatching, searchDrinks, unlistedBar } from '@/lib/drink-search';
-import { explainDrinkMatch } from '@/lib/api-client';
+import { drinksAtSameSpot, namesMatching, searchDrinks, unlistedBar, wayTo } from '@/lib/drink-search';
 import { useMenu } from '@/hooks/useMenu';
 import { useNearby } from '@/hooks/useNearby';
 import { usePours } from '@/hooks/usePours';
 import { useProfile } from '@/hooks/useProfile';
 import { useRateSheet } from '@/hooks/useRateSheet';
+import { useTrack } from '@/hooks/useTrack';
+
+/** What the chart shows: your menu filled in, or your pours. */
+export type Lens = (typeof chart.lenses)[number]['id'];
 
 /** Where a menu open on Compass is. No name means no bar named: at home. `at` is where the map says the bar is. */
 export interface Venue {
@@ -20,7 +24,7 @@ export interface Venue {
 
 /**
  * Everything Compass knows and can do, so `Compass.tsx` only draws it: your
- * coordinate and menu, one search over drinks and bars, the bars near you and
+ * coordinate, track and menu on the chart, one search over drinks and bars, the bars near you and
  * which you have poured at, what is open (a drink, a bar, a bar's menu), and
  * the rating sheet. The rules live in `src/lib` (`searchDrinks`,
  * `poursAtBars`, `scoreDrinks`); this hook holds state and wires them up.
@@ -34,6 +38,11 @@ export function useCompass(register: Register, member: { handle: string | null }
   const lastPour = useMemo(() => lastPourByDrink(history), [history]);
   const { scored, menu, closeness } = useMenu(user, profile?.vibeTags, history);
   const nearby = useNearby();
+  const { track } = useTrack(!!member, profile, pours);
+  // The chart's reading: your menu filled in, or your pours.
+  const [lens, setLensState] = useState<Lens>('drinks');
+  // With no position yet, search and bars wait until asked for ("or look up a drink").
+  const [browsing, setBrowsing] = useState(false);
 
   const [query, setQueryState] = useState('');
   const [selected, setSelected] = useState<string | null>(null);
@@ -113,11 +122,21 @@ export function useCompass(register: Register, member: { handle: string | null }
     rate,
     displayName,
 
-    // Your menu
-    top: menu[0],
-    rest: menu.slice(1),
+    // Your menu, each drink with which way it lies and how far
+    menu: menu.map((d) => ({ ...d, way: wayTo(user, d) })),
+    menuNames: menu.map((d) => d.name),
     closeness,
     lastPour,
+
+    // The chart
+    track,
+    lens,
+    setLens: (next: Lens) => {
+      setLensState(next);
+      setSelected(null);
+    },
+    browsing,
+    browse: () => setBrowsing(true),
 
     // The search
     query,
@@ -152,31 +171,4 @@ export function useCompass(register: Register, member: { handle: string | null }
     picked,
     waitingVersion: pickVersion + rate.version,
   };
-}
-
-/**
- * Why the top pick suits you, fetched once for the drink on top. `loading`
- * until the answer for this drink lands; `text` is `null` when it failed, so
- * the sheet shows nothing rather than a stand-in.
- */
-export function useTopPickReason(drinkName: string, user: User) {
-  const [why, setWhy] = useState<{ name: string; text: string | null } | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    explainDrinkMatch(drinkName, {
-      x: user.x,
-      y: user.y,
-      dislikesSmoke: user.filters.includes('noSmoke'),
-      dislikesBitter: user.filters.includes('noBitter'),
-    })
-      .then((text) => !cancelled && setWhy({ name: drinkName, text }))
-      .catch(() => !cancelled && setWhy({ name: drinkName, text: null }));
-    return () => {
-      cancelled = true;
-    };
-  }, [drinkName, user.x, user.y, user.filters]);
-
-  const loading = why?.name !== drinkName;
-  return { loading, text: loading ? null : why?.text ?? null };
 }
