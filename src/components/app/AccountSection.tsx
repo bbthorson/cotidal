@@ -15,6 +15,7 @@ const link = 'link-caps';
 export function AccountSection({
   handle,
   mcpAddress,
+  memberMcpAddress = null,
   topName,
   regionName,
   onStartOver,
@@ -23,6 +24,8 @@ export function AccountSection({
   handle: string | null;
   /** The `/mcp` address on this host, for the assistant setup. */
   mcpAddress: string;
+  /** The `/mcp/me` address, when an assistant can be signed in here. */
+  memberMcpAddress?: string | null;
   topName: string;
   regionName: string;
   onStartOver: () => void;
@@ -95,7 +98,7 @@ export function AccountSection({
         <div id="assistant" className="mt-4 scroll-mt-4 space-y-4 border-t border-border pt-4" data-testid="assistant">
           <h3 className="font-serif text-plate font-bold">{assistants.sectionTitle}</h3>
           <p className="text-ui text-muted-foreground">{assistants.lede}</p>
-          <AssistantSteps address={mcpAddress} handle={handle} />
+          <AssistantSteps address={mcpAddress} memberAddress={memberMcpAddress} handle={handle} />
         </div>
       )}
 

@@ -742,6 +742,31 @@ export const assistants = {
   /** On someone else's map: what to ask your own assistant about them. */
   visitorAsk: (handle: string) => `Ask your chat assistant: “How far is my map from @${handle}’s?”`,
   setUp: 'Set it up',
+  /** Where `/mcp/me` is on: the two addresses, yours first. */
+  memberUrlLabel: 'Your own address',
+  memberUrlNote:
+    'Recommended. Your assistant signs you in once, then knows whose palate it is, and can log a pour you tell it about.',
+  publicUrlLabel: 'Anyone’s map',
+  publicUrlNote: 'No sign-in. Reads any public palate by handle, and drafts pours as links for you to log here.',
+  memberSteps: [
+    'Open Settings, then Connectors.',
+    'Choose Add custom connector.',
+    'Name it Cotidal and paste your own address.',
+    'Choose Connect. Cotidal opens: sign in with Bluesky and choose Allow.',
+  ],
+  memberOtherClients:
+    'Other assistants that accept an MCP server URL take the same addresses. Anyone’s map needs no sign-in, so it skips the last step.',
+  memberCan: [
+    'What to drink tonight, without saying who you are.',
+    'Which drink to pick from a menu you paste in.',
+    'To log a pour you had: tell it the drink and how much you liked it.',
+    'What you have had lately, and how each one landed.',
+    'How far your map is from a friend’s.',
+  ],
+  memberAsk: 'Ask: “What should I drink tonight?” It already knows it’s you.',
+  memberLimitsTitle: 'Only what you tell it',
+  memberLimits:
+    'It logs a pour only when you tell it about one, with the rating you give: it asks rather than guesses. It cannot retake the questions, edit or delete a pour, or post to Bluesky. Untick logging when you allow it to keep it read-only, and remove the connector to stop it altogether.',
   readOnlyTitle: 'Only you log',
   readOnly:
     'The assistant reads the same public coordinate anyone can open at your public map. It can draft a pour, as a link to the form here, but only you log it: you check it, tap how it landed, and press the button. It cannot retake the questions or change your map.',

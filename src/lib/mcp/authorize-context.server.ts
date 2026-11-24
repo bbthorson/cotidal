@@ -3,7 +3,7 @@ import { getAuth } from '../atproto/auth';
 import { restoredDid } from '../atproto/session';
 import { workersEnv } from '../runtime';
 import type { MemberSignIn } from './authorize.server';
-import { oauthApi } from './member-auth';
+import { MEMBER_MCP_PATH, oauthApi } from './member-auth';
 
 /**
  * The two collaborators `/oauth/authorize` and `/oauth/callback` need, from
@@ -25,4 +25,13 @@ export async function authorizeContext(
       authorize: (request, input) => auth.authorize(request, input),
     },
   };
+}
+
+/**
+ * The `/mcp/me` address, when an assistant can be signed in here, or `null`:
+ * the same answer the routes act on, so a page offers the address exactly
+ * when it works.
+ */
+export async function memberMcpAddress(url: URL): Promise<string | null> {
+  return (await authorizeContext(url)) ? new URL(MEMBER_MCP_PATH, url).toString() : null;
 }

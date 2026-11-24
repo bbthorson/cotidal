@@ -146,8 +146,11 @@ outlive weeks between visits.
 3. `wrangler kv namespace create cotidal-oauth`, and uncomment `OAUTH_KV`.
 4. Deploy, then add `https://cotidal.app/mcp/me` as a connector in Claude.
 
-Not yet: telling members about `/mcp/me` on `/mcp` and `/log#assistant`, and
-a list of connected assistants a member can revoke from here
+`/mcp` (to a browser) and `/log#assistant` explain both addresses, yours
+first, once `/mcp/me` is on (`memberMcpAddress`, the same check the routes
+make); until then they show the one read-only address, as before.
+
+Not yet: a list of connected assistants a member can revoke from here
 (`listUserGrants` / `revokeGrant`, keyed by `grantUserId`).
 
 The rules the write path keeps:

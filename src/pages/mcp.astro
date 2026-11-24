@@ -3,6 +3,7 @@ import AppShell from '../layouts/AppShell.astro';
 import PageTitle from '../components/marketing/PageTitle.astro';
 import { AssistantSteps } from '../components/app/AssistantSteps';
 import { serveMcp } from '@/lib/mcp/serve';
+import { memberMcpAddress } from '@/lib/mcp/authorize-context.server';
 import { readPublicPalate } from '@/lib/atproto/public-read';
 import { loadRegister } from '@/lib/register.server';
 import { assistants as copy, site } from '@/lib/copy';
@@ -35,11 +36,12 @@ if (!isBrowser) {
 }
 
 const address = new URL('/mcp', Astro.url).toString();
+const memberAddress = await memberMcpAddress(Astro.url);
 ---
 
 <AppShell title={`${site.name} — ${copy.eyebrow}`} currentPath="/mcp" width="prose">
   <div class="space-y-12 pb-6">
     <PageTitle eyebrow={copy.eyebrow} title={copy.title} lede={copy.lede} />
-    <AssistantSteps address={address} />
+    <AssistantSteps address={address} memberAddress={memberAddress} />
   </div>
 </AppShell>
