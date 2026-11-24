@@ -101,10 +101,13 @@ test('Sign in: works without JavaScript, from its own page', async ({ browser })
   const page = await context.newPage();
   await page.goto('/sign-in');
 
-  // A real <form> post, not a fetch() handler, so the flow degrades cleanly.
+  // A real <form> post, not a fetch() handler, so both sign-in and Create an account degrade cleanly.
   const form = page.locator('form[action="/api/auth/atproto/login"]');
   const disabled = page.getByText('Signing in is switched off for now. Everything else works.');
   await expect(form.or(disabled).first()).toBeVisible();
+  if (await form.isVisible()) {
+    await expect(form.locator('button[name="signUp"][value="1"][formnovalidate]')).toBeVisible();
+  }
 
   await page.goto('/');
   await expect(page.getByRole('link', { name: /find your coordinate/i })).toHaveAttribute(
@@ -114,14 +117,32 @@ test('Sign in: works without JavaScript, from its own page', async ({ browser })
   await context.close();
 });
 
-test('Sign in: ships no client JavaScript', async ({ page }) => {
-  const scripts: string[] = [];
-  page.on('response', (res) => {
-    if (res.request().resourceType() === 'script' && !isDevServerScript(res.url())) scripts.push(res.url());
+test('Sign in: enhances with <bsky-sign-in> without mounting a React island', async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem(
+      'atproto-cf-auth:recent-accounts',
+      JSON.stringify([
+        {
+          did: 'did:plc:alice123',
+          handle: 'alice.bsky.social',
+          displayName: 'Alice',
+          lastUsedAt: '2026-11-24T00:00:00.000Z',
+        },
+      ])
+    );
   });
   await page.goto('/sign-in', { waitUntil: 'networkidle' });
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
-  expect(scripts).toHaveLength(0);
+  // Progressively enhanced by the lightweight custom element, never a React island.
+  expect(await page.locator('astro-island').count()).toBe(0);
+
+  const el = page.locator('bsky-sign-in');
+  if ((await el.count()) > 0) {
+    await expect(el).toHaveAttribute('data-state', 'idle');
+    await expect(el.getByRole('button', { name: /Continue as Alice/ })).toBeVisible();
+    await el.getByRole('button', { name: /Forget @alice\.bsky\.social/ }).click();
+    await expect(el.getByRole('button', { name: /Continue as Alice/ })).toHaveCount(0);
+  }
 });
 
 test('Sign in: surfaces sign-in errors', async ({ page }) => {

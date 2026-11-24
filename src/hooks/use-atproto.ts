@@ -1,12 +1,15 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { AUTH_ERROR_MESSAGES, createAuthClient, takeAuthError } from '@bbthorson/atproto-cf-auth/client';
-import { AUTH_BASE_PATH } from '@/lib/atproto/paths';
+import { useEffect, useState } from 'react';
+import { takeAuthError, type AuthError } from '@bbthorson/atproto-cf-auth/client';
+import { getRecentAccounts } from '@/lib/atproto/accounts';
+
+export interface MemberIdentity {
+  did: string;
+  handle: string | null;
+}
 
 interface AtprotoState {
   isEnabled: boolean;
-  connecting: boolean;
-  error: string | null;
-  connect: (handle: string) => Promise<void>;
+  redirectError: AuthError | null;
 }
 
 /**
@@ -14,37 +17,26 @@ interface AtprotoState {
  * src/lib/atproto/auth.ts), passed down from the page as a prop. The browser
  * cannot work it out for itself: anything it reads was fixed at build time.
  *
- * This starts a sign-in and reports why one failed. Whether someone *is*
- * signed in is the server's answer too (`accountFor`), which each page hands
- * to its island: the session cookie is HttpOnly and opaque to the browser.
+ * Also remembers the active signed-in member on this device so their next
+ * sign-in takes one tap, and consumes `?auth_error=` after a failed callback.
  */
-export function useAtproto(isAtprotoEnabled: boolean): AtprotoState {
-  const auth = useMemo(() => createAuthClient({ basePath: AUTH_BASE_PATH }), []);
-  const [connecting, setConnecting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+export function useAtproto(isAtprotoEnabled: boolean, member?: MemberIdentity | null): AtprotoState {
+  const [redirectError, setRedirectError] = useState<AuthError | null>(null);
 
   // A sign-in that failed on the way back lands here with the reason.
   useEffect(() => {
     if (!isAtprotoEnabled) return;
     const failure = takeAuthError();
-    if (failure) setError(failure.message);
+    if (failure) setRedirectError(failure);
   }, [isAtprotoEnabled]);
 
-  const connect = useCallback(
-    async (inputHandle: string) => {
-      if (!isAtprotoEnabled) return;
-      setConnecting(true);
-      setError(null);
-      try {
-        // Navigates to Bluesky on success; throws an AuthError otherwise.
-        await auth.signIn(inputHandle, { returnTo: window.location.pathname });
-      } catch (e) {
-        setError(e instanceof Error ? e.message : AUTH_ERROR_MESSAGES.authorize_failed);
-        setConnecting(false);
-      }
-    },
-    [auth, isAtprotoEnabled]
-  );
+  // Remember a signed-in member on this device for one-tap return sign-in.
+  const did = member?.did;
+  const handle = member?.handle ?? undefined;
+  useEffect(() => {
+    if (!isAtprotoEnabled || !did) return;
+    void getRecentAccounts().remember({ did, handle });
+  }, [isAtprotoEnabled, did, handle]);
 
-  return { isEnabled: isAtprotoEnabled, connecting, error, connect };
+  return { isEnabled: isAtprotoEnabled, redirectError };
 }

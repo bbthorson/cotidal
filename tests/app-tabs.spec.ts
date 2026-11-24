@@ -83,7 +83,11 @@ test('Log: your track, and what each pour did to it', async ({ page }) => {
   await expect(log.getByRole('listitem').nth(1)).toContainText(/Moved \d/);
   await expect(log.getByRole('listitem').last()).toContainText(logPage.startedCentre);
 
-  // With no Menu on the app pages, the reading pages are at its foot.
+  // On desktop, SiteFooter carries the reading pages so Log's mobile reading nav stays hidden.
+  await expect(page.getByRole('navigation', { name: logPage.readingLabel })).toHaveCount(0);
+
+  // On a phone there is no Menu or SiteFooter on app pages, so the reading pages sit at Log's foot.
+  await page.setViewportSize({ width: 390, height: 844 });
   const reading = page.getByRole('navigation', { name: logPage.readingLabel });
   await expect(reading.getByRole('link', { name: 'Drinks' })).toHaveAttribute('href', '/drinks');
 });

@@ -8,10 +8,9 @@ import { signInEnabled } from '../lib/atproto/auth';
 import { AUTH_ERROR_MESSAGES, AUTH_ERROR_PARAM, isAuthErrorCode } from '@bbthorson/atproto-cf-auth/client';
 
 /**
- * Signing in, as a page: what it keeps, the form, and whose log it is. The
- * static twin of the in-app sheet, and the way in from every page that has
- * no island to open the sheet (the header's Sign in on a reading page). A
- * plain form post, so it works with JavaScript off and ships none.
+ * Signing in, as a page: the form first (progressively enhanced with
+ * `<bsky-sign-in>`, working with JavaScript off too), followed by what signing
+ * in keeps and whose log it is.
  */
 
 export const prerender = false;
@@ -29,10 +28,28 @@ const error = errorParam
 <AppShell title={`${site.name} — ${sections.connect}`} currentPath="/sign-in" width="prose">
   <PageTitle eyebrow={sections.connect} title={connect.title} lede={connect.lede} />
   <div class="space-y-12 pb-6">
-    <section class="space-y-6">
+    <section class="space-y-5">
       <p class="font-serif text-prose text-muted-foreground">{connect.body}</p>
       <ConnectForm enabled={enabled} error={error} />
     </section>
+
+    <section>
+      <h2 class="section-title mb-4">{sections.whatItKeeps}</h2>
+      <ol>
+        {
+          connect.buys.map((b, i) => (
+            <li class="flex gap-3 border-b border-border py-3.5">
+              <span class="w-3.5 shrink-0 font-condensed text-ui font-bold text-muted-foreground">{i + 1}</span>
+              <div class="space-y-0.5">
+                <p class="text-ui font-bold text-foreground">{b.title}</p>
+                <p class="text-meta text-muted-foreground">{b.body}</p>
+              </div>
+            </li>
+          ))
+        }
+      </ol>
+    </section>
+
     <section>
       <h2 class="section-title mb-5">{sections.principles}</h2>
       <Principles />

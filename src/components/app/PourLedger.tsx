@@ -55,7 +55,7 @@ export function PourLedger({ pours, register = {}, empty, loading = false, track
   );
 
   return (
-    <ol className="border-t border-foreground">
+    <ol>
       {pours.map((p, i) => {
         const moved = moves.get(p);
         const entry = register[p.drink.name];

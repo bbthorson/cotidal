@@ -1,9 +1,9 @@
 ---
 import AppShell from '../layouts/AppShell.astro';
 import PageTitle from '../components/marketing/PageTitle.astro';
-import { settings as copy, site } from '../lib/copy';
+import { account as accountCopy, settings as copy, site } from '../lib/copy';
 import { accountFor } from '../lib/atproto/session';
-import { AUTH_BASE_PATH, publicMapPath } from '../lib/atproto/paths';
+import { AUTH_BASE_PATH, publicMapPath, startOverPath } from '../lib/atproto/paths';
 import { authorizeContext } from '../lib/mcp/authorize-context.server';
 import { disconnectAssistant, listAssistants, type ConnectedAssistant } from '../lib/settings/assistants.server';
 
@@ -126,6 +126,21 @@ Astro.response.headers.set('Cache-Control', 'no-store');
           </>
         )
       }
+    </section>
+
+    <section class="space-y-3" data-testid="settings-coordinate">
+      <h2 class="section-title">{copy.coordinateTitle}</h2>
+      <p class="text-ui text-muted-foreground">{accountCopy.startOverBody}</p>
+      <details class="group">
+        <summary class="summary-plain btn btn-outline cursor-pointer px-4 group-open:hidden">
+          {accountCopy.startOver}
+        </summary>
+        <div class="flex flex-wrap items-center gap-x-4 gap-y-2 pt-1">
+          <a href={startOverPath} class="btn btn-primary px-4">
+            {accountCopy.startOverCta}
+          </a>
+        </div>
+      </details>
     </section>
 
     <section class="space-y-3">

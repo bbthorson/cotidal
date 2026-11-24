@@ -52,6 +52,6 @@ export const pickHref = '/compass?menu=1';
 export const questionsHref = QUESTIONS_PATH;
 
 /** Where a member manages their account, and where a page that cannot know sends everyone. */
-export const accountHref = '/log#account';
+export const accountHref = '/settings';
 
 export const isCurrent = (currentPath: string, match: string) => currentPath.startsWith(match);

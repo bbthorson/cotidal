@@ -110,6 +110,9 @@ export async function getAuth(): Promise<AtprotoAuth | null> {
     basePath: AUTH_BASE_PATH,
     redirectTo: '/compass',
     scope: 'atproto transition:generic',
+    metadata: {
+      logo_uri: 'https://cotidal.app/apple-touch-icon.png',
+    },
     store: await sessionStore(),
     sessionTtlSeconds: SESSION_TTL_SECONDS,
     ...(lock ? { requestLock: durableObjectLock(lock) } : {}),

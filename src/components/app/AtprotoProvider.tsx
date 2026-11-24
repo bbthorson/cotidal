@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect } from 'react';
-import { useAtproto } from '@/hooks/use-atproto';
+import { useAtproto, type MemberIdentity } from '@/hooks/use-atproto';
 import { forgetDevice } from '@/lib/device-store';
 import { SIGNED_OUT_PARAM } from '@/lib/atproto/paths';
 import { takeParam } from '@/lib/url-params';
@@ -10,10 +10,11 @@ export { useAtprotoContext } from './AtprotoContext';
 
 /**
  * What every island shares about signing in: whether it is on, the one
- * sign-in sheet, and two things a URL can ask for.
+ * sign-in sheet, remembering a signed-in member on this device, and two things
+ * a URL can ask for.
  *
- * - `?signin=1` — the header's "Come aboard" on an app page opens the sheet
- *   instead of leaving for the landing page's form (`signInHref`).
+ * - `?signin=1` — the header's "Sign in" on an app page opens the sheet
+ *   instead of leaving for `/sign-in` (`signInHref`).
  * - `?signed_out=1` — a form sign-out landed here (`signedOutPath`), so this
  *   device's copy of the coordinate is forgotten before anything reads it.
  *
@@ -22,13 +23,16 @@ export { useAtprotoContext } from './AtprotoContext';
  */
 export function AtprotoProvider({
   enabled,
+  member = null,
   children,
 }: {
   /** From `signInEnabled()`, rendered by the page that mounts the island. */
   enabled: boolean;
+  /** From `accountFor()` on the server; used to remember the account on this device. */
+  member?: MemberIdentity | null;
   children: React.ReactNode;
 }) {
-  const atproto = useAtproto(enabled);
+  const atproto = useAtproto(enabled, member);
   const [signInOpen, setSignInOpen] = useState(false);
 
   // In render, ahead of the island's own first reads of the device.
@@ -39,6 +43,11 @@ export function AtprotoProvider({
   useEffect(() => {
     if (takeParam('signin')) setSignInOpen(true);
   }, []);
+
+  // Open the sheet automatically if an OAuth callback redirected back with an error.
+  useEffect(() => {
+    if (atproto.redirectError) setSignInOpen(true);
+  }, [atproto.redirectError]);
 
   const value = useMemo(() => ({ ...atproto, openSignIn: () => setSignInOpen(true) }), [atproto]);
 
