@@ -86,3 +86,27 @@ export const CALIBRATION: Record<string, StyleProfile> = {
   Guinness: { body: 4, residualSugarGpl: 2, structure: 2 },
   'Smoked Porter': { body: 4, residualSugarGpl: 5, structure: 2 },
 };
+
+/**
+ * Structural profile for placing a cocktail reproducibly without eyeballing
+ * coordinates:
+ * - `spiritWeight`: 1 light/clear/aperitif … 5 dark aged/cream/coffee-heavy
+ * - `sweetness`: 0 bone-dry … 4 dessert-sweet
+ * - `acidity`: 0 none … 4 sharp citrus
+ * - `bitterness`: 0 none … 4 intense amaro/fernet
+ * - `dilution`: 0 stirred up, 1 over a rock, 2 shaken, 3 lengthened highball/spritz
+ */
+export interface CocktailProfile {
+  spiritWeight: 1 | 2 | 3 | 4 | 5;
+  sweetness: 0 | 1 | 2 | 3 | 4;
+  acidity: 0 | 1 | 2 | 3 | 4;
+  bitterness: 0 | 1 | 2 | 3 | 4;
+  dilution: 0 | 1 | 2 | 3;
+}
+
+/** Deterministic coordinate for a cocktail from its structural profile. */
+export function placeCocktail(p: CocktailProfile): { x: number; y: number } {
+  const x = -3.0 * (p.spiritWeight - 2.5) + 2.0 * p.dilution + 1.2 * p.acidity - 1.2;
+  const y = 3.2 * (p.sweetness - 1.5) - 2.0 * p.bitterness - 0.8 * (p.spiritWeight - 2.5);
+  return { x: clamp(Math.round(x)), y: clamp(Math.round(y)) };
+}

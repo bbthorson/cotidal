@@ -63,7 +63,10 @@ export function Chart({
   const region = you ? quadrantFor(you.x, you.y) : null;
 
   const spots = useMemo(() => {
-    const visible = lens === 'pours' ? drinkDatabase.filter((d) => lastPour.has(d.name)) : drinkDatabase;
+    const visible =
+      lens === 'pours'
+        ? drinkDatabase.filter((d) => lastPour.has(d.name))
+        : drinkDatabase.filter((d) => d.tier !== 'extended' || d.name === selected || menuNames.includes(d.name));
     const byKey = new Map<string, Spot>();
     for (const d of visible) {
       const k = key(d);
@@ -72,7 +75,7 @@ export function Chart({
       byKey.set(k, spot);
     }
     return [...byKey.values()];
-  }, [lens, lastPour]);
+  }, [lens, lastPour, selected, menuNames]);
 
   const variantFor = (spot: Spot): 'filled' | 'hollow' | 'muted' => {
     if (lens === 'pours') {

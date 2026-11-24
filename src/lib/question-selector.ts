@@ -11,14 +11,15 @@ import {
   type FilterState,
 } from './belief-state';
 
-// The fixed openers, asked in this order. These four are the only fixed part
-// of the quiz; after them every question is chosen by expected information.
-const CALIBRATION_IDS = [
-  'triad_sugar_texture',
+// The fixed openers, asked in this order. Two fast comparative pairs bisect
+// both axes with positive framing first; two triads settle the three
+// deal-breakers. After these four, every question is chosen by expected gain.
+export const CALIBRATION_IDS = [
+  'pair_x_middle',
+  'pair_y_middle',
   'triad_bitter_botanical',
   'triad_smoke_oak',
-  'triad_proof_tempo',
-];
+] as const;
 
 // What resolving one open aversion is worth, in nats. isComplete waits on
 // every aversion as well as on both axes, so a question that can settle one

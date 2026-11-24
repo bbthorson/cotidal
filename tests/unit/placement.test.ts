@@ -1,6 +1,6 @@
 import { test, expect } from 'vitest';
 import { drinkDatabase } from '../../src/lib/data';
-import { CALIBRATION, X_COEFFICIENTS, Y_COEFFICIENTS, placeStyle, rawPlacement, type StyleProfile } from '../../src/lib/placement';
+import { CALIBRATION, X_COEFFICIENTS, Y_COEFFICIENTS, placeCocktail, placeStyle, rawPlacement, type StyleProfile } from '../../src/lib/placement';
 
 /** Ordinary least squares by the normal equations; small enough to solve directly. */
 function fit(rows: number[][], target: number[]): number[] {
@@ -59,4 +59,12 @@ test('Placement: body moves a drink toward rich, sugar toward sweet, structure t
   expect(rawPlacement({ ...base, body: 4 }).x).toBeLessThan(rawPlacement(base).x);
   expect(rawPlacement({ ...base, residualSugarGpl: 40 }).y).toBeGreaterThan(rawPlacement(base).y);
   expect(rawPlacement({ ...base, structure: 3 }).y).toBeLessThan(rawPlacement(base).y);
+});
+
+test('Placement: a cocktail with a cocktailProfile sits where placeCocktail puts it', () => {
+  const mixed = drinkDatabase.filter((d) => d.cocktailProfile);
+  expect(mixed.length).toBeGreaterThan(0);
+  for (const d of mixed) {
+    expect({ x: d.x, y: d.y }, d.name).toEqual(placeCocktail(d.cocktailProfile!));
+  }
 });

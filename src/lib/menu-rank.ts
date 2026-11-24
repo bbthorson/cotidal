@@ -55,6 +55,41 @@ export type ScoredDrink = Drink & { score: number };
 export const MENU_LENGTH = 8;
 
 /**
+ * Pick up to `limit` drinks from a ranked list without letting one tiny
+ * coordinate cluster dominate all 8 slots: at most 2 drinks within distance
+ * `CLUSTER_RADIUS` of an already-picked drink, backfilling from remaining
+ * drinks if fewer than `limit` pass the spacing rule.
+ */
+const CLUSTER_RADIUS = 1.5;
+const MAX_PER_CLUSTER = 2;
+
+export function diversifyMenu(
+  scored: readonly ScoredDrink[],
+  limit = MENU_LENGTH,
+  options: { anchorsOnly?: boolean } = {}
+): ScoredDrink[] {
+  const pool = options.anchorsOnly ? scored.filter((d) => d.tier !== 'extended') : scored;
+  const picked: ScoredDrink[] = [];
+  const deferred: ScoredDrink[] = [];
+
+  for (const drink of pool) {
+    if (picked.length >= limit) break;
+    const nearby = picked.filter((p) => Math.hypot(p.x - drink.x, p.y - drink.y) <= CLUSTER_RADIUS).length;
+    if (nearby < MAX_PER_CLUSTER) {
+      picked.push(drink);
+    } else {
+      deferred.push(drink);
+    }
+  }
+
+  for (const drink of deferred) {
+    if (picked.length >= limit) break;
+    picked.push(drink);
+  }
+  return picked;
+}
+
+/**
  * Every drink still on offer to you, closest first: your aversions taken
  * off, and a drink you rated 3 or lower last time taken off with them. The
  * one ranking, so Compass (which lists it) and Log (whose map fills it in)

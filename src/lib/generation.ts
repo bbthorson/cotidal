@@ -98,6 +98,75 @@ export async function runWorkersAi(options: WorkersAiOptions): Promise<string | 
 }
 
 /**
+ * Cloudflare Clef decision model on Workers AI: returns calibrated
+ * probabilities for typed questions (`noul`, `choice`, `score`) in one pass
+ * with zero generated text (~39 ms median on `clef-flash`).
+ */
+export const CLEF_MODEL = '@cf/cloudflare/clef-flash';
+
+export type ClefQuestion =
+  | { id: string; type: 'noul'; instructions: string }
+  | { id: string; type: 'choice'; instructions: string; choices: { id: string; description: string }[] }
+  | { id: string; type: 'score'; instructions: string; levels: { score: number; description: string }[] };
+
+export interface ClefAnswer {
+  /** For `noul`: probability of yes (0..1). */
+  probability?: number;
+  /** For `score`: probability-weighted expected score. */
+  score?: number;
+  /** Confidence (0..1) when reported by the model. */
+  confidence?: number;
+  /** For `choice`: winning option id. */
+  choice?: string;
+}
+
+export type ClefAnswers = Record<string, ClefAnswer>;
+
+/**
+ * Run Cloudflare Clef via Workers AI binding (or REST fallback when local
+ * credentials are set). Returns `null` when unavailable so callers always fall
+ * back deterministically (docs/generation.md).
+ */
+export async function runClefDecision(
+  state: string,
+  questions: readonly ClefQuestion[]
+): Promise<ClefAnswers | null> {
+  const payload = { state, questions };
+  const binding = await aiBinding();
+  if (binding) {
+    const res = (await binding.run(CLEF_MODEL, payload, {
+      gateway: { id: AI_GATEWAY_ID, skipCache: false },
+    })) as { answers?: ClefAnswers } | null;
+    if (res?.answers && typeof res.answers === 'object') return res.answers;
+  }
+
+  const accountId = typeof process !== 'undefined' ? process.env?.CLOUDFLARE_ACCOUNT_ID : undefined;
+  const apiToken = typeof process !== 'undefined' ? process.env?.CLOUDFLARE_API_TOKEN : undefined;
+  if (accountId && apiToken) {
+    try {
+      const url = `https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/${CLEF_MODEL}`;
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${apiToken}`,
+          'Content-Type': 'application/json',
+          'cf-aig-gateway': AI_GATEWAY_ID,
+        },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) return null;
+      const data = (await res.json()) as { result?: { answers?: ClefAnswers } };
+      if (data?.result?.answers && typeof data.result.answers === 'object') return data.result.answers;
+    } catch (err) {
+      console.error('Workers AI Clef REST fallback error:', err);
+      return null;
+    }
+  }
+
+  return null;
+}
+
+/**
  * Why a response says what it says. These routes always answer with usable
  * content — a model outage, a missing key, a guest, and a throttled member all
  * read as working software — so the reason travels in a header rather than in
