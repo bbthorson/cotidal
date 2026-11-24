@@ -11,6 +11,7 @@ import {
 import { loadGuestState, saveGuestState } from '@/lib/device-store';
 import type { UserProfile } from '@/hooks/useDiscoveryQuiz';
 import type { PourEntry } from '@/lib/pour-entry';
+import { tolerancesFromDynamic } from '@/lib/profile';
 
 /** A coordinate at the origin, for someone who would rather try a pour first. */
 export const neutralProfile: UserProfile = {
@@ -81,5 +82,6 @@ export function guestShift(profile: UserProfile | null, entry: PourEntry): UserP
     dislikesBitter: aversions.bitter,
     dislikesAnise: aversions.anise,
     vibeTags: vibeTagsAfterPour(profile?.vibeTags ?? {}, drink, entry.hedonic),
+    tolerances: tolerancesFromDynamic(record),
   };
 }

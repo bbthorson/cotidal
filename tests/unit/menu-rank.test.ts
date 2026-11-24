@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { addMenuLine, rankMenu, scoreDrinks, type MenuItem } from '@/lib/menu-rank';
+import { addMenuLine, addMenuLines, rankMenu, scoreDrinks, type MenuItem } from '@/lib/menu-rank';
 
 const you = { x: 4, y: -2, vibeTags: {} };
 
@@ -16,6 +16,21 @@ describe('menu lines', () => {
     expect(addMenuLine(items, '  ', {})).toBe(items);
     items = addMenuLine(items, 'NEGRONI', {});
     expect(items).toHaveLength(1);
+  });
+
+  it('parses a multi-line pasted menu and attaches descriptions and close classics', () => {
+    const items = addMenuLines(
+      [],
+      '• Negroni $16\nPaper Tiger — mezcal, Aperol, lime · $18\n\nLast Word',
+      {}
+    );
+    expect(items).toHaveLength(3);
+    expect(items[0].drink?.name).toBe('Negroni');
+    expect(items[1].drink).toBeNull();
+    expect(items[1].label).toBe('Paper Tiger');
+    expect(items[1].description).toBe('mezcal, Aperol, lime');
+    expect(items[1].relative?.name).toBe('Naked & Famous');
+    expect(items[2].drink?.name).toBe('Last Word');
   });
 });
 

@@ -102,3 +102,39 @@ test('Relevance Score: Disliked history penalty', async () => {
   const score = calculateWeightedRelevance(user, dislikedDrink, history);
   expect(score).toBe(20);
 });
+
+test('Relevance Score: EKF tolerances refine scores once pours accumulate', () => {
+  const bitterDrink: Drink = {
+    name: 'Test Negroni',
+    type: 'Cocktail',
+    x: 0,
+    y: 0,
+    hasSmoke: false,
+    isBitter: true,
+    hasAnise: false,
+    tags: ['classic'],
+  };
+
+  // Untrained filter (eventCount 0) changes nothing.
+  const untrained = calculateWeightedRelevance(
+    { x: 0, y: 0, tolerances: { bitter: 9, tannin: 5, complexity: 5, eventCount: 0 } },
+    bitterDrink,
+    []
+  );
+  const baseline = calculateWeightedRelevance({ x: 0, y: 0 }, bitterDrink, []);
+  expect(untrained).toBe(baseline);
+
+  // Trained high bitter tolerance boosts a bitter drink; low bitter tolerance lowers it.
+  const highBitter = calculateWeightedRelevance(
+    { x: 0, y: 0, tolerances: { bitter: 9, tannin: 5, complexity: 5, eventCount: 4 } },
+    bitterDrink,
+    []
+  );
+  const lowBitter = calculateWeightedRelevance(
+    { x: 0, y: 0, tolerances: { bitter: 1, tannin: 5, complexity: 5, eventCount: 4 } },
+    bitterDrink,
+    []
+  );
+  expect(highBitter).toBeGreaterThan(baseline);
+  expect(lowBitter).toBeLessThan(baseline);
+});

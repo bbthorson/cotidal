@@ -1,0 +1,109 @@
+---
+import AppShell from '../../layouts/AppShell.astro';
+import PageTitle from '../../components/marketing/PageTitle.astro';
+import { readPublicVenue } from '../../lib/atproto/venue-read';
+import { formatCoordinate } from '../../lib/coordinate';
+import { site, venuePage as copy } from '../../lib/copy';
+
+/**
+ * `/v/<handle>` — a bar's live AT Protocol venue & menu page.
+ * Server-rendered directly from the venue's own PDS (`app.cotidal.venue` +
+ * `app.cotidal.menu`), shipping zero client JavaScript.
+ */
+export const prerender = false;
+
+const handle = Astro.params.handle ?? '';
+const result = await readPublicVenue(handle);
+
+if (result.status === 'invalid' || result.status === 'not-found') {
+  Astro.response.status = 404;
+} else if (result.status === 'unavailable') {
+  Astro.response.status = 502;
+}
+
+const title =
+  result.status === 'ok'
+    ? `${result.venue.name} — ${site.name}`
+    : `${site.name} — ${copy.eyebrow}`;
+
+const formatDate = (iso: string) => {
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime())
+    ? iso
+    : d.toLocaleDateString('en', { year: 'numeric', month: 'long', day: 'numeric' });
+};
+---
+
+<AppShell title={title} currentPath={`/v/${encodeURIComponent(handle)}`} width="standard">
+  <div class="space-y-10 pb-8 pt-6">
+    {result.status === 'ok' ? (
+      <>
+        <div class="space-y-3">
+          <PageTitle
+            eyebrow={result.actor.handle ? `@${result.actor.handle}` : copy.eyebrow}
+            title={result.venue.name}
+            lede={result.venue.description ?? undefined}
+          />
+          {result.venue.website && (
+            <p class="text-meta text-muted-foreground">
+              <a
+                href={result.venue.website}
+                rel="noopener noreferrer"
+                class="underline decoration-muted-foreground underline-offset-4 hover:text-foreground"
+              >
+                {copy.websiteLabel}
+              </a>
+            </p>
+          )}
+        </div>
+
+        {result.venue.menu ? (
+          <section class="space-y-8">
+            <div class="flex flex-wrap items-baseline justify-between gap-2 border-b border-foreground pb-2">
+              <h2 class="font-serif text-heading font-bold text-foreground">
+                {result.venue.menu.title ?? copy.menuTitle}
+              </h2>
+              <span class="font-condensed text-label uppercase tracking-label text-muted-foreground">
+                {copy.publishedOn(formatDate(result.venue.menu.publishedAt))}
+              </span>
+            </div>
+
+            {result.venue.menu.sections.map((section) => (
+              <div class="space-y-2">
+                {section.name && <h3 class="section-title">{section.name}</h3>}
+                <ul class="border-t border-border">
+                  {section.items.map((item) => (
+                    <li class="border-b border-border py-3">
+                      <div class="dot-leader">
+                        <span class="font-serif text-prose font-bold text-foreground">{item.name}</span>
+                        <span aria-hidden="true" class="leader" />
+                        <span class="shrink-0 font-condensed text-meta tabular-nums text-muted-foreground">
+                          {item.placed ? formatCoordinate(item.placed.x, item.placed.y) : copy.unplaced}
+                        </span>
+                      </div>
+                      {item.description && (
+                        <p class="mt-1 text-ui text-muted-foreground">{item.description}</p>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </section>
+        ) : (
+          <p class="text-ui text-muted-foreground">{copy.noMenu}</p>
+        )}
+      </>
+    ) : result.status === 'no-venue' ? (
+      <PageTitle
+        eyebrow={result.actor.handle ? `@${result.actor.handle}` : copy.eyebrow}
+        title={copy.noVenueTitle}
+        lede={copy.noVenueBody}
+      />
+    ) : result.status === 'unavailable' ? (
+      <PageTitle eyebrow={copy.eyebrow} title={copy.unavailableTitle} lede={copy.unavailableBody} />
+    ) : (
+      <PageTitle eyebrow={copy.eyebrow} title={copy.notFoundTitle} lede={copy.notFoundBody} />
+    )}
+  </div>
+</AppShell>

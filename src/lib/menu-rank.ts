@@ -1,19 +1,25 @@
-import { drinkDatabase, type Drink, type User } from '@/lib/data';
+import { drinkDatabase, type Drink, type Tolerances, type User } from '@/lib/data';
 import { baseName, matchDrink } from '@/lib/drink-match';
+import { splitMenuLine, suggestClosestDrink } from '@/lib/ingredient-match';
 import { calculateWeightedRelevance, type MinimalDrinkLog } from '@/lib/scoring';
 import { titleOf, type Register } from '@/lib/register';
 import type { PourRecord } from '@/lib/atproto/records';
 
 /**
- * A menu someone typed, and the order to have it in. Used by Compass's bar
- * view (a bar's menu, or a menu with no bar); the ranking is the one Compass's
- * own list uses (`calculateWeightedRelevance`), plus the bar when it is named.
+ * A menu someone typed or pasted, and the order to have it in. Used by
+ * Compass's bar view (a bar's menu, or a menu with no bar); the ranking is
+ * the one Compass's own list uses (`calculateWeightedRelevance`), plus the
+ * bar when it is named.
  */
 
 export interface MenuItem {
   /** As typed, or the register's title when it was picked from the map. */
   label: string;
+  /** Optional ingredient description parsed from a pasted menu line. */
+  description?: string;
   drink: Drink | null;
+  /** Closest structural classic when `drink` is null and ingredients give a clear signal. */
+  relative?: Drink | null;
 }
 
 /** The drink on the map a menu line names: by name or alias (`matchDrink`), or by register title. */
@@ -25,11 +31,22 @@ export function placeDrink(label: string, register: Register): Drink | null {
 
 /** The list with one more line on it: a repeat of a line already there changes nothing. */
 export function addMenuLine(items: MenuItem[], entry: string, register: Register): MenuItem[] {
-  const label = entry.trim();
-  if (!label) return items;
-  const drink = placeDrink(label, register);
-  const shown = drink ? titleOf(register, drink.name) : label;
-  return items.some((i) => baseName(i.label) === baseName(shown)) ? items : [...items, { label: shown, drink }];
+  const { name, description } = splitMenuLine(entry);
+  if (!name) return items;
+  const drink = placeDrink(name, register);
+  const shown = drink ? titleOf(register, drink.name) : name;
+  if (items.some((i) => baseName(i.label) === baseName(shown))) return items;
+  const relative = !drink && description ? suggestClosestDrink(`${name} ${description}`) : null;
+  return [...items, { label: shown, ...(description ? { description } : {}), drink, ...(relative ? { relative } : {}) }];
+}
+
+/** Add a multi-line pasted menu block, one drink per line. */
+export function addMenuLines(items: MenuItem[], block: string, register: Register): MenuItem[] {
+  let next = items;
+  for (const raw of block.split(/\r?\n/)) {
+    next = addMenuLine(next, raw, register);
+  }
+  return next;
 }
 
 export type ScoredDrink = Drink & { score: number };
@@ -66,7 +83,12 @@ export function scoreDrinks(
     })
     .map((drink) => ({
       ...drink,
-      score: calculateWeightedRelevance({ x: user.x, y: user.y, vibeTags: vibeTags || null }, drink, logs, null),
+      score: calculateWeightedRelevance(
+        { x: user.x, y: user.y, vibeTags: vibeTags || null, tolerances: user.tolerances ?? null },
+        drink,
+        logs,
+        null
+      ),
     }))
     .sort((a, b) => b.score - a.score);
 }
@@ -93,7 +115,7 @@ export interface RankedDrink {
  */
 export function rankMenu(
   items: MenuItem[],
-  you: { x: number; y: number; vibeTags?: Record<string, number> | null },
+  you: { x: number; y: number; vibeTags?: Record<string, number> | null; tolerances?: Tolerances | null },
   pours: PourRecord[],
   where: string | null
 ): RankedDrink[] {
@@ -102,7 +124,12 @@ export function rankMenu(
   return placed
     .map((drink) => ({
       drink,
-      score: calculateWeightedRelevance({ x: you.x, y: you.y, vibeTags: you.vibeTags ?? null }, drink, logs, where),
+      score: calculateWeightedRelevance(
+        { x: you.x, y: you.y, vibeTags: you.vibeTags ?? null, tolerances: you.tolerances ?? null },
+        drink,
+        logs,
+        where
+      ),
     }))
     .sort((a, b) => b.score - a.score);
 }

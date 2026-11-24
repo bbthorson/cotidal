@@ -46,6 +46,16 @@ export function useLog(register: Register, member: { handle: string | null } | n
       : []),
   ];
 
+  const t = profile?.tolerances;
+  const tolerances =
+    t && t.eventCount >= 3
+      ? [
+          { label: logPage.tolerances.bitter, value: t.bitter.toFixed(1) },
+          { label: logPage.tolerances.tannin, value: t.tannin.toFixed(1) },
+          { label: logPage.tolerances.complexity, value: t.complexity.toFixed(1) },
+        ]
+      : null;
+
   return {
     isMember,
     profile,
@@ -64,5 +74,6 @@ export function useLog(register: Register, member: { handle: string | null } | n
     startLabel: fromQuiz ? logPage.started : logPage.startedCentre,
     nearestName: name(nearest),
     stats,
+    tolerances,
   };
 }

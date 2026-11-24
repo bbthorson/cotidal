@@ -1,4 +1,5 @@
-import type { Drink } from '@/lib/data';
+import type { Drink, Tolerances } from '@/lib/data';
+import { complexityDemand } from '@/lib/palate-state';
 
 interface Point {
     x: number;
@@ -19,8 +20,29 @@ export interface MinimalDrinkLog {
   createdAt: string;
 }
 
+/**
+ * Bounded adjustment [-8, +8] from the three EKF readings not drawn on the 2D
+ * chart (bitter tolerance, tannin/structure tolerance, complexity). Only
+ * active once at least one pour has trained the filter (`eventCount > 0`), so
+ * a fresh quiz coordinate ranks strictly on 2D distance + vibe tags.
+ */
+function toleranceAdjustment(tolerances: Tolerances | null | undefined, drink: Drink): number {
+  if (!tolerances || tolerances.eventCount <= 0) return 0;
+  let delta = 0;
+  if (drink.isBitter) {
+    delta += (tolerances.bitter - 5) * 0.8;
+  }
+  const structured = drink.hasSmoke || (drink.profile ? drink.profile.structure >= 2.5 : false);
+  if (structured) {
+    delta += (tolerances.tannin - 5) * 0.6;
+  }
+  const complexityFit = Math.max(0, 1 - Math.abs(tolerances.complexity - complexityDemand(drink)) / 7.5);
+  delta += complexityFit * 4 - 2;
+  return Math.max(-8, Math.min(8, delta));
+}
+
 export const calculateWeightedRelevance = (
-  user: { x: number; y: number; vibeTags?: Record<string, number> | null },
+  user: { x: number; y: number; vibeTags?: Record<string, number> | null; tolerances?: Tolerances | null },
   drink: Drink,
   historyLogs: MinimalDrinkLog[],
   selectedLocation?: string | null
@@ -73,12 +95,13 @@ export const calculateWeightedRelevance = (
     }
   }
 
-  // Weighted combination
+  // Weighted combination + bounded EKF tolerance refinement
   const totalScore =
     0.40 * sensoryScore +
     0.30 * vibeScore +
     0.20 * historyScore +
-    0.10 * venueScore;
+    0.10 * venueScore +
+    toleranceAdjustment(user.tolerances, drink);
 
   return Math.round(Math.max(0, Math.min(100, totalScore)));
 };

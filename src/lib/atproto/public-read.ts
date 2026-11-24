@@ -222,15 +222,25 @@ function toPalate(value: unknown): PublicPalate | null {
   };
 }
 
+export type PublicRepoResult =
+  | { status: 'invalid' }
+  | { status: 'not-found' }
+  | { status: 'unavailable'; actor: PublicActor | null }
+  | {
+      status: 'ok';
+      actor: PublicActor;
+      pds: URL;
+      getRecord(collection: string, rkey: string): Promise<{ status: number; value: unknown | null }>;
+    };
+
 /**
- * Resolve an actor from a URL segment and read their palate record.
- *
- * Never throws: every failure is a status the page can render.
+ * Resolve an actor (handle or DID) to its verified DID, confirmed handle, and
+ * PDS endpoint, returning a safe `getRecord` reader for public records.
  */
-export async function readPublicPalate(
+export async function resolvePublicRepo(
   input: string,
   options: ReadOptions = {}
-): Promise<PublicPalateResult> {
+): Promise<PublicRepoResult> {
   const fetchImpl = options.fetch ?? fetch;
   const resolver =
     options.handleResolver ?? process.env.ATPROTO_HANDLE_RESOLVER ?? DEFAULT_HANDLE_RESOLVER;
@@ -259,19 +269,45 @@ export async function readPublicPalate(
     }
     actor = { did, handle };
 
-    const recordUrl = new URL('/xrpc/com.atproto.repo.getRecord', doc.pds);
-    recordUrl.searchParams.set('repo', did);
-    recordUrl.searchParams.set('collection', PALATE_COLLECTION);
-    recordUrl.searchParams.set('rkey', PALATE_RKEY);
-    const { status, body } = await getJson(recordUrl, fetchImpl);
-    // A missing record is a 400 RecordNotFound from most PDSes.
-    if (status === 400 || status === 404) return { status: 'no-palate', actor };
-    if (!body) throw new Unavailable(`getRecord ${status}`);
-    const palate = toPalate((body as { value?: unknown }).value);
-    return palate ? { status: 'ok', actor, palate } : { status: 'no-palate', actor };
+    const getRecord = async (collection: string, rkey: string) => {
+      const recordUrl = new URL('/xrpc/com.atproto.repo.getRecord', doc.pds);
+      recordUrl.searchParams.set('repo', did);
+      recordUrl.searchParams.set('collection', collection);
+      recordUrl.searchParams.set('rkey', rkey);
+      const { status, body } = await getJson(recordUrl, fetchImpl);
+      if (status === 400 || status === 404) return { status, value: null };
+      if (!body) throw new Unavailable(`getRecord ${status}`);
+      return { status, value: (body as { value?: unknown }).value ?? null };
+    };
+
+    return { status: 'ok', actor, pds: doc.pds, getRecord };
   } catch (e) {
     if (e instanceof Unavailable) return { status: 'unavailable', actor };
-    console.error('readPublicPalate:', e);
+    console.error('resolvePublicRepo:', e);
     return { status: 'unavailable', actor };
+  }
+}
+
+/**
+ * Resolve an actor from a URL segment and read their palate record.
+ *
+ * Never throws: every failure is a status the page can render.
+ */
+export async function readPublicPalate(
+  input: string,
+  options: ReadOptions = {}
+): Promise<PublicPalateResult> {
+  const repo = await resolvePublicRepo(input, options);
+  if (repo.status !== 'ok') return repo;
+
+  try {
+    const { value } = await repo.getRecord(PALATE_COLLECTION, PALATE_RKEY);
+    if (!value) return { status: 'no-palate', actor: repo.actor };
+    const palate = toPalate(value);
+    return palate ? { status: 'ok', actor: repo.actor, palate } : { status: 'no-palate', actor: repo.actor };
+  } catch (e) {
+    if (e instanceof Unavailable) return { status: 'unavailable', actor: repo.actor };
+    console.error('readPublicPalate:', e);
+    return { status: 'unavailable', actor: repo.actor };
   }
 }

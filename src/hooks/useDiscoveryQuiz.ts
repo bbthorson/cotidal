@@ -20,6 +20,8 @@ import { selectNextQuestion } from '@/lib/question-selector';
  */
 const ADVANCE_MS = 450;
 
+import type { Tolerances } from '@/lib/data';
+
 export interface UserProfile {
   x: number;
   y: number;
@@ -29,6 +31,8 @@ export interface UserProfile {
   vibeTags: Record<string, number>;
   /** How sure the quiz is of x and y. Absent on profiles saved before it was kept. */
   variance?: { x: number; y: number };
+  /** The three EKF readings beyond x/y (`latentVector[2..4]`), once pours accumulate. */
+  tolerances?: Tolerances;
 }
 
 interface HistoryStep {

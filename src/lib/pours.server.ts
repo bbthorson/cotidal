@@ -17,6 +17,7 @@ import { getPalateProfile, postToFeed, publishPour, publishRawPalateRecord } fro
 import { publicMapPath } from '@/lib/atproto/paths';
 import { geoLocation } from '@/lib/atproto/location';
 import { apiErrors, feedPost, pour as pourCopy } from '@/lib/copy';
+import { tolerancesFromDynamic } from '@/lib/profile';
 import {
   fromDynamicRecord,
   toDynamicRecord,
@@ -250,6 +251,7 @@ export async function logPour(
         dislikesBitter: palate.aversions.bitter,
         dislikesAnise: palate.aversions.anise,
         vibeTags: palate.vibeTags as Record<string, number>,
+        ...(palate.dynamicState ? { tolerances: tolerancesFromDynamic(palate.dynamicState) } : {}),
       },
     };
   } catch (e) {
