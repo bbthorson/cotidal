@@ -309,3 +309,43 @@ export function TraceMark({
     </>
   );
 }
+
+/**
+ * Where you probably are: the shoal, a disc of pale water around your dot
+ * whose radius is the track's spread (`spreadOf`), in map units. Drawn under
+ * everything else, with a dashed edge, and no number: it is approximate.
+ */
+export function ShoalMark({ x, y, spread, tone = 'paper' }: { x: number; y: number; spread: number; tone?: MapTone }) {
+  const ink = tone === 'ink';
+  // The marks' inset spans 20 map units, so a unit is 5% of it.
+  const diameter = `${Math.min(spread, 10) * 2 * 5}%`;
+  return (
+    <span
+      aria-hidden="true"
+      className={cn(
+        'absolute aspect-square -translate-x-1/2 translate-y-1/2 rounded-full border border-dashed',
+        ink ? 'border-reveal-muted bg-reveal-shoal' : 'border-secondary bg-shoal'
+      )}
+      style={{ ...at(x, y), width: diameter }}
+    />
+  );
+}
+
+/** The way you came: your track (`replayTrack`) as one line, a square where it starts. */
+export function TrackLine({ points }: { points: readonly { x: number; y: number }[] }) {
+  if (points.length < 2) return null;
+  const d = points.map((p, i) => `${i ? 'L' : 'M'}${toPercent(p.x)} ${100 - toPercent(p.y)}`).join(' ');
+  const start = points[0];
+  return (
+    <>
+      <svg aria-hidden="true" viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0 h-full w-full stroke-primary">
+        <path d={d} strokeWidth={1.5} vectorEffect="non-scaling-stroke" fill="none" />
+      </svg>
+      <span
+        aria-hidden="true"
+        className="absolute h-2 w-2 -translate-x-1/2 translate-y-1/2 border-2 border-primary bg-card"
+        style={at(start.x, start.y)}
+      />
+    </>
+  );
+}

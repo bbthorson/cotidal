@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { chart, compass, menu, moved, pour, ratePage, waitingPick } from '../src/lib/copy';
+import { chart, compass, moved, pour, ratePage, waitingPick } from '../src/lib/copy';
 import { GEO_TYPE } from '../src/lib/atproto/location';
 
 const profile = { x: 4, y: -2, dislikesSmoke: false, dislikesBitter: false, dislikesAnise: false, vibeTags: {} };
@@ -50,21 +50,21 @@ test('Compass: Overpass giving up reads as no answer, not as no bars', async ({ 
   await context.close();
 });
 
-test('Compass: the map sits beside the menu on a wide screen, above it on a phone', async ({ page }) => {
+test('Compass: the chart sits beside your menu on a wide screen, above it on a phone', async ({ page }) => {
   await page.addInitScript((p) => localStorage.setItem('user_profile', JSON.stringify(p)), profile);
-  const top = page.getByText(`${menu.topPrefix} · ${menu.topTitle}`);
-  const map = page.getByRole('region', { name: compass.mapLabel });
+  const yours = page.getByRole('heading', { name: compass.menuTitle });
+  const map = page.getByRole('region', { name: chart.label });
 
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.goto('/compass');
   await expect(page.getByRole('heading', { level: 1, name: compass.heading })).toBeVisible();
-  await expect(top).toBeVisible();
-  const [m, t] = [(await map.boundingBox())!, (await top.boundingBox())!];
+  await expect(yours).toBeVisible();
+  const [m, t] = [(await map.boundingBox())!, (await yours.boundingBox())!];
   expect(m.x + m.width).toBeLessThan(t.x);
   expect(Math.abs(m.y - t.y)).toBeLessThan(m.height);
 
   await page.setViewportSize({ width: 390, height: 844 });
-  const [m2, t2] = [(await map.boundingBox())!, (await top.boundingBox())!];
+  const [m2, t2] = [(await map.boundingBox())!, (await yours.boundingBox())!];
   expect(m2.y + m2.height).toBeLessThan(t2.y);
 });
 
@@ -113,7 +113,7 @@ test('Compass: bars near you, then a pick there, then a pour that says where the
   await expect(page.getByRole('heading', { name: ratePage.heading })).toBeVisible();
   await page.getByRole('radio', { name: /^7:/ }).click();
   await page.getByRole('button', { name: pour.submit }).click();
-  await expect(page.getByRole('heading', { name: 'Your coordinate moved.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /^Moved \d/ })).toBeVisible();
 
   const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('guest_pours') ?? '[]'));
   expect(saved[0].venue).toEqual({
@@ -150,6 +150,6 @@ test('Compass: a drink found by another name it goes by', async ({ page }) => {
   await page.addInitScript((p) => localStorage.setItem('user_profile', JSON.stringify(p)), profile);
   await page.goto('/compass');
   await page.getByRole('searchbox').fill('Prosecco DOC');
-  await expect(page.getByRole('button', { name: /^Prosecco/ })).toBeVisible();
+  await expect(page.locator('ol').getByRole('button', { name: /^Prosecco/ })).toBeVisible();
   await expect(page.getByText(compass.noDrinks)).toHaveCount(0);
 });

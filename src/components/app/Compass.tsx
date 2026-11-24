@@ -1,40 +1,33 @@
-import { useMemo, useState, useEffect, useCallback } from 'react';
-import { drinkDatabase, type User } from '@/lib/data';
-import { matchDrink } from '@/lib/drink-match';
-import { chart, compass, menu } from '@/lib/copy';
+import { chart, compass, logPage, menu } from '@/lib/copy';
 import { questionsHref } from '@/lib/site-nav';
-import { savePick } from '@/lib/device-store';
-import { titleOf, type Register } from '@/lib/register';
-import { usePours } from '@/hooks/usePours';
-import { useRateSheet } from '@/hooks/useRateSheet';
-import { useMenu, type ScoredDrink } from '@/hooks/useMenu';
-import { DrinkCard, DrinkRow, useLastPours } from './Chart';
-import { AtprotoProvider, useAtprotoContext } from './AtprotoProvider';
-import { useProfile } from '@/hooks/useProfile';
-import { userFromProfile } from '@/lib/profile';
+import type { Register } from '@/lib/register';
+import type { BarVisits } from '@/lib/pour-history';
+import { useCompass } from '@/hooks/useCompass';
+import { Chart, DrinkCard, DrinkRow } from './Chart';
+import { AtprotoProvider } from './AtprotoProvider';
 import { WaitingPick } from './WaitingPick';
 import { RateSheet } from './RateSheet';
-import { Empty, GuestPrompt, ScreenHeader } from './ui';
-import { BarCard, BarRows, NearPanel, useNearby } from './Near';
-import { MenuView, type Venue } from './MenuView';
-import { metresBetween } from '@/lib/osm';
-import { readGeo } from '@/lib/atproto/location';
-import { explainDrinkMatch } from '@/lib/api-client';
-import { barsFromPours, foldName, type BarVisits } from '@/lib/pour-history';
+import { Empty, ScreenHeader } from './ui';
+import { BarCard, BarRows, NearPanel } from './Near';
+import { MenuView } from './MenuView';
 import { cn } from '@/lib/utils';
 
 /**
- * Compass: finding something — a drink, a bar — rather than looking at
- * yourself, which is Log's (and where the map now lives). One search over
- * both. With nothing typed it points the way: your top pick, the drinks
- * closest to your taste, and the bars you have poured at. A drink opens in
- * the card; a bar opens its menu (`MenuView`) in place of the list: type what
- * they pour, see it ranked for you, pick one. "Have a menu?" is the same view
- * with no bar. A pick is kept on the device until it is rated (`WaitingPick`).
+ * Compass: the chart first. Where you are, the shoal around you, the way you
+ * came, and every drink at its place; then your menu, each drink with which
+ * way it lies from you and how far, and one search over drinks and bars. A
+ * drink opens in the card; a bar opens its menu (`MenuView`) in place of the
+ * list: type what they pour, see it ranked for you, pick one. "Have a menu?"
+ * is the same view with no bar. A pick is kept on the device until it is
+ * rated (`WaitingPick`).
  *
- * One search runs across the page. Under it, from `lg`, the map and the bars
- * near you sit beside the menu, so a wide screen shows both at once; on a
- * phone they stack, map first, and the map steps aside while you search.
+ * Before you have a position it asks one thing: the chart, a line, and Find
+ * your coordinate. Search and bars wait for "or look up a drink".
+ *
+ * From `lg` the chart sits beside the menu; on a phone they stack, chart
+ * first, and the chart steps aside while you search.
+ *
+ * This file draws; what it draws and what a tap does is `useCompass`.
  */
 function CompassContent({
   register,
@@ -43,97 +36,8 @@ function CompassContent({
   register: Register;
   member: { handle: string | null } | null;
 }) {
-  const { isEnabled, openSignIn } = useAtprotoContext();
-  const [profile, setProfile] = useProfile(!!member);
-  const rate = useRateSheet();
-  const user = useMemo(() => userFromProfile(profile), [profile]);
-  const hasCoordinate = !!profile;
-  const vibeTags = profile?.vibeTags;
-  const [selected, setSelected] = useState<string | null>(null);
-  const [query, setQuery] = useState('');
-  const [selectedBar, setSelectedBar] = useState<string | null>(null);
-  // A menu is open: a bar's, or with no bar (`name: null`).
-  const [venue, setVenue] = useState<Venue | null>(null);
-  // Bumped when a pick is kept, so the waiting strip reads the device again.
-  const [pickVersion, setPickVersion] = useState(0);
-  const nearby = useNearby();
-  const { pours, reload } = usePours(!!member);
-  const history = useMemo(() => pours ?? [], [pours]);
-  const lastPour = useLastPours(history);
-  const { scored, menu: goTo, closeness } = useMenu(user, vibeTags, history);
-
-  const displayName = useCallback((name: string) => titleOf(register, name), [register]);
-
-  const bars = useMemo(() => barsFromPours(history), [history]);
-
-  // Which bars on the map you have poured at, and how often: by name, or by
-  // where the pour said the bar was (a pour picked from this map records it).
-  const pouredAt = useMemo(() => {
-    const counts = new Map<string, number>();
-    for (const b of nearby.bars) {
-      const n = history.filter((p) => {
-        if (p.isHomePour || !p.venue) return false;
-        const at = readGeo(p.venue.address);
-        return foldName(p.venue.entity.name) === foldName(b.name) || (at !== null && metresBetween(at, b) < 60);
-      }).length;
-      if (n > 0) counts.set(b.id, n);
-    }
-    return counts;
-  }, [nearby.bars, history]);
-  const known = useMemo(() => new Set(pouredAt.keys()), [pouredAt]);
-  const openBar = selectedBar ? nearby.bars.find((b) => b.id === selectedBar) ?? null : null;
-  const chooseBar = (id: string) => {
-    setSelected(null);
-    setSelectedBar((cur) => (cur === id ? null : id));
-  };
-
-  const q = foldName(query);
-  // A drink matches by its name, by another name it goes by ("Prosecco DOC"),
-  // or by what is in it ("mezcal", "lime").
-  const named = useMemo(() => matchDrink(query)?.name ?? null, [query]);
-  const drinkHits = useMemo(
-    () =>
-      q
-        ? scored.filter(
-            (d) =>
-              d.name === named ||
-              foldName(titleOf(register, d.name)).includes(q) ||
-              foldName(register[d.name]?.build ?? '').includes(q)
-          )
-        : [],
-    [q, named, scored, register]
-  );
-  const barHits = q ? bars.filter((b) => foldName(b.name).includes(q)) : bars;
-  const nearHits = q ? nearby.bars.filter((b) => foldName(b.name).includes(q)) : [];
-
-  // "Pick a drink" from another screen arrives with `?menu=1`: straight to a menu.
-  useEffect(() => {
-    if (new URLSearchParams(window.location.search).get('menu') === '1') setVenue({ name: null });
-  }, []);
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [venue]);
-
-  const openMenu = (next: Venue) => {
-    setSelected(null);
-    setSelectedBar(null);
-    setVenue(next);
-  };
-  const kept = () => {
-    setVenue(null);
-    setSelected(null);
-    setPickVersion((v) => v + 1);
-    window.scrollTo(0, 0);
-  };
-
-  const top = goTo[0];
-  const rest = goTo.slice(1);
-
-  const choose = (drinkName: string) => {
-    setSelectedBar(null);
-    setSelected((s) => (s === drinkName ? null : drinkName));
-  };
-  const selectedDrink = selected ? drinkDatabase.find((d) => d.name === selected) ?? null : null;
+  const c = useCompass(register, member);
+  const { rate, openBar, selectedDrink } = c;
 
   // Rating opens over whichever of the two views is showing.
   const sheet = (
@@ -142,30 +46,32 @@ function CompassContent({
       onClose={rate.close}
       register={register}
       member={member}
-      profile={profile}
-      setProfile={setProfile}
-      pours={pours}
-      reload={reload}
+      profile={c.profile}
+      setProfile={c.setProfile}
+      pours={c.pours}
+      reload={c.reload}
     />
   );
 
-  if (venue) {
+  if (c.venue) {
     return (
       <>
       <MenuView
         // A different bar is a different menu.
-        key={venue.name ?? ''}
-        venue={venue}
+        key={c.venue.name ?? ''}
+        venue={c.venue}
         register={register}
-        profile={profile}
-        pours={history}
-        onBack={() => setVenue(null)}
-        onPicked={kept}
+        profile={c.profile}
+        pours={c.history}
+        onBack={c.closeMenu}
+        onPicked={c.picked}
       />
       {sheet}
       </>
     );
   }
+
+  const open = c.hasCoordinate || c.browsing;
 
   return (
     <div
@@ -175,150 +81,163 @@ function CompassContent({
         (selectedDrink || openBar) && 'pb-card-clearance'
       )}
     >
-      <ScreenHeader eyebrow={compass.title} title={compass.heading} />
-      <WaitingPick displayName={displayName} version={pickVersion + rate.version} onRate={(draft) => rate.open({ drink: draft.drink, draft })} />
+      {c.hasCoordinate ? (
+        <ScreenHeader eyebrow={compass.title} title={compass.heading} />
+      ) : (
+        <ScreenHeader eyebrow={compass.title} title={compass.startTitle} lede={compass.startBody} />
+      )}
+      <WaitingPick displayName={c.displayName} version={c.waitingVersion} onRate={(draft) => rate.open({ drink: draft.drink, draft })} />
 
-      <search className="flex">
-        <label className="flex flex-1 flex-col">
-          <span className="sr-only">{compass.searchLabel}</span>
-          <input
-            type="search"
-            value={query}
-            onChange={(e) => {
-              setQuery(e.target.value);
-              setSelected(null);
-            }}
-            placeholder={compass.placeholder}
-            autoComplete="off"
-            className="field min-h-11 border-foreground"
-          />
-        </label>
-      </search>
-      {!q && (
-        <button
-          type="button"
-          onClick={() => openMenu({ name: null })}
-          className="link-caps mt-2 flex min-h-11 items-center text-secondary hover:underline hover:underline-offset-4"
-        >
-          {compass.haveMenu} &rarr;
-        </button>
+      {/* Before you have a position, the one way on comes before the chart, where a phone shows it without a scroll. */}
+      {!c.hasCoordinate && !c.browsing && (
+        <div className="mb-6 flex flex-col items-center gap-1 lg:max-w-sm lg:items-start">
+          <button type="button" onClick={() => window.location.assign(questionsHref)} className="btn btn-primary btn-lg w-full">
+            {compass.findYours}
+          </button>
+          <button type="button" onClick={c.browse} className="link-serif flex min-h-11 items-center text-ui">
+            {compass.lookUp}
+          </button>
+        </div>
       )}
 
-      <div className="mt-4 lg:mt-8 lg:grid lg:grid-cols-2 lg:items-start lg:gap-12">
-        {/* The first view is the map: where you are, and what is around you. */}
-        <div className={cn(q && 'hidden lg:block')}>
-          <NearPanel nearby={nearby} known={known} selected={selectedBar} onSelect={chooseBar} />
+      <div className="lg:grid lg:grid-cols-2 lg:items-start lg:gap-12">
+        {/* The one large thing: the chart. It steps aside on a phone while you search. */}
+        <div className={cn('lg:sticky lg:top-8', c.searching && 'hidden lg:block')}>
+          <Chart
+            you={c.hasCoordinate ? { x: c.user.x, y: c.user.y } : null}
+            menuNames={c.menuNames}
+            lastPour={c.lastPour}
+            lens={c.lens}
+            onLens={c.setLens}
+            selected={c.selected}
+            onSelect={c.chooseDrink}
+            register={register}
+            onTakeQuiz={() => window.location.assign(questionsHref)}
+            eyebrow={member ? undefined : logPage.guestEyebrow}
+            track={c.track}
+            bare={!c.hasCoordinate}
+          />
         </div>
 
-        <div className={cn(!q && 'mt-6 lg:mt-0')}>
-          {q ? (
-            <>
-              <section className="mt-6 lg:mt-0">
-                <h2 className="section-title">{compass.drinksTitle}</h2>
-                {drinkHits.length === 0 ? (
-                  // Not on the map is not undrinkable: it can still be logged.
-                  <Empty
-                    action={
-                      <button
-                        type="button"
-                        onClick={() => rate.open({ drink: query.trim() })}
-                        className="link-caps text-secondary hover:underline hover:underline-offset-4"
-                      >
-                        {compass.rateUnlisted(query.trim())} &rarr;
-                      </button>
-                    }
-                  >
-                    {compass.noDrinks}
-                  </Empty>
-                ) : (
-                  <ol>
-                    {drinkHits.slice(0, 20).map((d) => (
-                      <li key={d.name} className="border-b border-border">
-                        <DrinkRow
-                          title={displayName(d.name)}
-                          figure={d.score}
-                          figureLabel={chart.closenessOf(d.score)}
-                          selected={selected === d.name}
-                          onSelect={() => choose(d.name)}
-                        />
-                      </li>
-                    ))}
-                  </ol>
-                )}
-              </section>
-              <BarList
-                title={compass.barsTitle}
-                bars={barHits}
-                onOpen={(name) => openMenu({ name })}
-                // Not a bar you have been to: its menu opens there all the same.
-                extra={barHits.some((b) => foldName(b.name) === q) || nearHits.some((b) => foldName(b.name) === q) ? null : query.trim()}
-              />
-              {nearHits.length > 0 && (
+        {open && (
+          <div className="mt-6 lg:mt-0">
+            <search className="flex">
+              <label className="flex flex-1 flex-col">
+                <span className="sr-only">{compass.searchLabel}</span>
+                <input
+                  type="search"
+                  value={c.query}
+                  onChange={(e) => c.setQuery(e.target.value)}
+                  placeholder={compass.placeholder}
+                  autoComplete="off"
+                  autoFocus={c.browsing && !c.hasCoordinate}
+                  className="field min-h-11 border-foreground"
+                />
+              </label>
+            </search>
+            {!c.searching && (
+              <button
+                type="button"
+                onClick={() => c.openMenu({ name: null })}
+                className="link-caps mt-2 flex min-h-11 items-center text-secondary hover:underline hover:underline-offset-4"
+              >
+                {compass.haveMenu} &rarr;
+              </button>
+            )}
+
+            {c.searching ? (
+              <>
                 <section className="mt-6">
-                  <h2 className="section-title">{compass.nearTitle}</h2>
-                  <BarRows bars={nearHits} known={known} selected={selectedBar} onSelect={chooseBar} />
+                  <h2 className="section-title">{compass.drinksTitle}</h2>
+                  {c.drinkHits.length === 0 ? (
+                    // Not on the map is not undrinkable: it can still be logged.
+                    <Empty
+                      action={
+                        <button
+                          type="button"
+                          onClick={() => rate.open({ drink: c.query.trim() })}
+                          className="link-caps text-secondary hover:underline hover:underline-offset-4"
+                        >
+                          {compass.rateUnlisted(c.query.trim())} &rarr;
+                        </button>
+                      }
+                    >
+                      {compass.noDrinks}
+                    </Empty>
+                  ) : (
+                    <ol>
+                      {c.drinkHits.slice(0, 20).map((d) => (
+                        <li key={d.name} className="border-b border-border">
+                          <DrinkRow
+                            title={c.displayName(d.name)}
+                            figure={d.score}
+                            figureLabel={chart.closenessOf(d.score)}
+                            selected={c.selected === d.name}
+                            onSelect={() => c.chooseDrink(d.name)}
+                          />
+                        </li>
+                      ))}
+                    </ol>
+                  )}
                 </section>
-              )}
-            </>
-          ) : (
-            <>
-              {!hasCoordinate ? (
-                // Without a coordinate the ranking is distance from the origin, which
-                // is nobody's menu: say what it needs instead of presenting one.
-                <section>
-                  <h2 className="section-title">{menu.coldTitle}</h2>
-                  <Empty
-                    action={
-                      <button
-                        type="button"
-                        onClick={() => window.location.assign(questionsHref)}
-                        className="btn btn-primary w-full px-6"
-                      >
-                        {compass.findYours}
-                      </button>
-                    }
-                  >
-                    {menu.coldBody}
-                  </Empty>
-                </section>
-              ) : top ? (
-                <>
-                  <TopPick drink={top} entry={register[top.name]} user={user} selected={selected === top.name} onSelect={() => choose(top.name)} />
-                  <ol className="mt-5.5 border-t border-foreground">
-                    {rest.map((d, i) => (
-                      <li key={d.name} className="border-b border-border">
-                        <DrinkRow
-                          rank={i + 2}
-                          title={displayName(d.name)}
-                          figure={d.score}
-                          figureLabel={chart.closenessOf(d.score)}
-                          selected={selected === d.name}
-                          onSelect={() => choose(d.name)}
-                        />
-                      </li>
-                    ))}
-                  </ol>
-                </>
-              ) : (
-                <Empty>{menu.empty}</Empty>
-              )}
-              {bars.length > 0 && <BarList title={compass.yourBars} bars={bars} extra={null} onOpen={(name) => openMenu({ name })} />}
-            </>
-          )}
-
-          {/* One sign-in prompt, below the list, stating the benefit */}
-          {isEnabled && !member && hasCoordinate && (
-            <GuestPrompt className="mt-6" title={menu.keepTitle} body={menu.keepBody} onSignIn={openSignIn} />
-          )}
-        </div>
+                <BarList
+                  title={compass.barsTitle}
+                  bars={c.barHits}
+                  onOpen={(name) => c.openMenu({ name })}
+                  // Not a bar you have been to: its menu opens there all the same.
+                  extra={c.offerBar}
+                />
+                {c.nearHits.length > 0 && (
+                  <section className="mt-6">
+                    <h2 className="section-title">{compass.nearTitle}</h2>
+                    <BarRows bars={c.nearHits} known={c.known} selected={c.selectedBar} onSelect={c.chooseBar} />
+                  </section>
+                )}
+              </>
+            ) : (
+              <>
+                {c.hasCoordinate && (
+                  <section className="mt-4">
+                    <div className="flex items-baseline justify-between gap-4 border-b border-foreground pb-1">
+                      <h2 className="font-serif text-heading font-bold">{compass.menuTitle}</h2>
+                      <span className="text-meta text-muted-foreground">{compass.menuNote}</span>
+                    </div>
+                    {c.menu.length === 0 ? (
+                      <Empty>{menu.empty}</Empty>
+                    ) : (
+                      <ol>
+                        {c.menu.map((d, i) => (
+                          <li key={d.name} className="border-b border-border">
+                            <MenuRow
+                              rank={i + 1}
+                              title={c.displayName(d.name)}
+                              way={d.way.words}
+                              distance={d.way.distance}
+                              selected={c.selected === d.name}
+                              onSelect={() => c.chooseDrink(d.name)}
+                            />
+                          </li>
+                        ))}
+                      </ol>
+                    )}
+                  </section>
+                )}
+                {c.bars.length > 0 && <BarList title={compass.yourBars} bars={c.bars} extra={null} onOpen={(name) => c.openMenu({ name })} />}
+                <div className="mt-6">
+                  <NearPanel nearby={c.nearby} known={c.known} selected={c.selectedBar} onSelect={c.chooseBar} />
+                </div>
+              </>
+            )}
+          </div>
+        )}
       </div>
 
       {openBar && (
         <BarCard
           bar={openBar}
-          poured={pouredAt.get(openBar.id) ?? 0}
-          onPick={() => openMenu({ name: openBar.name, at: { lat: openBar.lat, lon: openBar.lon } })}
-          onClose={() => setSelectedBar(null)}
+          poured={c.pouredAt.get(openBar.id) ?? 0}
+          onPick={() => c.openMenu({ name: openBar.name, at: { lat: openBar.lat, lon: openBar.lon } })}
+          onClose={c.closeBar}
         />
       )}
 
@@ -326,22 +245,62 @@ function CompassContent({
         <DrinkCard
           drink={selectedDrink}
           register={register}
-          closeness={closeness[selectedDrink.name]}
-          last={lastPour.get(selectedDrink.name)}
-          sameSpot={drinkDatabase.filter(
-            (d) => d.name !== selectedDrink.name && d.x === selectedDrink.x && d.y === selectedDrink.y
-          )}
-          onPick={setSelected}
+          closeness={c.closeness[selectedDrink.name]}
+          last={c.lastPour.get(selectedDrink.name)}
+          sameSpot={c.sameSpot}
+          onPick={c.setSelected}
           onLog={() => rate.open({ drink: selectedDrink.name })}
-          onChoose={() => {
-            savePick({ drink: selectedDrink.name, pickedAt: new Date().toISOString() });
-            kept();
-          }}
-          onClose={() => setSelected(null)}
+          onChoose={c.pickSelected}
+          onClose={c.closeDrink}
         />
       )}
       {sheet}
     </div>
+  );
+}
+
+/**
+ * A drink on your menu: its rank, its name, which way it lies from you and
+ * how far. The first is yours above all, so its name is in terracotta.
+ */
+function MenuRow({
+  rank,
+  title,
+  way,
+  distance,
+  selected,
+  onSelect,
+}: {
+  rank: number;
+  title: string;
+  way: string;
+  distance: number;
+  selected: boolean;
+  onSelect: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onSelect}
+      aria-pressed={selected}
+      className="flex min-h-11 w-full items-center gap-3 py-2.5 text-left focus-ring-inset"
+    >
+      <span className="w-4 shrink-0 font-condensed text-meta tabular-nums text-muted-foreground">{rank}</span>
+      <span className="flex min-w-0 flex-1 flex-col">
+        <span
+          className={cn(
+            'font-serif text-prose font-bold transition-colors hover:underline hover:underline-offset-4',
+            selected || rank === 1 ? 'text-primary' : 'text-foreground'
+          )}
+        >
+          {title}
+        </span>
+        <span className="text-meta text-muted-foreground">{way}</span>
+      </span>
+      <span className="shrink-0 font-condensed text-prose font-bold tabular-nums" aria-label={chart.farOf(distance)}>
+        {distance}
+      </span>
+    </button>
   );
 }
 
@@ -386,81 +345,6 @@ function BarList({
         )}
       </ol>
     </section>
-  );
-}
-
-/**
- * The top pick: the one sheet that is yours, so it takes the letterpress
- * offset. The explanation is written once, here, rather than on tap for every
- * row.
- */
-function TopPick({
-  drink,
-  entry,
-  user,
-  selected,
-  onSelect,
-}: {
-  drink: ScoredDrink;
-  entry?: Register[string];
-  user: User;
-  selected: boolean;
-  onSelect: () => void;
-}) {
-  const [why, setWhy] = useState<{ name: string; text: string | null } | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    explainDrinkMatch(drink.name, {
-      x: user.x,
-      y: user.y,
-      dislikesSmoke: user.filters.includes('noSmoke'),
-      dislikesBitter: user.filters.includes('noBitter'),
-    })
-      .then((text) => !cancelled && setWhy({ name: drink.name, text }))
-      .catch(() => !cancelled && setWhy({ name: drink.name, text: null }));
-    return () => {
-      cancelled = true;
-    };
-  }, [drink.name, user.x, user.y, user.filters]);
-
-  const loading = why?.name !== drink.name;
-
-  return (
-    <div className="flex flex-col gap-2.5 border border-foreground bg-card p-4.5 shadow-mcm">
-      <div className="flex items-baseline justify-between">
-        <span className="font-condensed text-label font-semibold uppercase tracking-label text-secondary">
-          {menu.topPrefix} · {menu.topTitle}
-        </span>
-        <span className="font-condensed text-prose font-bold tabular-nums" aria-label={chart.closenessOf(drink.score)}>
-          {drink.score}
-        </span>
-      </div>
-      <button
-        type="button"
-        onClick={onSelect}
-        aria-pressed={selected}
-        className={cn(
-          'text-left font-serif text-title font-bold transition-colors hover:underline hover:underline-offset-4',
-          selected ? 'text-primary' : 'text-foreground'
-        )}
-      >
-        {entry?.title ?? drink.name}
-      </button>
-      {entry?.build && <span className="text-meta text-muted-foreground">{entry.build}</span>}
-      {(loading || why?.text) && (
-        <p
-          aria-busy={loading}
-          className={cn(
-            // Two lines held open while it loads, so the list below does not drop when it lands.
-            'min-h-16 border-t border-border pt-2.5 font-serif text-ui italic',
-            loading && 'text-muted-foreground motion-safe:animate-pulse'
-          )}
-        >
-          {loading ? '…' : why?.text}
-        </p>
-      )}
-    </div>
   );
 }
 

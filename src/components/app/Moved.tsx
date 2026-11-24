@@ -23,8 +23,10 @@ interface MovedProps {
 
 /**
  * After a pour, in the rating sheet. The payoff of logging, shown every time:
- * where you were, where you are, what changed on the menu. The second and
- * last use of the ink ground.
+ * how far it moved you ("Moved 0.7", or "Held." for a rating in the middle),
+ * which way, where you were and where you are with the drink that pulled
+ * you, and what changed on the menu. The second and last use of the ink
+ * ground. No shoal here: one pour narrows it too little to see.
  */
 const same = (name: string) => name;
 
@@ -48,6 +50,9 @@ export function Moved({
   const drink = matchDrink(drinkName);
   // A drink the map has no point for moves nothing (unless a deviation did): say why, not "barely a step".
   const stayed = !drink && from.x === to.x && from.y === to.y;
+  // How far, as the log says it. A drink on the map that moved you nowhere was rated in the middle.
+  const distance = Math.round(Math.hypot(to.x - from.x, to.y - from.y) * 10) / 10;
+  const held = !stayed && distance === 0;
 
   const rows: { name: string; note: string }[] = [];
   // A drink with no point has no place on the menu to report.
@@ -66,12 +71,16 @@ export function Moved({
           {moved.eyebrow} · {displayName(drink?.name ?? drinkName)} · {scoreLabel}
         </span>
         <h1 ref={heading} tabIndex={-1} className="font-serif text-hero font-normal italic outline-none">
-          {stayed ? moved.unlistedTitle : moved.title}
+          {stayed ? moved.unlistedTitle : held ? moved.heldTitle : moved.title(distance)}
         </h1>
         <p className="mt-1 font-serif text-prose">
           {stayed ? (
             <>
               {moved.unlisted(drinkName)} {moved.stillIn} {after.name}.
+            </>
+          ) : held ? (
+            <>
+              {moved.held} {moved.stillIn} {after.name}.
             </>
           ) : (
             <>

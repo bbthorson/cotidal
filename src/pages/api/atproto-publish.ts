@@ -4,6 +4,7 @@ import {
   shareToFeed,
   getPalateProfile,
   getPours,
+  getLatestElicitation,
   publishElicitation,
 } from '@/lib/atproto/publish';
 import { ElicitationWriteSchema } from '@/lib/atproto/records';
@@ -73,6 +74,11 @@ export const POST: APIRoute = async ({ request }) => {
       console.error('Failed to get connected pours:', e);
       return json({ pours: [] });
     }
+  }
+
+  if (body.action === 'getConnectedQuiz') {
+    if (!session) return json({ quiz: null });
+    return json({ quiz: await getLatestElicitation(session) });
   }
 
   if (!session) return fail(apiErrors.notConnected, 401);

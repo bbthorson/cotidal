@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { appBar, chart, compass, logPage, moved, pour, ratePage } from '../src/lib/copy';
+import { appBar, coldState, compass, logPage, menu, moved, pour, ratePage } from '../src/lib/copy';
 
 const profile = { x: 4, y: -2, dislikesSmoke: false, dislikesBitter: false, dislikesAnise: false, vibeTags: {} };
 
@@ -58,15 +58,30 @@ test('Log: a guest’s pour is kept on the device', async ({ page }) => {
 
 });
 
-test('Log: the map is yours — your menu filled in, or your pours', async ({ page }) => {
-  await page.addInitScript((p) => localStorage.setItem('user_profile', JSON.stringify(p)), profile);
+test('Log: your track, and what each pour did to it', async ({ page }) => {
   await page.goto('/log');
+  await page.getByRole('button', { name: coldState.guestCta }).click();
 
-  await expect(page.getByRole('region', { name: 'The chart' })).toBeVisible();
-  const lenses = page.getByRole('group', { name: 'Show' });
-  await expect(lenses.getByRole('button')).toHaveText(['Drinks', 'Your pours']);
-  await lenses.getByRole('button', { name: 'Your pours' }).click();
-  await expect(lenses.getByRole('button', { name: 'Your pours' })).toHaveAttribute('aria-pressed', 'true');
+  // Two pours as a guest, from the centre: one liked, which moves you, and one in the middle, which holds you.
+  const sheet = page.getByRole('dialog', { name: ratePage.title });
+  for (const [drink, score] of [['Negroni', 9], ['Margarita', 5]] as const) {
+    if (!(await sheet.isVisible())) await page.getByRole('button', { name: logPage.rateDrink }).click();
+    await sheet.getByLabel(pour.drinkLabel).fill(drink);
+    await sheet.getByRole('group', { name: pour.whereLabel }).getByRole('button', { name: pour.atHome }).click();
+    await sheet.getByRole('radio', { name: new RegExp(`^${score}:`) }).click();
+    await sheet.getByRole('button', { name: pour.submit }).click();
+    // The screen after says how far, or that a rating in the middle held you.
+    await expect(sheet.getByRole('heading', { level: 1 })).toHaveText(score === 5 ? moved.heldTitle : /^Moved \d/);
+    await sheet.getByRole('button', { name: moved.back }).click();
+    await expect(sheet).toHaveCount(0);
+  }
+
+  await expect(page.getByText(menu.youAreIn)).toBeVisible();
+  await expect(page.getByRole('figure', { name: logPage.trackLabel(2) })).toBeVisible();
+  const log = page.locator('ol').filter({ hasText: logPage.startedCentre });
+  await expect(log.getByRole('listitem').first()).toContainText(logPage.held);
+  await expect(log.getByRole('listitem').nth(1)).toContainText(/Moved \d/);
+  await expect(log.getByRole('listitem').last()).toContainText(logPage.startedCentre);
 
   // With no Menu on the app pages, the reading pages are at its foot.
   const reading = page.getByRole('navigation', { name: logPage.readingLabel });
@@ -83,19 +98,18 @@ test('Pick a drink: from Log it opens Compass on a menu with no bar', async ({ p
   await expect(page.getByLabel(compass.atMenu.barLabel)).toBeVisible();
 });
 
-test('Log: the chart sits beside the ledger on a wide screen, above it on a phone', async ({ page }) => {
+test('Log: where you are sits beside the log on a wide screen, above it on a phone', async ({ page }) => {
   await page.addInitScript((p) => localStorage.setItem('user_profile', JSON.stringify(p)), profile);
-  const map = page.getByRole('region', { name: chart.label });
+  const where = page.getByText(menu.youAreIn);
   const ledger = page.getByRole('heading', { name: logPage.ledgerTitle, exact: true });
 
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.goto('/log');
   await expect(ledger).toBeVisible();
-  const [m, l] = [(await map.boundingBox())!, (await ledger.boundingBox())!];
-  expect(m.x + m.width).toBeLessThan(l.x);
-  expect(l.y).toBeLessThan(m.y + m.height);
+  const [w, l] = [(await where.boundingBox())!, (await ledger.boundingBox())!];
+  expect(w.x + w.width).toBeLessThan(l.x);
 
   await page.setViewportSize({ width: 390, height: 844 });
-  const [m2, l2] = [(await map.boundingBox())!, (await ledger.boundingBox())!];
-  expect(m2.y + m2.height).toBeLessThan(l2.y);
+  const [w2, l2] = [(await where.boundingBox())!, (await ledger.boundingBox())!];
+  expect(w2.y + w2.height).toBeLessThan(l2.y);
 });

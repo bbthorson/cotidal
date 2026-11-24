@@ -5,17 +5,12 @@ import { chart, compass, menu } from '@/lib/copy';
 import { titleOf, type Register } from '@/lib/register';
 import type { PourRecord } from '@/lib/atproto/records';
 import type { UserProfile } from '@/hooks/useDiscoveryQuiz';
+import type { Venue } from '@/hooks/useCompass';
 import { questionsHref } from '@/lib/site-nav';
 import { savePick, type DrinkPick } from '@/lib/device-store';
 import { cn } from '@/lib/utils';
 import { DrinkRow } from './Chart';
 import { Empty, ScreenHeader } from './ui';
-
-/** Where the menu is. No name means no bar named: at home. `at` is where the map says the bar is. */
-export interface Venue {
-  name: string | null;
-  at?: { lat: number; lon: number };
-}
 
 /**
  * A menu, on Compass: a bar's, or one with no bar. Type what they pour (each

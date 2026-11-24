@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { QUADRANT_ORDER, quadrantIdFor, regionPath } from '../src/lib/quadrant';
 import { drinkDatabase } from '../src/lib/data';
-import { quadrants, drinks, nav as nav_ } from '../src/lib/copy';
+import { quadrants, drinks, hero, nav as nav_ } from '../src/lib/copy';
 import { AUTH_ERROR_MESSAGES } from '@bbthorson/atproto-cf-auth/client';
 
 /**
@@ -40,31 +40,31 @@ test('Landing: ships no client JavaScript', async ({ page }) => {
   expect(await page.locator('astro-island').count()).toBe(0);
 });
 
-test('Landing: hero and quadrants are server-rendered', async ({ page }) => {
+test('Landing: the front door is server-rendered, and asks one thing', async ({ page }) => {
   // Reading the raw HTML (not the DOM) proves the content arrives from the
   // server rather than being produced by hydration.
   const response = await page.request.get('/');
   const html = await response.text();
 
-  expect(html).toContain('Every palate has');
-  for (const { name } of quadrants) {
-    expect(html).toContain(name);
-  }
+  expect(html).toContain(hero.headline);
   expect(html).not.toMatch(/triangulat/i);
+  // The regions are withheld until you have one: the axes are not labelled at the door.
+  for (const { name } of quadrants) expect(html).not.toContain(name);
+
+  await page.goto('/');
+  await expect(page.locator('main a.btn')).toHaveCount(1);
+  await expect(page.locator('main form')).toHaveCount(0);
 });
 
 /**
- * The landing page names the four regions; a region is the drinks filtered to
- * it. Asserted rather than assumed, because the ids are written into links in
- * more than one place.
+ * A region is the drinks filtered to it. Asserted rather than assumed,
+ * because the ids are written into links in more than one place.
  */
-test('Landing: each region opens the drinks filtered to it', async ({ page }) => {
-  const landing = await (await page.request.get('/')).text();
+test('Drinks: each region opens the drinks filtered to it', async ({ page }) => {
   const register = await (await page.request.get('/drinks')).text();
 
   for (const id of QUADRANT_ORDER) {
     const path = regionPath(id);
-    expect(landing, `no landing link to ${path}`).toContain(`href="${path}"`);
     expect(register, `/drinks does not offer the ${id} filter`).toContain(`href="${path}"`);
 
     const filtered = await (await page.request.get(path)).text();
@@ -96,16 +96,17 @@ test('Drinks: a region filter lists only that region’s drinks, and is read as 
   await expect(current).toHaveAttribute('href', '/drinks');
 });
 
-test('Landing: sign-in works without JavaScript', async ({ browser }) => {
+test('Sign in: works without JavaScript, from its own page', async ({ browser }) => {
   const context = await browser.newContext({ javaScriptEnabled: false });
   const page = await context.newPage();
-  await page.goto('/');
+  await page.goto('/sign-in');
 
   // A real <form> post, not a fetch() handler, so the flow degrades cleanly.
   const form = page.locator('form[action="/api/auth/atproto/login"]');
   const disabled = page.getByText('Signing in is switched off for now. Everything else works.');
   await expect(form.or(disabled).first()).toBeVisible();
 
+  await page.goto('/');
   await expect(page.getByRole('link', { name: /find your coordinate/i })).toHaveAttribute(
     'href',
     '/questions'
@@ -113,8 +114,18 @@ test('Landing: sign-in works without JavaScript', async ({ browser }) => {
   await context.close();
 });
 
-test('Landing: surfaces sign-in errors from the callback', async ({ page }) => {
-  await page.goto('/?auth_error=callback_failed');
+test('Sign in: ships no client JavaScript', async ({ page }) => {
+  const scripts: string[] = [];
+  page.on('response', (res) => {
+    if (res.request().resourceType() === 'script' && !isDevServerScript(res.url())) scripts.push(res.url());
+  });
+  await page.goto('/sign-in', { waitUntil: 'networkidle' });
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+  expect(scripts).toHaveLength(0);
+});
+
+test('Sign in: surfaces sign-in errors', async ({ page }) => {
+  await page.goto('/sign-in?auth_error=callback_failed');
   await expect(page.getByRole('alert')).toContainText(AUTH_ERROR_MESSAGES.callback_failed);
 });
 
@@ -122,7 +133,7 @@ test('Navigation: unified header navigation renders on landing, drinks and compa
   const landing = await (await page.request.get('/')).text();
   expect(landing).toContain('aria-label="Main navigation"');
   expect(landing).toContain('href="/compass"');
-  expect(landing).toContain('href="/#connect"');
+  expect(landing).toContain('href="/sign-in"');
 
   const register = await (await page.request.get('/drinks')).text();
   expect(register).toContain('aria-label="Main navigation"');
@@ -155,6 +166,5 @@ test('Header: on a phone the destinations fold under "Menu", without JavaScript'
 
 test('Landing: one primary action, with its cost stated', async ({ page }) => {
   const html = await (await page.request.get('/')).text();
-  expect(html).toContain('About two minutes · no account needed');
-  expect(html).toContain('href="#regions"');
+  expect(html).toContain(hero.cost);
 });

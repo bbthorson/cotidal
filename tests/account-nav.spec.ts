@@ -41,15 +41,17 @@ test('Sign out: the page it lands on forgets the coordinate on this device', asy
     localStorage.setItem('user_profile', JSON.stringify(p));
     localStorage.setItem('pending_elicitation', '{}');
     localStorage.setItem('palate_state', '{}');
+    localStorage.setItem('last_quiz', '{}');
   }, profile);
 
   await page.goto(signedOutPath);
-  await expect(page.getByRole('button', { name: compass.showNear })).toBeVisible();
+  // Forgotten, so Compass has no position: it asks for one.
+  await expect(page.getByRole('button', { name: compass.findYours })).toBeVisible();
   // The page is server-rendered, so it shows before the island hydrates
   // and acts on the marker: wait for that, rather than reading once.
   await expect
-    .poll(() => page.evaluate(() => ['user_profile', 'pending_elicitation', 'palate_state'].map((k) => localStorage.getItem(k))))
-    .toEqual([null, null, null]);
+    .poll(() => page.evaluate(() => ['user_profile', 'pending_elicitation', 'palate_state', 'last_quiz'].map((k) => localStorage.getItem(k))))
+    .toEqual([null, null, null, null]);
   // A reload does not do it again.
   await expect.poll(() => new URL(page.url()).searchParams.has(SIGNED_OUT_PARAM)).toBe(false);
 });

@@ -6,8 +6,9 @@ is about the code.
 
 ## Rendering: keep the front door static
 
-`/` is pure Astro with **zero client JavaScript**, and so is `/p/<handle>`
-(a link sent to a stranger). The app pages (`/compass`, `/log`,
+`/` is pure Astro with **zero client JavaScript**, and so are `/sign-in`
+and `/p/<handle>` (a link sent to a stranger). `/` asks one thing — find your
+coordinate — and keeps nothing else: sign-in is its own page. The app pages (`/compass`, `/log`,
 `/questions`) mount React islands.
 
 The whole app was previously one `client:only` island, so nothing painted
@@ -29,11 +30,24 @@ landing page included. Astro was being used as a slower Next.js.
   screen that can rate gives the sheet its own coordinate and pours so it is
   current the moment the sheet closes. A new trigger calls `open()`; it does
   not navigate.
+- **An app screen is a hook and a drawing.** `useCompass`, `useLog`,
+  `useRatePour` and `usePourForm` (`src/hooks/`) hold a screen's state and
+  what a tap does; `Compass.tsx`, `LogScreen.tsx`, `RateSheet.tsx` and
+  `PourForm.tsx` only draw it, so a redesign changes the component and
+  leaves the hook alone. The rules a screen applies are plain functions in
+  `src/lib/` — `drink-search.ts`, `pour-entry.ts`, `pour-history.ts`,
+  `scoreDrinks` in `menu-rank.ts` — tested in `tests/unit/`. Nothing in
+  `src/lib/` or `src/hooks/` imports from `src/components/`.
+- There is no separate API layer for the screens, on purpose: a guest's
+  palate and the quiz run on the device, so the rules run in the browser,
+  and server pages import the same functions rather than calling
+  themselves over HTTP. What an outside client reads goes through `/mcp`,
+  built on those functions.
 - Never add an island to `/`. `tests/landing-static.spec.ts` fails if you do.
 - Sign-in is `@bbthorson/atproto-cf-auth`, content-negotiated at
   `/api/auth/atproto/login`: JSON in, JSON out for the island; form-encoded in,
   303 out for the plain form.
-  Do not break the second path — it is what keeps `/` script-free.
+  Do not break the second path — it is what keeps `/sign-in` script-free.
 
 ## Single sources of truth
 
@@ -107,6 +121,14 @@ shows and the rating sheet clears. There is no separate harbour page.
 The dot on the map is not the filter's estimate: `applyPour` moves crisp/sweet
 by a capped, simpler rule and leaves the other three axes to the EKF.
 
+**Your track is replayed, never stored** (`src/lib/track.ts`): from the latest
+quiz's answers (`quizStart`, refitted by `axesFromResponses`) through every
+pour since, by `applyPour`, keeping the state between pours as a member's
+record or a guest's device keeps it. `tests/unit/track.test.ts` holds the
+replay to both paths step by step. A replay that does not land where you are
+answers `null` and nothing is drawn; change `applyPour` and old tracks stop
+adding up, which is the honest outcome.
+
 ### Placement — `src/lib/placement.ts`
 The first 94 drinks were placed by hand. A wine or beer added since is placed
 by its style: `profile` (body 1–5, residual sugar g/L, structure 0–4 —
@@ -179,9 +201,9 @@ Prose is written from primary sources rather than adapted from any one
 reference, so no entry inherits a share-alike licence.
 
 `/drinks` groups entries under the four regions, and each section carries its
-quadrant `id` as an anchor because the landing page links into them
-(`/drinks#deep`). Those are two hand-written lists of the same ids;
-`tests/landing-static.spec.ts` asserts they still agree.
+quadrant `id` as an anchor (`/drinks#deep`), and each region is also a
+filter (`regionPath`); `tests/landing-static.spec.ts` asserts `/drinks`
+offers every region's filter and that each names its region.
 
 **To add an entry**, create `src/content/drinks/<slug>.md`. The filename is the
 URL. `name` in the frontmatter must match a `name` in `drinkDatabase` exactly —
@@ -200,7 +222,7 @@ with `RegionFilter` across the top, the drinks first and the region's prose
 under them. Prerendered and script-free. There is no Regions item in the
 navigation (Drinks is a footer page, current there). Same format as a drink
 (`documented` required, `claimed`, `sources`), one entry per region, and the
-filename is the id — which is a URL: the landing page, `/drinks`, `/p/<handle>`,
+filename is the id — which is a URL: `/drinks`, `/p/<handle>`,
 the chat tools and the region coasters link to it.
 
 The entry holds only prose. Name, axis and gloss come from `quadrants` in

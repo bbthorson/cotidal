@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { questions } from '../src/lib/discovery-questions';
-import { quadrants, coldState, compass, menu, ratePage, reveal as revealCopy } from '../src/lib/copy';
+import { quadrants, chart, coldState, compass, ratePage, reveal as revealCopy } from '../src/lib/copy';
 
 /**
  * Questionnaire flow contract:
@@ -25,12 +25,19 @@ test('Questionnaire: opens directly with calibration question and selectable opt
   await expect(page.getByText(/of about 8/)).toBeVisible();
 });
 
-test('Compass: with no coordinate it still browses, and offers the questions', async ({ page }) => {
+test('Compass: with no coordinate it asks one thing, and still browses when asked', async ({ page }) => {
   await page.goto('/compass');
   await expect(page.getByText(first.text)).toHaveCount(0);
-  // No coordinate, so no menu: ranking around the origin would be nobody's.
-  await expect(page.getByText(menu.coldTitle)).toBeVisible();
-  await expect(page.getByText(/No\. 1 · Your go-to/)).toHaveCount(0);
+  // No position, so no menu: ranking around the origin would be nobody's. One way on.
+  await expect(page.getByRole('heading', { level: 1, name: compass.startTitle })).toBeVisible();
+  await expect(page.getByRole('region', { name: chart.label })).toBeVisible();
+  await expect(page.getByRole('heading', { name: compass.menuTitle })).toHaveCount(0);
+  await expect(page.getByRole('searchbox')).toHaveCount(0);
+  await page.getByRole('button', { name: compass.lookUp }).click();
+  await expect(page.getByRole('searchbox', { name: compass.searchLabel })).toBeVisible();
+  await expect(page.getByRole('heading', { name: compass.menuTitle })).toHaveCount(0);
+
+  await page.reload();
   await page.getByRole('button', { name: compass.findYours }).click();
   await expect(page).toHaveURL(/\/questions$/);
   await expect(page.getByText(first.text)).toBeVisible();
@@ -84,8 +91,9 @@ test('Questionnaire: finishing the questions reveals a region before the menu', 
   await page.getByRole('button', { name: revealCopy.continue }).click();
   await expect(page).toHaveURL(/\/compass$/);
 
-  // After the reveal, Compass: your menu, and a search over drinks and bars.
-  await expect(page.getByText(/No\. 1 · Your go-to/)).toBeVisible();
+  // After the reveal, Compass: the chart, your menu, and a search over drinks and bars.
+  await expect(page.getByRole('region', { name: chart.label })).toBeVisible();
+  await expect(page.getByRole('heading', { name: compass.menuTitle })).toBeVisible();
   await expect(page.getByRole('searchbox', { name: compass.searchLabel })).toBeVisible();
 });
 
@@ -97,26 +105,25 @@ test('Menu: one ranked list, with no occasion switch', async ({ page }) => {
   );
   await page.reload();
 
-  await expect(page.getByText(/No\. 1 · Your go-to/)).toBeVisible();
+  await expect(page.getByRole('heading', { name: compass.menuTitle })).toBeVisible();
   // The occasion tabs are gone; the menu ranks by closeness alone.
   await expect(page.getByRole('group', { name: 'Occasion' })).toHaveCount(0);
   for (const label of ['Usual', 'Night out', 'Impress', 'Holiday']) {
     await expect(page.getByRole('button', { name: label, exact: true })).toHaveCount(0);
   }
 
-  // Top pick plus the numbered rest, scored from highest to lowest.
-  const scores = await page.getByLabel(/^Closeness \d+$/).evaluateAll((els) =>
-    els.map((el) => Number(el.textContent))
-  );
-  expect(scores.length).toBeGreaterThan(1);
-  expect(scores).toEqual([...scores].sort((a, b) => b - a));
+  // Each drink says how far it lies from you, never a predicted score.
+  const far = await page.getByLabel(/ away$/).allTextContents();
+  expect(far.length).toBeGreaterThan(1);
+  far.forEach((d) => expect(Number(d)).toBeGreaterThanOrEqual(0));
 
-  // Compass points outward; the map is Log's.
-  await expect(page.getByRole('region', { name: 'The chart' })).toHaveCount(0);
+  // Compass opens on the chart.
+  await expect(page.getByRole('region', { name: chart.label })).toBeVisible();
 });
 
 test('Compass: search a drink, tap it, then "Rate this" opens the rating sheet on that drink', async ({ page }) => {
   await page.goto('/compass');
+  await page.getByRole('button', { name: compass.lookUp }).click();
 
   // A drink is found by what is in it, not only by its name.
   await page.getByRole('searchbox', { name: compass.searchLabel }).fill('mezcal');

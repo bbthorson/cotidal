@@ -72,6 +72,13 @@
     --chart-ring: var(--foreground) / 0.4;
     --chart-cross: var(--card) / 0.7;
 
+    /* Shoal: the pale water a printed chart tints its shallows with. On the
+       chart it is where you probably are (the uncertainty around your dot),
+       and on the questions where your answers point so far. Never a fill
+       for anything else. On the ink ground the same patch is sage, thinly. */
+    --shoal: 156 17% 88%;
+    --reveal-shoal: var(--reveal-muted) / 0.12;
+
   }
 }
 

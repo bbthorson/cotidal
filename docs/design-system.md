@@ -30,8 +30,9 @@ All colors, typography, elevations, and layout metrics are defined centrally in 
 | `--border` | `41 29% 81%` | `#D6CEBA` | Tan hairline border |
 | `--muted-foreground` | `125 6% 39%` | `#5D6A61` | Warm grey-green for metadata & glosses |
 | `--destructive` | `0 65% 42%` | `#B12828` | Errors only |
+| `--shoal` | `156 17% 88%` | `#DCE6E2` | Pale water: where you probably are on the chart, and where the questions' answers point. Nothing else |
 
-**Colour rules.** Terracotta marks what is *yours* and nothing else: your dot, your region, your top pick, a value you gave and the app records (a rating, a chosen answer), and the focus ring. Forest is for acting and switching: the primary button, a pressed filter, segment or chip. **"You are here"** — the current page, tab or step — is neither: a bold label over a heavy ink (`foreground`) rule, like a printed tab (`.tab`, below). Links are underlined in grey-green and darken to ink on hover; text that is not underlined underlines on hover. Text is full-strength ink, forest, terracotta or grey-green — de-emphasise with size and weight, never with opacity.
+**Colour rules.** Terracotta marks what is *yours* and nothing else: your dot, your region, your track, the first drink on your menu, a value you gave and the app records (a rating, a chosen answer), and the focus ring. Forest is for acting and switching: the primary button, a pressed filter, segment or chip. **"You are here"** — the current page, tab or step — is neither: a bold label over a heavy ink (`foreground`) rule, like a printed tab (`.tab`, below). Links are underlined in grey-green and darken to ink on hover; text that is not underlined underlines on hover. Text is full-strength ink, forest, terracotta or grey-green — de-emphasise with size and weight, never with opacity.
 
 ### The reveal ground (`reveal-*`)
 Forest laid as the stock, paper as the ink. Used **only** where the product reveals something: the coordinate landing after the questions (`Reveal.tsx`) and moving after a pour (`Moved.tsx`). Never a theme the user switches to.
@@ -115,7 +116,6 @@ Width and padding stay with the layout (`w-full`, `px-8`).
 ### Form & Component Patterns
 - **Dot Leader**: `.dot-leader` with `.leader` spacer for wine-list style alignments (`Name .......... Amount`).
 - **Menu Row**: `.menu-row` creates a clean hairline top rule with generous breathing room.
-- **Top pick sheet**: the one sheet that is yours — ink edge, `bg-card`, `shadow-mcm`.
 - **Option plate**: the whole plate is the button; chosen = ink edge + `shadow-mcm`, struck through when the question asks what to push away.
 - **Segmented control**: `.segmented` frame with `.segment` cells (`aria-pressed` is forest; a radio's `aria-checked` is terracotta, for what is yours). The columns are the caller's (`grid grid-cols-3`), or `.segmented-stack` for a column.
 - **Tags**: axis (outline, forest), region (terracotta fill), status (sage fill). A static label is `.tag`; a toggle is `.chip` (`<Chip>`, `aria-pressed` is forest). Both are sentence case in PT Sans. No other tag styles.
@@ -132,12 +132,12 @@ Width and padding stay with the layout (`w-full`, `px-8`).
 
 Navigation is unified across the entire site through `<SiteHeader.astro>` and `<SiteFooter.astro>`, both rendered from one list (`destinations` in `src/lib/site-nav.ts`):
 1. **Zero Client JavaScript**: Rendered as semantic HTML `<header>` and `<nav aria-label="Main Navigation">`.
-2. **Destinations** (header): Compass (`/compass`), Log (`/log`). Drinks (`/drinks`) and For Bars (`/bars`) are reading pages, so they are in the footer (and the landing page links into Drinks and its regions), not the header; For Bars is also the supply side, a different product from the drinker's app; `/bars/*` is reserved for it and will get its own layout.
+2. **Destinations** (header): Compass (`/compass`), Log (`/log`). Drinks (`/drinks`) and For Bars (`/bars`) are reading pages, so they are in the footer, not the header; For Bars is also the supply side, a different product from the drinker's app; `/bars/*` is reserved for it and will get its own layout.
 3. **The account control** (header) says what the server knows (`accountFor` in `session.ts`, read once in `AppShell`):
    - a member sees `@handle`, which opens the account (the foot of Log, `/log#account`), and **Sign out** — a plain form post that answers with a redirect, like sign-in, so it needs no script;
    - a guest sees **Sign in**;
    - a prerendered page (`/drinks`, `/drinks/regions/*`) was built before anyone visited, so it says **Account** (also `/log#account`) rather than guess.
-   - on an app page, **Sign in** opens the one sign-in sheet in place (`?signin=1`, handled by `AtprotoProvider`) rather than leaving for the landing page's form. On every other page it goes to `/#connect`.
+   - on an app page, **Sign in** opens the one sign-in sheet in place (`?signin=1`, handled by `AtprotoProvider`) rather than leaving for a page. On every other page it goes to `/sign-in`, a script-free page with the same form and promise.
 4. **Footer**: the reading pages only — How it works, Drinks, For Bars (`app: false` in `destinations`); a region page marks Drinks current here. The app destinations and the account are always in the header. On a page with a bar pinned along the bottom (`AppShell`'s `bottomBar`) it is left out below `lg`: the bar is that page's foot, and the header's Menu already lists the same pages.
 5. **Active State Indicators**: Routes are identified via `currentPath` and styled as a tab: bold ink over a 3px `foreground` rule from `lg`, bold alone in the phone's folded menu.
 6. **Sub-Route Navigation**: In `/drinks/[slug]`, the header supports a semantic `backLink` while retaining global site navigation.
@@ -146,17 +146,25 @@ Navigation is unified across the entire site through `<SiteHeader.astro>` and `<
 9. **The app bar** (`AppBar.astro`): **Compass · Log** along the foot of a phone on the app pages (`AppShell`'s `bottomBar`) — navigate, record. Plain links, no script; hidden in focus mode and from `lg`, where the header carries the same destinations. A card pinned above it (`PinnedCard`) uses the `tabbar` spacing token.
 10. **Pick a drink** (`PickButton.astro`): choosing what to have is the one thing you *do*, not a place, so it is a floating button rather than a tab — above the app bar on a phone; from `lg` at the foot of the content's right edge (`right-frame-edge`), not the window's corner. It opens Compass on a menu with no bar (`/compass?menu=1`). Not drawn on Compass (which has "Have a menu?" under its search), while a drink card is open, or in focus mode.
 11. **Two tiers of page title.** Reading pages open with the centred `PageTitle`. App screens open with `ScreenHeader` — the tab's name as the eyebrow, then the screen's own title — left-aligned and at one size. Every app screen uses it: Compass and Log (eyebrow: the tab's name), a bar's menu on Compass (eyebrow "Compass", the title the bar's name), and the cold state (`ColdState`). A menu on Compass keeps a single centred column on every width; the two tabs use the `frame` width and lay out in columns from `lg`.
-12. **One sheet per screen.** Only what is yours — the top pick, the chosen option, the pinned card — is a sheet with `shadow-mcm`. Everything else is a ruled section (`section-title`) or rows. A map sits in a frame on the ground, as a printed chart does; that is a figure, not a sheet — and so is the chart's title block (`Chart.tsx`), which the frame continues around. A pick waiting to be rated (`WaitingPick`) is a strip ruled in ink, not a sheet, so it never competes with the top pick under it.
+12. **One sheet per screen.** Only what is yours — the chosen option, the pinned card — is a sheet with `shadow-mcm`. Everything else is a ruled section (`section-title`) or rows. A map sits in a frame on the ground, as a printed chart does; that is a figure, not a sheet — and so is the chart's title block (`Chart.tsx`), which the frame continues around. A pick waiting to be rated (`WaitingPick`) is a strip ruled in ink, not a sheet, so it never competes with the chart.
 13. **Two kinds of empty.** A list with nothing in it yet is `Empty`: Log's ledger, Compass's menu without a coordinate, a search with no match, no bars near. A screen that cannot start without a coordinate is a `ScreenHeader` and its ways in: `ColdState` on Log and in the rating sheet; a menu on Compass says what it needs in an `Empty`. Nothing else says "empty".
 14. **One section heading.** A section inside any page, reading or app, opens with `section-title`: a bold Playfair line over an ink rule. A heading with a link beside it ("Rate a drink", "Its drinks →") draws the same rule under the row. Small caps label a field or a column, never a section.
 15. **Nothing smaller than 13px is prose.** `text-label` (12px) is for condensed caps only. A note or citation under an item is `text-meta` in PT Sans; an italic gloss is Playfair at `text-ui`.
 16. **The eyebrow is the name of the way in.** The small caps line over a title is the label of the nav item, tab or button that opens the page — Drinks, Regions, For bars, Chat assistants, Public map, Compass, Log, Pick a drink, Rate a drink — and a page about one item adds what kind of item after a middle dot (`Drinks · Aperitivo`, `Regions · Rich and savory`). The landing page has none. Write it in sentence case in `copy.ts`; the caps are CSS.
 
+## The app as a chart
+
+The screens show what the model already knows — where you are, how sure it is, the way you came, which way a drink lies and how far — instead of describing it: the chart first on Compass, your track on Log, how far a pour moved you after it, and the shoal narrowing under the questions (`Narrowing` in `Questionnaire.tsx`: the quiz's best guess, one standard deviation across on each axis, drawn small above the running foot so a phone shows the question whole).
+
+**Signed out is one thing per screen.** A stranger is asked to do one thing: find their coordinate. A guest with a coordinate sees what a member sees; what signing in keeps is said once, at the foot of Log, after the first pour — the first moment it would keep something.
+
+**Which way and how far, never a predicted score.** The filter's hedonic prediction sits near 9 for any drink close to you (see `applyPour`), so the interface does not show it as a forecast. Direction words are the axes' own: richer or crisper, sweeter or more savory.
+
 ## The first-visit flow (`/questions`)
 
-Questions → reveal → Compass. The questions are a page of their own (`Questions.tsx`): no tab is current and the bar along the foot is left out. Someone who already has a coordinate is sent on to Compass — the landing page's "Find your coordinate" is the same link for everyone — unless they came to start over (`/questions?startover=1`, from the account on Log), which clears the device's copy first. Skipping goes to Compass, which browses and searches without a coordinate; in the top pick's place it says the menu starts with the questions, rather than ranking drinks around a point nobody chose.
+Questions → reveal → Compass. The questions are a page of their own (`Questions.tsx`): no tab is current and the bar along the foot is left out. Someone who already has a coordinate is sent on to Compass — the landing page's "Find your coordinate" is the same link for everyone — unless they came to start over (`/questions?startover=1`, from the account on Log), which clears the device's copy first. Skipping goes to Compass, which says there is no position yet and offers the questions first, and search when asked for, rather than ranking drinks around a point nobody chose.
 
-Sign-in is offered where it would keep something, as one sheet (`SignInSheet.tsx`, mounted once by `AtprotoProvider`) that states what it buys; the landing page's form (`ConnectForm.astro`) renders the same promise from `connect.buys` in `copy.ts`. The radar chart, the archetypes and the Oracle tab are retired from the interface; the region is the only identity.
+Sign-in is offered where it would keep something, as one sheet (`SignInSheet.tsx`, mounted once by `AtprotoProvider`) that states what it buys; the sign-in page's form (`ConnectForm.astro`, `/sign-in`) renders the same promise from `connect.buys` in `copy.ts`. The radar chart, the archetypes and the Oracle tab are retired from the interface; the region is the only identity.
 
 ## Signed in, signed out
 
@@ -164,10 +172,10 @@ Everything works signed out, on the device; signing in moves the record into the
 
 | | Signed out (guest) | Signed in (member) |
 |---|---|---|
-| **Compass** | Everything | Everything |
+| **Compass** | Before a position: the chart, **Find your coordinate**, and search when asked for. After: everything | Everything |
 | **A menu** (Compass) | Everything; the pick waits on the device | The same |
 | **Rating** | Moves the coordinate on this device; the pour is kept there (`guestPours`, `device-store.ts`) | Written to the member's repository |
-| **Log** | Coordinate and pours, marked *On this device*, and what signing in keeps; start over | `@handle`, coordinate, pours, the account (public map, share, chat assistants, start over, sign out) |
+| **Log** | Coordinate, track and pours, marked *On this device*; what signing in keeps, once there is a pour; start over | `@handle`, coordinate, pours, the account (public map, share, chat assistants, start over, sign out) |
 | **Rating sheet** | The same form; the pour stays on the device | Written to the member's repository; the detail fields and cross-posting |
 
 Signing out forgets the device's copy (`forgetDevice`), on whichever app page it lands (`AtprotoProvider`). A guest's pours stay on the device when they sign in; they are not written to the account on their behalf.
@@ -175,22 +183,25 @@ Signing out forgets the device's copy (`forgetDevice`), on whichever app page it
 
 ## Log (`/log`, `LogScreen.tsx`)
 
-Yours — personal details, so the map lives here. It opens with its `ScreenHeader` ("Your log"), then the chart, then what the log adds up to (pours, bars, since, best so far), the ledger, and **the account** (`AccountSection.tsx`, `#account`): who you are, your public map, share, chat assistants, start over, and Sign out. Rating is not a section of it: "Rate a drink" beside the ledger opens the rating sheet over Log, and Log is where a link from outside the app (a chat assistant's draft) lands.
+Yours: where you are, the way you came, and what moved you. It opens with its `ScreenHeader` ("Your log"), then where you are (region and coordinate; "On this device" for a guest), **your track** (`TrackFigure`), what the log adds up to (pours, bars, moved in all, since), the log itself, and **the account** (`AccountSection.tsx`, `#account`): who you are, your public map, share, chat assistants, start over, and Sign out. "Rate a drink" beside the log opens the rating sheet over Log, and Log is where a link from outside the app (a chat assistant's draft) lands.
 
-From `lg` the chart and its figures hold the left column (sticky) while the ledger and the account scroll beside them, in AppShell's `frame` width; on a phone they stack, chart first.
+From `lg` where you are, the track and the figures hold the left column (sticky) while the log and the account scroll beside them, in AppShell's `frame` width; on a phone they stack, track first.
 
-**The chart** (`Chart.tsx`):
-- **The map** has a graticule — ticks along the frame every 2.5, longer at ±5 — as a printed chart marks its border. Each dot is a 24px target (`DrinkSpot`); drinks sharing a coordinate share one spot.
-- **The title block** is the chart's cartouche: where you are (region and coordinate; "On this device" for a guest), the legend, and the reading (Drinks: your menu filled, the rest hollow; Your pours: liked 7+ filled, 5–6 hollow, 4 or below muted).
-- **A drink** tapped on it opens in the drink card.
+**The track** (`TrackFigure.tsx`, `useTrack`, `src/lib/track.ts`) is never stored. It is replayed from your latest quiz's answers (the account's for a member, the device's copy for a guest; the centre for a guest who tried a pour first) through every pour since, by the same `applyPour` that moved you, and drawn only when the replay lands where you are. The figure is zoomed to the track so a half-point move shows: a square where you started, a dot per pour that moved you, numbered as the log numbers them, and you at the end.
 
-No trail of past positions is drawn yet; the pours to rebuild one from are stored.
+**The log** (`PourLedger.tsx`): each pour a numbered entry, newest first — the drink (linked to its entry in Drinks), the score, where and when, and **Moved 0.7** or **Held** (a rating between 4 and 6 moves nothing) when the track adds up; what was off and the note under it. The last entry is where the track starts: the questions, or the centre.
+
+A guest is told what signing in keeps once, under the log, after the first pour — the first moment it would keep something.
 
 ## Compass (`/compass`, `Compass.tsx`)
 
-Finding something, not looking at yourself: the taste map is Log's. It opens with its `ScreenHeader` ("Where to next"), then one search over drinks — by name or by what is in them ("mezcal") — and bars, across the page. Under it, a **street map** of the bars around you (`Near.tsx`, `NearMap.tsx`) and then your menu: the top-pick sheet and seven rows (`useMenu`, the same ranking Log's map fills in), then **Your bars** from your pours. Without a coordinate the menu's place is a ruled section that offers the questions.
+The chart first. It opens with its `ScreenHeader` ("Where to next"), then **the chart** (`Chart.tsx`): every drink at its place, you, the **shoal** around you (`ShoalMark`: pale water whose radius is the track's spread, dashed, with no number), **your track** (`TrackLine`) when it adds up, and the title block (where you are, the legend, Drinks or Your pours). Then one search over drinks — by name or by what is in them ("mezcal") — and bars, **Have a menu?**, **Your menu** (`useMenu`: eight drinks, each with which way it lies from you and how far, `wayTo`; the first in terracotta), **Your bars** from your pours, and the bars near you (`Near.tsx`, `NearMap.tsx`).
 
-- **From `lg` the map and the menu sit side by side** (the page uses AppShell's `frame` width, the header's own band): the map, taller, with the bars near you under it, on the left; the menu, or the search results, on the right. On a phone they stack, map first, and the map steps aside while a search is typed.
+The menu is ranked by relevance (`scoreDrinks`): closeness, the vibe tags, and how you rated a drink before. So a drink you liked can rank above a nearer one, and the distances need not be in order.
+
+**Before you have a position** Compass asks one thing: "No position yet", one line, **Find your coordinate** and "or look up a drink" above the chart, which shows every drink and no title block. Search and bars appear when asked for; there is no menu, because ranking around a point nobody chose would be nobody's.
+
+- **From `lg` the chart sits beside the menu** (sticky, in AppShell's `frame` width); on a phone they stack, chart first, and the chart steps aside while a search is typed.
 
 - **Bars come from OpenStreetMap** through the Overpass API (`src/lib/osm.ts`): named places tagged bar, pub, beer garden or club within about 1.2 km. Nothing is asked for until the reader taps **Show bars near me** — unless the browser already holds their yes for this site, and then the map opens on its own. The point leaves the device rounded to three decimal places (about 100 m), only to OpenStreetMap, and Cotidal keeps none of it; the panel says so.
 - **The map is quieter than the chart.** OpenStreetMap's tiles are washed toward paper (`.map-paper` in `globals.css`) and carry no graticule or cartouche, so the two maps in the app do not look alike. Bars you have poured at — by name, or by where a pour said the bar was — are terracotta, the colour for what is yours. Leaflet loads only when the map shows.
@@ -199,7 +210,7 @@ Finding something, not looking at yourself: the taste map is Log's. It opens wit
 
 **The drink card** (`DrinkCard`, a `PinnedCard`, on Compass and Log alike): pinned above the app bar, the way a maps app opens a place — region and coordinate, build, closeness, your last pour, "Log this" and the register entry.
 
-**Nothing moves under the reader.** A tap opens something where the thumb is rather than inserting it above what was tapped; anything that loads after paint (the top pick's line) holds its space while it does.
+**Nothing moves under the reader.** A tap opens something where the thumb is rather than inserting it above what was tapped; anything that loads after paint holds its space while it does.
 
 ## A menu on Compass (`MenuView.tsx`, `menu-rank.ts`)
 
@@ -215,7 +226,7 @@ A sheet over the screen you are on, not a page and not a tab: `RateSheet.tsx`, a
 
 **URL contract.** `?rate=<drink>` on `/compass` or `/log` opens it on that drink (`?rate=` alone: on the drink closest to you); `?draft=1&drink=…` opens it on a draft (`pour-draft.ts`; a chat assistant's `draft_pour` link is `/log?draft=1&…`). The hook reads it once on arrival, like `?signin=1`; in-app triggers (**Rate this** on a drink card, the waiting strip's **Rate it**, **Rate a drink** on Log, "Rate … anyway" in Compass search) call `open()` and navigate nowhere. Closing, or logging, takes the request out of the address (`history.replaceState`) and leaves any other query.
 
-One form (`PourForm.tsx`); its ledger is Log's (`PourLedger.tsx`). Ratings use the 9-point hedonic scale the pour record stores, as nine cells in an ink frame; "What was off" uses axis tags; spirit, glass, garnish and the sensory sliders sit behind "More detail" for signed-in members. Logging replaces the form, in the same sheet, with the after-a-pour screen (`Moved.tsx`) on the reveal ground — full-bleed on a phone: where the coordinate went, and what the pour did to your menu (the drink's new rank, and a drink that joined it). **Done** closes the sheet onto the screen underneath, which already shows the new pour (Log's ledger and chart) and has dropped the waiting pick (Compass).
+One form (`PourForm.tsx`); its ledger is Log's (`PourLedger.tsx`). Ratings use the 9-point hedonic scale the pour record stores, as nine cells in an ink frame; "What was off" uses axis tags; spirit, glass, garnish and the sensory sliders sit behind "More detail" for signed-in members. Logging replaces the form, in the same sheet, with the after-a-pour screen (`Moved.tsx`) on the reveal ground — full-bleed on a phone: how far the pour moved you, as the log says it (**Moved 0.7**, or **Held.** for a rating between 4 and 6), which way, where you were and where you are with the drink that pulled you, and what the pour did to your menu (the drink's new rank, and a drink that joined it). No shoal: one pour narrows it too little to see. **Done** closes the sheet onto the screen underneath, which already shows the new pour (Log's ledger and chart) and has dropped the waiting pick (Compass).
 
 ---
 
@@ -242,6 +253,6 @@ To guarantee the design system never drifts, automated enforcement is active at 
 - `tsc --noEmit`: Validates TypeScript types across the entire project.
 
 ### 4. Tests (`npm test`: Vitest in `tests/unit/`, Playwright in `tests/`)
-- `tests/landing-static.spec.ts`: Asserts zero client scripts or hydration islands on `/`, server-rendered quadrants, and non-JS form fallback.
+- `tests/landing-static.spec.ts`: Asserts zero client scripts or hydration islands on `/` and `/sign-in`, a front door that asks one thing, and the non-JS sign-in form.
 - `tests/visual-identity.spec.ts`: Asserts computed CSS colors match the exact token values for paper ground (`rgb(244, 241, 230)`) and forest ink (`rgb(35, 52, 43)`).
 - `tests/unit/drink-content.test.ts`: Asserts all drink entries join cleanly to the coordinate database and contain primary sources.

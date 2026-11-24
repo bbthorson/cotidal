@@ -10,7 +10,7 @@ import {
 } from '@/lib/palate-state';
 import { loadGuestState, saveGuestState } from '@/lib/device-store';
 import type { UserProfile } from '@/hooks/useDiscoveryQuiz';
-import type { PourEntry } from '@/components/app/PourForm';
+import type { PourEntry } from '@/lib/pour-entry';
 
 /** A coordinate at the origin, for someone who would rather try a pour first. */
 export const neutralProfile: UserProfile = {

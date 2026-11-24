@@ -48,6 +48,12 @@ export const appBar = {
 export const compass = {
   title: 'Compass',
   heading: 'Where to next',
+  /** Before you have a position: the chart, one line, and the one way on. */
+  startTitle: 'No position yet',
+  startBody: 'Every drink is on the chart. A few questions put you on it too.',
+  lookUp: 'or look up a drink',
+  menuTitle: 'Your menu',
+  menuNote: 'Which way it lies, and how far',
   findYours: 'Find your coordinate',
   searchLabel: 'Search drinks and bars',
   placeholder: 'Negroni, mezcal, Attaboy…',
@@ -109,8 +115,18 @@ export const logPage = {
     pours: 'Pours',
     bars: 'Bars',
     since: 'Since',
-    best: 'Best so far',
+    moved: 'Moved in all',
   },
+  /** The track figure, read aloud. */
+  trackLabel: (pours: number) => `Your track, through ${pours === 1 ? 'one pour' : `${pours} pours`}`,
+  /** What one pour did to your coordinate, at the end of its entry. */
+  movedOf: (n: number) => `Moved ${n}`,
+  held: 'Held',
+  /** The last entry: where the track starts. */
+  started: 'The questions',
+  startedCentre: 'The centre of the chart',
+  startedAt: (coordinate: string) => `Started at ${coordinate}`,
+
   /** The way into rating a drink that was not handed over (a pick, "Rate this", a chat's draft). */
   rateDrink: 'Rate a drink',
   ledgerTitle: 'What moved it',
@@ -176,50 +192,12 @@ export const hero = {
   headline: 'Every palate has',
   headlineAccent: 'a coordinate.',
   body:
-    'A few questions put a point on the chart. Show it a bar’s menu and it says what to have. You don’t need the words for what you like.',
+    'A few questions put a point on the chart. Show it a bar’s menu and it says what to have.',
   primaryCta: 'Find your coordinate',
   /** Stated under the one primary action, so the cost is known up front. */
   cost: 'About two minutes · no account needed',
-  /** The reading path: one tap away, never a second button. */
-  readFirst: 'Read the four regions first',
 } as const;
 
-/**
- * The landing page's "how it goes": the app's one loop, in the order a
- * newcomer meets it. Each step names the screen it happens on, in the words
- * the app bar uses, so the landing page and the app describe one product.
- */
-export const howItGoes = {
-  title: 'How it goes',
-  label: 'Three steps',
-  more: 'How your answers and ratings move your point',
-  steps: [
-    {
-      where: 'The questions',
-      title: 'Find your coordinate',
-      body: 'About eight quick choices: the coffee you take, the end of a good dinner, the glass you push away. Your answers place a point on the chart.',
-    },
-    {
-      where: 'Pick a drink',
-      title: 'Bring it to the bar',
-      body: 'Type in what they pour and Cotidal ranks it by how close each drink sits to you. You still order from the bartender.',
-    },
-    {
-      where: 'Rate a drink',
-      title: 'Rate it, and the point moves',
-      body: 'One tap from dislike to like. A drink you liked pulls the point toward it, one you didn’t pushes it away, and your menu reorders.',
-    },
-  ],
-} as const;
-
-/**
- * The four quadrants of the palate map, named rather than explained.
- * Order matches reading order on the map: top-left, top-right, bottom-left,
- * bottom-right. Axis values are the sign of (x, y) in `src/lib/data.ts`.
- *
- * `id` is the stable handle code joins on — rename a quadrant here without
- * breaking `src/lib/quadrant.ts`, which maps coordinates onto these.
- */
 export const quadrants = [
   {
     id: 'deep',
@@ -252,21 +230,15 @@ export const quadrants = [
  * sections — these are the equivalent of "Plates" and "Cocktails" at the head
  * of a column.
  */
+/** The sign-in page's sections (`/sign-in`). */
 export const sections = {
-  map: 'The four regions',
-  mapLabel: 'The chart',
-  /** The reveal. The hero withholds the axes; this is where they land. */
-  mapNote: 'Two axes, rich to crisp and savory to sweet. Four regions between them.',
-  /** Under the four regions: the way into the register, with its premise. */
-  registerNote: 'Every drink on the chart has an entry: the build, and what is on the record apart from what is only told.',
-  /** From a region to its section of /drinks. */
   principles: 'Whose log it is',
   connect: 'Sign in',
 } as const;
 
 export const connect = {
   title: 'Keep your log with you.',
-  /** Landing page only; the in-app sheet goes straight from title to list. */
+  /** The sign-in page only; the in-app sheet goes straight from title to list. */
   lede: 'Everything here works without an account.',
   body:
     'As a guest, your coordinate and pours stay on this device. Sign in with Bluesky and they’re kept in your own account instead.',
@@ -311,6 +283,8 @@ export const quiz = {
   /** "3 of about 8" — honest, because the selector is adaptive. */
   countJoiner: 'of about',
   loading: 'Locating your coordinate…',
+  /** The small chart over the running foot: where the answers so far put you, and how surely. */
+  narrowing: 'Where your answers point so far',
 } as const;
 
 /** The reveal: the one screen where the product says who you are. */
@@ -323,12 +297,6 @@ export const reveal = {
 /** Your menu on Compass: the top pick and the drinks after it. */
 export const menu = {
   youAreIn: 'You are in',
-  topPrefix: 'No. 1',
-  topTitle: 'Your go-to',
-  keepTitle: 'Keep your log with you',
-  keepBody: 'Your coordinate lives on this device. Sign in and it’s kept in your own account.',
-  /** In the top pick's place, for someone with no coordinate: the menu needs one. */
-  coldTitle: 'Your menu starts with a few questions',
   coldBody: 'Answer them and this list ranks every drink by how close it sits to you. Until then, search away.',
   empty: 'Nothing on the map fits these limits yet.',
 } as const;
@@ -344,6 +312,13 @@ export const chart = {
   findYours: 'Find your coordinate',
   closeness: 'Closeness',
   closenessOf: (n: number) => `Closeness ${n}`,
+  legendTrack: 'Your track',
+  legendShoal: 'Where you probably are',
+  /** Which way a drink lies from you, in the axes' own words (`wayTo`). */
+  way: { richer: 'richer', crisper: 'crisper', sweeter: 'sweeter', savory: 'more savory', here: 'right here' },
+  wayOf: (words: string[]) => words.join(', '),
+  /** How far, read aloud beside the figure. */
+  farOf: (n: number) => `${n} away`,
   /** The mark for you on a map, read aloud. */
   you: 'Your coordinate',
   youIn: (region: string) => `Your coordinate, in ${region}`,
@@ -363,7 +338,11 @@ export const chart = {
 /** After a pour is logged: the payoff of signing in, shown every time. */
 export const moved = {
   eyebrow: 'Logged',
-  title: 'Your coordinate moved.',
+  /** How far the pour moved you, to a tenth. */
+  title: (distance: number) => `Moved ${distance}`,
+  /** A pour on the map that moved you nowhere: a rating between 4 and 6. */
+  heldTitle: 'Held.',
+  held: 'A rating between 4 and 6 holds you where you are.',
   unlistedTitle: 'Logged.',
   unlisted: (name: string) => `${name} is not on the map yet, so your coordinate stayed where it was.`,
   stillIn: 'Still in',

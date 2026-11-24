@@ -4,13 +4,16 @@ import {
   type Question,
   type QuestionOption,
 } from '@/lib/discovery-questions';
-import { MAX_QUESTIONS } from '@/lib/belief-state';
+import { MAX_QUESTIONS, type AxisBelief } from '@/lib/belief-state';
+import { toPercent } from '@/lib/coordinate';
 import { a11y, quiz } from '@/lib/copy';
 import { cn } from '@/lib/utils';
 
 interface QuestionnaireProps {
   currentQuestion: Question | null;
   progress: number;
+  /** The quiz's belief on each axis so far: drawn as the shoal, narrowing. */
+  axes?: Record<'x' | 'y', AxisBelief>;
   questionCount: number;
   isNavigating: boolean;
   canGoBack: boolean;
@@ -31,6 +34,7 @@ const ROMAN_NUMERALS = ['I', 'II', 'III', 'IV', 'V', 'VI'];
 export function Questionnaire({
   currentQuestion,
   progress,
+  axes,
   questionCount,
   isNavigating,
   canGoBack,
@@ -101,8 +105,10 @@ export function Questionnaire({
         onBack={onBack}
       />
 
+      {axes && <Narrowing axes={axes} />}
+
       {/* The four stages, as a printed running foot */}
-      <div className="mt-auto flex justify-between border-t border-border px-6 pb-7 pt-4 lg:mt-12">
+      <div className={cn('flex justify-between border-t border-border px-6 pb-7 pt-4', !axes && 'mt-auto lg:mt-12')}>
         {QUESTION_CATEGORIES.map((cat) => (
           <span
             key={cat.id}
@@ -117,6 +123,37 @@ export function Questionnaire({
         ))}
       </div>
     </div>
+  );
+}
+
+/**
+ * Where the answers so far put you, drawn small above the running foot: the
+ * shoal at the quiz's best guess, one standard deviation across on each
+ * axis, so it narrows as answers agree and stays wide when they do not. It
+ * sits under the plates, never above them, so a phone shows the question
+ * whole.
+ */
+function Narrowing({ axes }: { axes: Record<'x' | 'y', AxisBelief> }) {
+  // The map is 20 units across, so a unit is 5% of it.
+  const width = Math.min(100, Math.sqrt(axes.x.variance) * 2 * 5);
+  const height = Math.min(100, Math.sqrt(axes.y.variance) * 2 * 5);
+  return (
+    <figure className="mt-auto flex items-center gap-3 px-6 pb-4 pt-8 lg:mt-12">
+      <div aria-hidden="true" className="relative h-16 w-16 shrink-0 overflow-hidden border border-foreground bg-card">
+        <span className="absolute bottom-0 left-1/2 top-0 w-px bg-border" />
+        <span className="absolute left-0 right-0 top-1/2 h-px bg-border" />
+        <span
+          className="absolute -translate-x-1/2 translate-y-1/2 rounded-full border border-dashed border-secondary bg-shoal transition-all duration-500 ease-out"
+          style={{
+            left: `${toPercent(axes.x.mean)}%`,
+            bottom: `${toPercent(axes.y.mean)}%`,
+            width: `${width}%`,
+            height: `${height}%`,
+          }}
+        />
+      </div>
+      <figcaption className="text-meta text-muted-foreground">{quiz.narrowing}</figcaption>
+    </figure>
   );
 }
 

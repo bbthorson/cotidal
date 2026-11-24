@@ -72,9 +72,9 @@ async function serverSignInEnabled(request: APIRequestContext): Promise<boolean>
  * that refused it, or no form at all in front of a route that worked.
  * Whatever this environment is configured as, the three must agree.
  */
-test('Auth: the landing form is offered exactly when the server will sign in', async ({ request }) => {
+test('Auth: the sign-in page’s form is offered exactly when the server will sign in', async ({ request }) => {
   const enabled = await serverSignInEnabled(request);
-  const html = await (await request.get('/')).text();
+  const html = await (await request.get('/sign-in')).text();
   expect(html.includes('action="/api/auth/atproto/login"')).toBe(enabled);
   expect(html.includes(connect.disabled)).toBe(!enabled);
 });

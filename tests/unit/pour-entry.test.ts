@@ -1,5 +1,14 @@
 import { test, expect } from 'vitest';
-import { glmsWord, toLogOptions, type PourEntry } from '../../src/components/app/PourForm';
+import {
+  barPointFor,
+  entryFromFields,
+  glmsWord,
+  guestPourRecord,
+  menuChange,
+  toLogOptions,
+  type PourEntry,
+  type PourFields,
+} from '../../src/lib/pour-entry';
 import { catalogSlug, type Register } from '../../src/lib/register';
 import { GLMS_ANCHORS } from '../../src/lib/atproto/vocab';
 import { pour } from '../../src/lib/copy';
@@ -51,4 +60,84 @@ test('Catalog slug: the /drinks entry, or nothing', () => {
   expect(catalogSlug(register, ' Naked & Famous ')).toBe('naked-and-famous');
   // Not slugified from the name: that would point at a page that does not exist.
   expect(catalogSlug(register, 'House Sour')).toBeUndefined();
+});
+
+const fields: PourFields = {
+  drinkName: '  Negroni ',
+  isHomePour: false,
+  venue: ' Attaboy ',
+  hedonic: 8,
+  deviations: [],
+  cata: [],
+  note: '  ',
+  crosspost: true,
+  baseSpirit: '',
+  glassware: '',
+  garnish: ' ',
+  intensities: {},
+};
+
+test('Pour fields: what is missing is said, in the order the form asks', () => {
+  expect(entryFromFields({ ...fields, drinkName: ' ' }, true)).toEqual({ error: pour.needDrink });
+  expect(entryFromFields({ ...fields, venue: '' }, true)).toEqual({ error: pour.needBar });
+  expect(entryFromFields({ ...fields, venue: '', isHomePour: true }, true)).not.toHaveProperty('error');
+  expect(entryFromFields({ ...fields, hedonic: null }, true)).toEqual({ error: pour.needRating });
+});
+
+test('Pour fields: trimmed, and an untouched field is absent', () => {
+  const result = entryFromFields(fields, true);
+  expect(result).toEqual({
+    entry: {
+      drinkName: 'Negroni',
+      hedonic: 8,
+      isHomePour: false,
+      venue: 'Attaboy',
+      deviations: [],
+      cata: undefined,
+      note: '',
+      crosspost: true,
+      detail: undefined,
+    },
+  });
+});
+
+test('Pour fields: a guest sends no cross-post and no detail', () => {
+  const result = entryFromFields({ ...fields, baseSpirit: 'gin', intensities: { bitterness: 40 } }, false);
+  expect(result).toMatchObject({ entry: { crosspost: false, detail: undefined } });
+  const member = entryFromFields({ ...fields, baseSpirit: 'gin', garnish: ' twist ' }, true);
+  expect(member).toMatchObject({ entry: { detail: { baseSpirit: 'gin', garnish: 'twist' } } });
+});
+
+test('Bar point: only while the pour is at the bar the draft named', () => {
+  const at = { lat: 40.7, lon: -74 };
+  const draft = { drink: 'Negroni', bar: 'Attaboy', at };
+  expect(barPointFor({ ...entry, isHomePour: false, venue: 'Attaboy' }, draft)).toEqual(at);
+  expect(barPointFor({ ...entry, isHomePour: false, venue: 'Dante' }, draft)).toBeNull();
+  expect(barPointFor({ ...entry, isHomePour: true, venue: 'Attaboy' }, draft)).toBeNull();
+  expect(barPointFor({ ...entry, isHomePour: false, venue: 'Attaboy' }, undefined)).toBeNull();
+});
+
+test('Guest pour: the record a member would write, with nothing unset filled in', () => {
+  const record = guestPourRecord(
+    { ...entry, isHomePour: false, venue: 'Attaboy', deviations: ['too-sweet'] },
+    { slug: 'negroni', at: { lat: 40.7, lon: -74 }, createdAt: '2026-11-24T00:00:00.000Z' }
+  );
+  expect(record).toMatchObject({
+    $type: 'app.cotidal.pour',
+    drink: { name: 'Negroni', slug: 'negroni' },
+    venue: { entity: { name: 'Attaboy' }, address: { $type: 'community.lexicon.location.geo' } },
+    rating: { hedonic: 8 },
+    deviations: ['too-sweet'],
+    isHomePour: false,
+    createdAt: '2026-11-24T00:00:00.000Z',
+  });
+  expect(record.cata).toBeUndefined();
+  expect(record.note).toBeUndefined();
+  const home = guestPourRecord(entry, { slug: undefined, at: null, createdAt: '2026-11-24T00:00:00.000Z' });
+  expect(home.venue).toBeUndefined();
+});
+
+test('Menu change: the rated drink’s rank now, and a drink that joined', () => {
+  expect(menuChange(['A', 'B', 'C'], ['B', 'a', 'D'], 'A')).toEqual({ rank: 2, newcomer: 'D' });
+  expect(menuChange(['A', 'B'], ['A', 'B'], 'Z')).toEqual({ rank: null, newcomer: null });
 });

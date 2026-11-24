@@ -2,7 +2,7 @@ import type { UserProfile } from '@/hooks/useDiscoveryQuiz';
 import type { PourRecord, PerceivedIntensities, ElicitationRecord } from '@/lib/atproto/records';
 import type { BaseSpirit, Glassware } from '@/lib/atproto/vocab';
 import { apiErrors } from '@/lib/copy';
-import { clearPendingAnswers, loadPendingAnswers, savePendingAnswers } from '@/lib/device-store';
+import { clearPendingAnswers, loadPendingAnswers, saveLastQuiz, savePendingAnswers } from '@/lib/device-store';
 
 export interface LogDrinkOptions {
   drinkName: string;
@@ -74,6 +74,7 @@ async function postElicitation(record: ElicitationRecord): Promise<boolean> {
  */
 export async function publishElicitation(record: ElicitationRecord): Promise<boolean> {
   savePendingAnswers(record);
+  saveLastQuiz(record);
   return flushPendingElicitation(record);
 }
 
@@ -128,6 +129,21 @@ export async function logDrinkFeedback(
     return await res.json();
   } catch {
     return { success: false, error: apiErrors.logFailed };
+  }
+}
+
+/** A member's latest quiz, as logged: where their track starts. `null` signed out, or with none. */
+export async function getConnectedQuiz(): Promise<ElicitationRecord | null> {
+  try {
+    const res = await fetch('/api/atproto-publish', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'getConnectedQuiz' }),
+    });
+    const data = await res.json();
+    return data.quiz ?? null;
+  } catch {
+    return null;
   }
 }
 

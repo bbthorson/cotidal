@@ -1,16 +1,16 @@
 import { useMemo } from 'react';
 import { drinkDatabase, type Drink } from '@/lib/data';
-import { matchDrink } from '@/lib/drink-match';
 import { quadrantFor } from '@/lib/quadrant';
 import { formatCoordinate } from '@/lib/coordinate';
 import { chart, menu, pour } from '@/lib/copy';
 import { titleOf, type Register } from '@/lib/register';
 import type { PourRecord } from '@/lib/atproto/records';
+import type { TrackPoint } from '@/lib/track';
+import type { Lens } from '@/hooks/useCompass';
 import { cn } from '@/lib/utils';
-import { CoordinateMap, DrinkSpot, YouMark } from './CoordinateMap';
+import { CoordinateMap, DrinkSpot, ShoalMark, TrackLine, YouMark } from './CoordinateMap';
 import { PinnedCard } from './PinnedCard';
 
-export type Lens = (typeof chart.lenses)[number]['id'];
 
 interface Spot {
   key: string;
@@ -20,20 +20,6 @@ interface Spot {
 }
 
 const key = (d: { x: number; y: number }) => `${d.x},${d.y}`;
-
-/** The latest pour of each drink on the map, by catalogue name. */
-export function useLastPours(pours: PourRecord[]) {
-  return useMemo(() => {
-    const byName = new Map<string, PourRecord>();
-    for (const p of pours) {
-      const drink = matchDrink(p.drink.name);
-      if (!drink) continue;
-      const prev = byName.get(drink.name);
-      if (!prev || new Date(p.createdAt) > new Date(prev.createdAt)) byName.set(drink.name, p);
-    }
-    return byName;
-  }, [pours]);
-}
 
 /**
  * The chart: every drink at its coordinate, your position, and a title block
@@ -53,6 +39,8 @@ export function Chart({
   register,
   onTakeQuiz,
   eyebrow,
+  track = null,
+  bare = false,
 }: {
   you: { x: number; y: number } | null;
   menuNames: string[];
@@ -66,6 +54,10 @@ export function Chart({
   onTakeQuiz: () => void;
   /** Said before "You are in" — "On this device", for a guest. */
   eyebrow?: string;
+  /** Your track (`useTrack`), when it adds up: drawn with the shoal around where it ends. */
+  track?: readonly TrackPoint[] | null;
+  /** The map alone, without its title block: before you have a position, the screen says the rest. */
+  bare?: boolean;
 }) {
   const name = (n: string) => titleOf(register, n);
   const region = you ? quadrantFor(you.x, you.y) : null;
@@ -105,6 +97,12 @@ export function Chart({
   return (
     <section aria-label={chart.label}>
       <CoordinateMap you={you ?? undefined} showAxes graticule>
+        {you && track && track.length > 0 && (
+          <>
+            <ShoalMark x={you.x} y={you.y} spread={track[track.length - 1].spread} />
+            <TrackLine points={track} />
+          </>
+        )}
         {spots.map((spot) => (
           <DrinkSpot
             key={spot.key}
@@ -120,6 +118,7 @@ export function Chart({
       </CoordinateMap>
 
       {/* The title block: the frame continues around it. */}
+      {!bare && (
       <div className="flex items-start justify-between gap-4 border-x border-b border-foreground bg-card px-3.5 py-3">
         <div className="flex min-w-0 flex-col gap-1">
           {you && region ? (
@@ -145,6 +144,18 @@ export function Chart({
             </button>
           )}
           <ul className="mt-1 flex flex-wrap gap-x-3.5 gap-y-0.5">
+            {you && track && track.length > 1 && (
+              <li className="flex items-center gap-1.5 text-meta text-muted-foreground">
+                <span aria-hidden="true" className="h-0.5 w-3 bg-primary" />
+                {chart.legendTrack}
+              </li>
+            )}
+            {you && track && track.length > 0 && (
+              <li className="flex items-center gap-1.5 text-meta text-muted-foreground">
+                <span aria-hidden="true" className="h-2 w-2 rounded-full border border-dashed border-secondary bg-shoal" />
+                {chart.legendShoal}
+              </li>
+            )}
             {legend.map((item) => (
               <li key={item.label} className="flex items-center gap-1.5 text-meta text-muted-foreground">
                 <span
@@ -178,6 +189,7 @@ export function Chart({
           ))}
         </div>
       </div>
+      )}
     </section>
   );
 }

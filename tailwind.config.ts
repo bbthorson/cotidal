@@ -105,8 +105,10 @@ export default {
           rule: 'hsl(var(--reveal-rule))',
           hairline: 'hsl(var(--reveal-hairline))',
           dim: 'hsl(var(--reveal-dim))',
+          shoal: 'hsl(var(--reveal-shoal))',
         },
         scrim: 'hsl(var(--scrim))',
+        shoal: 'hsl(var(--shoal))',
         chart: {
           axis: 'hsl(var(--chart-axis))',
           ring: 'hsl(var(--chart-ring))',
