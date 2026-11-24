@@ -2,7 +2,7 @@
 name: "Spritz Veneziano (Dry)"
 title: "Spritz Veneziano"
 family: "aperitivo"
-summary: "Dry white wine (or Prosecco), Select bitter, soda water, and a green olive. Venice's true lagoon spritz, drier and more herbaceous than commercial variants."
+summary: "Dry white wine or Prosecco, Select bitter, soda water, and a green olive. Drier and more herbal than an Aperol Spritz, with the olive's salt."
 build:
   glass: "Tumbler or wine glass with ice"
   method: "Built in the glass: white wine poured over ice, followed by Select aperitivo, topped with a siphon splash of cold sparkling water."

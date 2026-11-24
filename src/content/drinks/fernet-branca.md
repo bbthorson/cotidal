@@ -2,7 +2,7 @@
 name: "Fernet-Branca"
 title: "Fernet-Branca"
 family: "spirit"
-summary: "An uncompromising Milanese amaro of 27 herbs, roots, and spices aged in oak. Menthol, gentian, saffron, and myrrh in a bitter, medicinal crescendo."
+summary: "A Milanese amaro of many herbs, roots, and spices, aged in oak. Menthol first, then a long bitterness that stays after the glass is down."
 build:
   glass: "Digestif glass or rocks"
   method: "Served neat at room temperature, or over ice, or as an Argentine 'Fernet con Coca' highball."

@@ -2,7 +2,7 @@
 name: "Sambuca (with coffee beans)"
 title: "Sambuca con la Mosca"
 family: "spirit"
-summary: "Sweet, crystal-clear Italian star anise liqueur served neat with three roasted coffee beans ('with the fly'). A pungent, warming Roman digestif ritual."
+summary: "Clear Italian star anise liqueur, served neat with three coffee beans ('with the fly'). Sweet, strong anise; the beans add a bitter crunch."
 build:
   glass: "Digestif pony glass or rocks glass"
   method: "Served neat at room temperature with three roasted coffee beans floated on the surface; occasionally flamed briefly before serving."

@@ -2,7 +2,7 @@
 name: "Greyhound (Gin)"
 title: "Greyhound"
 family: "highball"
-summary: "London Dry gin and freshly squeezed pink or white grapefruit juice over ice. The bracing, bittersweet mid-century highball that preceded the vodka era."
+summary: "London Dry gin and fresh grapefruit juice over ice. Two ingredients, bitter and dry; the grapefruit does most of the work."
 build:
   glass: "Highball or rocks glass"
   method: "Built in the glass: gin poured over ice, topped with fresh grapefruit juice, and stirred gently."

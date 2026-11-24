@@ -2,7 +2,7 @@
 name: "Hugo Spritz"
 title: "Hugo Spritz"
 family: "aperitivo"
-summary: "Prosecco, elderflower cordial, fresh mint, and club soda. The pale, alpine alternative to bitter orange Venetian spritzes."
+summary: "Prosecco, elderflower cordial, fresh mint, and club soda. A spritz without the bitter orange: floral, pale, and sweeter."
 build:
   glass: "Large wine glass, packed with ice"
   method: "Built in the glass: elderflower cordial and mint lightly pressed over ice, topped with cold Prosecco and club soda, stirred gently."

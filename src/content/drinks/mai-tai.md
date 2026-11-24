@@ -2,7 +2,7 @@
 name: "Mai Tai"
 title: "Mai Tai"
 family: "sour"
-summary: "Aged Jamaican and Martinique rums, lime, curaçao, and orgeat. The pinnacle of mid-century tropical balance, wholly distinct from fruit-juice punch."
+summary: "Aged Jamaican and Martinique rums, lime, curaçao, and orgeat. Rum first, then almond and lime; no pineapple or orange juice in it."
 build:
   glass: "Double Old Fashioned or rocks glass"
   method: "Shaken hard with crushed ice and poured unstrained into the glass with ice."

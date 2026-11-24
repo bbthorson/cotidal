@@ -2,7 +2,7 @@
 name: "Pink Lady"
 title: "Pink Lady"
 family: "sour"
-summary: "London Dry gin, applejack or Calvados, fresh lemon juice, real pomegranate grenadine, and egg white. A pre-Prohibition theater tribute layered with orchard apple and pomegranate."
+summary: "London Dry gin, applejack or Calvados, fresh lemon juice, grenadine, and egg white. A gin sour with apple brandy and pomegranate under the foam."
 build:
   glass: "Coupe, chilled"
   method: "Dry shaken without ice, then shaken hard with ice and double-strained into a chilled coupe."

@@ -2,7 +2,7 @@
 name: "Aviation"
 title: "Aviation"
 family: "sour"
-summary: "Gin, maraschino liqueur, fresh lemon juice, and crème de violette. A sky-blue pre-Prohibition sour that teeters between floral delicacy and medicinal cherry."
+summary: "Gin, maraschino liqueur, fresh lemon juice, and crème de violette. A gin sour where a little too much violette tips it from floral to soap."
 build:
   glass: "Coupe, chilled"
   method: "Shaken vigorously with ice and double-strained."

@@ -2,7 +2,7 @@
 name: "Paloma"
 title: "Paloma"
 family: "highball"
-summary: "Blanco tequila, fresh lime, grapefruit soda, and salt. Mexico's actual national highball, far more ubiquitous than the Margarita."
+summary: "Blanco tequila, fresh lime, grapefruit soda, and salt. Tequila made long and bitter-sweet with grapefruit."
 build:
   glass: "Highball or Collins, salt-rimmed"
   method: "Built in the glass over ice; tequila and lime stirred gently, then topped with cold grapefruit soda."

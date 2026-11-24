@@ -2,7 +2,7 @@
 name: "Bramble"
 title: "Bramble"
 family: "sour"
-summary: "Dry gin, fresh lemon juice, simple syrup, and a crushed-ice bleed of crème de mûre. The British 1980s modern classic that revived fresh seasonal drinking."
+summary: "Dry gin, fresh lemon juice, simple syrup, and crème de mûre over crushed ice. The blackberry liqueur is poured last and bleeds down through the ice."
 build:
   glass: "Old Fashioned or rocks glass, packed with crushed ice"
   method: "Gin, lemon juice, and syrup shaken with ice and strained over a glass packed with crushed ice; crème de mûre drizzled over the top to bleed through the ice."

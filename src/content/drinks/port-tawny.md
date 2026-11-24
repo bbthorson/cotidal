@@ -2,7 +2,7 @@
 name: "Port (Tawny)"
 title: "Tawny Port"
 family: "fortified-wine"
-summary: "Indigenous Douro Valley red grapes aged oxidatively in wooden pipes. Amber-brown, nutty, and warming, carrying notes of dried fig, toffee, and toasted walnut."
+summary: "Red Douro grapes aged in wooden casks until they turn amber. Nutty and warming: dried fig, toffee, and walnut."
 build:
   glass: "Port glass or standard white wine glass"
   method: "Served cellar temperature or slightly chilled (55–60°F) in a tulip-shaped glass."

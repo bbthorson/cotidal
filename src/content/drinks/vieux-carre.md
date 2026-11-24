@@ -2,7 +2,7 @@
 name: "Vieux Carré"
 title: "Vieux Carré"
 family: "manhattan"
-summary: "Rye whiskey, cognac, sweet vermouth, Bénédictine, and two kinds of bitters. New Orleans opulence in a crystal glass."
+summary: "Rye whiskey, cognac, sweet vermouth, Bénédictine, and two kinds of bitters. A Manhattan split between whiskey and brandy, with an herbal liqueur."
 build:
   glass: "Rocks or coupe"
   method: "Stirred thoroughly with ice until chilled and diluted, strained over a large ice block or up."

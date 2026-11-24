@@ -2,7 +2,7 @@
 name: "Clover Club"
 title: "Clover Club"
 family: "sour"
-summary: "London Dry gin, fresh lemon juice, raspberry syrup, and dry vermouth, shaken with egg white into a pale pink foam. The gentleman's club pre-Prohibition aristocrat."
+summary: "London Dry gin, fresh lemon juice, raspberry syrup, and dry vermouth, shaken with egg white into a pale pink foam. Tart before it is sweet."
 build:
   glass: "Coupe, chilled"
   method: "Dry shaken without ice to emulsify egg white, then shaken hard with ice and double-strained."

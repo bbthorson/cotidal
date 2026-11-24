@@ -2,7 +2,7 @@
 name: "Syrah (Northern Rhône)"
 title: "Northern Rhône Syrah"
 family: "wine"
-summary: "100% Syrah from steep granite amphitheaters (Hermitage, Côte-Rôtie, Cornas). Inky black, savory, tasting of cracked black pepper, smoked meat, olive tapenade, and blackberry."
+summary: "Syrah from the steep granite slopes of the northern Rhône (Hermitage, Côte-Rôtie, Cornas). Dark and savoury: black pepper, smoked meat, olive, and blackberry."
 build:
   glass: "Large Syrah/Rhône bowl or Bordeaux glass"
   method: "Served at cellar temperature (60–64°F), decanted 1–2 hours to open dark savory and floral aromatics."

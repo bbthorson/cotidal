@@ -2,7 +2,7 @@
 name: "French Martini"
 title: "French Martini"
 family: "martini"
-summary: "Vodka, black raspberry Chambord liqueur, and fresh pineapple juice. The Keith McNally late-1980s phenomenon that catalyzed the 1990s 'tini' craze."
+summary: "Vodka, Chambord black raspberry liqueur, and fresh pineapple juice. Shaken hard, the pineapple builds a foam on top."
 build:
   glass: "V-stem martini glass or coupe, chilled"
   method: "Shaken hard with ice to froth the pineapple juice, then double-strained."

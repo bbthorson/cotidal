@@ -2,7 +2,7 @@
 name: "Mezcal Paloma"
 title: "Mezcal Paloma"
 family: "highball"
-summary: "Artisanal mezcal, fresh lime, grapefruit juice, and soda water with a smoked chili salt rim. Earthy agave campfire smoke meeting citrus tartness."
+summary: "Mezcal, fresh lime, grapefruit juice, and soda water, with a chilli-salt rim. Smoke under the grapefruit, salt on the lip."
 build:
   glass: "Collins or highball glass, chili-salt rimmed"
   method: "Built in the glass: mezcal, lime, and grapefruit poured over ice, topped with sparkling water or Mexican grapefruit soda, stirred gently."

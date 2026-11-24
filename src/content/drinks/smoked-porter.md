@@ -2,7 +2,7 @@
 name: "Smoked Porter"
 title: "Smoked Porter"
 family: "beer"
-summary: "Dark English porter brewed with malt kilned over beechwood or alderwood embers. Rich dark chocolate, campfire smoke, and espresso roast in a warming ale."
+summary: "Dark porter brewed with malt kilned over wood smoke. Chocolate and roast, with smoke underneath."
 build:
   glass: "Imperial pint or snifter"
   method: "Poured cellar-cool (52–56°F) to allow the complex woodsmoke phenols and dark malts to open."

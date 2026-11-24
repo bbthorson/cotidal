@@ -2,7 +2,7 @@
 name: "Dirty Martini"
 title: "Dirty Martini"
 family: "martini"
-summary: "Gin or vodka, dry vermouth, and savory olive brine. The polarizing, saline icon that trades pristine clarity for kitchen umami."
+summary: "Gin or vodka, dry vermouth, and olive brine. Salt in a Martini: how much brine decides whether it reads as a cocktail or a snack."
 build:
   glass: "Coupe or V-stem martini glass, frozen"
   method: "Stirred (or shaken for extreme cold and cloudiness) with ice, strained into a frozen glass."

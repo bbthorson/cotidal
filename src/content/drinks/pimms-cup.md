@@ -2,7 +2,7 @@
 name: "Pimm's Cup"
 title: "Pimm's Cup"
 family: "highball"
-summary: "Pimm's No. 1 gin cup, English ginger ale or lemon-lime soda, cucumber, mint, and summer orchard fruits. The quintessential British lawn-and-paddock cooler."
+summary: "Pimm's No. 1, ginger ale or lemonade, cucumber, mint, and fruit. A gin-based fruit cup, long and lightly bitter."
 build:
   glass: "Collins or highball glass"
   method: "Built in the glass: Pimm's poured over ice, topped with ginger ale or traditional British sparkling lemonade, and garnished heavily with fruit and herbs."

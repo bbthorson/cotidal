@@ -2,7 +2,7 @@
 name: "50/50 Martini"
 title: "50/50 Martini"
 family: "martini"
-summary: "Equal parts London Dry gin and French dry vermouth, with orange bitters. The historic turn-of-the-century ratio revived for modern botanical appreciation."
+summary: "Equal parts London Dry gin and French dry vermouth, with orange bitters. A Martini with as much vermouth as gin, so the wine is tasted, not hinted at."
 build:
   glass: "Nick & Nora or coupe, chilled"
   method: "Stirred long over dense ice until fully diluted and ice-cold, then strained."
