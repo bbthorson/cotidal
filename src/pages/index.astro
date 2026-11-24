@@ -15,28 +15,28 @@ import { questionsHref } from '../lib/site-nav';
 ---
 
 <AppShell currentPath="/" width="standard" fill>
-  <!-- The first screen, exactly: the chart and the words in the middle, the one action at its foot. -->
-  <section class="flex flex-1 flex-col pb-6 pt-6 text-center md:pb-10 md:pt-8">
+  <!-- The first screen, exactly: header, chart, words, one action, and footer all within 100dvh. -->
+  <section class="flex flex-1 flex-col justify-center py-3 text-center md:py-4">
     <div class="my-auto">
-    <div class="mx-auto w-full max-w-xs">
-      <ChartFigure />
-    </div>
+      <div class="mx-auto w-44 sm:w-52 md:w-56">
+        <ChartFigure />
+      </div>
 
-    <h1 class="mx-auto mt-6 max-w-2xl font-serif text-hero font-bold text-foreground md:mt-8 md:text-hero-lg">
-      {hero.headline}<br />
-      <em class="font-normal italic text-primary">{hero.headlineAccent}</em>
-    </h1>
+      <h1 class="mx-auto mt-4 max-w-2xl font-serif text-hero font-bold text-foreground md:mt-5 md:text-hero-lg">
+        {hero.headline}<br />
+        <em class="font-normal italic text-primary">{hero.headlineAccent}</em>
+      </h1>
 
-    <p class="mx-auto mt-4.5 max-w-xs font-serif text-prose text-muted-foreground md:max-w-md md:text-plate">
-      {hero.body}
-    </p>
-    </div>
+      <p class="mx-auto mt-2.5 max-w-xs font-serif text-prose text-muted-foreground md:mt-3 md:max-w-md md:text-plate">
+        {hero.body}
+      </p>
 
-    <div class="mx-auto mt-auto flex w-full max-w-sm flex-col items-center pt-6">
-      <a href={questionsHref} class="btn btn-primary btn-lg w-full px-8">
-        {hero.primaryCta}
-      </a>
-      <p class="mt-2.5 text-meta text-muted-foreground">{hero.cost}</p>
+      <div class="mx-auto flex w-full max-w-sm flex-col items-center pt-4 md:pt-5">
+        <a href={questionsHref} class="btn btn-primary btn-lg w-full px-8">
+          {hero.primaryCta}
+        </a>
+        <p class="mt-2 text-meta text-muted-foreground">{hero.cost}</p>
+      </div>
     </div>
   </section>
 </AppShell>

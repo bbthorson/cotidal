@@ -51,9 +51,8 @@ const widthClass = {
 ---
 
 <Base title={title} description={description} image={image}>
-  <div class="bar-texture min-h-dvh bg-background text-foreground">
-    <div class:list={[fill && 'flex min-h-dvh flex-col']}>
-    <div data-site-chrome class="mx-auto w-full max-w-5xl px-6 pt-5 md:pt-14">
+  <div class:list={['bar-texture min-h-dvh bg-background text-foreground', fill && 'flex flex-col']}>
+    <div data-site-chrome class:list={['mx-auto w-full max-w-5xl px-6', fill ? 'pt-4 md:pt-8' : 'pt-5 md:pt-14']}>
       <SiteHeader currentPath={currentPath} account={account} appPage={bottomBar} />
     </div>
 
@@ -72,13 +71,16 @@ const widthClass = {
       {/* Room to scroll the last of the content out from under "Pick a drink". */}
       {bottomBar && <div aria-hidden="true" class="h-16" />}
     </div>
-    </div>
 
     <div
       data-site-chrome
-      class:list={['mx-auto w-full max-w-5xl px-6 pt-16 pb-10 md:pb-14', bottomBar && 'hidden lg:block']}
+      class:list={[
+        'mx-auto w-full max-w-5xl px-6',
+        fill ? 'pt-3 pb-4 md:pt-4 md:pb-6' : 'pt-16 pb-10 md:pb-14',
+        bottomBar && 'hidden lg:block',
+      ]}
     >
-      <SiteFooter currentPath={currentPath} />
+      <SiteFooter currentPath={currentPath} compact={fill} />
     </div>
 
     {bottomBar && <AppBar currentPath={currentPath} />}
