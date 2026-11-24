@@ -108,7 +108,7 @@ test('Menu: one ranked list, with no occasion switch', async ({ page }) => {
   await page.reload();
 
   await expect(page.getByRole('heading', { name: compass.menuTitle })).toBeVisible();
-  // The occasion tabs are gone; the menu ranks by closeness alone.
+  // The occasion tabs are gone; the menu ranks by distance, with taste only sorting drinks about as close.
   await expect(page.getByRole('group', { name: 'Occasion' })).toHaveCount(0);
   for (const label of ['Usual', 'Night out', 'Impress', 'Holiday']) {
     await expect(page.getByRole('button', { name: label, exact: true })).toHaveCount(0);
@@ -137,7 +137,7 @@ test('Compass: search a drink, tap it, then "Rate this" opens the rating sheet o
   await expect(page.getByRole('button', { name: new RegExp(compass.pickAt('mezcal')) })).toBeVisible();
 
   await first.getByRole('button').click();
-  await expect(page.getByText('Closeness', { exact: true })).toBeVisible();
+  await expect(page.getByText(chart.howFar, { exact: true })).toBeVisible();
 
   await page.getByRole('button', { name: 'Rate this' }).click();
   // A sheet over Compass, not a page: the address does not change.

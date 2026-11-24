@@ -38,7 +38,7 @@ export function useCompass(register: Register, member: { handle: string | null }
   const { pours, reload } = usePours(!!member);
   const history = useMemo(() => pours ?? [], [pours]);
   const lastPour = useMemo(() => lastPourByDrink(history), [history]);
-  const { scored, menu, closeness } = useMenu(user, profile?.vibeTags, history);
+  const { scored, menu, distance } = useMenu(user, profile?.vibeTags, history);
   const nearby = useNearby();
   const { track } = useTrack(!!member, profile, pours);
   // The chart's reading: your menu filled in, or your pours.
@@ -155,7 +155,7 @@ export function useCompass(register: Register, member: { handle: string | null }
     menu: menu.map((d) => ({ ...d, way: wayTo(user, d) })),
     // No position, no menu: the chart fills nothing ranked around a point nobody chose.
     menuNames: profile ? menu.map((d) => d.name) : [],
-    closeness,
+    distance,
     lastPour,
 
     // The chart

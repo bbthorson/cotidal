@@ -169,8 +169,8 @@ function CompassContent({
                         <li key={d.name} className="border-b border-border">
                           <DrinkRow
                             title={c.displayName(d.name)}
-                            figure={d.score}
-                            figureLabel={chart.closenessOf(d.score)}
+                            figure={d.distance}
+                            figureLabel={chart.farOf(d.distance)}
                             selected={c.selected === d.name}
                             onSelect={() => c.chooseDrink(d.name)}
                           />
@@ -244,7 +244,7 @@ function CompassContent({
         <DrinkCard
           drink={selectedDrink}
           register={register}
-          closeness={c.closeness[selectedDrink.name]}
+          distance={c.distance[selectedDrink.name]}
           last={c.lastPour.get(selectedDrink.name)}
           sameSpot={c.sameSpot}
           onPick={c.setSelected}

@@ -244,7 +244,7 @@ export function DrinkRow({
 export function DrinkCard({
   drink,
   register,
-  closeness,
+  distance,
   last,
   sameSpot,
   onPick,
@@ -254,7 +254,8 @@ export function DrinkCard({
 }: {
   drink: Drink;
   register: Register;
-  closeness?: number;
+  /** How far it sits from you, as the menu says it. */
+  distance?: number;
   last?: PourRecord;
   sameSpot: Drink[];
   onPick: (name: string) => void;
@@ -285,13 +286,13 @@ export function DrinkCard({
       <span className="font-serif text-subtitle font-bold leading-tight text-foreground">{title}</span>
       {entry?.build && <span className="line-clamp-2 text-meta text-muted-foreground">{entry.build}</span>}
 
-      {(closeness !== undefined || lastLine) && (
+      {(distance !== undefined || lastLine) && (
         <dl className="border-t border-border pt-1">
-          {closeness !== undefined && (
+          {distance !== undefined && (
             <div className="dot-leader py-1.5">
-              <dt className="text-meta text-muted-foreground">{chart.closeness}</dt>
+              <dt className="text-meta text-muted-foreground">{chart.howFar}</dt>
               <span aria-hidden="true" className="leader" />
-              <dd className="font-condensed text-ui font-bold tabular-nums">{closeness}</dd>
+              <dd className="font-condensed text-ui font-bold tabular-nums">{distance}</dd>
             </div>
           )}
           {lastLine && (

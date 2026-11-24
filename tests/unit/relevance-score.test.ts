@@ -1,140 +1,114 @@
 import { test, expect } from 'vitest';
-import { calculateWeightedRelevance, type MinimalDrinkLog } from '../../src/lib/scoring';
+import {
+  byRelevance,
+  LIKED_LIFT,
+  RELEVANCE_BAND,
+  relevanceOf,
+  type MinimalDrinkLog,
+} from '../../src/lib/scoring';
 import type { Drink } from '../../src/lib/data';
 
-test('Relevance Score: Perfect match without logs', async () => {
-  const user = {
-    x: 0,
-    y: 0,
-    vibeTags: { classic: 5.0, social: 5.0 }
-  };
+/**
+ * Distance decides; taste only sorts drinks about as close (`relevanceOf`).
+ * AGENTS.md: "Euclidean distance gives the raw match; VibeTags sort within it."
+ */
 
-  const perfectDrink: Drink = {
-    name: 'Perfect Dry Martini',
-    type: 'Cocktail',
-    x: 0,
-    y: 0,
-    hasSmoke: false,
-    isBitter: false,
-    hasAnise: false,
-    tags: ['classic', 'social']
-  };
-
-  // Sensory similarity: distance 0 -> 100 points -> 40 points weighted
-  // Vibe tag affinity: all user vibe tags matched -> 100 points -> 30 points weighted
-  // History: 0 points -> 0 points weighted
-  // Venue: 0 points -> 0 points weighted
-  // Total: 40 + 30 = 70 points
-  const score = calculateWeightedRelevance(user, perfectDrink, []);
-  expect(score).toBe(70);
+const drink = (name: string, x: number, y: number, extra: Partial<Drink> = {}): Drink => ({
+  name,
+  type: 'Cocktail',
+  x,
+  y,
+  hasSmoke: false,
+  isBitter: false,
+  hasAnise: false,
+  tags: [],
+  ...extra,
 });
 
-test('Relevance Score: Tasted history bias and venue boosts', async () => {
-  const user = {
-    x: 0,
-    y: 0,
-    vibeTags: { classic: 5.0 }
-  };
-
-  const drink: Drink = {
-    name: 'Venue Negroni',
-    type: 'Cocktail',
-    x: 0,
-    y: 0,
-    hasSmoke: false,
-    isBitter: true,
-    hasAnise: false,
-    tags: ['classic']
-  };
-
-  // 1. History log: Liked Highly (Hedonic Scale >= 7) -> Adds 100 pts * 0.20 = 20 pts
-  const history: MinimalDrinkLog[] = [
-    {
-      drinkName: 'Venue Negroni',
-      location: 'The Nomad Bar',
-      hedonicScale: 8,
-      createdAt: new Date().toISOString()
-    }
-  ];
-
-  // Base score without location filter (Sensory 40 + Vibe 30 + History 20 = 90)
-  const scoreNoLocation = calculateWeightedRelevance(user, drink, history);
-  expect(scoreNoLocation).toBe(90);
-
-  // Score with matching location filter (adds Venue 100 pts * 0.10 = 10 pts -> Total = 100)
-  const scoreWithLocation = calculateWeightedRelevance(user, drink, history, 'The Nomad Bar');
-  expect(scoreWithLocation).toBe(100);
-
-  // Score with non-matching location filter (Venue score is 0 -> Total = 90)
-  const scoreDiffLocation = calculateWeightedRelevance(user, drink, history, 'Sage Apothecary');
-  expect(scoreDiffLocation).toBe(90);
+const log = (drinkName: string, hedonicScale: number, location = 'Home Pour'): MinimalDrinkLog => ({
+  drinkName,
+  location,
+  hedonicScale,
+  createdAt: new Date().toISOString(),
 });
 
-test('Relevance Score: Disliked history penalty', async () => {
-  const user = {
-    x: 0,
-    y: 0,
-    vibeTags: { classic: 5.0 }
-  };
+const order = (user: Parameters<typeof relevanceOf>[0], drinks: Drink[], logs: MinimalDrinkLog[] = [], at?: string) =>
+  drinks
+    .map((d) => ({ name: d.name, ...relevanceOf(user, d, logs, at) }))
+    .sort(byRelevance)
+    .map((d) => d.name);
 
-  const dislikedDrink: Drink = {
-    name: 'Disliked Gin Tonic',
-    type: 'Cocktail',
-    x: 0,
-    y: 0,
-    hasSmoke: false,
-    isBitter: false,
-    hasAnise: false,
-    tags: ['classic']
-  };
+const tagged = { x: 0, y: 0, vibeTags: { classic: 5, social: 5 } };
 
-  // History log: Disliked (Hedonic Scale <= 3) -> Subtracts 50 points
-  const history: MinimalDrinkLog[] = [
-    {
-      drinkName: 'Disliked Gin Tonic',
-      location: 'The Nomad Bar',
-      hedonicScale: 2,
-      createdAt: new Date().toISOString()
-    }
-  ];
-
-  // Sensory 40 + Vibe 30 - History Penalty 50 = 20
-  const score = calculateWeightedRelevance(user, dislikedDrink, history);
-  expect(score).toBe(20);
+test('Relevance: a nearer drink outranks a farther one, however well the farther one matches your tags', () => {
+  const near = drink('Near, untagged', 0.5, 0);
+  const far = drink('Far, every tag', 3, 0, { tags: ['classic', 'social'] });
+  expect(order(tagged, [far, near])).toEqual(['Near, untagged', 'Far, every tag']);
 });
 
-test('Relevance Score: EKF tolerances refine scores once pours accumulate', () => {
-  const bitterDrink: Drink = {
-    name: 'Test Negroni',
-    type: 'Cocktail',
+test('Relevance: among drinks about as close, your tags decide', () => {
+  const plain = drink('Plain', 0.2, 0);
+  const matched = drink('Matched', 0.6, 0, { tags: ['classic', 'social'] });
+  expect(order(tagged, [plain, matched])).toEqual(['Matched', 'Plain']);
+  // With no tags, the nearer of the two comes first.
+  expect(order({ x: 0, y: 0 }, [matched, plain])).toEqual(['Plain', 'Matched']);
+});
+
+test('Relevance: says how far, to one decimal', () => {
+  expect(relevanceOf({ x: 0, y: 0 }, drink('Three-four-five', 3, 4), []).distance).toBe(5);
+  expect(relevanceOf({ x: 0, y: 0 }, drink('Root two', 1, 1), []).distance).toBe(1.4);
+});
+
+test(`Relevance: a drink you rated 7 or more ranks as if ${LIKED_LIFT} points closer`, () => {
+  const liked = drink('Liked', 2.5, 0);
+  const nearer = drink('Nearer', 1.2, 0);
+  const nearest = drink('Nearest', 0.2, 0);
+  // 2.5 away, counted as 0.5: past the drink at 1.2, still behind the one at 0.2.
+  expect(order({ x: 0, y: 0 }, [nearest, nearer, liked], [log('Liked', 8)])).toEqual(['Nearest', 'Liked', 'Nearer']);
+  // A middling rating lifts nothing.
+  expect(order({ x: 0, y: 0 }, [liked, nearer], [log('Liked', 5)])).toEqual(['Nearer', 'Liked']);
+});
+
+test('Relevance: a drink you rated 3 or less goes below everything', () => {
+  const disliked = drink('Disliked', 0, 0, { tags: ['classic', 'social'] });
+  const farthest = drink('Farthest', 10, 10);
+  expect(order(tagged, [disliked, farthest], [log('Disliked', 2)])).toEqual(['Farthest', 'Disliked']);
+});
+
+test('Relevance: among liked drinks about as close, one liked at this bar comes first, at this bar only', () => {
+  // Both were rated 8, so both are lifted alike; only the bar tells them apart.
+  const here = drink('Liked here', 0.6, 0);
+  const home = drink('Liked at home', 0.2, 0);
+  const logs = [log('Liked here', 8, 'The Nomad Bar'), log('Liked at home', 8)];
+  expect(order({ x: 0, y: 0 }, [home, here], logs, 'The Nomad Bar')).toEqual(['Liked here', 'Liked at home']);
+  expect(order({ x: 0, y: 0 }, [here, home], logs, 'Sage Apothecary')).toEqual(['Liked at home', 'Liked here']);
+});
+
+test('Relevance: trained tolerances sort within the band; an untrained filter changes nothing', () => {
+  const bitter = drink('Test Negroni', 0.5, 0, { isBitter: true });
+  const sweet = drink('Test Daiquiri', 0.3, 0);
+  const at = (bitterTolerance: number, eventCount: number) => ({
     x: 0,
     y: 0,
-    hasSmoke: false,
-    isBitter: true,
-    hasAnise: false,
-    tags: ['classic'],
-  };
+    tolerances: { bitter: bitterTolerance, tannin: 5, complexity: 5, eventCount },
+  });
+  expect(order(at(9, 0), [bitter, sweet])).toEqual(['Test Daiquiri', 'Test Negroni']);
+  expect(relevanceOf(at(9, 0), bitter, []).rank).toBe(relevanceOf({ x: 0, y: 0 }, bitter, []).rank);
+  expect(relevanceOf(at(9, 4), bitter, []).rank).toBeLessThan(relevanceOf({ x: 0, y: 0 }, bitter, []).rank);
+  expect(relevanceOf(at(1, 4), bitter, []).rank).toBeGreaterThan(relevanceOf({ x: 0, y: 0 }, bitter, []).rank);
+});
 
-  // Untrained filter (eventCount 0) changes nothing.
-  const untrained = calculateWeightedRelevance(
-    { x: 0, y: 0, tolerances: { bitter: 9, tannin: 5, complexity: 5, eventCount: 0 } },
-    bitterDrink,
-    []
-  );
-  const baseline = calculateWeightedRelevance({ x: 0, y: 0 }, bitterDrink, []);
-  expect(untrained).toBe(baseline);
-
-  // Trained high bitter tolerance boosts a bitter drink; low bitter tolerance lowers it.
-  const highBitter = calculateWeightedRelevance(
-    { x: 0, y: 0, tolerances: { bitter: 9, tannin: 5, complexity: 5, eventCount: 4 } },
-    bitterDrink,
-    []
-  );
-  const lowBitter = calculateWeightedRelevance(
-    { x: 0, y: 0, tolerances: { bitter: 1, tannin: 5, complexity: 5, eventCount: 4 } },
-    bitterDrink,
-    []
-  );
-  expect(highBitter).toBeGreaterThan(baseline);
-  expect(lowBitter).toBeLessThan(baseline);
+test('Relevance: everything that sorts within a band together never reaches the next band', () => {
+  // The most a drink can gain inside its band (every tag, a good pour at this
+  // bar, the most favourable trained tolerances) against the most a drink one
+  // band nearer can lose: the nearer one still comes first.
+  const tolerances = (t: number) => ({ bitter: t, tannin: t, complexity: 5, eventCount: 9 });
+  const fond = { x: 0, y: 0, vibeTags: { classic: 5 }, tolerances: tolerances(10) };
+  const averse = { x: 0, y: 0, tolerances: tolerances(0) };
+  const props = { isBitter: true, hasSmoke: true } as const;
+  const farther = drink('Farther', RELEVANCE_BAND + LIKED_LIFT + 0.05, 0, { tags: ['classic'], ...props });
+  const nearer = drink('Nearer', RELEVANCE_BAND - 0.05, 0, props);
+  const best = relevanceOf(fond, farther, [log('Farther', 9, 'Here')], 'Here');
+  const worst = relevanceOf(averse, nearer, []);
+  expect(worst.rank).toBeLessThan(best.rank);
 });

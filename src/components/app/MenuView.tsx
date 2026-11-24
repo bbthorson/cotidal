@@ -239,13 +239,13 @@ export function MenuView({
               <h2 className="section-title">{bar ? compass.atMenu.rankedAt(bar) : compass.atMenu.rankedHome}</h2>
               <p className="mb-2 text-meta text-muted-foreground">{compass.atMenu.rankedBody}</p>
               <ol className="border-t border-foreground">
-                {ranked.map(({ drink, score }, i) => (
+                {ranked.map(({ drink, distance }, i) => (
                   <li key={drink.name} className="border-b border-border">
                     <DrinkRow
                       rank={i + 1}
                       title={titleOf(register, drink.name)}
-                      figure={score}
-                      figureLabel={chart.closenessOf(score)}
+                      figure={distance}
+                      figureLabel={chart.farOf(distance)}
                       selected={chosen === drink.name}
                       onSelect={() => setChoice(drink.name)}
                     />

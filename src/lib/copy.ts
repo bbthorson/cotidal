@@ -376,8 +376,7 @@ export const chart = {
     { id: 'pours', label: 'Your pours' },
   ],
   findYours: 'Find your coordinate',
-  closeness: 'Closeness',
-  closenessOf: (n: number) => `Closeness ${n}`,
+  howFar: 'How far',
   legendTrack: 'Your track',
   legendShoal: 'Where you probably are',
   /** Which way a drink lies from you, in the axes' own words (`wayTo`). */
@@ -671,7 +670,7 @@ export const howItWorks = {
       id: 'menu',
       title: 'Your menu',
       paragraphs: [
-        'Your menu ranks every drink, mostly by how close it sits to your point. The kinds of drink your answers and liked pours point to count too, along with your last rating of that drink.',
+        'Your menu ranks every drink by how close it sits to your point. Only among drinks within a point of each other do the kinds of drink your answers point to decide the order. A drink you rated 7 or more last time counts as two points closer.',
         'Anything you rated 3 or less last time comes off your menu, and so does any drink with a flavour you avoid.',
       ],
     },
