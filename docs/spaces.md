@@ -61,6 +61,16 @@ Decisions, and why:
   every PDS supports, so no Cotidal service sits in the access path. A
   `managedspace` would make Cotidal the gatekeeper of every bar's data, which
   is the platform `docs/venues.md` argues against.
+- **A bar's drinks are not in its space.** Its menus (`app.cotidal.menu`) and
+  specs (`app.cotidal.recipe`) are published in the venue's public repo:
+  publishing them is the point, and claiming a bar and publishing its menu
+  are one act. In the space they would be hidden from patrons (no
+  `publicRead`), and any patron could write one (`publicWrite`). Specs a bar
+  keeps to itself (R&D, a staff book) would be a second space type, staff
+  only, not a collection added to this one.
+- **References run from the space to the public, never back.** A shared
+  pour points at the bar's public recipe (`drinkRef.recipe`, a strong ref);
+  nothing public points into a space, where most readers could not follow it.
 - **One collection to start.** The lexicon lists only `app.cotidal.pour`, the
   default write scope. A space can hold other collections; add one there
   first (and `npm run lexicons` checks it is a record defined here).

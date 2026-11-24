@@ -22,6 +22,24 @@ The trap is letting an account own a *drink category*. If a DID can own
 "Negroni" you have built a land grab and a chokepoint. So the folk category
 stays an unowned slug, and what a creator claims is their **spec**.
 
+**Two Negronis, and how they are told apart.** Attaboy's Negroni and Death &
+Co's are two records of the same kind, `app.cotidal.recipe`, in two repos:
+the author's DID says whose it is, the record's fields say how it differs.
+Never an NSID per bar or per drink (`app.cotidal.bar1.negroni`): an NSID
+names a kind of record, `app.cotidal.*` is Cotidal's to publish so a bar
+could never own it, and every Negroni would need its own schema to be read.
+That both are Negronis is `slug: "negroni"`, the one key a recipe and a pour
+share (`app.cotidal.defs#drinkSlug`, referenced by both, so it cannot mean a
+register entry in one and a family like `sour` in the other). The family is
+derived from the register entry, never stored.
+
+The slug is what the author said. Where they said nothing, the app view may
+recognise a spec by its build — the ingredients, through the same matching
+that places a pasted menu line (`suggestClosestDrink`) — and show it as a
+likely Negroni. That inference stays in the app; it is never written into
+the author's record as if they had said it. The name is the weakest signal
+of the three: "House Negroni" may be anything.
+
 ## Referencing things that have no account yet
 
 Every non-rater entity uses one shape, `app.cotidal.defs#entityRef`:

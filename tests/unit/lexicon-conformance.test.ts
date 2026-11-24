@@ -9,6 +9,7 @@ import {
   POUR_COLLECTION,
   PourRecordSchema,
   PourWriteSchema,
+  RECIPE_COLLECTION,
   RECORD_SCHEMAS,
   encodePalate,
 } from '../../src/lib/atproto/records';
@@ -136,4 +137,38 @@ test('Records: Zod and @atproto/lexicon agree on what is valid', () => {
   }
   // The cases are not all one answer.
   expect(cases.filter(([n, v]) => valid(n, v)).length).toBe(5);
+});
+
+test('Drink slug: a pour and a recipe name a drink with one definition, so they join on it', () => {
+  // Both fields point at app.cotidal.defs#drinkSlug. Inlining either again would let
+  // the recipe's `slug` drift to a family (`sour`) while pours say `negroni`.
+  // Read fresh: `new Lexicons()` rewrites refs in the shared `docs` objects.
+  const file = (id: string) => JSON.parse(readFileSync(`${DIR}/${id}.json`, 'utf8'));
+  expect(file('app.cotidal.defs').defs.drinkRef.properties.slug).toMatchObject({ type: 'ref', ref: '#drinkSlug' });
+  expect(file('app.cotidal.recipe').defs.main.record.properties.slug).toMatchObject({
+    type: 'ref',
+    ref: 'app.cotidal.defs#drinkSlug',
+  });
+
+  const reference = new Lexicons(docs);
+  const valid = (nsid: string, value: Record<string, unknown>) => {
+    try {
+      reference.assertValidRecord(nsid, value);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+  const recipe = { $type: RECIPE_COLLECTION, name: 'House Negroni', slug: 'negroni', createdAt: '2026-11-24T20:00:00.000Z' };
+  const pour = { ...pourAt('2026-11-24T21:00:00.000Z'), drink: { name: 'House Negroni', slug: 'negroni' } };
+  const cases: [string, Record<string, unknown>, boolean][] = [
+    [RECIPE_COLLECTION, recipe, true],
+    [POUR_COLLECTION, pour, true],
+    [RECIPE_COLLECTION, { ...recipe, slug: 'n'.repeat(65) }, false],
+    [POUR_COLLECTION, { ...pour, drink: { name: 'House Negroni', slug: 'n'.repeat(65) } }, false],
+  ];
+  for (const [nsid, value, expected] of cases) {
+    expect(valid(nsid, value), `reference ${nsid}`).toBe(expected);
+    expect(RECORD_SCHEMAS[nsid].safeParse(value).success, `zod ${nsid}`).toBe(expected);
+  }
 });

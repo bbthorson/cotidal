@@ -107,11 +107,14 @@ test('Menus: authority comes from the signing repo, not a field', async () => {
 });
 
 test('Drinks: a category is unowned, a recipe is ownable', async () => {
-  const drinkRef = lexicon('app.cotidal.defs').defs.drinkRef;
+  const defs = lexicon('app.cotidal.defs').defs;
+  const drinkRef = defs.drinkRef;
 
-  // The folk category is a plain slug — no DID, no URI, nothing to claim.
-  expect(drinkRef.properties.slug.type).toBe('string');
-  expect(drinkRef.properties.slug).not.toHaveProperty('format');
+  // The folk category is a plain slug — no DID, no URI, nothing to claim. One def,
+  // which the pour's drinkRef and the recipe both point at.
+  expect(drinkRef.properties.slug.ref).toBe('#drinkSlug');
+  expect(defs.drinkSlug.type).toBe('string');
+  expect(defs.drinkSlug).not.toHaveProperty('format');
 
   // The authored spec is a full entity reference, which can be claimed.
   expect(drinkRef.properties.recipe.ref).toBe('#entityRef');

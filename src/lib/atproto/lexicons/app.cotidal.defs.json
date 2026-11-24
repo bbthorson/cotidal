@@ -53,6 +53,11 @@
         }
       }
     },
+    "drinkSlug": {
+      "type": "string",
+      "description": "A drink as the open catalog knows it: its entry in the register (`/drinks/<slug>`), e.g. `negroni`. Unowned by design: nobody's Negroni is the Negroni. The one key a pour and a recipe share, so a spec and the pours of it join without matching on names. Never a family (`sour`, `stirred`): that is derived from the entry, not stored.",
+      "maxLength": 64
+    },
     "drinkRef": {
       "type": "object",
       "description": "What was drunk. A drink category (a Negroni) is folklore and is deliberately NOT ownable: it is a slug in an open catalog. A *recipe* — a specific authored formulation — is ownable, and is referenced through `recipe`.",
@@ -65,9 +70,9 @@
           "maxGraphemes": 100
         },
         "slug": {
-          "type": "string",
-          "description": "Canonical catalog key for the folk category: the drink's entry in the app's register (`/drinks/<slug>`), e.g. `negroni`. Absent when the drink has no entry. Unowned by design.",
-          "maxLength": 64
+          "type": "ref",
+          "ref": "#drinkSlug",
+          "description": "Which drink this was, as the catalog knows it. Absent when the drink has no entry."
         },
         "baseSpirit": {
           "type": "string",

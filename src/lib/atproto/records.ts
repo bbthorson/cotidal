@@ -132,12 +132,19 @@ export const StimulusSchema = z.object({
 export type Stimulus = z.infer<typeof StimulusSchema>;
 
 /**
+ * `app.cotidal.defs#drinkSlug`: a drink as the open catalog knows it
+ * (`negroni`). One schema for the pour's and the recipe's `slug`, as the
+ * lexicon has one def, so the two cannot come to mean different things.
+ */
+export const DrinkSlugSchema = lexString({ maxLength: 64 });
+
+/**
  * A drink category is folklore and unowned — it is a `slug` in an open
  * catalog. A `recipe` is the authored, ownable formulation.
  */
 export const DrinkRefSchema = z.object({
   name: lexString({ maxLength: 200, maxGraphemes: 100 }),
-  slug: lexString({ maxLength: 64 }).optional(),
+  slug: DrinkSlugSchema.optional(),
   baseSpirit: lexString({ maxLength: 32 }).optional(),
   recipe: EntityRefSchema.optional(),
   stimulus: StimulusSchema.optional(),
@@ -420,7 +427,8 @@ export function isVenueAuthored(record: MenuRecord, signerDid: string): boolean 
 export const RecipeRecordSchema = z.object({
   $type: z.literal(RECIPE_COLLECTION),
   name: lexString({ maxLength: 200, maxGraphemes: 100 }),
-  slug: lexString({ maxLength: 64 }).optional(),
+  // The drink this is a spec of: the same key a pour's drinkRef carries.
+  slug: DrinkSlugSchema.optional(),
   description: lexString({ maxLength: 2000, maxGraphemes: 1000 }).optional(),
   ingredients: z
     .array(
