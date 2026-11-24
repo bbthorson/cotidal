@@ -52,16 +52,51 @@ so there is nothing to store, sign in for or protect.
 - **Once.** After it is logged the draft leaves the form's state and the URL,
   so the form that comes back, or a reload, cannot offer it again.
 
-## Not yet: writing from a chat
+## Signing a member in: `/mcp/me`
 
-Drafting covers logging for now. If the extra step proves to be friction,
-writing directly needs the assistant to act as the member, which means
-`/mcp` becomes an OAuth authorization server for the assistant
-(`@cloudflare/workers-oauth-provider`), handing sign-in to the existing
-Bluesky flow. It also needs a way, in `@bbthorson/atproto-cf-auth`, to
-restore a session from a DID rather than a cookie. The lock that keeps
-parallel restores from racing a token refresh is already there (0.2.0,
-`AUTH_LOCK`).
+`/mcp` stays public. Writing as a member, and answering "my palate" without a
+handle, happen at a second address, `/mcp/me`, which needs the assistant to
+sign the member in. Keeping two addresses keeps the public reads open to
+anyone: an endpoint that answers without a token is never offered a sign-in by
+an MCP client, and one that demands a token shuts out strangers.
+
+Cotidal is the OAuth authorization server the assistant talks to, through
+`@cloudflare/workers-oauth-provider` wrapped around the Worker in
+`src/worker.ts` (`withMemberSignIn`, `src/lib/mcp/member-auth.ts`):
+
+1. An unauthenticated request to `/mcp/me` gets a `401` naming
+   `/.well-known/oauth-protected-resource/mcp/me`, which names this origin as
+   its authorization server.
+2. The assistant registers at `/oauth/register` and sends the person to
+   `/oauth/authorize`.
+3. That page signs them in through the existing Bluesky flow
+   (`auth.authorize` with the pending request in its sealed `context`) and,
+   in `onSignIn`, completes the grant with `props: { did }`.
+4. The assistant exchanges the code at `/oauth/token` and calls `/mcp/me`
+   with the token. The provider checks it and hands the page the DID as
+   `ctx.props` (`Astro.locals.cfContext`); the page reads the member from
+   there and from nothing in the request.
+5. A tool that writes restores the member's AT-Proto session with
+   `auth.restore(did)` (`@bbthorson/atproto-cf-auth` 0.5) under the existing
+   `AUTH_LOCK`. The assistant never holds an AT-Proto token.
+
+Scopes: `palate:read` is the baseline every client asks for first;
+`pours:write` is asked for by step-up (`insufficientScope`) only when a tool
+that logs a pour is called. A grant's `userId` is the DID percent-encoded
+(`grantUserId`), because the provider refuses `:`; it is how a member's
+assistants are listed and revoked.
+
+The provider is built per origin, as the sign-in's `client_id` is, so one
+deploy serves workers.dev, the custom domain and loopback; a token is good
+only on the origin that issued it. It stays off, and `/mcp/me` answers `404`,
+until the `OAUTH_KV` namespace is bound (`wrangler.toml`).
+
+Done: the wrapper, discovery, registration, tokens, and `/mcp/me` serving
+`/mcp`'s tools to a signed-in member. To do: the `/oauth/authorize` page and
+its consent screen, tools that default to the member and write, a
+confidential AT-Proto client (`privateKeys`) so the Bluesky session outlives
+a few weeks of chat, and sessions in D1 rather than KV so parallel tool calls
+cannot read a refreshed token late.
 
 The rules the write path must keep:
 
