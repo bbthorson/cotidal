@@ -82,9 +82,9 @@ function CompassContent({
       )}
     >
       {c.hasCoordinate ? (
-        <ScreenHeader eyebrow={compass.title} title={compass.heading} />
+        <ScreenHeader title={compass.heading} />
       ) : (
-        <ScreenHeader eyebrow={compass.title} title={compass.startTitle} lede={compass.startBody} />
+        <ScreenHeader title={compass.startTitle} lede={compass.startBody} />
       )}
       <WaitingPick displayName={c.displayName} version={c.waitingVersion} onRate={(draft) => rate.open({ drink: draft.drink, draft })} />
 

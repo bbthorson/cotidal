@@ -75,7 +75,6 @@ function LogContent({
     return (
       <>
         <ColdState
-          eyebrow={logPage.title}
           onSignIn={openSignIn}
           onGuest={() => {
             setProfile(neutralProfile);
@@ -92,7 +91,6 @@ function LogContent({
   return (
     <div className="mx-auto max-w-xl pb-6 pt-6 lg:max-w-none lg:pt-10">
       <ScreenHeader
-        eyebrow={logPage.title}
         title={logPage.heading}
         action={
           <button type="button" onClick={() => rate.open()} className="btn btn-primary px-4">

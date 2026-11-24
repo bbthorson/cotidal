@@ -106,28 +106,12 @@ export function Questionnaire({
       />
 
       {axes && <Narrowing axes={axes} />}
-
-      {/* The four stages, as a printed running foot */}
-      <div className={cn('flex justify-between border-t border-border px-6 pb-7 pt-4', !axes && 'mt-auto lg:mt-12')}>
-        {QUESTION_CATEGORIES.map((cat) => (
-          <span
-            key={cat.id}
-            aria-current={cat.id === currentQuestion.category ? 'step' : undefined}
-            className={cn(
-              'font-condensed text-label uppercase tracking-label',
-              cat.id === currentQuestion.category ? 'font-bold text-foreground' : 'text-muted-foreground'
-            )}
-          >
-            {cat.short}
-          </span>
-        ))}
-      </div>
     </div>
   );
 }
 
 /**
- * Where the answers so far put you, drawn small above the running foot: the
+ * Where the answers so far put you, drawn small at the foot: the
  * shoal at the quiz's best guess, one standard deviation across on each
  * axis, so it narrows as answers agree and stays wide when they do not. It
  * sits under the plates, never above them, so a phone shows the question
@@ -138,7 +122,7 @@ function Narrowing({ axes }: { axes: Record<'x' | 'y', AxisBelief> }) {
   const width = Math.min(100, Math.sqrt(axes.x.variance) * 2 * 5);
   const height = Math.min(100, Math.sqrt(axes.y.variance) * 2 * 5);
   return (
-    <figure className="mt-auto flex items-center gap-3 px-6 pb-4 pt-8 lg:mt-12">
+    <figure className="mt-auto flex items-center gap-3 px-6 pb-7 pt-8 lg:mt-12">
       <div aria-hidden="true" className="relative h-16 w-16 shrink-0 overflow-hidden border border-foreground bg-card">
         <span className="absolute bottom-0 left-1/2 top-0 w-px bg-border" />
         <span className="absolute left-0 right-0 top-1/2 h-px bg-border" />

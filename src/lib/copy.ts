@@ -46,7 +46,6 @@ export const appBar = {
  * points outward.
  */
 export const compass = {
-  title: 'Compass',
   heading: 'Where to next',
   /** Before you have a position: the chart, one line, and the one way on. */
   startTitle: 'No position yet',

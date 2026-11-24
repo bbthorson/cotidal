@@ -12,8 +12,8 @@ export function ColdState({
   onSignIn,
   onGuest,
 }: {
-  /** The page's own name. */
-  eyebrow: string;
+  /** What the sheet is, where no tab already says it (the rating sheet). */
+  eyebrow?: string;
   onSignIn: () => void;
   onGuest: () => void;
 }) {

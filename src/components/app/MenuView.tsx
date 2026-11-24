@@ -90,7 +90,6 @@ export function MenuView({
         &larr; {compass.atMenu.back}
       </button>
       <ScreenHeader
-        eyebrow={compass.title}
         title={venue.name ?? compass.atMenu.homeTitle}
         lede={compass.atMenu.body}
       />
