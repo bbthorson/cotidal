@@ -15,7 +15,8 @@ test('App bar: Compass · Log, and picking a drink is a button, not a tab', asyn
   // The app bar is a phone's navigation here: no Menu repeating it in the header.
   await expect(page.locator('header summary')).toBeHidden();
 
-  // On Log it opens Compass on a menu.
+  // On Log, once there is a coordinate to rank around, it opens Compass on a menu.
+  await page.evaluate((p) => localStorage.setItem('user_profile', JSON.stringify(p)), profile);
   await page.goto('/log');
   await expect(page.getByRole('link', { name: appBar.pick, exact: true })).toHaveAttribute('href', '/compass?menu=1');
 });
@@ -90,6 +91,13 @@ test('Log: your track, and what each pour did to it', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   const reading = page.getByRole('navigation', { name: logPage.readingLabel });
   await expect(reading.getByRole('link', { name: 'Drinks' })).toHaveAttribute('href', '/drinks');
+});
+
+test('Pick a drink: not offered on a Log with no coordinate, which has its own ways in', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/log');
+  await expect(page.getByRole('button', { name: coldState.guestCta })).toBeVisible();
+  await expect(page.getByRole('link', { name: appBar.pick, exact: true })).toBeHidden();
 });
 
 test('Pick a drink: from Log it opens Compass on a menu with no bar', async ({ page }) => {
