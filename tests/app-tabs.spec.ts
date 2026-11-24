@@ -125,3 +125,18 @@ test('Log: where you are sits beside the log on a wide screen, above it on a pho
   const [w2, l2] = [(await where.boundingBox())!, (await ledger.boundingBox())!];
   expect(w2.y + w2.height).toBeLessThan(l2.y);
 });
+
+test('Rating sheet: what is missing is said under its field, and the field takes focus', async ({ page }) => {
+  await page.addInitScript((p) => localStorage.setItem('user_profile', JSON.stringify(p)), profile);
+  await page.goto('/log?rate=Negroni');
+  const sheet = page.getByRole('dialog', { name: ratePage.title });
+  await sheet.getByRole('radio', { name: /^8:/ }).click();
+  // "At a bar" with no bar named.
+  await sheet.getByRole('button', { name: pour.submit }).click();
+  const bar = sheet.getByLabel(pour.barLabel);
+  await expect(bar).toBeFocused();
+  await expect(bar).toHaveAccessibleDescription(pour.needBar);
+  // Naming it takes the message away.
+  await bar.fill('Attaboy');
+  await expect(sheet.getByText(pour.needBar)).toHaveCount(0);
+});

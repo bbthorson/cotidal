@@ -52,6 +52,9 @@ export default {
       maxHeight: {
         // The pinned drink card scrolls past this
         card: '24rem',
+        // A sheet centred on a wide screen keeps 2rem of ground above and
+        // below, so its offset shadow shows rather than running off the window.
+        sheet: 'calc(100dvh - 4rem)',
       },
       borderWidth: {
         // The active tab's top rule
