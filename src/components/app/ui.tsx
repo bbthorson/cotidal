@@ -26,11 +26,24 @@ export function Chip({
  * needs one — left-aligned, at one size, on every app screen. The reading
  * pages open with `PageTitle` instead; the two tiers differ on purpose.
  */
-export function ScreenHeader({ eyebrow, title, lede }: { eyebrow: string; title: string; lede?: string }) {
+export function ScreenHeader({
+  eyebrow,
+  title,
+  lede,
+  action,
+}: {
+  eyebrow: string;
+  title: string;
+  lede?: string;
+  action?: ReactNode;
+}) {
   return (
     <div className="pb-5">
       <p className="label-caps">{eyebrow}</p>
-      <h1 className="mt-2 font-serif text-title font-bold text-foreground">{title}</h1>
+      <div className="mt-2 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-3">
+        <h1 className="font-serif text-title font-bold text-foreground">{title}</h1>
+        {action}
+      </div>
       {lede && <p className="mt-2 text-ui text-muted-foreground">{lede}</p>}
     </div>
   );

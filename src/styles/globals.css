@@ -287,6 +287,71 @@
   color: hsl(var(--foreground));
 }
 
+/* `<bsky-sign-in>` progressive enhancement on `/sign-in` (ConnectForm.astro).
+   Unlayered so Tailwind does not purge classes generated at runtime by the
+   custom element (`@bbthorson/atproto-cf-auth/element`). Matches SignInSheet's
+   exact specimen-catalog tokens. */
+bsky-sign-in {
+  display: block;
+}
+.bsky-sign-in__accounts {
+  @apply border-t border-foreground;
+}
+.bsky-sign-in__accounts[hidden],
+.bsky-sign-in__divider[hidden],
+.bsky-sign-in__suggestions[hidden],
+[data-bsky-error][hidden] {
+  display: none;
+}
+.bsky-sign-in__account {
+  @apply flex items-stretch border-b border-border bg-card;
+}
+.bsky-sign-in__account-choose {
+  @apply focus-ring-inset flex min-h-13 min-w-0 flex-1 items-center gap-3 px-3 py-2.5 text-left transition-colors hover:bg-muted;
+}
+.bsky-sign-in__account-choose::after {
+  content: '\2192';
+  @apply shrink-0 font-condensed text-label font-bold uppercase tracking-label text-secondary;
+}
+.bsky-sign-in__account-forget {
+  @apply focus-ring-inset flex min-h-11 w-11 shrink-0 items-center justify-center border-l border-border font-condensed text-heading text-muted-foreground transition-colors hover:bg-muted hover:text-foreground;
+}
+.bsky-sign-in__avatar {
+  @apply h-9 w-9 shrink-0 rounded-full bg-muted object-cover;
+}
+.bsky-sign-in__avatar--empty {
+  @apply flex items-center justify-center border border-border font-condensed text-ui font-bold uppercase text-foreground;
+}
+.bsky-sign-in__identity {
+  @apply flex min-w-0 flex-1 flex-col;
+}
+.bsky-sign-in__name {
+  @apply truncate font-serif text-ui font-bold text-foreground;
+}
+.bsky-sign-in__handle {
+  @apply truncate text-meta text-muted-foreground;
+}
+.bsky-sign-in__divider {
+  @apply flex items-center gap-3 pt-1;
+}
+.bsky-sign-in__divider::before,
+.bsky-sign-in__divider::after {
+  content: '';
+  @apply h-px flex-1 bg-border;
+}
+.bsky-sign-in__suggestions {
+  @apply absolute inset-x-0 top-full z-10 mt-1 max-h-60 overflow-y-auto border border-foreground bg-card shadow-bar;
+}
+.bsky-sign-in__suggestion {
+  @apply flex cursor-pointer items-center gap-3 border-b border-border px-3 py-2.5 transition-colors last:border-b-0 hover:bg-muted;
+}
+.bsky-sign-in__suggestion[aria-selected='true'] {
+  @apply bg-muted;
+}
+bsky-sign-in[data-state='error'] input[name='handle'] {
+  @apply border-destructive;
+}
+
 /* "Pick a drink" steps aside while a drink card is open: the card has its
    own action ("Log this"), and the two would stack in the same corner. On
    every width, since the button floats on every width. */

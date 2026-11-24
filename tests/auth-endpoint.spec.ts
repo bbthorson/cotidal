@@ -81,12 +81,27 @@ test('Auth: the sign-in page’s form is offered exactly when the server will si
 
 test('Auth: the sign-in sheet on every app page agrees with the server', async ({ page, request }) => {
   const enabled = await serverSignInEnabled(request);
+  await page.addInitScript(() => {
+    localStorage.setItem(
+      'atproto-cf-auth:recent-accounts',
+      JSON.stringify([
+        {
+          did: 'did:plc:alice123',
+          handle: 'alice.bsky.social',
+          displayName: 'Alice',
+          lastUsedAt: '2026-11-24T00:00:00.000Z',
+        },
+      ])
+    );
+  });
   for (const path of ['/compass', '/log', '/questions']) {
     await page.goto(`${path}?signin=1`);
     const dialog = page.getByRole('dialog');
     await expect(dialog, path).toBeVisible();
     if (enabled) {
       await expect(dialog.getByPlaceholder(connect.placeholder), path).toBeVisible();
+      await expect(dialog.getByRole('button', { name: connect.createAccount }), path).toBeVisible();
+      await expect(dialog.getByRole('button', { name: /Continue as Alice/ }), path).toBeVisible();
     } else {
       await expect(dialog.getByText(connect.disabled), path).toBeVisible();
     }

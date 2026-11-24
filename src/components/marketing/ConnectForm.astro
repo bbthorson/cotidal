@@ -10,68 +10,113 @@ interface Props {
 const { enabled, error } = Astro.props;
 
 /**
- * The static twin of the in-app sign-in sheet (src/components/app/SignInSheet):
- * same benefits, same label, same one verb. A plain form post, so `/` keeps
- * working with JavaScript off.
+ * The standalone sign-in form (`/sign-in`), twin to `SignInSheet.tsx`.
+ *
+ * Renders a plain HTML `<form>` posting to `/api/auth/atproto/login` — so both
+ * handle sign-in and "Create an account" (`signUp=1`) work with JavaScript
+ * disabled — and progressively enhances it via `<bsky-sign-in>` (zero React)
+ * with remembered accounts, live Bluesky handle typeahead, and bfcache
+ * recovery.
  */
 ---
 
 <div class="space-y-4">
-  <ol class="border-t border-foreground">
-    {
-      connect.buys.map((b, i) => (
-        <li class="flex gap-3 border-b border-border py-3">
-          <span class="w-3.5 shrink-0 font-condensed text-ui font-bold text-muted-foreground">{i + 1}</span>
-          <div class="space-y-0.5">
-            <p class="text-ui font-bold text-foreground">{b.title}</p>
-            <p class="text-meta text-muted-foreground">{b.body}</p>
-          </div>
-        </li>
-      ))
-    }
-  </ol>
-
-  {
-    /* Rendered outside the enabled/disabled branches: a callback failure can
-       redirect here with an error even when sign-in is switched off. */
-    error && (
-      <p role="alert" class="text-meta text-destructive">
-        {error}
-      </p>
-    )
-  }
-
   {
     enabled ? (
-      <form method="POST" action={`${AUTH_BASE_PATH}/login`} class="space-y-4">
-        <input type="hidden" name="returnTo" value="/compass" />
-        <label for="handle" class="flex flex-col gap-1.5">
-          <span class="font-condensed text-label uppercase tracking-label text-muted-foreground">
-            {connect.label}
-          </span>
-          <input
-            id="handle"
-            name="handle"
-            type="text"
-            required
-            autocomplete="username"
-            autocapitalize="none"
-            spellcheck="false"
-            placeholder={connect.placeholder}
-            class="field"
+      <bsky-sign-in
+        base-path={AUTH_BASE_PATH}
+        return-to="/compass"
+        loading-label={connect.connecting}
+        typeahead
+        remember-accounts
+        sign-up
+      >
+        <form method="POST" action={`${AUTH_BASE_PATH}/login`} class="space-y-4">
+          <input type="hidden" name="returnTo" value="/compass" />
+
+          <div
+            data-bsky-accounts
+            role="list"
+            aria-label={connect.continueAs}
+            class="bsky-sign-in__accounts"
+            hidden
           />
-        </label>
-        <button
-          type="submit"
-          class="btn btn-primary btn-lg w-full px-4"
-        >
-          {connect.submit}
-        </button>
-      </form>
+
+          <div data-bsky-divider class="bsky-sign-in__divider" hidden>
+            <span class="label-caps">{connect.orAnother}</span>
+          </div>
+
+          <div class="relative flex flex-col gap-1.5">
+            <label for="handle" class="flex flex-col gap-1.5">
+              <span class="label-caps">{connect.label}</span>
+              <input
+                id="handle"
+                name="handle"
+                type="text"
+                required
+                autocomplete="username"
+                autocapitalize="none"
+                autocorrect="off"
+                spellcheck="false"
+                inputmode="url"
+                enterkeyhint="go"
+                placeholder={connect.placeholder}
+                aria-invalid={error ? 'true' : undefined}
+                aria-describedby={error ? 'sign-in-error' : undefined}
+                class="field"
+              />
+            </label>
+            <ul
+              data-bsky-suggestions
+              aria-label={connect.suggestionsLabel}
+              class="bsky-sign-in__suggestions"
+              hidden
+            />
+            <p
+              id="sign-in-error"
+              data-bsky-error
+              role="alert"
+              class="text-meta text-destructive"
+              hidden={!error}
+            >
+              {error ?? ''}
+            </p>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-lg w-full px-4">
+            {connect.submit}
+          </button>
+
+          <p class="flex items-center justify-center gap-1.5 border-t border-border pt-3 text-meta text-muted-foreground">
+            <span>{connect.noAccountPrompt}</span>
+            <button
+              type="submit"
+              name="signUp"
+              value="1"
+              formnovalidate
+              data-bsky-sign-up
+              class="link-serif text-meta"
+            >
+              {connect.createAccount}
+            </button>
+          </p>
+        </form>
+      </bsky-sign-in>
     ) : (
-      <p class="border-y border-border py-2.5 text-meta text-muted-foreground">
-        {connect.disabled}
-      </p>
+      <>
+        {error && (
+          <p role="alert" class="text-meta text-destructive">
+            {error}
+          </p>
+        )}
+        <p class="border-y border-border py-2.5 text-meta text-muted-foreground">
+          {connect.disabled}
+        </p>
+      </>
     )
   }
 </div>
+
+<script>
+  import '@bbthorson/atproto-cf-auth/element';
+</script>

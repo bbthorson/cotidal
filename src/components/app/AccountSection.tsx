@@ -1,31 +1,36 @@
 import { useState } from 'react';
 import { account, settings } from '@/lib/copy';
-import { AUTH_BASE_PATH, publicMapPath } from '@/lib/atproto/paths';
+import { publicMapPath } from '@/lib/atproto/paths';
 import { sharePalateToFeed } from '@/lib/api-client';
 import { cn } from '@/lib/utils';
 
 const link = 'link-caps';
 
-/** A member's settings page: connected assistants, and the account as one page. */
+/** Full account management (assistants, start over, sign out) lives on `/settings`. */
 const SETTINGS_PATH = '/settings';
-const MCP_PATH = '/mcp';
 
 /**
- * The account, in one compact block under the ledger: who you are, your public
- * map, sharing, chat assistant setup (/mcp), settings, start over, and sign out.
- * A guest has no account to manage, so sees only start over.
+ * Quiet foot strip at the bottom of `/log`.
+ *
+ * - Member: who you are signed in as, plus the three log-adjacent actions
+ *   (public map, share to feed, Settings ->). Assistants, start over, and sign
+ *   out live on `/settings` so Log stays about your palate and pours.
+ * - Guest: only the two-step Start over control (guests have no `/settings`).
  */
 export function AccountSection({
   handle,
   topName,
   regionName,
   onStartOver,
+  flush = false,
 }: {
   /** Null for a guest. */
   handle: string | null;
   topName: string;
   regionName: string;
   onStartOver: () => void;
+  /** Skip the top rule when an element directly above already draws one (e.g. `GuestPrompt`). */
+  flush?: boolean;
 }) {
   const [shareState, setShareState] = useState<'idle' | 'sharing' | 'shared'>('idle');
   const [shareError, setShareError] = useState<string | null>(null);
@@ -43,63 +48,56 @@ export function AccountSection({
     }
   };
 
-  return (
-    <section id="account" aria-labelledby="account-title" className="mt-8 scroll-mt-4">
-      <h2 id="account-title" className="section-title">
-        {account.title}
-      </h2>
-      <div className="mt-3">
-        {handle && (
+  if (handle) {
+    return (
+      <section id="account" aria-label={account.title} className="mt-10 scroll-mt-4 border-t border-foreground pt-4">
+        <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
           <p className="text-meta text-muted-foreground">
             {account.signedInAs} <span className="font-bold text-foreground">@{handle}</span>
           </p>
-        )}
-        <div className="flex flex-wrap items-center gap-x-5">
-          {handle && (
-            <>
-              <a href={publicMapPath(handle)} className={cn(link, 'text-secondary hover:underline hover:underline-offset-4')}>
-                {account.publicMap}
-              </a>
-              <button
-                type="button"
-                onClick={share}
-                disabled={shareState !== 'idle'}
-                className={cn(link, 'text-secondary hover:text-foreground disabled:text-muted-foreground')}
-              >
-                {shareState === 'shared' ? account.shared : account.share}
-              </button>
-              <a href={MCP_PATH} className={cn(link, 'text-secondary hover:underline hover:underline-offset-4')}>
-                {account.assistants}
-              </a>
-              <a href={SETTINGS_PATH} className={cn(link, 'text-secondary hover:underline hover:underline-offset-4')}>
-                {settings.title}
-              </a>
-            </>
-          )}
-          {!confirming && (
+          <div className="flex flex-wrap items-center gap-x-5">
+            <a href={publicMapPath(handle)} className={cn(link, 'text-secondary hover:underline hover:underline-offset-4')}>
+              {account.publicMap}
+            </a>
             <button
               type="button"
-              onClick={() => setConfirming(true)}
-              className={cn(link, 'text-muted-foreground hover:text-foreground')}
+              onClick={share}
+              disabled={shareState !== 'idle'}
+              className={cn(link, 'text-secondary hover:text-foreground disabled:text-muted-foreground')}
             >
-              {account.startOver}
+              {shareState === 'shared' ? account.shared : account.share}
             </button>
-          )}
-          {handle && (
-            <form method="POST" action={`${AUTH_BASE_PATH}/logout`} className="inline-flex">
-              <button type="submit" className={cn(link, 'text-muted-foreground hover:text-foreground')}>
-                {account.signOutTitle}
-              </button>
-            </form>
-          )}
+            <a href={SETTINGS_PATH} className={cn(link, 'text-foreground hover:underline hover:underline-offset-4')}>
+              {settings.title} &rarr;
+            </a>
+          </div>
         </div>
         {shareError && (
-          <p role="alert" className="text-meta text-destructive">
+          <p role="alert" className="mt-2 text-meta text-destructive">
             {shareError}
           </p>
         )}
-        {confirming && <StartOver onConfirm={onStartOver} onCancel={() => setConfirming(false)} />}
-      </div>
+      </section>
+    );
+  }
+
+  return (
+    <section
+      id="account"
+      aria-label={account.title}
+      className={cn('scroll-mt-4', flush ? 'mt-3' : 'mt-10 border-t border-border pt-3')}
+    >
+      {!confirming ? (
+        <button
+          type="button"
+          onClick={() => setConfirming(true)}
+          className={cn(link, 'text-muted-foreground hover:text-foreground')}
+        >
+          {account.startOver}
+        </button>
+      ) : (
+        <StartOver onConfirm={onStartOver} onCancel={() => setConfirming(false)} />
+      )}
     </section>
   );
 }
@@ -111,7 +109,7 @@ export function AccountSection({
  */
 function StartOver({ onConfirm, onCancel }: { onConfirm: () => void; onCancel: () => void }) {
   return (
-    <div role="group" aria-label={account.startOver} className="mt-2 flex flex-col gap-3 border-t border-border pt-4">
+    <div role="group" aria-label={account.startOver} className="flex flex-col gap-3 pt-1">
       <p className="text-ui text-muted-foreground">{account.startOverBody}</p>
       <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
         <button type="button" onClick={onConfirm} className="btn btn-primary px-4">

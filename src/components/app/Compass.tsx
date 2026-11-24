@@ -356,10 +356,10 @@ export default function Compass({
   register: Register;
   signInEnabled: boolean;
   /** The server's answer (`accountFor`): who is reading, before anything loads. */
-  member: { handle: string | null } | null;
+  member: { did: string; handle: string | null } | null;
 }) {
   return (
-    <AtprotoProvider enabled={signInEnabled}>
+    <AtprotoProvider enabled={signInEnabled} member={member}>
       <CompassContent register={register} member={member} />
     </AtprotoProvider>
   );

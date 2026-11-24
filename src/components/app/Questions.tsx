@@ -90,10 +90,10 @@ export default function Questions({
   member,
 }: {
   signInEnabled: boolean;
-  member: { handle: string | null } | null;
+  member: { did: string; handle: string | null } | null;
 }) {
   return (
-    <AtprotoProvider enabled={signInEnabled}>
+    <AtprotoProvider enabled={signInEnabled} member={member}>
       <QuestionsContent member={!!member} />
     </AtprotoProvider>
   );

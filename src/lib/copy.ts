@@ -146,14 +146,16 @@ export const logPage = {
     complexity: 'Complexity',
   },
   /** Quick ATProto friend comparison, shown once you have a coordinate. */
-  compareTitle: 'Compare with a friend',
+  compareTitle: 'Compare palates',
+  compareHint: 'Type any Bluesky handle to see the distance between your charts.',
   compareLabel: 'Friend’s Bluesky handle',
   comparePlaceholder: 'friend.bsky.social',
   compareSubmit: 'Compare',
+  compareSuggestionsLabel: 'Matching Bluesky accounts',
   /** Bluesky follow-graph intersection on `/log`, shown only when at least one follow has a palate. */
   followsTitle: 'People you follow on the chart',
   followsContrast: (drink: string) => `They’d order ${drink}`,
-  /** The reading pages, at the foot of Log: on a phone the app pages have no Menu. */
+  /** The reading pages, at the foot of Log on phones: app pages have no Menu. */
   readingLabel: 'Read',
 } as const;
 
@@ -237,6 +239,7 @@ export const settings = {
   disconnected:
     'Disconnected. Remove Cotidal from that assistant’s connectors too, or it will ask to connect again.',
   disconnectFailed: 'That did not go through. Try again.',
+  coordinateTitle: 'Your coordinate',
   signOutTitle: 'Sign out',
   signOutBody: 'Signing out clears your coordinate from this device. It stays in your account, and connected assistants keep working.',
 } as const;
@@ -287,18 +290,29 @@ export const quadrants = [
 export const sections = {
   principles: 'Whose log it is',
   connect: 'Sign in',
+  whatItKeeps: 'What signing in keeps',
 } as const;
 
 export const connect = {
   title: 'Keep your log with you.',
-  /** The sign-in page only; the in-app sheet goes straight from title to list. */
+  /** The sign-in page's lede; concise framing above the form. */
   lede: 'Everything here works without an account.',
+  /** Compact subtitle inside the in-app sheet so the form stays above the fold. */
+  sheetLede: 'Your coordinate, pours, and public map — saved in your own Bluesky account.',
   body:
     'As a guest, your coordinate and pours stay on this device. Sign in with Bluesky and they’re kept in your own account instead.',
+  continueAs: 'Continue on this device',
+  continueAsAccount: (name: string) => `Continue as ${name}`,
+  forgetAccount: (handle: string) => `Forget @${handle} on this device`,
+  orAnother: 'Or sign in with another handle',
   label: 'Your Bluesky handle',
   placeholder: 'you.bsky.social',
+  suggestionsLabel: 'Matching Bluesky accounts',
   submit: 'Sign in with Bluesky',
   connecting: 'Opening Bluesky…',
+  noAccountPrompt: 'New to Bluesky?',
+  createAccount: 'Create an account',
+  creating: 'Opening Bluesky…',
   guest: 'Keep browsing as a guest',
   disabled: 'Signing in is switched off for now. Everything else works.',
   /**

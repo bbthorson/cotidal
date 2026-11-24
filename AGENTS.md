@@ -6,10 +6,12 @@ is about the code.
 
 ## Rendering: keep the front door static
 
-`/` is pure Astro with **zero client JavaScript**, and so are `/sign-in`
-and `/p/<handle>` (a link sent to a stranger). `/` asks one thing — find your
-coordinate — and keeps nothing else: sign-in is its own page. The app pages (`/compass`, `/log`,
-`/questions`) mount React islands.
+`/` is pure Astro with **zero client JavaScript**, and so is `/p/<handle>`
+(a link sent to a stranger). `/sign-in` renders a plain form post that works
+with JavaScript off and progressively enhances it via `<bsky-sign-in>` (zero
+React). `/` asks one thing — find your coordinate — and keeps nothing else:
+sign-in is its own page. The app pages (`/compass`, `/log`, `/questions`)
+mount React islands.
 
 The whole app was previously one `client:only` island, so nothing painted
 until ~860 KB of JavaScript had downloaded and hydrated — on every route,
@@ -18,12 +20,13 @@ landing page included. Astro was being used as a slower Next.js.
 - Prefer `.astro` for anything without state. Reach for an island only when
   something genuinely needs to be interactive, and scope it tightly.
 - Prefer `client:load` over `client:only` so the shell server-renders.
-- The header's account control is server truth: `@handle` and a Sign out
-  form for a member, Sign in for a guest, a neutral Account link on a
-  prerendered page that cannot know. The account is the foot of `/log`.
+- The header's account control is server truth: `@handle` (opening `/settings`)
+  and a Sign out form for a member, Sign in for a guest, a neutral Account
+  link on a prerendered page that cannot know. Full account management lives
+  on `/settings`; `/log` keeps only a quiet foot strip.
   Signing out lands on `/compass?signed_out=1`,
   where `AtprotoProvider` — every island mounts it — clears the device's
-  copy of the palate.
+  copy of the palate while leaving remembered account cards for one-tap return.
 - Rating a pour is a sheet over Compass or Log, never a page (`RateSheet.tsx`,
   `useRateSheet`; the contract is `docs/design-system.md` § Rating a pour):
   `?rate=<drink>` or `?draft=1&…` opens it on either, handled once, and a
@@ -31,9 +34,9 @@ landing page included. Astro was being used as a slower Next.js.
   current the moment the sheet closes. A new trigger calls `open()`; it does
   not navigate.
 - **An app screen is a hook and a drawing.** `useCompass`, `useLog`,
-  `useRatePour` and `usePourForm` (`src/hooks/`) hold a screen's state and
-  what a tap does; `Compass.tsx`, `LogScreen.tsx`, `RateSheet.tsx` and
-  `PourForm.tsx` only draw it, so a redesign changes the component and
+  `useRatePour`, `usePourForm` and `useSignIn` (`src/hooks/`) hold a screen's state and
+  what a tap does; `Compass.tsx`, `LogScreen.tsx`, `RateSheet.tsx`,
+  `PourForm.tsx` and `SignInSheet.tsx` only draw it, so a redesign changes the component and
   leaves the hook alone. The rules a screen applies are plain functions in
   `src/lib/` — `drink-search.ts`, `pour-entry.ts`, `pour-history.ts`,
   `scoreDrinks` in `menu-rank.ts` — tested in `tests/unit/`. Nothing in
@@ -45,9 +48,9 @@ landing page included. Astro was being used as a slower Next.js.
   built on those functions.
 - Never add an island to `/`. `tests/landing-static.spec.ts` fails if you do.
 - Sign-in is `@bbthorson/atproto-cf-auth`, content-negotiated at
-  `/api/auth/atproto/login`: JSON in, JSON out for the island; form-encoded in,
-  303 out for the plain form.
-  Do not break the second path — it is what keeps `/sign-in` script-free.
+  `/api/auth/atproto/login`: JSON in, JSON out for the island and `<bsky-sign-in>`;
+  form-encoded in, 303 out for the plain form (including `signUp=1`).
+  Do not break the second path — it is what keeps `/sign-in` working with JS off.
 
 ## Single sources of truth
 

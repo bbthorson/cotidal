@@ -30,7 +30,7 @@ test('Header: on an app page, Sign in opens the sheet there instead of leaving',
 test('Header: a prerendered page cannot know who is reading, and says Account', async ({ request }) => {
   const html = await (await request.get('/drinks')).text();
   const header = html.slice(html.indexOf('<header'), html.indexOf('</header>'));
-  expect(header).toContain('href="/log#account"');
+  expect(header).toContain('href="/settings"');
   expect(header).toContain(`>${account.neutral}<`);
   expect(header).not.toContain(nav.signIn);
 });
