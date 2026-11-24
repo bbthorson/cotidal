@@ -19,6 +19,8 @@ const KEYS = {
   pick: 'open_order',
   /** A guest's pours, newest first, so Log has them after a reload. */
   guestPours: 'guest_pours',
+  /** The latest finished quiz's answers, kept after they are written: where your track starts. */
+  lastQuiz: 'last_quiz',
 } as const;
 
 function read<T>(key: string): T | null {
@@ -54,6 +56,9 @@ export const clearProfile = () => remove(KEYS.profile);
 export const loadPendingAnswers = () => read<ElicitationRecord>(KEYS.pendingAnswers);
 export const savePendingAnswers = (record: ElicitationRecord) => write(KEYS.pendingAnswers, record);
 export const clearPendingAnswers = () => remove(KEYS.pendingAnswers);
+
+export const loadLastQuiz = () => read<ElicitationRecord>(KEYS.lastQuiz);
+export const saveLastQuiz = (record: ElicitationRecord) => write(KEYS.lastQuiz, record);
 
 export interface DrinkPick {
   drink: string;

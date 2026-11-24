@@ -157,11 +157,10 @@ Navigation is unified across the entire site through `<SiteHeader.astro>` and `<
 
 The app is being redrawn as a printed chart: the screens show what the model already knows — where you are, how sure it is, the way you came, which way a drink lies and how far — instead of describing it. The target is the design canvas reviewed on 24 November 2026; each screen's section below is rewritten in the commit that ships it, so this list is what is still to come.
 
-1. **Log as a log**: your track drawn large, then numbered entries — the drink, when and where, the rating, how far it moved you (or "held", for a rating between 4 and 6).
-2. **After a pour**: where you were, where you are, and the drink that pulled you.
-3. **The front door** (`/`): the chart, the headline, one line and **Find your coordinate**. Everything else is on How it works and Drinks.
-4. **Compass, chart first**: the chart with your position, the shoal around it and your track; your menu in a sheet along the foot, each drink with which way it lies ("richer, more savory") and how far. Before you have a position: every drink, one line, **Find your coordinate**, and "or look up a drink" — no search, bar map or menu until there is something to rank.
-5. **The questions**: the shoal over the map, narrowing as you answer.
+1. **After a pour**: where you were, where you are, and the drink that pulled you.
+2. **The front door** (`/`): the chart, the headline, one line and **Find your coordinate**. Everything else is on How it works and Drinks.
+3. **Compass, chart first**: the chart with your position, the shoal around it and your track; your menu in a sheet along the foot, each drink with which way it lies ("richer, more savory") and how far. Before you have a position: every drink, one line, **Find your coordinate**, and "or look up a drink" — no search, bar map or menu until there is something to rank.
+4. **The questions**: the shoal over the map, narrowing as you answer.
 
 **Signed out is one thing per screen.** A stranger is asked to do one thing: find their coordinate. A guest with a coordinate sees what a member sees; what signing in keeps is said once, at the foot of Log, after the first pour — the first moment it would keep something.
 
@@ -182,7 +181,7 @@ Everything works signed out, on the device; signing in moves the record into the
 | **Compass** | Everything | Everything |
 | **A menu** (Compass) | Everything; the pick waits on the device | The same |
 | **Rating** | Moves the coordinate on this device; the pour is kept there (`guestPours`, `device-store.ts`) | Written to the member's repository |
-| **Log** | Coordinate and pours, marked *On this device*, and what signing in keeps; start over | `@handle`, coordinate, pours, the account (public map, share, chat assistants, start over, sign out) |
+| **Log** | Coordinate, track and pours, marked *On this device*; what signing in keeps, once there is a pour; start over | `@handle`, coordinate, pours, the account (public map, share, chat assistants, start over, sign out) |
 | **Rating sheet** | The same form; the pour stays on the device | Written to the member's repository; the detail fields and cross-posting |
 
 Signing out forgets the device's copy (`forgetDevice`), on whichever app page it lands (`AtprotoProvider`). A guest's pours stay on the device when they sign in; they are not written to the account on their behalf.
@@ -190,16 +189,15 @@ Signing out forgets the device's copy (`forgetDevice`), on whichever app page it
 
 ## Log (`/log`, `LogScreen.tsx`)
 
-Yours — personal details, so the map lives here. It opens with its `ScreenHeader` ("Your log"), then the chart, then what the log adds up to (pours, bars, since, best so far), the ledger, and **the account** (`AccountSection.tsx`, `#account`): who you are, your public map, share, chat assistants, start over, and Sign out. Rating is not a section of it: "Rate a drink" beside the ledger opens the rating sheet over Log, and Log is where a link from outside the app (a chat assistant's draft) lands.
+Yours: where you are, the way you came, and what moved you. It opens with its `ScreenHeader` ("Your log"), then where you are (region and coordinate; "On this device" for a guest), **your track** (`TrackFigure`), what the log adds up to (pours, bars, moved in all, since), the log itself, and **the account** (`AccountSection.tsx`, `#account`): who you are, your public map, share, chat assistants, start over, and Sign out. "Rate a drink" beside the log opens the rating sheet over Log, and Log is where a link from outside the app (a chat assistant's draft) lands.
 
-From `lg` the chart and its figures hold the left column (sticky) while the ledger and the account scroll beside them, in AppShell's `frame` width; on a phone they stack, chart first.
+From `lg` where you are, the track and the figures hold the left column (sticky) while the log and the account scroll beside them, in AppShell's `frame` width; on a phone they stack, track first.
 
-**The chart** (`Chart.tsx`):
-- **The map** has a graticule — ticks along the frame every 2.5, longer at ±5 — as a printed chart marks its border. Each dot is a 24px target (`DrinkSpot`); drinks sharing a coordinate share one spot.
-- **The title block** is the chart's cartouche: where you are (region and coordinate; "On this device" for a guest), the legend, and the reading (Drinks: your menu filled, the rest hollow; Your pours: liked 7+ filled, 5–6 hollow, 4 or below muted).
-- **A drink** tapped on it opens in the drink card.
+**The track** (`TrackFigure.tsx`, `useTrack`, `src/lib/track.ts`) is never stored. It is replayed from your latest quiz's answers (the account's for a member, the device's copy for a guest; the centre for a guest who tried a pour first) through every pour since, by the same `applyPour` that moved you, and drawn only when the replay lands where you are. The figure is zoomed to the track so a half-point move shows: a square where you started, a dot per pour that moved you, numbered as the log numbers them, and you at the end.
 
-No trail of past positions is drawn yet; the pours to rebuild one from are stored.
+**The log** (`PourLedger.tsx`): each pour a numbered entry, newest first — the drink (linked to its entry in Drinks), the score, where and when, and **Moved 0.7** or **Held** (a rating between 4 and 6 moves nothing) when the track adds up; what was off and the note under it. The last entry is where the track starts: the questions, or the centre.
+
+A guest is told what signing in keeps once, under the log, after the first pour — the first moment it would keep something.
 
 ## Compass (`/compass`, `Compass.tsx`)
 

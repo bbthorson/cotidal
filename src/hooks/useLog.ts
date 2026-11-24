@@ -1,23 +1,22 @@
-import { useMemo, useState } from 'react';
-import { drinkDatabase } from '@/lib/data';
+import { useMemo } from 'react';
 import { quadrantFor } from '@/lib/quadrant';
 import { chart, logPage } from '@/lib/copy';
 import { titleOf, type Register } from '@/lib/register';
-import { lastPourByDrink, logTotals } from '@/lib/pour-history';
-import { closestDrinks, drinksAtSameSpot } from '@/lib/drink-search';
-import { userFromProfile } from '@/lib/profile';
-import { useMenu } from '@/hooks/useMenu';
+import { logTotals } from '@/lib/pour-history';
+import { distanceRun } from '@/lib/track';
+import { closestDrinks } from '@/lib/drink-search';
 import { usePours } from '@/hooks/usePours';
 import { useProfile } from '@/hooks/useProfile';
 import { useRateSheet } from '@/hooks/useRateSheet';
+import { useTrack } from '@/hooks/useTrack';
 
-/** What the map on Log shows: your menu filled in, or your pours. */
+/** What the chart shows: your menu filled in, or your pours. */
 export type Lens = (typeof chart.lenses)[number]['id'];
 
 /**
  * Everything Log knows and can do, so `LogScreen.tsx` only draws it: your
- * coordinate and region, the map's lens and the drink open on it, what your
- * pours add up to, and the rating sheet.
+ * coordinate and region, your track, what your pours add up to, and the
+ * rating sheet.
  */
 export function useLog(register: Register, member: { handle: string | null } | null) {
   const isMember = !!member;
@@ -29,13 +28,7 @@ export function useLog(register: Register, member: { handle: string | null } | n
   const x = profile?.x ?? 0;
   const y = profile?.y ?? 0;
 
-  // The map: your menu filled in, or your pours, and any drink opened in the card.
-  const [lens, setLensState] = useState<Lens>('drinks');
-  const [selected, setSelected] = useState<string | null>(null);
-  const user = useMemo(() => userFromProfile(profile), [profile]);
-  const { menu, closeness } = useMenu(user, profile?.vibeTags, history);
-  const lastPour = useMemo(() => lastPourByDrink(history), [history]);
-  const selectedDrink = selected ? drinkDatabase.find((d) => d.name === selected) ?? null : null;
+  const { track, fromQuiz } = useTrack(isMember, profile, pours);
   const name = (n: string) => titleOf(register, n);
 
   // The drink closest to you, for the account's "share" line.
@@ -45,6 +38,7 @@ export function useLog(register: Register, member: { handle: string | null } | n
   const stats = [
     { label: logPage.stats.pours, value: String(totals.pours) },
     { label: logPage.stats.bars, value: String(totals.bars) },
+    ...(track && track.length > 1 ? [{ label: logPage.stats.moved, value: String(distanceRun(track)) }] : []),
     ...(totals.first
       ? [
           {
@@ -53,7 +47,6 @@ export function useLog(register: Register, member: { handle: string | null } | n
           },
         ]
       : []),
-    ...(totals.best ? [{ label: logPage.stats.best, value: name(totals.best.drink.name) }] : []),
   ];
 
   return {
@@ -69,20 +62,9 @@ export function useLog(register: Register, member: { handle: string | null } | n
     cold: !profile && !isMember,
     you: { x, y },
     region: quadrantFor(x, y),
-    menuNames: menu.map((d) => d.name),
-    closeness,
-    lastPour,
-    lens,
-    setLens: (next: Lens) => {
-      setLensState(next);
-      setSelected(null);
-    },
-    selected,
-    setSelected,
-    toggleDrink: (n: string) => setSelected((cur) => (cur === n ? null : n)),
-    closeDrink: () => setSelected(null),
-    selectedDrink,
-    sameSpot: selectedDrink ? drinksAtSameSpot(selectedDrink) : [],
+    /** Your track when it adds up (`useTrack`), and what it starts from. */
+    track,
+    startLabel: fromQuiz ? logPage.started : logPage.startedCentre,
     nearestName: name(nearest),
     stats,
   };

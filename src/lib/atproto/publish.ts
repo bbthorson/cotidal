@@ -1,6 +1,7 @@
 import { Agent } from '@atproto/api';
 import {
   ELICITATION_COLLECTION,
+  ElicitationRecordSchema,
   type ElicitationRecord,
   PALATE_COLLECTION,
   PALATE_RKEY,
@@ -157,8 +158,9 @@ export async function getPours(session: OAuthSession, limit?: number): Promise<P
     const response = await agent.com.atproto.repo.listRecords({
       repo: session.did,
       collection: POUR_COLLECTION,
+      // Newest first is the default order. `reverse: true` read the oldest
+      // page instead, so past one page the latest pours went missing.
       limit: max,
-      reverse: true,
     });
     return response.data.records
       .map((r) => readPour(r.value))
@@ -168,6 +170,24 @@ export async function getPours(session: OAuthSession, limit?: number): Promise<P
   } catch (e) {
     console.error('Failed to get pours:', e);
     return [];
+  }
+}
+
+/** The member's latest quiz, as logged, or `null`. */
+export async function getLatestElicitation(session: OAuthSession): Promise<ElicitationRecord | null> {
+  const agent = new Agent(session);
+  try {
+    const response = await agent.com.atproto.repo.listRecords({
+      repo: session.did,
+      collection: ELICITATION_COLLECTION,
+      limit: 1,
+    });
+    const value = response.data.records[0]?.value;
+    const parsed = value ? ElicitationRecordSchema.safeParse(value) : null;
+    return parsed?.success ? parsed.data : null;
+  } catch (e) {
+    console.error('Failed to get the latest quiz:', e);
+    return null;
   }
 }
 

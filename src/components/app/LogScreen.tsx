@@ -1,12 +1,12 @@
-import { logPage } from '@/lib/copy';
+import { logPage, menu } from '@/lib/copy';
+import { formatCoordinate } from '@/lib/coordinate';
 import { startOverPath } from '@/lib/atproto/paths';
 import type { Register } from '@/lib/register';
 import { neutralProfile } from '@/lib/guest-palate';
-import { destinations, questionsHref } from '@/lib/site-nav';
+import { destinations } from '@/lib/site-nav';
 import { useLog } from '@/hooks/useLog';
-import { cn } from '@/lib/utils';
 import { AtprotoProvider, useAtprotoContext } from './AtprotoProvider';
-import { Chart, DrinkCard } from './Chart';
+import { TrackFigure } from './TrackFigure';
 import { ColdState } from './ColdState';
 import { PourLedger } from './PourLedger';
 import { WaitingPick } from './WaitingPick';
@@ -15,13 +15,13 @@ import { GuestPrompt, ScreenHeader } from './ui';
 import { AccountSection } from './AccountSection';
 
 /**
- * Log: yours. Where you are on the map, what your pours add up to, the
- * ledger of what moved you, and the account. Rating a pour is a sheet over
+ * Log: yours. Where you are, the track that brought you there, what your
+ * pours add up to, the log of what moved you, and the account. Rating a pour is a sheet over
  * this screen (`RateSheet`); this is where its result is kept, and a link from
  * outside the app (a chat assistant's draft) lands here to open it.
  *
- * From `lg` the chart and its figures hold the left column while the ledger
- * and the account scroll beside them; on a phone they stack, chart first.
+ * From `lg` the track and its figures hold the left column while the log
+ * and the account scroll beside them; on a phone they stack, track first.
  *
  * This file draws; what it draws and what a tap does is `useLog`.
  */
@@ -36,7 +36,7 @@ function LogContent({
 }) {
   const { isEnabled, openSignIn } = useAtprotoContext();
   const log = useLog(register, member);
-  const { rate, isMember, profile, setProfile, pours, reload, history, selectedDrink, name } = log;
+  const { rate, isMember, profile, setProfile, pours, reload, history, name } = log;
 
   // Rating opens over this screen, with or without a coordinate yet.
   const sheet = (
@@ -70,25 +70,26 @@ function LogContent({
   }
 
   return (
-    <div className={cn('mx-auto max-w-xl pb-6 pt-6 lg:max-w-none lg:pt-10', selectedDrink && 'pb-card-clearance')}>
+    <div className="mx-auto max-w-xl pb-6 pt-6 lg:max-w-none lg:pt-10">
       <ScreenHeader eyebrow={logPage.title} title={logPage.heading} />
 
       <div className="lg:grid lg:grid-cols-2 lg:items-start lg:gap-12">
-        <div className="lg:sticky lg:top-8">
-          {/* Where you are: the map is yours, so it lives here */}
-          <Chart
-            you={log.you}
-            menuNames={log.menuNames}
-            lastPour={log.lastPour}
-            lens={log.lens}
-            onLens={log.setLens}
-            selected={log.selected}
-            onSelect={log.toggleDrink}
-            register={register}
-            onTakeQuiz={() => window.location.assign(questionsHref)}
-            eyebrow={isMember ? undefined : logPage.guestEyebrow}
-          />
-          <dl className="mt-4 grid grid-cols-2 border-t border-foreground">
+        <div className="flex flex-col gap-4 lg:sticky lg:top-8">
+          {/* Where you are, and the way you came. */}
+          <div className="flex flex-col gap-1">
+            <span className="label-caps">
+              {!isMember && `${logPage.guestEyebrow} · `}
+              {menu.youAreIn}
+            </span>
+            <span className="flex flex-wrap items-baseline gap-x-2.5">
+              <span className="font-serif text-subtitle italic leading-none text-primary">{log.region.name}</span>
+              <span className="font-condensed text-label font-semibold tabular-nums tracking-label text-secondary">
+                {formatCoordinate(log.you.x, log.you.y)}
+              </span>
+            </span>
+          </div>
+          {log.track && log.track.length > 1 && <TrackFigure track={log.track} />}
+          <dl className="grid grid-cols-2 border-t border-foreground">
             {log.stats.map((st, i) => (
               <div key={st.label} className={`flex flex-col gap-0.5 border-b border-border py-2.5 ${i % 2 ? 'pl-4' : 'border-r pr-4'}`}>
                 <dt className="label-caps">{st.label}</dt>
@@ -112,11 +113,18 @@ function LogContent({
                 {logPage.rateDrink}
               </button>
             </div>
-            <PourLedger pours={history} register={register} empty={logPage.ledgerEmpty} loading={pours === null} />
+            <PourLedger
+              pours={history}
+              register={register}
+              empty={logPage.ledgerEmpty}
+              loading={pours === null}
+              track={log.track}
+              startLabel={log.startLabel}
+            />
           </section>
 
-          {/* A guest: what signing in buys, once, under the log it would keep. */}
-          {!isMember && isEnabled && (
+          {/* A guest, once a pour is here to keep: what signing in buys, under the log it would keep. */}
+          {!isMember && isEnabled && history.length > 0 && (
             <GuestPrompt className="mt-6" title={logPage.guestTitle} body={logPage.guestBody} onSignIn={openSignIn} />
           )}
 
@@ -144,18 +152,6 @@ function LogContent({
           </nav>
         </div>
       </div>
-      {selectedDrink && (
-        <DrinkCard
-          drink={selectedDrink}
-          register={register}
-          closeness={log.closeness[selectedDrink.name]}
-          last={log.lastPour.get(selectedDrink.name)}
-          sameSpot={log.sameSpot}
-          onPick={log.setSelected}
-          onLog={() => rate.open({ drink: selectedDrink.name })}
-          onClose={log.closeDrink}
-        />
-      )}
       {sheet}
     </div>
   );

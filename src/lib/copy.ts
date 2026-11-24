@@ -109,8 +109,18 @@ export const logPage = {
     pours: 'Pours',
     bars: 'Bars',
     since: 'Since',
-    best: 'Best so far',
+    moved: 'Moved in all',
   },
+  /** The track figure, read aloud. */
+  trackLabel: (pours: number) => `Your track, through ${pours === 1 ? 'one pour' : `${pours} pours`}`,
+  /** What one pour did to your coordinate, at the end of its entry. */
+  movedOf: (n: number) => `Moved ${n}`,
+  held: 'Held',
+  /** The last entry: where the track starts. */
+  started: 'The questions',
+  startedCentre: 'The centre of the chart',
+  startedAt: (coordinate: string) => `Started at ${coordinate}`,
+
   /** The way into rating a drink that was not handed over (a pick, "Rate this", a chat's draft). */
   rateDrink: 'Rate a drink',
   ledgerTitle: 'What moved it',

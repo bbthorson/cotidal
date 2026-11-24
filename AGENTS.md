@@ -120,6 +120,14 @@ shows and the rating sheet clears. There is no separate harbour page.
 The dot on the map is not the filter's estimate: `applyPour` moves crisp/sweet
 by a capped, simpler rule and leaves the other three axes to the EKF.
 
+**Your track is replayed, never stored** (`src/lib/track.ts`): from the latest
+quiz's answers (`quizStart`, refitted by `axesFromResponses`) through every
+pour since, by `applyPour`, keeping the state between pours as a member's
+record or a guest's device keeps it. `tests/unit/track.test.ts` holds the
+replay to both paths step by step. A replay that does not land where you are
+answers `null` and nothing is drawn; change `applyPour` and old tracks stop
+adding up, which is the honest outcome.
+
 ### Placement — `src/lib/placement.ts`
 The first 94 drinks were placed by hand. A wine or beer added since is placed
 by its style: `profile` (body 1–5, residual sugar g/L, structure 0–4 —
