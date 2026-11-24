@@ -2,7 +2,7 @@
 name: "Brandy Alexander"
 title: "Brandy Alexander"
 family: "dessert"
-summary: "Cognac, dark crème de cacao, and heavy cream, topped with freshly grated nutmeg. The decadent brandy evolution that eclipsed its gin-based ancestor."
+summary: "Cognac, dark crème de cacao, and heavy cream, topped with grated nutmeg. The Alexander made with brandy, which sits more easily under cream than gin does."
 build:
   glass: "Coupe, chilled"
   method: "Shaken vigorously with ice until completely cold and aerated, double-strained."

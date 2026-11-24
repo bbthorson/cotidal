@@ -2,7 +2,7 @@
 name: "20th Century"
 title: "20th Century"
 family: "sour"
-summary: "London Dry gin, Lillet Blanc (or Cocchi Americano), white crème de cacao, and fresh lemon juice. A sleek, botanical sour paying homage to locomotive speed."
+summary: "London Dry gin, Lillet Blanc (or Cocchi Americano), white crème de cacao, and fresh lemon juice. A gin sour where the cacao reads as texture, not chocolate."
 build:
   glass: "Coupe, chilled"
   method: "Shaken vigorously with ice and double-strained into a chilled coupe."

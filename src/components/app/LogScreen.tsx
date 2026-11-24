@@ -75,7 +75,6 @@ function LogContent({
     return (
       <>
         <ColdState
-          eyebrow={logPage.title}
           onSignIn={openSignIn}
           onGuest={() => {
             setProfile(neutralProfile);
@@ -92,7 +91,6 @@ function LogContent({
   return (
     <div className="mx-auto max-w-xl pb-6 pt-6 lg:max-w-none lg:pt-10">
       <ScreenHeader
-        eyebrow={logPage.title}
         title={logPage.heading}
         action={
           <button type="button" onClick={() => rate.open()} className="btn btn-primary px-4">
@@ -120,21 +118,23 @@ function LogContent({
           {log.track && log.track.length > 1 && <TrackFigure track={log.track} />}
 
           {/* Balanced figures block: 2 or 3 columns so there is never an orphan cell. */}
-          <dl className={cn('grid border-t border-foreground', statCols === 3 ? 'grid-cols-3' : 'grid-cols-2')}>
-            {log.stats.map((st, i) => (
-              <div
-                key={st.label}
-                className={cn(
-                  'flex flex-col gap-0.5 border-b border-border py-2.5',
-                  i % statCols !== 0 && 'border-l pl-3.5',
-                  i % statCols !== statCols - 1 && 'pr-3.5'
-                )}
-              >
-                <dt className="label-caps">{st.label}</dt>
-                <dd className="truncate font-condensed text-ui font-semibold tabular-nums text-foreground">{st.value}</dd>
-              </div>
-            ))}
-          </dl>
+          {log.stats.length > 0 && (
+            <dl className={cn('grid border-t border-foreground', statCols === 3 ? 'grid-cols-3' : 'grid-cols-2')}>
+              {log.stats.map((st, i) => (
+                <div
+                  key={st.label}
+                  className={cn(
+                    'flex flex-col gap-0.5 border-b border-border py-2.5',
+                    i % statCols !== 0 && 'border-l pl-3.5',
+                    i % statCols !== statCols - 1 && 'pr-3.5'
+                  )}
+                >
+                  <dt className="label-caps">{st.label}</dt>
+                  <dd className="truncate font-condensed text-ui font-semibold tabular-nums text-foreground">{st.value}</dd>
+                </div>
+              ))}
+            </dl>
+          )}
 
           {log.tolerances && (
             <div className="flex flex-col gap-2">

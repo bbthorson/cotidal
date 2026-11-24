@@ -1,14 +1,14 @@
 import { drinkDatabase, type Drink, type Tolerances, type User } from '@/lib/data';
 import { baseName, matchDrink } from '@/lib/drink-match';
 import { splitMenuLine, suggestClosestDrink } from '@/lib/ingredient-match';
-import { calculateWeightedRelevance, type MinimalDrinkLog } from '@/lib/scoring';
+import { byRelevance, relevanceOf, type MinimalDrinkLog, type Relevance } from '@/lib/scoring';
 import { titleOf, type Register } from '@/lib/register';
 import type { PourRecord } from '@/lib/atproto/records';
 
 /**
  * A menu someone typed or pasted, and the order to have it in. Used by
  * Compass's bar view (a bar's menu, or a menu with no bar); the ranking is
- * the one Compass's own list uses (`calculateWeightedRelevance`), plus the
+ * the one Compass's own list uses (`relevanceOf`), plus the
  * bar when it is named.
  */
 
@@ -49,7 +49,7 @@ export function addMenuLines(items: MenuItem[], block: string, register: Registe
   return next;
 }
 
-export type ScoredDrink = Drink & { score: number };
+export type ScoredDrink = Drink & Relevance;
 
 /** Your menu: the top pick and seven more. */
 export const MENU_LENGTH = 8;
@@ -83,14 +83,14 @@ export function scoreDrinks(
     })
     .map((drink) => ({
       ...drink,
-      score: calculateWeightedRelevance(
+      ...relevanceOf(
         { x: user.x, y: user.y, vibeTags: vibeTags || null, tolerances: user.tolerances ?? null },
         drink,
         logs,
         null
       ),
     }))
-    .sort((a, b) => b.score - a.score);
+    .sort(byRelevance);
 }
 
 /** Pours as the scorer reads them: what was rated, where, and when. */
@@ -103,9 +103,8 @@ export function pourLogs(pours: PourRecord[]): MinimalDrinkLog[] {
   }));
 }
 
-export interface RankedDrink {
+export interface RankedDrink extends Relevance {
   drink: Drink;
-  score: number;
 }
 
 /**
@@ -124,12 +123,12 @@ export function rankMenu(
   return placed
     .map((drink) => ({
       drink,
-      score: calculateWeightedRelevance(
+      ...relevanceOf(
         { x: you.x, y: you.y, vibeTags: you.vibeTags ?? null, tolerances: you.tolerances ?? null },
         drink,
         logs,
         where
       ),
     }))
-    .sort((a, b) => b.score - a.score);
+    .sort(byRelevance);
 }

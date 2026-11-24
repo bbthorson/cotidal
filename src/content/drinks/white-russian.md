@@ -2,7 +2,7 @@
 name: "White Russian"
 title: "White Russian"
 family: "dessert"
-summary: "Vodka, coffee liqueur, and heavy cream floated on top. Mid-century decadence cemented into pop-culture lore by The Big Lebowski."
+summary: "Vodka, coffee liqueur, and heavy cream floated on top. A Black Russian with cream: sweet coffee, made soft."
 build:
   glass: "Old Fashioned or rocks glass"
   method: "Vodka and coffee liqueur poured over ice and stirred; heavy cream gently poured over the back of a barspoon to float."

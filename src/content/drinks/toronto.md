@@ -2,7 +2,7 @@
 name: "Toronto"
 title: "Toronto"
 family: "manhattan"
-summary: "Canadian or rye whisky, Fernet-Branca, simple syrup, and Angostura bitters. An uncompromising, medicinal Manhattan anchored by Milanese bitterness."
+summary: "Canadian or rye whisky, Fernet-Branca, simple syrup, and Angostura bitters. An Old Fashioned with Fernet in it: menthol and bitterness through the whisky."
 build:
   glass: "Coupe or Nick & Nora, chilled"
   method: "Stirred with ice until chilled and strained up."

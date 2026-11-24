@@ -2,7 +2,7 @@
 name: "El Diablo"
 title: "El Diablo"
 family: "highball"
-summary: "Reposado tequila, crème de cassis, fresh lime juice, and spicy ginger beer. A dark purple agave highball that balances tart berry sweetness with fiery ginger."
+summary: "Reposado tequila, crème de cassis, fresh lime juice, and ginger beer. Blackcurrant and ginger over agave: tart, then hot."
 build:
   glass: "Highball or Collins glass"
   method: "Tequila, cassis, and lime juice shaken briefly with ice, strained into a Collins glass with fresh ice, and topped with spicy ginger beer."

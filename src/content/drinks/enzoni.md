@@ -2,7 +2,7 @@
 name: "Enzoni"
 title: "Enzoni"
 family: "sour"
-summary: "London Dry gin, Campari, fresh lemon juice, simple syrup, and muddled green seedless grapes. The modern cross between a Gin Sour and a Negroni."
+summary: "London Dry gin, Campari, fresh lemon juice, simple syrup, and muddled green grapes. A gin sour with Campari's bitterness, softened by the grapes."
 build:
   glass: "Old Fashioned or rocks glass"
   method: "Muddle grapes with simple syrup in a shaker tin; add gin, Campari, and lemon juice; shake hard with ice and double-strain over a large rock."

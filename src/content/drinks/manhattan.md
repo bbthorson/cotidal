@@ -2,7 +2,7 @@
 name: "Manhattan"
 title: "Manhattan"
 family: "manhattan"
-summary: "Rye whiskey, sweet vermouth, and aromatic bitters. The definitive bridge between the Old Fashioned and modern cocktail architecture."
+summary: "Rye whiskey, sweet vermouth, and aromatic bitters. Whiskey sweetened with wine instead of sugar: stirred, rich, and spiced."
 build:
   glass: "Coupe or Nick & Nora, chilled"
   method: "Stirred with ice until cold and diluted, then strained up."

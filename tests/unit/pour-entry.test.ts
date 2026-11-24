@@ -78,10 +78,10 @@ const fields: PourFields = {
 };
 
 test('Pour fields: what is missing is said, in the order the form asks', () => {
-  expect(entryFromFields({ ...fields, drinkName: ' ' }, true)).toEqual({ error: pour.needDrink });
-  expect(entryFromFields({ ...fields, venue: '' }, true)).toEqual({ error: pour.needBar });
+  expect(entryFromFields({ ...fields, drinkName: ' ' }, true)).toEqual({ error: pour.needDrink, field: 'drink' });
+  expect(entryFromFields({ ...fields, venue: '' }, true)).toEqual({ error: pour.needBar, field: 'where' });
   expect(entryFromFields({ ...fields, venue: '', isHomePour: true }, true)).not.toHaveProperty('error');
-  expect(entryFromFields({ ...fields, hedonic: null }, true)).toEqual({ error: pour.needRating });
+  expect(entryFromFields({ ...fields, hedonic: null }, true)).toEqual({ error: pour.needRating, field: 'rating' });
 });
 
 test('Pour fields: trimmed, and an untouched field is absent', () => {

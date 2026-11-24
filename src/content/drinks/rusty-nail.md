@@ -2,7 +2,7 @@
 name: "Rusty Nail"
 title: "Rusty Nail"
 family: "old-fashioned"
-summary: "Blended Scotch whisky and Drambuie scotch-whisky liqueur stirred over a large rock. The mid-century Rat Pack nightcap bathed in heather honey and herbs."
+summary: "Blended Scotch whisky and Drambuie, stirred over a large cube. Whisky sweetened with honey and herbs, and little else."
 build:
   glass: "Old Fashioned or rocks glass"
   method: "Built in the glass: Scotch and Drambuie poured over a large ice rock and stirred until well chilled and diluted."

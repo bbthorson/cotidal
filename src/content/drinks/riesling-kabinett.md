@@ -2,7 +2,7 @@
 name: "German Riesling (Kabinett)"
 title: "Riesling Kabinett"
 family: "wine"
-summary: "Light, low-alcohol Riesling from the steep slate slopes of the Mosel or Rheingau. Electric acidity balancing delicate natural grape sweetness and mineral slate."
+summary: "Light, low-alcohol Riesling from the Mosel or Rheingau. High acidity against a little natural grape sweetness."
 build:
   glass: "Riesling or standard white wine glass"
   method: "Served cool (45–48°F) in fine stemware to focus ethereal floral and citrus aromas."

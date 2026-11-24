@@ -59,14 +59,20 @@ export function chosenDetail(fields: Pick<PourFields, 'baseSpirit' | 'glassware'
   return Object.keys(detail).length > 0 ? detail : undefined;
 }
 
+/** The field a missing answer belongs to, so the form can say it there. */
+export type PourField = 'drink' | 'where' | 'rating';
+
 /**
- * The entry the fields add up to, or what is missing. Cross-posting and the
- * detail fields are a member's only: a guest's are dropped, not sent.
+ * The entry the fields add up to, or what is missing and where. Cross-posting
+ * and the detail fields are a member's only: a guest's are dropped, not sent.
  */
-export function entryFromFields(fields: PourFields, isMember: boolean): { entry: PourEntry } | { error: string } {
-  if (!fields.drinkName.trim()) return { error: pour.needDrink };
-  if (!fields.isHomePour && !fields.venue.trim()) return { error: pour.needBar };
-  if (fields.hedonic === null) return { error: pour.needRating };
+export function entryFromFields(
+  fields: PourFields,
+  isMember: boolean
+): { entry: PourEntry } | { error: string; field: PourField } {
+  if (!fields.drinkName.trim()) return { error: pour.needDrink, field: 'drink' };
+  if (!fields.isHomePour && !fields.venue.trim()) return { error: pour.needBar, field: 'where' };
+  if (fields.hedonic === null) return { error: pour.needRating, field: 'rating' };
   return {
     entry: {
       drinkName: fields.drinkName.trim(),

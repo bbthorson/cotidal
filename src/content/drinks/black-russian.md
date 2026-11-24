@@ -2,7 +2,7 @@
 name: "Black Russian"
 title: "Black Russian"
 family: "dessert"
-summary: "Vodka and dark Mexican coffee liqueur stirred over ice. The austere post-war duo that launched the modern coffee cocktail movement."
+summary: "Vodka and dark coffee liqueur stirred over ice. Two ingredients: the liqueur supplies all of the flavour and all of the sugar."
 build:
   glass: "Old Fashioned or rocks glass"
   method: "Built in the glass: vodka and coffee liqueur poured over large ice cubes and stirred until cold."

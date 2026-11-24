@@ -2,7 +2,7 @@
 name: "Monte Carlo"
 title: "Monte Carlo"
 family: "manhattan"
-summary: "Rye whiskey, Bénédictine, and Angostura bitters. The lean Manhattan variation that swaps vermouth for French herbal monastery liqueur."
+summary: "Rye whiskey, Bénédictine, and Angostura bitters. A Manhattan with an herbal liqueur in place of vermouth: sweeter and leaner at once."
 build:
   glass: "Coupe or rocks glass, chilled"
   method: "Stirred with ice until chilled and strained up or over a single ice block."

@@ -2,7 +2,7 @@
 name: "Caipirinha"
 title: "Caipirinha"
 family: "sour"
-summary: "Cachaça, fresh lime muddled with granulated cane sugar, and crushed ice. Brazil's rustic national drink built on fresh-pressed sugarcane juice."
+summary: "Cachaça, fresh lime muddled with cane sugar, and crushed ice. The lime is crushed whole, so the peel's bitterness is part of the drink."
 build:
   glass: "Old Fashioned or rocks glass"
   method: "Whole lime cut into wedges and muddled thoroughly with granulated sugar in the glass; cachaça and cracked ice added, then stirred vigorously."

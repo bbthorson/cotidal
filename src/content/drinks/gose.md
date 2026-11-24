@@ -2,7 +2,7 @@
 name: "Gose"
 title: "Gose"
 family: "beer"
-summary: "Historic top-fermented wheat beer from Goslar and Leipzig, Germany. Fermented with lactic bacteria, spiced with ground coriander, and brewed with sea salt."
+summary: "Top-fermented wheat beer from Goslar and Leipzig, Germany, soured with lactic bacteria and brewed with coriander and salt. Tart, saline, and light."
 build:
   glass: "Traditional tall cylindrical Stange glass"
   method: "Poured cold (44–48°F) with a lively, effervescent, rocky white foam head."

@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { QUADRANT_ORDER, quadrantIdFor, regionPath } from '../src/lib/quadrant';
 import { drinkDatabase } from '../src/lib/data';
-import { quadrants, drinks, hero, nav as nav_ } from '../src/lib/copy';
+import { quadrants, drinks, hero, nav as nav_, notFound } from '../src/lib/copy';
 import { AUTH_ERROR_MESSAGES } from '@bbthorson/atproto-cf-auth/client';
 
 /**
@@ -202,4 +202,22 @@ test('Landing: header, front door, action, and footer all fit within 100dvh with
 test('Landing: one primary action, with its cost stated', async ({ page }) => {
   const html = await (await page.request.get('/')).text();
   expect(html).toContain(hero.cost);
+});
+
+test('Not found: an unknown address answers 404 with the site, not the framework', async ({ page }) => {
+  const scripts: string[] = [];
+  page.on('response', (res) => {
+    if (res.request().resourceType() !== 'script') return;
+    if (isDevServerScript(res.url())) return;
+    scripts.push(res.url());
+  });
+
+  const res = await page.goto('/no-such-page', { waitUntil: 'networkidle' });
+  expect(res?.status()).toBe(404);
+  await expect(page.getByRole('heading', { level: 1, name: notFound.title })).toBeVisible();
+  await expect(page.getByRole('link', { name: notFound.cta })).toBeVisible();
+  // The paper ground, not a dark default page.
+  const ground = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
+  expect(ground).toBe('rgb(244, 241, 230)');
+  expect(scripts, `unexpected scripts: ${scripts.join(', ')}`).toHaveLength(0);
 });

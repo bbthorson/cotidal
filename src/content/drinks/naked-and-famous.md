@@ -2,7 +2,7 @@
 name: "Naked & Famous"
 title: "Naked & Famous"
 family: "sour"
-summary: "Equal parts mezcal, Yellow Chartreuse, Aperol, and fresh lime juice. A smoky, floral, equal-parts marvel that proved mezcal belonged in the modern pantheon."
+summary: "Equal parts mezcal, Yellow Chartreuse, Aperol, and fresh lime juice. Smoke, honeyed herbs, and bitter orange, balanced by lime."
 build:
   glass: "Coupe, chilled"
   method: "Shaken hard with ice and double-strained."

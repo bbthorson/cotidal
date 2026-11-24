@@ -9,8 +9,8 @@ import { Empty } from './ui';
 const NearMap = lazy(() => import('./NearMap').then((m) => ({ default: m.NearMap })));
 
 /**
- * The first thing on Compass: the map, in a frame that holds its height
- * whatever state it is in, so nothing below it moves when it fills. A frame
+ * Bars near you, on Compass: once asked for, the map, in a frame that holds
+ * its height whatever state it is in, so nothing below it moves when it fills. A frame
  * on the ground, as a printed chart has, not a sheet: the sheet is the top pick.
  */
 export function NearPanel({
@@ -25,6 +25,20 @@ export function NearPanel({
   onSelect: (id: string) => void;
 }) {
   const { status, you, bars, search, locate } = nearby;
+  // Before anyone asks, a ruled section, not an empty frame: the frame holds its
+  // height so nothing jumps while the map is found and drawn, which only
+  // matters once it has been asked for.
+  if (status === 'idle') {
+    return (
+      <section aria-label={compass.mapLabel} className="pt-4">
+        <h2 className="section-title">{compass.nearTitle}</h2>
+        <p className="mt-3 text-meta text-muted-foreground">{compass.nearNote}</p>
+        <button type="button" onClick={locate} className="btn btn-primary mt-4 px-5">
+          {compass.showNear}
+        </button>
+      </section>
+    );
+  }
   return (
     <section aria-label={compass.mapLabel}>
       <div className="relative h-72 overflow-hidden border border-foreground lg:h-96">

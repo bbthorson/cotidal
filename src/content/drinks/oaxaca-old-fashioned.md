@@ -2,7 +2,7 @@
 name: "Oaxaca Old Fashioned"
 title: "Oaxaca Old Fashioned"
 family: "old-fashioned"
-summary: "Reposado tequila and mezcal, sweetened with agave nectar and bound with Angostura bitters. The split-base modern classic that redefined agave cocktails."
+summary: "Reposado tequila and mezcal, agave nectar, and Angostura bitters. An Old Fashioned split between two agave spirits, one of them smoky."
 build:
   glass: "Rocks glass"
   method: "Stirred with ice and strained over a single large ice rock."

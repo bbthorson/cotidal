@@ -2,7 +2,7 @@
 name: "Mudslide"
 title: "Mudslide"
 family: "dessert"
-summary: "Vodka, Irish cream, and coffee liqueur, served over ice or blended. The Caribbean resort indulgence that takes the White Russian to its maximalist limit."
+summary: "Vodka, Irish cream, and coffee liqueur, over ice or blended. A White Russian with Irish cream in place of cream: sweeter and heavier."
 build:
   glass: "Hurricane or rocks glass"
   method: "Vodka, Irish cream, and coffee liqueur shaken with ice and strained over fresh rocks, or blended with crushed ice."

@@ -2,7 +2,7 @@
 name: "Sidecar"
 title: "Sidecar"
 family: "sour"
-summary: "Cognac, orange liqueur, lemon. The template every modern sour is measured against."
+summary: "Cognac, orange liqueur, lemon. A brandy sour, balanced on a knife-edge between the orange and the lemon."
 build:
   glass: "Coupe, chilled"
   method: "Shaken with ice, double-strained."

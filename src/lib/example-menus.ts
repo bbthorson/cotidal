@@ -53,7 +53,7 @@ export const exampleVenues: ExampleVenue[] = [
     website: 'https://attaboy.nyc',
     coordinates: { lat: 40.7188, lng: -73.9918 },
     summary:
-      'The legendary bespoke speakeasy in the former Milk & Honey space, founded by Michael McIlroy and Sam Ross.',
+      'A cocktail bar in the former Milk & Honey space, opened by Michael McIlroy and Sam Ross.',
     menu: [
       {
         name: 'Penicillin',
@@ -99,7 +99,7 @@ export const exampleVenues: ExampleVenue[] = [
     website: 'https://deathandcompany.com',
     coordinates: { lat: 40.7259, lng: -73.9847 },
     summary:
-      'The foundational craft cocktail temple that redefined American beverage standards and modern classic recipes.',
+      'A cocktail bar with a menu of its own recipes.',
     menu: [
       {
         name: 'Oaxaca Old Fashioned',
@@ -145,7 +145,7 @@ export const exampleVenues: ExampleVenue[] = [
     website: 'https://katanakitten.com',
     coordinates: { lat: 40.7354, lng: -74.0068 },
     summary:
-      'Japanese-American highball and izakaya bar directed by Masahiro Urushido, celebrated for surgical precision.',
+      'A Japanese-American highball and izakaya bar, led by Masahiro Urushido.',
     menu: [
       {
         name: 'Hinoki Martini',

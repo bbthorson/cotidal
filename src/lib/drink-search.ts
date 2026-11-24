@@ -36,11 +36,13 @@ export function namesMatching<T extends { name: string }>(query: string, places:
 
 /**
  * A bar to offer by the name typed, when no bar listed has exactly that name:
- * its menu opens all the same. `null` when one does, or nothing was typed.
+ * its menu opens all the same. `null` when one does, when nothing was typed,
+ * or when the words found drinks — "mezcal" is what is in a drink, and
+ * offering "Pick a drink at mezcal" read it as a bar.
  */
-export function unlistedBar(query: string, ...lists: { name: string }[][]): string | null {
+export function unlistedBar(query: string, foundDrinks: boolean, ...lists: { name: string }[][]): string | null {
   const q = foldName(query);
-  if (!q) return null;
+  if (!q || foundDrinks) return null;
   return lists.some((list) => list.some((b) => foldName(b.name) === q)) ? null : query.trim();
 }
 

@@ -41,68 +41,68 @@ function toleranceAdjustment(tolerances: Tolerances | null | undefined, drink: D
   return Math.max(-8, Math.min(8, delta));
 }
 
-export const calculateWeightedRelevance = (
+/** How far apart, in map points, two drinks may sit and still be ordered by taste rather than by distance. */
+export const RELEVANCE_BAND = 1;
+/** A drink you rated 7 or more ranks as if it sat this many points closer. */
+export const LIKED_LIFT = 2;
+
+export interface Relevance {
+  /** From you to the drink, on the map, to one decimal: what the screens show. */
+  distance: number;
+  /** Sort key, lowest first. Compare with `byRelevance`; it means nothing on its own. */
+  rank: number;
+}
+
+/**
+ * Where a drink stands for you. Distance decides: drinks are taken in bands
+ * of `RELEVANCE_BAND` points, nearest first, and only inside a band do the
+ * quiz's vibe tags, a good pour at this bar and the filter's tolerances set
+ * the order. A drink you rated 7 or more counts `LIKED_LIFT` points closer;
+ * one rated 3 or less goes below everything else.
+ *
+ * It was a weighted sum (40% distance, 30% tags, 20% history, 10% venue),
+ * under which tags could outweigh several points of distance: simulated
+ * quizzes got a menu averaging 5.8 points away against 3.1 for their eight
+ * nearest drinks, and a top drink outside their region a third of the time.
+ */
+export const relevanceOf = (
   user: { x: number; y: number; vibeTags?: Record<string, number> | null; tolerances?: Tolerances | null },
   drink: Drink,
   historyLogs: MinimalDrinkLog[],
   selectedLocation?: string | null
-): number => {
-  // 1. Sensory Similarity (40%)
+): Relevance => {
   const distance = calculateDistance(user, drink);
-  // Max distance on 20x20 grid is sqrt(20^2 + 20^2) = 28.28427
-  const maxDistance = 28.28427;
-  const sensoryScore = 100 * Math.max(0, 1 - distance / maxDistance);
 
-  // 2. Vibe Tag Affinity (30%)
-  let vibeScore = 0;
+  // Vibe tags, 0–30: what your answers point to, as a share of your strongest three.
+  let vibe = 0;
   const vibeTags = user.vibeTags;
   if (vibeTags && Object.keys(vibeTags).length > 0) {
-    let matchedSum = 0;
-    drink.tags.forEach(tag => {
-      matchedSum += vibeTags[tag] || 0;
-    });
-    const sortedWeights = Object.values(vibeTags).sort((a, b) => b - a);
-    const topSum = sortedWeights.slice(0, 3).reduce((a, b) => a + b, 0);
-    vibeScore = topSum > 0 ? 100 * Math.min(1, matchedSum / topSum) : 0;
+    const matched = drink.tags.reduce((sum, tag) => sum + (vibeTags[tag] || 0), 0);
+    const top = Object.values(vibeTags).sort((a, b) => b - a).slice(0, 3).reduce((a, b) => a + b, 0);
+    vibe = top > 0 ? 30 * Math.min(1, matched / top) : 0;
   }
 
-  // 3. Tasted History Bias (20%)
-  let historyScore = 0;
   const drinkLogs = historyLogs
-    .filter(log => log.drinkName.toLowerCase() === drink.name.toLowerCase())
+    .filter((log) => log.drinkName.toLowerCase() === drink.name.toLowerCase())
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  const latest = drinkLogs[0]?.hedonicScale;
 
-  if (drinkLogs.length > 0) {
-    const latestRating = drinkLogs[0].hedonicScale;
-    if (latestRating >= 7) {
-      historyScore = 100; // Adds 20 points
-    } else if (latestRating <= 3) {
-      historyScore = -250; // Subtracts 50 points (penalty)
-    } else {
-      historyScore = 50; // Adds 10 points
-    }
-  }
+  // A good pour of it at this bar, 0–10.
+  const venue =
+    selectedLocation &&
+    drinkLogs.some(
+      (log) => log.location?.toLowerCase().trim() === selectedLocation.toLowerCase().trim() && log.hedonicScale >= 7
+    )
+      ? 10
+      : 0;
 
-  // 4. Venue-Specific Relevance (10%)
-  let venueScore = 0;
-  if (selectedLocation) {
-    const venueLogs = drinkLogs.filter(
-      log => log.location?.toLowerCase().trim() === selectedLocation.toLowerCase().trim()
-    );
-    const hasGoodVenueLog = venueLogs.some(log => log.hedonicScale >= 7);
-    if (hasGoodVenueLog) {
-      venueScore = 100; // Adds 10 points
-    }
-  }
+  const lift = latest !== undefined && latest >= 7 ? LIKED_LIFT : 0;
+  const band = Math.floor(Math.max(0, distance - lift) / RELEVANCE_BAND) + (latest !== undefined && latest <= 3 ? 1000 : 0);
+  // Inside a band: tags, venue and tolerances, at most 48 together, so never past the next band.
+  const within = vibe + venue + toleranceAdjustment(user.tolerances, drink);
 
-  // Weighted combination + bounded EKF tolerance refinement
-  const totalScore =
-    0.40 * sensoryScore +
-    0.30 * vibeScore +
-    0.20 * historyScore +
-    0.10 * venueScore +
-    toleranceAdjustment(user.tolerances, drink);
-
-  return Math.round(Math.max(0, Math.min(100, totalScore)));
+  return { distance: Math.round(distance * 10) / 10, rank: band * 100 - within + distance / 1000 };
 };
 
+/** Most relevant first; equal ranks keep their order. */
+export const byRelevance = (a: { rank: number }, b: { rank: number }) => a.rank - b.rank;

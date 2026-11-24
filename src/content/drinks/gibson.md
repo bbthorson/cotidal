@@ -2,7 +2,7 @@
 name: "Gibson"
 title: "Gibson"
 family: "martini"
-summary: "London Dry gin and dry vermouth, garnished with a pickled cocktail onion. The savory, allium-scented variant that trades olive brine for crisp vinegar and sulfur."
+summary: "London Dry gin and dry vermouth, garnished with a pickled cocktail onion. A Martini that takes its savoury edge from vinegar rather than brine."
 build:
   glass: "Coupe or Nick & Nora, well-chilled"
   method: "Stirred long over dense ice until freezing cold, strained up."

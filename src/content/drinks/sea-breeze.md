@@ -2,7 +2,7 @@
 name: "Sea Breeze"
 title: "Sea Breeze"
 family: "highball"
-summary: "Vodka, tart cranberry juice, and fresh grapefruit juice over ice. The breezy mid-century coastal cooler defined by bright fruit acids and crisp refreshment."
+summary: "Vodka, cranberry juice, and fresh grapefruit juice over ice. Tart, fruity, and long; the vodka mostly stays out of the way."
 build:
   glass: "Highball or Collins glass"
   method: "Built in the glass: vodka poured over ice cubes, topped with cranberry and grapefruit juices, stirred gently."

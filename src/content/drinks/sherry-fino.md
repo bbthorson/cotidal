@@ -2,7 +2,7 @@
 name: "Sherry (Fino)"
 title: "Fino Sherry"
 family: "fortified-wine"
-summary: "Palomino Fino grapes aged biologically beneath a blanket of living yeast flor in Jerez, Spain. Bone-dry, saline, almond-scented, and razor-sharp."
+summary: "Palomino grapes aged under a layer of living yeast (flor) in Jerez, Spain. Bone-dry, saline, and almond-scented."
 build:
   glass: "White wine glass or traditional copita"
   method: "Served cellar cold (45–48°F) directly from a freshly opened bottle."

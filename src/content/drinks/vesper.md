@@ -2,7 +2,7 @@
 name: "Vesper"
 title: "Vesper"
 family: "martini"
-summary: "Gordon's gin, grain vodka, and Kina Lillet, shaken until ice-cold. Ian Fleming's high-proof Cold War bespoke martini."
+summary: "Gordon's gin, vodka, and Kina Lillet, shaken until ice-cold. A Martini with vodka and an aperitif wine in place of vermouth, and stronger than most."
 build:
   glass: "Deep champagne goblet or coupe, well chilled"
   method: "Shaken vigorously with ice until freezing cold, then double-strained."

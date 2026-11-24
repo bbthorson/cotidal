@@ -22,8 +22,11 @@ export function Chip({
 }
 
 /**
- * How an app screen opens: an eyebrow, the title, and a lede if the screen
- * needs one — left-aligned, at one size, on every app screen. The reading
+ * How an app screen opens: the title, and a lede if the screen needs one —
+ * left-aligned, at one size, on every app screen. A tab's screen has no
+ * eyebrow: the app bar (or the header, from `lg`) already marks the tab
+ * current, and a second "Compass" over the title only repeats it. A sheet,
+ * which no tab names, keeps one to say what it is for. The reading
  * pages open with `PageTitle` instead; the two tiers differ on purpose.
  */
 export function ScreenHeader({
@@ -32,15 +35,15 @@ export function ScreenHeader({
   lede,
   action,
 }: {
-  eyebrow: string;
+  eyebrow?: string;
   title: string;
   lede?: string;
   action?: ReactNode;
 }) {
   return (
     <div className="pb-5">
-      <p className="label-caps">{eyebrow}</p>
-      <div className="mt-2 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-3">
+      {eyebrow && <p className="label-caps">{eyebrow}</p>}
+      <div className={cn('flex flex-wrap items-baseline justify-between gap-x-4 gap-y-3', eyebrow && 'mt-2')}>
         <h1 className="font-serif text-title font-bold text-foreground">{title}</h1>
         {action}
       </div>

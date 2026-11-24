@@ -2,7 +2,7 @@
 name: "Jungle Bird"
 title: "Jungle Bird"
 family: "sour"
-summary: "Dark blackstrap rum, Campari, fresh lime juice, pineapple juice, and demerara syrup. The tropical tiki standard that boldly welcomed Italian bitterness into the fold."
+summary: "Blackstrap rum, Campari, fresh lime juice, pineapple juice, and demerara syrup. A tiki drink with Campari's bitterness under the fruit."
 build:
   glass: "Double Old Fashioned or tiki mug, packed with crushed ice"
   method: "Shaken hard with ice to froth the pineapple juice, then strained over fresh crushed ice."

@@ -2,7 +2,7 @@
 name: "Pilsner Urquell"
 title: "Pilsner Urquell"
 family: "beer"
-summary: "The archetype of all golden lager. Soft Bohemian water, Moravian barley, triple decoction mashing, and the noble, spicy bite of Saaz hops."
+summary: "Pale lager from Plzeň, brewed with soft water, Moravian barley, decoction mashing, and Saaz hops. Bready malt and a spicy, bitter finish."
 build:
   glass: "Fluted pilsner glass, footed goblet, or dimpled mug"
   method: "Poured cold (43–46°F) with a deliberate, dense three-finger foam head (Hladinka cut)."

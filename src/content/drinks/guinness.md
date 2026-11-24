@@ -2,7 +2,7 @@
 name: "Guinness"
 title: "Guinness Extra Stout"
 family: "beer"
-summary: "Ireland's definitive dry stout. Unmalted roasted barley, Dublin hard water, high hop bitterness, and the iconic nitrogenated surge and creamy head."
+summary: "Irish dry stout. Unmalted roasted barley, hop bitterness, and a nitrogen pour that sets a dense, creamy head."
 build:
   glass: "Imperial tulip pint glass"
   method: "Two-part pour at 42–46°F: poured at a 45-degree angle to three-quarters full, allowed to settle until the cascading nitrogen surge clears, then topped up straight to build the creamy dome."

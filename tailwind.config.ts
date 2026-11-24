@@ -2,6 +2,10 @@ import type { Config } from 'tailwindcss';
 import tailwindAnimate from 'tailwindcss-animate';
 
 export default {
+  // A phone keeps :hover on whatever was last tapped, so a quiz option in the
+  // same place on the next question looked chosen. Hover styles apply only
+  // where there is a pointer that hovers (Tailwind 4's default).
+  future: { hoverOnlyWhenSupported: true },
   content: [
     './src/pages/**/*.{astro,js,ts,jsx,tsx,mdx}',
     './src/components/**/*.{astro,js,ts,jsx,tsx,mdx}',
@@ -48,6 +52,9 @@ export default {
       maxHeight: {
         // The pinned drink card scrolls past this
         card: '24rem',
+        // A sheet centred on a wide screen keeps 2rem of ground above and
+        // below, so its offset shadow shows rather than running off the window.
+        sheet: 'calc(100dvh - 4rem)',
       },
       borderWidth: {
         // The active tab's top rule

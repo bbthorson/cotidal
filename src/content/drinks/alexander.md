@@ -2,7 +2,7 @@
 name: "Alexander"
 title: "Alexander (Gin)"
 family: "dessert"
-summary: "London Dry or Old Tom gin, white crème de cacao, and heavy cream. The surprising, botanical progenitor of the dessert cocktail family."
+summary: "London Dry or Old Tom gin, white crème de cacao, and heavy cream. Cream and cacao over gin rather than brandy, so juniper shows through the sweetness."
 build:
   glass: "Coupe, chilled"
   method: "Shaken vigorously with ice and double-strained."

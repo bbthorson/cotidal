@@ -2,7 +2,7 @@
 name: "Mezcal Negroni"
 title: "Mezcal Negroni"
 family: "aperitivo"
-summary: "Mezcal, Campari, and sweet vermouth. An earthy, smoke-tinged inversion of the Florentine classic that amplifies herbal bitterness."
+summary: "Mezcal, Campari, and sweet vermouth. The Negroni's equal parts with smoke where the gin's juniper was."
 build:
   glass: "Rocks glass"
   method: "Stirred with ice until chilled and properly diluted, strained over a large single ice cube."

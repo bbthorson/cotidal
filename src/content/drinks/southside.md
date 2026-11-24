@@ -2,7 +2,7 @@
 name: "Southside"
 title: "Southside"
 family: "sour"
-summary: "London Dry gin, fresh lime or lemon juice, simple syrup, and fresh mint. The Long Island country club sour that takes the Mojito matrix to juniper."
+summary: "London Dry gin, fresh lime or lemon juice, simple syrup, and fresh mint. A gin sour with mint: close to a Mojito, with juniper in place of rum."
 build:
   glass: "Coupe, chilled"
   method: "Gin, citrus juice, syrup, and mint leaves shaken with ice and double-strained to remove mint flakes."
