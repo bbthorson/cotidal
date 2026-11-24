@@ -152,11 +152,9 @@ Navigation is unified across the entire site through `<SiteHeader.astro>` and `<
 15. **Nothing smaller than 13px is prose.** `text-label` (12px) is for condensed caps only. A note or citation under an item is `text-meta` in PT Sans; an italic gloss is Playfair at `text-ui`.
 16. **The eyebrow is the name of the way in.** The small caps line over a title is the label of the nav item, tab or button that opens the page — Drinks, Regions, For bars, Chat assistants, Public map, Compass, Log, Pick a drink, Rate a drink — and a page about one item adds what kind of item after a middle dot (`Drinks · Aperitivo`, `Regions · Rich and savory`). The landing page has none. Write it in sentence case in `copy.ts`; the caps are CSS.
 
-## The chart redesign (in progress)
+## The app as a chart
 
-The app is being redrawn as a printed chart: the screens show what the model already knows — where you are, how sure it is, the way you came, which way a drink lies and how far — instead of describing it. The target is the design canvas reviewed on 24 November 2026; each screen's section below is rewritten in the commit that ships it, so this list is what is still to come.
-
-1. **The questions**: the shoal over the map, narrowing as you answer.
+The screens show what the model already knows — where you are, how sure it is, the way you came, which way a drink lies and how far — instead of describing it: the chart first on Compass, your track on Log, how far a pour moved you after it, and the shoal narrowing under the questions (`Narrowing` in `Questionnaire.tsx`: the quiz's best guess, one standard deviation across on each axis, drawn small above the running foot so a phone shows the question whole).
 
 **Signed out is one thing per screen.** A stranger is asked to do one thing: find their coordinate. A guest with a coordinate sees what a member sees; what signing in keeps is said once, at the foot of Log, after the first pour — the first moment it would keep something.
 

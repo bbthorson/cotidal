@@ -74,6 +74,7 @@ function QuestionsContent({ member }: { member: boolean }) {
     <Questionnaire
       currentQuestion={quiz.currentQuestion}
       progress={quiz.progress}
+      axes={quiz.belief.axes}
       questionCount={quiz.questionCount}
       isNavigating={quiz.isNavigating}
       canGoBack={quiz.canGoBack}
