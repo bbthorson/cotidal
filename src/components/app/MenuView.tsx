@@ -153,9 +153,11 @@ export function MenuView({
             <button
               type="button"
               onClick={() => setPasting(true)}
+              aria-expanded={false}
               className="link-caps mt-2 text-secondary hover:underline hover:underline-offset-4"
             >
-              {compass.atMenu.pasteToggle}
+              {/* "+": it opens here. "→" is for what goes somewhere ("Have a menu? →"). */}
+              {compass.atMenu.pasteToggle} +
             </button>
           ) : (
             <form

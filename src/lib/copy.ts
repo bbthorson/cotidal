@@ -294,12 +294,10 @@ export const sections = {
 
 export const connect = {
   title: 'Keep your log with you.',
-  /** The sign-in page's lede; concise framing above the form. */
-  lede: 'Everything here works without an account.',
   /** Compact subtitle inside the in-app sheet so the form stays above the fold. */
   sheetLede: 'Your coordinate, pours, and public map — saved in your own Bluesky account.',
-  body:
-    'As a guest, your coordinate and pours stay on this device. Sign in with Bluesky and they’re kept in your own account instead.',
+  /** The sign-in page's lede: what differs, which also says that nothing else does. */
+  lede: 'As a guest, your coordinate and pours stay on this device. Sign in with Bluesky and they’re kept in your own account instead.',
   continueAs: 'Continue on this device',
   continueAsAccount: (name: string) => `Continue as ${name}`,
   forgetAccount: (handle: string) => `Forget @${handle} on this device`,
@@ -324,7 +322,8 @@ export const connect = {
   buys: [
     {
       title: 'On any phone',
-      body: 'Your coordinate and every pour are kept in your own Bluesky account, so they follow you to the next phone, and survive a cleared browser.',
+      // Whose account it is, and that it is public, is "Whose log it is"; this is only the phone.
+      body: 'Your coordinate and every pour follow you to the next phone, and survive a cleared browser.',
     },
     {
       title: 'A map you can send',

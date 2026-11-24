@@ -65,7 +65,7 @@ export function useCompass(register: Register, member: { handle: string | null }
   const drinkHits = useMemo(() => searchDrinks(query, scored, register), [query, scored, register]);
   const barHits = searching ? namesMatching(query, bars) : bars;
   const nearHits = searching ? namesMatching(query, nearby.bars) : [];
-  const offerBar = unlistedBar(query, barHits, nearHits);
+  const offerBar = unlistedBar(query, drinkHits.length > 0, barHits, nearHits);
 
   const setQuery = (next: string) => {
     setQueryState(next);

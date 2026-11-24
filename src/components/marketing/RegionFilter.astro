@@ -12,6 +12,8 @@ const { current } = Astro.props;
 /**
  * The regions as a filter on the drinks: links, not buttons, so each filter
  * is a page that prerenders and works with no script. "All" is `/drinks`.
+ * Five items: on a phone each takes a third of the row, so they set 3 + 2
+ * rather than wrapping one region onto a line of its own.
  */
 const options = [
   { href: '/drinks', label: copy.filterAll, active: !current },
@@ -20,14 +22,14 @@ const options = [
 ---
 
 <nav aria-label={copy.filterLabel} class="border-y border-foreground py-2">
-  <ul class="flex flex-wrap items-center justify-center gap-x-5 gap-y-1 font-condensed text-label uppercase tracking-label text-muted-foreground">
+  <ul class="flex flex-wrap items-center justify-center gap-y-1 sm:gap-x-5 font-condensed text-label uppercase tracking-label text-muted-foreground">
     {options.map((option) => (
-      <li>
+      <li class="basis-1/3 sm:basis-auto">
         <a
           href={option.href}
           aria-current={option.active ? 'page' : undefined}
           class:list={[
-            'flex min-h-11 items-center',
+            'flex min-h-11 items-center justify-center text-center',
             option.active ? 'font-bold text-foreground' : 'transition-colors hover:text-foreground hover:underline hover:underline-offset-4',
           ]}
         >

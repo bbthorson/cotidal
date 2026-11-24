@@ -123,6 +123,13 @@ test('Menu: one ranked list, with no occasion switch', async ({ page }) => {
   await expect(page.getByRole('region', { name: chart.label })).toBeVisible();
 });
 
+test('Compass: a typed bar the log has never seen is offered, and opens its menu', async ({ page }) => {
+  await page.goto('/compass');
+  await page.getByRole('button', { name: compass.lookUp }).click();
+  await page.getByRole('searchbox', { name: compass.searchLabel }).fill('Bar Goto');
+  await expect(page.getByRole('button', { name: new RegExp(compass.pickAt('Bar Goto')) })).toBeVisible();
+});
+
 test('Compass: search a drink, tap it, then "Rate this" opens the rating sheet on that drink', async ({ page }) => {
   await page.goto('/compass');
   await page.getByRole('button', { name: compass.lookUp }).click();
@@ -133,8 +140,8 @@ test('Compass: search a drink, tap it, then "Rate this" opens the rating sheet o
   await expect(first).toBeVisible();
   const drink = (await first.locator('.font-serif').textContent())!.trim();
 
-  // A typed bar the log has never seen still opens its menu there.
-  await expect(page.getByRole('button', { name: new RegExp(compass.pickAt('mezcal')) })).toBeVisible();
+  // What is in a drink is not offered as a bar.
+  await expect(page.getByRole('button', { name: new RegExp(compass.pickAt('mezcal')) })).toHaveCount(0);
 
   await first.getByRole('button').click();
   await expect(page.getByText(chart.howFar, { exact: true })).toBeVisible();
