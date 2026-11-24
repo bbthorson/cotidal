@@ -192,50 +192,12 @@ export const hero = {
   headline: 'Every palate has',
   headlineAccent: 'a coordinate.',
   body:
-    'A few questions put a point on the chart. Show it a bar’s menu and it says what to have. You don’t need the words for what you like.',
+    'A few questions put a point on the chart. Show it a bar’s menu and it says what to have.',
   primaryCta: 'Find your coordinate',
   /** Stated under the one primary action, so the cost is known up front. */
   cost: 'About two minutes · no account needed',
-  /** The reading path: one tap away, never a second button. */
-  readFirst: 'Read the four regions first',
 } as const;
 
-/**
- * The landing page's "how it goes": the app's one loop, in the order a
- * newcomer meets it. Each step names the screen it happens on, in the words
- * the app bar uses, so the landing page and the app describe one product.
- */
-export const howItGoes = {
-  title: 'How it goes',
-  label: 'Three steps',
-  more: 'How your answers and ratings move your point',
-  steps: [
-    {
-      where: 'The questions',
-      title: 'Find your coordinate',
-      body: 'About eight quick choices: the coffee you take, the end of a good dinner, the glass you push away. Your answers place a point on the chart.',
-    },
-    {
-      where: 'Pick a drink',
-      title: 'Bring it to the bar',
-      body: 'Type in what they pour and Cotidal ranks it by how close each drink sits to you. You still order from the bartender.',
-    },
-    {
-      where: 'Rate a drink',
-      title: 'Rate it, and the point moves',
-      body: 'One tap from dislike to like. A drink you liked pulls the point toward it, one you didn’t pushes it away, and your menu reorders.',
-    },
-  ],
-} as const;
-
-/**
- * The four quadrants of the palate map, named rather than explained.
- * Order matches reading order on the map: top-left, top-right, bottom-left,
- * bottom-right. Axis values are the sign of (x, y) in `src/lib/data.ts`.
- *
- * `id` is the stable handle code joins on — rename a quadrant here without
- * breaking `src/lib/quadrant.ts`, which maps coordinates onto these.
- */
 export const quadrants = [
   {
     id: 'deep',
@@ -268,21 +230,15 @@ export const quadrants = [
  * sections — these are the equivalent of "Plates" and "Cocktails" at the head
  * of a column.
  */
+/** The sign-in page's sections (`/sign-in`). */
 export const sections = {
-  map: 'The four regions',
-  mapLabel: 'The chart',
-  /** The reveal. The hero withholds the axes; this is where they land. */
-  mapNote: 'Two axes, rich to crisp and savory to sweet. Four regions between them.',
-  /** Under the four regions: the way into the register, with its premise. */
-  registerNote: 'Every drink on the chart has an entry: the build, and what is on the record apart from what is only told.',
-  /** From a region to its section of /drinks. */
   principles: 'Whose log it is',
   connect: 'Sign in',
 } as const;
 
 export const connect = {
   title: 'Keep your log with you.',
-  /** Landing page only; the in-app sheet goes straight from title to list. */
+  /** The sign-in page only; the in-app sheet goes straight from title to list. */
   lede: 'Everything here works without an account.',
   body:
     'As a guest, your coordinate and pours stay on this device. Sign in with Bluesky and they’re kept in your own account instead.',

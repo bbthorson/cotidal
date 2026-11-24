@@ -26,7 +26,7 @@ export const destinations = [
   { href: '/bars', label: nav.bars, match: '/bars', app: false, header: false, footer: true },
 ] as const;
 
-export const signIn = { href: '/#connect', label: nav.signIn } as const;
+export const signIn = { href: '/sign-in', label: nav.signIn } as const;
 
 /**
  * Every page that mounts an island and so carries the one sign-in sheet.

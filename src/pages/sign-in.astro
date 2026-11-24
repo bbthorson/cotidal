@@ -1,0 +1,41 @@
+---
+import AppShell from '../layouts/AppShell.astro';
+import PageTitle from '../components/marketing/PageTitle.astro';
+import ConnectForm from '../components/marketing/ConnectForm.astro';
+import Principles from '../components/marketing/Principles.astro';
+import { connect, sections, site } from '../lib/copy';
+import { signInEnabled } from '../lib/atproto/auth';
+import { AUTH_ERROR_MESSAGES, AUTH_ERROR_PARAM, isAuthErrorCode } from '@bbthorson/atproto-cf-auth/client';
+
+/**
+ * Signing in, as a page: what it keeps, the form, and whose log it is. The
+ * static twin of the in-app sheet, and the way in from every page that has
+ * no island to open the sheet (the header's Sign in on a reading page). A
+ * plain form post, so it works with JavaScript off and ships none.
+ */
+
+export const prerender = false;
+
+// The server's runtime answer, the same one the login route acts on.
+const enabled = await signInEnabled();
+
+// `auth_error` is what the login route redirects back with when it cannot start.
+const errorParam = Astro.url.searchParams.get(AUTH_ERROR_PARAM);
+const error = errorParam
+  ? AUTH_ERROR_MESSAGES[isAuthErrorCode(errorParam) ? errorParam : 'authorize_failed']
+  : null;
+---
+
+<AppShell title={`${site.name} — ${sections.connect}`} currentPath="/sign-in" width="prose">
+  <PageTitle eyebrow={sections.connect} title={connect.title} lede={connect.lede} />
+  <div class="space-y-12 pb-6">
+    <section class="space-y-6">
+      <p class="font-serif text-prose text-muted-foreground">{connect.body}</p>
+      <ConnectForm enabled={enabled} error={error} />
+    </section>
+    <section>
+      <h2 class="section-title mb-5">{sections.principles}</h2>
+      <Principles />
+    </section>
+  </div>
+</AppShell>

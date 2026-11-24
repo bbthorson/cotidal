@@ -20,7 +20,7 @@ function notConfigured(request: Request): Response {
   if (type.includes('application/x-www-form-urlencoded') || type.includes('multipart/form-data')) {
     return new Response(null, {
       status: 303,
-      headers: { Location: `/?${AUTH_ERROR_PARAM}=not_configured` },
+      headers: { Location: `/sign-in?${AUTH_ERROR_PARAM}=not_configured` },
     });
   }
   return Response.json(

@@ -6,8 +6,9 @@ is about the code.
 
 ## Rendering: keep the front door static
 
-`/` is pure Astro with **zero client JavaScript**, and so is `/p/<handle>`
-(a link sent to a stranger). The app pages (`/compass`, `/log`,
+`/` is pure Astro with **zero client JavaScript**, and so are `/sign-in`
+and `/p/<handle>` (a link sent to a stranger). `/` asks one thing — find your
+coordinate — and keeps nothing else: sign-in is its own page. The app pages (`/compass`, `/log`,
 `/questions`) mount React islands.
 
 The whole app was previously one `client:only` island, so nothing painted
@@ -46,7 +47,7 @@ landing page included. Astro was being used as a slower Next.js.
 - Sign-in is `@bbthorson/atproto-cf-auth`, content-negotiated at
   `/api/auth/atproto/login`: JSON in, JSON out for the island; form-encoded in,
   303 out for the plain form.
-  Do not break the second path — it is what keeps `/` script-free.
+  Do not break the second path — it is what keeps `/sign-in` script-free.
 
 ## Single sources of truth
 
@@ -200,9 +201,9 @@ Prose is written from primary sources rather than adapted from any one
 reference, so no entry inherits a share-alike licence.
 
 `/drinks` groups entries under the four regions, and each section carries its
-quadrant `id` as an anchor because the landing page links into them
-(`/drinks#deep`). Those are two hand-written lists of the same ids;
-`tests/landing-static.spec.ts` asserts they still agree.
+quadrant `id` as an anchor (`/drinks#deep`), and each region is also a
+filter (`regionPath`); `tests/landing-static.spec.ts` asserts `/drinks`
+offers every region's filter and that each names its region.
 
 **To add an entry**, create `src/content/drinks/<slug>.md`. The filename is the
 URL. `name` in the frontmatter must match a `name` in `drinkDatabase` exactly —
@@ -221,7 +222,7 @@ with `RegionFilter` across the top, the drinks first and the region's prose
 under them. Prerendered and script-free. There is no Regions item in the
 navigation (Drinks is a footer page, current there). Same format as a drink
 (`documented` required, `claimed`, `sources`), one entry per region, and the
-filename is the id — which is a URL: the landing page, `/drinks`, `/p/<handle>`,
+filename is the id — which is a URL: `/drinks`, `/p/<handle>`,
 the chat tools and the region coasters link to it.
 
 The entry holds only prose. Name, axis and gloss come from `quadrants` in

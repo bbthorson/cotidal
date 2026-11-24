@@ -132,12 +132,12 @@ Width and padding stay with the layout (`w-full`, `px-8`).
 
 Navigation is unified across the entire site through `<SiteHeader.astro>` and `<SiteFooter.astro>`, both rendered from one list (`destinations` in `src/lib/site-nav.ts`):
 1. **Zero Client JavaScript**: Rendered as semantic HTML `<header>` and `<nav aria-label="Main Navigation">`.
-2. **Destinations** (header): Compass (`/compass`), Log (`/log`). Drinks (`/drinks`) and For Bars (`/bars`) are reading pages, so they are in the footer (and the landing page links into Drinks and its regions), not the header; For Bars is also the supply side, a different product from the drinker's app; `/bars/*` is reserved for it and will get its own layout.
+2. **Destinations** (header): Compass (`/compass`), Log (`/log`). Drinks (`/drinks`) and For Bars (`/bars`) are reading pages, so they are in the footer, not the header; For Bars is also the supply side, a different product from the drinker's app; `/bars/*` is reserved for it and will get its own layout.
 3. **The account control** (header) says what the server knows (`accountFor` in `session.ts`, read once in `AppShell`):
    - a member sees `@handle`, which opens the account (the foot of Log, `/log#account`), and **Sign out** — a plain form post that answers with a redirect, like sign-in, so it needs no script;
    - a guest sees **Sign in**;
    - a prerendered page (`/drinks`, `/drinks/regions/*`) was built before anyone visited, so it says **Account** (also `/log#account`) rather than guess.
-   - on an app page, **Sign in** opens the one sign-in sheet in place (`?signin=1`, handled by `AtprotoProvider`) rather than leaving for the landing page's form. On every other page it goes to `/#connect`.
+   - on an app page, **Sign in** opens the one sign-in sheet in place (`?signin=1`, handled by `AtprotoProvider`) rather than leaving for a page. On every other page it goes to `/sign-in`, a script-free page with the same form and promise.
 4. **Footer**: the reading pages only — How it works, Drinks, For Bars (`app: false` in `destinations`); a region page marks Drinks current here. The app destinations and the account are always in the header. On a page with a bar pinned along the bottom (`AppShell`'s `bottomBar`) it is left out below `lg`: the bar is that page's foot, and the header's Menu already lists the same pages.
 5. **Active State Indicators**: Routes are identified via `currentPath` and styled as a tab: bold ink over a 3px `foreground` rule from `lg`, bold alone in the phone's folded menu.
 6. **Sub-Route Navigation**: In `/drinks/[slug]`, the header supports a semantic `backLink` while retaining global site navigation.
@@ -157,8 +157,7 @@ Navigation is unified across the entire site through `<SiteHeader.astro>` and `<
 The app is being redrawn as a printed chart: the screens show what the model already knows — where you are, how sure it is, the way you came, which way a drink lies and how far — instead of describing it. The target is the design canvas reviewed on 24 November 2026; each screen's section below is rewritten in the commit that ships it, so this list is what is still to come.
 
 1. **After a pour**: where you were, where you are, and the drink that pulled you.
-2. **The front door** (`/`): the chart, the headline, one line and **Find your coordinate**. Everything else is on How it works and Drinks.
-3. **The questions**: the shoal over the map, narrowing as you answer.
+2. **The questions**: the shoal over the map, narrowing as you answer.
 
 **Signed out is one thing per screen.** A stranger is asked to do one thing: find their coordinate. A guest with a coordinate sees what a member sees; what signing in keeps is said once, at the foot of Log, after the first pour — the first moment it would keep something.
 
@@ -168,7 +167,7 @@ The app is being redrawn as a printed chart: the screens show what the model alr
 
 Questions → reveal → Compass. The questions are a page of their own (`Questions.tsx`): no tab is current and the bar along the foot is left out. Someone who already has a coordinate is sent on to Compass — the landing page's "Find your coordinate" is the same link for everyone — unless they came to start over (`/questions?startover=1`, from the account on Log), which clears the device's copy first. Skipping goes to Compass, which says there is no position yet and offers the questions first, and search when asked for, rather than ranking drinks around a point nobody chose.
 
-Sign-in is offered where it would keep something, as one sheet (`SignInSheet.tsx`, mounted once by `AtprotoProvider`) that states what it buys; the landing page's form (`ConnectForm.astro`) renders the same promise from `connect.buys` in `copy.ts`. The radar chart, the archetypes and the Oracle tab are retired from the interface; the region is the only identity.
+Sign-in is offered where it would keep something, as one sheet (`SignInSheet.tsx`, mounted once by `AtprotoProvider`) that states what it buys; the sign-in page's form (`ConnectForm.astro`, `/sign-in`) renders the same promise from `connect.buys` in `copy.ts`. The radar chart, the archetypes and the Oracle tab are retired from the interface; the region is the only identity.
 
 ## Signed in, signed out
 
@@ -257,6 +256,6 @@ To guarantee the design system never drifts, automated enforcement is active at 
 - `tsc --noEmit`: Validates TypeScript types across the entire project.
 
 ### 4. Tests (`npm test`: Vitest in `tests/unit/`, Playwright in `tests/`)
-- `tests/landing-static.spec.ts`: Asserts zero client scripts or hydration islands on `/`, server-rendered quadrants, and non-JS form fallback.
+- `tests/landing-static.spec.ts`: Asserts zero client scripts or hydration islands on `/` and `/sign-in`, a front door that asks one thing, and the non-JS sign-in form.
 - `tests/visual-identity.spec.ts`: Asserts computed CSS colors match the exact token values for paper ground (`rgb(244, 241, 230)`) and forest ink (`rgb(35, 52, 43)`).
 - `tests/unit/drink-content.test.ts`: Asserts all drink entries join cleanly to the coordinate database and contain primary sources.
