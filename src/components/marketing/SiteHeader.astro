@@ -38,8 +38,10 @@ const control =
 const signOutAction = `${AUTH_BASE_PATH}/logout`;
 
 /**
- * On a phone the header is wordmark · Sign in · Menu, and the five
- * destinations open under "Menu". It used to stack the wordmark over six
+ * On a phone the header is wordmark · Menu, one control: the destinations and
+ * the account (Sign in, your handle, or Account) open under "Menu". On an app
+ * page there is no Menu (the app bar is the navigation), so the account is
+ * the one control. It used to stack the wordmark over six
  * wrapping items, which pushed the hero ~230px down the first screen.
  *
  * The disclosure is a <details> driving its sibling <nav> through `peer-open`,
@@ -72,6 +74,8 @@ const controlClass =
       class:list={[
         controlClass,
         'order-2 min-w-0 shrink text-foreground hover:underline hover:underline-offset-4 lg:order-3 lg:min-h-0 lg:border lg:border-foreground lg:px-3 lg:py-1.5 lg:text-label lg:hover:bg-secondary lg:hover:text-secondary-foreground',
+        // Where there is a Menu, a phone's header has one control: the account is inside it.
+        !appPage && 'hidden lg:flex',
       ]}
     >
       <span class:list={['max-w-40 truncate lg:max-w-48', control.isHandle && 'normal-case tracking-normal']}>
@@ -122,6 +126,15 @@ const controlClass =
           </a>
         );
       })}
+      {
+        /* On a phone the account is the folded menu's last item: Sign in, your handle, or Account. From `lg` it is the control beside the nav. */
+        <a
+          href={control.href}
+          class="flex min-h-11 items-center border-b border-border font-condensed text-meta font-semibold uppercase tracking-label text-foreground lg:hidden"
+        >
+          <span class:list={['truncate', control.isHandle && 'normal-case tracking-normal']}>{control.label}</span>
+        </a>
+      }
       {
         /* On a phone, Sign out sits at the foot of the folded menu; from `lg` it is beside the handle. */
         account.kind === 'member' && (

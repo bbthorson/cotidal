@@ -22,9 +22,16 @@ interface Props {
    * it was a screen of padding under the content. The content clears the bar.
    */
   bottomBar?: boolean;
+  /**
+   * The header and the content fill the first screen exactly (100dvh, the
+   * viewport less a phone browser's own bars), and the footer starts below
+   * it. The front door uses it so its one action sits at the foot of the
+   * first screen; the content lays itself out in the space with flex.
+   */
+  fill?: boolean;
 }
 
-const { title, description, image, currentPath, backLink, width = 'standard', bottomBar = false } = Astro.props;
+const { title, description, image, currentPath, backLink, width = 'standard', bottomBar = false, fill = false } = Astro.props;
 
 // Read here once, so every route's header tells the truth about who is signed in.
 const account = await accountFor(Astro.request, Astro.isPrerendered);
@@ -44,12 +51,13 @@ const widthClass = {
 ---
 
 <Base title={title} description={description} image={image}>
-  <div class="bar-texture min-h-screen bg-background text-foreground">
+  <div class="bar-texture min-h-dvh bg-background text-foreground">
+    <div class:list={[fill && 'flex min-h-dvh flex-col']}>
     <div data-site-chrome class="mx-auto w-full max-w-5xl px-6 pt-5 md:pt-14">
       <SiteHeader currentPath={currentPath} account={account} appPage={bottomBar} />
     </div>
 
-    <div class:list={['mx-auto w-full px-6', widthClass, bottomBar && 'pb-tabbar lg:pb-0']}>
+    <div class:list={['mx-auto w-full px-6', widthClass, bottomBar && 'pb-tabbar lg:pb-0', fill && 'flex flex-1 flex-col']}>
       {backLink && (
         <nav aria-label={a11y.breadcrumb} class="pt-6">
           <a
@@ -63,6 +71,7 @@ const widthClass = {
       <slot />
       {/* Room to scroll the last of the content out from under "Pick a drink". */}
       {bottomBar && <div aria-hidden="true" class="h-16" />}
+    </div>
     </div>
 
     <div

@@ -158,10 +158,25 @@ test('Header: on a phone the destinations fold under "Menu", without JavaScript'
 
   const nav = page.getByRole('navigation', { name: 'Main navigation' });
   await expect(nav).toBeHidden();
+  // One control on a phone: Sign in is inside the Menu, not beside it.
+  await expect(page.locator('header').getByRole('link', { name: nav_.signIn, exact: true })).toBeHidden();
   await page.locator('header summary').click();
   await expect(nav).toBeVisible();
   await expect(nav.getByRole('link', { name: nav_.log, exact: true })).toBeVisible();
+  await expect(nav.getByRole('link', { name: nav_.signIn, exact: true })).toHaveAttribute('href', '/sign-in');
   await context.close();
+});
+
+test('Landing: the header and the front door fill the first screen exactly, the action at its foot', async ({ page }) => {
+  for (const viewport of [{ width: 375, height: 667 }, { width: 390, height: 844 }, { width: 1280, height: 800 }]) {
+    await page.setViewportSize(viewport);
+    await page.goto('/');
+    const cta = (await page.getByRole('link', { name: hero.primaryCta }).boundingBox())!;
+    const footer = (await page.locator('footer').boundingBox())!;
+    expect(cta.y + cta.height, `${viewport.width}×${viewport.height}`).toBeLessThanOrEqual(viewport.height);
+    // The footer starts below the first screen, not inside it.
+    expect(Math.round(footer.y), `${viewport.width}×${viewport.height}`).toBeGreaterThanOrEqual(viewport.height);
+  }
 });
 
 test('Landing: one primary action, with its cost stated', async ({ page }) => {
