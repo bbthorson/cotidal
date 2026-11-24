@@ -3,6 +3,7 @@ import { matchDrink } from '@/lib/drink-match';
 import { foldName } from '@/lib/pour-history';
 import { calculateDistance } from '@/lib/scoring';
 import { titleOf, type Register } from '@/lib/register';
+import { chart } from '@/lib/copy';
 
 /**
  * Finding a drink or a bar by what was typed, and the drinks near a point.
@@ -51,4 +52,24 @@ export function closestDrinks(point: { x: number; y: number }, count: number, dr
 /** The other drinks placed at exactly the same point as this one. */
 export function drinksAtSameSpot(drink: Drink, drinks: Drink[] = drinkDatabase): Drink[] {
   return drinks.filter((d) => d.name !== drink.name && d.x === drink.x && d.y === drink.y);
+}
+
+/** Below this, an axis is not worth a word: the drink is level with you on it. */
+const LEVEL = 0.5;
+
+/**
+ * Which way a drink lies from you and how far, as the chart reads it: the
+ * axes' own words ("richer, more savory") and the distance to a tenth. Never
+ * a predicted score — the filter's prediction sits near 9 for anything close.
+ */
+export function wayTo(from: { x: number; y: number }, to: { x: number; y: number }): { words: string; distance: number } {
+  const dx = to.x - from.x;
+  const dy = to.y - from.y;
+  const words: string[] = [];
+  if (Math.abs(dx) >= LEVEL) words.push(dx < 0 ? chart.way.richer : chart.way.crisper);
+  if (Math.abs(dy) >= LEVEL) words.push(dy < 0 ? chart.way.savory : chart.way.sweeter);
+  return {
+    words: words.length > 0 ? chart.wayOf(words) : chart.way.here,
+    distance: Math.round(Math.hypot(dx, dy) * 10) / 10,
+  };
 }

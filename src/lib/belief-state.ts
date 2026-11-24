@@ -143,9 +143,13 @@ export function noiseScaleFor(question: Question): number {
  * along it; on such an axis an option authored at 0 sits at the centre.
  */
 export function optionLocations(question: Question): OptionLocation[] {
-  const usesX = question.options.some((o) => o.dx !== 0);
-  const usesY = question.options.some((o) => o.dy !== 0);
-  return question.options.map((o) => ({
+  return locationsOf(question.options);
+}
+
+function locationsOf(nudges: readonly { dx: number; dy: number }[]): OptionLocation[] {
+  const usesX = nudges.some((o) => o.dx !== 0);
+  const usesY = nudges.some((o) => o.dy !== 0);
+  return nudges.map((o) => ({
     x: usesX ? clampEvidence(o.dx * EVIDENCE_SCALE) : null,
     y: usesY ? clampEvidence(o.dy * EVIDENCE_SCALE) : null,
   }));
@@ -232,6 +236,26 @@ function fromAnswers(answers: Answer[]): Pick<BeliefState, 'answers' | 'posterio
 }
 
 const PRIOR = fromAnswers([]);
+
+/**
+ * Where a quiz's answers, as logged (`QuizResponse`, the elicitation
+ * record), put the answerer under the current model. The same posterior the
+ * quiz reached when it was taken, as long as `RESPONSE_MODEL` has not
+ * changed since; an answer with no position in it adds nothing.
+ */
+export function axesFromResponses(
+  // `kind` as a record holds it: an open string, of which only "pair" changes anything.
+  responses: readonly (Pick<QuizResponse, 'options' | 'chosen'> & { kind?: string })[]
+): Record<'x' | 'y', AxisBelief> {
+  const answers: Answer[] = [];
+  for (const r of responses) {
+    const options = locationsOf(r.options);
+    if (r.chosen < 0 || r.chosen >= options.length) continue;
+    if (!options.some((o) => o.x !== null || o.y !== null)) continue;
+    answers.push({ options, chosen: r.chosen, noiseScale: r.kind === 'pair' ? PAIR_NOISE_SCALE : 1 });
+  }
+  return fromAnswers(answers).axes;
+}
 
 /** The prior's variance on each axis — what "no information yet" looks like. */
 export const INITIAL_VARIANCE = PRIOR.axes.x.variance;

@@ -344,6 +344,11 @@ export const chart = {
   findYours: 'Find your coordinate',
   closeness: 'Closeness',
   closenessOf: (n: number) => `Closeness ${n}`,
+  /** Which way a drink lies from you, in the axes' own words (`wayTo`). */
+  way: { richer: 'richer', crisper: 'crisper', sweeter: 'sweeter', savory: 'more savory', here: 'right here' },
+  wayOf: (words: string[]) => words.join(', '),
+  /** How far, read aloud beside the figure. */
+  farOf: (n: number) => `${n} away`,
   /** The mark for you on a map, read aloud. */
   you: 'Your coordinate',
   youIn: (region: string) => `Your coordinate, in ${region}`,

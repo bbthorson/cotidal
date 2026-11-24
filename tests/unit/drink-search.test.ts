@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import { drinkDatabase } from '@/lib/data';
 import { calculateDistance } from '@/lib/scoring';
-import { closestDrinks, drinksAtSameSpot, namesMatching, searchDrinks, unlistedBar } from '@/lib/drink-search';
+import { closestDrinks, drinksAtSameSpot, namesMatching, searchDrinks, unlistedBar, wayTo } from '@/lib/drink-search';
 import type { Register } from '@/lib/register';
 
 /** Compass's search and the rating sheet's quick picks: what was typed in, what is found. */
@@ -56,4 +56,11 @@ test('Same spot: the other drinks at exactly that point', () => {
     expect(same).not.toContain(drink);
     for (const s of same) expect([s.x, s.y]).toEqual([drink.x, drink.y]);
   }
+});
+
+test('Which way: the axes’ own words, and how far to a tenth', () => {
+  expect(wayTo({ x: -3.45, y: -2.85 }, { x: -5, y: -4 })).toEqual({ words: 'richer, more savory', distance: 1.9 });
+  expect(wayTo({ x: 0, y: 0 }, { x: 3, y: 0.2 })).toEqual({ words: 'crisper', distance: 3 });
+  expect(wayTo({ x: 0, y: 0 }, { x: 0.3, y: 2 }).words).toBe('sweeter');
+  expect(wayTo({ x: 1, y: 1 }, { x: 1.2, y: 0.9 }).words).toBe('right here');
 });
