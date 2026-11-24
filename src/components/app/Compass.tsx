@@ -202,6 +202,25 @@ function CompassContent({
                       <h2 className="font-serif text-heading font-bold">{compass.menuTitle}</h2>
                       <span className="text-meta text-muted-foreground">{compass.menuNote}</span>
                     </div>
+                    <div role="group" aria-label={compass.typeFilterLabel} className="flex flex-wrap gap-x-4 border-b border-border py-1.5">
+                      {compass.typeFilters.map((f) => {
+                        const active = c.typeFilter === f.id;
+                        return (
+                          <button
+                            key={f.id}
+                            type="button"
+                            aria-pressed={active}
+                            onClick={() => c.setTypeFilter(f.id)}
+                            className={cn(
+                              'min-h-9 font-condensed text-label uppercase tracking-label transition-colors',
+                              active ? 'font-bold text-foreground underline underline-offset-4' : 'text-muted-foreground hover:text-foreground'
+                            )}
+                          >
+                            {f.label}
+                          </button>
+                        );
+                      })}
+                    </div>
                     {c.menu.length === 0 ? (
                       <Empty>{menu.empty}</Empty>
                     ) : (

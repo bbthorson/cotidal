@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { questions } from '../src/lib/discovery-questions';
+import { CALIBRATION_IDS } from '../src/lib/question-selector';
 import { quadrants, chart, coldState, compass, ratePage, reveal as revealCopy } from '../src/lib/copy';
 
 /**
@@ -12,8 +13,8 @@ import { quadrants, chart, coldState, compass, ratePage, reveal as revealCopy } 
 
 // The four openers are fixed (CALIBRATION_IDS); their words are not this file's to know.
 const opener = (id: string) => questions.find((q) => q.id === id)!;
-const first = opener('triad_sugar_texture');
-const second = opener('triad_bitter_botanical');
+const first = opener(CALIBRATION_IDS[0]);
+const second = opener(CALIBRATION_IDS[1]);
 
 test('Questionnaire: opens directly with calibration question and selectable options', async ({ page }) => {
   await page.goto('/questions');

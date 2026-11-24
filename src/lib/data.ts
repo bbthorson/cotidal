@@ -1,5 +1,5 @@
 import { VIBE_TAGS } from './atproto/vocab';
-import { placeStyle, type StyleProfile } from './placement';
+import { placeCocktail, placeStyle, type CocktailProfile, type StyleProfile } from './placement';
 
 /** Declared once, in vocab.ts, because the palate lexicon lists them as `knownValues`. */
 export type VibeTag = (typeof VIBE_TAGS)[number];
@@ -41,10 +41,28 @@ export type Drink = {
      * and `y` are computed from this, never typed. Absent for a hand-placed drink.
      */
     profile?: StyleProfile;
+    /** For a cocktail placed by `placeCocktail`, its structural profile. */
+    cocktailProfile?: CocktailProfile;
+    /**
+     * Catalog tier: `'anchor'` (default) renders on the chart and populates
+     * Compass's default menu; `'extended'` is searchable, loggable, and
+     * rankable on bar menus without crowding the chart.
+     */
+    tier?: 'anchor' | 'extended';
+    /** Optional canonical anchor name for an extended variant. */
+    parent?: string;
 };
 
 /** A drink placed by its style profile: the coordinate comes from `placeStyle`, not by eye. */
 const styled = (d: Omit<Drink, 'x' | 'y'> & { profile: StyleProfile }): Drink => ({ ...d, ...placeStyle(d.profile) });
+
+/** An extended cocktail placed reproducibly via `placeCocktail`. */
+const mixed = (d: Omit<Drink, 'x' | 'y' | 'type'> & { cocktailProfile: CocktailProfile }): Drink => ({
+  ...d,
+  type: 'Cocktail',
+  tier: d.tier ?? 'extended',
+  ...placeCocktail(d.cocktailProfile),
+});
 
 type Flags = Pick<Drink, 'hasSmoke' | 'hasAnise' | 'isBitter'>;
 const plain: Flags = { hasSmoke: false, hasAnise: false, isBitter: false };
@@ -183,7 +201,28 @@ export const drinkDatabase: Drink[] = [
     styled({ name: "Witbier", type: "Beer", ...plain, tags: ['crushable', 'social'], aliases: ["Belgian Wit", "Wit"], profile: { body: 2, residualSugarGpl: 4, structure: 0 } }),
     styled({ name: "Belgian Tripel", type: "Beer", ...plain, tags: ['complex', 'warm'], aliases: ["Tripel"], profile: { body: 4, residualSugarGpl: 10, structure: 1 } }),
     styled({ name: "Imperial Stout", type: "Beer", ...gripping, tags: ['bold', 'warm', 'complex'], aliases: ["Russian Imperial Stout"], profile: { body: 5, residualSugarGpl: 25, structure: 3 } }),
+    // --- EXTENDED CATALOG (tier: 'extended') ---
+    // Searchable, loggable, and rankable on menus without crowding the chart.
+    mixed({ name: "Negroni Sbagliato", ...gripping, tags: ['social', 'visual', 'crushable'], aliases: ["Sbagliato"], parent: "Negroni", cocktailProfile: { spiritWeight: 2, sweetness: 2, acidity: 1, bitterness: 3, dilution: 3 } }),
+    mixed({ name: "Black Manhattan", ...gripping, tags: ['bold', 'complex', 'classic'], parent: "Manhattan", cocktailProfile: { spiritWeight: 4, sweetness: 2, acidity: 0, bitterness: 3, dilution: 0 } }),
+    mixed({ name: "Gold Rush", ...plain, tags: ['comfort', 'classic', 'social'], parent: "Whiskey Sour", cocktailProfile: { spiritWeight: 3, sweetness: 3, acidity: 3, bitterness: 0, dilution: 2 } }),
+    mixed({ name: "Revolver", ...gripping, tags: ['bold', 'warm', 'complex'], parent: "Manhattan", cocktailProfile: { spiritWeight: 4, sweetness: 2, acidity: 0, bitterness: 2, dilution: 0 } }),
+    mixed({ name: "Chartreuse Swizzle", ...plain, tags: ['complex', 'visual', 'crushable'], parent: "Last Word", cocktailProfile: { spiritWeight: 2, sweetness: 3, acidity: 3, bitterness: 1, dilution: 2 } }),
+    mixed({ name: "Siesta", ...gripping, tags: ['social', 'crushable', 'complex'], parent: "Paloma", cocktailProfile: { spiritWeight: 2, sweetness: 2, acidity: 3, bitterness: 2, dilution: 2 } }),
+    mixed({ name: "Campari Soda", ...gripping, tags: ['crushable', 'social', 'classic'], parent: "Americano (Cocktail)", cocktailProfile: { spiritWeight: 1, sweetness: 1, acidity: 0, bitterness: 3, dilution: 3 } }),
+    mixed({ name: "Espresso Tonic", ...gripping, tags: ['crushable', 'visual', 'complex'], aliases: ["Coffee Tonic"], cocktailProfile: { spiritWeight: 1, sweetness: 1, acidity: 1, bitterness: 3, dilution: 3 } }),
+    mixed({ name: "Phony Negroni", ...gripping, tags: ['social', 'classic', 'crushable'], aliases: ["NA Negroni", "Non-Alcoholic Negroni"], parent: "Negroni", cocktailProfile: { spiritWeight: 2, sweetness: 2, acidity: 0, bitterness: 3, dilution: 1 } }),
+    mixed({ name: "Ghia Spritz", ...gripping, tags: ['social', 'visual', 'crushable'], aliases: ["NA Spritz"], parent: "Aperol Spritz", cocktailProfile: { spiritWeight: 1, sweetness: 1, acidity: 2, bitterness: 3, dilution: 3 } }),
+    mixed({ name: "Pornstar Martini", ...plain, tags: ['visual', 'social', 'sweet'], aliases: ["Passionfruit Martini"], cocktailProfile: { spiritWeight: 2, sweetness: 4, acidity: 2, bitterness: 0, dilution: 2 } }),
+    mixed({ name: "Mezcal Last Word", hasSmoke: true, hasAnise: true, isBitter: true, tags: ['complex', 'bold', 'prestige'], aliases: ["Ultima Palabra", "Última Palabra"], parent: "Last Word", cocktailProfile: { spiritWeight: 2, sweetness: 2, acidity: 3, bitterness: 2, dilution: 2 } }),
+    styled({ name: "Saison", type: "Beer", tier: "extended", ...plain, tags: ['complex', 'crushable'], aliases: ["Farmhouse Ale"], profile: { body: 2, residualSugarGpl: 2, structure: 2 } }),
+    styled({ name: "Dry Cider", type: "Beer", tier: "extended", ...plain, tags: ['crushable', 'social'], aliases: ["Hard Cider", "Normandy Cider"], profile: { body: 1, residualSugarGpl: 5, structure: 1 } }),
+    styled({ name: "Sake (Junmai Ginjo)", type: "Wine", tier: "extended", ...plain, tags: ['classic', 'prestige', 'complex'], aliases: ["Junmai Ginjo", "Sake"], profile: { body: 2, residualSugarGpl: 6, structure: 0 } }),
+    styled({ name: "Extra Brut Champagne", type: "Wine", tier: "extended", ...plain, tags: ['prestige', 'classic'], aliases: ["Brut Nature", "Zero Dosage Champagne"], parent: "Champagne (Brut)", profile: { body: 1, residualSugarGpl: 2, structure: 0 } }),
 ];
+
+/** Tier 1 canonical anchors: plotted on the chart and eligible for default menu picks. */
+export const anchorDrinks: Drink[] = drinkDatabase.filter((d) => d.tier !== 'extended');
 
 import { QuestionTier, QuestionOption, Question, questions } from './discovery-questions';
 export type { QuestionTier, QuestionOption, Question };

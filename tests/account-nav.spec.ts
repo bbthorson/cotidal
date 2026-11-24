@@ -3,6 +3,7 @@ import { SIGNED_OUT_PARAM, START_OVER_PARAM, signedOutPath, startOverPath } from
 import { account, compass, menu, nav } from '../src/lib/copy';
 import { destinations } from '../src/lib/site-nav';
 import { questions } from '../src/lib/discovery-questions';
+import { CALIBRATION_IDS } from '../src/lib/question-selector';
 
 /**
  * Who is signed in, how to stop being, and how to start over. The suite runs
@@ -76,7 +77,7 @@ test('Start over: two steps on Log, and Keep it changes nothing', async ({ page 
 
   await page.getByRole('button', { name: account.startOver }).click();
   await page.getByRole('button', { name: account.startOverCta }).click();
-  await expect(page.getByText(questions.find((q) => q.id === 'triad_sugar_texture')!.text)).toBeVisible();
+  await expect(page.getByText(questions.find((q) => q.id === CALIBRATION_IDS[0])!.text)).toBeVisible();
   // The questions are in the server's HTML too, before the island clears the device: wait for it.
   await expect.poll(() => page.evaluate(() => localStorage.getItem('user_profile'))).toBeNull();
 });
@@ -85,7 +86,7 @@ test('Start over: the questions clear the old coordinate and take the marker off
   await page.goto('/compass');
   await page.evaluate((p) => localStorage.setItem('user_profile', JSON.stringify(p)), profile);
   await page.goto(startOverPath);
-  await expect(page.getByText(questions.find((q) => q.id === 'triad_sugar_texture')!.text)).toBeVisible();
+  await expect(page.getByText(questions.find((q) => q.id === CALIBRATION_IDS[0])!.text)).toBeVisible();
   // Server-rendered before hydration removes the marker; wait for it.
   await expect.poll(() => new URL(page.url()).searchParams.has(START_OVER_PARAM)).toBe(false);
   await expect.poll(() => page.evaluate(() => localStorage.getItem('user_profile'))).toBeNull();

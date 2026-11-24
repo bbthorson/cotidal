@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { addMenuLine, addMenuLines, rankMenu, scoreDrinks, type MenuItem } from '@/lib/menu-rank';
+import { addMenuLine, addMenuLines, diversifyMenu, rankMenu, scoreDrinks, type MenuItem } from '@/lib/menu-rank';
 
 const you = { x: 4, y: -2, vibeTags: {} };
 
@@ -69,5 +69,12 @@ describe('your menu', () => {
     expect(off.some((d) => d.name === 'Negroni')).toBe(false);
     const back = scoreDrinks(user, undefined, [pour('Negroni', 8, '2026-11-03T00:00:00.000Z'), pour('Negroni', 2, '2026-11-02T00:00:00.000Z')]);
     expect(back.some((d) => d.name === 'Negroni')).toBe(true);
+  });
+
+  it('diversifies top picks across coordinate clusters and respects anchorsOnly', () => {
+    const scored = scoreDrinks({ x: 6, y: 6, filters: [] }, undefined, []);
+    const picked = diversifyMenu(scored, 8, { anchorsOnly: true });
+    expect(picked).toHaveLength(8);
+    expect(picked.every((d) => d.tier !== 'extended')).toBe(true);
   });
 });

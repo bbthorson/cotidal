@@ -6,7 +6,7 @@ import { chart } from '@/lib/copy';
 import { userFromProfile } from '@/lib/profile';
 import { barsFromPours, foldName, lastPourByDrink, poursAtBars } from '@/lib/pour-history';
 import { drinksAtSameSpot, namesMatching, searchDrinks, unlistedBar, wayTo } from '@/lib/drink-search';
-import { useMenu } from '@/hooks/useMenu';
+import { useMenu, type DrinkTypeFilter } from '@/hooks/useMenu';
 import { useNearby } from '@/hooks/useNearby';
 import { usePours } from '@/hooks/usePours';
 import { useProfile } from '@/hooks/useProfile';
@@ -36,7 +36,8 @@ export function useCompass(register: Register, member: { handle: string | null }
   const { pours, reload } = usePours(!!member);
   const history = useMemo(() => pours ?? [], [pours]);
   const lastPour = useMemo(() => lastPourByDrink(history), [history]);
-  const { scored, menu, closeness } = useMenu(user, profile?.vibeTags, history);
+  const [typeFilter, setTypeFilter] = useState<DrinkTypeFilter>('all');
+  const { scored, menu, closeness } = useMenu(user, profile?.vibeTags, history, typeFilter);
   const nearby = useNearby();
   const { track } = useTrack(!!member, profile, pours);
   // The chart's reading: your menu filled in, or your pours.
@@ -125,6 +126,8 @@ export function useCompass(register: Register, member: { handle: string | null }
     // Your menu, each drink with which way it lies and how far
     menu: menu.map((d) => ({ ...d, way: wayTo(user, d) })),
     menuNames: menu.map((d) => d.name),
+    typeFilter,
+    setTypeFilter,
     closeness,
     lastPour,
 

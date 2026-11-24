@@ -53,8 +53,9 @@ export const calculateWeightedRelevance = (
   const maxDistance = 28.28427;
   const sensoryScore = 100 * Math.max(0, 1 - distance / maxDistance);
 
-  // 2. Vibe Tag Affinity (30%)
+  // 2. Vibe Tag Affinity (30% when present; redistributed to sensory when absent)
   let vibeScore = 0;
+  let hasVibes = false;
   const vibeTags = user.vibeTags;
   if (vibeTags && Object.keys(vibeTags).length > 0) {
     let matchedSum = 0;
@@ -63,7 +64,10 @@ export const calculateWeightedRelevance = (
     });
     const sortedWeights = Object.values(vibeTags).sort((a, b) => b - a);
     const topSum = sortedWeights.slice(0, 3).reduce((a, b) => a + b, 0);
-    vibeScore = topSum > 0 ? 100 * Math.min(1, matchedSum / topSum) : 0;
+    if (topSum > 0) {
+      hasVibes = true;
+      vibeScore = 100 * Math.min(1, matchedSum / topSum);
+    }
   }
 
   // 3. Tasted History Bias (20%)
@@ -96,9 +100,11 @@ export const calculateWeightedRelevance = (
   }
 
   // Weighted combination + bounded EKF tolerance refinement
+  const sensoryWeight = hasVibes ? 0.40 : 0.70;
+  const vibeWeight = hasVibes ? 0.30 : 0;
   const totalScore =
-    0.40 * sensoryScore +
-    0.30 * vibeScore +
+    sensoryWeight * sensoryScore +
+    vibeWeight * vibeScore +
     0.20 * historyScore +
     0.10 * venueScore +
     toleranceAdjustment(user.tolerances, drink);
