@@ -1,11 +1,14 @@
 import { useState } from 'react';
-import { account, assistants } from '@/lib/copy';
+import { account, assistants, settings } from '@/lib/copy';
 import { AUTH_BASE_PATH, publicMapPath } from '@/lib/atproto/paths';
 import { sharePalateToFeed } from '@/lib/api-client';
 import { cn } from '@/lib/utils';
 import { AssistantSteps } from './AssistantSteps';
 
 const link = 'link-caps';
+
+/** A member's settings page: connected assistants, and the account as one page. */
+const SETTINGS_PATH = '/settings';
 
 /**
  * The account, in one block under the ledger: who you are, your public map,
@@ -73,6 +76,9 @@ export function AccountSection({
               </button>
               <a href="#assistant" className={cn(link, 'text-secondary hover:underline hover:underline-offset-4')}>
                 {account.assistants}
+              </a>
+              <a href={SETTINGS_PATH} className={cn(link, 'text-secondary hover:underline hover:underline-offset-4')}>
+                {settings.title}
               </a>
             </>
           )}

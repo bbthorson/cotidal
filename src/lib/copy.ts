@@ -188,6 +188,37 @@ export const account = {
   signOutBody: 'Signing out clears your coordinate from this device. It stays in your account.',
 } as const;
 
+/**
+ * `/settings` — a member's account, as one page: who they are signed in as,
+ * the chat assistants they have let act as them, and signing out.
+ */
+export const settings = {
+  title: 'Settings',
+  eyebrow: 'Your account',
+  signedInAs: 'Signed in as',
+  publicMap: 'Your public map',
+  assistantsTitle: 'Connected assistants',
+  assistantsLede:
+    'Chat assistants you have let use Cotidal as you, at your own address. Disconnecting one stops it at once: its next question is refused, and if it asks again you will see the page that asked the first time.',
+  assistantsNone: 'No assistant is connected.',
+  howToConnect: 'Connect one',
+  assistantsOff:
+    'Assistants can read your public map at the public address. Connecting one to act as you is not switched on here yet.',
+  unnamed: 'An assistant with no name',
+  unverified: 'Name given by the assistant',
+  verified: (domain: string) => `From ${domain}`,
+  sendsTo: (host: string) => `Access goes to ${host}`,
+  connectedOn: (date: string) => `Connected ${date}`,
+  canRead: 'Reads your palate and your pours',
+  canLog: 'Reads your palate and pours, and logs pours you tell it about',
+  disconnect: 'Disconnect',
+  disconnected:
+    'Disconnected. To tidy up, also remove Cotidal from that assistant’s own connectors, or it will ask you to connect again.',
+  disconnectFailed: 'That did not go through. Try again.',
+  signOutTitle: 'Sign out',
+  signOutBody: 'Signing out clears your coordinate from this device. It stays in your account, and connected assistants keep working.',
+} as const;
+
 export const hero = {
   headline: 'Every palate has',
   headlineAccent: 'a coordinate.',

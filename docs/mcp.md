@@ -150,8 +150,17 @@ outlive weeks between visits.
 first, once `/mcp/me` is on (`memberMcpAddress`, the same check the routes
 make); until then they show the one read-only address, as before.
 
-Not yet: a list of connected assistants a member can revoke from here
-(`listUserGrants` / `revokeGrant`, keyed by `grantUserId`).
+### Disconnecting an assistant
+
+`/settings` (linked from the account on `/log`) lists the assistants a member
+has connected: the name each gave (marked as its own claim), where its access
+goes, whether it may log pours, and when. Disconnect revokes the grant and
+every token under it (`src/lib/settings/assistants.server.ts`, over
+`listUserGrants` / `revokeGrant` keyed by `grantUserId`), so the assistant's
+next call gets a `401`. The member is taken from their session, never the
+form, and a grant id that is not theirs revokes nothing. Signing out does not
+disconnect assistants: it ends this browser's session, not the AT-Proto
+session they use.
 
 The rules the write path keeps:
 
