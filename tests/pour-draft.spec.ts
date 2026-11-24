@@ -29,11 +29,12 @@ test('Draft link: the sheet opens on it, will not log without a rating, and logs
   for (const radio of await page.getByRole('radio').all()) await expect(radio).toHaveAttribute('aria-checked', 'false');
   await page.getByRole('button', { name: pour.submit }).click();
   await expect(page.getByText(pour.needRating)).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Your coordinate moved.' })).toHaveCount(0);
+  await expect(page.getByRole('heading', { name: /^(Moved \d|Held\.)/ })).toHaveCount(0);
 
   await page.getByRole('radio', { name: /^6:/ }).click();
   await page.getByRole('button', { name: pour.submit }).click();
-  await expect(page.getByRole('heading', { name: 'Your coordinate moved.' })).toBeVisible();
+  // A 6 is in the middle of the scale: logged, and it may hold you where you were.
+  await expect(page.getByRole('heading', { name: /^(Moved \d|Held\.)/ })).toBeVisible();
   await expect(sheet.getByText(/6 of 9/)).toBeVisible();
 
   // Logged once: gone from the URL, and the form is not offered again.

@@ -113,7 +113,7 @@ test('Compass: bars near you, then a pick there, then a pour that says where the
   await expect(page.getByRole('heading', { name: ratePage.heading })).toBeVisible();
   await page.getByRole('radio', { name: /^7:/ }).click();
   await page.getByRole('button', { name: pour.submit }).click();
-  await expect(page.getByRole('heading', { name: 'Your coordinate moved.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /^Moved \d/ })).toBeVisible();
 
   const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('guest_pours') ?? '[]'));
   expect(saved[0].venue).toEqual({

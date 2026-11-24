@@ -336,7 +336,11 @@ export const chart = {
 /** After a pour is logged: the payoff of signing in, shown every time. */
 export const moved = {
   eyebrow: 'Logged',
-  title: 'Your coordinate moved.',
+  /** How far the pour moved you, to a tenth. */
+  title: (distance: number) => `Moved ${distance}`,
+  /** A pour on the map that moved you nowhere: a rating between 4 and 6. */
+  heldTitle: 'Held.',
+  held: 'A rating between 4 and 6 holds you where you are.',
   unlistedTitle: 'Logged.',
   unlisted: (name: string) => `${name} is not on the map yet, so your coordinate stayed where it was.`,
   stillIn: 'Still in',

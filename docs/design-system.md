@@ -156,8 +156,7 @@ Navigation is unified across the entire site through `<SiteHeader.astro>` and `<
 
 The app is being redrawn as a printed chart: the screens show what the model already knows — where you are, how sure it is, the way you came, which way a drink lies and how far — instead of describing it. The target is the design canvas reviewed on 24 November 2026; each screen's section below is rewritten in the commit that ships it, so this list is what is still to come.
 
-1. **After a pour**: where you were, where you are, and the drink that pulled you.
-2. **The questions**: the shoal over the map, narrowing as you answer.
+1. **The questions**: the shoal over the map, narrowing as you answer.
 
 **Signed out is one thing per screen.** A stranger is asked to do one thing: find their coordinate. A guest with a coordinate sees what a member sees; what signing in keeps is said once, at the foot of Log, after the first pour — the first moment it would keep something.
 
@@ -229,7 +228,7 @@ A sheet over the screen you are on, not a page and not a tab: `RateSheet.tsx`, a
 
 **URL contract.** `?rate=<drink>` on `/compass` or `/log` opens it on that drink (`?rate=` alone: on the drink closest to you); `?draft=1&drink=…` opens it on a draft (`pour-draft.ts`; a chat assistant's `draft_pour` link is `/log?draft=1&…`). The hook reads it once on arrival, like `?signin=1`; in-app triggers (**Rate this** on a drink card, the waiting strip's **Rate it**, **Rate a drink** on Log, "Rate … anyway" in Compass search) call `open()` and navigate nowhere. Closing, or logging, takes the request out of the address (`history.replaceState`) and leaves any other query.
 
-One form (`PourForm.tsx`); its ledger is Log's (`PourLedger.tsx`). Ratings use the 9-point hedonic scale the pour record stores, as nine cells in an ink frame; "What was off" uses axis tags; spirit, glass, garnish and the sensory sliders sit behind "More detail" for signed-in members. Logging replaces the form, in the same sheet, with the after-a-pour screen (`Moved.tsx`) on the reveal ground — full-bleed on a phone: where the coordinate went, and what the pour did to your menu (the drink's new rank, and a drink that joined it). **Done** closes the sheet onto the screen underneath, which already shows the new pour (Log's ledger and chart) and has dropped the waiting pick (Compass).
+One form (`PourForm.tsx`); its ledger is Log's (`PourLedger.tsx`). Ratings use the 9-point hedonic scale the pour record stores, as nine cells in an ink frame; "What was off" uses axis tags; spirit, glass, garnish and the sensory sliders sit behind "More detail" for signed-in members. Logging replaces the form, in the same sheet, with the after-a-pour screen (`Moved.tsx`) on the reveal ground — full-bleed on a phone: how far the pour moved you, as the log says it (**Moved 0.7**, or **Held.** for a rating between 4 and 6), which way, where you were and where you are with the drink that pulled you, and what the pour did to your menu (the drink's new rank, and a drink that joined it). No shoal: one pour narrows it too little to see. **Done** closes the sheet onto the screen underneath, which already shows the new pour (Log's ledger and chart) and has dropped the waiting pick (Compass).
 
 ---
 

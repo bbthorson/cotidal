@@ -70,6 +70,8 @@ test('Log: your track, and what each pour did to it', async ({ page }) => {
     await sheet.getByRole('group', { name: pour.whereLabel }).getByRole('button', { name: pour.atHome }).click();
     await sheet.getByRole('radio', { name: new RegExp(`^${score}:`) }).click();
     await sheet.getByRole('button', { name: pour.submit }).click();
+    // The screen after says how far, or that a rating in the middle held you.
+    await expect(sheet.getByRole('heading', { level: 1 })).toHaveText(score === 5 ? moved.heldTitle : /^Moved \d/);
     await sheet.getByRole('button', { name: moved.back }).click();
     await expect(sheet).toHaveCount(0);
   }

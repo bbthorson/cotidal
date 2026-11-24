@@ -36,7 +36,7 @@ test('Rate: a guest logs a pour, sees the coordinate move, then the ledger', asy
   await page.getByRole('button', { name: pour.submit }).click();
 
   // The after-a-pour screen: where it went, and what it did to the menu.
-  await expect(page.getByRole('heading', { name: moved.title })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /^Moved \d/ })).toBeVisible();
   await expect(sheet.getByText(/8 of 9/)).toBeVisible();
   await expect(sheet.getByText(/^Now No\. \d on your menu$|^Not on your menu$/)).toBeVisible();
   await page.getByRole('button', { name: moved.back }).click();
