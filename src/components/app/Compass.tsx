@@ -1,4 +1,4 @@
-import { chart, compass, logPage, menu } from '@/lib/copy';
+import { chart, compass, menu } from '@/lib/copy';
 import { questionsHref } from '@/lib/site-nav';
 import type { Register } from '@/lib/register';
 import type { BarVisits } from '@/lib/pour-history';
@@ -113,7 +113,6 @@ function CompassContent({
             onSelect={c.chooseDrink}
             register={register}
             onTakeQuiz={() => window.location.assign(questionsHref)}
-            eyebrow={member ? undefined : logPage.guestEyebrow}
             track={c.track}
             bare={!c.hasCoordinate}
           />

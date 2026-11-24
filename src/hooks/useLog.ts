@@ -130,7 +130,9 @@ export function useLog(register: Register, member: { did: string; handle: string
   const nearest = useMemo(() => closestDrinks({ x, y }, 1)[0]?.name ?? '', [x, y]);
 
   const totals = logTotals(history);
-  const stats = [
+  // No figures before the first pour: "Pours 0 · Bars 0" only repeated the
+  // log's own empty line under it.
+  const stats = totals.pours === 0 ? [] : [
     { label: logPage.stats.pours, value: String(totals.pours) },
     { label: logPage.stats.bars, value: String(totals.bars) },
     ...(track && track.length > 1 ? [{ label: logPage.stats.moved, value: String(distanceRun(track)) }] : []),
