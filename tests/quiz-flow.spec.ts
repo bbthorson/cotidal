@@ -74,7 +74,7 @@ test('Questionnaire: finishing the questions reveals a region before the menu', 
   await expect(page).toHaveURL(/\/map$/);
 
   // After the reveal, the map: your terrain, your menu, and a search over drinks and bars in the header.
-  await expect(page.locator(`svg[aria-label="${explore.mapLabel}"]`)).toBeVisible();
+  await expect(page.locator(`[role="group"][aria-label="${explore.mapLabel}"]`)).toBeVisible();
   await expect(page.getByRole('heading', { name: compass.menuTitle })).toBeVisible();
   await expect(page.getByRole('searchbox', { name: compass.searchLabel })).toBeVisible();
 });
@@ -100,6 +100,6 @@ test('Menu: one ranked list, with no occasion switch', async ({ page }) => {
   await expect(page.getByLabel(/ away$/)).toHaveCount(0);
 
   // The map is drawn behind the card.
-  await expect(page.locator(`svg[aria-label="${explore.mapLabel}"]`)).toBeVisible();
+  await expect(page.locator(`[role="group"][aria-label="${explore.mapLabel}"]`)).toBeVisible();
 });
 

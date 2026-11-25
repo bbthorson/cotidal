@@ -377,3 +377,134 @@ bsky-sign-in[data-state='error'] input[name='handle'] {
     @apply bg-background text-foreground;
   }
 }
+
+/* The map screen (MapScreen.tsx): the map fixed in place and one card. Its
+   geometry is here rather than measured, so the server lays the screen out
+   whole and nothing moves when the page's script arrives.
+
+   - live (/map): the screen fills the window under the header. On a phone the
+     plane is as wide as the screen and the card rests in the space under it
+     (`--map-side` is the plane's side), pulled up over it by its head
+     (`data-up`). From `lg` the card is a panel down the left.
+   - static (the reading pages, no script): on a phone the plane stays at the
+     top as the page scrolls and the card scrolls up over it, so pulling the
+     card up is scrolling the page. From `lg`, as live, and the card scrolls. */
+@layer components {
+  .map-region {
+    display: grid;
+    place-items: center;
+    overflow: clip;
+    container-type: size;
+  }
+  .map-plane {
+    width: min(100cqw, 100cqh);
+    aspect-ratio: 1;
+  }
+
+  .map-screen-live {
+    position: relative;
+    flex: 1 1 0%;
+    min-height: 0;
+    overflow: hidden;
+    container-type: size;
+    --map-side: clamp(220px, calc(100cqh - 200px), 100cqw);
+  }
+  .map-screen-live > .map-region {
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: var(--map-side);
+  }
+  .map-screen-live > .map-card {
+    position: absolute;
+    inset: auto 0 0 0;
+    height: calc(100cqh - var(--map-side));
+    transition: height 300ms;
+  }
+  .map-screen-live > .map-card[data-up] {
+    height: calc(100cqh - 0.5rem);
+  }
+
+  .map-screen-static > .map-region {
+    position: sticky;
+    top: 0;
+    height: min(100vw, calc(100svh - 17rem));
+  }
+  .map-screen-static > .map-card {
+    position: relative;
+    min-height: calc(100svh - 3rem);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .map-screen-live > .map-card {
+      transition: none;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .map-screen-static {
+      position: relative;
+      flex: 1 1 0%;
+      min-height: 0;
+      overflow: hidden;
+    }
+    .map-screen-live > .map-region,
+    .map-screen-static > .map-region {
+      position: absolute;
+      inset: 0;
+      height: auto;
+      /* Clear of the panel: its width and the ground either side of it. */
+      padding: 1rem 1rem 1rem 26rem;
+    }
+    .map-screen-live > .map-card,
+    .map-screen-live > .map-card[data-up],
+    .map-screen-static > .map-card {
+      position: absolute;
+      inset: 1rem auto 1rem 1rem;
+      width: 24rem;
+      height: auto;
+      min-height: 0;
+      transition: none;
+    }
+  }
+
+  /* Text on the map, laid on a halo of the chart's own paper so a line or a
+     mark under it cannot cut it: the HTML counterpart of `.paint-card`. */
+  .halo-card {
+    text-shadow:
+      1.5px 0 hsl(var(--card)),
+      -1.5px 0 hsl(var(--card)),
+      0 1.5px hsl(var(--card)),
+      0 -1.5px hsl(var(--card)),
+      1px 1px hsl(var(--card)),
+      -1px -1px hsl(var(--card)),
+      1px -1px hsl(var(--card)),
+      -1px 1px hsl(var(--card));
+  }
+
+  /* The tide turning about the map's zero point, the amphidrome: high water
+     sweeping round anticlockwise, as it does about a northern amphidrome.
+     The one motion on a page with nothing of yours to draw; still for anyone
+     who asks for less motion. */
+  .tide-sweep {
+    position: absolute;
+    inset: -50%;
+    background: conic-gradient(
+      from 0deg,
+      transparent 0deg,
+      hsl(var(--secondary) / 0.1) 30deg,
+      hsl(var(--secondary) / 0.04) 70deg,
+      transparent 110deg
+    );
+    animation: tide-turn 48s linear infinite reverse;
+  }
+  @keyframes tide-turn {
+    to {
+      transform: rotate(1turn);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .tide-sweep {
+      animation: none;
+    }
+  }
+}

@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { a11y, chart, coldState, compass, explore, mapPage, moved, nav, pour, ratePage, taste } from '../src/lib/copy';
+import { a11y, chart, quadrants, coldState, compass, explore, mapPage, moved, nav, pour, ratePage, taste } from '../src/lib/copy';
 
 /**
  * The app is one screen, the map: the search in the header, your map fixed
@@ -14,7 +14,7 @@ const seed = (p: typeof profile) => {
     sessionStorage.setItem('seeded', '1');
   }
 };
-const theMap = (page: import('@playwright/test').Page) => page.locator(`svg[aria-label="${explore.mapLabel}"]`);
+const theMap = (page: import('@playwright/test').Page) => page.locator(`[role="group"][aria-label="${explore.mapLabel}"]`);
 const card = (page: import('@playwright/test').Page) => page.getByRole('region', { name: explore.cardLabel });
 const rating = (page: import('@playwright/test').Page) => page.getByRole('region', { name: ratePage.title });
 
@@ -45,6 +45,21 @@ test('Map: the header search works before the map does, as a plain form', async 
   // Only the map has it.
   const drinks = await (await request.get('/drinks')).text();
   expect(drinks).not.toContain('id="app-search"');
+});
+
+test('Map: the server draws the map whole, so it is there before any script runs', async ({ browser }) => {
+  // Before, the map measured its box after mount and the server sent an empty space.
+  const context = await browser.newContext({ javaScriptEnabled: false });
+  const page = await context.newPage();
+  await page.goto('/map');
+  const map = theMap(page);
+  await expect(map).toBeVisible();
+  const box = (await map.boundingBox())!;
+  expect(box.width).toBeGreaterThan(200);
+  expect(Math.abs(box.width - box.height)).toBeLessThan(2);
+  // Every drink is drawn, and the regions are named.
+  await expect(map.getByText(quadrants[0].name)).toBeVisible();
+  await context.close();
 });
 
 test('Map: with no coordinate the card asks one thing, and the search still finds drinks', async ({ page }) => {
@@ -139,14 +154,14 @@ test('Map: the card sits beside the map on a wide screen, under it on a phone', 
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.goto('/map');
   await expect(card(page).getByRole('heading', { name: compass.menuTitle })).toBeVisible();
-  const [c, m] = [(await card(page).boundingBox())!, (await page.locator('svg rect.fill-card').first().boundingBox())!];
+  const [c, m] = [(await card(page).boundingBox())!, (await theMap(page).boundingBox())!];
   expect(c.x + c.width).toBeLessThan(m.x);
   // The visible reading pages are in the header beside the search, since the map has no footer.
   await expect(page.locator('header a[href="/how-it-works"]')).toBeVisible();
 
   await page.setViewportSize({ width: 390, height: 844 });
   await expect.poll(async () => {
-    const [c2, m2] = [(await card(page).boundingBox())!, (await page.locator('svg rect.fill-card').first().boundingBox())!];
+    const [c2, m2] = [(await card(page).boundingBox())!, (await theMap(page).boundingBox())!];
     return c2.y >= m2.y + m2.height - 1;
   }).toBe(true);
 
@@ -161,7 +176,7 @@ test('Map: the card sits beside the map on a wide screen, under it on a phone', 
 test('Map: the map stays where it is when a bar or a drink is opened', async ({ page }) => {
   await page.addInitScript((p) => localStorage.setItem('user_profile', JSON.stringify(p)), profile);
   await page.goto('/map');
-  const frame = page.locator('svg rect.fill-card').first();
+  const frame = theMap(page);
   await expect(frame).toBeVisible();
   const before = await frame.boundingBox();
   await page.getByRole('searchbox', { name: compass.searchLabel }).fill('negroni');

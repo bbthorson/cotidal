@@ -136,8 +136,14 @@ of a drink with no match is kept, and moves nothing but its deviations.
 (`PalateMap.tsx` — the plane, your terrain as shading and contour lines,
 every drink, your pours with your rating), the search in the header, and one
 card for everything else. The map never pans, zooms or moves when something
-opens: what changes is what is drawn on it. Where it sits, its contours and
-which drinks get a label are plain functions (`map-draw.ts`). The card holds
+opens: what changes is what is drawn on it. Where a drink sits on it, its
+contours and shading and which drinks get a label are plain functions
+(`map-draw.ts`, `ground-masks.ts`). It is drawn to scale (an SVG in map
+units, with the marks and labels laid over it in percentages), so the server
+draws it whole and `/map` paints before its script arrives; the screen's
+geometry is CSS. Every page that shows the map uses one layout,
+`MapScreen.tsx` (`live` on `/map`, `static` on a page with no script), and
+an Astro page renders it with no directive rather than keeping its own copy. The card holds
 where to next (your menu, your bars, bars near you, your pours, your track),
 a drink, a bar's menu, or rating a pour; on a phone it rests under the map
 and is pulled up over it by its head, and from `lg` it is a panel down the

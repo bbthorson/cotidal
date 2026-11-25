@@ -4,7 +4,6 @@ import type { PourRecord } from '@/lib/atproto/records';
 import { chart, compass, explore, mapPage, pour, taste } from '@/lib/copy';
 import { formatCoordinate } from '@/lib/coordinate';
 import { quadrantFor } from '@/lib/quadrant';
-import { fitPlane, type PlaneFit } from '@/lib/map-draw';
 import { publicMapPath, startOverPath } from '@/lib/atproto/paths';
 import { drinksHref, questionsHref } from '@/lib/site-nav';
 import type { Register } from '@/lib/register';
@@ -15,6 +14,7 @@ import { AtprotoProvider, useAtprotoContext } from './AtprotoProvider';
 import { ColdState } from './ColdState';
 import { MenuView } from './MenuView';
 import { NearList } from './Near';
+import { CardHead as CardHeadFrame, MapScreen } from './MapScreen';
 import { PalateMap } from './PalateMap';
 import { PourLedger } from './PourLedger';
 import { RatePanel } from './RatePanel';
@@ -23,12 +23,6 @@ import { StartOver } from './StartOver';
 import { TrackFigure } from './TrackFigure';
 import { WaitingPick } from './WaitingPick';
 import { Empty, GuestPrompt } from './ui';
-
-/** The least a phone's card shows at rest, under the map: its head and a row or two. */
-const CARD_REST_MIN = 200;
-/** The panel's width from `lg` (`w-96`), and the ground kept around it. */
-const PANEL = 384;
-const GAP = 16;
 
 /**
  * The app, on one screen: your map fixed in place as the background, the
@@ -53,34 +47,8 @@ function ExploreContent({
 }) {
   const e = useExplore(register, member, initialQuery);
   const { isEnabled, openSignIn } = useAtprotoContext();
-  const root = useRef<HTMLDivElement>(null);
   const body = useRef<HTMLDivElement>(null);
-  const [size, setSize] = useState({ w: 0, h: 0, wide: false });
   const [reveal, setReveal] = useState(false);
-
-  useEffect(() => {
-    const el = root.current;
-    if (!el) return;
-    const wide = window.matchMedia('(min-width: 1024px)');
-    const measure = () => setSize({ w: el.clientWidth, h: el.clientHeight, wide: wide.matches });
-    measure();
-    const ro = new ResizeObserver(measure);
-    ro.observe(el);
-    wide.addEventListener('change', measure);
-    return () => {
-      ro.disconnect();
-      wide.removeEventListener('change', measure);
-    };
-  }, []);
-
-  // The plane sits where the chrome leaves room, and stays there.
-  const { fit, rest } = useMemo((): { fit: PlaneFit | null; rest: number } => {
-    const { w, h, wide } = size;
-    if (!w || !h) return { fit: null, rest: CARD_REST_MIN };
-    if (wide) return { fit: fitPlane({ left: PANEL + 2 * GAP, top: GAP, width: w - PANEL - 3 * GAP, height: h - 2 * GAP }), rest: 0 };
-    const side = Math.min(w, Math.max(220, h - CARD_REST_MIN));
-    return { fit: fitPlane({ left: 0, top: 0, width: w, height: side }), rest: h - side };
-  }, [size]);
 
   // A different card starts from its top.
   const cardKey = e.rate.request ? 'rate' : e.selectedDrink ? `drink:${e.selected}` : e.venue ? `bar:${e.venue.name ?? ''}` : 'home';
@@ -94,6 +62,7 @@ function ExploreContent({
     e.setUp(false);
   };
 
+  const ratings = useMemo(() => new Map([...e.lastPour].map(([n, p]) => [n, p.rating.hedonic])), [e.lastPour]);
   const pins = e.venue ? e.ranked.map((r, i) => ({ drink: r.drink, rank: i + 1 })) : null;
 
   let content;
@@ -147,41 +116,30 @@ function ExploreContent({
     content = <Home e={e} member={member} signInEnabled={isEnabled} onSignIn={openSignIn} />;
   }
 
-  const cardHeight = size.wide ? undefined : e.up || e.rate.request ? size.h - 8 : rest;
-
   return (
-    <div ref={root} className="relative min-h-0 flex-1 overflow-hidden">
-      <SearchBox e={e} />
-      <PalateMap
-        fit={fit}
-        width={size.w}
-        height={size.h}
-        ground={e.ground}
-        pours={e.lastPour}
-        pins={pins}
-        emptyBar={!!e.venue && e.ranked.length === 0}
-        selected={e.selected}
-        hover={e.hover}
-        onSelect={e.chooseDrink}
-        name={e.name}
-      />
-
-      <section
-        aria-label={explore.cardLabel}
-        style={cardHeight !== undefined ? { height: cardHeight } : undefined}
-        className={cn(
-          'absolute z-20 flex flex-col border-foreground',
-          'inset-x-0 bottom-0 border-t transition-height duration-300 motion-reduce:transition-none',
-          'lg:inset-x-auto lg:bottom-4 lg:left-4 lg:top-4 lg:w-96 lg:border lg:shadow-mcm lg:transition-none',
-          reveal ? 'bg-reveal text-reveal-foreground' : 'bg-card text-foreground'
-        )}
-      >
-        {!reveal && <CardHead e={e} />}
-        <div ref={body} className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-8 lg:px-5">
-          {content}
-        </div>
-      </section>
-    </div>
+    <MapScreen
+      mode="live"
+      label={explore.cardLabel}
+      up={e.up || !!e.rate.request}
+      tone={reveal ? 'reveal' : 'card'}
+      head={reveal ? undefined : <CardHead e={e} />}
+      bodyRef={body}
+      overlay={<SearchBox e={e} />}
+      map={
+        <PalateMap
+          ground={e.ground}
+          ratings={ratings}
+          pins={pins}
+          emptyBar={!!e.venue && e.ranked.length === 0}
+          selected={e.selected}
+          hover={e.hover}
+          onSelect={e.chooseDrink}
+          name={e.name}
+        />
+      }
+    >
+      {content}
+    </MapScreen>
   );
 }
 
@@ -192,8 +150,8 @@ function ExploreContent({
 function CardHead({ e }: { e: ExploreState }) {
   const drag = useRef<{ y: number; moved: boolean } | null>(null);
   return (
-    <div
-      className="shrink-0 cursor-grab touch-none select-none px-4 pt-1.5 lg:cursor-auto lg:px-5 lg:pt-3"
+    <CardHeadFrame
+      className="cursor-grab touch-none lg:cursor-auto"
       onPointerDown={(ev) => {
         if ((ev.target as HTMLElement).closest('button')) return;
         drag.current = { y: ev.clientY, moved: false };
@@ -212,29 +170,21 @@ function CardHead({ e }: { e: ExploreState }) {
         drag.current = null;
         if (d && !d.moved) e.setUp(!e.up);
       }}
-    >
-      <span aria-hidden="true" className="mx-auto mb-2 block h-0.75 w-10 bg-border lg:hidden" />
-      <div className="flex items-baseline justify-between gap-3 border-b border-border pb-2">
-        <p className="min-w-0 truncate">
-          {e.leanings.length > 0 ? (
-            <>
-              <span className="label-caps">{taste.label} </span>
-              <span className="font-serif text-ui italic text-primary">{taste.phrases(e.leanings)}</span>
-            </>
-          ) : (
-            <span className="label-caps">{explore.noPosition}</span>
-          )}
-        </p>
-        <button
-          type="button"
-          aria-expanded={e.up}
-          onClick={() => e.setUp(!e.up)}
-          className="link-caps shrink-0 text-secondary lg:hidden"
-        >
+      action={
+        <button type="button" aria-expanded={e.up} onClick={() => e.setUp(!e.up)} className="link-caps shrink-0 text-secondary lg:hidden">
           {e.up ? explore.less : explore.more}
         </button>
-      </div>
-    </div>
+      }
+    >
+      {e.leanings.length > 0 ? (
+        <>
+          <span className="label-caps">{taste.label} </span>
+          <span className="font-serif text-ui italic text-primary">{taste.phrases(e.leanings)}</span>
+        </>
+      ) : (
+        <span className="label-caps">{explore.noPosition}</span>
+      )}
+    </CardHeadFrame>
   );
 }
 

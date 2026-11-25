@@ -44,6 +44,33 @@ sample bars and pours: https://claude.ai/artifact/HJNpUB2kta14LW3aCZkLj1
 7. **Zoom can wait.** Labels are placed for what matters, and every drink is
    reachable through search and the card's lists.
 
+## The map on every page
+
+Decided with the owner after the map screen was built: the map and its card
+are the layout of the whole site, not only of `/map`.
+
+1. **Every page that is about a place on the map is the map and a card**
+   (`MapScreen.tsx`). A drink's page is the map with that drink marked, its
+   neighbours named and its region washed, and the drink's entry in the card.
+   The front door is the map with a sample palate gaining ratings, and the
+   card holds the lede and Find your coordinate; pulled up, how it works and
+   sign in. The questions run in the card, the shoal narrowing on the big map.
+2. **The map is drawn by the server.** One component (`PalateMap.tsx`)
+   draws `/map` and the pages with no script, so a reading page ships no
+   JavaScript for it and `/map` paints before its island hydrates.
+3. **On a page with no script, pulling the card up is scrolling.** The map
+   stays at the top of a phone's screen and the card scrolls up over it.
+   Only `/map` has the dragged card.
+4. **A page with nothing of yours to draw shows the tide turning** about the
+   map's zero point (`.tide-sweep`), never a terrain that is not yours. A
+   drink's page draws no hills: a sample palate behind a Negroni would read as
+   a verdict on it. The front door's sample is labelled as one.
+5. **The regions are named on every map**, the front door's included.
+6. **Settings stays a page of its own**: forms that post to the server and
+   the account's destructive actions, nothing that is a place on the map.
+
+Built so far: the server-drawn map and `MapScreen`, on `/map`.
+
 ## Why
 
 - **The product's answer is a place.** "Which way and how far" is spatial

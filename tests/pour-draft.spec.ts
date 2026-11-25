@@ -60,7 +60,7 @@ test('Draft link: closing it logs nothing and clears the address, other queries 
   const sheet = page.getByRole('region', { name: ratePage.title });
   await expect(sheet.getByLabel(pour.drinkLabel)).toHaveValue('Negroni');
   // A tap on the map does not throw away what was typed; Close does take it away.
-  await page.locator(`svg[aria-label="${explore.mapLabel}"]`).click({ position: { x: 5, y: 5 } });
+  await page.locator(`[role="group"][aria-label="${explore.mapLabel}"]`).click({ position: { x: 5, y: 5 } });
   await expect(sheet).toBeVisible();
   await sheet.getByRole('button', { name: ratePage.close }).click();
   await expect(sheet).toHaveCount(0);

@@ -25,7 +25,7 @@ const seedOnce = (p: typeof profile) => {
 };
 const card = (page: Page) => page.getByRole('region', { name: explore.cardLabel });
 const rating = (page: Page) => page.getByRole('region', { name: ratePage.title });
-const theMap = (page: Page) => page.locator(`svg[aria-label="${explore.mapLabel}"]`);
+const theMap = (page: Page) => page.locator(`[role="group"][aria-label="${explore.mapLabel}"]`);
 const search = (page: Page) => page.getByRole('searchbox', { name: compass.searchLabel });
 
 test('A menu: with no coordinate, it says what it needs', async ({ page }) => {
