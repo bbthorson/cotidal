@@ -18,6 +18,9 @@ import { readFollowedPalates, type FollowedOverlap } from '../../lib/atproto/fol
 import { loadRegister } from '../../lib/register.server';
 import { titleOf } from '../../lib/register';
 import type { Drink } from '../../lib/data';
+import { readMapView, viewHref } from '../../lib/map-url';
+import { wayTo } from '../../lib/drink-search';
+import { mapHref } from '../../lib/site-nav';
 
 /**
  * Someone's coordinate at a public URL: `/p/<handle>` or `/p/<did>`.
@@ -27,6 +30,10 @@ import type { Drink } from '../../lib/data';
  * visitor with a palate of their own gets their dot beside it and the
  * distance between: two dots, no feed, no follows (docs/routes.md, Friends).
  *
+ * `/map?palate=<handle>` is this page at the map's address (`map-url.ts`),
+ * and `?drink=` marks a drink on it and says how far and which way it lies
+ * from them: `/map?palate=alice.bsky.social&drink=negroni`.
+ *
  * Server-rendered with no island, like `/`: a link sent to a stranger paints
  * before anything could hydrate.
  */
@@ -34,6 +41,7 @@ import type { Drink } from '../../lib/data';
 export const prerender = false;
 
 const result = await readPublicPalate(Astro.params.actor ?? '');
+const { drink: viewDrink } = readMapView(Astro.url.searchParams);
 
 const session = result.status === 'ok' ? await oauthSession(Astro.request) : null;
 const isSelf = !!session && result.status === 'ok' && session.did === result.actor.did;
@@ -147,6 +155,7 @@ const ctaClass =
     label={name && subject ? publicMap.plotLabel(publicMap.title(name)) : explore.chartLabel}
     points={points}
     region={region?.id ?? null}
+    selected={viewDrink?.name ?? null}
     named={near.map((d) => d.name)}
     tide={!subject}
   />
@@ -165,6 +174,27 @@ const ctaClass =
           ]}
         />
       </ScreenHeader>
+
+      {viewDrink && (
+        <section class="border-y border-foreground py-4" data-testid="palate-drink">
+          <p class="label-caps">{publicMap.drinkLabel}</p>
+          {entryHref(viewDrink) ? (
+            <a href={entryHref(viewDrink)!} class="mt-1 block font-serif text-heading font-bold text-foreground hover:underline hover:underline-offset-4">
+              {titleFor(viewDrink)}
+            </a>
+          ) : (
+            <p class="mt-1 font-serif text-heading font-bold text-foreground">{titleFor(viewDrink)}</p>
+          )}
+          <p class="mt-1 text-meta text-muted-foreground">
+            {publicMap.drinkWay(isSelf ? publicMap.drinkFromYou : publicMap.title(name), wayTo(subject, viewDrink).distance, wayTo(subject, viewDrink).words)}
+          </p>
+          {!isSelf && (
+            <a href={viewHref(mapHref, { drink: viewDrink })} class="btn btn-outline mt-4 px-4">
+              {publicMap.drinkForYou}
+            </a>
+          )}
+        </section>
+      )}
 
       <dl class="grid grid-cols-2 gap-x-6 gap-y-1 border-y border-border py-3 text-meta">
         <dt class="label-caps text-muted-foreground">{isSelf ? publicMap.you : publicMap.them}</dt>

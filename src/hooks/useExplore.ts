@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { drinkDatabase, type Drink } from '@/lib/data';
-import { drinkOf } from '@/lib/drink-match';
 import { savePick } from '@/lib/device-store';
 import { chart, compass, mapPage } from '@/lib/copy';
 import { titleOf, type Register } from '@/lib/register';
@@ -8,6 +7,7 @@ import { userFromProfile } from '@/lib/profile';
 import { barsFromPours, foldName, lastPourByDrink, logTotals } from '@/lib/pour-history';
 import { drinksAtSameSpot, namesMatching, searchDrinks, unlistedBar } from '@/lib/drink-search';
 import { addMenuLines, rankMenu, type MenuItem } from '@/lib/menu-rank';
+import { readMapView } from '@/lib/map-url';
 import { buildTerrain, evidenceAt, kindOf, leanings, sampleTerrain, type TerrainStart } from '@/lib/terrain';
 import { distanceRun } from '@/lib/track';
 import { useMenu } from '@/hooks/useMenu';
@@ -133,13 +133,11 @@ export function useExplore(
   // Arrivals: ?drink=<slug> (not on ?draft= or ?rate= links), ?menu=1, ?venue=<handle>.
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const drinkParam = !params.has('draft') && !params.has('rate') ? params.get('drink')?.trim() : undefined;
-    if (drinkParam) {
-      const matched = drinkOf({ slug: drinkParam, name: drinkParam });
-      if (matched) {
-        setSelected(matched.name);
-        return;
-      }
+    // The map's address (`map-url.ts`): `drink=` is the view's, except on a rating link, where it is the pour's.
+    const { drink } = readMapView(params);
+    if (drink) {
+      setSelected(drink.name);
+      return;
     }
     if (params.get('menu') === '1') {
       openBar({ name: null });

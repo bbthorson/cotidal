@@ -1,5 +1,6 @@
 import { account as accountCopy, nav } from './copy';
 import { QUESTIONS_PATH } from './atproto/paths';
+import { viewHref } from './map-url';
 
 /**
  * The one list of destinations. The app bar renders the ones marked `header`
@@ -23,7 +24,8 @@ import { QUESTIONS_PATH } from './atproto/paths';
 export const mapHref = '/map';
 export const drinksHref = '/drinks';
 export const barsHref = '/bars';
-export const drinkMapHref = (slug: string) => `${mapHref}?drink=${encodeURIComponent(slug)}`;
+/** A drink on your map: the map's address (`map-url.ts`). */
+export const drinkMapHref = (slug: string) => viewHref(mapHref, { drink: slug });
 
 export const destinations = [
   { href: mapHref, label: nav.map, match: mapHref, app: true, header: true, menu: false, footer: false, memberOnly: false },
@@ -53,8 +55,7 @@ export const signInHref = (currentPath: string) =>
 /** The questions that place a coordinate (`startOverPath` clears the old one first). */
 export const questionsHref = QUESTIONS_PATH;
 /** The questions, from a drink: they finish (or, with a coordinate already, go straight) on that drink on the map. */
-export const DRINK_PARAM = 'drink';
-export const questionsForDrink = (slug: string) => `${QUESTIONS_PATH}?${DRINK_PARAM}=${encodeURIComponent(slug)}`;
+export const questionsForDrink = (slug: string) => viewHref(QUESTIONS_PATH, { drink: slug });
 
 /** Where a member manages their account, and where a page that cannot know sends everyone. */
 export const accountHref = '/settings';

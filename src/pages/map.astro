@@ -7,6 +7,8 @@ import { loadRegister } from '../lib/register.server';
 import { signInEnabled } from '../lib/atproto/auth';
 import { accountFor } from '../lib/atproto/session';
 import { mapHref } from '../lib/site-nav';
+import { readMapView, viewHref } from '../lib/map-url';
+import { publicMapPath } from '../lib/atproto/paths';
 
 /**
  * The app, on one screen: your map fixed in place, the search in the header,
@@ -20,11 +22,17 @@ import { mapHref } from '../lib/site-nav';
  */
 export const prerender = false;
 
+// Someone else's palate (`?palate=`, map-url.ts) is their public map, read-only and drawn on the
+// server: the same page `/p/<handle>` is, at this address, with the drink it is about.
+const view = readMapView(Astro.url.searchParams);
+if (view.palate) return Astro.rewrite(viewHref(publicMapPath(view.palate), { drink: view.drink }));
+
 const register = await loadRegister();
 const authEnabled = await signInEnabled();
 const account = await accountFor(Astro.request, false);
 const member = account.kind === 'member' ? { did: account.did, handle: account.handle } : null;
 const initialQuery = Astro.url.searchParams.get('q') ?? '';
+
 ---
 
 <AppShell title={`${site.name} — ${explore.title}`} app>

@@ -97,6 +97,42 @@ a drink tapped on a static page's map going to its page; the terrain on
 `/p/<handle>` in place of the point (as the chat tools and share cards still
 read the point too).
 
+## The map's address
+
+Decided with the owner: **the path picks the card, the parameters pick what
+the map draws.** A path names the thing the card is about — a drink, a
+person, a bar — and is what a search engine indexes. The parameters are one
+small vocabulary, read and written by `src/lib/map-url.ts` and nowhere else
+(`tests/unit/map-url.test.ts`):
+
+| Parameter | The map draws | Built |
+|---|---|---|
+| *(none)* | Yours: your account, or this device | yes |
+| `drink=<slug>` | That drink marked, its card open | yes |
+| `palate=<handle or DID>` | Someone else's taste, read from their public records, read-only | yes, as their point; their terrain is next |
+| `with=<handle or DID>` | A second palate over the first, to compare | next |
+
+They combine: `/map?palate=alice.bsky.social&drink=negroni` is where a
+Negroni sits for Alice — how far and which way (`wayTo`), and Where it sits
+for you, which is `/map?drink=negroni`. `/map?palate=` is `/p/<handle>`
+rendered at the map's address (`Astro.rewrite`), so there is one page for
+someone's map; which address is canonical is decided with the merges.
+
+Values are checked, never guessed at: a drink through `drinkOf`, a person
+by the protocol's handle and DID syntax; anything else is dropped and the
+map is yours. Rating links (`?rate=`, `?draft=1&…`, `pour-draft.ts`) carry
+their own `drink=`, which belongs to the pour. Someone else's palate never
+writes to your device, and you rate only on your own map.
+
+Their taste is computed from their records (their answers and their pours),
+never stored as a record of its own: a record holds what its author said,
+the terrain is the app's reading of it and improves when the model does.
+The reads are cached per person until their repository changes.
+
+Not yet: `?palate=` on a drink's page (`/drinks/negroni?palate=…`, which
+means rendering drink pages per request, cached at the edge), and the chat
+tools answering with these links.
+
 ## Why
 
 - **The product's answer is a place.** "Which way and how far" is spatial

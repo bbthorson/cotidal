@@ -160,6 +160,15 @@ left. A drink is reached by tapping it on the map (the nearest mark within
 reach) or from the card's lists and the search, which is how a keyboard
 reaches every one.
 
+**The map's address** (`src/lib/map-url.ts`, `docs/map-first.md`): the path
+picks the card, the parameters pick what the map draws — `drink=<slug>`, and
+`palate=<handle or DID>` for someone else's taste, read-only. Read and write
+them through `readMapView` and `viewHref`, never by hand: a drink is checked
+by `drinkOf`, a person by the protocol's syntax, and anything else is
+dropped. `/map?palate=` renders `/p/<handle>` at the map's address
+(`Astro.rewrite`). A taste is computed from its author's records, never
+stored as one.
+
 A bar is a filter on the map, not a place on a street map: from the search,
 your bars, bars near you (a list from OpenStreetMap, `useNearby`), or any
 name typed. It opens `MenuView` in the card: type what they pour,

@@ -889,6 +889,11 @@ export const publicMap = {
   yoursLabel: 'You’d order, they wouldn’t',
   sharedLabel: 'One you’d both order',
   nearLabel: 'Close to this coordinate',
+  /** `?drink=` on someone's map: the drink, and where it lies from them (`wayTo`). */
+  drinkLabel: 'A drink on this map',
+  drinkWay: (who: string, distance: number, words: string) => `${distance} from ${who}, ${words}`,
+  drinkFromYou: 'you',
+  drinkForYou: 'Where it sits for you',
   selfNote: 'This is your link: your map as anyone who opens it sees it, drawn from the record in your own Bluesky account.',
   linkLabel: 'Your link',
   guestTitle: 'Where do you land?',

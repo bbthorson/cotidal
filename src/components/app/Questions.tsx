@@ -10,7 +10,8 @@ import { useDiscoveryQuiz, type UserProfile } from '@/hooks/useDiscoveryQuiz';
 import { getConnectedPalate } from '@/lib/api-client';
 import { clearProfile, loadProfile, saveProfile } from '@/lib/device-store';
 import { START_OVER_PARAM } from '@/lib/atproto/paths';
-import { DRINK_PARAM, drinkMapHref, mapHref as MAP } from '@/lib/site-nav';
+import { drinkMapHref, mapHref as MAP } from '@/lib/site-nav';
+import { readMapView } from '@/lib/map-url';
 import { takeParam } from '@/lib/url-params';
 
 /**
@@ -33,8 +34,8 @@ import { takeParam } from '@/lib/url-params';
  */
 function nextHref(): string {
   if (typeof window === 'undefined') return MAP;
-  const slug = new URLSearchParams(window.location.search).get(DRINK_PARAM);
-  return slug ? drinkMapHref(slug) : MAP;
+  const { drink } = readMapView(new URLSearchParams(window.location.search));
+  return drink ? drinkMapHref(drink.slug) : MAP;
 }
 
 function QuestionsContent({ member, bar }: { member: boolean; bar?: ReactNode }) {
