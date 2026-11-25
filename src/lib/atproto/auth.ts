@@ -108,7 +108,7 @@ export async function getAuth(): Promise<AtprotoAuth | null> {
   return (auth = createAtprotoAuth({
     appName: 'Cotidal',
     basePath: AUTH_BASE_PATH,
-    redirectTo: '/compass',
+    redirectTo: '/map',
     scope: 'atproto transition:generic',
     metadata: {
       logo_uri: 'https://cotidal.app/apple-touch-icon.png',

@@ -19,31 +19,20 @@ export const site = {
 export const nav = {
   skipToContent: 'Skip to content',
   home: 'Home',
-  compass: 'Compass',
   register: 'Drinks',
   signIn: 'Sign in',
   menu: 'Menu',
   /** Beside your handle in a phone's Menu: where it goes. */
   settings: 'Settings',
   footer: 'Site',
-  map: 'Your map',
+  map: 'Map',
   bars: 'For bars',
   howItWorks: 'How it works',
 } as const;
 
 /**
- * The bar along the foot of the app on a phone: choose (Compass), and you (Your map).
- * Picking a drink happens on Compass, so it needs no button of its own.
- */
-export const appBar = {
-  label: 'App',
-  compass: 'Compass',
-  map: 'Your map',
-} as const;
-
-/**
- * Compass: finding something — a drink, a bar. You are Your map's; this
- * points outward.
+ * Finding something on the map — a drink, a bar — and a bar's menu. The
+ * names are Compass's, the screen the map replaced; the words are the map's.
  */
 export const compass = {
   heading: 'Where to next',
@@ -86,7 +75,6 @@ export const compass = {
    * connected to the bar.
    */
   atMenu: {
-    back: 'Back to Compass',
     homeTitle: 'Have a menu?',
     body: 'Add what they pour. Anything on the map is placed and ranked for you; anything else is kept, unplaced.',
     barLabel: 'Bar name (optional)',
@@ -108,6 +96,40 @@ export const compass = {
     rankedHome: 'What to have',
     rankedBody: 'Ranked by your ratings of the drinks around each one, and where your answers put you.',
   },
+} as const;
+
+/**
+ * /map, the one app screen: your terrain on the map, one search in the header
+ * over drinks and bars, and one card for everything else (`Explore.tsx`).
+ */
+export const explore = {
+  title: 'Map',
+  /** The map, read aloud. */
+  mapLabel: 'Your map: every drink at its place, on the ground your answers and ratings make',
+  /** The card, read aloud. */
+  cardLabel: 'Where to next',
+  /** The card's handle, read aloud, and its words on a phone. */
+  more: 'More',
+  less: 'Less',
+  heading: 'Where to next',
+  /** Before there is a coordinate, in the card's head. */
+  noPosition: 'No position yet',
+  backToStart: 'Where to next',
+  yoursTitle: 'Your pours',
+  barsNear: 'Bars near you',
+  /** The bar open on the map, in the search box; and how to leave it. */
+  leave: (bar: string) => `Leave ${bar}`,
+  searchThisMenu: 'Search this menu',
+  clear: 'Clear',
+  /** A bar with nothing on its menu yet: the map is empty under it. */
+  noMenu: 'No known menu',
+  noMenuBody: 'Add what they pour and each drink drops onto your map.',
+  /** Search results with nothing to show. */
+  nothing: 'Nothing on the map by that name.',
+  /** On the map, under a drink you rated: its name and your rating. */
+  ratedMark: (name: string, hedonic: number) => `${name} · ${hedonic}`,
+  /** The legend under the card's head. */
+  legend: { liked: 'Liked (7+)', poured: 'Other pours', ground: 'Your high ground', pinned: 'On this menu' },
 } as const;
 
 /** /map, Your map: you — where you are, how sure, the way you came, and what moved you. */
@@ -138,7 +160,7 @@ export const mapPage = {
   /** The way into rating a drink that was not handed over (a pick, "Rate this", a chat's draft). */
   rateDrink: 'Rate a drink',
   ledgerTitle: 'What moved it',
-  ledgerEmpty: 'No pours yet. Pick a drink on Compass, rate it, and it lands here.',
+  ledgerEmpty: 'No pours yet. Rate a drink and it lands here.',
   /** The three EKF readings beyond x/y, shown once at least 3 pours have trained them. */
   tolerancesTitle: 'Beyond the chart',
   tolerances: {

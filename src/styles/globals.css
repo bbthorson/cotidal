@@ -230,6 +230,21 @@
   }
 
   /* A <summary> that reads as a plain control, not a disclosure triangle. */
+  /* Text on the map, laid on a halo of the chart's own paper so a line or a
+     mark under it cannot cut it (PalateMap). */
+  .paint-card {
+    paint-order: stroke;
+    stroke: hsl(var(--card));
+    stroke-width: 4px;
+    stroke-linejoin: round;
+  }
+
+  /* A search field that brings its own clear button: the browser's is hidden. */
+  .search-plain::-webkit-search-cancel-button {
+    appearance: none;
+    display: none;
+  }
+
   .summary-plain {
     list-style: none;
   }
@@ -264,27 +279,6 @@
   body:has([data-focus-mode]) [data-site-chrome] {
     display: none;
   }
-}
-
-/* The street map on Compass (NearMap.tsx). Its tiles are OpenStreetMap's,
-   washed toward paper so the map sits quieter than the taste chart on Log:
-   two maps in one app should not look alike. Leaflet's own chrome takes the
-   app's type and ground. */
-.map-paper.leaflet-container {
-  background: hsl(var(--card));
-  font-family: inherit;
-}
-.map-paper .leaflet-tile-pane {
-  filter: grayscale(1) sepia(0.2) contrast(0.9) brightness(1.05);
-}
-.map-paper .leaflet-control-attribution {
-  background: hsl(var(--card));
-  color: hsl(var(--muted-foreground));
-  font-size: theme('fontSize.label');
-}
-.map-paper .leaflet-control-zoom a {
-  border-radius: 0;
-  color: hsl(var(--foreground));
 }
 
 /* `<bsky-sign-in>` progressive enhancement on `/sign-in` (ConnectForm.astro).

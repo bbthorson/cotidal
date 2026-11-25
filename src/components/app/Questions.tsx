@@ -8,7 +8,8 @@ import { clearProfile, loadProfile, saveProfile } from '@/lib/device-store';
 import { START_OVER_PARAM } from '@/lib/atproto/paths';
 import { takeParam } from '@/lib/url-params';
 
-const COMPASS = '/compass';
+/** Where the questions lead: the map, the one app screen. */
+const MAP = '/map';
 
 /**
  * The questions and the reveal: two beats, on a page of their own. Finishing
@@ -38,7 +39,7 @@ function QuestionsContent({ member }: { member: boolean }) {
       return;
     }
     if (loadProfile()) {
-      window.location.replace(COMPASS);
+      window.location.replace(MAP);
       return;
     }
     if (!member) return;
@@ -46,7 +47,7 @@ function QuestionsContent({ member }: { member: boolean }) {
     getConnectedPalate().then((remote) => {
       if (cancelled || !remote) return;
       saveProfile(remote);
-      window.location.replace(COMPASS);
+      window.location.replace(MAP);
     });
     return () => {
       cancelled = true;
@@ -64,7 +65,7 @@ function QuestionsContent({ member }: { member: boolean }) {
       <Reveal
         x={Math.max(-10, Math.min(10, profile.x))}
         y={Math.max(-10, Math.min(10, profile.y))}
-        onContinue={() => window.location.assign(COMPASS)}
+        onContinue={() => window.location.assign(MAP)}
         onRetake={retake}
       />
     );
@@ -80,7 +81,7 @@ function QuestionsContent({ member }: { member: boolean }) {
       canGoBack={quiz.canGoBack}
       onSelectOption={quiz.handleAnswer}
       onBack={quiz.handleBack}
-      onExploreAsGuest={() => window.location.assign(COMPASS)}
+      onExploreAsGuest={() => window.location.assign(MAP)}
     />
   );
 }

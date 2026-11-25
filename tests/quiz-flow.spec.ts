@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { questions } from '../src/lib/discovery-questions';
-import { quadrants, chart, coldState, compass, ratePage, reveal as revealCopy } from '../src/lib/copy';
+import { quadrants, chart, compass, explore, reveal as revealCopy } from '../src/lib/copy';
 
 /**
  * Questionnaire flow contract:
@@ -25,40 +25,20 @@ test('Questionnaire: opens directly with calibration question and selectable opt
   await expect(page.getByText(/of about 8/)).toBeVisible();
 });
 
-test('Compass: with no coordinate it asks one thing, and still browses when asked', async ({ page }) => {
-  await page.goto('/compass');
-  await expect(page.getByText(first.text)).toHaveCount(0);
-  // No position, so no menu: ranking around the origin would be nobody's. One way on.
-  await expect(page.getByRole('heading', { level: 1, name: compass.startTitle })).toBeVisible();
-  await expect(page.getByRole('region', { name: chart.label })).toBeVisible();
-  await expect(page.getByRole('heading', { name: compass.menuTitle })).toHaveCount(0);
-  // Nor does the chart fill any drink as "on your menu".
-  await expect(page.getByRole('region', { name: chart.label }).locator('button > span.bg-foreground')).toHaveCount(0);
-  await expect(page.getByRole('searchbox')).toHaveCount(0);
-  await page.getByRole('button', { name: compass.lookUp }).click();
-  await expect(page.getByRole('searchbox', { name: compass.searchLabel })).toBeVisible();
-  await expect(page.getByRole('heading', { name: compass.menuTitle })).toHaveCount(0);
-
-  await page.reload();
-  await page.getByRole('button', { name: compass.findYours }).click();
-  await expect(page).toHaveURL(/\/questions$/);
-  await expect(page.getByText(first.text)).toBeVisible();
-});
-
-test('Questionnaire: skipping goes to Compass', async ({ page }) => {
+test('Questionnaire: skipping goes to the map', async ({ page }) => {
   await page.goto('/questions');
   await page.getByRole('button', { name: /skip/i }).click();
-  await expect(page).toHaveURL(/\/compass$/);
+  await expect(page).toHaveURL(/\/map$/);
 });
 
-test('Questionnaire: someone who already has a coordinate is sent on to Compass', async ({ page }) => {
-  await page.goto('/compass');
+test('Questionnaire: someone who already has a coordinate is sent on to the map', async ({ page }) => {
+  await page.goto('/map');
   await page.evaluate(
     (p) => localStorage.setItem('user_profile', JSON.stringify(p)),
     { x: 4, y: -2, vibeTags: {}, dislikesSmoke: false, dislikesBitter: false, dislikesAnise: false }
   );
   await page.goto('/questions');
-  await expect(page).toHaveURL(/\/compass$/);
+  await expect(page).toHaveURL(/\/map$/);
 });
 
 test('Questionnaire: answering options advances questions and supports undo', async ({ page }) => {
@@ -91,16 +71,16 @@ test('Questionnaire: finishing the questions reveals a region before the menu', 
   const names = quadrants.map((q) => q.name.replace(/^The /, '')).join('|');
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(new RegExp(`^The (${names})\\.$`));
   await page.getByRole('button', { name: revealCopy.continue }).click();
-  await expect(page).toHaveURL(/\/compass$/);
+  await expect(page).toHaveURL(/\/map$/);
 
-  // After the reveal, Compass: the chart, your menu, and a search over drinks and bars.
-  await expect(page.getByRole('region', { name: chart.label })).toBeVisible();
+  // After the reveal, the map: your terrain, your menu, and a search over drinks and bars in the header.
+  await expect(page.locator(`svg[aria-label="${explore.mapLabel}"]`)).toBeVisible();
   await expect(page.getByRole('heading', { name: compass.menuTitle })).toBeVisible();
   await expect(page.getByRole('searchbox', { name: compass.searchLabel })).toBeVisible();
 });
 
 test('Menu: one ranked list, with no occasion switch', async ({ page }) => {
-  await page.goto('/compass');
+  await page.goto('/map');
   await page.evaluate(
     (p) => localStorage.setItem('user_profile', JSON.stringify(p)),
     { x: 4, y: -2, vibeTags: {}, dislikesSmoke: false, dislikesBitter: false, dislikesAnise: false }
@@ -119,42 +99,7 @@ test('Menu: one ranked list, with no occasion switch', async ({ page }) => {
   expect(await page.getByText(chart.reason([]), { exact: true }).count()).toBeGreaterThan(1);
   await expect(page.getByLabel(/ away$/)).toHaveCount(0);
 
-  // Compass opens on the chart.
-  await expect(page.getByRole('region', { name: chart.label })).toBeVisible();
+  // The map is drawn behind the card.
+  await expect(page.locator(`svg[aria-label="${explore.mapLabel}"]`)).toBeVisible();
 });
 
-test('Compass: a typed bar the log has never seen is offered, and opens its menu', async ({ page }) => {
-  await page.goto('/compass');
-  await page.getByRole('button', { name: compass.lookUp }).click();
-  await page.getByRole('searchbox', { name: compass.searchLabel }).fill('Bar Goto');
-  await expect(page.getByRole('button', { name: new RegExp(compass.pickAt('Bar Goto')) })).toBeVisible();
-});
-
-test('Compass: search a drink, tap it, then "Rate this" opens the rating sheet on that drink', async ({ page }) => {
-  await page.goto('/compass');
-  await page.getByRole('button', { name: compass.lookUp }).click();
-
-  // A drink is found by what is in it, not only by its name.
-  await page.getByRole('searchbox', { name: compass.searchLabel }).fill('mezcal');
-  const first = page.locator('ol > li').first();
-  await expect(first).toBeVisible();
-  const drink = (await first.locator('.font-serif').textContent())!.trim();
-
-  // What is in a drink is not offered as a bar.
-  await expect(page.getByRole('button', { name: new RegExp(compass.pickAt('mezcal')) })).toHaveCount(0);
-
-  await first.getByRole('button').click();
-  await expect(page.getByText(chart.howFar, { exact: true })).toBeVisible();
-
-  await page.getByRole('button', { name: 'Rate this' }).click();
-  // A sheet over Compass, not a page: the address does not change.
-  await expect(page).toHaveURL(/\/compass$/);
-  const sheet = page.getByRole('dialog', { name: ratePage.title });
-  // A guest with no coordinate starts from the cold state; the drink waits.
-  const asGuest = sheet.getByRole('button', { name: coldState.guestCta });
-  const form = sheet.getByRole('heading', { name: ratePage.heading });
-  await expect(asGuest.or(form)).toBeVisible();
-  if (await asGuest.isVisible()) await asGuest.click();
-  await expect(form).toBeVisible();
-  await expect(page.getByLabel('What you’re drinking')).toHaveValue(new RegExp(drink.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').slice(0, 6)));
-});

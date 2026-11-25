@@ -150,27 +150,29 @@ test('Sign in: surfaces sign-in errors', async ({ page }) => {
   await expect(page.getByRole('alert')).toContainText(AUTH_ERROR_MESSAGES.callback_failed);
 });
 
-test('Navigation: unified header navigation renders on landing, drinks and compass', async ({ page }) => {
+test('Navigation: unified header navigation renders on landing, drinks and the map', async ({ page }) => {
   const landing = await (await page.request.get('/')).text();
   expect(landing).toContain('aria-label="Main navigation"');
-  expect(landing).toContain('href="/compass"');
+  expect(landing).toContain('href="/map"');
   expect(landing).toContain('href="/sign-in"');
 
   const register = await (await page.request.get('/drinks')).text();
   expect(register).toContain('aria-label="Main navigation"');
-  expect(register).toContain('href="/compass"');
+  expect(register).toContain('href="/map"');
 
-  const compass = await (await page.request.get('/compass')).text();
-  expect(compass).toContain('aria-label="Main navigation"');
-  expect(compass).toContain('href="/compass"');
+  const map = await (await page.request.get('/map')).text();
+  expect(map).toContain('aria-label="Main navigation"');
+  expect(map).toContain('href="/map"');
 
   // Drinks is a reading page: on a wide screen the footer carries it, not the header
-  // (a phone's Menu lists it, since a phone's app pages have no footer).
+  // (a phone's Menu lists it). The map has no footer, so its header carries it there.
   await page.setViewportSize({ width: 1280, height: 900 });
-  for (const path of ['/', '/drinks', '/compass']) {
+  for (const path of ['/', '/drinks']) {
     await page.goto(path);
     await expect(page.locator('header a[href="/drinks"]'), path).toBeHidden();
   }
+  await page.goto('/map');
+  await expect(page.locator('header a[href="/drinks"]')).toBeVisible();
 });
 
 

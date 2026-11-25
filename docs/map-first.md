@@ -1,10 +1,12 @@
 # Map first: the app as one chart
 
-A proposal, not yet built. The decisions under Decided were made with the
-owner; the rest is open. Today the signed-in app is two tabs, each a page
-with a framed chart near the top and lists under it: Compass (the drinks,
-measured from you) and Your map (you). This proposal makes the chart the
-app: everything between the header and the footer is the palate plane, edge
+Built: `/map` is the app's one screen (`Explore.tsx`), as described here,
+with the menu ranked on the terrain. The decisions under Decided were made
+with the owner; Still to decide and the later build steps are open.
+
+Before, the signed-in app was two tabs, each a page with a framed chart near
+the top and lists under it: Compass (the drinks, measured from you) and Your
+map (you). This makes the chart the app: everything between the header and the footer is the palate plane, edge
 to edge, and every other thing is drawn on it or in a sheet over it, the way
 a maps app works. A clickable prototype with the real drink coordinates and
 sample bars and pours: https://claude.ai/artifact/HJNpUB2kta14LW3aCZkLj1
@@ -297,11 +299,11 @@ New:
 
 ## Build order
 
-1. **One screen at `/map`.** The fixed map; the card with its four
-   contents and rating in the drink; search over drinks and bars, a bar as
-   a filter with its menu's pins and a typed menu where there is none.
-   `/compass`, `NearMap`, `RateSheet` and the app bar removed; docs and
-   tests updated. This is enough to test the idea.
+1. **One screen at `/map`.** *Built.* The fixed map with your terrain; the
+   card with its four contents and rating in it; the search in the header
+   over drinks and bars, a bar as a filter with its menu's pins and a typed
+   menu where there is none. `/compass`, the street map, the rating dialog
+   and the app bar are gone.
 2. **Menu capture**: photograph, read, check the lines, save as a sighting;
    the index by bar, so other people see it.
 3. **Confirmation**: the bar proves its address, reviews the photos and

@@ -11,7 +11,7 @@ is about the code.
 follow: a server-read follows list and a plain GET form). `/sign-in` renders a plain form post that works
 with JavaScript off and progressively enhances it via `<bsky-sign-in>` (zero
 React). `/` asks one thing — find your coordinate — and keeps nothing else:
-sign-in is its own page. The app pages (`/compass`, `/map`, `/questions`)
+sign-in is its own page. The app is one screen, `/map`; it and `/questions`
 mount React islands.
 
 The whole app was previously one `client:only` island, so nothing painted
@@ -21,29 +21,33 @@ landing page included. Astro was being used as a slower Next.js.
 - Prefer `.astro` for anything without state. Reach for an island only when
   something genuinely needs to be interactive, and scope it tightly.
 - Prefer `client:load` over `client:only` so the shell server-renders.
-- The header is the same on every page: wordmark · Menu on a phone (Compass,
-  Your map, the reading pages, then the account), the tabs and the account control
-  from `lg`. The account control is server truth: `@handle` (opening
-  `/settings`) for a member, Sign in for a guest, a neutral Account on a
-  prerendered page that cannot know. Signing out is on `/settings` alone,
-  never in the header; `/map` carries no account strip (a guest's Start over
-  sits at its foot, since a guest has no Settings).
-  Signing out lands on `/compass?signed_out=1`,
+- The header is the same on every page: wordmark · Menu on a phone (the map,
+  the reading pages, then the account), the nav and the account control from
+  `lg`. On the map alone it also holds the search (`SiteHeader`'s `search`: a
+  plain GET form to `/map?q=` that `SearchBox.tsx` takes over once the island
+  is up), the wordmark is the mark alone on a phone, and from `lg` it lists
+  the reading pages, since the map has no footer. The account control is
+  server truth: `@handle` (opening `/settings`) for a member, Sign in for a
+  guest, a neutral Account on a prerendered page that cannot know. Signing
+  out is on `/settings` alone, never in the header; `/map` carries no account
+  strip (a guest's Start over sits at the foot of its card, since a guest has
+  no Settings).
+  Signing out lands on `/map?signed_out=1`,
   where `AtprotoProvider` — every island mounts it — clears the device's
   copy of the palate while leaving remembered account cards for one-tap return.
-- Rating a pour is a sheet over Compass or Your map, never a page (`RateSheet.tsx`,
-  `useRateSheet`; the contract is `docs/design-system.md` § Rating a pour):
-  `?rate=<drink>` or `?draft=1&…` opens it on either, handled once, and a
-  screen that can rate gives the sheet its own coordinate and pours so it is
-  current the moment the sheet closes. A new trigger calls `open()`; it does
-  not navigate.
-- **An app screen is a hook and a drawing.** `useCompass`, `useMap`,
-  `useRatePour`, `usePourForm` and `useSignIn` (`src/hooks/`) hold a screen's state and
-  what a tap does; `Compass.tsx`, `MapScreen.tsx`, `RateSheet.tsx`,
-  `PourForm.tsx` and `SignInSheet.tsx` only draw it, so a redesign changes the component and
-  leaves the hook alone. The rules a screen applies are plain functions in
-  `src/lib/` — `drink-search.ts`, `pour-entry.ts`, `pour-history.ts`,
-  `scoreDrinks` in `menu-rank.ts` — tested in `tests/unit/`. Nothing in
+- Rating a pour happens in the map's card, never a page or a dialog
+  (`RatePanel.tsx`, `useRateSheet`; the contract is `docs/design-system.md`
+  § Rating a pour): `?rate=<drink>` or `?draft=1&…` opens it, handled once,
+  and the screen gives it its own coordinate and pours so it is current the
+  moment it closes. A new trigger calls `open()`; it does not navigate.
+- **An app screen is a hook and a drawing.** `useExplore`, `useRatePour`,
+  `usePourForm` and `useSignIn` (`src/hooks/`) hold a screen's state and
+  what a tap does; `Explore.tsx` (with `PalateMap.tsx`, `SearchBox.tsx`,
+  `MenuView.tsx`), `RatePanel.tsx`, `PourForm.tsx` and `SignInSheet.tsx`
+  only draw it, so a redesign changes the component and leaves the hook
+  alone. The rules a screen applies are plain functions in `src/lib/` —
+  `drink-search.ts`, `pour-entry.ts`, `pour-history.ts`, `scoreDrinks` in
+  `menu-rank.ts`, `map-draw.ts` — tested in `tests/unit/`. Nothing in
   `src/lib/` or `src/hooks/` imports from `src/components/`.
 - There is no separate API layer for the screens, on purpose: a guest's
   palate and the quiz run on the device, so the rules run in the browser,
@@ -90,7 +94,7 @@ a string to `copy.ts` before rendering it.
 
 ## Key modules
 
-### Palate map — `src/lib/data.ts`, `Compass.tsx`, `MapScreen.tsx`
+### Palate map — `src/lib/data.ts`, `Explore.tsx`, `PalateMap.tsx`
 2D plane. Users and drinks both carry `x` (Rich −10 → Crisp +10) and `y`
 (Savory −10 → Sweet +10). A drink's place on your menu is its height on your
 terrain (Terrain, below); `VibeTag`s sort within it — only among drinks in the
@@ -118,26 +122,40 @@ entry is zero and so is its gain. Every drink-side input to that function is
 derived from `Drink` (see `complexityDemand`), never stored alongside it.
 
 A name becomes a drink through `matchDrink` (`src/lib/drink-match.ts`) and
-nothing else — a pour, the form, a menu on Compass, Compass search and the chat
+nothing else — a pour, the form, a bar's menu, the map's search and the chat
 tools: folded case and accents, the name without its parenthetical
 ("margarita" is the Tommy's), or one of the drink's `aliases`. No name, bare
 name or alias may mean two drinks (`tests/unit/drink-match.test.ts`). A pour
 of a drink with no match is kept, and moves nothing but its deviations.
 
-Choosing what to have is one screen, Compass. A bar (from search, the map or
-your past bars) or "Have a menu?" opens `MenuView` in place of the list: type
-what they pour, `addMenuLine` matches each line through `matchDrink`,
-`rankMenu` (`src/lib/menu-rank.ts`) orders the placed ones, and "Pick this"
-saves a `DrinkPick` on the device, the waiting pick that `WaitingPick`
-shows and the rating sheet clears. There is no separate harbour page.
+**The app is one screen, the map** (`/map`, `Explore.tsx`,
+`docs/map-first.md`): the map fixed in place as the background
+(`PalateMap.tsx` — the plane, your terrain as shading and contour lines,
+every drink, your pours with your rating), the search in the header, and one
+card for everything else. The map never pans, zooms or moves when something
+opens: what changes is what is drawn on it. Where it sits, its contours and
+which drinks get a label are plain functions (`map-draw.ts`). The card holds
+where to next (your menu, your bars, bars near you, your pours, your track),
+a drink, a bar's menu, or rating a pour; on a phone it rests under the map
+and is pulled up over it by its head, and from `lg` it is a panel down the
+left. A drink is reached by tapping it on the map (the nearest mark within
+reach) or from the card's lists and the search, which is how a keyboard
+reaches every one.
 
-Two screens draw the map, split on purpose: Compass's chart (`Chart.tsx`) is
-the drinks, with your dot only as the point they are measured from; Your map
-(`/map`, `YourChart.tsx`) is you — the dot, the shoal, your track and the
-drinks you have poured. Draw your state on Your map, not on Compass.
+A bar is a filter on the map, not a place on a street map: from the search,
+your bars, bars near you (a list from OpenStreetMap, `useNearby`), or any
+name typed. It opens `MenuView` in the card: type what they pour,
+`addMenuLine` matches each line through `matchDrink`, `rankMenu`
+(`src/lib/menu-rank.ts`) orders the placed ones, and each becomes a numbered
+pin on the map while every other drink fades to a speck. "Pick this" saves a
+`DrinkPick` on the device, the waiting pick that `WaitingPick` shows and
+rating clears. There is no separate harbour page.
 
-The dot on the map is not the filter's estimate: `applyPour` moves crisp/sweet
-by a capped, simpler rule and leaves the other three axes to the EKF.
+Your point is no longer drawn on the map, which draws your terrain; it is
+what the reveal after a pour shows moving (`Moved.tsx`) and what your track
+replays (the card's Your pours). It is not the filter's estimate: `applyPour`
+moves crisp/sweet by a capped, simpler rule and leaves the other three axes
+to the EKF.
 
 **Your track is replayed, never stored** (`src/lib/track.ts`): from the latest
 quiz's answers (`quizStart`, refitted by `axesFromResponses`) through every
@@ -163,9 +181,10 @@ stored; pour order does not matter. Every height carries an `sd`, and
 `evidenceAt` names the pours behind it. The constants are uncalibrated, and
 `LENGTH` stays above placement's 2.9-point error.
 
-It ranks Compass's menu and a bar's (`scoreDrinks`, `rankMenu`), and
-`leanings` says your taste in the axes' words on Your map ("crisp and sweet ·
-rich and savory", `taste` in `copy.ts`) — never one region's name. Not yet on
+It ranks your menu and a bar's (`scoreDrinks`, `rankMenu`), the map draws
+it, and `leanings` says your taste in the axes' words in the card's head
+("crisp and sweet · rich and savory", `taste` in `copy.ts`) — never one
+region's name. Not yet on
 it: the chat tools (`src/lib/mcp/`), `/p/<handle>`, the reveal, share cards
 and coasters, which still read the point and its region
 (`docs/map-first.md`). The dot, the track and `applyPour` are unchanged.
@@ -342,12 +361,10 @@ search drinks. Stateless and read-only; the tools are plain functions over
 `readPublicPalate` and `overlap.ts`, so they give the answers `/p/<handle>`
 gives. Their descriptions are interface copy and live in `copy.ts`.
 A pour is logged from a chat by drafting, not writing: `draft_pour` returns a
-`/map?draft=1` link (`src/lib/pour-draft.ts`) that opens the rating sheet
-filled in, with no rating, and the member taps one and logs it (`docs/mcp.md`).
+`/map?draft=1` link (`src/lib/pour-draft.ts`) that opens rating in the map's
+card filled in, with no rating, and the member taps one and logs it (`docs/mcp.md`).
 How to connect an assistant is one component, `AssistantSteps` (React,
-server-rendered with no script at `/mcp`): under your account at the foot of
-`/map` (`#assistant`), with your handle in the example, and at
-`/mcp` for a browser (the same page answers an MCP client with the tools).
+server-rendered with no script at `/mcp`): at `/mcp` for a browser (the same page answers an MCP client with the tools).
 
 **No floats in records.** The AT Protocol data model has none, and
 `@atproto/lex-data` treats one as an invalid value. Fractional quantities are
@@ -360,7 +377,7 @@ numbers) and converted only at the edge: `encodePalate` on every write,
 **Places are `community.lexicon.location.*`, never our own.** A pour's
 `venue.address` and a venue's `location` are unions of the Lexicon Community's
 types. Cotidal writes `community.lexicon.location.geo` (`location.ts`) for a
-bar picked from Compass's map — whose bars come from OpenStreetMap
+bar picked from the bars near you — which come from OpenStreetMap
 (`src/lib/osm.ts`), which has no type of its own there. Its shape is checked
 against the community's published file, vendored in
 `tests/fixtures/community-lexicon/` for the reference validator; copy it
@@ -470,7 +487,7 @@ Open work only; what is built is described above.
 
 1. **Namespace.** `app.cotidal.*`. NSID authority comes from the reversed
    domain, so it holds once `cotidal.app` is registered.
-2. **Menu capture.** A bar's menu on Compass (`MenuView`) takes a typed menu. Next:
+2. **Menu capture.** A bar's menu on the map (`MenuView`) takes a typed menu. Next:
    photograph the menu instead. Photograph a menu, get a recommendation, no
    account required — value before signup, and it builds the venue/menu
    corpus as a byproduct.

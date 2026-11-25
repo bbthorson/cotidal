@@ -1,18 +1,18 @@
 import { test, expect } from '@playwright/test';
 import { draftPath } from '../src/lib/pour-draft';
-import { coldState, mapPage, moved, pour, ratePage } from '../src/lib/copy';
+import { coldState, compass, explore, moved, pour, ratePage } from '../src/lib/copy';
 
 /**
  * A pour drafted in a chat (`draft_pour` on /mcp) and confirmed in the form at
- * the rating sheet that opens over /map. The draft is a link and nothing else: these tests hold what it may
+ * the map's card, which opens on it at /map. The draft is a link and nothing else: these tests hold what it may
  * carry, and that the form will not log it until the rating is tapped.
  */
 
-test('Draft link: the sheet opens on it, will not log without a rating, and logs once', async ({ page }) => {
+test('Draft link: the card opens on it, will not log without a rating, and logs once', async ({ page }) => {
   const path = draftPath({ drink: 'Negroni', bar: 'Dante', deviations: ['too-bitter'], note: 'Big orange peel' });
   expect(new URL(path, 'http://x').pathname).toBe('/map');
   await page.goto(path);
-  const sheet = page.getByRole('dialog', { name: ratePage.title });
+  const sheet = page.getByRole('region', { name: ratePage.title });
   await sheet.getByRole('button', { name: coldState.guestCta }).click();
 
   await expect(page.getByTestId('pour-draft-note')).toHaveText(pour.draftNote);
@@ -44,10 +44,12 @@ test('Draft link: the sheet opens on it, will not log without a rating, and logs
   await expect(page).toHaveURL(/\/map$/);
   await expect(page.getByTestId('pour-draft-note')).toHaveCount(0);
   await expect(page.getByLabel(pour.noteLabel)).toHaveCount(0);
-  await expect(page.locator('ol').filter({ hasText: 'Dante' })).toHaveCount(1);
+  // In the ledger, once; the bar is also among your bars now.
+  await expect(page.locator('ol').filter({ hasText: '6 of 9' }).filter({ hasText: 'Dante' })).toHaveCount(1);
+  await expect(page.getByRole('heading', { name: compass.yourBars })).toBeVisible();
 });
 
-test('Draft link: closing the sheet logs nothing and clears the address, other queries stay', async ({ page }) => {
+test('Draft link: closing it logs nothing and clears the address, other queries stay', async ({ page }) => {
   await page.addInitScript(() => {
     localStorage.setItem(
       'user_profile',
@@ -55,10 +57,10 @@ test('Draft link: closing the sheet logs nothing and clears the address, other q
     );
   });
   await page.goto(`${draftPath({ drink: 'Negroni', bar: 'Dante' })}&utm=chat`);
-  const sheet = page.getByRole('dialog', { name: ratePage.title });
+  const sheet = page.getByRole('region', { name: ratePage.title });
   await expect(sheet.getByLabel(pour.drinkLabel)).toHaveValue('Negroni');
-  // A tap on the scrim does not throw away what was typed; Escape and Close do close it.
-  await page.mouse.click(2, 2);
+  // A tap on the map does not throw away what was typed; Close does take it away.
+  await page.locator(`svg[aria-label="${explore.mapLabel}"]`).click({ position: { x: 5, y: 5 } });
   await expect(sheet).toBeVisible();
   await sheet.getByRole('button', { name: ratePage.close }).click();
   await expect(sheet).toHaveCount(0);
@@ -67,6 +69,6 @@ test('Draft link: closing the sheet logs nothing and clears the address, other q
 
   // A reload does not offer it again.
   await page.reload();
-  await expect(page.getByRole('heading', { name: mapPage.heading })).toBeVisible();
-  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await expect(page.getByRole('heading', { name: explore.heading })).toBeVisible();
+  await expect(sheet).toHaveCount(0);
 });

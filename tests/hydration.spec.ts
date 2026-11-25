@@ -4,7 +4,7 @@ import { test, expect } from '@playwright/test';
 // it: a palate on the device used to make the browser draw a different page
 // from the server's, and React discarded the server's (error #418).
 const profile = { x: 4, y: -2, dislikesSmoke: false, dislikesBitter: false, dislikesAnise: false, vibeTags: {} };
-const pages = ['/compass', '/compass?menu=1', '/map', '/map?rate=Lambrusco', '/compass?rate=Lambrusco'];
+const pages = ['/map', '/map?menu=1', '/map?rate=Lambrusco', '/map?q=negroni'];
 
 for (const path of pages) {
   test(`Hydration: ${path} with a palate on the device draws what the server drew`, async ({ page }) => {

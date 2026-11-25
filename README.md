@@ -47,15 +47,14 @@ releases the Worker on push. There is deliberately no deploy workflow in
 
 - **`/`** — the landing page. Pure Astro, **zero client JavaScript**; sign-in
   is a plain form post that works without it.
-- **`/compass`**, **`/log`** — the two tabs of the app, each a
-  React island. Compass is finding a
-  drink or a bar (a street map of bars near you, search, your menu) and
-  choosing what to have: open a bar, or "Have a menu?", type what they pour,
-  get it ranked, pick one. Log is you (your map, your ledger, the account).
+- **`/map`** — the app, on one screen and one React island: your map fixed in
+  place (your terrain, every drink, your pours), the search in the header
+  (drinks and bars), and one card — your menu, a bar's menu pinned on the map
+  (type what they pour, get it ranked, pick one), a drink, and your pours.
 - **`/questions`** — the questions that place a coordinate, then the reveal.
   An island.
-- **Rating** is a sheet over Compass or Log, not a page: rate one pour and
-  watch the coordinate move. `?rate=<drink>` or `?draft=1&…` opens it.
+- **Rating** happens in the map's card, not a page: rate one pour and see
+  what it moved. `?rate=<drink>` or `?draft=1&…` opens it.
 - **`/drinks`** — the register: what is actually known about a drink, separated
   from what is only repeated about it. **`/drinks/regions/<id>`** is the same
   list filtered to one region, with the region's prose. Static, zero client
