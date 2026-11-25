@@ -30,10 +30,10 @@ test('Map: one screen, the search in the header, and one action of its own', asy
   await expect(theMap(page)).toBeVisible();
   // The card's one action is rating; choosing a drink is the map's, the search's and the card's lists.
   await expect(card(page).getByRole('button', { name: mapPage.rateDrink })).toHaveCount(1);
-  // On a phone the reading pages are in Menu.
+  // On a phone the visible reading pages are in Menu.
   await header.locator('summary').click();
   const menuNav = page.getByRole('navigation', { name: a11y.mainNav });
-  await expect(menuNav.getByRole('link', { name: nav.register })).toHaveAttribute('href', '/drinks');
+  await expect(menuNav.getByRole('link', { name: nav.howItWorks })).toHaveAttribute('href', '/how-it-works');
 });
 
 test('Map: the header search works before the map does, as a plain form', async ({ request }) => {
@@ -141,8 +141,8 @@ test('Map: the card sits beside the map on a wide screen, under it on a phone', 
   await expect(card(page).getByRole('heading', { name: compass.menuTitle })).toBeVisible();
   const [c, m] = [(await card(page).boundingBox())!, (await page.locator('svg rect.fill-card').first().boundingBox())!];
   expect(c.x + c.width).toBeLessThan(m.x);
-  // The reading pages are in the header beside the search, since the map has no footer.
-  await expect(page.locator('header a[href="/drinks"]')).toBeVisible();
+  // The visible reading pages are in the header beside the search, since the map has no footer.
+  await expect(page.locator('header a[href="/how-it-works"]')).toBeVisible();
 
   await page.setViewportSize({ width: 390, height: 844 });
   await expect.poll(async () => {

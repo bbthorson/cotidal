@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { MENU_COLLECTION, VENUE_COLLECTION } from './records';
 import { resolvePublicRepo, type PublicActor, type ReadOptions } from './public-read';
+import { domainMatchesHandle } from './venue-verify';
 import { drinkOf } from '../drink-match';
 import type { Drink } from '../data';
 
@@ -68,6 +69,8 @@ export interface PublicVenue {
   name: string;
   description: string | null;
   website: string | null;
+  /** True when the venue's website domain matches its bidirectionally verified AT Protocol handle. */
+  domainVerified: boolean;
   menu: PublicMenu | null;
 }
 
@@ -137,13 +140,15 @@ export async function readPublicVenue(
       }
     }
 
+    const website = safeWebsite(parsedVenue.data.website);
     return {
       status: 'ok',
       actor: repo.actor,
       venue: {
         name: parsedVenue.data.name,
         description: parsedVenue.data.description ?? null,
-        website: safeWebsite(parsedVenue.data.website),
+        website,
+        domainVerified: domainMatchesHandle(website, repo.actor.handle),
         menu,
       },
     };

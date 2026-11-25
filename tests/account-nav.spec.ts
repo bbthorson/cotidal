@@ -27,10 +27,10 @@ test('Header: a phone gets wordmark · Menu on every page, app or reading', asyn
     await expect(page.locator('header summary'), path).toHaveText(nav.menu);
     await expect(page.locator('header summary'), path).toBeVisible();
   }
-  // Menu holds the app (the map), the reading pages a drinker reads, and the account last.
+  // Menu holds the app (the map), the public reading pages, and the account last.
   await page.locator('header summary').click();
   const menuNav = page.getByRole('navigation', { name: a11y.mainNav });
-  await expect(menuNav.getByRole('link')).toHaveText([nav.map, nav.register, nav.howItWorks, account.neutral]);
+  await expect(menuNav.getByRole('link')).toHaveText([nav.map, nav.howItWorks, account.neutral]);
 });
 
 test('Header: on an app page, Sign in opens the sheet there instead of leaving', async ({ request }) => {
@@ -106,11 +106,11 @@ test('Navigation: the header is the drinker\'s app; For Bars is read from the fo
   expect(footer).toContain('href="/bars"');
 });
 
-test('Navigation: the footer lists the reading pages; the app and the account are in the header', async ({ request }) => {
+test('Navigation: the footer lists the public reading pages; the app and the account are in the header', async ({ request }) => {
   const html = await (await request.get('/')).text();
   const footer = html.slice(html.lastIndexOf('<footer'), html.lastIndexOf('</footer>'));
   for (const d of destinations) {
-    expect(footer.includes(`href="${d.href}"`), d.href).toBe(d.footer);
+    expect(footer.includes(`href="${d.href}"`), d.href).toBe(d.footer && !d.memberOnly);
     // Everything in the footer is a reading page.
     if (d.footer) expect(d.app, d.href).toBe(false);
   }

@@ -3,11 +3,10 @@ import { drinkDatabase, type Drink } from '@/lib/data';
 import type { PourRecord } from '@/lib/atproto/records';
 import { axes, explore, quadrants } from '@/lib/copy';
 import { contour, PLANE_EDGE, placeLabels, toScreen, type LabelWant, type PlaneFit } from '@/lib/map-draw';
+import { LIKED_AT } from '@/lib/scoring';
 import type { Height } from '@/lib/terrain';
 import { cn } from '@/lib/utils';
 
-/** A rating at or above this is drawn filled: the same 7 that counts as liked everywhere else. */
-const LIKED = 7;
 /** The contour lines drawn, in rating points: high ground, and the hollow where you rated low. */
 const HIGH = [6.5, 7.5, 8.5] as const;
 const HOLLOW = 4;
@@ -230,7 +229,7 @@ export function PalateMap({
                   r={m.hedonic !== undefined ? 4.6 : 3.2}
                   strokeWidth={m.hedonic !== undefined ? 1.6 : 1}
                   className={cn(
-                    m.hedonic === undefined ? 'fill-card stroke-foreground' : m.hedonic >= LIKED ? 'fill-primary stroke-primary' : 'fill-card stroke-primary'
+                    m.hedonic === undefined ? 'fill-card stroke-foreground' : m.hedonic >= LIKED_AT ? 'fill-primary stroke-primary' : 'fill-card stroke-primary'
                   )}
                 />
               )}

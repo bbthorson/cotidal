@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { drinkDatabase, type Drink } from '@/lib/data';
+import { drinkOf } from '@/lib/drink-match';
 import { savePick } from '@/lib/device-store';
-import { chart, mapPage } from '@/lib/copy';
+import { chart, compass, mapPage } from '@/lib/copy';
 import { titleOf, type Register } from '@/lib/register';
 import { userFromProfile } from '@/lib/profile';
 import { barsFromPours, foldName, lastPourByDrink, logTotals } from '@/lib/pour-history';
@@ -35,9 +36,9 @@ export interface Venue {
  * state and wires them up.
  *
  * The address carries what was asked for on arrival: `?q=` (the header's
- * search, which works without script), `?menu=1` (a menu in hand),
- * `?venue=<handle>` (a bar's published menu), and `?rate=` / `?draft=1`
- * (`useRateSheet`).
+ * search, which works without script), `?drink=<slug>` (from a drink entry),
+ * `?menu=1` (a menu in hand), `?venue=<handle>` (a bar's published menu), and
+ * `?rate=` / `?draft=1` (`useRateSheet`).
  */
 export function useExplore(
   register: Register,
@@ -103,7 +104,7 @@ export function useExplore(
 
   const barName = venue ? (venue.name ?? typedBar).trim() || null : null;
   const ranked = useMemo(
-    () => (venue && profile ? rankMenu(items, profile, history, barName ?? 'Home Pour', terrainStart ?? undefined) : []),
+    () => (venue && profile ? rankMenu(items, profile, history, barName ?? compass.atMenu.homeTitle, terrainStart ?? undefined) : []),
     [venue, profile, items, history, barName, terrainStart]
   );
 
@@ -129,9 +130,17 @@ export function useExplore(
     setUp(false);
   };
 
-  // Arrivals: ?menu=1, ?venue=<handle>.
+  // Arrivals: ?drink=<slug> (not on ?draft= or ?rate= links), ?menu=1, ?venue=<handle>.
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
+    const drinkParam = !params.has('draft') && !params.has('rate') ? params.get('drink')?.trim() : undefined;
+    if (drinkParam) {
+      const matched = drinkOf({ slug: drinkParam, name: drinkParam });
+      if (matched) {
+        setSelected(matched.name);
+        return;
+      }
+    }
     if (params.get('menu') === '1') {
       openBar({ name: null });
       return;

@@ -21,12 +21,22 @@ import { QUESTIONS_PATH } from './atproto/paths';
  * There is no Regions item: a region is a filter on the drinks
  * (`/drinks/regions/<id>`), so Drinks is current there too.
  */
+export const mapHref = '/map';
+export const drinksHref = '/drinks';
+export const barsHref = '/bars';
+export const drinkMapHref = (slug: string) => `${mapHref}?drink=${encodeURIComponent(slug)}`;
+
 export const destinations = [
-  { href: '/map', label: nav.map, match: '/map', app: true, header: true, menu: false, footer: false },
-  { href: '/drinks', label: nav.register, match: '/drinks', app: false, header: false, menu: true, footer: true },
-  { href: '/how-it-works', label: nav.howItWorks, match: '/how-it-works', app: false, header: false, menu: true, footer: true },
-  { href: '/bars', label: nav.bars, match: '/bars', app: false, header: false, menu: false, footer: true },
+  { href: mapHref, label: nav.map, match: mapHref, app: true, header: true, menu: false, footer: false, memberOnly: false },
+  { href: drinksHref, label: nav.register, match: drinksHref, app: false, header: false, menu: true, footer: true, memberOnly: true },
+  { href: '/how-it-works', label: nav.howItWorks, match: '/how-it-works', app: false, header: false, menu: true, footer: true, memberOnly: false },
+  { href: barsHref, label: nav.bars, match: barsHref, app: false, header: false, menu: false, footer: true, memberOnly: false },
 ] as const;
+
+export const isVisibleDestination = (
+  destination: (typeof destinations)[number],
+  accountKind: 'member' | 'guest' | 'unknown'
+) => !destination.memberOnly || accountKind === 'member';
 
 export const signIn = { href: '/sign-in', label: nav.signIn } as const;
 
@@ -36,7 +46,7 @@ export const signIn = { href: '/sign-in', label: nav.signIn } as const;
  * back to the landing page's form; the island reads `?signin=1`. Everywhere
  * else the static form is the target, so it keeps working without JavaScript.
  */
-const sheetPaths = ['/map', QUESTIONS_PATH];
+const sheetPaths = [mapHref, QUESTIONS_PATH];
 
 export const signInHref = (currentPath: string) =>
   sheetPaths.some((p) => currentPath.startsWith(p)) ? `${currentPath}?signin=1` : signIn.href;

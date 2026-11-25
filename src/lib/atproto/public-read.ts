@@ -204,6 +204,26 @@ async function resolveHandle(
   return isValidHandle(did) && did.startsWith('did:') ? did : null;
 }
 
+/**
+ * Resolve a domain/handle to its AT Protocol DID using the same safe HTTPS
+ * resolver as `resolvePublicRepo`. Returns `{ status: 'ok', did }` (null if
+ * unresolved) or `{ status: 'unavailable' }` on network/resolver failure.
+ */
+export async function resolveHandleToDid(
+  handle: string,
+  options: ReadOptions = {}
+): Promise<{ status: 'ok'; did: string | null } | { status: 'unavailable' }> {
+  const fetchImpl = options.fetch ?? fetch;
+  const resolver =
+    options.handleResolver ?? process.env.ATPROTO_HANDLE_RESOLVER ?? DEFAULT_HANDLE_RESOLVER;
+  try {
+    const did = await resolveHandle(handle, fetchImpl, resolver);
+    return { status: 'ok', did };
+  } catch {
+    return { status: 'unavailable' };
+  }
+}
+
 function toPalate(value: unknown): PublicPalate | null {
   const point = decodeCoordinates(value);
   const parsed = PublicPalateSchema.safeParse(value);

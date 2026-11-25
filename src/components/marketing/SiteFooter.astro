@@ -1,19 +1,21 @@
 ---
 import { nav, footer } from '../../lib/copy';
-import { destinations, isCurrent } from '../../lib/site-nav';
+import { destinations, isCurrent, isVisibleDestination } from '../../lib/site-nav';
+import type { Account } from '../../lib/atproto/session';
 
 interface Props {
   currentPath?: string;
   compact?: boolean;
+  account?: Account;
 }
 
-const { currentPath = '/', compact = false } = Astro.props;
+const { currentPath = '/', compact = false, account = { kind: 'unknown' } } = Astro.props;
 
 // The reading pages; the app and the account live in the header (site-nav.ts).
 const links = [
   { href: '/', label: nav.home, active: currentPath === '/' },
   ...destinations
-    .filter((d) => d.footer)
+    .filter((d) => d.footer && isVisibleDestination(d, account.kind))
     .map((d) => ({ href: d.href, label: d.label, active: isCurrent(currentPath, d.match) })),
 ];
 ---

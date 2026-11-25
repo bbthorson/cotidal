@@ -10,6 +10,7 @@ import { quadrantFor } from '../lib/quadrant';
 import { closestDrinks } from '../lib/drink-search';
 import { loadRegister } from '../lib/register.server';
 import { titleOf } from '../lib/register';
+import { accountHref, signIn } from '../lib/site-nav';
 
 /**
  * A member's account, as one app screen of rows: who they are signed in as
@@ -26,7 +27,7 @@ import { titleOf } from '../lib/register';
 export const prerender = false;
 
 const account = await accountFor(Astro.request, false);
-if (account.kind !== 'member') return Astro.redirect('/sign-in', 303);
+if (account.kind !== 'member') return Astro.redirect(signIn.href, 303);
 
 const context = await authorizeContext(Astro.url);
 
@@ -97,7 +98,7 @@ const rowBody = 'mt-0.5 text-meta text-muted-foreground';
 Astro.response.headers.set('Cache-Control', 'no-store');
 ---
 
-<AppShell title={`${site.name} — ${copy.title}`} currentPath="/settings" width="prose">
+<AppShell title={`${site.name} — ${copy.title}`} currentPath={accountHref} width="prose">
   <div class="space-y-10 pb-6 pt-6 lg:pt-10">
     <h1 class="font-serif text-title font-bold text-foreground">{copy.title}</h1>
 
@@ -133,7 +134,7 @@ Astro.response.headers.set('Cache-Control', 'no-store');
         </div>
         <a href={mapHref} class="btn btn-outline shrink-0 px-4">{copy.open}</a>
       </div>
-      <form method="POST" action="/settings" class={row}>
+      <form method="POST" action={accountHref} class={row}>
         <input type="hidden" name="intent" value="share" />
         <div class="min-w-0">
           <p class={rowTitle}>{copy.share}</p>
@@ -180,7 +181,7 @@ Astro.response.headers.set('Cache-Control', 'no-store');
                         {a.canLog ? copy.canLog : copy.canRead} · {copy.connectedOn(date(a.connectedAt))}
                       </p>
                     </div>
-                    <form method="POST" action="/settings" class="shrink-0">
+                    <form method="POST" action={accountHref} class="shrink-0">
                       <input type="hidden" name="intent" value="disconnect" />
                       <input type="hidden" name="grant" value={a.grantId} />
                       <button type="submit" class="btn btn-outline px-4">

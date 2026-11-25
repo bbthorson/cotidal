@@ -91,9 +91,14 @@ test('Drinks: a region filter lists only that region’s drinks, and is read as 
     const drink = drinkDatabase.find((d) => d.name === name)!;
     expect(quadrantIdFor(drink.x, drink.y), slug).toBe(first);
   }
+});
 
-  const current = page.locator('footer a[aria-current="page"]');
-  await expect(current).toHaveAttribute('href', '/drinks');
+test('Drinks: a drink entry has Recipe structured data and links to compare against your palate', async ({ page }) => {
+  const html = await (await page.request.get('/drinks/absinthe-drip')).text();
+  expect(html).toContain('"@type":"Recipe"');
+  expect(html).toContain('href="/map?drink=absinthe-drip"');
+  expect(html).toContain('href="/questions"');
+  expect(html).toContain(drinks.compareMapCta);
 });
 
 test('Sign in: works without JavaScript, from its own page', async ({ browser }) => {
@@ -155,6 +160,8 @@ test('Navigation: unified header navigation renders on landing, drinks and the m
   expect(landing).toContain('aria-label="Main navigation"');
   expect(landing).toContain('href="/map"');
   expect(landing).toContain('href="/sign-in"');
+  // Drinks pages are for SEO/AEO and members, not linked from the homepage for unauthenticated visitors.
+  expect(landing).not.toContain('href="/drinks"');
 
   const register = await (await page.request.get('/drinks')).text();
   expect(register).toContain('aria-label="Main navigation"');
@@ -164,15 +171,11 @@ test('Navigation: unified header navigation renders on landing, drinks and the m
   expect(map).toContain('aria-label="Main navigation"');
   expect(map).toContain('href="/map"');
 
-  // Drinks is a reading page: on a wide screen the footer carries it, not the header
-  // (a phone's Menu lists it). The map has no footer, so its header carries it there.
   await page.setViewportSize({ width: 1280, height: 900 });
-  for (const path of ['/', '/drinks']) {
+  for (const path of ['/', '/drinks', '/map']) {
     await page.goto(path);
-    await expect(page.locator('header a[href="/drinks"]'), path).toBeHidden();
+    await expect(page.locator('header a[href="/drinks"]'), path).toHaveCount(0);
   }
-  await page.goto('/map');
-  await expect(page.locator('header a[href="/drinks"]')).toBeVisible();
 });
 
 

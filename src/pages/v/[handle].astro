@@ -62,6 +62,9 @@ const formatDate = (iso: string) => {
                 {copy.websiteLabel}
               </a>
             )}
+            {result.venue.domainVerified && (
+              <span class="tag">{copy.domainVerified}</span>
+            )}
           </div>
         </div>
 

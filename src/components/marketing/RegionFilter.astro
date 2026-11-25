@@ -1,6 +1,7 @@
 ---
 import { drinks as copy, quadrants } from '../../lib/copy';
 import { regionPath, type QuadrantId } from '../../lib/quadrant';
+import { drinksHref } from '../../lib/site-nav';
 
 interface Props {
   /** The region the list is narrowed to; absent for every drink. */
@@ -16,7 +17,7 @@ const { current } = Astro.props;
  * rather than wrapping one region onto a line of its own.
  */
 const options = [
-  { href: '/drinks', label: copy.filterAll, active: !current },
+  { href: drinksHref, label: copy.filterAll, active: !current },
   ...quadrants.map((q) => ({ href: regionPath(q.id), label: q.name, active: q.id === current })),
 ];
 ---

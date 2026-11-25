@@ -410,6 +410,7 @@ export const chart = {
   logThis: 'Rate this',
   pickThis: 'Pick this',
   readEntry: 'Read the entry',
+  coldDrinkPrompt: 'Find your coordinate to see how close this sits to your palate.',
   close: 'Close',
   sameSpot: 'Also here',
   legendMenu: 'On your menu',
@@ -509,6 +510,13 @@ export const drinks = {
   /** The regions as a filter on the list (`RegionFilter.astro`). */
   filterLabel: 'Filter by region',
   filterAll: 'All',
+  /** Compare-to-palate band on `/drinks/<slug>` for readers arriving from search or assistants. */
+  compareLabel: 'Your palate',
+  compareTitle: (title: string) => `See how ${title} fits your palate.`,
+  compareBody:
+    'Every drink on the chart has a coordinate. Place yours to see how close this pour sits to your taste, or open it on your map if you already have one.',
+  compareMapCta: 'See it on your map',
+  compareQuizCta: 'Find your coordinate',
 } as const;
 
 /**
@@ -756,15 +764,15 @@ export const howItWorks = {
 
 export const venuesCopy = {
   eyebrow: 'For bars',
-  title: 'A bar claims itself by publishing one record.',
+  title: 'A bar claims itself by matching its URL to its DID.',
   subtitle:
-    'Prove your domain as your AT Protocol handle, publish a venue record from that account, and the bar is yours on the protocol. No approval queue, no registry, nothing for us to grant.',
+    'Point your bar’s domain to your AT Protocol DID, publish a venue record from that account, and the bar is yours on the protocol. No approval queue, no registry, nothing for us to grant.',
   todayTitle: 'On the protocol today',
   today: [
     {
-      title: 'The venue record',
+      title: 'URL matched to DID',
       description:
-        'app.cotidal.venue, held at rkey self in the bar’s own repository. Publish it from your domain handle and Cotidal renders your bar live at /v/your-domain.',
+        'app.cotidal.venue, held at rkey self in the bar’s own repository. Claiming checks that your bar’s website domain resolves to your DID, then renders your bar live at /v/your-domain.',
     },
     {
       title: 'Menus as snapshots',
@@ -779,6 +787,7 @@ export const venuesCopy = {
   ],
   laterTitle: 'Coming next',
   later: [
+    'Later: address verification by mail — a postcard sent to the bar with a one-time code to prove you are at that address.',
     'Later: what your patrons have logged at your bar, and where their palates sit on the map.',
     'Later: your menu on your own domain, rendered from your own records.',
     'Later: syncing the menu from your point-of-sale system.',
@@ -797,23 +806,29 @@ export const venuesCopy = {
 /** `/bars/publish` — self-serve AT Protocol venue claim & menu publisher. */
 export const barPublish = {
   eyebrow: 'For bars · Claim & publish',
-  title: 'Claim your bar on the protocol.',
-  lede: 'Sign in with your bar’s Bluesky or domain handle. Publishing writes app.cotidal.venue at rkey self and a dated app.cotidal.menu snapshot directly to your own repository.',
+  title: 'Claim your bar by matching its URL to your DID.',
+  lede: 'Sign in with your bar’s AT Protocol account and enter its website. We verify that the domain resolves to your DID, then write app.cotidal.venue at rkey self and a dated app.cotidal.menu snapshot to your repository.',
   publishingAs: 'Publishing as',
   nameLabel: 'Bar name',
   namePlaceholder: 'Attaboy',
   descriptionLabel: 'Short description (optional)',
   descriptionPlaceholder: 'Classic and bespoke cocktails on the Lower East Side.',
-  websiteLabel: 'Website (optional)',
+  websiteLabel: 'Bar website (must resolve to your DID)',
   websitePlaceholder: 'https://attaboy.nyc',
   menuTitleLabel: 'Menu title (optional)',
   menuTitlePlaceholder: 'Winter Cocktails',
   menuLinesLabel: 'Menu items (one drink per line, optional — ingredients)',
   menuLinesPlaceholder: 'Paper Plane — bourbon, Aperol, Amaro Nonino, lemon\nNegroni\nDry Martini',
-  submit: 'Publish venue & menu',
+  submit: 'Verify domain & publish',
   needName: 'Enter your bar’s name first.',
+  needWebsite: 'Enter your bar’s website so we can verify its domain matches your DID.',
   invalidWebsite: 'Website must start with https:// or http://.',
+  domainMismatch: (domain: string, did: string) =>
+    `${domain} does not resolve to ${did}. Set your handle to ${domain} or serve your DID at https://${domain}/.well-known/atproto-did, then try again.`,
+  domainCheckFailed: 'Could not check that domain right now. Try again in a moment.',
   publishFailed: 'Could not publish your venue record. Try again.',
+  postcardNote:
+    'Later: a second level of verification will mail a postcard with a one-time code to prove you are at that address.',
 } as const;
 
 /** `/bars/audit` — free sensory balance check for any bar's menu. */
@@ -851,6 +866,7 @@ export const venuePage = {
   unavailableBody: 'Try again in a moment.',
   publishedOn: (date: string) => `Published ${date}`,
   websiteLabel: 'Website',
+  domainVerified: 'Domain verified',
   rankForMe: 'Rank this menu for my palate',
   onMap: 'On the map',
   unplaced: 'House pour',

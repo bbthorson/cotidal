@@ -4,6 +4,7 @@ import Questions from '../components/app/Questions';
 import { site, hero } from '../lib/copy';
 import { signInEnabled } from '../lib/atproto/auth';
 import { accountFor } from '../lib/atproto/session';
+import { questionsHref } from '../lib/site-nav';
 
 /**
  * The questions that place a coordinate, then the reveal. No tab is current
@@ -18,6 +19,6 @@ const account = await accountFor(Astro.request, false);
 const member = account.kind === 'member' ? { did: account.did, handle: account.handle } : null;
 ---
 
-<AppShell title={`${site.name} — ${hero.primaryCta}`} currentPath="/questions" width="wide">
+<AppShell title={`${site.name} — ${hero.primaryCta}`} currentPath={questionsHref} width="wide">
   <Questions client:load signInEnabled={authEnabled} member={member} />
 </AppShell>

@@ -1,6 +1,7 @@
 ---
 import { connect } from '../../lib/copy';
 import { AUTH_BASE_PATH } from '../../lib/atproto/paths';
+import { mapHref } from '../../lib/site-nav';
 
 interface Props {
   enabled: boolean;
@@ -25,14 +26,14 @@ const { enabled, error } = Astro.props;
     enabled ? (
       <bsky-sign-in
         base-path={AUTH_BASE_PATH}
-        return-to="/map"
+        return-to={mapHref}
         loading-label={connect.connecting}
         typeahead
         remember-accounts
         sign-up
       >
         <form method="POST" action={`${AUTH_BASE_PATH}/login`} class="space-y-4">
-          <input type="hidden" name="returnTo" value="/map" />
+          <input type="hidden" name="returnTo" value={mapHref} />
 
           <div
             data-bsky-accounts

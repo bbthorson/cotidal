@@ -22,13 +22,16 @@ landing page included. Astro was being used as a slower Next.js.
   something genuinely needs to be interactive, and scope it tightly.
 - Prefer `client:load` over `client:only` so the shell server-renders.
 - The header is the same on every page: wordmark · Menu on a phone (the map,
-  the reading pages, then the account), the nav and the account control from
-  `lg`. On the map alone it also holds the search (`SiteHeader`'s `search`: a
-  plain GET form to `/map?q=` that `SearchBox.tsx` takes over once the island
-  is up), the wordmark is the mark alone on a phone, and from `lg` it lists
-  the reading pages, since the map has no footer. The account control is
-  server truth: `@handle` (opening `/settings`) for a member, Sign in for a
-  guest, a neutral Account on a prerendered page that cannot know. Signing
+  the visible reading pages, then the account), the nav and the account control from
+  `lg`. `Drinks` (`/drinks`) is `memberOnly` in `site-nav.ts`, so unauthenticated
+  visitors on `/` are not sent there from the header or footer; drink pages stay
+  live for SEO/AEO and link back to `/map?drink=<slug>` and `/questions`. On the
+  map alone the header also holds the search (`SiteHeader`'s `search`: a plain
+  GET form to `/map?q=` that `SearchBox.tsx` takes over once the island is up),
+  the wordmark is the mark alone on a phone, and from `lg` it lists the visible
+  reading pages, since the map has no footer. The account control is server
+  truth: `@handle` (opening `/settings`) for a member, Sign in for a guest, a
+  neutral Account on a prerendered page that cannot know. Signing
   out is on `/settings` alone, never in the header; `/map` carries no account
   strip (a guest's Start over sits at the foot of its card, since a guest has
   no Settings).
@@ -256,6 +259,10 @@ What may call a model, and who sees the result, is `docs/generation.md`.
 
 ### Drink prose — `src/content/drinks/`, `src/content.config.ts`
 An Astro content collection behind `/drinks`, prerendered and script-free.
+Drink pages are built for SEO/AEO rather than homepage discovery by
+unauthenticated visitors (`memberOnly: true` in `site-nav.ts`): each
+`/drinks/<slug>` page emits Schema.org `Recipe` JSON-LD and a compare-to-palate
+section linking to `/map?drink=<slug>` and `/questions`.
 
 Two rules make it safe to grow. **Frontmatter carries no coordinates** — an
 entry joins to `drinkDatabase` by `name`, so the map stays the one place a
@@ -287,7 +294,7 @@ npm run test:unit -- tests/unit/drink-content.test.ts
 `/drinks/regions/<id>` (`regionPath`) is `/drinks` narrowed to one region,
 with `RegionFilter` across the top, the drinks first and the region's prose
 under them. Prerendered and script-free. There is no Regions item in the
-navigation (Drinks is a footer page, current there). Same format as a drink
+navigation (`RegionFilter` marks the active region). Same format as a drink
 (`documented` required, `claimed`, `sources`), one entry per region, and the
 filename is the id — which is a URL: `/drinks`, `/p/<handle>`,
 the chat tools and the region coasters link to it.
@@ -313,6 +320,10 @@ would attach a share-alike obligation to the entry.
 - `records.ts` — Zod for `pour`, `menu`, `recipe`, `venue`, `maker`, `elicitation`, `defs`
 - `auth.ts`, `paths.ts`, `publish.ts` — sign-in (`@bbthorson/atproto-cf-auth`)
   and writes
+- `venue-verify.ts`, `venue-publish.ts`, `venue-read.ts` — Level 1 bar claiming
+  matches the bar's website URL domain to its DID (`verifyVenueDomain` on
+  `/bars/publish`; `domainVerified` on `/v/<handle>`). Level 2 physical address
+  verification (mailed postcard with a one-time code) is planned in `docs/venues.md`.
 - `session.ts` — the `bsky_sid` cookie is an opaque id into a sealed
   server-side store; `oauthSession()` is the authorisation. Anything billed or
   destructive gates on `restoredDid()`.
