@@ -11,8 +11,7 @@ import { readPublicPalate } from '../../lib/atproto/public-read';
 import { publicMapPath } from '../../lib/atproto/paths';
 import { accountHref, questionsHref } from '../../lib/site-nav';
 import { oauthSession } from '../../lib/atproto/session';
-import { getPalateProfile } from '../../lib/atproto/publish';
-import { compareMaps, type MapPoint } from '../../lib/overlap';
+import { compareTerrains, TOP, type MapPoint } from '../../lib/overlap';
 import { buildTerrain, evidenceAt, kindOf, leanings, peaks, rankByTerrain, sampleTerrain } from '../../lib/terrain';
 import { DISLIKED_AT } from '../../lib/scoring';
 import { readFollowedPalates, type FollowedOverlap } from '../../lib/atproto/follows-overlap';
@@ -42,29 +41,36 @@ import { mapHref } from '../../lib/site-nav';
 export const prerender = false;
 
 const result = await readPublicPalate(Astro.params.actor ?? '', { taste: true });
-const { drink: viewDrink } = readMapView(Astro.url.searchParams);
+const { drink: viewDrink, with: withParam } = readMapView(Astro.url.searchParams);
 
 const session = result.status === 'ok' ? await oauthSession(Astro.request) : null;
 const isSelf = !!session && result.status === 'ok' && session.did === result.actor.did;
-const viewerRecord = session && !isSelf ? await getPalateProfile(session) : null;
 
 const subject: MapPoint | null =
   result.status === 'ok'
     ? { x: result.palate.x, y: result.palate.y, aversions: result.palate.aversions }
     : null;
-const viewer: MapPoint | null = viewerRecord?.mapCoordinates
-  ? {
-      x: viewerRecord.mapCoordinates.x,
-      y: viewerRecord.mapCoordinates.y,
-      aversions: {
-        smoke: !!viewerRecord.aversions?.smoke,
-        bitter: !!viewerRecord.aversions?.bitter,
-        anise: !!viewerRecord.aversions?.anise,
-      },
-    }
-  : null;
 
-const overlap = subject && viewer ? compareMaps(subject, viewer) : null;
+/** A palate's ground: from its questions and pours, or from its point when neither is on record. */
+const groundOf = (r: Awaited<ReturnType<typeof readPublicPalate>>) =>
+  r.status === 'ok' ? buildTerrain(r.taste?.start ?? { x: r.palate.x, y: r.palate.y }, r.taste?.pours ?? []) : null;
+
+// Whom to compare with (`with=`, map-url.ts): anyone named, or else a signed-in reader on someone else's map.
+// Both are read the same way, from public records, so a comparison of two other people is a link too.
+const otherActor = withParam ?? (session && !isSelf ? session.did : null);
+const otherResult =
+  subject && otherActor && result.status === 'ok' && otherActor !== result.actor.did && otherActor !== result.actor.handle
+    ? await readPublicPalate(otherActor, { taste: true })
+    : null;
+const other = otherResult?.status === 'ok' ? otherResult : null;
+const otherIsYou = !!session && !!other && other.actor.did === session.did;
+const otherTerrain = other ? groundOf(other) : null;
+const otherGround = otherTerrain ? sampleTerrain(otherTerrain, 0.5) : null;
+/** How each side is named: "you" for the reader, a handle for anyone else. */
+/** A reader with no map of their own is asked to make one: a guest, or a member with no palate. */
+const readerHasNoMap = !isSelf && (!session || (!withParam && !other));
+const subjectWho = isSelf ? publicMap.drinkFromYou : publicMap.title(result.status === 'ok' ? (result.actor.handle ?? result.actor.did) : '');
+const otherWho = other ? (otherIsYou ? publicMap.drinkFromYou : publicMap.title(other.actor.handle ?? other.actor.did)) : '';
 
 // On your own map: the people you follow who have one, to compare with.
 // Read on the server inside a budget, so a slow follow graph shows fewer
@@ -76,7 +82,7 @@ const register = subject ? await loadRegister() : {};
 // Their taste as ground, from their questions and pours (`public-taste.ts`); with
 // neither on record, from their point, as `/map` does for a palate with no quiz.
 const taste = result.status === 'ok' ? (result.taste ?? null) : null;
-const terrain = subject ? buildTerrain(taste?.start ?? { x: subject.x, y: subject.y }, taste?.pours ?? []) : null;
+const terrain = groundOf(result);
 const ground = terrain ? sampleTerrain(terrain, 0.5) : null;
 const lean = terrain ? leanings(terrain, 2) : [];
 const rated = new Map<string, number>();
@@ -90,8 +96,12 @@ const reasonFor = (d: Drink) => {
   return publicMap.reason(near, rated.get(d.name));
 };
 const avoids = subject?.aversions;
+const comparison =
+  terrain && otherTerrain && other && subject
+    ? compareTerrains({ terrain, aversions: subject.aversions }, { terrain: otherTerrain, aversions: other.palate.aversions })
+    : null;
 const menu =
-  terrain && !overlap
+  terrain && !comparison
     ? rankByTerrain(terrain)
         .filter(
           ({ drink: d }) =>
@@ -148,21 +158,12 @@ Astro.response.headers.set(
 const pageTitle = name ? `${publicMap.title(name)} · ${site.name}` : site.name;
 const description = name && region ? publicMap.description(name, region.name) : site.description;
 
-// Their taste is the ground; points are drawn only to compare two people (`overlap.ts`).
-// Terracotta is yours (docs/design-system.md): your own mark, wherever it is drawn.
-const points =
-  subject && viewer
-    ? [
-        { x: subject.x, y: subject.y, label: publicMap.them, caption: publicMap.them, tone: 'theirs' as const },
-        { x: viewer.x, y: viewer.y, label: publicMap.you, caption: publicMap.you, tone: 'yours' as const },
-      ]
-    : [];
-
-const pairs: { label: string; drink: Drink }[] = overlap
+// Leading with disagreement (docs/routes.md, Friends): what each would reach for that the other would not, then one for both.
+const pairs: { label: string; drink: Drink }[] = comparison
   ? [
-      { label: publicMap.theirsLabel, drink: overlap.theirs },
-      { label: publicMap.yoursLabel, drink: overlap.yours },
-      { label: publicMap.sharedLabel, drink: overlap.shared },
+      { label: publicMap.onlyLabel(subjectWho, otherWho), drink: comparison.firstOnly },
+      { label: publicMap.onlyLabel(otherWho, subjectWho), drink: comparison.secondOnly },
+      { label: publicMap.bothLabel, drink: comparison.shared },
     ].flatMap(({ label, drink }) => (drink ? [{ label, drink }] : []))
   : [];
 
@@ -186,7 +187,7 @@ const ctaClass =
     label={name && subject ? publicMap.plotLabel(publicMap.title(name)) : explore.chartLabel}
     ground={ground}
     ratings={rated}
-    points={points}
+    against={otherGround}
     selected={viewDrink?.name ?? null}
     named={menu.map((d) => d.name)}
     tide={!subject}
@@ -237,24 +238,14 @@ const ctaClass =
         <dd class="col-span-2 pb-1 text-muted-foreground">
           {result.palate.pours ? publicMap.pours(result.palate.pours) : publicMap.quizOnly}
         </dd>
-        {viewer && (
-          <>
-            <dt class="label-caps text-muted-foreground">{publicMap.you}</dt>
-            <dd class="text-right font-condensed tabular-nums text-foreground">
-              {formatCoordinate(viewer.x, viewer.y)}
-            </dd>
-          </>
-        )}
       </dl>
 
-      {overlap && (
-        <section class="space-y-6" data-testid="overlap">
-          <div class="text-center">
-            <span class="label-caps text-muted-foreground">{publicMap.distanceLabel}</span>
-            <p class="mt-1 font-serif text-title font-bold text-foreground">{overlap.description}</p>
-            <p class="mt-1 font-condensed text-meta tabular-nums text-muted-foreground">
-              {overlap.distance.toFixed(1)}
-            </p>
+      {comparison && (
+        <section class="space-y-4" data-testid="overlap">
+          <div>
+            <span class="label-caps text-muted-foreground">{publicMap.betweenLabel(subjectWho, otherWho)}</span>
+            <p class="mt-1 font-serif text-heading font-bold text-foreground">{publicMap.inCommon(comparison.inCommon, TOP)}</p>
+            <p class="mt-1 text-meta text-muted-foreground">{publicMap.compareKey(otherWho, otherIsYou)}</p>
           </div>
           <ul class="divide-y divide-border border-y border-foreground">
             {pairs.map(({ label, drink }) => {
@@ -378,7 +369,7 @@ const ctaClass =
         </p>
       )}
 
-      {!isSelf && !viewer && (
+      {readerHasNoMap && (
         <section class="space-y-3" data-testid="public-map-cta">
           <h2 class="font-serif text-plate font-bold text-foreground">{publicMap.guestTitle}</h2>
           <p class="text-ui text-muted-foreground">

@@ -884,10 +884,13 @@ export const publicMap = {
   quizOnly: 'From the questions alone',
   them: 'Them',
   you: 'You',
-  distanceLabel: 'Between you',
-  theirsLabel: 'They’d order, you wouldn’t',
-  yoursLabel: 'You’d order, they wouldn’t',
-  sharedLabel: 'One you’d both order',
+  /** Two tastes compared (`compareTerrains`, `with=`): said in drinks, leading with where they part. */
+  betweenLabel: (a: string, b: string) => `Between ${a} and ${b}`,
+  inCommon: (n: number, of: number) => (n === 0 ? `None of the top ${of} in common` : `${n} of the top ${of} in common`),
+  /** How to read the map when it carries two tastes: the first as ground, the second as terracotta lines. */
+  compareKey: (b: string, isYou: boolean) => `The shaded ground is this map; the terracotta lines are ${isYou ? 'yours' : `${b}’s`}.`,
+  onlyLabel: (who: string, notWho: string) => `${who} would reach for, ${notWho} wouldn’t`,
+  bothLabel: 'One for both',
   nearLabel: 'Close to this coordinate',
   /** `?drink=` on someone's map: the drink, and where it lies from them (`wayTo`). */
   drinkLabel: 'A drink on this map',

@@ -25,7 +25,7 @@ export const prerender = false;
 // Someone else's palate (`?palate=`, map-url.ts) is their public map, read-only and drawn on the
 // server: the same page `/p/<handle>` is, at this address, with the drink it is about.
 const view = readMapView(Astro.url.searchParams);
-if (view.palate) return Astro.rewrite(viewHref(publicMapPath(view.palate), { drink: view.drink }));
+if (view.palate) return Astro.rewrite(viewHref(publicMapPath(view.palate), { drink: view.drink, with: view.with }));
 
 const register = await loadRegister();
 const authEnabled = await signInEnabled();

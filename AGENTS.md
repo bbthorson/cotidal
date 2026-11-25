@@ -212,9 +212,9 @@ It ranks your menu and a bar's (`scoreDrinks`, `rankMenu`), the map draws
 it, and `leanings` says your taste in the axes' words in the card's head
 ("crisp and sweet · rich and savory", `taste` in `copy.ts`) — never one
 region's name. Not yet on
-it: the chat tools (`src/lib/mcp/`), the comparison on `/p/<handle>`, the
-reveal, share cards and the code in Settings, which still read the point and
-its region
+it: the chat tools (`src/lib/mcp/`), the follows list on your own
+`/p/<handle>`, the reveal, share cards and the code in Settings, which still
+read the point and its region
 (`docs/map-first.md`). The dot, the track and `applyPour` are unchanged.
 
 
@@ -548,8 +548,9 @@ Open work only; what is built is described above.
 4. **Elicitation.** Swipes for breadth, and fitting `NOISE_LEVELS`,
    `EVIDENCE_SCALE` and `PAIR_NOISE_SCALE` from the logged answers against
    pours. Never swipe on drink *names* — that measures familiarity, not taste.
-5. **The Overlap.** `/p/<handle>` draws a coordinate and, for a signed-in
-   visitor, theirs beside it (`src/lib/overlap.ts`). Next: two people in the
+5. **The Overlap.** `/p/<handle>` draws a taste and, for a signed-in visitor
+   or anyone named by `with=`, a second over it (`compareTerrains` in
+   `src/lib/overlap.ts`). Next: two people in the
    same bar, conversation starters from what their maps share. Discovery
    comes from the user's existing follow graph, not a second one built here.
    Surface only the intersection; lead with disagreement about drinks.

@@ -1,7 +1,9 @@
-import { test, expect } from 'vitest';
+import { describe, test, expect } from 'vitest';
 import { parseActor, readPublicPalate } from '../../src/lib/atproto/public-read';
 import { publicMapPath } from '../../src/lib/atproto/paths';
-import { compareMaps, describeDistance, nearestDrinks, MAX_DISTANCE } from '../../src/lib/overlap';
+import { compareMaps, compareTerrains, describeDistance, nearestDrinks, MAX_DISTANCE, TOP } from '../../src/lib/overlap';
+import { buildTerrain, drinkHeight } from '../../src/lib/terrain';
+import { drinkDatabase } from '../../src/lib/data';
 import { distanceBands } from '../../src/lib/copy';
 import type { Drink } from '../../src/lib/data';
 
@@ -200,3 +202,37 @@ test('Overlap: distance bands cover the whole map, nearest drinks respect aversi
   expect(near.map((d) => d.name)).toEqual(['Close', 'Far']);
 });
 
+
+describe('Overlap of two tastes as ground (compareTerrains)', () => {
+  const none = { smoke: false, bitter: false, anise: false };
+  const pours = (list: [string, number][]) => list.map(([name, hedonic]) => ({ drink: { name }, rating: { hedonic } }));
+  const deep = buildTerrain({ x: -6, y: -6, variance: { x: 2, y: 2 } }, pours([['Manhattan', 9], ['Old Fashioned', 9]]));
+  const surf = buildTerrain({ x: 6, y: 5, variance: { x: 2, y: 2 } }, pours([['Daiquiri (Classic)', 9], ['Mojito', 9]]));
+  const byName = (n: string) => drinkDatabase.find((d) => d.name === n)!;
+
+  test('leads with what each would reach for that the other would not, from their own ground', () => {
+    const o = compareTerrains({ terrain: deep, aversions: none }, { terrain: surf, aversions: none });
+    expect(o.firstOnly).not.toBeNull();
+    expect(o.secondOnly).not.toBeNull();
+    expect(o.firstOnly!.x).toBeLessThan(0);
+    expect(o.secondOnly!.x).toBeGreaterThan(0);
+    expect(drinkHeight(deep, o.firstOnly!).rating).toBeGreaterThan(drinkHeight(surf, o.firstOnly!).rating);
+    expect(o.inCommon).toBeLessThan(TOP);
+  });
+
+  test('two people with the same taste get no invented contrast, and every top drink in common', () => {
+    const o = compareTerrains({ terrain: deep, aversions: none }, { terrain: deep, aversions: none });
+    expect(o.firstOnly).toBeNull();
+    expect(o.secondOnly).toBeNull();
+    expect(o.shared).not.toBeNull();
+    expect(o.inCommon).toBe(TOP);
+  });
+
+  test('a drink either avoids is never the one they share, nor offered to the one who avoids it', () => {
+    const smoke = { ...none, smoke: true };
+    const o = compareTerrains({ terrain: deep, aversions: smoke }, { terrain: deep, aversions: none });
+    expect(o.shared?.hasSmoke).toBeFalsy();
+    expect(o.firstOnly?.hasSmoke).toBeFalsy();
+    expect(byName('Manhattan')).toBeDefined();
+  });
+});

@@ -110,7 +110,7 @@ small vocabulary, read and written by `src/lib/map-url.ts` and nowhere else
 | *(none)* | Yours: your account, or this device | yes |
 | `drink=<slug>` | That drink marked, its card open | yes |
 | `palate=<handle or DID>` | Someone else's taste — their terrain, from their questions and pours — read-only | yes |
-| `with=<handle or DID>` | A second palate over the first, to compare | next |
+| `with=<handle or DID>` | A second taste over the first, as terracotta contour lines, to compare | yes |
 
 They combine: `/map?palate=alice.bsky.social&drink=negroni` is where a
 Negroni sits for Alice — how far and which way (`wayTo`), and Where it sits
@@ -133,8 +133,19 @@ revision, so a view of an unchanged repository reads one small record.
 Their map says what yours says: their taste in the axes' words
 (`leanings`), their menu with what put each drink there (their ratings, or
 their answers), and for `drink=`, which way it lies from their nearest
-hilltop. No region names a person here any more; the share card and the
-comparison still read the point.
+hilltop. No region names a person here any more; the share card still reads
+the point.
+
+**Comparing** (`with=`, `compareTerrains` in `overlap.ts`): on someone's map
+a signed-in reader is compared with by default, and `with=` names anyone, so
+`/map?palate=alice.bsky.social&with=bob.bsky.social` compares two other
+people. Both tastes are read the same way, from public records. The map
+draws the first as shaded ground and the second as terracotta contour lines
+over it; the card says how many of the top ten they have in common, then
+leads with where they part — a drink each would reach for that the other
+would not, at least a point higher on their ground — and one for both. Two
+people who like the same things get no invented contrast. The chat tools
+and the follows list still compare points (`compareMaps`).
 
 Not yet: `?palate=` on a drink's page (`/drinks/negroni?palate=…`, which
 means rendering drink pages per request, cached at the edge), and the chat

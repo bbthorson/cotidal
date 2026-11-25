@@ -37,6 +37,9 @@ describe('writing an address', () => {
   test('the same view is always the same link: drink first, by slug', () => {
     expect(viewHref('/map', { palate: 'Alice.bsky.social', drink: negroni })).toBe('/map?drink=negroni&palate=alice.bsky.social');
     expect(viewHref('/map', { drink: 'negroni' })).toBe('/map?drink=negroni');
+    expect(viewHref('/map', { with: '@Bob.bsky.social', palate: 'alice.bsky.social' })).toBe('/map?palate=alice.bsky.social&with=bob.bsky.social');
+    expect(read('palate=alice.bsky.social&with=@Bob.bsky.social').with).toBe('bob.bsky.social');
+    expect(read('with=not a handle').with).toBeNull();
     expect(viewHref('/map', {})).toBe('/map');
   });
 
