@@ -1,7 +1,9 @@
 import { readPublicPalate, type PublicPalateResult, type ReadOptions } from './public-read';
 import { publicMapPath } from './paths';
-import { compareMaps, type MapPoint } from '../overlap';
-import { quadrantFor } from '../quadrant';
+import { compareTerrains, type TerrainSide } from '../overlap';
+import { leanings } from '../terrain';
+import { terrainOf } from '../taste-reading';
+import { taste as tasteCopy } from '../copy';
 
 /**
  * Social overlap via the user's existing Bluesky follow graph — never a second
@@ -9,7 +11,8 @@ import { quadrantFor } from '../quadrant';
  *
  * Reads public `app.bsky.graph.getFollows`, checks each followed account for a
  * published `app.cotidal.palate`, and surfaces ONLY the intersection, leading
- * with contrast drinks (`compareMaps`).
+ * with contrast drinks. Each is read with their taste (`public-taste.ts`)
+ * and compared as ground (`compareTerrains`), as their map compares them.
  */
 
 const PUBLIC_BSKY_API = 'https://public.api.bsky.app';
@@ -21,9 +24,10 @@ export interface FollowedOverlap {
   did: string;
   handle: string;
   displayName: string | null;
-  region: string;
-  distance: number;
-  description: string;
+  /** Their taste in the axes' words (`leanings`): "crisp and sweet · rich and savory". */
+  leans: string;
+  /** How many of their top ten drinks are in yours (`compareTerrains`). */
+  inCommon: number;
   theirs: string | null;
   yours: string | null;
   shared: string | null;
@@ -69,15 +73,16 @@ export interface FollowsOverlapOptions extends ReadOptions {
 
 /**
  * Return the intersection of `did`'s Bluesky follows who have published a
- * Cotidal palate, compared against `viewer`. Never throws.
+ * Cotidal palate, compared against `viewer`'s taste, most in common first.
+ * Never throws.
  */
 export async function readFollowedPalates(
   did: string,
-  viewer: MapPoint,
+  viewer: TerrainSide,
   options: FollowsOverlapOptions = {}
 ): Promise<FollowedOverlap[]> {
   const fetchImpl = options.fetch ?? fetch;
-  const readPalate = options.readPalate ?? ((actor: string) => readPublicPalate(actor, options));
+  const readPalate = options.readPalate ?? ((actor: string) => readPublicPalate(actor, { ...options, taste: true }));
 
   const now = options.now ?? Date.now;
   const deadline = options.budgetMs === undefined ? Infinity : now() + options.budgetMs;
@@ -94,22 +99,17 @@ export async function readFollowedPalates(
         if (!actor || f.did === did) return null;
         const res = await readPalate(actor).catch(() => ({ status: 'unavailable' as const, actor: null }));
         if (res.status !== 'ok') return null;
-        const them: MapPoint = {
-          x: res.palate.x,
-          y: res.palate.y,
-          aversions: res.palate.aversions,
-        };
-        const overlap = compareMaps(them, viewer);
+        const terrain = terrainOf(res.taste?.start ?? null, res.palate, res.taste?.pours ?? []);
+        const overlap = compareTerrains({ terrain, aversions: res.palate.aversions }, viewer);
         const handle = res.actor.handle ?? f.handle ?? res.actor.did;
         return {
           did: res.actor.did,
           handle,
           displayName: f.displayName?.trim() || null,
-          region: quadrantFor(them.x, them.y).name,
-          distance: Math.round(overlap.distance * 10) / 10,
-          description: overlap.description,
-          theirs: overlap.theirs?.name ?? null,
-          yours: overlap.yours?.name ?? null,
+          leans: tasteCopy.phrases(leanings(terrain, 2)),
+          inCommon: overlap.inCommon,
+          theirs: overlap.firstOnly?.name ?? null,
+          yours: overlap.secondOnly?.name ?? null,
           shared: overlap.shared?.name ?? null,
           path: publicMapPath(handle),
         } satisfies FollowedOverlap;
@@ -118,5 +118,5 @@ export async function readFollowedPalates(
     for (const item of results) if (item) out.push(item);
   }
 
-  return out.sort((a, b) => a.distance - b.distance || a.handle.localeCompare(b.handle));
+  return out.sort((a, b) => b.inCommon - a.inCommon || a.handle.localeCompare(b.handle));
 }

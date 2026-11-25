@@ -1,13 +1,18 @@
 import { describe, expect, it } from 'vitest';
 import { readFollowedPalates } from '@/lib/atproto/follows-overlap';
 import type { PublicPalateResult } from '@/lib/atproto/public-read';
+import { buildTerrain } from '@/lib/terrain';
+
+const none = { smoke: false, bitter: false, anise: false };
+/** A reader's taste: a hill where their answers put them. */
+const tasteAt = (x: number, y: number) => ({ terrain: buildTerrain({ x, y, variance: { x: 2, y: 2 } }, []), aversions: none });
 
 const ME = 'did:plc:me1111111111111111111111';
 const ALICE = 'did:plc:alice1111111111111111111';
 const BOB = 'did:plc:bob111111111111111111111';
 
 describe('readFollowedPalates', () => {
-  it('returns only the intersection of Bluesky follows who have published a palate, sorted nearest first', async () => {
+  it('returns only the intersection of Bluesky follows who have published a palate, most in common first', async () => {
     const fakeFetch = (async () =>
       new Response(
         JSON.stringify({
@@ -39,14 +44,16 @@ describe('readFollowedPalates', () => {
 
     const result = await readFollowedPalates(
       ME,
-      { x: 4, y: 3, aversions: { smoke: false, bitter: false, anise: false } },
+      tasteAt(4, 3),
       { fetch: fakeFetch, readPalate: async (actor) => palates[actor] ?? { status: 'not-found' } }
     );
 
     expect(result).toHaveLength(2);
     expect(result[0].handle).toBe('alice.bsky.social');
     expect(result[1].handle).toBe('bob.bsky.social');
-    expect(result[0].distance).toBeLessThan(result[1].distance);
+    expect(result[0].inCommon).toBeGreaterThan(result[1].inCommon);
+    // Each is described by their taste, never a region; Bob, far from you, has a drink of his own.
+    expect(result[1].leans).toMatch(/rich/);
     expect(result[1].theirs).not.toBeNull();
     expect(result[0].path).toBe('/p/alice.bsky.social');
   });
@@ -55,7 +62,7 @@ describe('readFollowedPalates', () => {
     const fakeFetch = (async () => new Response('{}', { status: 500 })) as unknown as typeof fetch;
     const result = await readFollowedPalates(
       ME,
-      { x: 0, y: 0, aversions: { smoke: false, bitter: false, anise: false } },
+      tasteAt(0, 0),
       { fetch: fakeFetch }
     );
     expect(result).toEqual([]);
@@ -70,7 +77,7 @@ describe('readFollowedPalates with a budget', () => {
     const read: string[] = [];
     const result = await readFollowedPalates(
       ME,
-      { x: 0, y: 0, aversions: { smoke: false, bitter: false, anise: false } },
+      tasteAt(0, 0),
       {
         fetch: fakeFetch,
         budgetMs: 100,

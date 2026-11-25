@@ -24,7 +24,7 @@ export const ALL: APIRoute = async ({ request, locals, url }) => {
     request,
     (locals as { cfContext?: ProviderContext }).cfContext,
     {
-      readPalate: (actor) => readPublicPalate(actor),
+      readPalate: (actor) => readPublicPalate(actor, { taste: true }),
       readVenue: (actor) => readPublicVenue(actor),
       register,
       origin: url.origin,

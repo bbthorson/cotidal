@@ -923,7 +923,7 @@ export const publicMap = {
   plotLabel: (who: string) => `${who} on the palate map`,
   /** On your own map: comparing with someone. Opening theirs draws your dot beside it. */
   compareTitle: 'Compare palates',
-  followsLede: 'People you follow who have a coordinate, nearest first.',
+  followsLede: 'People you follow who have a map, most in common first.',
   followsContrast: (drink: string) => `They’d order ${drink}`,
   compareHint: 'Or type any Bluesky handle to see the distance between your maps.',
   compareLabel: 'A Bluesky handle',
@@ -1005,7 +1005,7 @@ export const assistantConsent = {
     'That is an app on this computer, and any app here could be listening. Continue only if you just started connecting one.',
   canTitle: 'It will be able to',
   scopes: {
-    'palate:read': 'Answer from your palate without being told your handle: where it lands, what is near it, menus ranked for it.',
+    'palate:read': 'Answer from your palate without being told your handle: how you lean, the top of your menu, menus ranked for you.',
     'pours:write':
       'Log a pour you tell it about, with the rating you give it. Nothing else: it cannot change your answers, edit a pour or post to Bluesky.',
   } as Record<string, string>,
@@ -1027,39 +1027,39 @@ export const mcp = {
   name: 'cotidal',
   /** What both endpoints say first; each adds how a pour gets logged there. */
   about:
-    'Cotidal places a person’s taste in drinks on a map: x runs Rich (−10) to Crisp (+10), y runs Savory (−10) to Sweet (+10). Each person’s palate is a public record on their Bluesky account, read by handle. Drinks are recommended by how close they sit to that coordinate, never by a score of the person. A distance is where a drink sits, not a forecast: say a drink is close to them and which way it lies (each result says, in Cotidal’s words), never that they will like it. To answer about a drink no list included, call get_drink with their handle rather than guess. Use search_drinks to turn a drink someone names into the name Cotidal knows it by.',
+    'Cotidal places a person’s taste in drinks on a map: x runs Rich (−10) to Crisp (+10), y runs Savory (−10) to Sweet (+10). Each person’s taste is read from public records on their Bluesky account, by handle: the questions they answered and every drink they rated make ground over the map, higher where they would reach and lower where they would not, and a person can have more than one high place. Drinks are recommended by where they stand on that ground, never by a score of the person. Say what put a drink there and which way it lies (each result says, in Cotidal’s words: “Near their Manhattan (9)”, “crisper, more savory”), never that they will like it. To answer about a drink no list included, call get_drink with their handle rather than guess. Use search_drinks to turn a drink someone names into the name Cotidal knows it by.',
   instructions:
     'Nothing you call changes anyone’s map: to log a pour, draft_pour returns a link the person opens to check it, rate it and log it themselves.',
   tools: {
     getPalate: {
       title: 'Read a palate',
       description:
-        'Read where someone’s taste lands on the Cotidal map, by Bluesky handle or DID: their coordinate, region, the flavours they avoid, how many pours have moved it, and the drinks closest to it.',
+        'Read someone’s taste on the Cotidal map, by Bluesky handle or DID: how they lean in the map’s words, the flavours they avoid, how many pours they have rated, and the top of their menu with what put each drink there.',
       handle: 'A Bluesky handle (alice.bsky.social, @alice) or a DID.',
     },
     recommend: {
       title: 'Recommend drinks',
       description:
-        'The drinks on the Cotidal map closest to someone’s coordinate, nearest first, leaving out anything with a flavour they avoid. Each comes with its distance and which way it lies from them (“crisper, more savory”).',
+        'The drinks standing highest on someone’s taste, highest first, leaving out anything with a flavour they avoid or that they rated low. Each comes with what put it there (“Near their Manhattan (9)”) and which way it lies from the nearest of their high places (“crisper, more savory”).',
       count: 'How many drinks to return.',
       type: 'Only drinks of this kind.',
     },
     rankMenu: {
       title: 'Rank a menu',
       description:
-        'Order the drinks on a menu by how close each sits to someone’s coordinate. Pass each item as a drink name or an object with name and ingredients/description as written on the menu. Items Cotidal cannot place are returned as unplaced with any avoided-flavour cautions and closest known classic when the ingredients make it clear; placed drinks with an avoided flavour are flagged, not dropped.',
+        'Order the drinks on a menu by where each stands on someone’s taste, highest first, each with what put it there. Pass each item as a drink name or an object with name and ingredients/description as written on the menu. Items Cotidal cannot place are returned as unplaced with any avoided-flavour cautions and closest known classic when the ingredients make it clear; placed drinks with an avoided flavour are flagged, not dropped.',
       items: 'Menu items: each a drink name, or { name, description?, ingredients? } as printed on the menu.',
     },
     compare: {
       title: 'Compare two palates',
       description:
-        'Put two people’s coordinates side by side: how far apart they are, a drink each would order that the other would not, and one they would both order. This compares maps; it never ranks the people on them.',
+        'Put two people’s tastes side by side: how many of the first’s top ten drinks are in the second’s, a drink each would reach for that the other would not, and one they would both. This compares maps; it never ranks the people on them.',
       other: 'The second person’s Bluesky handle or DID.',
     },
     recommendForGroup: {
       title: 'Recommend for a group',
       description:
-        'Find drinks or bottles a group of 2 to 8 people can share: respects every person’s avoided flavours and minimizes the worst-case distance across the table.',
+        'Find drinks or bottles a group of 2 to 8 people can share: respects every person’s avoided flavours, leaves out what anyone rated low, and puts first the drinks that suit best the person at the table they suit least. Also names the two whose tastes part most.',
       handles: 'Bluesky handles or DIDs for the people at the table (at least 2; on /mcp/me the signed-in member is included automatically if omitted).',
       count: 'How many shared drinks to return.',
       type: 'Only drinks of this kind.',
@@ -1067,9 +1067,9 @@ export const mcp = {
     getDrink: {
       title: 'Read a drink',
       description:
-        'Look up a drink on the Cotidal map by name: its coordinate, region, flavour flags, tags, and recipe build from the register. Given someone’s handle, also how far it sits from their coordinate, which way, and any flavour in it they avoid: use this for “what about X?” instead of guessing.',
+        'Look up a drink on the Cotidal map by name: its coordinate, region, flavour flags, tags, and recipe build from the register. Given someone’s handle, also what put it where it stands for them, how far and which way it lies from the nearest of their high places, and any flavour in it they avoid: use this for “what about X?” instead of guessing.',
       name: 'The drink’s name (use search_drinks if unsure).',
-      handle: 'A Bluesky handle or DID, to measure the drink from their coordinate.',
+      handle: 'A Bluesky handle or DID, to read the drink against their taste.',
     },
     getBarMenu: {
       title: 'Read a bar’s menu',
@@ -1193,19 +1193,6 @@ export const coaster = {
   /** On your public map: where your code is. */
   findIt: 'Your code is in Settings.',
 } as const;
-
-/**
- * What a distance between two coordinates reads as. `under` is exclusive and
- * the list is ascending; the map's diagonal is about 28.3, so the last band
- * catches everything.
- */
-export const distanceBands = [
-  { under: 2, text: 'Practically the same glass.' },
-  { under: 5, text: 'Neighbours. You’d trade sips.' },
-  { under: 9, text: 'Same bar, different stools.' },
-  { under: 14, text: 'Across the room from each other.' },
-  { under: Infinity, text: 'Opposite ends of the map.' },
-] as const;
 
 /** Labels read only by assistive technology. */
 export const a11y = {

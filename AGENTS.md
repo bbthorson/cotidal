@@ -212,9 +212,9 @@ It ranks your menu and a bar's (`scoreDrinks`, `rankMenu`), the map draws
 it, and `leanings` says your taste in the axes' words in the card's head
 ("crisp and sweet · rich and savory", `taste` in `copy.ts`) — never one
 region's name. Not yet on
-it: the chat tools (`src/lib/mcp/`), the follows list on your own
-`/p/<handle>`, the reveal, share cards and the code in Settings, which still
-read the point and its region
+it: the reveal, share cards and the code in Settings, which still read the
+point and its region. Someone else's taste — their map, the follows list and
+the chat tools — is read by one set of rules, `taste-reading.ts`
 (`docs/map-first.md`). The dot, the track and `applyPour` are unchanged.
 
 

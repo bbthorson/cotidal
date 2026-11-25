@@ -10,8 +10,8 @@ import { publicMapPath } from '../../lib/atproto/paths';
 import { accountHref, questionsHref } from '../../lib/site-nav';
 import { oauthSession } from '../../lib/atproto/session';
 import { compareTerrains, TOP, type MapPoint } from '../../lib/overlap';
-import { buildTerrain, evidenceAt, kindOf, leanings, peaks, rankByTerrain, sampleTerrain } from '../../lib/terrain';
-import { DISLIKED_AT } from '../../lib/scoring';
+import { leanings, sampleTerrain } from '../../lib/terrain';
+import { evidenceFor, menuOf, nearestHilltop, ratingsOf, terrainOf } from '../../lib/taste-reading';
 import { readFollowedPalates, type FollowedOverlap } from '../../lib/atproto/follows-overlap';
 import { loadRegister } from '../../lib/register.server';
 import { titleOf } from '../../lib/register';
@@ -49,9 +49,9 @@ const subject: MapPoint | null =
     ? { x: result.palate.x, y: result.palate.y, aversions: result.palate.aversions }
     : null;
 
-/** A palate's ground: from its questions and pours, or from its point when neither is on record. */
+/** A palate's ground, read as `/map` reads yours (`terrainOf`). */
 const groundOf = (r: Awaited<ReturnType<typeof readPublicPalate>>) =>
-  r.status === 'ok' ? buildTerrain(r.taste?.start ?? { x: r.palate.x, y: r.palate.y }, r.taste?.pours ?? []) : null;
+  r.status === 'ok' ? terrainOf(r.taste?.start ?? null, r.palate, r.taste?.pours ?? []) : null;
 
 // Whom to compare with (`with=`, map-url.ts): anyone named, or else a signed-in reader on someone else's map.
 // Both are read the same way, from public records, so a comparison of two other people is a link too.
@@ -64,9 +64,9 @@ const other = otherResult?.status === 'ok' ? otherResult : null;
 const otherIsYou = !!session && !!other && other.actor.did === session.did;
 const otherTerrain = other ? groundOf(other) : null;
 const otherGround = otherTerrain ? sampleTerrain(otherTerrain, 0.5) : null;
-/** How each side is named: "you" for the reader, a handle for anyone else. */
 /** A reader with no map of their own is asked to make one: a guest, or a member with no palate. */
 const readerHasNoMap = !isSelf && (!session || (!withParam && !other));
+/** How each side is named: "you" for the reader, a handle for anyone else. */
 const subjectWho = isSelf ? publicMap.drinkFromYou : publicMap.title(result.status === 'ok' ? (result.actor.handle ?? result.actor.did) : '');
 const otherWho = other ? (otherIsYou ? publicMap.drinkFromYou : publicMap.title(other.actor.handle ?? other.actor.did)) : '';
 
@@ -74,7 +74,9 @@ const otherWho = other ? (otherIsYou ? publicMap.drinkFromYou : publicMap.title(
 // Read on the server inside a budget, so a slow follow graph shows fewer
 // people rather than holding the page back.
 const follows: FollowedOverlap[] =
-  isSelf && session && subject ? await readFollowedPalates(session.did, subject, { budgetMs: 2500 }) : [];
+  isSelf && session && subject && result.status === 'ok'
+    ? await readFollowedPalates(session.did, { terrain: groundOf(result)!, aversions: subject.aversions }, { budgetMs: 2500 })
+    : [];
 const register = subject ? await loadRegister() : {};
 
 // Their taste as ground, from their questions and pours (`public-taste.ts`); with
@@ -83,38 +85,22 @@ const taste = result.status === 'ok' ? (result.taste ?? null) : null;
 const terrain = groundOf(result);
 const ground = terrain ? sampleTerrain(terrain, 0.5) : null;
 const lean = terrain ? leanings(terrain, 2) : [];
-const rated = new Map<string, number>();
-for (const p of taste?.pours ?? []) if (!rated.has(p.drink.name)) rated.set(p.drink.name, p.rating.hedonic);
+const rated = ratingsOf(taste?.pours ?? []);
 /** What put a drink where it stands on their ground: their ratings near it, or their answers. */
-const reasonFor = (d: Drink) => {
-  if (!terrain) return '';
-  const near = evidenceAt(terrain, d.x, d.y, kindOf(d))
-    .filter((e) => e.drink.name !== d.name)
-    .map((e) => ({ name: titleOf(register, e.drink.name), hedonic: e.hedonic }));
-  return publicMap.reason(near, rated.get(d.name));
-};
-const avoids = subject?.aversions;
+const reasonFor = (d: Drink) =>
+  terrain
+    ? publicMap.reason(
+        evidenceFor(terrain, d).map((e) => ({ ...e, name: titleOf(register, e.name) })),
+        rated.get(d.name)
+      )
+    : '';
 const comparison =
   terrain && otherTerrain && other && subject
     ? compareTerrains({ terrain, aversions: subject.aversions }, { terrain: otherTerrain, aversions: other.palate.aversions })
     : null;
-const menu =
-  terrain && !comparison
-    ? rankByTerrain(terrain)
-        .filter(
-          ({ drink: d }) =>
-            !(avoids?.smoke && d.hasSmoke) && !(avoids?.bitter && d.isBitter) && !(avoids?.anise && d.hasAnise) && !((rated.get(d.name) ?? 10) <= DISLIKED_AT)
-        )
-        .slice(0, 5)
-        .map((r) => r.drink)
-    : [];
+const menu = terrain && subject && !comparison ? menuOf(terrain, subject.aversions, rated) : [];
 /** Which way a drink lies, measured from the nearest of their hilltops (docs/map-first.md). */
-const hilltops = terrain ? peaks(terrain) : [];
-const nearestTop = (d: Drink) =>
-  hilltops.reduce<{ x: number; y: number } | null>(
-    (best, p) => (!best || Math.hypot(p.x - d.x, p.y - d.y) < Math.hypot(best.x - d.x, best.y - d.y) ? p : best),
-    null
-  ) ?? subject!;
+const nearestTop = (d: Drink) => (terrain && subject ? nearestHilltop(terrain, d, subject) : subject!);
 const entryHref = (drink: Drink) => {
   const entry = register[drink.name];
   return entry ? `/drinks/${entry.slug}` : null;
@@ -326,10 +312,10 @@ const ctaClass =
                           @{f.handle}
                         </span>
                         <span aria-hidden="true" class="leader" />
-                        <span class="shrink-0 font-condensed text-meta text-secondary">{f.region}</span>
+                        <span class="shrink-0 font-condensed text-meta text-secondary">{publicMap.inCommon(f.inCommon, TOP)}</span>
                       </div>
                       <p class="mt-0.5 text-meta text-muted-foreground">
-                        {f.description}
+                        {f.leans}
                         {f.theirs && <> · {publicMap.followsContrast(titleOf(register, f.theirs))}</>}
                       </p>
                     </a>

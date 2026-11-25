@@ -149,8 +149,9 @@ draws the first as shaded ground and the second as terracotta contour lines
 over it; the card says how many of the top ten they have in common, then
 leads with where they part — a drink each would reach for that the other
 would not, at least a point higher on their ground — and one for both. Two
-people who like the same things get no invented contrast. The chat tools
-and the follows list still compare points (`compareMaps`).
+people who like the same things get no invented contrast. The follows list
+and the chat tools read and compare people the same way, through
+`taste-reading.ts`; the point comparison (`compareMaps`) is gone.
 
 Not yet: `?palate=` on a drink's page (`/drinks/negroni?palate=…`, which
 means rendering drink pages per request, cached at the edge), and the chat

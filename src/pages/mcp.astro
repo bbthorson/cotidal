@@ -29,7 +29,7 @@ const isBrowser = request.method === 'GET' && accept.includes('text/html') && !a
 
 if (!isBrowser) {
   return serveMcp(request, {
-    readPalate: (actor) => readPublicPalate(actor),
+    readPalate: (actor) => readPublicPalate(actor, { taste: true }),
     readVenue: (actor) => readPublicVenue(actor),
     register: await loadRegister(),
     origin: Astro.url.origin,
