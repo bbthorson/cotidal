@@ -61,3 +61,34 @@ describe('readFollowedPalates', () => {
     expect(result).toEqual([]);
   });
 });
+
+describe('readFollowedPalates with a budget', () => {
+  it('stops starting lookups once the budget is spent, and keeps what it read', async () => {
+    const follows = Array.from({ length: 12 }, (_, i) => ({ did: `did:plc:f${i}`, handle: `f${i}.bsky.social` }));
+    const fakeFetch = (async () => new Response(JSON.stringify({ follows }), { status: 200 })) as unknown as typeof fetch;
+    let clock = 0;
+    const read: string[] = [];
+    const result = await readFollowedPalates(
+      ME,
+      { x: 0, y: 0, aversions: { smoke: false, bitter: false, anise: false } },
+      {
+        fetch: fakeFetch,
+        budgetMs: 100,
+        now: () => clock,
+        readPalate: async (actor) => {
+          read.push(actor);
+          // Six lookups at 20 each spend the budget.
+          clock += 20;
+          return {
+            status: 'ok',
+            actor: { did: `did:plc:${actor}`, handle: actor },
+            palate: { x: 1, y: 1, aversions: { smoke: false, bitter: false, anise: false }, pours: 0, updatedAt: null },
+          };
+        },
+      }
+    );
+    // One batch of six began inside the budget; the second did not.
+    expect(read).toHaveLength(6);
+    expect(result).toHaveLength(6);
+  });
+});

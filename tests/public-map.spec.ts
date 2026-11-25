@@ -18,6 +18,16 @@ test('Public map route: an unknown actor is a 404 page, not an error', async ({ 
   expect(html).toContain('aria-label="Main navigation"');
 });
 
+test('Compare form: a handle typed on your map opens theirs, with no script', async ({ request }) => {
+  const res = await request.get('/p?handle=%40friend.bsky.social', { maxRedirects: 0 });
+  expect(res.status()).toBe(303);
+  expect(res.headers()['location']).toBe('/p/friend.bsky.social');
+  // Nothing typed goes back to where the map is reached from, not to an error.
+  const empty = await request.get('/p?handle=', { maxRedirects: 0 });
+  expect(empty.status()).toBe(303);
+  expect(empty.headers()['location']).toBe('/settings#map');
+});
+
 test('Public map route: ships no client JavaScript', async ({ page }) => {
   const scripts: string[] = [];
   page.on('response', (res) => {

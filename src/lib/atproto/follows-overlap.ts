@@ -57,6 +57,14 @@ async function fetchFollows(did: string, fetchImpl: typeof fetch): Promise<BskyF
 
 export interface FollowsOverlapOptions extends ReadOptions {
   readPalate?: (actor: string) => Promise<PublicPalateResult>;
+  /**
+   * Stop starting new lookups once this many milliseconds have passed, and
+   * answer with the follows read so far. A page that renders the list on the
+   * server sets it, so a slow follow graph cannot hold the page back.
+   */
+  budgetMs?: number;
+  /** The clock, for tests. */
+  now?: () => number;
 }
 
 /**
@@ -71,11 +79,14 @@ export async function readFollowedPalates(
   const fetchImpl = options.fetch ?? fetch;
   const readPalate = options.readPalate ?? ((actor: string) => readPublicPalate(actor, options));
 
+  const now = options.now ?? Date.now;
+  const deadline = options.budgetMs === undefined ? Infinity : now() + options.budgetMs;
+
   const follows = await fetchFollows(did, fetchImpl);
   if (follows.length === 0) return [];
 
   const out: FollowedOverlap[] = [];
-  for (let i = 0; i < follows.length; i += CONCURRENCY) {
+  for (let i = 0; i < follows.length && now() < deadline; i += CONCURRENCY) {
     const batch = follows.slice(i, i + CONCURRENCY);
     const results = await Promise.all(
       batch.map(async (f) => {

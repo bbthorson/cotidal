@@ -83,8 +83,8 @@ test('Log: your track, and what each pour did to it', async ({ page }) => {
   await expect(log.getByRole('listitem').nth(1)).toContainText(/Moved \d/);
   await expect(log.getByRole('listitem').last()).toContainText(logPage.startedCentre);
 
-  // A guest can compare nothing (the distance needs a map on an account), so it is not offered.
-  await expect(page.getByRole('heading', { name: logPage.compareTitle })).toHaveCount(0);
+  // Comparing is on a member's public map; a guest, who has none, is not offered it.
+  await expect(page.getByRole('link', { name: new RegExp(logPage.compareLink) })).toHaveCount(0);
 
   // On a phone there is no SiteFooter on app pages: the reading pages are in the header's Menu.
   await page.setViewportSize({ width: 390, height: 844 });

@@ -7,7 +7,8 @@ is about the code.
 ## Rendering: keep the front door static
 
 `/` is pure Astro with **zero client JavaScript**, and so is `/p/<handle>`
-(a link sent to a stranger). `/sign-in` renders a plain form post that works
+(a link sent to a stranger, and where a member compares with people they
+follow: a server-read follows list and a plain GET form). `/sign-in` renders a plain form post that works
 with JavaScript off and progressively enhances it via `<bsky-sign-in>` (zero
 React). `/` asks one thing — find your coordinate — and keeps nothing else:
 sign-in is its own page. The app pages (`/compass`, `/log`, `/questions`)

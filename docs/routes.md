@@ -31,10 +31,10 @@ a sheet or a reading page.
 | Screen | What it is for | Reached from |
 |---|---|---|
 | **Compass** (tab) | Choosing: the chart, search, your menu, a bar's menu, bars near you | App bar, Menu |
-| **Log** (tab) | Recording: where you are, your track, what moved you; compare (members) | App bar, Menu |
+| **Log** (tab) | Recording: where you are, your track, what moved you | App bar, Menu |
 | **Rating sheet** | One pour, rated | Rate a drink (Log), Rate this (Compass), a chat's draft link |
 | **Settings** | The account: sign out, public map, share, assistants, start over | Your handle (header, Menu) |
-| **Your public map** (`/p/<handle>`) | What a friend sees, and comparing with them | Settings, a link someone sent |
+| **Your public map** (`/p/<handle>`) | What a friend sees; comparing with people you follow, or any handle | Settings, Log, a link someone sent |
 | **The questions** | Placing the coordinate | The front door, Start over |
 
 Each app screen has one action of its own. Sign out lives on Settings only.

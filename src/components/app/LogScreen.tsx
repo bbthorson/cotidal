@@ -1,7 +1,6 @@
-import { useId, type KeyboardEvent, type SubmitEvent } from 'react';
 import { logPage, menu } from '@/lib/copy';
 import { formatCoordinate } from '@/lib/coordinate';
-import { startOverPath } from '@/lib/atproto/paths';
+import { publicMapPath, startOverPath } from '@/lib/atproto/paths';
 import type { Register } from '@/lib/register';
 import { neutralProfile } from '@/lib/guest-palate';
 import { useLog } from '@/hooks/useLog';
@@ -17,13 +16,13 @@ import { StartOver } from './StartOver';
 
 /**
  * Log: yours. Where you are, the track that brought you there, what your
- * pours add up to, the ledger of what moved you, and — for a member —
- * comparing with someone. Its one action is Rate a drink; choosing one is
+ * pours add up to, and the ledger of what moved you. Comparing with someone
+ * is on your public map (a member's), which Log links to. Its one action is Rate a drink; choosing one is
  * Compass's. The account is Settings (your handle, in the header's Menu); a
  * guest, who has no Settings, finds Start over at the foot.
  *
  * From `lg` the coordinate, track and figures hold the sticky left column
- * while the ledger and compare scroll beside them; on a phone they stack.
+ * while the ledger scrolls beside them; on a phone they stack.
  *
  * This file draws; what it draws and what a tap does is `useLog`.
  */
@@ -36,26 +35,7 @@ function LogContent({
 }) {
   const { isEnabled, openSignIn } = useAtprotoContext();
   const log = useLog(register, member);
-  const { rate, isMember, profile, setProfile, pours, reload, history, follows, compare, name } = log;
-  const compareListboxId = useId();
-  const compareOpen = compare.suggestions.length > 0;
-
-  const onCompareSubmit = (e: SubmitEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    compare.submit();
-  };
-
-  const onCompareKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (!compareOpen) return;
-    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
-      e.preventDefault();
-      compare.moveActive(e.key === 'ArrowDown' ? 1 : -1);
-    } else if (e.key === 'Escape') {
-      e.preventDefault();
-      compare.closeSuggestions();
-    }
-  };
-
+  const { rate, isMember, profile, setProfile, pours, reload, history, name } = log;
   // Rating opens over this screen, with or without a coordinate yet.
   const sheet = (
     <RateSheet
@@ -173,117 +153,14 @@ function LogContent({
             />
           </section>
 
-          {/* Comparing: a member's only, since the distance is measured from your map on your account. */}
-          {isMember && (
-            <section className="mt-10">
-              <h2 className="section-title">{logPage.compareTitle}</h2>
-              {follows.length > 0 && (
-                <ul className="mt-1">
-                  {follows.map((f) => (
-                    <li key={f.did} className="border-b border-border py-3">
-                      <a href={f.path} className="group block">
-                        <div className="dot-leader">
-                          <span className="font-serif text-prose font-bold text-foreground group-hover:underline group-hover:underline-offset-4">
-                            @{f.handle}
-                          </span>
-                          <span aria-hidden="true" className="leader" />
-                          <span className="shrink-0 font-condensed text-meta text-secondary">{f.region}</span>
-                        </div>
-                        <p className="mt-0.5 text-meta text-muted-foreground">
-                          {f.description}
-                          {f.theirs ? ` · ${logPage.followsContrast(name(f.theirs))}` : ''}
-                        </p>
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              )}
-
-              <form onSubmit={onCompareSubmit} className="mt-4 flex flex-col gap-2">
-                <p className="text-meta text-muted-foreground">{logPage.compareHint}</p>
-                <div className="relative flex gap-2">
-                  <label className="flex flex-1 flex-col">
-                    <span className="sr-only">{logPage.compareLabel}</span>
-                    <input
-                      value={compare.query}
-                      onChange={(e) => compare.setQuery(e.target.value)}
-                      onKeyDown={onCompareKeyDown}
-                      onBlur={compare.closeSuggestions}
-                      placeholder={logPage.comparePlaceholder}
-                      autoComplete="off"
-                      autoCapitalize="none"
-                      autoCorrect="off"
-                      spellCheck={false}
-                      inputMode="url"
-                      role="combobox"
-                      aria-autocomplete="list"
-                      aria-expanded={compareOpen}
-                      aria-controls={compareListboxId}
-                      aria-activedescendant={
-                        compareOpen && compare.activeIndex >= 0
-                          ? `${compareListboxId}-opt-${compare.activeIndex}`
-                          : undefined
-                      }
-                      className="field min-h-11"
-                    />
-                  </label>
-                  <button type="submit" className="btn btn-outline shrink-0 px-4">
-                    {logPage.compareSubmit}
-                  </button>
-
-                  {compareOpen && (
-                    <ul
-                      id={compareListboxId}
-                      role="listbox"
-                      aria-label={logPage.compareSuggestionsLabel}
-                      onMouseDown={(e) => e.preventDefault()}
-                      className="absolute inset-x-0 top-full z-10 mt-1 max-h-60 overflow-y-auto border border-foreground bg-card shadow-bar"
-                    >
-                      {compare.suggestions.map((suggestion, index) => (
-                        <li
-                          key={suggestion.did}
-                          id={`${compareListboxId}-opt-${index}`}
-                          role="option"
-                          aria-selected={index === compare.activeIndex}
-                          onMouseEnter={() => compare.setActive(index)}
-                          onClick={() => compare.choose(suggestion)}
-                          className={cn(
-                            'flex cursor-pointer items-center gap-3 border-b border-border px-3 py-2.5 last:border-b-0',
-                            index === compare.activeIndex ? 'bg-muted' : 'hover:bg-muted'
-                          )}
-                        >
-                          {suggestion.avatar ? (
-                            <img
-                              src={suggestion.avatar}
-                              alt=""
-                              loading="lazy"
-                              decoding="async"
-                              referrerPolicy="no-referrer"
-                              className="h-8 w-8 shrink-0 rounded-full bg-muted object-cover"
-                            />
-                          ) : (
-                            <span
-                              aria-hidden="true"
-                              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-border bg-muted font-condensed text-meta font-bold uppercase text-foreground"
-                            >
-                              {(suggestion.displayName || suggestion.handle).charAt(0)}
-                            </span>
-                          )}
-                          <span className="flex min-w-0 flex-1 flex-col">
-                            {suggestion.displayName && (
-                              <span className="truncate font-serif text-ui font-bold text-foreground">
-                                {suggestion.displayName}
-                              </span>
-                            )}
-                            <span className="truncate text-meta text-muted-foreground">@{suggestion.handle}</span>
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-              </form>
-            </section>
+          {/* Comparing is on your public map, where theirs and yours are drawn together. */}
+          {member && (
+            <a
+              href={`${publicMapPath(member.handle ?? member.did)}#compare`}
+              className="link-caps mt-6 text-secondary hover:underline hover:underline-offset-4"
+            >
+              {logPage.compareLink} &rarr;
+            </a>
           )}
 
           {/* A guest, once a pour is here to keep: what signing in buys, under the log it would keep. */}

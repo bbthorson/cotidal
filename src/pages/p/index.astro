@@ -1,0 +1,15 @@
+---
+import { publicMapPath } from '../../lib/atproto/paths';
+
+/**
+ * Where the compare form on your public map posts: `/p?handle=friend.bsky.social`
+ * answers with that person's map, `/p/<handle>`, which draws your dot beside
+ * theirs. A plain GET form, so comparing needs no script. A handle that does
+ * not resolve is that page's 404, not this one's.
+ */
+export const prerender = false;
+
+const handle = (Astro.url.searchParams.get('handle') ?? '').normalize('NFKC').trim().replace(/^@/, '');
+if (!handle || /[\s/?#]/.test(handle)) return Astro.redirect('/settings#map', 303);
+return Astro.redirect(publicMapPath(handle), 303);
+---

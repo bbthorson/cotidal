@@ -175,7 +175,8 @@ Everything works signed out, on the device; signing in moves the record into the
 | **Compass** | Before a position: the chart, **Find your coordinate**, and search when asked for. After: everything | Everything |
 | **A menu** (Compass) | Everything; the pick waits on the device | The same |
 | **Rating** | Moves the coordinate on this device; the pour is kept there (`guestPours`, `device-store.ts`) | Written to the member's repository |
-| **Log** | Coordinate, track and pours, marked *On this device*; what signing in keeps, once there is a pour; start over. No compare: the distance is measured from a map on an account | Coordinate, track, pours, and compare (follows + handle lookup) |
+| **Log** | Coordinate, track and pours, marked *On this device*; what signing in keeps, once there is a pour; start over | Coordinate, track, pours, and a link to compare on your public map |
+| **Your public map** (`/p/<handle>`) | — | Your map, your link, and **Compare palates**: people you follow who have a map (read on the server within a budget) and a handle form (`GET /p?handle=`) |
 | **Settings** | — (sends a guest to `/sign-in`) | Who you are and Sign out; your public map and Share to your feed; chat assistants; start over |
 | **Rating sheet** | The same form; the pour stays on the device | Written to the member's repository; the detail fields and cross-posting |
 
@@ -184,9 +185,9 @@ Signing out forgets the device's copy (`forgetDevice`), on whichever app page it
 
 ## Log (`/log`, `LogScreen.tsx`)
 
-Yours: where you are, the way you came, what moved you, and who to compare with. It opens with its `ScreenHeader` ("Your log" + primary **Rate a drink** button), then where you are (region and coordinate; "On this device" for a guest), **your track** (`TrackFigure`), what the log adds up to (pours, bars, moved in all, since; nothing before the first pour, where the log's own empty line says it) and EKF tolerances once trained, the log itself, and for a member **Compare palates** (followed friends + Bluesky handle typeahead). A guest finds Start over at the foot (`StartOver.tsx`). The account — public map, share, assistants, start over, sign out — is `/settings`, reached by your handle in the header. Log is also where a link from outside the app (a chat assistant's draft) lands.
+Yours: where you are, the way you came, what moved you, and who to compare with. It opens with its `ScreenHeader` ("Your log" + primary **Rate a drink** button), then where you are (region and coordinate; "On this device" for a guest), **your track** (`TrackFigure`), what the log adds up to (pours, bars, moved in all, since; nothing before the first pour, where the log's own empty line says it) and EKF tolerances once trained, the log itself, and for a member a link to **Compare palates** on their public map (`/p/<handle>#compare`), where both dots are drawn. A guest finds Start over at the foot (`StartOver.tsx`). The account — public map, share, assistants, start over, sign out — is `/settings`, reached by your handle in the header. Log is also where a link from outside the app (a chat assistant's draft) lands.
 
-From `lg` where you are, the track and the figures hold the left column (sticky) while the log and compare scroll beside them, in AppShell's `frame` width; on a phone they stack, track first.
+From `lg` where you are, the track and the figures hold the left column (sticky) while the log scrolls beside them, in AppShell's `frame` width; on a phone they stack, track first.
 
 **The track** (`TrackFigure.tsx`, `useTrack`, `src/lib/track.ts`) is never stored. It is replayed from your latest quiz's answers (the account's for a member, the device's copy for a guest; the centre for a guest who tried a pour first) through every pour since, by the same `applyPour` that moved you, and drawn only when the replay lands where you are. The figure is zoomed to the track so a half-point move shows: a square where you started, a dot per pour that moved you, numbered as the log numbers them, and you at the end.
 

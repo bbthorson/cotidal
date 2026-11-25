@@ -144,16 +144,8 @@ export const logPage = {
     tannin: 'Structure',
     complexity: 'Complexity',
   },
-  /** Comparing with someone: a member's, since the distance needs your own map on your account. */
-  compareTitle: 'Compare palates',
-  compareHint: 'Type any Bluesky handle to see the distance between your charts.',
-  compareLabel: 'Friend’s Bluesky handle',
-  comparePlaceholder: 'friend.bsky.social',
-  compareSubmit: 'Compare',
-  compareSuggestionsLabel: 'Matching Bluesky accounts',
-  /** Bluesky follow-graph intersection on `/log`, shown only when at least one follow has a palate. */
-  followsTitle: 'People you follow on the chart',
-  followsContrast: (drink: string) => `They’d order ${drink}`,
+  /** Under the log, for a member: comparing is on your public map. */
+  compareLink: 'Compare palates on your public map',
 } as const;
 
 /** The rating sheet, over Compass or Log: one pour, rated, and where the coordinate went. */
@@ -217,7 +209,7 @@ export const settings = {
 
   mapTitle: 'Your map',
   publicMap: 'Public map',
-  publicMapBody: 'Your coordinate at a link anyone can open. Signed-in visitors see theirs beside it.',
+  publicMapBody: 'Your coordinate at a link anyone can open, and where you compare with people you follow.',
   open: 'Open',
   share: 'Share to your feed',
   shareBody: 'A Bluesky post with your region, the drink nearest you, and the link.',
@@ -851,6 +843,14 @@ export const publicMap = {
   unavailableBody: 'Their server did not respond in time. Try again in a moment.',
   description: (name: string, region: string) => `@${name}’s palate lands in ${region}. Where does yours?`,
   plotLabel: (who: string) => `${who} on the palate map`,
+  /** On your own map: comparing with someone. Opening theirs draws your dot beside it. */
+  compareTitle: 'Compare palates',
+  followsLede: 'People you follow who have a coordinate, nearest first.',
+  followsContrast: (drink: string) => `They’d order ${drink}`,
+  compareHint: 'Or type any Bluesky handle to see the distance between your maps.',
+  compareLabel: 'A Bluesky handle',
+  comparePlaceholder: 'friend.bsky.social',
+  compareSubmit: 'Compare',
 } as const;
 
 /**
