@@ -6,12 +6,18 @@ is about the code.
 
 ## Rendering: keep the front door static
 
-`/` is pure Astro with **zero client JavaScript**, and so is `/p/<handle>`
+Every page is one of two templates (`docs/design-system.md`, Two kinds of
+page): the map and its card (`MapScreen`, `MapPage.astro`), or a reading
+column (`AppShell` and `PageTitle`).
+`/` is the map with **zero client JavaScript** — a sample palate gaining
+ratings (`sample-palate.ts`, frames from the terrain code, animated in CSS)
+and the card (`MapPage.astro`) — and so is `/p/<handle>`
 (a link sent to a stranger, and where a member compares with people they
 follow: a server-read follows list and a plain GET form). `/sign-in` renders a plain form post that works
 with JavaScript off and progressively enhances it via `<bsky-sign-in>` (zero
 React). `/` asks one thing — find your coordinate — and keeps nothing else:
-sign-in is its own page. The app is one screen, `/map`; it and `/questions`
+pulled up, its card says how it works and links to sign-in, which is its own
+page. The app is one screen, `/map`; it and `/questions`
 mount React islands.
 
 The whole app was previously one `client:only` island, so nothing painted
@@ -19,7 +25,10 @@ until ~860 KB of JavaScript had downloaded and hydrated — on every route,
 landing page included. Astro was being used as a slower Next.js.
 
 - Prefer `.astro` for anything without state. Reach for an island only when
-  something genuinely needs to be interactive, and scope it tightly.
+  something genuinely needs to be interactive, and scope it tightly. A page
+  that shows the map is `MapPage.astro`, which renders the same React
+  `MapScreen` and `PalateMap` that `/map` hydrates, on the server with no
+  directive: one copy of the map, and still no script.
 - Prefer `client:load` over `client:only` so the shell server-renders.
 - The header is the same on every page: wordmark · Menu on a phone (the map,
   the visible reading pages, then the account), the nav and the account control from
@@ -136,8 +145,14 @@ of a drink with no match is kept, and moves nothing but its deviations.
 (`PalateMap.tsx` — the plane, your terrain as shading and contour lines,
 every drink, your pours with your rating), the search in the header, and one
 card for everything else. The map never pans, zooms or moves when something
-opens: what changes is what is drawn on it. Where it sits, its contours and
-which drinks get a label are plain functions (`map-draw.ts`). The card holds
+opens: what changes is what is drawn on it. Where a drink sits on it, its
+contours and shading and which drinks get a label are plain functions
+(`map-draw.ts`, `ground-masks.ts`). It is drawn to scale (an SVG in map
+units, with the marks and labels laid over it in percentages), so the server
+draws it whole and `/map` paints before its script arrives; the screen's
+geometry is CSS. Every page that shows the map uses one layout,
+`MapScreen.tsx` (`live` on `/map`, `static` on a page with no script), and
+an Astro page renders it with no directive rather than keeping its own copy. The card holds
 where to next (your menu, your bars, bars near you, your pours, your track),
 a drink, a bar's menu, or rating a pour; on a phone it rests under the map
 and is pulled up over it by its head, and from `lg` it is a panel down the
@@ -262,7 +277,13 @@ An Astro content collection behind `/drinks`, prerendered and script-free.
 Drink pages are built for SEO/AEO rather than homepage discovery by
 unauthenticated visitors (`memberOnly: true` in `site-nav.ts`): each
 `/drinks/<slug>` page emits Schema.org `Recipe` JSON-LD and a compare-to-palate
-section linking to `/map?drink=<slug>` and `/questions`.
+section whose one link, `/questions?drink=<slug>` (`questionsForDrink`), places
+a stranger and then opens the drink on their map — or, for anyone with a
+coordinate already, goes straight to `/map?drink=<slug>`.
+Every drinks page is a map page (`MapPage.astro`): the map with the drink
+marked, its neighbours named (`neighboursOf`) and its region washed, the tide
+turning behind it, and the entry in the card. No terrain: the page does not
+know who is reading.
 
 Two rules make it safe to grow. **Frontmatter carries no coordinates** — an
 entry joins to `drinkDatabase` by `name`, so the map stays the one place a
@@ -292,7 +313,8 @@ npm run test:unit -- tests/unit/drink-content.test.ts
 ### Region prose — `src/content/regions/`, `src/pages/drinks/regions/[id].astro`
 **A region is a filter on the drinks**, not a page of its own:
 `/drinks/regions/<id>` (`regionPath`) is `/drinks` narrowed to one region,
-with `RegionFilter` across the top, the drinks first and the region's prose
+on the map with the region washed and its drinks named, and in the card
+`RegionFilter` across the top, the drinks first and the region's prose
 under them. Prerendered and script-free. There is no Regions item in the
 navigation (`RegionFilter` marks the active region). Same format as a drink
 (`documented` required, `claimed`, `sources`), one entry per region, and the
@@ -357,7 +379,7 @@ in front of a server that would have signed people in.
 `tests/auth-endpoint.spec.ts` holds the three to one answer.
 
 `public-read.ts` reads *other people's* palates with no session, for
-`/p/<handle>` — handle → DID → document → PDS → record. It runs on a public
+`/p/<handle>` (a map page: their point, and a signed-in visitor's beside it) — handle → DID → document → PDS → record. It runs on a public
 route, so it fetches only `https:` hosts, time-boxes every lookup, and parses
 the record down to the fields the page draws. The DID document is checked and
 read by `@atproto/did` (`didDocumentValidator`, `extractAtprotoData`), not a

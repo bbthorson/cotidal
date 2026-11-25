@@ -377,3 +377,194 @@ bsky-sign-in[data-state='error'] input[name='handle'] {
     @apply bg-background text-foreground;
   }
 }
+
+/* The map screen (MapScreen.tsx): the map fixed in place and one card. Its
+   geometry is here rather than measured, so the server lays the screen out
+   whole and nothing moves when the page's script arrives.
+
+   - live (/map): the screen fills the window under the header. On a phone the
+     plane is as wide as the screen and the card rests in the space under it
+     (`--map-side` is the plane's side), pulled up over it by its head
+     (`data-up`). From `lg` the card is a panel down the left.
+   - static (the reading pages, no script): on a phone the plane stays at the
+     top as the page scrolls and the card scrolls up over it, so pulling the
+     card up is scrolling the page. From `lg`, as live, and the card scrolls. */
+@layer components {
+  .map-region {
+    display: grid;
+    place-items: center;
+    overflow: clip;
+    container-type: size;
+  }
+  .map-plane {
+    width: min(100cqw, 100cqh);
+    aspect-ratio: 1;
+  }
+
+  .map-screen-live {
+    position: relative;
+    flex: 1 1 0%;
+    min-height: 0;
+    overflow: hidden;
+    container-type: size;
+    --map-side: clamp(220px, calc(100cqh - 200px), 100cqw);
+  }
+  /* The questions: the card holds a question and its plates, so the map gives way. */
+  .map-screen-live[data-rest='tall'] {
+    --map-side: clamp(160px, calc(100cqh - 470px), 100cqw);
+  }
+  .map-screen-live > .map-region {
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: var(--map-side);
+  }
+  .map-screen-live > .map-card {
+    position: absolute;
+    inset: auto 0 0 0;
+    height: calc(100cqh - var(--map-side));
+    transition: height 300ms;
+  }
+  .map-screen-live > .map-card[data-up] {
+    height: calc(100cqh - 0.5rem);
+  }
+
+  .map-screen-static > .map-region {
+    position: sticky;
+    top: 0;
+    height: min(100vw, calc(100svh - 17rem));
+  }
+  @media (max-width: 1023px) {
+    .map-screen-static[data-rest='tall'] > .map-region {
+      height: min(100vw, calc(100svh - 24rem));
+    }
+  }
+  .map-screen-static > .map-card {
+    position: relative;
+    min-height: calc(100svh - 3rem);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .map-screen-live > .map-card {
+      transition: none;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .map-screen-static {
+      position: relative;
+      flex: 1 1 0%;
+      min-height: 0;
+      overflow: hidden;
+    }
+    .map-screen-live > .map-region,
+    .map-screen-static > .map-region {
+      position: absolute;
+      inset: 0;
+      height: auto;
+      /* Clear of the panel: its width and the ground either side of it. */
+      padding: 1rem 1rem 1rem 26rem;
+    }
+    .map-screen-live > .map-card,
+    .map-screen-live > .map-card[data-up],
+    .map-screen-static > .map-card {
+      position: absolute;
+      inset: 1rem auto 1rem 1rem;
+      width: 24rem;
+      height: auto;
+      min-height: 0;
+      transition: none;
+    }
+  }
+
+  /* Text on the map, laid on a halo of the chart's own paper so a line or a
+     mark under it cannot cut it: the HTML counterpart of `.paint-card`. */
+  .halo-card {
+    text-shadow:
+      1.5px 0 hsl(var(--card)),
+      -1.5px 0 hsl(var(--card)),
+      0 1.5px hsl(var(--card)),
+      0 -1.5px hsl(var(--card)),
+      1px 1px hsl(var(--card)),
+      -1px -1px hsl(var(--card)),
+      1px -1px hsl(var(--card)),
+      -1px 1px hsl(var(--card));
+  }
+
+  /* The tide turning about the map's zero point, the amphidrome: high water
+     sweeping round anticlockwise, as it does about a northern amphidrome.
+     The one motion on a page with nothing of yours to draw; still for anyone
+     who asks for less motion. */
+  .tide-sweep {
+    position: absolute;
+    inset: -50%;
+    background: conic-gradient(
+      from 0deg,
+      hsl(var(--secondary) / 0) 0deg,
+      hsl(var(--secondary) / 0.08) 50deg,
+      hsl(var(--secondary) / 0.03) 100deg,
+      hsl(var(--secondary) / 0) 150deg
+    );
+    animation: tide-turn 48s linear infinite reverse;
+  }
+  @keyframes tide-turn {
+    to {
+      transform: rotate(1turn);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .tide-sweep {
+      animation: none;
+    }
+  }
+
+  /* A palate told in steps (the front door's sample, `sample-palate.ts`):
+     six frames, each held for a sixth of the cycle and faded into the next,
+     each frame's delay set by the map (FRAME_SECONDS). For anyone who asks
+     for less motion, only the last frame, held. */
+  .tide-frame {
+    opacity: 0;
+    animation: tide-frame 30s infinite both;
+  }
+  @keyframes tide-frame {
+    0% {
+      opacity: 0;
+    }
+    3% {
+      opacity: 1;
+    }
+    16.7% {
+      opacity: 1;
+    }
+    19.7% {
+      opacity: 0;
+    }
+    100% {
+      opacity: 0;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .tide-frame {
+      animation: none;
+    }
+    .tide-frame[data-last] {
+      opacity: 1;
+    }
+  }
+}
+
+/* Moving between pages that show the map (a drink, the next drink, the
+   front door, the questions), the map holds still and the card's contents
+   change, so the site reads as one screen. A same-origin navigation the
+   browser animates itself: no script. A browser without view transitions
+   simply loads the next page. */
+@view-transition {
+  navigation: auto;
+}
+.map-region {
+  view-transition-name: map;
+}
+@media (prefers-reduced-motion: reduce) {
+  @view-transition {
+    navigation: none;
+  }
+}

@@ -106,6 +106,8 @@ export const explore = {
   title: 'Map',
   /** The map, read aloud. */
   mapLabel: 'Your map: every drink at its place, on the ground your answers and ratings make',
+  /** The same map on a page that draws nobody's taste: a drink's, the front door. */
+  chartLabel: 'The map: every drink at its place, rich to crisp and savory to sweet',
   /** The card, read aloud. */
   cardLabel: 'Where to next',
   /** The card's handle, read aloud, and its words on a phone. */
@@ -271,6 +273,16 @@ export const hero = {
   primaryCta: 'Find your coordinate',
   /** Stated under the one primary action, so the cost is known up front. */
   cost: 'About two minutes · no account needed',
+  /** A member at the front door already has a map: the one action opens it. */
+  memberCta: 'Open your map',
+  /** The card's head: what the map behind it is (`sample-palate.ts`), so nobody takes it for theirs. */
+  sampleLabel: 'A sample palate, rated as it goes',
+  /** Under the fold of the card, pulled up: how it works, briefly, then the whole account. */
+  howTitle: 'How it works',
+  howMore: 'How it works, in full',
+  /** Then signing in, for someone who has a map on another device. */
+  signInTitle: 'Already have a map?',
+  signInBody: 'Sign in with Bluesky and it comes with you: your coordinate and your pours are kept in your own account.',
 } as const;
 
 export const quadrants = [
@@ -369,7 +381,7 @@ export const quiz = {
   countJoiner: 'of about',
   loading: 'Locating your coordinate…',
   /** The small chart over the running foot: where the answers so far put you, and how surely. */
-  narrowing: 'Where your answers point so far',
+  narrowing: 'On the map: where your answers point so far',
 } as const;
 
 /** The reveal: the one screen where the product says who you are. */
@@ -514,9 +526,10 @@ export const drinks = {
   compareLabel: 'Your palate',
   compareTitle: (title: string) => `See how ${title} fits your palate.`,
   compareBody:
-    'Every drink on the chart has a coordinate. Place yours to see how close this pour sits to your taste, or open it on your map if you already have one.',
-  compareMapCta: 'See it on your map',
-  compareQuizCta: 'Find your coordinate',
+    'Every drink on the chart has a coordinate. Your map opens on this one; with no coordinate yet, a few questions place you first.',
+  compareCta: 'See where it sits for you',
+  /** Under a drink's entry: the drinks nearest it on the map. */
+  nearLabel: 'Near it on the map',
 } as const;
 
 /**

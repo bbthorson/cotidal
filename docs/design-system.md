@@ -152,9 +152,30 @@ Navigation is unified across the entire site through `<SiteHeader.astro>` and `<
 15. **Nothing smaller than 13px is prose.** `text-label` (12px) is for condensed caps only. A note or citation under an item is `text-meta` in PT Sans; an italic gloss is Playfair at `text-ui`.
 16. **The eyebrow is the name of the way in.** The small caps line over a title is the label of the nav item, tab or button that opens the page — Drinks, Regions, For bars, Chat assistants, Public map, Rate a drink — and a page about one item adds what kind of item after a middle dot (`Drinks · Aperitivo`, `Regions · Rich and savory`). The landing page has none, and nor does an app tab's screen, whose tab is already marked current on the same screen (rule 11). Write it in sentence case in `copy.ts`; the caps are CSS.
 
+## Two kinds of page
+
+Every page is one of two templates, built from shared parts so a new page
+picks one rather than laying itself out:
+
+- **The map and its card** (`MapScreen.tsx`; `MapPage.astro` for a page with
+  no script). Any page that is about a place on the map, or explains it: the
+  front door, the drinks and the region filters, a drink, someone's public
+  map, how it works, sign-in, and the two app screens, `/map` and
+  `/questions`. The card opens with `CardHead` (a caps line saying what the
+  card holds, and at most one control) and, on a static page, `CardTitle`
+  (the title and its lede at the card's size); its foot is the site footer.
+  The map says what it draws in its accessible name: "your map" on `/map`,
+  the map itself (`explore.chartLabel`) where it draws nobody's.
+- **A reading column** (`AppShell` with a `width`, opening with
+  `PageTitle`): pages that are forms or records rather than places — Settings,
+  For bars, Chat assistants, a bar's own page, the coasters.
+
+Moving between map pages, the map holds still (`view-transition-name: map`,
+CSS only), so the site reads as one screen.
+
 ## The app as a chart
 
-The screens show what the model already knows instead of describing it: your terrain on the map (where your answers and ratings are high and low, and how sure), what put each drink where it stands, your track in the card, how far a pour moved you after it, and the shoal narrowing under the questions (`Narrowing` in `Questionnaire.tsx`: the quiz's best guess, one standard deviation across on each axis, drawn small at the foot so a phone shows the question whole). The question's stage is its eyebrow; there is no row of stages at the foot, because after the four fixed openers the questions do not come in stage order.
+The screens show what the model already knows instead of describing it: your terrain on the map (where your answers and ratings are high and low, and how sure), what put each drink where it stands, your track in the card, how far a pour moved you after it, and the shoal narrowing on the map while the questions run in the card over it (`PalateMap`'s `shoal`, drawn by `Questions.tsx`: the quiz's best guess, one standard deviation across on each axis). The question's stage is its eyebrow; there is no row of stages at the foot, because after the four fixed openers the questions do not come in stage order.
 
 **Signed out is one thing per screen.** A stranger is asked to do one thing: find their coordinate. A guest with a coordinate sees what a member sees; what signing in keeps is said once, at the foot of Your map, after the first pour — the first moment it would keep something.
 
@@ -162,7 +183,7 @@ The screens show what the model already knows instead of describing it: your ter
 
 ## The first-visit flow (`/questions`)
 
-Questions → reveal → the map. The questions are a page of their own (`Questions.tsx`). Someone who already has a coordinate is sent on to the map — the landing page's "Find your coordinate" is the same link for everyone — unless they came to start over (`/questions?startover=1`, from `/settings` for members or the foot of the map's card for guests), which clears the device's copy first. Skipping goes to the map, whose card says there is no position yet and offers the questions first, rather than ranking drinks around a point nobody chose; the search works all the same.
+Questions → reveal → the map. The questions run in the card over the map (`Questions.tsx` on `MapScreen`): the shoal narrows on the map as they are answered, and when they finish the point settles there while the card turns to the reveal on its ink ground. On a phone the header steps aside (`data-focus-mode`) and the map gives the card room (`rest="tall"`). From a drink's page (`/questions?drink=<slug>`) they finish on that drink on the map. Someone who already has a coordinate is sent on to the map — the landing page's "Find your coordinate" is the same link for everyone — unless they came to start over (`/questions?startover=1`, from `/settings` for members or the foot of the map's card for guests), which clears the device's copy first. Skipping goes to the map, whose card says there is no position yet and offers the questions first, rather than ranking drinks around a point nobody chose; the search works all the same.
 
 Sign-in is offered where it would keep something, as one sheet (`SignInSheet.tsx`, mounted once by `AtprotoProvider`, backed by `createSignInController` with remembered accounts, handle typeahead and in-flow account creation); the sign-in page (`ConnectForm.astro`, `/sign-in`) mirrors it via `<bsky-sign-in>` progressive enhancement over a plain form post, followed by `connect.buys` and `Principles`. The radar chart, the archetypes and the Oracle tab are retired from the interface; the region is the only identity.
 
@@ -190,6 +211,10 @@ The app on one screen (`docs/map-first.md`): **the map**, fixed in place as the 
 **The map** (`PalateMap.tsx`, `map-draw.ts`): the plane in a frame on a ruled ground that runs to the window's edges; the four regions named in italic like seas, as names for parts of the map, never for you; the axis words; **your terrain** (`terrain.ts`) as a wash — sage rising to forest where your answers and ratings are high, a terracotta wash where you rated low, paler where nothing you rated supports it — with its contour lines dashed like a chart's co-range lines; every drink as a small ring; and your pours, terracotta, filled at 7 or more, named with your rating ("Negroni · 9"). Labels are placed by what matters (the open drink, a bar's pins, your pours) and left out where they would overlap; every drink is still in the card's lists and the search. A tap takes the nearest mark within reach. Your point is not drawn: the terrain is your taste on the map.
 
 On a phone the map is the full width under the header and the card rests in the space below it; from `lg` the card is a panel down the left and the map fills the rest.
+
+**Drawn by the server, to scale.** The plane is one SVG whose viewBox is the map itself, so it is drawn at any size without measuring; the terrain's shading is three alpha masks (`ground-masks.ts`, PNGs written in `png.ts`) filled with token colours, so the server needs no canvas and no theme. What must keep its size on any screen — the marks, the labels, the region names and axis words — is HTML laid over the plane in percentages (`planePercent`), on a halo of the card's paper (`.halo-card`). Only which labels fit depends on the plane's size in pixels: the server places them for `NOMINAL_SIDE` (a phone), and `/map` places them again once measured. The screen's geometry — where the plane sits, where the card rests — is CSS (`.map-screen-*` in `globals.css`), so the page arrives laid out and nothing moves when the script does.
+
+**One layout for every map page** (`MapScreen.tsx`, with `CardHead`): the map and one card. `live` is `/map`, where the card is pulled up by its head; `static` is a page with no script, where on a phone the map stays at the top as the page scrolls the card up over it — the pull is a scroll. A static page renders the same React components on the server with no directive, so the map and the card are one copy, not an Astro twin of each.
 
 **The card.** Its head is the same line whatever it holds — what your map says about you in the axes' words ("You lean *crisp and sweet · rich and savory*", `leanings`), or "No position yet" — and on a phone it is the handle: dragged or tapped (**More**, **Less**) to pull the card up over the map and let it down. Its body scrolls on its own. It holds one of:
 

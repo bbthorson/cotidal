@@ -1,17 +1,8 @@
 import { describe, expect, test } from 'vitest';
-import { contour, fitPlane, PLANE_EDGE, placeLabels, toScreen, type LabelWant } from '@/lib/map-draw';
+import { inflateSync } from 'node:zlib';
+import { contour, contourPath, groundShade, PLANE_EDGE, placeLabels, planePercent, type LabelWant } from '@/lib/map-draw';
+import { groundMasks } from '@/lib/ground-masks';
 import { buildTerrain, sampleTerrain } from '@/lib/terrain';
-
-describe('the plane', () => {
-  test('is the largest square that fits, centred, and a coordinate lands where the scale says', () => {
-    const fit = fitPlane({ left: 0, top: 64, width: 390, height: 500 });
-    expect(fit.scale * 2 * PLANE_EDGE).toBeCloseTo(390, 9);
-    expect(toScreen(fit, 0, 0)).toEqual({ x: 195, y: 64 + 250 });
-    // Up on the map is up on the screen.
-    expect(toScreen(fit, 0, 5).y).toBeLessThan(toScreen(fit, 0, -5).y);
-    expect(toScreen(fit, 5, 0).x).toBeGreaterThan(toScreen(fit, -5, 0).x);
-  });
-});
 
 describe('contours', () => {
   test('a single hill gives a ring: every point on the line sits about as far from its top', () => {
@@ -63,5 +54,72 @@ describe('labels', () => {
   test('a label that would run off the plane goes to the other side', () => {
     const [placed] = placeLabels([want('edge', 390, 1)], bounds);
     expect(placed.side).toBe('left');
+  });
+});
+
+describe('drawn to scale', () => {
+  test('a coordinate sits in the plane box by percent: the centre in the middle, up is sweet', () => {
+    expect(planePercent(0, 0)).toEqual({ left: 50, top: 50 });
+    expect(planePercent(-PLANE_EDGE, PLANE_EDGE)).toEqual({ left: 0, top: 0 });
+    expect(planePercent(PLANE_EDGE, -PLANE_EDGE)).toEqual({ left: 100, top: 100 });
+    expect(planePercent(0, 5).top).toBeLessThan(50);
+  });
+
+  test("a contour's path is the same line in the viewBox, y flipped", () => {
+    const t = buildTerrain({ x: 2, y: -3, variance: { x: 1, y: 1 } }, []);
+    const { step, rows } = sampleTerrain(t, 0.5);
+    const ratings = rows.map((r) => r.map((h) => h.rating));
+    const d = contourPath(ratings, step, 6.5);
+    const first = contour(ratings, step, 6.5)[0];
+    expect(d.startsWith(`M${first[0].toFixed(2)},${(-first[1]).toFixed(2)}`)).toBe(true);
+  });
+
+  test('the shading: sage on high ground, forest near the top, terracotta in a hollow, paler where unsupported', () => {
+    expect(groundShade({ rating: 5, sd: 0 })).toEqual({ rise: 0, top: 0, low: 0 });
+    const high = groundShade({ rating: 8.8, sd: 0 });
+    expect(high.rise).toBeCloseTo(0.9);
+    expect(high.top).toBeGreaterThan(0);
+    expect(groundShade({ rating: 3, sd: 0 }).low).toBeCloseTo(0.28);
+    expect(groundShade({ rating: 8.8, sd: 3 }).rise).toBeLessThan(high.rise);
+  });
+
+  test('the masks are PNGs the server can write, one opacity per sample, the map\'s top row first', () => {
+    const t = buildTerrain({ x: 0, y: 8, variance: { x: 1, y: 1 } }, []);
+    const { rows } = sampleTerrain(t, 1);
+    const { rise } = groundMasks(rows);
+    const png = Buffer.from(rise.slice('data:image/png;base64,'.length), 'base64');
+    expect([...png.subarray(1, 4)].map((c) => String.fromCharCode(c)).join('')).toBe('PNG');
+    // IHDR: width and height, 8-bit grey with alpha.
+    expect(png.readUInt32BE(16)).toBe(rows[0].length);
+    expect(png.readUInt32BE(20)).toBe(rows.length);
+    expect(png[25]).toBe(4);
+    const idat = png.indexOf('IDAT');
+    const raw = inflateSync(png.subarray(idat + 4, idat + 4 + png.readUInt32BE(idat - 4)));
+    const row = 1 + 2 * rows[0].length;
+    const alphaAt = (i: number, j: number) => raw[j * row + 2 + 2 * i];
+    // The hill is at y = 8: near the image's top, not its foot.
+    const mid = (rows[0].length - 1) / 2;
+    expect(alphaAt(mid, 2)).toBeGreaterThan(alphaAt(mid, rows.length - 3));
+    expect(alphaAt(mid, 2)).toBe(Math.round(groundShade(rows[rows.length - 3][mid]).rise * 255));
+  });
+});
+
+describe('labels that yield', () => {
+  const want = (id: string, x: number, priority: number, yields = false): LabelWant => ({ id, x, y: 50, width: 40, height: 16, offset: 8, priority, yields });
+  const bounds = { x0: 0, y0: 0, x1: 300, y1: 100 };
+  const dot = { x0: 66, y0: 46, x1: 74, y1: 54 };
+
+  test('a neighbour\'s name stays off another drink\'s mark, on whichever side is clear', () => {
+    const [placed] = placeLabels([want('near', 60, 50, true)], bounds, [], [{ x0: 85, y0: 46, x1: 93, y1: 54 }]);
+    expect(placed.side).toBe('left');
+  });
+
+  test('the open drink is named over a mark all the same', () => {
+    expect(placeLabels([want('open', 60, 1000)], bounds, [], [dot])).toHaveLength(1);
+    expect(placeLabels([want('open', 60, 1000)], bounds, [], [{ x0: 85, y0: 46, x1: 93, y1: 54 }])[0].side).toBe('right');
+  });
+
+  test('nothing is written over what is kept clear: a region\'s name', () => {
+    expect(placeLabels([want('near', 60, 50, true)], bounds, [{ x0: 0, y0: 40, x1: 300, y1: 60 }])).toEqual([]);
   });
 });

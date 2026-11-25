@@ -53,6 +53,9 @@ export const signInHref = (currentPath: string) =>
 
 /** The questions that place a coordinate (`startOverPath` clears the old one first). */
 export const questionsHref = QUESTIONS_PATH;
+/** The questions, from a drink: they finish (or, with a coordinate already, go straight) on that drink on the map. */
+export const DRINK_PARAM = 'drink';
+export const questionsForDrink = (slug: string) => `${QUESTIONS_PATH}?${DRINK_PARAM}=${encodeURIComponent(slug)}`;
 
 /** Where a member manages their account, and where a page that cannot know sends everyone. */
 export const accountHref = '/settings';

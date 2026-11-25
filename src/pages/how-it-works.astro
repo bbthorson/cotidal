@@ -1,7 +1,8 @@
 ---
-import AppShell from '../layouts/AppShell.astro';
-import PageTitle from '../components/marketing/PageTitle.astro';
-import { howItWorks as copy, site } from '../lib/copy';
+import MapPage from '../layouts/MapPage.astro';
+import { PalateMap } from '../components/app/PalateMap';
+import { CardHead, CardTitle } from '../components/app/MapScreen';
+import { explore, howItWorks as copy, site } from '../lib/copy';
 import { questionsHref } from '../lib/site-nav';
 
 /**
@@ -10,14 +11,21 @@ import { questionsHref } from '../lib/site-nav';
  * they work today (docs/brand.md, Claims). The numbers in the copy are held
  * to the code's constants by tests/unit/how-it-works.test.ts.
  *
- * Prerendered, zero client JavaScript.
+ * On the map like every reading page that explains it (`MapPage`): the tide
+ * turning behind, the account in the card. Prerendered, zero client
+ * JavaScript.
  */
 ---
 
-<AppShell title={`${site.name} — ${copy.eyebrow}`} currentPath="/how-it-works" width="prose">
-  <div class="space-y-12 pb-6">
-    <PageTitle eyebrow={copy.eyebrow} title={copy.title} lede={copy.lede} />
+<MapPage title={`${site.name} — ${copy.eyebrow}`} currentPath="/how-it-works" label={copy.eyebrow}>
+  <PalateMap slot="map" label={explore.chartLabel} tide />
 
+  <CardHead slot="head">
+    <span class="label-caps">{copy.eyebrow}</span>
+  </CardHead>
+
+  <CardTitle title={copy.title} lede={copy.lede} />
+  <div class="space-y-10 pt-8">
     {copy.sections.map((section) => (
       <section id={section.id} class="scroll-mt-8 space-y-3">
         <h2 class="section-title">{section.title}</h2>
@@ -36,10 +44,8 @@ import { questionsHref } from '../lib/site-nav';
       </ul>
     </section>
 
-    <p>
-      <a href={questionsHref} class="btn btn-primary btn-lg px-8">
-        {copy.start}
-      </a>
-    </p>
+    <a href={questionsHref} class="btn btn-primary btn-lg w-full">
+      {copy.start}
+    </a>
   </div>
-</AppShell>
+</MapPage>

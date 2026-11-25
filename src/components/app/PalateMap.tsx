@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from 'react';
 import { drinkDatabase, type Drink } from '@/lib/data';
-import type { PourRecord } from '@/lib/atproto/records';
 import { axes, explore, quadrants } from '@/lib/copy';
-import { contour, PLANE_EDGE, placeLabels, toScreen, type LabelWant, type PlaneFit } from '@/lib/map-draw';
+import { contourPath, NOMINAL_SIDE, PLANE_EDGE, PLANE_VIEWBOX, placeLabels, planePercent, type LabelWant } from '@/lib/map-draw';
+import { groundMasks } from '@/lib/ground-masks';
+import type { QuadrantId } from '@/lib/quadrant';
 import { LIKED_AT } from '@/lib/scoring';
 import type { Height } from '@/lib/terrain';
 import { cn } from '@/lib/utils';
@@ -17,349 +18,578 @@ export interface Pin {
   rank: number;
 }
 
+/** The terrain sampled every `step` points (`sampleTerrain`). */
+export interface Ground {
+  step: number;
+  rows: Height[][];
+}
+
+/** The graticule's spacing, and how far past the plane it runs (the screen clips it). */
+const TICK = 2.5;
+const GRATICULE_REACH = 60;
+
+/** Where each region's name sits, and its quadrant's signs. */
+const REGION_AT: Record<QuadrantId, { x: number; y: number }> = {
+  eddy: { x: -1, y: 1 },
+  surf: { x: 1, y: 1 },
+  deep: { x: -1, y: -1 },
+  'salt-line': { x: 1, y: -1 },
+};
+
+const pct = (x: number, y: number) => {
+  const p = planePercent(x, y);
+  return { left: `${p.left}%`, top: `${p.top}%` };
+};
+
 /**
- * The map, fixed in place as the screen's background: the plane, your
- * terrain on it (green rising where your answers and ratings are high, a
- * terracotta wash where you rated low, paler wherever nothing you rated
- * supports it), its contour lines, every drink, and your pours with your
- * rating. With a bar open, its menu's drinks are numbered pins and every
- * other drink fades to a speck. It never pans or zooms: what changes is
- * what is drawn on it.
+ * The map: the plane, your terrain on it (green rising where your answers
+ * and ratings are high, a terracotta wash where you rated low, paler wherever
+ * nothing you rated supports it), its contour lines, every drink, and your
+ * pours with your rating. With a bar open, its menu's drinks are numbered
+ * pins and every other drink fades to a speck. It never pans or zooms: what
+ * changes is what is drawn on it.
  *
- * Measured after mount, so the server renders the space and nothing in it.
- * A tap selects the nearest mark within reach (a fingertip covers several
- * drinks, so the nearest wins); every drink is also in the card's lists and
- * the search, which is how a keyboard reaches them.
+ * Drawn to scale with its box, so the server draws it whole: the plane is one
+ * SVG in map units, and the marks, labels and names are laid over it in
+ * percentages, so they keep their size on any screen. Only which labels fit
+ * depends on the box's size in pixels: measured once the page runs, and
+ * `NOMINAL_SIDE` until then (or for good, on a page with no script).
+ *
+ * The same component draws `/map`, where a tap selects the nearest mark
+ * within reach (a fingertip covers several drinks, so the nearest wins), and
+ * the reading pages, where it draws a drink and its neighbours and nothing
+ * listens. Every drink is also in a list or the search, which is how a
+ * keyboard reaches them.
  */
 export function PalateMap({
-  fit,
-  width,
-  height,
-  ground,
-  pours,
-  pins,
-  emptyBar,
-  selected,
-  hover,
+  ground = null,
+  ratings,
+  frames,
+  pins = null,
+  emptyBar = false,
+  selected = null,
+  hover = null,
+  named,
+  region = null,
+  tide = false,
   onSelect,
-  name,
+  name = (n) => n,
+  label = explore.mapLabel,
+  shoal = null,
+  points,
+  children,
 }: {
-  fit: PlaneFit | null;
-  width: number;
-  height: number;
-  /** The terrain sampled every half point (`sampleTerrain`), or null with no coordinate. */
-  ground: { step: number; rows: Height[][] } | null;
-  /** Your latest pour of each drink. */
-  pours: Map<string, PourRecord>;
+  /** Your terrain, or null with no coordinate. */
+  ground?: Ground | null;
+  /** Your latest rating of each drink you have poured, by name. */
+  ratings?: ReadonlyMap<string, number>;
+  /**
+   * A palate told in steps, in place of `ground` and `ratings`: each frame's
+   * ground and ratings, shown in turn (`.tide-frame`), the last held for
+   * anyone who asks for less motion. The front door's sample.
+   */
+  frames?: readonly { ground: Ground; ratings: ReadonlyMap<string, number> }[];
   /** A bar's menu, placed: null when no bar is open. */
-  pins: Pin[] | null;
+  pins?: Pin[] | null;
   /** A bar is open and nothing on its menu is placed yet. */
-  emptyBar: boolean;
-  selected: string | null;
-  hover: string | null;
-  onSelect: (drinkName: string) => void;
-  name: (drinkName: string) => string;
+  emptyBar?: boolean;
+  selected?: string | null;
+  hover?: string | null;
+  /** More drinks to label, after the selected one: a drink page's neighbours. */
+  named?: readonly string[];
+  /** A region washed, as a drink page shows where its drink sits. */
+  region?: QuadrantId | null;
+  /** The tide turning about the centre, on a page that has nothing of yours to draw. */
+  tide?: boolean;
+  /** Listen for taps. Without it the map is a picture. */
+  onSelect?: (drinkName: string) => void;
+  name?: (drinkName: string) => string;
+  /** Its accessible name: "your map" on `/map`, the map itself on a page that draws nobody's. */
+  label?: string;
+  /**
+   * Where the questions' answers point so far: the shoal at their best guess,
+   * one standard deviation across on each axis (`rx`, `ry`), so it narrows as
+   * answers agree and stays wide when they do not.
+   */
+  shoal?: { x: number; y: number; rx: number; ry: number } | null;
+  /**
+   * People as points: the one the questions placed, settling when they
+   * finish; someone's public map, and yours beside it. Terracotta is yours,
+   * forest is someone else's (docs/design-system.md).
+   */
+  points?: readonly { x: number; y: number; label: string; caption?: string; tone: 'yours' | 'theirs' }[];
+  /** More of the plane, drawn over the ground and under the marks (in its viewBox). */
+  children?: ReactNode;
 }) {
-  const groundImage = useGroundImage(ground);
+  const box = useRef<HTMLDivElement>(null);
+  const side = useSide(box);
   const measure = useTextMeasure();
+  const maskId = `ground${useId().replace(/[^a-zA-Z0-9]/g, '')}`;
 
-  const marks = useMemo(() => {
-    if (!fit) return [];
-    const seen = new Map<string, number>();
-    const pinned = new Map(pins?.map((p) => [p.drink.name, p.rank]) ?? []);
-    return drinkDatabase.map((d) => {
-      let { x, y } = toScreen(fit, d.x, d.y);
-      const rank = pinned.get(d.name);
-      // Pins sharing a coordinate fan out, so each number can be read.
-      if (rank !== undefined) {
-        const key = `${d.x},${d.y}`;
-        const n = seen.get(key) ?? 0;
-        seen.set(key, n + 1);
-        if (n) {
-          x += Math.cos(n * 2.1) * 13;
-          y += Math.sin(n * 2.1) * 13;
+  const marks = useMemo(() => placeMarks(pins, ratings, side), [pins, ratings, side]);
+  const view: LabelView = { pins, selected, hover, named, name, measure, side };
+  const labels = useMemo(
+    () => placeMapLabels(marks, view),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `view` is these
+    [marks, pins, selected, hover, named, name, measure, side]
+  );
+  const steps = useMemo(
+    () =>
+      frames?.map((f) => {
+        const rated = placeMarks(null, f.ratings, side);
+        return { ground: f.ground, marks: rated.filter((m) => m.hedonic !== undefined), labels: placeMapLabels(rated, view) };
+      }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `view` is these
+    [frames, side, name, measure]
+  );
+
+  const tap = onSelect
+    ? (e: React.PointerEvent<HTMLDivElement>) => {
+        const rect = e.currentTarget.getBoundingClientRect();
+        const toPx = rect.width / (2 * PLANE_EDGE);
+        const px = e.clientX - rect.left;
+        const py = e.clientY - rect.top;
+        let best: MapMark | null = null;
+        let bestD = Infinity;
+        for (const m of marks) {
+          if (pins && m.rank === undefined) continue;
+          const d = Math.hypot((m.x + PLANE_EDGE) * toPx - px, (PLANE_EDGE - m.y) * toPx - py);
+          if (d < (m.rank !== undefined ? 20 : 16) && d < bestD) {
+            best = m;
+            bestD = d;
+          }
         }
+        if (best) onSelect(best.drink.name);
       }
-      return { drink: d, x, y, rank, hedonic: pours.get(d.name)?.rating.hedonic };
-    });
-  }, [fit, pins, pours]);
+    : undefined;
 
-  const labels = useMemo(() => {
-    if (!fit) return [];
-    const wants: LabelWant[] = [];
-    for (const m of marks) {
-      const isSel = m.drink.name === selected || m.drink.name === hover;
-      if (pins && m.rank === undefined && !isSel) continue;
-      const text = m.hedonic !== undefined && !pins ? explore.ratedMark(name(m.drink.name), m.hedonic) : name(m.drink.name);
-      const priority = isSel ? 1000 : m.rank !== undefined ? 500 - m.rank : m.hedonic !== undefined ? 100 + m.hedonic : 0;
-      if (priority <= 0) continue;
-      wants.push({ id: m.drink.name, x: m.x, y: m.y, width: measure(text), height: 16, offset: m.rank !== undefined ? 14 : 8, priority });
-    }
-    const edge = toScreen(fit, -PLANE_EDGE, PLANE_EDGE);
-    const far = toScreen(fit, PLANE_EDGE, -PLANE_EDGE);
-    const texts = new Map(wants.map((w) => [w.id, w]));
-    return placeLabels(wants, { x0: edge.x, y0: edge.y, x1: far.x, y1: far.y }).map((p) => {
-      const m = marks.find((k) => k.drink.name === p.id)!;
-      return { ...p, text: m.hedonic !== undefined && !pins ? explore.ratedMark(name(p.id), m.hedonic) : name(p.id), rated: m.hedonic !== undefined, pinned: m.rank !== undefined, first: m.rank === 1, width: texts.get(p.id)!.width };
-    });
-  }, [fit, marks, pins, selected, hover, name, measure]);
-
-  if (!fit || width === 0) return <div aria-hidden="true" className="absolute inset-0" />;
-
-  const at = (x: number, y: number) => toScreen(fit, x, y);
-  const tl = at(-PLANE_EDGE, PLANE_EDGE);
-  const side = 2 * PLANE_EDGE * fit.scale;
   const ticks: number[] = [];
-  for (let v = -40; v <= 40; v += 2.5) ticks.push(v);
-
-  const tap = (e: React.PointerEvent<SVGSVGElement>) => {
-    const box = e.currentTarget.getBoundingClientRect();
-    const px = e.clientX - box.left;
-    const py = e.clientY - box.top;
-    let best: (typeof marks)[number] | null = null;
-    let bestD = Infinity;
-    for (const m of marks) {
-      if (pins && m.rank === undefined) continue;
-      const d = Math.hypot(m.x - px, m.y - py);
-      if (d < (m.rank !== undefined ? 20 : 16) && d < bestD) {
-        best = m;
-        bestD = d;
-      }
-    }
-    if (best) onSelect(best.drink.name);
-  };
+  for (let v = -GRATICULE_REACH; v <= GRATICULE_REACH; v += TICK) ticks.push(v);
+  const frameStyle = (i: number) => ({ animationDelay: `${i * FRAME_SECONDS}s` });
+  const lastFrame = (i: number) => (steps && i === steps.length - 1 ? true : undefined);
 
   return (
-    <svg
-      width={width}
-      height={height}
+    <div
+      ref={box}
+      role="group"
+      aria-label={label}
       onPointerUp={tap}
-      aria-label={explore.mapLabel}
-      className="absolute inset-0 block touch-manipulation select-none"
+      className={cn('map-plane relative select-none', onSelect && 'touch-manipulation')}
     >
-      {/* The ground beyond the plane, ruled to the edges of the screen. */}
-      {ticks.map((v) => {
-        const p = at(v, v);
-        return (
-          <g key={v} aria-hidden="true" className="stroke-chart-axis" strokeWidth={0.5}>
-            {p.x > 0 && p.x < width && <line x1={p.x} y1={0} x2={p.x} y2={height} />}
-            {p.y > 0 && p.y < height && <line x1={0} y1={p.y} x2={width} y2={p.y} />}
-          </g>
-        );
-      })}
-
-      <rect x={tl.x} y={tl.y} width={side} height={side} className="fill-card" />
-      {groundImage && (
-        <image
-          href={groundImage}
-          x={at(-10 - ground!.step / 2, 0).x}
-          y={at(0, 10 + ground!.step / 2).y}
-          width={(20 + ground!.step) * fit.scale}
-          height={(20 + ground!.step) * fit.scale}
-          preserveAspectRatio="none"
-          opacity={pins ? 0.4 : 1}
-        />
-      )}
-      {ground && (
-        <g aria-hidden="true" fill="none" opacity={pins ? 0.4 : 1}>
-          <ContourPath ground={ground} level={HOLLOW} fit={fit} className="stroke-primary" dash="2 3" />
-          {HIGH.map((level, i) => (
-            <ContourPath
-              key={level}
-              ground={ground}
-              level={level}
-              fit={fit}
-              className="stroke-secondary"
-              width={0.8 + i * 0.3}
-              dash={i === HIGH.length - 1 ? undefined : '4 3'}
-            />
+      <svg viewBox={PLANE_VIEWBOX} aria-hidden="true" className="absolute inset-0 block h-full w-full overflow-visible">
+        {/* The ground beyond the plane, ruled out past the screen's edges (the screen clips it). */}
+        <g className="stroke-chart-axis" strokeWidth={0.5}>
+          {ticks.map((v) => (
+            <g key={v}>
+              <line x1={v} y1={-GRATICULE_REACH} x2={v} y2={GRATICULE_REACH} vectorEffect="non-scaling-stroke" />
+              <line x1={-GRATICULE_REACH} y1={v} x2={GRATICULE_REACH} y2={v} vectorEffect="non-scaling-stroke" />
+            </g>
           ))}
         </g>
-      )}
 
-      {/* Axes and the frame. */}
-      <g aria-hidden="true">
-        <line x1={at(0, 0).x} y1={tl.y} x2={at(0, 0).x} y2={tl.y + side} className="stroke-border" />
-        <line x1={tl.x} y1={at(0, 0).y} x2={tl.x + side} y2={at(0, 0).y} className="stroke-border" />
-        <rect x={tl.x} y={tl.y} width={side} height={side} fill="none" className="stroke-foreground" />
-      </g>
+        <rect x={-PLANE_EDGE} y={-PLANE_EDGE} width={2 * PLANE_EDGE} height={2 * PLANE_EDGE} className="fill-card" />
+
+        {region && (
+          <rect
+            x={REGION_AT[region].x < 0 ? -PLANE_EDGE : 0}
+            y={REGION_AT[region].y > 0 ? -PLANE_EDGE : 0}
+            width={PLANE_EDGE}
+            height={PLANE_EDGE}
+            className="fill-shoal"
+          />
+        )}
+
+        {ground && <GroundLayer ground={ground} id={maskId} faded={!!pins} />}
+        {steps?.map((f, i) => (
+          <g key={i} className="tide-frame" data-last={lastFrame(i)} style={frameStyle(i)}>
+            <GroundLayer ground={f.ground} id={`${maskId}f${i}`} faded={false} />
+          </g>
+        ))}
+
+        {shoal && (
+          <ellipse
+            style={{ cx: shoal.x, cy: -shoal.y, rx: shoal.rx, ry: shoal.ry }}
+            className="fill-shoal stroke-secondary transition-all duration-500 ease-out motion-reduce:transition-none"
+            strokeDasharray="4 3"
+            vectorEffect="non-scaling-stroke"
+          />
+        )}
+
+        {children}
+
+        {/* Axes and the frame. */}
+        <g fill="none">
+          <line x1={0} y1={-PLANE_EDGE} x2={0} y2={PLANE_EDGE} className="stroke-border" vectorEffect="non-scaling-stroke" />
+          <line x1={-PLANE_EDGE} y1={0} x2={PLANE_EDGE} y2={0} className="stroke-border" vectorEffect="non-scaling-stroke" />
+          <rect
+            x={-PLANE_EDGE}
+            y={-PLANE_EDGE}
+            width={2 * PLANE_EDGE}
+            height={2 * PLANE_EDGE}
+            className="stroke-foreground"
+            vectorEffect="non-scaling-stroke"
+          />
+        </g>
+      </svg>
+
+      {tide && (
+        <div aria-hidden="true" className="absolute inset-0 overflow-hidden">
+          <div className="tide-sweep" />
+        </div>
+      )}
 
       {/* The regions, named like seas: names for parts of the map, not for you. */}
-      <g aria-hidden="true" className="fill-muted-foreground font-serif italic">
+      <div aria-hidden="true" className="pointer-events-none font-serif italic text-muted-foreground">
         {quadrants.map((q) => {
-          const sx = q.id === 'eddy' || q.id === 'deep' ? -1 : 1;
-          const sy = q.id === 'eddy' || q.id === 'surf' ? 1 : -1;
-          const p = at(sx * 5.6, sy * 9.2);
+          const s = REGION_AT[q.id];
           return (
-            <text key={q.id} x={p.x} y={p.y + 6} textAnchor="middle" className="text-subtitle paint-card">
+            <span key={q.id} style={pct(s.x * 5.6, s.y * 9.2)} className="halo-card absolute -translate-x-1/2 -translate-y-1/2 whitespace-nowrap text-subtitle">
               {q.name}
-            </text>
+            </span>
           );
         })}
-      </g>
-      <g aria-hidden="true" className="fill-muted-foreground font-condensed text-label uppercase tracking-label">
-        <text x={tl.x + 6} y={at(0, 0).y - 6} className="paint-card">{axes.rich}</text>
-        <text x={tl.x + side - 6} y={at(0, 0).y - 6} textAnchor="end" className="paint-card">{axes.crisp}</text>
-        <text x={at(0, 0).x + 6} y={tl.y + 16} className="paint-card">{axes.sweet}</text>
-        <text x={at(0, 0).x + 6} y={tl.y + side - 8} className="paint-card">{axes.savory}</text>
-      </g>
+      </div>
+      <div aria-hidden="true" className="pointer-events-none font-condensed text-label uppercase tracking-label text-muted-foreground">
+        <span style={pct(-PLANE_EDGE, 0)} className="halo-card absolute -translate-y-full pb-1 pl-1.5">{axes.rich}</span>
+        <span style={pct(PLANE_EDGE, 0)} className="halo-card absolute -translate-x-full -translate-y-full pb-1 pr-1.5">{axes.crisp}</span>
+        <span style={pct(0, PLANE_EDGE)} className="halo-card absolute pl-1.5 pt-1">{axes.sweet}</span>
+        <span style={pct(0, -PLANE_EDGE)} className="halo-card absolute -translate-y-full pb-1 pl-1.5">{axes.savory}</span>
+      </div>
 
       {/* The drinks. */}
-      <g>
-        {marks.map((m) => {
-          const isSel = m.drink.name === selected;
-          const isHover = m.drink.name === hover;
-          if (pins && m.rank === undefined && !isSel) {
-            return <circle key={m.drink.name} cx={m.x} cy={m.y} r={1.8} className="fill-border" aria-hidden="true" />;
-          }
-          const label = m.hedonic !== undefined ? explore.ratedMark(name(m.drink.name), m.hedonic) : name(m.drink.name);
-          return (
-            <g key={m.drink.name} role="button" aria-label={label} aria-pressed={isSel} className="cursor-pointer">
-              {m.rank !== undefined ? (
-                <>
-                  <circle cx={m.x} cy={m.y} r={isSel || isHover ? 12 : 10} strokeWidth={2} className={cn('stroke-card', m.rank === 1 ? 'fill-primary' : 'fill-foreground')} />
-                  <text x={m.x} y={m.y + 4} textAnchor="middle" className="fill-card font-condensed text-label font-bold">
-                    {m.rank}
-                  </text>
-                </>
-              ) : (
-                <circle
-                  cx={m.x}
-                  cy={m.y}
-                  r={m.hedonic !== undefined ? 4.6 : 3.2}
-                  strokeWidth={m.hedonic !== undefined ? 1.6 : 1}
-                  className={cn(
-                    m.hedonic === undefined ? 'fill-card stroke-foreground' : m.hedonic >= LIKED_AT ? 'fill-primary stroke-primary' : 'fill-card stroke-primary'
-                  )}
-                />
-              )}
-              {(isSel || isHover) && <circle cx={m.x} cy={m.y} r={m.rank !== undefined ? 17 : 11} fill="none" strokeWidth={1.5} className="stroke-foreground" />}
-            </g>
-          );
-        })}
-      </g>
+      <div className={cn(!onSelect && 'pointer-events-none')} aria-hidden={onSelect ? undefined : true}>
+        {marks.map((m) => (
+          <Mark key={m.drink.name} m={m} pins={pins} selected={selected} hover={hover} name={name} listening={!!onSelect} />
+        ))}
+      </div>
 
       {emptyBar && (
-        <g aria-hidden="true" className="fill-muted-foreground">
-          <text x={at(0, 0).x} y={at(0, 3).y} textAnchor="middle" className="paint-card font-serif text-title italic">
-            {explore.noMenu}
-          </text>
-        </g>
+        <p aria-hidden="true" style={pct(0, 3)} className="halo-card pointer-events-none absolute -translate-x-1/2 -translate-y-1/2 whitespace-nowrap font-serif text-title italic text-muted-foreground">
+          {explore.noMenu}
+        </p>
       )}
 
-      <g aria-hidden="true" className="font-body text-meta">
-        {labels.map((l) => (
-          <text
-            key={l.id}
-            x={l.x}
-            y={l.y + 4.5}
-            className={cn('paint-card', l.first || l.rated ? 'fill-primary' : 'fill-foreground', (l.pinned || l.rated) && 'font-bold')}
-          >
-            {l.text}
-          </text>
-        ))}
-      </g>
-    </svg>
+      <Labels labels={labels} />
+
+      {points?.map((p) => (
+        <span key={p.label} role="img" aria-label={p.label} style={pct(p.x, p.y)} className="absolute -translate-x-1/2 -translate-y-1/2">
+          <span
+            className={cn(
+              'block h-4 w-4 rounded-full border-2 border-card motion-safe:animate-settle',
+              p.tone === 'yours' ? 'bg-primary' : 'bg-secondary'
+            )}
+          />
+          {p.caption && (
+            <span
+              aria-hidden="true"
+              className="halo-card absolute left-full top-1/2 ml-1.5 -translate-y-1/2 whitespace-nowrap font-condensed text-label font-bold uppercase tracking-label text-foreground"
+            >
+              {p.caption}
+            </span>
+          )}
+        </span>
+      ))}
+
+      {steps?.map((f, i) => (
+        <div key={i} aria-hidden="true" className="tide-frame pointer-events-none" data-last={lastFrame(i)} style={frameStyle(i)}>
+          {f.marks.map((m) => (
+            <Mark key={m.drink.name} m={m} pins={null} selected={null} hover={null} name={name} listening={false} />
+          ))}
+          <Labels labels={f.labels} />
+        </div>
+      ))}
+    </div>
   );
 }
 
-function ContourPath({
-  ground,
-  level,
-  fit,
-  className,
-  width = 1,
-  dash,
+/** How long each of a told palate's frames holds (`.tide-frame` gives each a sixth of the cycle). */
+const FRAME_SECONDS = 5;
+
+interface MapMark {
+  drink: Drink;
+  x: number;
+  y: number;
+  rank: number | undefined;
+  hedonic: number | undefined;
+}
+
+/** Every drink where it is drawn: at its coordinate, or fanned out where a bar's pins share one. */
+function placeMarks(pins: Pin[] | null, ratings: ReadonlyMap<string, number> | undefined, side: number): MapMark[] {
+  const seen = new Map<string, number>();
+  const pinned = new Map(pins?.map((p) => [p.drink.name, p.rank]) ?? []);
+  return drinkDatabase.map((d) => {
+    const rank = pinned.get(d.name);
+    // Pins sharing a coordinate fan out, so each number can be read: 13px, as a share of the plane.
+    let { x, y } = d;
+    if (rank !== undefined) {
+      const key = `${d.x},${d.y}`;
+      const n = seen.get(key) ?? 0;
+      seen.set(key, n + 1);
+      if (n) {
+        const reach = (13 / side) * 2 * PLANE_EDGE;
+        x += Math.cos(n * 2.1) * reach;
+        y -= Math.sin(n * 2.1) * reach;
+      }
+    }
+    return { drink: d, x, y, rank, hedonic: ratings?.get(d.name) };
+  });
+}
+
+interface LabelView {
+  pins: Pin[] | null;
+  selected: string | null;
+  hover: string | null;
+  named: readonly string[] | undefined;
+  name: (drinkName: string) => string;
+  measure: (text: string) => number;
+  side: number;
+}
+
+type MapLabel = ReturnType<typeof placeMapLabels>[number];
+
+/**
+ * Which drinks are named, by what matters: the open drink, a bar's pins, your
+ * pours, then any drink named only to show what is near, which gives way to
+ * the region names, the axis words and the other drinks' marks.
+ */
+function placeMapLabels(marks: readonly MapMark[], { pins, selected, hover, named, name, measure, side }: LabelView) {
+  const px = (v: number) => ((v + PLANE_EDGE) / (2 * PLANE_EDGE)) * side;
+  const py = (v: number) => ((PLANE_EDGE - v) / (2 * PLANE_EDGE)) * side;
+  const extra = new Set(named ?? []);
+  const wants: LabelWant[] = [];
+  const texts = new Map<string, string>();
+  for (const m of marks) {
+    const isSel = m.drink.name === selected || m.drink.name === hover;
+    if (pins && m.rank === undefined && !isSel) continue;
+    const text = m.hedonic !== undefined && !pins ? explore.ratedMark(name(m.drink.name), m.hedonic) : name(m.drink.name);
+    const priority = isSel
+      ? 1000
+      : m.rank !== undefined
+        ? 500 - m.rank
+        : m.hedonic !== undefined
+          ? 100 + m.hedonic
+          : extra.has(m.drink.name)
+            ? 50
+            : 0;
+    if (priority <= 0) continue;
+    texts.set(m.drink.name, text);
+    wants.push({
+      id: m.drink.name,
+      x: px(m.x),
+      y: py(m.y),
+      width: measure(text),
+      height: 16,
+      offset: m.rank !== undefined ? 14 : 8,
+      priority,
+      yields: priority < 100,
+    });
+  }
+  const names = quadrants.map((q) => {
+    const s = REGION_AT[q.id];
+    const cx = px(s.x * 5.6);
+    const cy = py(s.y * 9.2);
+    const half = (q.name.length * 11) / 2;
+    return { x0: cx - half, y0: cy - 15, x1: cx + half, y1: cy + 15 };
+  });
+  const words = [
+    { x0: 0, y0: side / 2 - 20, x1: 44, y1: side / 2 },
+    { x0: side - 50, y0: side / 2 - 20, x1: side, y1: side / 2 },
+    { x0: side / 2, y0: 0, x1: side / 2 + 56, y1: 20 },
+    { x0: side / 2, y0: side - 20, x1: side / 2 + 64, y1: side },
+  ];
+  const dots = marks
+    .filter((m) => !pins || m.rank !== undefined)
+    .map((m) => {
+      const r = m.rank !== undefined ? 10 : 4;
+      return { x0: px(m.x) - r, y0: py(m.y) - r, x1: px(m.x) + r, y1: py(m.y) + r };
+    });
+  return placeLabels(wants, { x0: 0, y0: 0, x1: side, y1: side }, [], [...names, ...words, ...dots]).map((p) => {
+    const m = marks.find((k) => k.drink.name === p.id)!;
+    return {
+      ...p,
+      mark: m,
+      offset: m.rank !== undefined ? 14 : 8,
+      text: texts.get(p.id)!,
+      rated: m.hedonic !== undefined && !pins,
+      pinned: m.rank !== undefined,
+      first: m.rank === 1,
+    };
+  });
+}
+
+/** One drink on the map: a ring, your pour of it, or a bar's numbered pin. */
+function Mark({
+  m,
+  pins,
+  selected,
+  hover,
+  name,
+  listening,
 }: {
-  ground: { step: number; rows: Height[][] };
-  level: number;
-  fit: PlaneFit;
-  className: string;
-  width?: number;
-  dash?: string;
+  m: MapMark;
+  pins: Pin[] | null;
+  selected: string | null;
+  hover: string | null;
+  name: (drinkName: string) => string;
+  listening: boolean;
 }) {
-  const d = useMemo(() => {
+  const isSel = m.drink.name === selected;
+  const isHover = m.drink.name === hover;
+  const at = pct(m.x, m.y);
+  if (pins && m.rank === undefined && !isSel) {
+    return <span style={at} className="absolute h-1 w-1 -translate-x-1/2 -translate-y-1/2 rounded-full bg-border" />;
+  }
+  const label = m.hedonic !== undefined ? explore.ratedMark(name(m.drink.name), m.hedonic) : name(m.drink.name);
+  return (
+    <span
+      style={at}
+      role={listening ? 'button' : undefined}
+      aria-label={listening ? label : undefined}
+      aria-pressed={listening ? isSel : undefined}
+      className={cn('absolute -translate-x-1/2 -translate-y-1/2', listening && 'cursor-pointer')}
+    >
+      {m.rank !== undefined ? (
+        <span
+          className={cn(
+            'flex items-center justify-center rounded-full border-2 border-card font-condensed text-label font-bold text-card',
+            isSel || isHover ? 'h-6 w-6' : 'h-5 w-5',
+            m.rank === 1 ? 'bg-primary' : 'bg-foreground'
+          )}
+        >
+          {m.rank}
+        </span>
+      ) : (
+        <span
+          className={cn(
+            'block rounded-full',
+            m.hedonic === undefined
+              ? isSel
+                ? 'h-2.5 w-2.5 bg-foreground'
+                : 'h-1.75 w-1.75 border border-foreground bg-card'
+              : m.hedonic >= LIKED_AT
+                ? 'h-2.5 w-2.5 border-2 border-primary bg-primary'
+                : 'h-2.5 w-2.5 border-2 border-primary bg-card'
+          )}
+        />
+      )}
+      {(isSel || isHover) && (
+        <span
+          className={cn(
+            'absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border border-foreground',
+            m.rank !== undefined ? 'h-9 w-9' : 'h-6 w-6'
+          )}
+        />
+      )}
+    </span>
+  );
+}
+
+function Labels({ labels }: { labels: readonly MapLabel[] }) {
+  return (
+    <div aria-hidden="true" className="pointer-events-none font-body text-meta">
+      {labels.map((l) => (
+        <span
+          key={l.id}
+          style={{
+            ...pct(l.mark.x, l.mark.y),
+            transform: l.side === 'right' ? `translate(${l.offset}px, -50%)` : `translate(calc(-100% - ${l.offset}px), -50%)`,
+          }}
+          className={cn('halo-card absolute whitespace-nowrap', l.first || l.rated ? 'text-primary' : 'text-foreground', (l.pinned || l.rated) && 'font-bold')}
+        >
+          {l.text}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+/** Your terrain: the three washes through their masks, and the contour lines. */
+function GroundLayer({ ground, id, faded }: { ground: Ground; id: string; faded: boolean }) {
+  const masks = useMemo(() => groundMasks(ground.rows), [ground]);
+  const at = -10 - ground.step / 2;
+  const size = 20 + ground.step;
+  return (
+    <g opacity={faded ? 0.4 : 1}>
+      <defs>
+        {(['rise', 'top', 'low'] as const).map((k) => (
+          <mask key={k} id={`${id}-${k}`} maskUnits="userSpaceOnUse" style={{ maskType: 'alpha' }} x={at} y={at} width={size} height={size}>
+            <image href={masks[k]} x={at} y={at} width={size} height={size} preserveAspectRatio="none" />
+          </mask>
+        ))}
+      </defs>
+      <rect x={at} y={at} width={size} height={size} mask={`url(#${id}-rise)`} className="fill-accent" />
+      <rect x={at} y={at} width={size} height={size} mask={`url(#${id}-top)`} className="fill-secondary" />
+      <rect x={at} y={at} width={size} height={size} mask={`url(#${id}-low)`} className="fill-primary" />
+      <Contours ground={ground} />
+    </g>
+  );
+}
+
+function Contours({ ground }: { ground: Ground }) {
+  const lines = useMemo(() => {
     const rows = ground.rows.map((r) => r.map((h) => h.rating));
-    return contour(rows, ground.step, level)
-      .map(([x0, y0, x1, y1]) => {
-        const a = toScreen(fit, x0, y0);
-        const b = toScreen(fit, x1, y1);
-        return `M${a.x.toFixed(1)},${a.y.toFixed(1)}L${b.x.toFixed(1)},${b.y.toFixed(1)}`;
-      })
-      .join('');
-  }, [ground, level, fit]);
-  return <path d={d} className={className} strokeWidth={width} strokeDasharray={dash} />;
+    return {
+      hollow: contourPath(rows, ground.step, HOLLOW),
+      high: HIGH.map((level) => contourPath(rows, ground.step, level)),
+    };
+  }, [ground]);
+  return (
+    <g fill="none">
+      <path d={lines.hollow} className="stroke-primary" strokeDasharray="2 3" vectorEffect="non-scaling-stroke" />
+      {lines.high.map((d, i) => (
+        <path
+          key={HIGH[i]}
+          d={d}
+          className="stroke-secondary"
+          strokeWidth={0.8 + i * 0.3}
+          strokeDasharray={i === HIGH.length - 1 ? undefined : '4 3'}
+          vectorEffect="non-scaling-stroke"
+        />
+      ))}
+    </g>
+  );
+}
+
+/** The plane's side in pixels, once the page runs; `NOMINAL_SIDE` until then. */
+function useSide(box: React.RefObject<HTMLDivElement | null>): number {
+  const [side, setSide] = useState(NOMINAL_SIDE);
+  useEffect(() => {
+    const el = box.current;
+    if (!el) return;
+    const measure = () => {
+      if (el.clientWidth > 0) setSide(el.clientWidth);
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [box]);
+  return side;
 }
 
 /**
- * The terrain as a small image, one pixel per sample, which the browser
- * smooths as it scales it up: sage rising to forest where the ground is high,
- * a terracotta wash where it is low, paler where `sd` says nothing supports
- * it. Colours are the tokens, read from the page (`--accent`, `--secondary`,
- * `--primary`, `--card`).
+ * The width of a label as the map sets it (PT Sans at the meta size): an
+ * estimate on the server and until fonts are in, so the first page the
+ * browser draws is the one the server sent, then measured.
  */
-function useGroundImage(ground: { step: number; rows: Height[][] } | null): string | null {
-  const [url, setUrl] = useState<string | null>(null);
-  useEffect(() => {
-    if (!ground) {
-      setUrl(null);
-      return;
-    }
-    const n = ground.rows.length;
-    const canvas = document.createElement('canvas');
-    canvas.width = n;
-    canvas.height = n;
-    const g = canvas.getContext('2d');
-    if (!g) return;
-    const css = getComputedStyle(document.documentElement);
-    const token = (name: string) => `hsl(${css.getPropertyValue(name).trim()})`;
-    const [card, sage, forest, terracotta] = ['--card', '--accent', '--secondary', '--primary'].map(token);
-    g.fillStyle = card;
-    g.fillRect(0, 0, n, n);
-    for (let j = 0; j < n; j++) {
-      for (let i = 0; i < n; i++) {
-        const { rating, sd } = ground.rows[j][i];
-        const sure = Math.max(0.3, 1 - sd / 3.5);
-        const py = n - 1 - j;
-        if (rating >= 5.5) {
-          const rise = Math.min(1, (rating - 5.5) / 3.3);
-          g.globalAlpha = Math.min(0.9, rise * 1.4) * sure;
-          g.fillStyle = sage;
-          g.fillRect(i, py, 1, 1);
-          if (rise > 0.45) {
-            g.globalAlpha = (rise - 0.45) * 0.7 * sure;
-            g.fillStyle = forest;
-            g.fillRect(i, py, 1, 1);
-          }
-        } else if (rating < 4.5) {
-          g.globalAlpha = Math.min(1, (4.5 - rating) / 1.5) * 0.28 * sure;
-          g.fillStyle = terracotta;
-          g.fillRect(i, py, 1, 1);
-        }
-      }
-    }
-    setUrl(canvas.toDataURL());
-  }, [ground]);
-  return url;
-}
-
-/** The width of a label as the map sets it (PT Sans at the meta size), measured once fonts are in. */
 function useTextMeasure() {
   const ctx = useRef<CanvasRenderingContext2D | null>(null);
-  // Fonts arriving changes every width: a new measure, so the labels are placed again.
-  const [ready, setReady] = useState(0);
+  const [ready, setReady] = useState(false);
   useEffect(() => {
-    void document.fonts?.ready.then(() => setReady((n) => n + 1));
+    let live = true;
+    void document.fonts?.ready.then(() => live && setReady(true));
+    return () => {
+      live = false;
+    };
   }, []);
   return useMemo(
     () => (text: string) => {
-      if (typeof document === 'undefined') return text.length * 7;
+      if (!ready || typeof document === 'undefined') return text.length * 7;
       ctx.current ??= document.createElement('canvas').getContext('2d');
       if (!ctx.current) return text.length * 7;
       ctx.current.font = `700 13px ${getComputedStyle(document.body).getPropertyValue('--font-pt-sans') || 'PT Sans'}, sans-serif`;
       return ctx.current.measureText(text).width;
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- `ready` is the point: fonts changed the widths
     [ready]
   );
 }

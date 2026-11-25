@@ -1,9 +1,9 @@
 ---
-import AppShell from '../../layouts/AppShell.astro';
-import PageTitle from '../../components/marketing/PageTitle.astro';
-import PalatePlot from '../../components/marketing/PalatePlot.astro';
+import MapPage from '../../layouts/MapPage.astro';
+import { PalateMap } from '../../components/app/PalateMap';
+import { CardHead, CardTitle } from '../../components/app/MapScreen';
 import Readout from '../../components/marketing/Readout.astro';
-import { site, publicMap, coaster, assistants, share } from '../../lib/copy';
+import { site, publicMap, coaster, assistants, share, explore } from '../../lib/copy';
 import { shareImagePath } from '../../lib/share';
 import { formatCoordinate } from '../../lib/coordinate';
 import { quadrantFor, regionPath } from '../../lib/quadrant';
@@ -105,11 +105,17 @@ Astro.response.headers.set(
 const pageTitle = name ? `${publicMap.title(name)} · ${site.name}` : site.name;
 const description = name && region ? publicMap.description(name, region.name) : site.description;
 
-const marks = subject
+// Terracotta is yours (docs/design-system.md): your own mark, wherever it is drawn.
+const points = subject
   ? [
-      // Terracotta is yours (docs/design-system.md): your own mark, wherever it is drawn.
-      { x: subject.x, y: subject.y, label: isSelf ? publicMap.you : publicMap.them, tone: isSelf ? ('primary' as const) : ('secondary' as const) },
-      ...(viewer ? [{ x: viewer.x, y: viewer.y, label: publicMap.you, tone: 'primary' as const }] : []),
+      {
+        x: subject.x,
+        y: subject.y,
+        label: isSelf ? publicMap.you : publicMap.them,
+        caption: isSelf ? publicMap.you : publicMap.them,
+        tone: isSelf ? ('yours' as const) : ('theirs' as const),
+      },
+      ...(viewer ? [{ x: viewer.x, y: viewer.y, label: publicMap.you, caption: publicMap.you, tone: 'yours' as const }] : []),
     ]
   : [];
 
@@ -129,27 +135,38 @@ const ctaClass =
   'btn btn-primary btn-lg w-full px-8';
 ---
 
-<AppShell
+<MapPage
   title={pageTitle}
   description={description}
   image={region ? { path: shareImagePath(region.id), alt: share.regionAlt(region.name) } : undefined}
   currentPath="/p"
-  width="standard"
+  label={name ? publicMap.title(name) : site.name}
 >
+  <PalateMap
+    slot="map"
+    label={name && subject ? publicMap.plotLabel(publicMap.title(name)) : explore.chartLabel}
+    points={points}
+    region={region?.id ?? null}
+    named={near.map((d) => d.name)}
+    tide={!subject}
+  />
+
+  <CardHead slot="head">
+    <span class="label-caps">{isSelf ? publicMap.selfEyebrow : publicMap.eyebrow}</span>
+  </CardHead>
+
   {result.status === 'ok' && subject && region && name ? (
-    <article class="space-y-12" data-testid="public-map">
-      <PageTitle eyebrow={isSelf ? publicMap.selfEyebrow : publicMap.eyebrow} title={publicMap.title(name)} lede={region.gloss} ruled>
+    <article class="space-y-10" data-testid="public-map">
+      <CardTitle title={publicMap.title(name)} lede={region.gloss}>
         <Readout
           cells={[
             { label: publicMap.coordinateLabel, value: formatCoordinate(subject.x, subject.y), figure: true },
             { label: publicMap.lands, value: region.name, href: regionPath(region.id) },
           ]}
         />
-      </PageTitle>
+      </CardTitle>
 
-      <PalatePlot marks={marks} title={publicMap.plotLabel(publicMap.title(name))} />
-
-      <dl class="mx-auto grid max-w-md grid-cols-2 gap-x-6 gap-y-1 border-y border-border py-3 text-meta">
+      <dl class="grid grid-cols-2 gap-x-6 gap-y-1 border-y border-border py-3 text-meta">
         <dt class="label-caps text-muted-foreground">{isSelf ? publicMap.you : publicMap.them}</dt>
         <dd class="text-right font-condensed tabular-nums text-foreground">
           {formatCoordinate(subject.x, subject.y)}
@@ -290,7 +307,7 @@ const ctaClass =
       )}
 
       {!isSelf && subjectHandle && (
-        <p class="text-center font-serif text-ui italic text-muted-foreground" data-testid="assistant-ask">
+        <p class="font-serif text-ui italic text-muted-foreground" data-testid="assistant-ask">
           {assistants.visitorAsk(subjectHandle)}{' '}
           <a href="/mcp" class="not-italic text-foreground underline decoration-muted-foreground underline-offset-4 hover:decoration-foreground">
             {assistants.setUp}
@@ -299,7 +316,7 @@ const ctaClass =
       )}
 
       {!isSelf && !viewer && (
-        <section class="mx-auto max-w-sm space-y-3 text-center" data-testid="public-map-cta">
+        <section class="space-y-3" data-testid="public-map-cta">
           <h2 class="font-serif text-plate font-bold text-foreground">{publicMap.guestTitle}</h2>
           <p class="text-ui text-muted-foreground">
             {session ? publicMap.memberNoPalateBody : publicMap.guestBody}
@@ -309,8 +326,8 @@ const ctaClass =
       )}
     </article>
   ) : (
-    <article class="space-y-8 py-12 text-center" data-testid="public-map-empty">
-      <PageTitle
+    <article class="space-y-8" data-testid="public-map-empty">
+      <CardTitle
         title={
           result.status === 'no-palate'
             ? publicMap.noPalateTitle
@@ -326,9 +343,7 @@ const ctaClass =
               : publicMap.notFoundBody
         }
       />
-      <div class="mx-auto max-w-sm">
-        <a href={questionsHref} class={ctaClass}>{publicMap.guestCta}</a>
-      </div>
+      <a href={questionsHref} class={ctaClass}>{publicMap.guestCta}</a>
     </article>
   )}
-</AppShell>
+</MapPage>

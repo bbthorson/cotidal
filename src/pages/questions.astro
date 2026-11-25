@@ -7,9 +7,9 @@ import { accountFor } from '../lib/atproto/session';
 import { questionsHref } from '../lib/site-nav';
 
 /**
- * The questions that place a coordinate, then the reveal. No tab is current
- * here and the bar along the foot is left out: on a phone the island hides
- * the header too (`data-focus-mode`). Someone who already has a coordinate is
+ * The questions that place a coordinate, then the reveal, in the card over
+ * the map (`Questions.tsx`). On a phone the island hides the header
+ * (`data-focus-mode`) so the map and the question both fit. Someone who already has a coordinate is
  * sent on to Compass by the island, unless they came to start over.
  */
 export const prerender = false;
@@ -19,6 +19,6 @@ const account = await accountFor(Astro.request, false);
 const member = account.kind === 'member' ? { did: account.did, handle: account.handle } : null;
 ---
 
-<AppShell title={`${site.name} — ${hero.primaryCta}`} currentPath={questionsHref} width="wide">
+<AppShell title={`${site.name} — ${hero.primaryCta}`} currentPath={questionsHref} app>
   <Questions client:load signInEnabled={authEnabled} member={member} />
 </AppShell>

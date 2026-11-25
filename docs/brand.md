@@ -20,8 +20,13 @@ because paper has no glow to hide behind.
 
 - **Elegant is restraint.** Typography and space, not ornament.
 - **Bold is one move per screen.** Something is allowed to be big.
-- **Mysterious is withholding.** Show the map before labelling the axes. A
-  magician who opens with "I will now use misdirection" has no act.
+- **Mysterious is withholding.** Show what the map does before saying how.
+  A magician who opens with "I will now use misdirection" has no act. The
+  map itself is not withheld: the front door is the map, with its regions
+  and axes named, and a sample palate gaining ratings on it. The regions
+  were once withheld until you had one, to keep the reveal; a person is no
+  longer given a region (they are described by their terrain), so there is
+  nothing left to withhold.
 
 ## Vocabulary
 
@@ -148,8 +153,8 @@ terracotta.
 - **Square corners.** Radius is used sparingly; a menu is not a card UI.
 - **Dot leaders** carry name → amount, the way a wine list does
   (`.dot-leader` with a `.leader` spacer in `globals.css`).
-- **One large move per screen.** On `/` it is the cotidal chart; on a drink
-  entry it is the title plate.
+- **One large move per screen.** On `/` and every page that is a place on
+  the map, it is the map; on a reading page it is the title plate.
 
 ## The mark and the figure
 
@@ -159,7 +164,8 @@ same hour. It is the name drawn literally, and it is the product's own
 geometry — a zero point at the centre of the map, and lines joining everyone
 at the same phase.
 
-- **The figure** (`ChartFigure.astro`, the landing page's one large move):
+- **The figure** (`ChartFigure.astro`, the share cards' drawing, and the
+  landing page's one large move until the front door became the map):
   a cotidal line for every hour of the tide, 0h to 11h, over the map's axes.
   Every third is an index line, heavier and labelled, as on a contour map:
   those four are the region boundaries, and the hairlines between them divide
