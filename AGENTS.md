@@ -92,11 +92,13 @@ a string to `copy.ts` before rendering it.
 
 ### Palate map — `src/lib/data.ts`, `Compass.tsx`, `MapScreen.tsx`
 2D plane. Users and drinks both carry `x` (Rich −10 → Crisp +10) and `y`
-(Savory −10 → Sweet +10). Euclidean distance gives the raw match; `VibeTag`s
-sort within it — only among drinks in the same 1-point band (`relevanceOf`,
-`src/lib/scoring.ts`), so a tag can never carry a drink past a nearer one.
-The menu is one list ranked by that relevance alone, and every screen shows
-a drink's distance, never a score. A weighted sum let tags outweigh several
+(Savory −10 → Sweet +10). A drink's place on your menu is its height on your
+terrain (Terrain, below); `VibeTag`s sort within it — only among drinks in the
+same `HEIGHT_BAND` (`relevanceOf`, `src/lib/scoring.ts`), so a tag can never
+carry a drink past a higher one. The menu is one list ranked by that relevance
+alone. A menu row says what put a drink there — your ratings near it, or your
+answers (`chart.reason`) — never a predicted score; the drink card still says
+how far it sits from your point. A weighted sum let tags outweigh several
 points of distance; `tests/unit/relevance-score.test.ts` holds the bands apart.
 
 ### Psychophysical State & EKF — `src/lib/palate-state.ts`
@@ -151,13 +153,22 @@ rating at every coordinate, by Gaussian-process regression, with the quiz's
 point as a first hill (longer along an axis the quiz was unsure of) and every
 rated pour raising or lowering the ground around its drink. Two liked parts of
 the map are two hills; the point model settles between them, and
-`tests/unit/terrain.test.ts` holds both to that case. Recomputed from the quiz
-answers and the pours, never stored; pour order does not matter. Every height
-carries an `sd`, and `evidenceAt` names the pours behind it, so a screen can
-say "near your Negroni (9)" rather than show a predicted score. The constants
-are uncalibrated, and `LENGTH` stays above placement's 2.9-point error.
-**Not yet wired into any screen**: the menu still ranks by distance from the
-point (`docs/map-first.md`).
+`tests/unit/terrain.test.ts` holds both to that case. A rating is partly about
+the drink itself (`DRINK_SD`): a 2 for the Martinez sinks the Martinez and
+dents its corner, rather than sinking the hill a 9 for the Manhattan made. A
+rating carries less to another kind of drink (`KIN_ACROSS`: cocktails and
+spirits, wine, beer), so a Manhattan does not bring up the Rioja beside it.
+Recomputed from the quiz answers (`useQuizStart`) and the pours, never
+stored; pour order does not matter. Every height carries an `sd`, and
+`evidenceAt` names the pours behind it. The constants are uncalibrated, and
+`LENGTH` stays above placement's 2.9-point error.
+
+It ranks Compass's menu and a bar's (`scoreDrinks`, `rankMenu`), and
+`leanings` says your taste in the axes' words on Your map ("crisp and sweet ·
+rich and savory", `taste` in `copy.ts`) — never one region's name. Not yet on
+it: the chat tools (`src/lib/mcp/`), `/p/<handle>`, the reveal, share cards
+and coasters, which still read the point and its region
+(`docs/map-first.md`). The dot, the track and `applyPour` are unchanged.
 
 
 The first 94 drinks were placed by hand. A wine or beer added since is placed

@@ -2,10 +2,12 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { drinkDatabase } from '@/lib/data';
 import { savePick } from '@/lib/device-store';
 import { titleOf, type Register } from '@/lib/register';
+import { chart } from '@/lib/copy';
 import { userFromProfile } from '@/lib/profile';
 import { barsFromPours, foldName, lastPourByDrink, poursAtBars } from '@/lib/pour-history';
-import { drinksAtSameSpot, namesMatching, searchDrinks, unlistedBar, wayTo } from '@/lib/drink-search';
+import { drinksAtSameSpot, namesMatching, searchDrinks, unlistedBar } from '@/lib/drink-search';
 import { useMenu } from '@/hooks/useMenu';
+import { useQuizStart } from '@/hooks/useQuizStart';
 import { useNearby } from '@/hooks/useNearby';
 import { usePours } from '@/hooks/usePours';
 import { useProfile } from '@/hooks/useProfile';
@@ -33,7 +35,8 @@ export function useCompass(register: Register, member: { handle: string | null }
   const { pours, reload } = usePours(!!member);
   const history = useMemo(() => pours ?? [], [pours]);
   const lastPour = useMemo(() => lastPourByDrink(history), [history]);
-  const { scored, menu, distance } = useMenu(user, profile?.vibeTags, history);
+  const start = useQuizStart(!!member);
+  const { scored, menu, distance } = useMenu(user, profile?.vibeTags, history, start);
   const nearby = useNearby();
   // With no position yet, search and bars wait until asked for ("or look up a drink").
   const [browsing, setBrowsing] = useState(false);
@@ -142,9 +145,17 @@ export function useCompass(register: Register, member: { handle: string | null }
     history,
     rate,
     displayName,
+    /** Where the questions put you: the first hill of the terrain a bar's menu is ranked on. */
+    start,
 
-    // Your menu, each drink with which way it lies and how far
-    menu: menu.map((d) => ({ ...d, way: wayTo(user, d) })),
+    // Your menu, each drink with what put it there: your own ratings near it, or your answers
+    menu: menu.map((d) => ({
+      ...d,
+      reason: chart.reason(
+        d.evidence.map((e) => ({ name: titleOf(register, e.drink.name), hedonic: e.hedonic })),
+        d.rated
+      ),
+    })),
     // No position, no menu: the chart fills nothing ranked around a point nobody chose.
     menuNames: profile ? menu.map((d) => d.name) : [],
     distance,

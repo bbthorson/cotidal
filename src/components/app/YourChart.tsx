@@ -2,7 +2,8 @@ import { useMemo } from 'react';
 import type { Drink } from '@/lib/data';
 import { quadrantFor } from '@/lib/quadrant';
 import { formatCoordinate } from '@/lib/coordinate';
-import { chart, menu } from '@/lib/copy';
+import { chart, menu, taste } from '@/lib/copy';
+import type { Leaning } from '@/lib/terrain';
 import type { PourRecord } from '@/lib/atproto/records';
 import type { TrackPoint } from '@/lib/track';
 import { CoordinateMap, DrinkSpot, ShoalMark, TrackLine, YouMark } from './CoordinateMap';
@@ -31,6 +32,7 @@ export function YourChart({
   onSelect,
   name,
   eyebrow,
+  leanings = [],
 }: {
   you: { x: number; y: number };
   /** Your track (`useTrack`), when it adds up. */
@@ -42,8 +44,10 @@ export function YourChart({
   onSelect: (drinkName: string) => void;
   /** A drink's name as the register titles it. */
   name: (drinkName: string) => string;
-  /** Said before "You are in" — "On this device", for a guest. */
+  /** Said before "You lean" — "On this device", for a guest. */
   eyebrow?: string;
+  /** Which ways your taste leans, one per hill (`leanings`): said in the axes' words, never a region's name. */
+  leanings?: readonly Leaning[];
 }) {
   const region = quadrantFor(you.x, you.y);
   const spots = useMemo(() => {
@@ -83,10 +87,12 @@ export function YourChart({
       <div className="flex flex-col gap-1 border-x border-b border-foreground bg-card px-3.5 py-3">
         <span className="label-caps">
           {eyebrow && `${eyebrow} · `}
-          {menu.youAreIn}
+          {leanings.length ? taste.label : menu.youAreIn}
         </span>
         <span className="flex flex-wrap items-baseline gap-x-2.5">
-          <span className="font-serif text-subtitle italic leading-none text-primary">{region.name}</span>
+          <span className="font-serif text-subtitle italic leading-none text-primary">
+            {leanings.length ? taste.phrases(leanings) : region.name}
+          </span>
           <span className="font-condensed text-label font-semibold tabular-nums tracking-label text-secondary">
             {formatCoordinate(you.x, you.y)}
           </span>

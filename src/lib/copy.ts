@@ -52,7 +52,7 @@ export const compass = {
   startBody: 'Every drink is on the chart. A few questions put you on it too.',
   lookUp: 'or look up a drink',
   menuTitle: 'Your menu',
-  menuNote: 'Which way it lies, and how far',
+  menuNote: 'And what put it there',
   findYours: 'Find your coordinate',
   searchLabel: 'Search drinks and bars',
   placeholder: 'Negroni, mezcal, Attaboy…',
@@ -106,7 +106,7 @@ export const compass = {
     photoLater: 'Later: photograph the menu directly here (or share a photo in your chat assistant today).',
     rankedAt: (bar: string) => `What to have at ${bar}`,
     rankedHome: 'What to have',
-    rankedBody: 'Ranked by how close each drink sits to your coordinate.',
+    rankedBody: 'Ranked by your ratings of the drinks around each one, and where your answers put you.',
   },
 } as const;
 
@@ -360,7 +360,7 @@ export const reveal = {
 /** Your menu on Compass: the top pick and the drinks after it. */
 export const menu = {
   youAreIn: 'You are in',
-  coldBody: 'Answer them and this list ranks every drink by how close it sits to you. Until then, search away.',
+  coldBody: 'Answer them and this list ranks every drink for you, then learns from what you rate. Until then, search away.',
   empty: 'Nothing on the map fits these limits yet.',
 } as const;
 
@@ -393,6 +393,34 @@ export const chart = {
   legendMenu: 'On your menu',
   legendElsewhere: 'Elsewhere',
   legendLiked: 'Liked (7+)',
+  /**
+   * Why a drink stands where it does on your menu: your own ratings, never a
+   * predicted score (`relevanceOf`'s `evidence` and `rated`). Names come titled.
+   */
+  reason: (near: readonly { name: string; hedonic: number }[], rated?: number) => {
+    const nearBy = near.length ? `near your ${near.map((e) => `${e.name} (${e.hedonic})`).join(' and ')}` : '';
+    if (rated !== undefined) return nearBy ? `You gave it ${rated} · ${nearBy}` : `You gave it ${rated}`;
+    return nearBy ? nearBy[0].toUpperCase() + nearBy.slice(1) : 'Near where your answers put you';
+  },
+} as const;
+
+/**
+ * Your taste in the axes' own words (`leanings` in `terrain.ts`): one phrase
+ * per hill, never a region's name.
+ */
+export const taste = {
+  label: 'You lean',
+  axis: { rich: 'rich', crisp: 'crisp', sweet: 'sweet', savory: 'savory' },
+  /** A hill in the middle of both axes. */
+  middle: 'balanced',
+  /** One hill's phrase: "crisp and sweet", "savory", "balanced". */
+  phrase: (x: 'rich' | 'crisp' | null, y: 'sweet' | 'savory' | null) => {
+    const words = [x && taste.axis[x], y && taste.axis[y]].filter(Boolean);
+    return words.length ? words.join(' and ') : taste.middle;
+  },
+  /** Every hill's phrase, highest first. */
+  phrases: (hills: readonly { x: 'rich' | 'crisp' | null; y: 'sweet' | 'savory' | null }[]) =>
+    hills.map((h) => taste.phrase(h.x, h.y)).join(' · '),
 } as const;
 
 /** After a pour is logged: the payoff of signing in, shown every time. */
@@ -480,7 +508,7 @@ export const regionPage = {
   orderingLabel: 'What it says about you',
   /** `axis` is a quadrant's axis label, e.g. "Rich · Savory". */
   ordering: (name: string, axis: string) =>
-    `Your coordinate lands in ${name} when your answers lean ${axisWords(axis).toLowerCase()}. That is all it is: a position, worked out from the options you picked. The menu ranks every drink by its distance from that point, so the closer you sit to the drinks below, the sooner it reaches for them. Log what you drink and the point can move, across a border if that is where your pours take it.`,
+    `Your coordinate lands in ${name} when your answers lean ${axisWords(axis).toLowerCase()}. That is all it is: a position, worked out from the options you picked. The menu starts from that point, so the closer you sit to the drinks below, the sooner it reaches for them. Log what you drink and the menu learns from your ratings, here and in any other part of the map you like.`,
   /** Under the list: how a drink came to be in it. */
   placedNote:
     'A drink is here because the chart places it here. Cocktails and spirits are placed by hand; wines and beers are placed from their style profile, never from a recipe’s proportions.',
@@ -665,7 +693,10 @@ export const howItWorks = {
       id: 'menu',
       title: 'Your menu',
       paragraphs: [
-        'Your menu ranks every drink by how close it sits to your point. Only among drinks within a point of each other do the kinds of drink your answers point to decide the order. A drink you rated 7 or more last time counts as two points closer.',
+        'Your menu ranks drinks by your own ratings of the drinks around them. Near drinks you rated high, a drink comes up; near drinks you rated low, it goes down. Where you haven’t rated anything nearby, your answers decide: the closer a drink sits to where they put you, the higher it comes.',
+        'You can like more than one part of the map. Ratings in two places make two places your menu reaches for, rather than a point halfway between them.',
+        'A rating says most about the drink itself and less about its neighbours. It says less again about a different kind of drink: a cocktail you loved says less about the wine beside it than about the cocktail beside it.',
+        'Only among drinks that stand about level do the kinds of drink your answers point to decide the order. Each drink on your menu says which of your ratings put it there.',
         'Anything you rated 3 or less last time comes off your menu, and so does any drink with a flavour you avoid.',
       ],
     },

@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { a11y, appBar, chart, coldState, mapPage, menu, moved, pour, ratePage } from '../src/lib/copy';
+import { a11y, appBar, chart, coldState, mapPage, moved, pour, ratePage, taste } from '../src/lib/copy';
 
 const profile = { x: 4, y: -2, dislikesSmoke: false, dislikesBitter: false, dislikesAnise: false, vibeTags: {} };
 
@@ -76,7 +76,7 @@ test('Your map: your track, and what each pour did to it', async ({ page }) => {
     await expect(sheet).toHaveCount(0);
   }
 
-  await expect(page.getByText(menu.youAreIn)).toBeVisible();
+  await expect(page.getByText(taste.label)).toBeVisible();
   await expect(page.getByRole('figure', { name: mapPage.trackLabel(2) })).toBeVisible();
 
   // The chart of you is here: the way you came and the shoal. Compass's chart is the drinks', measured from you.
@@ -111,7 +111,7 @@ test('Your map: your track, and what each pour did to it', async ({ page }) => {
 
 test('Your map: where you are sits beside the log on a wide screen, above it on a phone', async ({ page }) => {
   await page.addInitScript((p) => localStorage.setItem('user_profile', JSON.stringify(p)), profile);
-  const where = page.getByText(menu.youAreIn);
+  const where = page.getByText(taste.label);
   const ledger = page.getByRole('heading', { name: mapPage.ledgerTitle, exact: true });
 
   await page.setViewportSize({ width: 1280, height: 900 });

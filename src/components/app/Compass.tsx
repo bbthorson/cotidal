@@ -63,6 +63,7 @@ function CompassContent({
         register={register}
         profile={c.profile}
         pours={c.history}
+        start={c.start}
         onBack={c.closeMenu}
         onPicked={c.picked}
       />
@@ -205,8 +206,7 @@ function CompassContent({
                             <MenuRow
                               rank={i + 1}
                               title={c.displayName(d.name)}
-                              way={d.way.words}
-                              distance={d.way.distance}
+                              reason={d.reason}
                               selected={c.selected === d.name}
                               onSelect={() => c.chooseDrink(d.name)}
                             />
@@ -254,21 +254,21 @@ function CompassContent({
 }
 
 /**
- * A drink on your menu: its rank, its name, which way it lies from you and
- * how far. The first is yours above all, so its name is in terracotta.
+ * A drink on your menu: its rank, its name, and what put it there — your
+ * ratings of the drinks around it, or your answers. No figure: the order is
+ * the height of your terrain, which is not shown as a score. The first is
+ * yours above all, so its name is in terracotta.
  */
 function MenuRow({
   rank,
   title,
-  way,
-  distance,
+  reason,
   selected,
   onSelect,
 }: {
   rank: number;
   title: string;
-  way: string;
-  distance: number;
+  reason: string;
   selected: boolean;
   onSelect: () => void;
 }) {
@@ -289,10 +289,7 @@ function MenuRow({
         >
           {title}
         </span>
-        <span className="text-meta text-muted-foreground">{way}</span>
-      </span>
-      <span className="shrink-0 font-condensed text-prose font-bold tabular-nums" aria-label={chart.farOf(distance)}>
-        {distance}
+        <span className="text-meta text-muted-foreground">{reason}</span>
       </span>
     </button>
   );

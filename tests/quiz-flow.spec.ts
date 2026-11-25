@@ -108,16 +108,16 @@ test('Menu: one ranked list, with no occasion switch', async ({ page }) => {
   await page.reload();
 
   await expect(page.getByRole('heading', { name: compass.menuTitle })).toBeVisible();
-  // The occasion tabs are gone; the menu ranks by distance, with taste only sorting drinks about as close.
+  // The occasion tabs are gone; the menu ranks on your terrain, with taste only sorting drinks that stand level.
   await expect(page.getByRole('group', { name: 'Occasion' })).toHaveCount(0);
   for (const label of ['Usual', 'Night out', 'Impress', 'Holiday']) {
     await expect(page.getByRole('button', { name: label, exact: true })).toHaveCount(0);
   }
 
-  // Each drink says how far it lies from you, never a predicted score.
-  const far = await page.getByLabel(/ away$/).allTextContents();
-  expect(far.length).toBeGreaterThan(1);
-  far.forEach((d) => expect(Number(d)).toBeGreaterThanOrEqual(0));
+  // Each drink says what put it there — with nothing rated, where your answers put you —
+  // never a predicted score, and no distance that the order would not follow.
+  expect(await page.getByText(chart.reason([]), { exact: true }).count()).toBeGreaterThan(1);
+  await expect(page.getByLabel(/ away$/)).toHaveCount(0);
 
   // Compass opens on the chart.
   await expect(page.getByRole('region', { name: chart.label })).toBeVisible();

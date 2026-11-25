@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { drinkDatabase } from '@/lib/data';
-import { addMenuLine, addMenuLines, rankMenu, type MenuItem } from '@/lib/menu-rank';
+import { addMenuLine, addMenuLines, rankMenu, type MenuItem, type TerrainStart } from '@/lib/menu-rank';
 import { clashingAversions } from '@/lib/ingredient-match';
 import { chart, compass, mcp, menu } from '@/lib/copy';
 import { titleOf, type Register } from '@/lib/register';
@@ -26,6 +26,7 @@ export function MenuView({
   register,
   profile,
   pours,
+  start,
   onBack,
   onPicked,
 }: {
@@ -33,6 +34,8 @@ export function MenuView({
   register: Register;
   profile: UserProfile | null;
   pours: PourRecord[];
+  /** Where the questions put you (`useQuizStart`); without it, your point stands in. */
+  start: TerrainStart | null;
   onBack: () => void;
   onPicked: (pick: DrinkPick) => void;
 }) {
@@ -48,8 +51,8 @@ export function MenuView({
 
   const bar = (venue.name ?? typedBar).trim() || null;
   const ranked = useMemo(
-    () => (profile ? rankMenu(items, profile, pours, bar ?? 'Home Pour') : []),
-    [profile, items, pours, bar]
+    () => (profile ? rankMenu(items, profile, pours, bar ?? 'Home Pour', start ?? undefined) : []),
+    [profile, items, pours, bar, start]
   );
   const chosen = choice ?? ranked[0]?.drink.name;
   const aversions = useMemo(
@@ -241,13 +244,15 @@ export function MenuView({
               <h2 className="section-title">{bar ? compass.atMenu.rankedAt(bar) : compass.atMenu.rankedHome}</h2>
               <p className="mb-2 text-meta text-muted-foreground">{compass.atMenu.rankedBody}</p>
               <ol className="border-t border-foreground">
-                {ranked.map(({ drink, distance }, i) => (
+                {ranked.map(({ drink, evidence, rated }, i) => (
                   <li key={drink.name} className="border-b border-border">
                     <DrinkRow
                       rank={i + 1}
                       title={titleOf(register, drink.name)}
-                      figure={distance}
-                      figureLabel={chart.farOf(distance)}
+                      note={chart.reason(
+                        evidence.map((e) => ({ name: titleOf(register, e.drink.name), hedonic: e.hedonic })),
+                        rated
+                      )}
                       selected={chosen === drink.name}
                       onSelect={() => setChoice(drink.name)}
                     />

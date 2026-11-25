@@ -12,6 +12,7 @@ import { closestDrinks } from '@/lib/drink-search';
 import { barPointFor, guestPourRecord, menuChange, toLogOptions, type PourEntry } from '@/lib/pour-entry';
 import type { RateRequest } from '@/lib/pour-draft';
 import { useMenu } from '@/hooks/useMenu';
+import { useQuizStart } from '@/hooks/useQuizStart';
 import { clearRateRequestFromUrl } from '@/hooks/useRateSheet';
 
 /** The pour just logged, and your menu as it stood before it, to show what it changed. */
@@ -55,7 +56,8 @@ export function useRatePour({
   const x = profile?.x ?? 0;
   const y = profile?.y ?? 0;
   const user = useMemo(() => userFromProfile(profile), [profile]);
-  const { menu } = useMenu(user, profile?.vibeTags, history);
+  const start = useQuizStart(isMember);
+  const { menu } = useMenu(user, profile?.vibeTags, history, start);
 
   // Quick picks: the drinks closest to where you are now.
   const nearest = useMemo(() => closestDrinks({ x, y }, 4).map((d) => d.name), [x, y]);

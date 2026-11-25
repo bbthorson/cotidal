@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { coldState, mapPage, menu, moved, pour, ratePage } from '../src/lib/copy';
+import { coldState, mapPage, moved, pour, ratePage, taste } from '../src/lib/copy';
 
 test('Your map: server-renders the route shell', async ({ page }) => {
   const response = await page.request.get('/map');
@@ -44,7 +44,7 @@ test('Rate: a guest logs a pour, sees the coordinate move, then the ledger', asy
 
   // Back on Log: where you are now, and the pour in the ledger.
   await expect(page).toHaveURL(/\/map$/);
-  await expect(page.getByText(menu.youAreIn)).toBeVisible();
+  await expect(page.getByText(taste.label)).toBeVisible();
   await expect(page.getByRole('heading', { name: mapPage.ledgerTitle, exact: true })).toBeVisible();
   const ledger = page.locator('ol').filter({ hasText: 'Too sweet' });
   await expect(ledger).toContainText(pour.home);

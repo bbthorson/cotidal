@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { SIGNED_OUT_PARAM, START_OVER_PARAM, signedOutPath, startOverPath } from '../src/lib/atproto/paths';
-import { a11y, account, compass, menu, nav } from '../src/lib/copy';
+import { a11y, account, compass, nav, taste } from '../src/lib/copy';
 import { destinations } from '../src/lib/site-nav';
 import { questions } from '../src/lib/discovery-questions';
 
@@ -85,7 +85,7 @@ test('Start over: two steps on Log, and Keep it changes nothing', async ({ page 
   await page.getByRole('button', { name: account.startOver }).click();
   await expect(page.getByText(account.startOverBody)).toBeVisible();
   await page.getByRole('button', { name: account.startOverCancel }).click();
-  await expect(page.getByText(menu.youAreIn)).toBeVisible();
+  await expect(page.getByText(taste.label)).toBeVisible();
   expect(await page.evaluate(() => localStorage.getItem('user_profile'))).not.toBeNull();
 
   await page.getByRole('button', { name: account.startOver }).click();

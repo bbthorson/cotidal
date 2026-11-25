@@ -150,12 +150,22 @@ Negroni (9)" (`evidenceAt`), or, where only the questions speak, "near where
 your answers put you". Which way and how far remain for a drink selected on
 the map, measured from the nearest hilltop.
 
-**Still to decide before it is wired in:**
+**Wired in.** Compass's menu and a bar's are ranked by it, each row saying
+what put the drink there, and Your map says your taste in the axes' words
+("You lean crisp and sweet · rich and savory") instead of a region's name.
+Two tunings came first: a rating is partly about the drink itself, so one
+dislike sinks that drink rather than its corner (a heavy-tailed reading of
+ratings was tried first and did not help: three drinks a point apart cannot
+tell which rating is the odd one); and a rating carries less to another kind
+of drink, so a Manhattan no longer brings up a Rioja.
 
-- **Your region.** "You are in The Surf", the region badge, coasters,
-  comparing with a friend and the chat tools all read one coordinate. With
-  two hilltops, are you in two regions, or the highest one? Until decided,
-  the record's point stays what it is, and the terrain is drawn beside it.
+**Still to decide:**
+
+- **No single region for a person.** Decided: a person is described by
+  which ways their hills lean, not by one region. Still on the point and its
+  region: the reveal after the questions, `/p/<handle>`, share cards, the
+  coasters, the region badge and the chat tools. The regions stay as names
+  for parts of the map and for the reading pages.
 - **The track.** The way you came becomes the way the ground changed; it
   needs its own drawing.
 - **Breadth in the questions.** The quiz reads answers that disagree as a

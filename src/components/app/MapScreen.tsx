@@ -93,6 +93,7 @@ function MapContent({
             onSelect={log.chooseDrink}
             name={name}
             eyebrow={isMember ? undefined : mapPage.guestEyebrow}
+            leanings={log.leanings}
           />
 
           {/* The way you came, up close: the chart is too large a scale for a half-point move. */}

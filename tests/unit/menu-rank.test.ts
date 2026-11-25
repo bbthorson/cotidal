@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { addMenuLine, addMenuLines, rankMenu, scoreDrinks, type MenuItem } from '@/lib/menu-rank';
-import { calculateDistance, RELEVANCE_BAND } from '@/lib/scoring';
+import { calculateDistance, HEIGHT_BAND } from '@/lib/scoring';
+import { buildTerrain, drinkHeight } from '@/lib/terrain';
 
 const you = { x: 4, y: -2, vibeTags: {} };
 
@@ -36,12 +37,20 @@ describe('menu lines', () => {
 });
 
 describe('rankMenu', () => {
-  it('ranks placed drinks closest first and leaves unplaced lines out', () => {
+  it('ranks placed drinks closest first before anything is rated, and leaves unplaced lines out', () => {
     let items: MenuItem[] = [];
     for (const line of ['Last Word', 'negroni', 'House Special']) items = addMenuLine(items, line, {});
     const ranked = rankMenu(items, you, [], 'Attaboy');
     expect(ranked).toHaveLength(2);
     expect(ranked[0].distance).toBeLessThanOrEqual(ranked[1].distance);
+  });
+
+  it('ranks from where the questions put you, not from where your point has since moved', () => {
+    let items: MenuItem[] = [];
+    for (const line of ['Last Word', 'negroni']) items = addMenuLine(items, line, {});
+    // The point sits by the Last Word; the questions put you by the Negroni.
+    const ranked = rankMenu(items, you, [], null, { x: -6, y: -8 });
+    expect(ranked.map((r) => r.drink.name)).toEqual(['Negroni', 'Last Word']);
   });
 });
 
@@ -54,17 +63,27 @@ describe('your menu', () => {
     createdAt,
   });
 
-  it('is ranked closest first', () => {
+  it('is ranked closest first before anything is rated', () => {
     const scored = scoreDrinks({ x: -4, y: -3, filters: [] }, undefined, []);
     const far = scored.map((d) => d.distance);
     expect(far).toEqual([...far].sort((a, b) => a - b));
   });
 
-  it('lets the quiz\'s tags reorder only drinks about as close, never jump a band', () => {
+  it('lets the quiz\'s tags reorder only drinks that stand about level, never jump a band', () => {
     const user = { x: -1.4, y: 0, filters: [] };
     const scored = scoreDrinks(user, { crushable: 5, social: 3, classic: 2, bright: 4 }, []);
-    const bands = scored.map((d) => Math.floor(calculateDistance(user, d) / RELEVANCE_BAND));
+    const t = buildTerrain({ x: user.x, y: user.y }, []);
+    const bands = scored.map((d) => Math.floor((9 - drinkHeight(t, d).rating) / HEIGHT_BAND));
     expect(bands).toEqual([...bands].sort((a, b) => a - b));
+    expect(calculateDistance(user, scored[0])).toBeLessThan(2);
+  });
+
+  it('reaches for both parts of the map someone likes', () => {
+    const user = { x: 1, y: 0, filters: [] };
+    const loves = ['Negroni', 'Manhattan', 'Daiquiri (Classic)', 'Paloma'].map((d, i) => pour(d, 9, `2026-11-0${i + 1}T00:00:00.000Z`));
+    const top = scoreDrinks(user, undefined, loves).slice(0, 8).map((d) => d.name);
+    expect(top).toEqual(expect.arrayContaining(['Negroni', 'Manhattan', 'Daiquiri (Classic)', 'Paloma']));
+    expect(top).not.toContain('Hazy IPA');
   });
 
   it('leaves out what you avoid', () => {

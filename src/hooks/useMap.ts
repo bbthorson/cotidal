@@ -3,6 +3,8 @@ import { drinkDatabase } from '@/lib/data';
 import { userFromProfile } from '@/lib/profile';
 import { lastPourByDrink } from '@/lib/pour-history';
 import { useMenu } from '@/hooks/useMenu';
+import { useQuizStart } from '@/hooks/useQuizStart';
+import { buildTerrain, leanings } from '@/lib/terrain';
 import { quadrantFor } from '@/lib/quadrant';
 import { mapPage } from '@/lib/copy';
 import { titleOf, type Register } from '@/lib/register';
@@ -34,7 +36,16 @@ export function useMap(register: Register, member: { did: string; handle: string
   // The drinks you have poured, and the one open in the drink card. Distances
   // come from the same ranking Compass shows (`useMenu`), so they agree.
   const user = useMemo(() => userFromProfile(profile), [profile]);
-  const { distance } = useMenu(user, profile?.vibeTags, history);
+  const start = useQuizStart(isMember);
+  const { distance } = useMenu(user, profile?.vibeTags, history, start);
+  // Your taste in the axes' words, one phrase per hill of your terrain: never a region's name.
+  const lean = useMemo(
+    () =>
+      profile
+        ? leanings(buildTerrain(start ?? { x: profile.x, y: profile.y, ...(profile.variance ? { variance: profile.variance } : {}) }, history))
+        : [],
+    [start, profile, history]
+  );
   const lastPour = useMemo(() => lastPourByDrink(history), [history]);
   const poured = useMemo(() => drinkDatabase.filter((d) => lastPour.has(d.name)), [lastPour]);
   const [selected, setSelected] = useState<string | null>(null);
@@ -81,6 +92,8 @@ export function useMap(register: Register, member: { did: string; handle: string
     cold: !profile && !isMember,
     you: { x, y },
     region: quadrantFor(x, y),
+    /** Which ways your taste leans, one per hill of your terrain, highest first (`leanings`). */
+    leanings: lean,
     /** Your track when it adds up (`useTrack`), and what it starts from. */
     track,
     startLabel: fromQuiz ? mapPage.started : mapPage.startedCentre,

@@ -36,14 +36,15 @@ test('Compass menu: a menu with a bar, ranked, picked — then the pick waits an
   await expect(page.getByText(compass.atMenu.placed, { exact: true })).toHaveCount(2);
   await expect(page.getByText(compass.atMenu.unplaced, { exact: true })).toHaveCount(1);
 
-  // Ranked, closest first; the unplaced line is not ranked.
+  // Ranked on your terrain; the unplaced line is not ranked.
   await expect(page.getByRole('heading', { name: compass.atMenu.rankedAt('Attaboy') })).toBeVisible();
-  // Each says how far it sits from you, as Your menu does: one figure everywhere.
-  const far = await page.getByLabel(/ away$/).evaluateAll((els) => els.map((el) => Number(el.textContent)));
-  expect(far).toHaveLength(2);
-  expect(far).toEqual([...far].sort((a, b) => a - b));
+  // Each says what put it there, as Your menu does, never a score or a distance: with nothing
+  // rated yet, that is where your answers put you.
+  const ranked = page.locator('ol').filter({ hasText: chart.reason([]) });
+  await expect(ranked.getByText(chart.reason([]), { exact: true })).toHaveCount(2);
+  await expect(ranked.getByLabel(/ away$/)).toHaveCount(0);
 
-  await page.getByRole('button', { name: /Negroni.* away/ }).click();
+  await ranked.getByRole('button', { name: /Negroni/ }).click();
   await page.getByRole('button', { name: chart.pickThis }).click();
 
   // Back on Compass, the pick waits, and rating opens the sheet on a draft with no rating in it.
