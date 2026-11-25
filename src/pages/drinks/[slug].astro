@@ -3,7 +3,6 @@ import { getCollection, render } from 'astro:content';
 import type { GetStaticPaths } from 'astro';
 import MapPage from '../../layouts/MapPage.astro';
 import { PalateMap } from '../../components/app/PalateMap';
-import { CardHead } from '../../components/app/MapScreen';
 import { ScreenHeader } from '../../components/app/ui';
 import OnTheRecord from '../../components/marketing/OnTheRecord.astro';
 import Readout from '../../components/marketing/Readout.astro';
@@ -70,6 +69,8 @@ const recipeJsonLd = {
   description={d.summary}
   currentPath={`${drinksHref}/${entry.id}`}
   label={d.title}
+  eyebrow={`${copy.eyebrow} · ${d.family}`}
+  back={{ href: drinksHref, label: copy.backLabel }}
 >
   <script is:inline type="application/ld+json" set:html={JSON.stringify(recipeJsonLd)} />
 
@@ -81,11 +82,6 @@ const recipeJsonLd = {
     region={quadrant?.id ?? null}
     tide
   />
-
-  <CardHead slot="head">
-    <span class="label-caps">{copy.eyebrow} · {d.family}</span>
-    <a slot="action" href={drinksHref} class="link-caps shrink-0 text-secondary">&larr; {copy.backLabel}</a>
-  </CardHead>
 
   <article>
     <ScreenHeader title={d.title} gloss={d.summary}>

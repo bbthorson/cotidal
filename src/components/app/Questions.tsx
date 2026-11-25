@@ -83,7 +83,6 @@ function QuestionsContent({ member, bar }: { member: boolean; bar?: ReactNode })
 
   return (
     <MapScreen
-      mode="live"
       rest="tall"
       bar={bar}
       label={hero.primaryCta}

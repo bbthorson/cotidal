@@ -111,8 +111,6 @@ export const explore = {
   /** The card, read aloud. */
   cardLabel: 'Where to next',
   /** The card's handle, read aloud, and its words on a phone. */
-  more: 'More',
-  less: 'Less',
   heading: 'Where to next',
   /** Before there is a coordinate, in the card's head. */
   noPosition: 'No position yet',

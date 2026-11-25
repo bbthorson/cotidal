@@ -148,7 +148,7 @@ Navigation is unified across the site through two bars and a footer, all rendere
 8. **Focus mode**: any element marked `data-focus-mode` (the questions, the reveal) hides the site header and footer below `lg` (`globals.css`, pure CSS so nothing flashes before hydration).
 9. **The search is in the app bar, on the map** (`AppBar`'s `search`): a plain GET form to `/map?q=`, so it works before the island does and with script off, which `SearchBox.tsx` takes over once the island is up, keeping anything already typed. There is no bar along the foot: the app is one screen.
 10. **One action per app screen.** The map's is **Rate a drink**: on a phone it floats at the foot of the screen, over the card, where a thumb is (hidden while the search has the keyboard), and the card's list keeps room under its last row for it; from `lg` it sits in the card's head line, beside what your map says about you. It shows only on where to next — a drink, a bar, rating and the reveal each carry their own action. Choosing what to have is the search, the card's lists and the map itself; Pick this and Rate this belong to a drink, opened in the card.
-11. **One page title.** Every card opens with `ScreenHeader` (`ui.tsx`): the title, left-aligned and at one size, with an optional action, a `gloss` (the italic line under a drink's, a region's or a bar's name) or a `lede` (plain prose), and a readout under them if the card has one. The app screens use it (where to next, a bar's menu titled with the bar's name, a drink, the cold state) and so does every static page. The eyebrow is the card head's (`MapPage`'s `eyebrow`); rating, in the card, keeps its own ("Rate a drink").
+11. **One page title.** Every card opens with `ScreenHeader` (`ui.tsx`): the title, left-aligned and at one size, with an optional action, a `gloss` (the italic line under a drink's, a region's or a bar's name) or a `lede` (plain prose), and a readout under them if the card has one. The app screens use it (where to next, a bar's menu titled with the bar's name, a drink, the cold state) and so does every static page. The eyebrow is the app bar's (`MapPage`'s `eyebrow`); rating, in the card, keeps its own ("Rate a drink").
 12. **One sheet per screen.** Only what is yours — the chosen option, the pinned card — is a sheet with `shadow-mcm`. Everything else is a ruled section (`section-title`) or rows. The map sits in a frame on a ruled ground, as a printed chart does; that is a figure, not a sheet. The map's card is the screen's one sheet (`shadow-mcm` from `lg`). A pick waiting to be rated (`WaitingPick`) is a strip ruled in ink, not a sheet.
 13. **Two kinds of empty.** A list with nothing in it yet is `Empty`: your pours' ledger, a search with no match, no bars near. A screen that cannot start without a coordinate is a `ScreenHeader` and its ways in: `ColdState` in the map's card and in rating; a bar's menu says what it needs in an `Empty`. Nothing else says "empty".
 14. **One section heading.** A section inside any card opens with `section-title`: a bold Playfair line over an ink rule. A heading with a link beside it ("Its drinks →") draws the same rule under the row. Small caps label a field or a column, never a section.
@@ -167,10 +167,21 @@ what the map draws and what the card holds:
   nothing of anyone's to draw, the tide turning (`MapPage`'s default). It
   says what it draws in its accessible name: "your map" on `/map`, the map
   itself (`explore.chartLabel`) where it draws nobody's.
-- **The card** opens with the app bar (`AppBar`), then its head (`CardHead`:
-  a caps line naming the way in, `MapPage`'s `eyebrow`, and at most one
-  control, such as `back`), then `ScreenHeader`, then ruled sections; its
-  foot is the site footer.
+- **The card** opens with the app bar (`AppBar`), which carries the page's
+  name — the name of the way in, `MapPage`'s `eyebrow`, with its way back
+  (`back`) as an arrow before it — in the wordmark's place, so the name is
+  said once and takes no line of its own. Where the name is the page's only
+  title (Settings), it is the page's `h1` (`heading`) and the card opens with
+  no other. Then `ScreenHeader`, then ruled sections; its foot is the site
+  footer. `CardHead` is a line about the card's content, not its name: what
+  your map says about you on `/map`, the sample on the front door.
+- **Every page behaves the same.** On a phone the map stays at the top as
+  the page scrolls the card up over it, and the app bar sticks to the top of
+  the screen once it gets there; from `lg` the card is a panel that scrolls
+  on its own. `/map` and `/questions` too: there is no dragged card. On
+  `/map` a tap on something that is a place on the map (a drink, a bar, back
+  to where to next) scrolls back to the top, so the map shows and pushes the
+  card down; rating scrolls the card up to the top of the screen.
 
 Pages that are forms or records rather than places — Settings, For bars, a
 bar's claim form, Chat assistants, an assistant asking for access, not found
@@ -226,7 +237,7 @@ On a phone the map is the full width under the header and the card rests in the 
 
 **One layout for every map page** (`MapScreen.tsx`, with `CardHead`): the map and one card. `live` is `/map`, where the card is pulled up by its head; `static` is a page with no script, where on a phone the map stays at the top as the page scrolls the card up over it — the pull is a scroll. A static page renders the same React components on the server with no directive, so the map and the card are one copy, not an Astro twin of each.
 
-**The card.** Its head is the same line whatever it holds — what your map says about you in the axes' words ("You lean *crisp and sweet · rich and savory*", `leanings`), or "No position yet" — and on a phone it is the handle: dragged or tapped (**More**, **Less**) to pull the card up over the map and let it down. Its body scrolls on its own. It holds one of:
+**The card.** Its head is the same line whatever it holds — what your map says about you in the axes' words ("You lean *crisp and sweet · rich and savory*", `leanings`), or "No position yet" — with, from `lg`, the screen's one action beside it. Pulling the card up is scrolling the page, as on every page; from `lg` its body scrolls on its own. It holds one of:
 
 - **Where to next** (titled for a screen reader alone: the head says where you are and each section names itself): **Rate a drink** (the screen's one action, rule 10), a waiting pick, **Your menu** (`useMenu`: eight drinks, each with what put it there — "Near your Manhattan (9) and Penicillin (8)", "You gave it 8", "Near where your answers put you" — the first in terracotta), **Have a menu?**, **Your bars** (from your pours), **Bars near you** (`Near.tsx`, a list), and **Your pours**: the figures, your track up close (`TrackFigure`), the ledger (`PourLedger`), and for a member Compare with someone, for a guest what signing in keeps and Start over. Before a position it holds the cold state instead.
 - **A drink**: its region and coordinate, what put it where it stands for you, your last pour of it, Also here, **Rate this**, **Pick this** (at the open bar, if any), and its entry. It is ringed on the map.

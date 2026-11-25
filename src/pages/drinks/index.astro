@@ -2,7 +2,6 @@
 import { getCollection } from 'astro:content';
 import MapPage from '../../layouts/MapPage.astro';
 import { PalateMap } from '../../components/app/PalateMap';
-import { CardHead } from '../../components/app/MapScreen';
 import { ScreenHeader } from '../../components/app/ui';
 import RegionFilter from '../../components/marketing/RegionFilter.astro';
 import DrinkRow from '../../components/marketing/DrinkRow.astro';
@@ -45,12 +44,8 @@ const grouped = quadrants.map((quadrant) => ({
 }));
 ---
 
-<MapPage title={`${copy.title} · ${site.name}`} description={copy.intro} currentPath={drinksHref} label={copy.title}>
+<MapPage title={`${copy.title} · ${site.name}`} description={copy.intro} currentPath={drinksHref} label={copy.title} eyebrow={copy.eyebrow}>
   <PalateMap slot="map" label={explore.chartLabel} named={placed.map(({ drink }) => drink.name)} tide />
-
-  <CardHead slot="head">
-    <span class="label-caps">{copy.eyebrow}</span>
-  </CardHead>
 
   <ScreenHeader title={copy.title} gloss={copy.intro} />
   <div class="mt-6">

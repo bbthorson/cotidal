@@ -165,12 +165,27 @@ test('Map: the card sits beside the map on a wide screen, under it on a phone', 
     return c2.y >= m2.y + m2.height - 1;
   }).toBe(true);
 
-  // The card pulls up over the map, and lets down again.
-  const before = (await card(page).boundingBox())!.height;
-  await card(page).getByRole('button', { name: explore.more }).click();
-  await expect.poll(async () => (await card(page).boundingBox())!.height).toBeGreaterThan(before + 100);
-  await card(page).getByRole('button', { name: explore.less }).click();
-  await expect.poll(async () => (await card(page).boundingBox())!.height).toBeLessThan(before + 5);
+  // As on every page, the card is the page's scroll: scrolling pulls it up over the map, and its app bar sticks to the top.
+  const restTop = (await card(page).boundingBox())!.y;
+  await page.mouse.wheel(0, 600);
+  await expect.poll(async () => (await card(page).boundingBox())!.y).toBeLessThan(restTop - 300);
+  const barTop = async () => (await page.locator('header').first().boundingBox())!.y;
+  await expect.poll(barTop).toBeLessThan(16);
+  const stuck = await barTop();
+  await page.mouse.wheel(0, 400);
+  await page.waitForTimeout(300);
+  expect(Math.abs((await barTop()) - stuck)).toBeLessThan(1);
+  // There is no handle to drag and no More: pulling is scrolling.
+  await expect(card(page).getByRole('button', { name: /^(More|Less)$/ })).toHaveCount(0);
+
+  // A drink is a place on the map: opening one scrolls back, so the map shows and pushes the card down.
+  await card(page).locator('ol li button').first().click();
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeLessThan(5);
+  await expect(card(page).getByRole('heading', { level: 1 })).toBeVisible();
+
+  // Rating needs the room: it scrolls the card up to the top of the screen.
+  await card(page).getByRole('button', { name: chart.logThis }).click();
+  await expect.poll(async () => Math.abs((await card(page).boundingBox())!.y)).toBeLessThan(2);
 });
 
 test('Map: Rate a drink floats at a phone\'s thumb on where to next, sits in the card\'s head from lg, and gives way to a drink\'s own', async ({ page }) => {

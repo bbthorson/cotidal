@@ -13,9 +13,21 @@ interface Props {
    * up (`SearchBox.tsx`, by the id `app-search`). Only on `/map`.
    */
   search?: boolean;
+  /**
+   * The page's name, in the wordmark's place: what the card holds, said once
+   * in the bar rather than on a line of its own under it — the name of the
+   * way in (docs/design-system.md, rule 16). The front door, which has none,
+   * keeps the wordmark.
+   */
+  title?: string;
+  /** A way back, as an arrow before the name: `← Drinks · Aperitivo` goes to all drinks. */
+  back?: { href: string; label: string };
+  /** The name is the page's only title (Settings): the bar's name is its `h1`. */
+  heading?: boolean;
 }
 
-const { currentPath, account, search = false } = Astro.props;
+const { currentPath, account, search = false, title, back, heading = false } = Astro.props;
+const Title = heading ? 'h1' : 'p';
 const query = search ? (Astro.url.searchParams.get('q') ?? '') : '';
 const control = accountControl(account, currentPath);
 
@@ -41,8 +53,29 @@ const caps = 'font-condensed uppercase tracking-label';
 <header class="flex flex-wrap items-center gap-x-2 border-b border-foreground pb-2">
   <a href="/" class="group order-1 flex min-h-11 shrink-0 items-center gap-2.5">
     <Monogram class="h-7 w-7 shrink-0 transition-transform group-hover:scale-105" />
-    {!search && <span class="whitespace-nowrap font-serif text-ui font-bold uppercase leading-none tracking-wordmark text-foreground">{site.name}</span>}
+    {
+      !search && !title ? (
+        <span class="whitespace-nowrap font-serif text-ui font-bold uppercase leading-none tracking-wordmark text-foreground">{site.name}</span>
+      ) : (
+        <span class="sr-only">{site.name}</span>
+      )
+    }
   </a>
+
+  {
+    title && !search && (
+      <div class="order-1 flex min-w-0 flex-1 items-center gap-2">
+        {back && (
+          <a href={back.href} aria-label={back.label} class:list={['flex min-h-11 shrink-0 items-center px-1 text-meta text-secondary hover:text-foreground', caps]}>
+            &larr;
+          </a>
+        )}
+        <Title class:list={['min-w-0 truncate text-meta font-semibold text-foreground', caps]} data-testid="page-name">
+          {title}
+        </Title>
+      </div>
+    )
+  }
 
   {
     search ? (
@@ -62,7 +95,7 @@ const caps = 'font-condensed uppercase tracking-label';
         </form>
       </div>
     ) : (
-      <span class="order-1 flex-1" />
+      !title && <span class="order-1 flex-1" />
     )
   }
 

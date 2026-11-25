@@ -1,7 +1,6 @@
 ---
 import MapPage from '../layouts/MapPage.astro';
 import { PalateMap } from '../components/app/PalateMap';
-import { CardHead } from '../components/app/MapScreen';
 import { ScreenHeader } from '../components/app/ui';
 import { explore, howItWorks as copy, site } from '../lib/copy';
 import { questionsHref } from '../lib/site-nav';
@@ -18,12 +17,8 @@ import { questionsHref } from '../lib/site-nav';
  */
 ---
 
-<MapPage title={`${site.name} — ${copy.eyebrow}`} currentPath="/how-it-works" label={copy.eyebrow}>
+<MapPage title={`${site.name} — ${copy.eyebrow}`} currentPath="/how-it-works" label={copy.eyebrow} eyebrow={copy.eyebrow}>
   <PalateMap slot="map" label={explore.chartLabel} tide />
-
-  <CardHead slot="head">
-    <span class="label-caps">{copy.eyebrow}</span>
-  </CardHead>
 
   <ScreenHeader title={copy.title} gloss={copy.lede} />
   <div class="space-y-10 pt-8">

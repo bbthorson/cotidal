@@ -3,12 +3,12 @@ import { getCollection, getEntry, render } from 'astro:content';
 import type { GetStaticPaths } from 'astro';
 import MapPage from '../../../layouts/MapPage.astro';
 import { PalateMap } from '../../../components/app/PalateMap';
-import { CardHead } from '../../../components/app/MapScreen';
 import { ScreenHeader } from '../../../components/app/ui';
 import RegionFilter from '../../../components/marketing/RegionFilter.astro';
 import DrinkRow from '../../../components/marketing/DrinkRow.astro';
 import OnTheRecord from '../../../components/marketing/OnTheRecord.astro';
-import { site, quadrants, regionPage as copy, share, explore } from '../../../lib/copy';
+import { site, quadrants, regionPage as copy, share, explore, drinks } from '../../../lib/copy';
+import { drinksHref } from '../../../lib/site-nav';
 import { shareImagePath } from '../../../lib/share';
 import { drinkDatabase } from '../../../lib/data';
 import { sharedIngredients } from '../../../lib/ingredients';
@@ -57,12 +57,10 @@ const shared = sharedIngredients(placed.map(({ entry }) => entry.data));
   image={{ path: shareImagePath(region.id), alt: share.regionAlt(region.name) }}
   currentPath={regionPath(region.id)}
   label={region.name}
+  eyebrow={copy.eyebrow(region.axis)}
+  back={{ href: drinksHref, label: drinks.backLabel }}
 >
   <PalateMap slot="map" label={explore.chartLabel} region={region.id} named={placed.map(({ drink }) => drink.name)} tide />
-
-  <CardHead slot="head">
-    <span class="label-caps">{copy.eyebrow(region.axis)}</span>
-  </CardHead>
 
   <ScreenHeader title={region.name} gloss={region.gloss} />
   <div class="mt-6">

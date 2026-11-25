@@ -58,9 +58,10 @@ are the layout of the whole site, not only of `/map`.
 2. **The map is drawn by the server.** One component (`PalateMap.tsx`)
    draws `/map` and the pages with no script, so a static page ships no
    JavaScript for it and `/map` paints before its island hydrates.
-3. **On a page with no script, pulling the card up is scrolling.** The map
-   stays at the top of a phone's screen and the card scrolls up over it.
-   Only `/map` has the dragged card.
+3. **Pulling the card up is scrolling, on every page.** The map stays at the
+   top of a phone's screen and the card scrolls up over it, its app bar
+   sticking to the top. `/map` too: its dragged card is gone, and a tap on a
+   place on the map scrolls back so the map pushes the card down.
 4. **A page with nothing of yours to draw shows the tide turning** about the
    map's zero point (`.tide-sweep`), never a terrain that is not yours. A
    drink's page draws no hills: a sample palate behind a Negroni would read as

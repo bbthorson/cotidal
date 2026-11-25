@@ -118,6 +118,10 @@ test('Drinks: a drink is the map with the drink marked and its entry in the card
   await expect(map.getByText('Negroni', { exact: true })).toBeVisible();
   await expect(card.getByRole('heading', { level: 1, name: 'Negroni' })).toBeVisible();
   await expect(card.getByRole('heading', { name: drinks.nearLabel })).toBeAttached();
+  // The page's name is said once, in the app bar, with its way back; no line of its own under the bar.
+  await expect(card.getByTestId('page-name')).toHaveText(/^Drinks · /);
+  await expect(card.locator('header').getByRole('link', { name: drinks.backLabel })).toHaveAttribute('href', '/drinks');
+  await expect(card.getByText(/^Drinks · /)).toHaveCount(1);
 
   // On a phone the card rests under the map and scrolling the page pulls it up over it.
   const mapTop = (await map.boundingBox())!.y;

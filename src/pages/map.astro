@@ -35,7 +35,7 @@ const initialQuery = Astro.url.searchParams.get('q') ?? '';
 
 ---
 
-<AppShell title={`${site.name} — ${explore.title}`} app>
+<AppShell title={`${site.name} — ${explore.title}`}>
   <Explore client:load register={register} signInEnabled={authEnabled} member={member} initialQuery={initialQuery}>
     <AppBar slot="bar" currentPath={mapHref} account={account} search />
   </Explore>

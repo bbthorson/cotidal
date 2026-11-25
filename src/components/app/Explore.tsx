@@ -50,13 +50,30 @@ function ExploreContent({
   const e = useExplore(register, member, initialQuery);
   const { isEnabled, openSignIn } = useAtprotoContext();
   const body = useRef<HTMLDivElement>(null);
+  const card = useRef<HTMLElement>(null);
   const [reveal, setReveal] = useState(false);
 
-  // A different card starts from its top.
+  // A different card starts from its top. On a phone the card is the page's scroll: something about a place on
+  // the map (a drink, a bar, back to where to next) scrolls back to the top, so the map shows and pushes the card
+  // down; rating scrolls the card up to the top of the screen, where it has the room (`e.up`). From `lg` the card
+  // is a panel that scrolls on its own, and starts from its top.
   const cardKey = e.rate.request ? 'rate' : e.selectedDrink ? `drink:${e.selected}` : e.venue ? `bar:${e.venue.name ?? ''}` : 'home';
+  const cardUp = e.up || !!e.rate.request;
+  const arrived = useRef(false);
   useEffect(() => {
-    body.current?.scrollTo(0, 0);
-  }, [cardKey]);
+    // The first card is where the page already is: nothing to scroll to.
+    if (!arrived.current) {
+      arrived.current = true;
+      return;
+    }
+    const behavior: ScrollBehavior = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
+    if (window.matchMedia('(min-width: 1024px)').matches) {
+      body.current?.scrollTo({ top: 0, behavior });
+      return;
+    }
+    if (cardUp && card.current) window.scrollTo({ top: window.scrollY + card.current.getBoundingClientRect().top, behavior });
+    else window.scrollTo({ top: 0, behavior });
+  }, [cardKey, cardUp]);
 
   const onReveal = useCallback((r: boolean) => setReveal(r), []);
   const closeRate = () => {
@@ -123,12 +140,11 @@ function ExploreContent({
 
   return (
     <MapScreen
-      mode="live"
       bar={bar}
       label={explore.cardLabel}
-      up={e.up || !!e.rate.request}
       tone={reveal ? 'reveal' : 'card'}
       head={reveal ? undefined : <CardHead e={e} rateHere={home} />}
+      cardRef={card}
       bodyRef={body}
       overlay={<SearchBox e={e} />}
       map={
@@ -150,44 +166,20 @@ function ExploreContent({
 }
 
 /**
- * The card's head: what your map says about you, in the axes' words, and the
- * one handle — dragged up or down on a phone, or tapped (More, Less).
+ * The card's head: what your map says about you, in the axes' words, and from
+ * `lg` the screen's one action. Pulling the card up on a phone is scrolling
+ * the page, as on every page.
  */
 function CardHead({ e, rateHere }: { e: ExploreState; rateHere: boolean }) {
-  const drag = useRef<{ y: number; moved: boolean } | null>(null);
   return (
     <CardHeadFrame
-      className="cursor-grab touch-none lg:cursor-auto"
-      onPointerDown={(ev) => {
-        if ((ev.target as HTMLElement).closest('button')) return;
-        drag.current = { y: ev.clientY, moved: false };
-        ev.currentTarget.setPointerCapture(ev.pointerId);
-      }}
-      onPointerMove={(ev) => {
-        const d = drag.current;
-        if (!d) return;
-        if (Math.abs(ev.clientY - d.y) > 24) {
-          d.moved = true;
-          e.setUp(ev.clientY < d.y);
-        }
-      }}
-      onPointerUp={() => {
-        const d = drag.current;
-        drag.current = null;
-        if (d && !d.moved) e.setUp(!e.up);
-      }}
       action={
-        <>
-          <button type="button" aria-expanded={e.up} onClick={() => e.setUp(!e.up)} className="link-caps shrink-0 text-secondary lg:hidden">
-            {e.up ? explore.less : explore.more}
+        /* From `lg` the screen's one action sits here, above the list; on a phone it floats (`Home`). */
+        rateHere && (
+          <button type="button" onClick={() => e.rate.open()} className="btn btn-primary hidden shrink-0 px-4 lg:inline-flex">
+            {mapPage.rateDrink}
           </button>
-          {/* From `lg` the screen's one action sits here, above the list; on a phone it floats (`Home`). */}
-          {rateHere && (
-            <button type="button" onClick={() => e.rate.open()} className="btn btn-primary hidden shrink-0 px-4 lg:inline-flex">
-              {mapPage.rateDrink}
-            </button>
-          )}
-        </>
+        )
       }
     >
       {e.leanings.length > 0 ? (

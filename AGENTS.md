@@ -31,7 +31,9 @@ landing page included. Astro was being used as a slower Next.js.
   directive: one copy of the map, and still no script.
 - Prefer `client:load` over `client:only` so the shell server-renders.
 - The app bar is the top of every page's card (`AppBar`), since the map has
-  the top of the screen: wordmark · Menu on a phone (the map, the visible
+  the top of the screen, and sticks to the top as the card scrolls up. It
+  carries the page's name in the wordmark's place (`MapPage`'s `eyebrow`,
+  with `back` and `heading`), so a name is said once: mark · name · Menu on a phone (the map, the visible
   reading pages, then the account), and from `lg` a row of tabs under the
   account control (`accountControl` in `site-nav.ts`). `Drinks` (`/drinks`) is `memberOnly` in `site-nav.ts`, so unauthenticated
   visitors on `/` are not sent there from the header or footer; drink pages stay
@@ -155,7 +157,8 @@ geometry is CSS. Every page that shows the map uses one layout,
 an Astro page renders it with no directive rather than keeping its own copy. The card holds
 where to next (your menu, your bars, bars near you, your pours, your track),
 a drink, a bar's menu, or rating a pour; on a phone it rests under the map
-and is pulled up over it by its head, and from `lg` it is a panel down the
+and the page scrolls it up over the map, as on every page (a tap on a drink
+scrolls back so the map shows), and from `lg` it is a panel down the
 left. A drink is reached by tapping it on the map (the nearest mark within
 reach) or from the card's lists and the search, which is how a keyboard
 reaches every one.
