@@ -814,10 +814,10 @@ export const venuesCopy = {
   publishCta: 'Claim your bar',
 } as const;
 
-/** `/bars/publish` — self-serve AT Protocol venue claim & menu publisher. */
+/** Claiming a bar on `/bars` (`#claim`): the self-serve venue claim & menu publisher. */
 export const barPublish = {
-  eyebrow: 'For bars · Claim & publish',
-  title: 'Claim your bar by matching its URL to your DID.',
+  /** For anyone not signed in: claiming is done as the bar's own account. */
+  signInToClaim: 'Sign in as your bar to claim it',
   lede: 'Sign in with your bar’s AT Protocol account and enter its website. We verify that the domain resolves to your DID, then write app.cotidal.venue at rkey self and a dated app.cotidal.menu snapshot to your repository.',
   publishingAs: 'Publishing as',
   nameLabel: 'Bar name',

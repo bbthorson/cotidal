@@ -354,7 +354,7 @@ would attach a share-alike obligation to the entry.
   and writes
 - `venue-verify.ts`, `venue-publish.ts`, `venue-read.ts` — Level 1 bar claiming
   matches the bar's website URL domain to its DID (`verifyVenueDomain` on
-  `/bars/publish`; `domainVerified` on `/v/<handle>`). Level 2 physical address
+  `/bars`, Claim your bar; `domainVerified` on `/v/<handle>`). Level 2 physical address
   verification (mailed postcard with a one-time code) is planned in `docs/venues.md`.
 - `session.ts` — the `bsky_sid` cookie is an opaque id into a sealed
   server-side store; `oauthSession()` is the authorisation. Anything billed or

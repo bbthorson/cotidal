@@ -1,29 +1,165 @@
 ---
 import MapPage from '../layouts/MapPage.astro';
 import { ScreenHeader } from '../components/app/ui';
-import { site, venuesCopy } from '../lib/copy';
+import { barPublish as copy, site, venuesCopy } from '../lib/copy';
 import { formatCoordinate } from '../lib/coordinate';
 import { exampleVenues } from '../lib/example-menus';
-import { barsHref } from '../lib/site-nav';
+import { accountFor, oauthSession } from '../lib/atproto/session';
+import { publishVenueAndMenu } from '../lib/atproto/venue-publish';
+import { verifyVenueDomain } from '../lib/atproto/venue-verify';
+import { barsHref, signIn } from '../lib/site-nav';
 
 /**
- * The supply side: what a bar can do on the protocol today, and what is
- * still to come, said as "Later:" (docs/brand.md, Claims). Reasoning in
+ * The supply side, as one page: what a bar can do on the protocol, then
+ * claiming one — the form for a signed-in bar account, a way to sign in for
+ * anyone else — then what is on the protocol today and what is still to
+ * come, said as "Later:" (docs/brand.md, Claims). Reasoning in
  * docs/venues.md and docs/routes.md.
  *
- * The map with the tide turning, the account in the card. Statically
- * rendered, zero client JavaScript.
+ * Claiming verifies that the bar's website URL resolves to the signed-in
+ * account's DID before writing `app.cotidal.venue` at `rkey: self`. A plain
+ * POST form to this page, so it ships no client JavaScript.
  */
+export const prerender = false;
+
+const account = await accountFor(Astro.request, false);
+
+let error: string | null = null;
+let values = { name: '', description: '', website: '', menuTitle: '', menuLines: '' };
+
+if (Astro.request.method === 'POST' && account.kind === 'member') {
+  const form = await Astro.request.formData();
+  values = {
+    name: String(form.get('name') ?? '').trim(),
+    description: String(form.get('description') ?? '').trim(),
+    website: String(form.get('website') ?? '').trim(),
+    menuTitle: String(form.get('menuTitle') ?? '').trim(),
+    menuLines: String(form.get('menuLines') ?? '').trim(),
+  };
+
+  if (!values.name) {
+    error = copy.needName;
+  } else if (!values.website) {
+    error = copy.needWebsite;
+  } else if (!/^https?:\/\//i.test(values.website)) {
+    error = copy.invalidWebsite;
+  } else {
+    const check = await verifyVenueDomain(values.website, account.did, account.handle);
+    if (!check.ok) {
+      error =
+        check.reason === 'invalid-url'
+          ? copy.invalidWebsite
+          : check.reason === 'unavailable'
+            ? copy.domainCheckFailed
+            : copy.domainMismatch(check.domain ?? values.website, account.did);
+    } else {
+      const session = await oauthSession(Astro.request);
+      if (!session) return Astro.redirect(signIn.href, 303);
+      try {
+        await publishVenueAndMenu(session, values);
+        return Astro.redirect(`/v/${encodeURIComponent(account.handle ?? account.did)}`, 303);
+      } catch (e) {
+        console.error('Could not publish venue:', e);
+        error = copy.publishFailed;
+      }
+    }
+  }
+}
+
+const actorLabel = account.kind === 'member' ? (account.handle ? `@${account.handle}` : account.did) : '';
+Astro.response.headers.set('Cache-Control', account.kind === 'member' ? 'no-store' : 'public, max-age=60, s-maxage=300');
 ---
 
 <MapPage title={`${site.name} — ${venuesCopy.eyebrow}`} currentPath={barsHref} label={venuesCopy.eyebrow} eyebrow={venuesCopy.eyebrow}>
   <div class="space-y-12">
-    <div>
-      <ScreenHeader title={venuesCopy.title} gloss={venuesCopy.subtitle} />
-      <a href={`${barsHref}/publish`} class="btn btn-primary mt-5 w-full">
-        {venuesCopy.publishCta}
-      </a>
-    </div>
+    <ScreenHeader title={venuesCopy.title} gloss={venuesCopy.subtitle} />
+
+    <section id="claim" class="scroll-mt-4 space-y-6" data-testid="claim">
+      <h2 class="section-title">{venuesCopy.publishCta}</h2>
+      <p class="text-meta text-muted-foreground">{copy.lede}</p>
+      {
+        account.kind === 'member' ? (
+          <>
+      <p class="text-meta text-muted-foreground">
+        {copy.publishingAs} <span class="font-bold text-foreground">{actorLabel}</span>
+      </p>
+
+      {error && (
+        <p role="alert" class="border-y border-destructive py-2.5 text-meta text-destructive">
+          {error}
+        </p>
+      )}
+
+      <form method="POST" action={`${barsHref}#claim`} class="space-y-5">
+        <label class="flex flex-col gap-1.5">
+          <span class="label-caps">{copy.nameLabel}</span>
+          <input
+            name="name"
+            value={values.name}
+            placeholder={copy.namePlaceholder}
+            required
+            maxlength={200}
+            class="field min-h-11"
+          />
+        </label>
+
+        <label class="flex flex-col gap-1.5">
+          <span class="label-caps">{copy.descriptionLabel}</span>
+          <textarea
+            name="description"
+            placeholder={copy.descriptionPlaceholder}
+            rows={2}
+            maxlength={2000}
+            class="field py-2.5"
+          >{values.description}</textarea>
+        </label>
+
+        <label class="flex flex-col gap-1.5">
+          <span class="label-caps">{copy.websiteLabel}</span>
+          <input
+            name="website"
+            type="url"
+            value={values.website}
+            placeholder={copy.websitePlaceholder}
+            required
+            maxlength={500}
+            class="field min-h-11"
+          />
+        </label>
+
+        <label class="flex flex-col gap-1.5">
+          <span class="label-caps">{copy.menuTitleLabel}</span>
+          <input
+            name="menuTitle"
+            value={values.menuTitle}
+            placeholder={copy.menuTitlePlaceholder}
+            maxlength={200}
+            class="field min-h-11"
+          />
+        </label>
+
+        <label class="flex flex-col gap-1.5">
+          <span class="label-caps">{copy.menuLinesLabel}</span>
+          <textarea
+            name="menuLines"
+            placeholder={copy.menuLinesPlaceholder}
+            rows={8}
+            class="field py-2.5"
+          >{values.menuLines}</textarea>
+        </label>
+
+        <button type="submit" class="btn btn-primary btn-lg w-full px-6">
+          {copy.submit}
+        </button>
+
+        <p class="text-meta text-muted-foreground">{copy.postcardNote}</p>
+      </form>
+          </>
+        ) : (
+          <a href={signIn.href} class="btn btn-primary w-full">{copy.signInToClaim}</a>
+        )
+      }
+    </section>
 
     {/* Ruled sections, not cards: a spec sheet reads down the page (docs/design-system.md, One sheet per screen). */}
     <section>
