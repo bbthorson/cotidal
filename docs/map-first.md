@@ -109,7 +109,7 @@ small vocabulary, read and written by `src/lib/map-url.ts` and nowhere else
 |---|---|---|
 | *(none)* | Yours: your account, or this device | yes |
 | `drink=<slug>` | That drink marked, its card open | yes |
-| `palate=<handle or DID>` | Someone else's taste, read from their public records, read-only | yes, as their point; their terrain is next |
+| `palate=<handle or DID>` | Someone else's taste — their terrain, from their questions and pours — read-only | yes |
 | `with=<handle or DID>` | A second palate over the first, to compare | next |
 
 They combine: `/map?palate=alice.bsky.social&drink=negroni` is where a
@@ -127,7 +127,14 @@ writes to your device, and you rate only on your own map.
 Their taste is computed from their records (their answers and their pours),
 never stored as a record of its own: a record holds what its author said,
 the terrain is the app's reading of it and improves when the model does.
-The reads are cached per person until their repository changes.
+The reads (`public-taste.ts`: their latest quiz and up to `MAX_POURS` pours,
+newest first) are cached in the Workers cache by their repository's
+revision, so a view of an unchanged repository reads one small record.
+Their map says what yours says: their taste in the axes' words
+(`leanings`), their menu with what put each drink there (their ratings, or
+their answers), and for `drink=`, which way it lies from their nearest
+hilltop. No region names a person here any more; the share card and the
+comparison still read the point.
 
 Not yet: `?palate=` on a drink's page (`/drinks/negroni?palate=…`, which
 means rendering drink pages per request, cached at the edge), and the chat

@@ -894,6 +894,16 @@ export const publicMap = {
   drinkWay: (who: string, distance: number, words: string) => `${distance} from ${who}, ${words}`,
   drinkFromYou: 'you',
   drinkForYou: 'Where it sits for you',
+  /** Their taste in the axes' words (`leanings`), as the map's card says yours. */
+  leanLabel: (self: boolean) => (self ? 'You lean' : 'Leans'),
+  /** Their menu: the drinks highest on their terrain, each with what put it there. */
+  menuLabel: (self: boolean) => (self ? 'Your menu' : 'Their menu'),
+  /** What put a drink on their menu (`chart.reason`, said of them). */
+  reason: (near: readonly { name: string; hedonic: number }[], rated?: number) => {
+    const nearBy = near.length ? `near their ${near.map((e) => `${e.name} (${e.hedonic})`).join(' and ')}` : '';
+    if (rated !== undefined) return nearBy ? `Rated ${rated} · ${nearBy}` : `Rated ${rated}`;
+    return nearBy ? nearBy[0].toUpperCase() + nearBy.slice(1) : 'Near where their answers put them';
+  },
   selfNote: 'This is your link: your map as anyone who opens it sees it, drawn from the record in your own Bluesky account.',
   linkLabel: 'Your link',
   guestTitle: 'Where do you land?',

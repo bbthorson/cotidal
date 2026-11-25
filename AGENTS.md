@@ -212,8 +212,9 @@ It ranks your menu and a bar's (`scoreDrinks`, `rankMenu`), the map draws
 it, and `leanings` says your taste in the axes' words in the card's head
 ("crisp and sweet · rich and savory", `taste` in `copy.ts`) — never one
 region's name. Not yet on
-it: the chat tools (`src/lib/mcp/`), `/p/<handle>`, the reveal, share cards
-and the code in Settings, which still read the point and its region
+it: the chat tools (`src/lib/mcp/`), the comparison on `/p/<handle>`, the
+reveal, share cards and the code in Settings, which still read the point and
+its region
 (`docs/map-first.md`). The dot, the track and `applyPour` are unchanged.
 
 
@@ -388,7 +389,13 @@ in front of a server that would have signed people in.
 `tests/auth-endpoint.spec.ts` holds the three to one answer.
 
 `public-read.ts` reads *other people's* palates with no session, for
-`/p/<handle>` (a map page: their point, and a signed-in visitor's beside it) — handle → DID → document → PDS → record. It runs on a public
+`/p/<handle>` (a map page: their terrain, and for a signed-in visitor both
+points to compare) — handle → DID → document → PDS → record. With `taste:
+true` it also reads their latest quiz and their pours (`public-taste.ts`,
+newest first, at most `MAX_POURS`), which `/p/<handle>` builds their terrain
+from as `/map` builds yours; that read is cached in the Workers cache by the
+repository's revision (`com.atproto.sync.getLatestCommit`), so an unchanged
+repository costs one small request. It runs on a public
 route, so it fetches only `https:` hosts, time-boxes every lookup, and parses
 the record down to the fields the page draws. The DID document is checked and
 read by `@atproto/did` (`didDocumentValidator`, `extractAtprotoData`), not a

@@ -3,17 +3,18 @@ import MapPage from '../../layouts/MapPage.astro';
 import { PalateMap } from '../../components/app/PalateMap';
 import { CardHead } from '../../components/app/MapScreen';
 import { ScreenHeader } from '../../components/app/ui';
-import Readout from '../../components/marketing/Readout.astro';
-import { site, publicMap, coaster, assistants, share, explore } from '../../lib/copy';
+import { site, publicMap, coaster, assistants, share, explore, taste as taste_ } from '../../lib/copy';
 import { shareImagePath } from '../../lib/share';
 import { formatCoordinate } from '../../lib/coordinate';
-import { quadrantFor, regionPath } from '../../lib/quadrant';
+import { quadrantFor } from '../../lib/quadrant';
 import { readPublicPalate } from '../../lib/atproto/public-read';
 import { publicMapPath } from '../../lib/atproto/paths';
 import { accountHref, questionsHref } from '../../lib/site-nav';
 import { oauthSession } from '../../lib/atproto/session';
 import { getPalateProfile } from '../../lib/atproto/publish';
-import { compareMaps, nearestDrinks, type MapPoint } from '../../lib/overlap';
+import { compareMaps, type MapPoint } from '../../lib/overlap';
+import { buildTerrain, evidenceAt, kindOf, leanings, peaks, rankByTerrain, sampleTerrain } from '../../lib/terrain';
+import { DISLIKED_AT } from '../../lib/scoring';
 import { readFollowedPalates, type FollowedOverlap } from '../../lib/atproto/follows-overlap';
 import { loadRegister } from '../../lib/register.server';
 import { titleOf } from '../../lib/register';
@@ -40,7 +41,7 @@ import { mapHref } from '../../lib/site-nav';
 
 export const prerender = false;
 
-const result = await readPublicPalate(Astro.params.actor ?? '');
+const result = await readPublicPalate(Astro.params.actor ?? '', { taste: true });
 const { drink: viewDrink } = readMapView(Astro.url.searchParams);
 
 const session = result.status === 'ok' ? await oauthSession(Astro.request) : null;
@@ -70,8 +71,42 @@ const overlap = subject && viewer ? compareMaps(subject, viewer) : null;
 // people rather than holding the page back.
 const follows: FollowedOverlap[] =
   isSelf && session && subject ? await readFollowedPalates(session.did, subject, { budgetMs: 2500 }) : [];
-const near = subject && !overlap ? nearestDrinks(subject) : [];
 const register = subject ? await loadRegister() : {};
+
+// Their taste as ground, from their questions and pours (`public-taste.ts`); with
+// neither on record, from their point, as `/map` does for a palate with no quiz.
+const taste = result.status === 'ok' ? (result.taste ?? null) : null;
+const terrain = subject ? buildTerrain(taste?.start ?? { x: subject.x, y: subject.y }, taste?.pours ?? []) : null;
+const ground = terrain ? sampleTerrain(terrain, 0.5) : null;
+const lean = terrain ? leanings(terrain, 2) : [];
+const rated = new Map<string, number>();
+for (const p of taste?.pours ?? []) if (!rated.has(p.drink.name)) rated.set(p.drink.name, p.rating.hedonic);
+/** What put a drink where it stands on their ground: their ratings near it, or their answers. */
+const reasonFor = (d: Drink) => {
+  if (!terrain) return '';
+  const near = evidenceAt(terrain, d.x, d.y, kindOf(d))
+    .filter((e) => e.drink.name !== d.name)
+    .map((e) => ({ name: titleOf(register, e.drink.name), hedonic: e.hedonic }));
+  return publicMap.reason(near, rated.get(d.name));
+};
+const avoids = subject?.aversions;
+const menu =
+  terrain && !overlap
+    ? rankByTerrain(terrain)
+        .filter(
+          ({ drink: d }) =>
+            !(avoids?.smoke && d.hasSmoke) && !(avoids?.bitter && d.isBitter) && !(avoids?.anise && d.hasAnise) && !((rated.get(d.name) ?? 10) <= DISLIKED_AT)
+        )
+        .slice(0, 5)
+        .map((r) => r.drink)
+    : [];
+/** Which way a drink lies, measured from the nearest of their hilltops (docs/map-first.md). */
+const hilltops = terrain ? peaks(terrain) : [];
+const nearestTop = (d: Drink) =>
+  hilltops.reduce<{ x: number; y: number } | null>(
+    (best, p) => (!best || Math.hypot(p.x - d.x, p.y - d.y) < Math.hypot(best.x - d.x, best.y - d.y) ? p : best),
+    null
+  ) ?? subject!;
 const entryHref = (drink: Drink) => {
   const entry = register[drink.name];
   return entry ? `/drinks/${entry.slug}` : null;
@@ -113,19 +148,15 @@ Astro.response.headers.set(
 const pageTitle = name ? `${publicMap.title(name)} · ${site.name}` : site.name;
 const description = name && region ? publicMap.description(name, region.name) : site.description;
 
+// Their taste is the ground; points are drawn only to compare two people (`overlap.ts`).
 // Terracotta is yours (docs/design-system.md): your own mark, wherever it is drawn.
-const points = subject
-  ? [
-      {
-        x: subject.x,
-        y: subject.y,
-        label: isSelf ? publicMap.you : publicMap.them,
-        caption: isSelf ? publicMap.you : publicMap.them,
-        tone: isSelf ? ('yours' as const) : ('theirs' as const),
-      },
-      ...(viewer ? [{ x: viewer.x, y: viewer.y, label: publicMap.you, caption: publicMap.you, tone: 'yours' as const }] : []),
-    ]
-  : [];
+const points =
+  subject && viewer
+    ? [
+        { x: subject.x, y: subject.y, label: publicMap.them, caption: publicMap.them, tone: 'theirs' as const },
+        { x: viewer.x, y: viewer.y, label: publicMap.you, caption: publicMap.you, tone: 'yours' as const },
+      ]
+    : [];
 
 const pairs: { label: string; drink: Drink }[] = overlap
   ? [
@@ -153,10 +184,11 @@ const ctaClass =
   <PalateMap
     slot="map"
     label={name && subject ? publicMap.plotLabel(publicMap.title(name)) : explore.chartLabel}
+    ground={ground}
+    ratings={rated}
     points={points}
-    region={region?.id ?? null}
     selected={viewDrink?.name ?? null}
-    named={near.map((d) => d.name)}
+    named={menu.map((d) => d.name)}
     tide={!subject}
   />
 
@@ -166,13 +198,13 @@ const ctaClass =
 
   {result.status === 'ok' && subject && region && name ? (
     <article class="space-y-10" data-testid="public-map">
-      <ScreenHeader title={publicMap.title(name)} gloss={region.gloss}>
-        <Readout
-          cells={[
-            { label: publicMap.coordinateLabel, value: formatCoordinate(subject.x, subject.y), figure: true },
-            { label: publicMap.lands, value: region.name, href: regionPath(region.id) },
-          ]}
-        />
+      <ScreenHeader title={publicMap.title(name)}>
+        {lean.length > 0 && (
+          <p class="mt-2" data-testid="leanings">
+            <span class="label-caps">{publicMap.leanLabel(isSelf)} </span>
+            <span class="font-serif text-ui italic text-primary">{taste_.phrases(lean)}</span>
+          </p>
+        )}
       </ScreenHeader>
 
       {viewDrink && (
@@ -185,8 +217,9 @@ const ctaClass =
           ) : (
             <p class="mt-1 font-serif text-heading font-bold text-foreground">{titleFor(viewDrink)}</p>
           )}
+          <p class="mt-1 text-meta text-muted-foreground">{reasonFor(viewDrink)}</p>
           <p class="mt-1 text-meta text-muted-foreground">
-            {publicMap.drinkWay(isSelf ? publicMap.drinkFromYou : publicMap.title(name), wayTo(subject, viewDrink).distance, wayTo(subject, viewDrink).words)}
+            {publicMap.drinkWay(isSelf ? publicMap.drinkFromYou : publicMap.title(name), wayTo(nearestTop(viewDrink), viewDrink).distance, wayTo(nearestTop(viewDrink), viewDrink).words)}
           </p>
           {!isSelf && (
             <a href={viewHref(mapHref, { drink: viewDrink })} class="btn btn-outline mt-4 px-4">
@@ -244,11 +277,11 @@ const ctaClass =
         </section>
       )}
 
-      {near.length > 0 && (
-        <section class="space-y-3">
-          <h2 class="section-title">{publicMap.nearLabel}</h2>
-          <ul class="divide-y divide-border">
-            {near.map((drink) => {
+      {menu.length > 0 && (
+        <section class="space-y-3" data-testid="their-menu">
+          <h2 class="section-title">{publicMap.menuLabel(isSelf)}</h2>
+          <ol class="divide-y divide-border">
+            {menu.map((drink) => {
               const href = entryHref(drink);
               return (
                 <li class="py-3">
@@ -259,10 +292,11 @@ const ctaClass =
                   ) : (
                     <span class="font-serif text-plate font-bold text-foreground">{titleFor(drink)}</span>
                   )}
+                  <p class="mt-0.5 text-meta text-muted-foreground">{reasonFor(drink)}</p>
                 </li>
               );
             })}
-          </ul>
+          </ol>
         </section>
       )}
 
