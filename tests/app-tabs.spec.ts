@@ -83,6 +83,11 @@ test('Your map: your track, and what each pour did to it', async ({ page }) => {
   const yours = page.getByRole('region', { name: chart.yoursLabel });
   await expect(yours).toContainText(chart.legendTrack);
   await expect(yours).toContainText(chart.legendShoal);
+  // A pour on the chart is a spot to tap: it opens the drink, with your last pour of it.
+  await yours.getByRole('button', { name: 'Negroni' }).click();
+  await expect(page.getByText(chart.lastPour)).toBeVisible();
+  await page.getByRole('button', { name: chart.close }).click();
+  await expect(page.getByText(chart.lastPour)).toHaveCount(0);
   await page.goto('/compass');
   const drinks = page.getByRole('region', { name: chart.label });
   await expect(drinks).toContainText(chart.legendMenu);

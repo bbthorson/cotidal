@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 import { AtprotoProvider, useAtprotoContext } from './AtprotoProvider';
 import { TrackFigure } from './TrackFigure';
 import { YourChart } from './YourChart';
+import { DrinkCard } from './Chart';
 import { ColdState } from './ColdState';
 import { PourLedger } from './PourLedger';
 import { WaitingPick } from './WaitingPick';
@@ -18,7 +19,7 @@ import { StartOver } from './StartOver';
  * Your map: you. The chart of you (`YourChart`: where you are, how sure,
  * the way you came, what you have poured), the track up close, what your
  * pours add up to, and the ledger of what moved you. Comparing with someone
- * is on your public map (a member's), which this links to. Its one action is
+ * is at your link (`/p/<handle>`, a member's), which this links to. Its one action is
  * Rate a drink; choosing one is Compass's. The account is Settings (your handle, in the header's Menu); a
  * guest, who has no Settings, finds Start over at the foot.
  *
@@ -70,7 +71,7 @@ function MapContent({
   const statCols = log.stats.length === 3 ? 3 : 2;
 
   return (
-    <div className="mx-auto max-w-xl pb-6 pt-6 lg:max-w-none lg:pt-10">
+    <div className={cn('mx-auto max-w-xl pb-6 pt-6 lg:max-w-none lg:pt-10', log.selectedDrink && 'pb-card-clearance')}>
       <ScreenHeader
         title={mapPage.heading}
         action={
@@ -83,7 +84,16 @@ function MapContent({
       <div className="lg:grid lg:grid-cols-2 lg:items-start lg:gap-12">
         <div className="flex flex-col gap-5 lg:sticky lg:top-8">
           {/* You: where you are, how sure, the way you came, and what you have poured. */}
-          <YourChart you={log.you} track={log.track} pours={history} eyebrow={isMember ? undefined : mapPage.guestEyebrow} />
+          <YourChart
+            you={log.you}
+            track={log.track}
+            poured={log.poured}
+            lastPour={log.lastPour}
+            selected={log.selected}
+            onSelect={log.chooseDrink}
+            name={name}
+            eyebrow={isMember ? undefined : mapPage.guestEyebrow}
+          />
 
           {/* The way you came, up close: the chart is too large a scale for a half-point move. */}
           {log.track && log.track.length > 1 && (
@@ -149,7 +159,7 @@ function MapContent({
             />
           </section>
 
-          {/* Comparing is on your public map, where theirs and yours are drawn together. */}
+          {/* Comparing is at your link, where theirs and yours are drawn together. */}
           {member && (
             <a
               href={`${publicMapPath(member.handle ?? member.did)}#compare`}
@@ -172,6 +182,18 @@ function MapContent({
           )}
         </div>
       </div>
+      {log.selectedDrink && (
+        <DrinkCard
+          drink={log.selectedDrink}
+          register={register}
+          distance={log.distance[log.selectedDrink.name]}
+          last={log.lastPour.get(log.selectedDrink.name)}
+          sameSpot={log.sameSpot}
+          onPick={log.setSelected}
+          onLog={() => rate.open({ drink: log.selectedDrink!.name })}
+          onClose={log.closeDrink}
+        />
+      )}
       {sheet}
     </div>
   );

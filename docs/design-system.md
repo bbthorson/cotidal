@@ -175,9 +175,9 @@ Everything works signed out, on the device; signing in moves the record into the
 | **Compass** | Before a position: the chart, **Find your coordinate**, and search when asked for. After: everything | Everything |
 | **A menu** (Compass) | Everything; the pick waits on the device | The same |
 | **Rating** | Moves the coordinate on this device; the pour is kept there (`guestPours`, `device-store.ts`) | Written to the member's repository |
-| **Log** | Coordinate, track and pours, marked *On this device*; what signing in keeps, once there is a pour; start over | Coordinate, track, pours, and a link to compare on your public map |
-| **Your public map** (`/p/<handle>`) | — | Your map, your link, and **Compare palates**: people you follow who have a map (read on the server within a budget) and a handle form (`GET /p?handle=`) |
-| **Settings** | — (sends a guest to `/sign-in`) | Who you are and Sign out; your public map and Share to your feed; chat assistants; start over |
+| **Your map** | Coordinate, track and pours, marked *On this device*; what signing in keeps, once there is a pour; start over | Coordinate, track, pours, and a link to compare at your link |
+| **Your link** (`/p/<handle>`) | — | Your map as others see it, the address, and **Compare palates**: people you follow who have a map (read on the server within a budget) and a handle form (`GET /p?handle=`) |
+| **Settings** | — (sends a guest to `/sign-in`) | Who you are and Sign out; your link and Share to your feed; chat assistants; start over |
 | **Rating sheet** | The same form; the pour stays on the device | Written to the member's repository; the detail fields and cross-posting |
 
 Signing out forgets the device's copy (`forgetDevice`), on whichever app page it lands (`AtprotoProvider`), while keeping remembered account cards (`atproto-cf-auth:recent-accounts`) for one-tap return sign-in. A guest's pours stay on the device when they sign in; they are not written to the account on their behalf.
@@ -185,7 +185,7 @@ Signing out forgets the device's copy (`forgetDevice`), on whichever app page it
 
 ## Your map (`/map`, `MapScreen.tsx`)
 
-You: where you are, how sure, the way you came, and what moved you. It opens with its `ScreenHeader` ("Your map" + primary **Rate a drink** button), then **the chart of you** (`YourChart.tsx`): the whole map with your dot, the **shoal** around it (`ShoalMark`: pale water whose radius is the track's spread, dashed, with no number), **your track** (`TrackLine`) when it adds up, and the drinks you have poured — filled at 7 or more, hollow otherwise, not buttons (the ledger under it is the way to reach a pour) — over a title block with your region and coordinate ("On this device" for a guest) and the legend. Then **the way you came, up close** (`TrackFigure`, zoomed so a half-point move shows), what your pours add up to (pours, bars, moved in all, since; nothing before the first pour, where the ledger's own empty line says it) and EKF tolerances once trained, the ledger (**What moved it**), and for a member a link to **Compare palates** on their public map (`/p/<handle>#compare`), where both dots are drawn. A guest finds Start over at the foot (`StartOver.tsx`). The account — public map, share, assistants, start over, sign out — is `/settings`, reached by your handle in the header. Your map is also where a link from outside the app (a chat assistant's draft) lands.
+You: where you are, how sure, the way you came, and what moved you. It opens with its `ScreenHeader` ("Your map" + primary **Rate a drink** button), then **the chart of you** (`YourChart.tsx`): the whole map with your dot, the **shoal** around it (`ShoalMark`: pale water whose radius is the track's spread, dashed, with no number), **your track** (`TrackLine`) when it adds up, and the drinks you have poured — filled at 7 or more, hollow otherwise; tapping one opens it in the drink card with your last pour of it — over a title block with your region and coordinate ("On this device" for a guest) and the legend. Then **the way you came, up close** (`TrackFigure`, zoomed so a half-point move shows), what your pours add up to (pours, bars, moved in all, since; nothing before the first pour, where the ledger's own empty line says it) and EKF tolerances once trained, the ledger (**What moved it**), and for a member a link (**Compare with someone**) to Compare palates at their link (`/p/<handle>#compare`), where both dots are drawn. A guest finds Start over at the foot (`StartOver.tsx`). The account — your link, share, assistants, start over, sign out — is `/settings`, reached by your handle in the header. Your map is also where a link from outside the app (a chat assistant's draft) lands.
 
 **The split with Compass.** Your state is drawn here and nowhere else in the app: Compass's chart is the drinks', with your dot only as the point they are measured from. Each drink on Compass says which way it lies from you and how far; that is how your taste shows there.
 
@@ -199,7 +199,7 @@ A guest is told what signing in keeps once, under the log, after the first pour 
 
 ## Settings (`/settings`, `settings.astro`)
 
-A member's account as one app screen: the app bar along the foot (no tab current), a left-aligned title like a tab's screen, and rows — a thing, a line about it, its one action on the right. In order: who you are signed in as, with **Sign out** beside it (the only place it is offered); **Your map** (Public map → Open, Share to your feed → Share); **Chat assistants** (connected ones with Disconnect, or how to set one up); **Start over**. Server-rendered with plain form posts and no script: sharing is a form post the page answers with a redirect and a notice, like Disconnect.
+A member's account as one app screen: the app bar along the foot (no tab current), a left-aligned title like a tab's screen, and rows — a thing, a line about it, its one action on the right. In order: who you are signed in as, with **Sign out** beside it (the only place it is offered); **Sharing** (Your link → Open, Share to your feed → Share); **Chat assistants** (connected ones with Disconnect, or how to set one up); **Start over**. Server-rendered with plain form posts and no script: sharing is a form post the page answers with a redirect and a notice, like Disconnect.
 
 ## Compass (`/compass`, `Compass.tsx`)
 
@@ -216,7 +216,7 @@ The menu is ranked by distance (`scoreDrinks`, `relevanceOf` in `scoring.ts`): d
 - **Before it is asked for, a ruled section** ("Near you", the note on where the location goes, **Show bars near me**), not an empty frame. **Once asked, the panel holds its height** (`h-72`, `h-96` from `lg`) through every state — finding, denied, failed — so nothing under it moves when the map fills.
 - **A bar** opens in a card like the drink card: kind and distance, how often you have poured there, **Pick a drink here** — that bar's menu, opened in place of the list and carrying where the bar is — and a link to it on OpenStreetMap.
 
-**The drink card** (`DrinkCard`, a `PinnedCard`, on Compass): pinned above the app bar, the way a maps app opens a place — region and coordinate, build, closeness, your last pour, "Rate this" and the register entry.
+**The drink card** (`DrinkCard`, a `PinnedCard`, on Compass and Your map; on Your map it offers Rate this but not Pick this): pinned above the app bar, the way a maps app opens a place — region and coordinate, build, closeness, your last pour, "Rate this" and the register entry.
 
 **Nothing moves under the reader.** A tap opens something where the thumb is rather than inserting it above what was tapped; anything that loads after paint holds its space while it does.
 

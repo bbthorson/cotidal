@@ -36,8 +36,8 @@ not the palate.
 | **Compass** (tab) | Choosing: every drink measured from you, search, your menu, a bar's menu, bars near you | App bar, Menu |
 | **Your map** (tab, `/map`) | You: where you are, how sure, the way you came, the pours that moved you | App bar, Menu |
 | **Rating sheet** | One pour, rated | Rate a drink (Your map), Rate this (Compass), a chat's draft link |
-| **Settings** | The account: sign out, public map, share, assistants, start over | Your handle (header, Menu) |
-| **Your public map** (`/p/<handle>`) | What a friend sees; comparing with people you follow, or any handle | Settings, Your map, a link someone sent |
+| **Settings** | The account: sign out, your link, share, assistants, start over | Your handle (header, Menu) |
+| **Your link** (`/p/<handle>`) | What a friend sees; comparing with people you follow, or any handle | Settings, Your map, a link someone sent |
 | **The questions** | Placing the coordinate | The front door, Start over |
 
 Each app screen has one action of its own. Sign out lives on Settings only.

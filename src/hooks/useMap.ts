@@ -1,4 +1,8 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
+import { drinkDatabase } from '@/lib/data';
+import { userFromProfile } from '@/lib/profile';
+import { lastPourByDrink } from '@/lib/pour-history';
+import { useMenu } from '@/hooks/useMenu';
 import { quadrantFor } from '@/lib/quadrant';
 import { mapPage } from '@/lib/copy';
 import { titleOf, type Register } from '@/lib/register';
@@ -11,8 +15,9 @@ import { useTrack } from '@/hooks/useTrack';
 
 /**
  * Everything Your map knows and can do, so `MapScreen.tsx` only draws it: your
- * coordinate and region, your track, what your pours add up to, and the
- * rating sheet.
+ * coordinate and region, your track, the drinks you have poured (one opens
+ * in the drink card when its dot is tapped), what your pours add up to, and
+ * the rating sheet.
  */
 export function useMap(register: Register, member: { did: string; handle: string | null } | null) {
   const isMember = !!member;
@@ -25,6 +30,15 @@ export function useMap(register: Register, member: { did: string; handle: string
   const y = profile?.y ?? 0;
 
   const { track, fromQuiz } = useTrack(isMember, profile, pours);
+
+  // The drinks you have poured, and the one open in the drink card. Distances
+  // come from the same ranking Compass shows (`useMenu`), so they agree.
+  const user = useMemo(() => userFromProfile(profile), [profile]);
+  const { distance } = useMenu(user, profile?.vibeTags, history);
+  const lastPour = useMemo(() => lastPourByDrink(history), [history]);
+  const poured = useMemo(() => drinkDatabase.filter((d) => lastPour.has(d.name)), [lastPour]);
+  const [selected, setSelected] = useState<string | null>(null);
+  const selectedDrink = selected ? poured.find((d) => d.name === selected) ?? null : null;
   const name = (n: string) => titleOf(register, n);
 
   const totals = logTotals(history);
@@ -72,5 +86,19 @@ export function useMap(register: Register, member: { did: string; handle: string
     startLabel: fromQuiz ? mapPage.started : mapPage.startedCentre,
     stats,
     tolerances,
+
+    // Your pours on the chart, and the drink card
+    poured,
+    lastPour,
+    distance,
+    selected,
+    selectedDrink,
+    /** Poured drinks sharing the open one's coordinate: the card's "Also here". */
+    sameSpot: selectedDrink
+      ? poured.filter((d) => d.name !== selectedDrink.name && d.x === selectedDrink.x && d.y === selectedDrink.y)
+      : [],
+    chooseDrink: (drinkName: string) => setSelected((prev) => (prev === drinkName ? null : drinkName)),
+    setSelected,
+    closeDrink: () => setSelected(null),
   };
 }

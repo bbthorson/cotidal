@@ -138,7 +138,7 @@ const ctaClass =
 >
   {result.status === 'ok' && subject && region && name ? (
     <article class="space-y-12" data-testid="public-map">
-      <PageTitle eyebrow={publicMap.eyebrow} title={publicMap.title(name)} lede={region.gloss} ruled>
+      <PageTitle eyebrow={isSelf ? publicMap.selfEyebrow : publicMap.eyebrow} title={publicMap.title(name)} lede={region.gloss} ruled>
         <Readout
           cells={[
             { label: publicMap.coordinateLabel, value: formatCoordinate(subject.x, subject.y), figure: true },

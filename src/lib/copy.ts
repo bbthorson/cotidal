@@ -146,8 +146,8 @@ export const mapPage = {
     tannin: 'Structure',
     complexity: 'Complexity',
   },
-  /** Under the ledger, for a member: comparing is on your public map. */
-  compareLink: 'Compare palates on your public map',
+  /** Under the ledger, for a member: comparing is at your link (`/p/<handle>`). */
+  compareLink: 'Compare with someone',
 } as const;
 
 /** The rating sheet, over Compass or Your map: one pour, rated, and where the coordinate went. */
@@ -200,7 +200,7 @@ export const account = {
 
 /**
  * `/settings` — a member's account, as one screen of rows: who they are
- * signed in as (and signing out), their public map, the chat assistants they
+ * signed in as (and signing out), their link (`/p/<handle>`), the chat assistants they
  * have let act as them, and starting over.
  */
 export const settings = {
@@ -210,8 +210,8 @@ export const settings = {
   signOutNote: 'Signing out clears your coordinate from this device. It stays in your account, and connected assistants keep working.',
 
   mapTitle: 'Sharing',
-  publicMap: 'Public map',
-  publicMapBody: 'Your coordinate at a link anyone can open, and where you compare with people you follow.',
+  publicMap: 'Your link',
+  publicMapBody: 'Your map as anyone who opens it sees it, and where you compare with people you follow.',
   open: 'Open',
   share: 'Share to your feed',
   shareBody: 'A Bluesky post with your region, the drink nearest you, and the link.',
@@ -226,7 +226,7 @@ export const settings = {
   assistantsNone: 'No assistant is connected.',
   howToConnect: 'Connect one',
   /** When member connections are off here: what still works, and where to set it up. */
-  assistantsOff: 'An assistant can read your public map by your handle, with nothing to connect here.',
+  assistantsOff: 'An assistant can read your map by your handle, with nothing to connect here.',
   howToSetUp: 'Set one up',
   unnamed: 'An assistant with no name',
   unverified: 'Name given by the assistant',
@@ -293,7 +293,7 @@ export const sections = {
 export const connect = {
   title: 'Keep your map with you.',
   /** Compact subtitle inside the in-app sheet so the form stays above the fold. */
-  sheetLede: 'Your coordinate, pours, and public map — saved in your own Bluesky account.',
+  sheetLede: 'Your coordinate, pours, and a link to your map — saved in your own Bluesky account.',
   /** The sign-in page's lede: what differs, which also says that nothing else does. */
   lede: 'As a guest, your coordinate and pours stay on this device. Sign in with Bluesky and they’re kept in your own account instead.',
   continueAs: 'Continue on this device',
@@ -817,6 +817,8 @@ export const notFound = {
 
 export const publicMap = {
   eyebrow: 'Public map',
+  /** The eyebrow on your own: the name Settings and Your map give it. */
+  selfEyebrow: 'Your link',
   coordinateLabel: 'Coordinate',
   title: (name: string) => `@${name}`,
   lands: 'Lands in',
@@ -829,7 +831,7 @@ export const publicMap = {
   yoursLabel: 'You’d order, they wouldn’t',
   sharedLabel: 'One you’d both order',
   nearLabel: 'Close to this coordinate',
-  selfNote: 'This is your public map. It’s drawn from the record in your own Bluesky account.',
+  selfNote: 'This is your link: your map as anyone who opens it sees it, drawn from the record in your own Bluesky account.',
   linkLabel: 'Your link',
   guestTitle: 'Where do you land?',
   guestBody: 'Find your own coordinate, then sign in and open this link again to see the distance between you.',
@@ -909,7 +911,7 @@ export const assistants = {
     'It logs a pour only when you tell it about one, with the rating you give: it asks rather than guesses. It cannot retake the questions, edit or delete a pour, or post to Bluesky. Untick logging on the approval screen to keep it read-only, or disconnect it anytime in Settings.',
   readOnlyTitle: 'Only you log',
   readOnly:
-    'The assistant reads the same public coordinate anyone can open at your public map. It can draft a pour as a link to the form here, but only you log it: you check it, tap how it landed, and press the button. It cannot retake the questions or change your map.',
+    'The assistant reads the same public coordinate anyone can open at your link. It can draft a pour as a link to the form here, but only you log it: you check it, tap how it landed, and press the button. It cannot retake the questions or change your map.',
 } as const;
 
 /**
