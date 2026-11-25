@@ -173,6 +173,32 @@ test('Map: the card sits beside the map on a wide screen, under it on a phone', 
   await expect.poll(async () => (await card(page).boundingBox())!.height).toBeLessThan(before + 5);
 });
 
+test('Map: Rate a drink floats at a phone\'s thumb on where to next, sits in the card\'s head from lg, and gives way to a drink\'s own', async ({ page }) => {
+  await page.addInitScript((p) => localStorage.setItem('user_profile', JSON.stringify(p)), profile);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/map');
+  const rate = page.getByRole('button', { name: mapPage.rateDrink });
+  await expect(rate).toHaveCount(1);
+  const box = (await rate.boundingBox())!;
+  expect(box.y + box.height).toBeGreaterThan(844 - 80);
+  expect(box.x + box.width).toBeGreaterThan(390 - 40);
+  // Where to next is a heading for a screen reader, not a title on the screen.
+  await expect(page.getByRole('heading', { name: explore.heading })).toHaveClass(/sr-only/);
+
+  // A drink carries its own action.
+  await page.getByRole('searchbox', { name: compass.searchLabel }).fill('negroni');
+  await page.locator('[data-result]').first().click();
+  await expect(card(page).getByRole('heading', { name: 'Negroni', level: 1 })).toBeVisible();
+  await expect(rate).toHaveCount(0);
+
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto('/map');
+  await expect(rate).toHaveCount(1);
+  const [b, c] = [(await rate.boundingBox())!, (await card(page).boundingBox())!];
+  expect(b.x + b.width).toBeLessThanOrEqual(c.x + c.width);
+  expect(b.y).toBeLessThan(c.y + 200);
+});
+
 test('Map: the map stays where it is when a bar or a drink is opened', async ({ page }) => {
   await page.addInitScript((p) => localStorage.setItem('user_profile', JSON.stringify(p)), profile);
   await page.goto('/map');
