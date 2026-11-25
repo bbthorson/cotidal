@@ -124,7 +124,7 @@ export default function Questions({
 }: {
   signInEnabled: boolean;
   member: { did: string; handle: string | null } | null;
-  /** The app bar (`SiteHeader`), passed by the page as a slot: the top of the card. */
+  /** The app bar (`AppBar`), passed by the page as a slot: the top of the card. */
   bar?: ReactNode;
 }) {
   return (

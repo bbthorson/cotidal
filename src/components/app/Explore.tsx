@@ -447,7 +447,7 @@ export default function Explore({
   member: { did: string; handle: string | null } | null;
   /** `?q=` from the header's search, which works before the island does. */
   initialQuery?: string;
-  /** The app bar (`SiteHeader`, with the search), passed by the page as a slot: the top of the card. */
+  /** The app bar (`AppBar`, with the search), passed by the page as a slot: the top of the card. */
   bar?: ReactNode;
 }) {
   return (

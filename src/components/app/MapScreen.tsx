@@ -15,6 +15,10 @@ import { cn } from '@/lib/utils';
  * From `lg` both are the same: the card is a panel down the left, and the
  * map fills the rest.
  *
+ * The card comes before the map in the page, so a screen reader or a
+ * keyboard meets the app bar and the card's contents first and the map, a
+ * figure, after; CSS puts the map on top.
+ *
  * Drawn by React so the islands and the Astro pages share one copy: a page
  * renders it on the server with no directive, and ships no script for it.
  */
@@ -33,9 +37,9 @@ export function MapScreen({
 }: {
   mode: 'live' | 'static';
   /**
-   * The site's app bar (`SiteHeader`, compact), at the top of the card: the
-   * map takes the top of the screen, and the card carries the wordmark, the
-   * menu, the account and, on `/map`, the search. Optional only to the type
+   * The app bar (`AppBar.astro`), at the top of the card: the map takes the
+   * top of the screen, and the card carries the wordmark, the menu, the
+   * account and, on `/map`, the search. Optional only to the type
    * checker: an Astro page passes it as a named slot.
    */
   bar?: ReactNode;
@@ -63,7 +67,6 @@ export function MapScreen({
   return (
     <div className={mode === 'live' ? 'map-screen-live' : 'map-screen-static'} data-rest={rest === 'tall' ? 'tall' : undefined}>
       {overlay}
-      <div className="map-region">{map}</div>
       <section
         aria-label={label}
         data-up={up || undefined}
@@ -86,6 +89,8 @@ export function MapScreen({
           {children}
         </div>
       </section>
+      {/* After the card in reading order (its bar, then what it holds), drawn first: CSS places it. */}
+      <div className="map-region">{map}</div>
     </div>
   );
 }

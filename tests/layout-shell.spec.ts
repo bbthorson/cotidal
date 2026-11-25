@@ -8,17 +8,23 @@ import { test, expect } from '@playwright/test';
  */
 const routes = ['/', '/drinks', '/drinks/20th-century', '/drinks/regions/deep', '/bars', '/how-it-works', '/map', '/questions'];
 
-test('Layout: header sits in the same place on every route', async ({ page }) => {
+test('Layout: the bar sits in one place per template, the top of the page or the top of the map\'s card', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
-  let reference: { x: number; width: number } | null = null;
-
-  for (const route of routes) {
-    await page.goto(route);
-    const box = await page.locator('header').first().boundingBox();
-    expect(box, `no header on ${route}`).not.toBeNull();
-    const { x, width } = box!;
-    reference ??= { x, width };
-    expect({ x, width }, `header moved on ${route}`).toEqual(reference);
+  // A reading page's header runs across the top; a map page's app bar is the top of its card (AppBar.astro).
+  const templates = {
+    reading: ['/bars', '/mcp'],
+    map: ['/', '/drinks', '/drinks/20th-century', '/drinks/regions/deep', '/how-it-works', '/map', '/questions'],
+  };
+  for (const [template, list] of Object.entries(templates)) {
+    let reference: { x: number; y: number; width: number } | null = null;
+    for (const route of list) {
+      await page.goto(route);
+      const box = await page.locator('header').first().boundingBox();
+      expect(box, `no header on ${route}`).not.toBeNull();
+      const { x, y, width } = box!;
+      reference ??= { x, y, width };
+      expect({ x, y, width }, `${template} bar moved on ${route}`).toEqual(reference);
+    }
   }
 });
 

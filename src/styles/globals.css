@@ -382,7 +382,7 @@ bsky-sign-in[data-state='error'] input[name='handle'] {
    geometry is here rather than measured, so the server lays the screen out
    whole and nothing moves when the page's script arrives.
 
-   - live (/map): the screen fills the window under the header. On a phone the
+   - live (/map): the screen fills the window, the app bar the top of its card. On a phone the
      plane is as wide as the screen and the card rests in the space under it
      (`--map-side` is the plane's side), pulled up over it by its head
      (`data-up`). From `lg` the card is a panel down the left.
@@ -428,7 +428,12 @@ bsky-sign-in[data-state='error'] input[name='handle'] {
     height: calc(100cqh - 0.5rem);
   }
 
+  .map-screen-static {
+    display: flex;
+    flex-direction: column;
+  }
   .map-screen-static > .map-region {
+    order: -1;
     position: sticky;
     top: 0;
     height: min(100vw, calc(100svh - 17rem));

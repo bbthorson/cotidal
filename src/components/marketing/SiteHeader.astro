@@ -1,55 +1,24 @@
 ---
 import Monogram from './Monogram.astro';
-import { a11y, account as accountCopy, compass, site, nav } from '../../lib/copy';
-import { destinations, isVisibleDestination, mapHref, signIn, signInHref, isCurrent, accountHref } from '../../lib/site-nav';
+import { a11y, site, nav } from '../../lib/copy';
+import { accountControl, destinations, isVisibleDestination, isCurrent } from '../../lib/site-nav';
 import type { Account } from '../../lib/atproto/session';
 
 interface Props {
   currentPath?: string;
   account: Account;
-  /**
-   * The map's search, in the header: a plain GET form to `/map?q=` that works
-   * with script off, which the map's island takes over once it is up
-   * (`SearchBox.tsx`, by the id `app-search`). Only on the map.
-   */
-  search?: boolean;
-  /**
-   * In a map page's card (`MapScreen`'s `bar`): laid out as on a phone at
-   * every width, since the card is a phone's width from `lg` too — wordmark,
-   * the search on the map, and Menu.
-   */
-  compact?: boolean;
 }
 
-const { currentPath = '/', account, search = false, compact = false } = Astro.props;
-/** Drop the `lg:` layout when the header sits in the card, which is narrow at every width. */
-const L = (c: string) => (compact ? c.split(/\s+/).filter((t) => !t.startsWith('lg:')).join(' ') : c);
-const query = search ? (Astro.url.searchParams.get('q') ?? '') : '';
+const { currentPath = '/', account } = Astro.props;
+
+const control = accountControl(account, currentPath);
+const onAccount = control.current;
 
 /**
- * The account control says what the server knows. A member sees their handle,
- * which opens Settings — where signing out is, so the header never repeats it.
- * A guest sees Sign in. A prerendered page was built before anyone visited, so
- * it cannot know, and says Account rather than guess.
- */
-const control =
-  account.kind === 'member'
-    ? {
-        href: accountHref,
-        label: account.handle ? `@${account.handle}` : accountCopy.neutral,
-        isHandle: !!account.handle,
-        opensSettings: true,
-      }
-    : account.kind === 'guest'
-      ? { href: signInHref(currentPath), label: signIn.label, isHandle: false, opensSettings: false }
-      : { href: accountHref, label: accountCopy.neutral, isHandle: false, opensSettings: false };
-const onAccount = isCurrent(currentPath, accountHref);
-
-/**
- * On a phone the header is wordmark · Menu on every page, so it reads the
- * same wherever you are; on the map, the search sits between them and the
- * wordmark is the mark alone. Menu opens the whole site in three groups: the
- * map, the reading pages, and the account last.
+ * The reading pages' header, across the top of the page (a map page's app bar
+ * is the top of its card: `AppBar.astro`). On a phone it is wordmark · Menu,
+ * as the app bar is; Menu opens the whole site in three groups: the map, the
+ * reading pages, and the account last.
  *
  * The disclosure is a <details> driving its sibling <nav> through `peer-open`,
  * so it needs no script — `/` must stay free of client JavaScript
@@ -66,34 +35,17 @@ const menuItem =
   'flex min-h-11 items-center justify-between gap-4 border-b border-border font-condensed text-meta uppercase tracking-label transition-colors';
 ---
 
-<header class:list={['border-b border-foreground', search ? 'pb-3' : L('pb-3.5 lg:pb-4')]}>
-  <div class={L("flex flex-wrap items-center gap-x-0.5 gap-y-2 lg:flex-nowrap lg:gap-x-3")}>
-    <a href="/" class:list={['group order-1 flex items-center gap-2.5 md:gap-3', !search && 'mr-auto']}>
+<header class="border-b border-foreground pb-3.5 lg:pb-4">
+  <div class="flex flex-wrap items-center gap-x-0.5 gap-y-2 lg:flex-nowrap lg:gap-x-3">
+    <a href="/" class="group order-1 mr-auto flex items-center gap-2.5 md:gap-3">
       <Monogram class="h-7 w-7 shrink-0 transition-transform group-hover:scale-105 md:h-9 md:w-9" />
-      <div class:list={['whitespace-nowrap leading-none', search && (compact ? 'hidden' : 'hidden md:block')]}>
+      <div class="whitespace-nowrap leading-none">
         <span class="block font-serif text-ui font-bold uppercase tracking-wordmark text-foreground md:text-prose">
           {site.name}
         </span>
       </div>
     </a>
 
-    {search && (
-      <div id="app-search" class={L("order-1 mx-2 flex min-w-0 flex-1 lg:mx-4")}>
-        <form action={mapHref} method="get" role="search" class="flex min-h-11 min-w-0 flex-1 items-center border border-foreground bg-card px-2">
-          <label class="flex min-w-0 flex-1">
-            <span class="sr-only">{compass.searchLabel}</span>
-            <input
-              type="search"
-              name="q"
-              value={query}
-              placeholder={compass.placeholder}
-              autocomplete="off"
-              class="min-h-10 w-full min-w-0 border-0 bg-transparent px-1 text-field text-foreground outline-none placeholder:text-muted-foreground"
-            />
-          </label>
-        </form>
-      </div>
-    )}
 
     {/* From `lg`: the account, beside the nav. On a phone it is the folded menu's last row. */}
     <a
@@ -101,13 +53,13 @@ const menuItem =
       aria-current={onAccount ? 'page' : undefined}
       class:list={[
         controlClass,
-        L('order-3 hidden min-w-0 shrink text-foreground lg:flex lg:min-h-0 lg:border lg:border-foreground lg:px-3 lg:py-1.5 lg:text-label lg:hover:bg-secondary lg:hover:text-secondary-foreground'),
+        'order-3 hidden min-w-0 shrink text-foreground lg:flex lg:min-h-0 lg:border lg:border-foreground lg:px-3 lg:py-1.5 lg:text-label lg:hover:bg-secondary lg:hover:text-secondary-foreground',
       ]}
     >
       <span class:list={['max-w-48 truncate', control.isHandle && 'normal-case tracking-normal']}>{control.label}</span>
     </a>
 
-    <details class={L("peer order-2 lg:hidden")}>
+    <details class="peer order-2 lg:hidden">
       <summary class:list={[controlClass, 'summary-plain cursor-pointer text-muted-foreground hover:text-foreground']}>
         {nav.menu}
       </summary>
@@ -115,7 +67,7 @@ const menuItem =
 
     <nav
       aria-label={a11y.mainNav}
-      class={L("order-3 hidden basis-full flex-col border-t border-border peer-open:flex lg:order-2 lg:flex lg:basis-auto lg:flex-row lg:items-center lg:gap-1 lg:border-t-0")}
+      class="order-3 hidden basis-full flex-col border-t border-border peer-open:flex lg:order-2 lg:flex lg:basis-auto lg:flex-row lg:items-center lg:gap-1 lg:border-t-0"
     >
       {app.map((item) => {
         const active = isCurrent(currentPath, item.match);
@@ -126,10 +78,10 @@ const menuItem =
             class:list={[
               // "You are here" is a bold label over a heavy ink rule (`.tab`); on a phone's folded menu, bold alone.
               menuItem,
-              L('whitespace-nowrap lg:min-h-0 lg:border-b-3 lg:px-2 lg:py-1.5 lg:text-label'),
+              'whitespace-nowrap lg:min-h-0 lg:border-b-3 lg:px-2 lg:py-1.5 lg:text-label',
               active
-                ? L('font-bold text-foreground lg:border-foreground')
-                : L('text-foreground lg:border-transparent lg:text-muted-foreground lg:hover:text-foreground'),
+                ? 'font-bold text-foreground lg:border-foreground'
+                : 'text-foreground lg:border-transparent lg:text-muted-foreground lg:hover:text-foreground',
             ]}
           >
             {item.label}
@@ -137,7 +89,7 @@ const menuItem =
         );
       })}
 
-      {/* The reading pages: on a phone, in Menu; from `lg` they are the footer's, except on the map, which has none. */}
+      {/* The reading pages: on a phone, in Menu; from `lg` they are the footer's. */}
       {reading.map((item) => {
         const active = isCurrent(currentPath, item.match);
         return (
@@ -146,7 +98,7 @@ const menuItem =
             aria-current={active ? 'page' : undefined}
             class:list={[
               menuItem,
-              search ? L('whitespace-nowrap lg:min-h-0 lg:border-b-0 lg:px-2 lg:py-1.5 lg:text-label') : L('lg:hidden'),
+              'lg:hidden',
               active ? 'font-bold text-foreground' : 'text-muted-foreground hover:text-foreground',
             ]}
           >
@@ -160,7 +112,7 @@ const menuItem =
         href={control.href}
         aria-current={onAccount ? 'page' : undefined}
         class:list={[
-          L('flex min-h-11 items-center justify-between gap-4 border-t border-foreground font-condensed text-meta uppercase tracking-label text-foreground lg:hidden'),
+          'flex min-h-11 items-center justify-between gap-4 border-t border-foreground font-condensed text-meta uppercase tracking-label text-foreground lg:hidden',
           onAccount && 'font-bold',
         ]}
       >

@@ -83,7 +83,12 @@ on the map, their region washed. How it works and sign-in: the tide turning
 behind the card. Settings, For bars and Chat assistants stay reading pages
 (docs/design-system.md, Two kinds of page).
 
-Still open: the search in the header of every map page (only `/map` has it);
+The app bar is the top of the card (`AppBar.astro`), and the map has the
+top of the screen: on a phone it runs from the top edge, and from `lg` the
+panel holds the bar, its tabs and the card while the map takes the window's
+full height.
+
+Still open: the search in the app bar of every map page (only `/map` has it);
 a drink tapped on a static page's map going to its page; the terrain on
 `/p/<handle>` in place of the point (as the chat tools and share cards still
 read the point too).

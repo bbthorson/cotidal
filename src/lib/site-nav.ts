@@ -1,4 +1,4 @@
-import { nav } from './copy';
+import { account as accountCopy, nav } from './copy';
 import { QUESTIONS_PATH } from './atproto/paths';
 
 /**
@@ -61,3 +61,28 @@ export const questionsForDrink = (slug: string) => `${QUESTIONS_PATH}?${DRINK_PA
 export const accountHref = '/settings';
 
 export const isCurrent = (currentPath: string, match: string) => currentPath.startsWith(match);
+
+/**
+ * The account control says what the server knows (`accountFor`). A member
+ * sees their handle, which opens Settings, where signing out is, so no bar
+ * repeats it. A guest sees Sign in. A prerendered page was built before
+ * anyone visited, so it cannot know, and says Account rather than guess.
+ * Both bars draw it from here: `SiteHeader` on a reading page, `AppBar` in a
+ * map page's card.
+ */
+export function accountControl(
+  account: { kind: 'member'; handle: string | null } | { kind: 'guest' } | { kind: 'unknown' },
+  currentPath: string
+): { href: string; label: string; isHandle: boolean; opensSettings: boolean; current: boolean } {
+  const current = isCurrent(currentPath, accountHref);
+  if (account.kind === 'member')
+    return {
+      href: accountHref,
+      label: account.handle ? `@${account.handle}` : accountCopy.neutral,
+      isHandle: !!account.handle,
+      opensSettings: true,
+      current,
+    };
+  if (account.kind === 'guest') return { href: signInHref(currentPath), label: signIn.label, isHandle: false, opensSettings: false, current };
+  return { href: accountHref, label: accountCopy.neutral, isHandle: false, opensSettings: false, current };
+}

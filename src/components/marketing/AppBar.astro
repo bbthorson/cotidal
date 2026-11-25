@@ -1,0 +1,117 @@
+---
+import Monogram from './Monogram.astro';
+import { a11y, compass, nav, site } from '../../lib/copy';
+import { accountControl, destinations, isCurrent, isVisibleDestination, mapHref } from '../../lib/site-nav';
+import type { Account } from '../../lib/atproto/session';
+
+interface Props {
+  currentPath: string;
+  account: Account;
+  /**
+   * The map's search, in place of the wordmark: a plain GET form to `/map?q=`
+   * that works with script off, which the map's island takes over once it is
+   * up (`SearchBox.tsx`, by the id `app-search`). Only on `/map`.
+   */
+  search?: boolean;
+}
+
+const { currentPath, account, search = false } = Astro.props;
+const query = search ? (Astro.url.searchParams.get('q') ?? '') : '';
+const control = accountControl(account, currentPath);
+
+/**
+ * The app bar of a map page: the top of the card, since the map has the top
+ * of the screen to itself (docs/design-system.md, Navigation). The card is a
+ * phone's width at every size, so the bar is laid out for that width:
+ *
+ * - first row: the mark, then the wordmark — or on `/map` the search — and
+ *   on a phone Menu, from `lg` the account control (`@handle`, Sign in, or
+ *   Account);
+ * - from `lg`, a row of tabs under it: the map and the reading pages a
+ *   drinker reads, so nothing is folded away on a wide screen;
+ * - on a phone, Menu opens the same tabs as a list, and the account last.
+ *
+ * Menu is a <details> driving its sibling <nav> through `peer-open`, so the
+ * bar needs no script: `/` ships none.
+ */
+const visible = destinations.filter((d) => isVisibleDestination(d, account.kind) && (d.header || d.menu));
+const caps = 'font-condensed uppercase tracking-label';
+---
+
+<header class="flex flex-wrap items-center gap-x-2 border-b border-foreground pb-2">
+  <a href="/" class="group order-1 flex min-h-11 shrink-0 items-center gap-2.5">
+    <Monogram class="h-7 w-7 shrink-0 transition-transform group-hover:scale-105" />
+    {!search && <span class="whitespace-nowrap font-serif text-ui font-bold uppercase leading-none tracking-wordmark text-foreground">{site.name}</span>}
+  </a>
+
+  {
+    search ? (
+      <div id="app-search" class="order-1 flex min-w-0 flex-1">
+        <form action={mapHref} method="get" role="search" class="flex min-h-11 min-w-0 flex-1 items-center border border-foreground bg-card px-2">
+          <label class="flex min-w-0 flex-1">
+            <span class="sr-only">{compass.searchLabel}</span>
+            <input
+              type="search"
+              name="q"
+              value={query}
+              placeholder={compass.placeholder}
+              autocomplete="off"
+              class="min-h-10 w-full min-w-0 border-0 bg-transparent px-1 text-field text-foreground outline-none placeholder:text-muted-foreground"
+            />
+          </label>
+        </form>
+      </div>
+    ) : (
+      <span class="order-1 flex-1" />
+    )
+  }
+
+  <details class="peer order-2 lg:hidden">
+    <summary class:list={['summary-plain flex min-h-11 cursor-pointer items-center px-1.5 text-meta font-semibold text-muted-foreground transition-colors hover:text-foreground', caps]}>
+      {nav.menu}
+    </summary>
+  </details>
+
+  <a
+    href={control.href}
+    aria-current={control.current ? 'page' : undefined}
+    class:list={[
+      'order-2 hidden min-w-0 items-center px-2.5 py-1.5 text-label text-foreground transition-colors lg:flex lg:border lg:border-foreground lg:hover:bg-secondary lg:hover:text-secondary-foreground',
+      caps,
+    ]}
+  >
+    <span class:list={['max-w-40 truncate', control.isHandle && 'normal-case tracking-normal']}>{control.label}</span>
+  </a>
+
+  <nav
+    aria-label={a11y.mainNav}
+    class="order-3 hidden basis-full flex-col border-t border-border peer-open:flex lg:mt-1 lg:flex lg:flex-row lg:gap-4 lg:border-t-0"
+  >
+    {
+      visible.map((item) => {
+        const active = isCurrent(currentPath, item.match);
+        return (
+          <a
+            href={item.href}
+            aria-current={active ? 'page' : undefined}
+            class:list={[
+              'flex min-h-11 items-center border-b border-border text-meta transition-colors lg:min-h-0 lg:border-b-3 lg:py-1 lg:text-label',
+              caps,
+              active ? 'font-bold text-foreground lg:border-foreground' : 'text-muted-foreground hover:text-foreground lg:border-transparent',
+            ]}
+          >
+            {item.label}
+          </a>
+        );
+      })
+    }
+    <a
+      href={control.href}
+      aria-current={control.current ? 'page' : undefined}
+      class:list={['flex min-h-11 items-center justify-between gap-4 border-t border-foreground text-meta text-foreground lg:hidden', caps, control.current && 'font-bold']}
+    >
+      <span class:list={['truncate', control.isHandle && 'normal-case tracking-normal']}>{control.label}</span>
+      {control.opensSettings && <span class="shrink-0 text-label text-muted-foreground">{nav.settings} &rarr;</span>}
+    </a>
+  </nav>
+</header>

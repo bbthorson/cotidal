@@ -30,15 +30,17 @@ landing page included. Astro was being used as a slower Next.js.
   `MapScreen` and `PalateMap` that `/map` hydrates, on the server with no
   directive: one copy of the map, and still no script.
 - Prefer `client:load` over `client:only` so the shell server-renders.
-- The header is the same on every page: wordmark · Menu on a phone (the map,
-  the visible reading pages, then the account), the nav and the account control from
-  `lg`. `Drinks` (`/drinks`) is `memberOnly` in `site-nav.ts`, so unauthenticated
+- A reading page's header runs across its top (`SiteHeader`); a map page's
+  app bar is the top of its card (`AppBar`), since the map has the top of the
+  screen. Both are wordmark · Menu on a phone (the map, the visible reading
+  pages, then the account); from `lg` the header shows the nav inline and the
+  app bar a row of tabs under the account control. Both draw the account from
+  `accountControl` in `site-nav.ts`. `Drinks` (`/drinks`) is `memberOnly` in `site-nav.ts`, so unauthenticated
   visitors on `/` are not sent there from the header or footer; drink pages stay
-  live for SEO/AEO and link back to `/map?drink=<slug>` and `/questions`. On the
-  map alone the header also holds the search (`SiteHeader`'s `search`: a plain
-  GET form to `/map?q=` that `SearchBox.tsx` takes over once the island is up),
-  the wordmark is the mark alone on a phone, and from `lg` it lists the visible
-  reading pages, since the map has no footer. The account control is server
+  live for SEO/AEO and link back to `/map?drink=<slug>` and `/questions`. On `/map`
+  the app bar holds the search in the wordmark's place (`AppBar`'s `search`: a
+  plain GET form to `/map?q=` that `SearchBox.tsx` takes over once the island
+  is up; the page passes the bar to the island as a slot). The account control is server
   truth: `@handle` (opening `/settings`) for a member, Sign in for a guest, a
   neutral Account on a prerendered page that cannot know. Signing
   out is on `/settings` alone, never in the header; `/map` carries no account
