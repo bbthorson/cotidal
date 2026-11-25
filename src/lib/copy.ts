@@ -381,7 +381,7 @@ export const quiz = {
   countJoiner: 'of about',
   loading: 'Locating your coordinate…',
   /** The small chart over the running foot: where the answers so far put you, and how surely. */
-  narrowing: 'Where your answers point so far',
+  narrowing: 'On the map: where your answers point so far',
 } as const;
 
 /** The reveal: the one screen where the product says who you are. */

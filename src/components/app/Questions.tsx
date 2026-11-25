@@ -2,6 +2,10 @@ import { useState, useCallback, useEffect } from 'react';
 import { Questionnaire } from '@/components/app/Questionnaire';
 import { Reveal } from '@/components/app/Reveal';
 import { AtprotoProvider } from '@/components/app/AtprotoProvider';
+import { MapScreen } from '@/components/app/MapScreen';
+import { PalateMap } from '@/components/app/PalateMap';
+import { chart, explore, hero } from '@/lib/copy';
+import { quadrantFor } from '@/lib/quadrant';
 import { useDiscoveryQuiz, type UserProfile } from '@/hooks/useDiscoveryQuiz';
 import { getConnectedPalate } from '@/lib/api-client';
 import { clearProfile, loadProfile, saveProfile } from '@/lib/device-store';
@@ -10,8 +14,11 @@ import { DRINK_PARAM, drinkMapHref, mapHref as MAP } from '@/lib/site-nav';
 import { takeParam } from '@/lib/url-params';
 
 /**
- * The questions and the reveal: two beats, on a page of their own. Finishing
- * hands over to Compass.
+ * The questions and the reveal: two beats, in the card over the map
+ * (`MapScreen`, docs/map-first.md). While the questions run, the map draws
+ * the shoal narrowing where the answers point; when they finish, the point
+ * settles there and the card turns to the reveal. Finishing hands over to
+ * the map.
  *
  * Someone who already has a coordinate is sent straight on to Compass — the
  * landing page's "Find your coordinate" is the same link for everyone — unless
@@ -68,29 +75,44 @@ function QuestionsContent({ member }: { member: boolean }) {
     setProfile(null);
   }, [quiz]);
 
-  if (profile) {
-    return (
-      <Reveal
-        x={Math.max(-10, Math.min(10, profile.x))}
-        y={Math.max(-10, Math.min(10, profile.y))}
-        onContinue={() => window.location.assign(nextHref())}
-        onRetake={retake}
-      />
-    );
-  }
+  const answering = !profile;
+  const axes = quiz.belief.axes;
+  const x = profile ? Math.max(-10, Math.min(10, profile.x)) : 0;
+  const y = profile ? Math.max(-10, Math.min(10, profile.y)) : 0;
 
   return (
-    <Questionnaire
-      currentQuestion={quiz.currentQuestion}
-      progress={quiz.progress}
-      axes={quiz.belief.axes}
-      questionCount={quiz.questionCount}
-      isNavigating={quiz.isNavigating}
-      canGoBack={quiz.canGoBack}
-      onSelectOption={quiz.handleAnswer}
-      onBack={quiz.handleBack}
-      onExploreAsGuest={() => window.location.assign(nextHref())}
-    />
+    <MapScreen
+      mode="live"
+      rest="tall"
+      label={hero.primaryCta}
+      tone={answering ? 'card' : 'reveal'}
+      map={
+        <PalateMap
+          label={explore.chartLabel}
+          shoal={
+            answering && axes
+              ? { x: axes.x.mean, y: axes.y.mean, rx: Math.sqrt(axes.x.variance), ry: Math.sqrt(axes.y.variance) }
+              : null
+          }
+          you={profile ? { x, y, label: chart.youIn(quadrantFor(x, y).name) } : null}
+        />
+      }
+    >
+      {profile ? (
+        <Reveal x={x} y={y} onContinue={() => window.location.assign(nextHref())} onRetake={retake} />
+      ) : (
+        <Questionnaire
+          currentQuestion={quiz.currentQuestion}
+          progress={quiz.progress}
+          questionCount={quiz.questionCount}
+          isNavigating={quiz.isNavigating}
+          canGoBack={quiz.canGoBack}
+          onSelectOption={quiz.handleAnswer}
+          onBack={quiz.handleBack}
+          onExploreAsGuest={() => window.location.assign(nextHref())}
+        />
+      )}
+    </MapScreen>
   );
 }
 

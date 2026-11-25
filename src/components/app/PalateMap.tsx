@@ -75,6 +75,8 @@ export function PalateMap({
   onSelect,
   name = (n) => n,
   label = explore.mapLabel,
+  shoal = null,
+  you = null,
   children,
 }: {
   /** Your terrain, or null with no coordinate. */
@@ -104,6 +106,14 @@ export function PalateMap({
   name?: (drinkName: string) => string;
   /** Its accessible name: "your map" on `/map`, the map itself on a page that draws nobody's. */
   label?: string;
+  /**
+   * Where the questions' answers point so far: the shoal at their best guess,
+   * one standard deviation across on each axis (`rx`, `ry`), so it narrows as
+   * answers agree and stays wide when they do not.
+   */
+  shoal?: { x: number; y: number; rx: number; ry: number } | null;
+  /** The point the questions placed, landing when they finish. */
+  you?: { x: number; y: number; label: string } | null;
   /** More of the plane, drawn over the ground and under the marks (in its viewBox). */
   children?: ReactNode;
 }) {
@@ -192,6 +202,15 @@ export function PalateMap({
           </g>
         ))}
 
+        {shoal && (
+          <ellipse
+            style={{ cx: shoal.x, cy: -shoal.y, rx: shoal.rx, ry: shoal.ry }}
+            className="fill-shoal stroke-secondary transition-all duration-500 ease-out motion-reduce:transition-none"
+            strokeDasharray="4 3"
+            vectorEffect="non-scaling-stroke"
+          />
+        )}
+
         {children}
 
         {/* Axes and the frame. */}
@@ -247,6 +266,12 @@ export function PalateMap({
       )}
 
       <Labels labels={labels} />
+
+      {you && (
+        <span role="img" aria-label={you.label} style={pct(you.x, you.y)} className="absolute -translate-x-1/2 -translate-y-1/2">
+          <span className="block h-4 w-4 rounded-full border-2 border-card bg-foreground motion-safe:animate-settle" />
+        </span>
+      )}
 
       {steps?.map((f, i) => (
         <div key={i} aria-hidden="true" className="tide-frame pointer-events-none" data-last={lastFrame(i)} style={frameStyle(i)}>

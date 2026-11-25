@@ -151,9 +151,15 @@ export default {
           from: { opacity: '0', transform: 'translate(-50%, 50%) scale(2.4)' },
           to: { opacity: '1', transform: 'translate(-50%, 50%) scale(1)' },
         },
+        // The point settling on the big map when the questions finish: the same landing, in place.
+        settle: {
+          from: { opacity: '0', transform: 'scale(2.4)' },
+          to: { opacity: '1', transform: 'scale(1)' },
+        },
       },
       animation: {
         land: 'land 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) 0.35s both',
+        settle: 'settle 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) 0.35s both',
       },
     },
   },

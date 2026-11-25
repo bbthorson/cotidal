@@ -33,9 +33,11 @@ interface Props {
    * The footer is the card's foot.
    */
   map?: boolean;
+  /** The search in the header: the map's alone (`app` pages only). */
+  search?: boolean;
 }
 
-const { title, description, image, currentPath, backLink, width = 'standard', app = false, fill = false, map = false } = Astro.props;
+const { title, description, image, currentPath, backLink, width = 'standard', app = false, fill = false, map = false, search = false } = Astro.props;
 
 // Read here once, so every route's header tells the truth about who is signed in.
 const account = await accountFor(Astro.request, Astro.isPrerendered);
@@ -67,7 +69,7 @@ const widthClass = {
   ) : app ? (
     <div class="bar-texture flex h-dvh flex-col overflow-hidden bg-background text-foreground">
       <div data-site-chrome class="mx-auto w-full max-w-5xl shrink-0 px-4 pt-3 md:px-6">
-        <SiteHeader currentPath={currentPath} account={account} search />
+        <SiteHeader currentPath={currentPath} account={account} search={search} />
       </div>
       <div class="flex min-h-0 flex-1 flex-col">
         <slot />

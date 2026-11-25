@@ -4,16 +4,13 @@ import {
   type Question,
   type QuestionOption,
 } from '@/lib/discovery-questions';
-import { MAX_QUESTIONS, type AxisBelief } from '@/lib/belief-state';
-import { toPercent } from '@/lib/coordinate';
+import { MAX_QUESTIONS } from '@/lib/belief-state';
 import { a11y, quiz } from '@/lib/copy';
 import { cn } from '@/lib/utils';
 
 interface QuestionnaireProps {
   currentQuestion: Question | null;
   progress: number;
-  /** The quiz's belief on each axis so far: drawn as the shoal, narrowing. */
-  axes?: Record<'x' | 'y', AxisBelief>;
   questionCount: number;
   isNavigating: boolean;
   canGoBack: boolean;
@@ -25,16 +22,16 @@ interface QuestionnaireProps {
 const ROMAN_NUMERALS = ['I', 'II', 'III', 'IV', 'V', 'VI'];
 
 /**
- * One question per screen. The site header steps
- * aside on a phone (`data-focus-mode`, see globals.css) and a focused bar
- * replaces it: back, an honest count, skip. The whole plate is the target;
- * the chosen plate takes the letterpress offset — struck through when the
- * question asks what to push away — and the quiz advances on its own.
+ * One question at a time, in the card over the map: where the answers point
+ * so far is the shoal on the map itself (`Questions.tsx`). The site header
+ * steps aside on a phone (`data-focus-mode`, see globals.css) and a focused
+ * bar replaces it: back, an honest count, skip. The whole plate is the
+ * target; the chosen plate takes the letterpress offset — struck through when
+ * the question asks what to push away — and the quiz advances on its own.
  */
 export function Questionnaire({
   currentQuestion,
   progress,
-  axes,
   questionCount,
   isNavigating,
   canGoBack,
@@ -44,7 +41,7 @@ export function Questionnaire({
 }: QuestionnaireProps) {
   if (!currentQuestion) {
     return (
-      <div data-focus-mode className="flex min-h-dvh items-center justify-center lg:min-h-0 lg:py-20">
+      <div data-focus-mode className="flex min-h-40 items-center justify-center">
         <p className="font-serif text-plate italic text-muted-foreground motion-safe:animate-pulse">
           {quiz.loading}
         </p>
@@ -55,9 +52,9 @@ export function Questionnaire({
   const number = Math.min(questionCount + 1, MAX_QUESTIONS);
 
   return (
-    <div data-focus-mode className="-mx-6 flex min-h-dvh flex-col lg:mx-auto lg:min-h-0 lg:max-w-xl lg:pt-8">
+    <div data-focus-mode className="flex flex-col">
       {/* Focused top bar */}
-      <div className="flex items-center justify-between px-4 pt-3">
+      <div className="-mx-2 flex items-center justify-between pt-1">
         <button
           type="button"
           onClick={onBack}
@@ -82,7 +79,7 @@ export function Questionnaire({
 
       {/* One hairline; the terracotta bar is how far along you are */}
       <div
-        className="relative mx-6 mt-1.5 h-px bg-border"
+        className="relative mt-1.5 h-px bg-border"
         role="progressbar"
         aria-label={a11y.progress}
         aria-valuemin={0}
@@ -105,39 +102,11 @@ export function Questionnaire({
         onBack={onBack}
       />
 
-      {axes && <Narrowing axes={axes} />}
+      <p className="flex items-center gap-2 pb-2 text-meta text-muted-foreground">
+        <span aria-hidden="true" className="inline-block h-3 w-5 rounded-full border border-dashed border-secondary bg-shoal" />
+        {quiz.narrowing}
+      </p>
     </div>
-  );
-}
-
-/**
- * Where the answers so far put you, drawn small at the foot: the
- * shoal at the quiz's best guess, one standard deviation across on each
- * axis, so it narrows as answers agree and stays wide when they do not. It
- * sits under the plates, never above them, so a phone shows the question
- * whole.
- */
-function Narrowing({ axes }: { axes: Record<'x' | 'y', AxisBelief> }) {
-  // The map is 20 units across, so a unit is 5% of it.
-  const width = Math.min(100, Math.sqrt(axes.x.variance) * 2 * 5);
-  const height = Math.min(100, Math.sqrt(axes.y.variance) * 2 * 5);
-  return (
-    <figure className="mt-auto flex items-center gap-3 px-6 pb-7 pt-8 lg:mt-12">
-      <div aria-hidden="true" className="relative h-16 w-16 shrink-0 overflow-hidden border border-foreground bg-card">
-        <span className="absolute bottom-0 left-1/2 top-0 w-px bg-border" />
-        <span className="absolute left-0 right-0 top-1/2 h-px bg-border" />
-        <span
-          className="absolute -translate-x-1/2 translate-y-1/2 rounded-full border border-dashed border-secondary bg-shoal transition-all duration-500 ease-out"
-          style={{
-            left: `${toPercent(axes.x.mean)}%`,
-            bottom: `${toPercent(axes.y.mean)}%`,
-            width: `${width}%`,
-            height: `${height}%`,
-          }}
-        />
-      </div>
-      <figcaption className="text-meta text-muted-foreground">{quiz.narrowing}</figcaption>
-    </figure>
   );
 }
 
@@ -190,14 +159,14 @@ function QuestionStage({ question, isNavigating, canGoBack, onSelectOption, onBa
 
   return (
     <>
-      <div className="flex flex-col gap-3.5 px-6 pt-10">
+      <div className="flex flex-col gap-3.5 pt-6">
         {category && <span className="label-caps">{category.label}</span>}
         <h1 className="font-serif text-title font-bold text-foreground">{question.text}</h1>
         {question.subtitle && <p className="text-ui text-muted-foreground">{question.subtitle}</p>}
       </div>
 
       <div
-        className={cn('px-6 pb-8 pt-7', isPair ? 'grid grid-cols-2 gap-3' : 'flex flex-col gap-3')}
+        className={cn('pb-5 pt-5', isPair ? 'grid grid-cols-2 gap-3' : 'flex flex-col gap-3')}
         role="group"
         aria-label={a11y.answerOptions}
       >

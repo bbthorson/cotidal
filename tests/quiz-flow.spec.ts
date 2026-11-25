@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { questions } from '../src/lib/discovery-questions';
-import { quadrants, chart, compass, explore, reveal as revealCopy } from '../src/lib/copy';
+import { a11y, quadrants, chart, compass, explore, reveal as revealCopy } from '../src/lib/copy';
 
 /**
  * Questionnaire flow contract:
@@ -56,6 +56,24 @@ test('Questionnaire: answering options advances questions and supports undo', as
   // Test back navigation
   await page.getByRole('button', { name: /previous question/i }).click();
   await expect(page.getByRole('heading', { level: 1 })).toContainText(first.text);
+});
+
+test('Questionnaire: the questions run in the card over the map, and the shoal on the map narrows as they are answered', async ({ page }) => {
+  await page.goto('/questions');
+  const map = page.getByRole('group', { name: explore.chartLabel });
+  const shoal = map.locator('ellipse');
+  await expect(map).toBeVisible();
+  await expect(shoal).toHaveCount(1);
+  const area = async () => {
+    const box = (await shoal.boundingBox())!;
+    return box.width * box.height;
+  };
+  const before = await area();
+  for (let i = 0; i < 3; i++) {
+    await page.getByRole('group', { name: a11y.answerOptions }).getByRole('button').first().click();
+    await page.waitForTimeout(700);
+  }
+  await expect.poll(area).toBeLessThan(before);
 });
 
 test('Questionnaire: finishing the questions reveals a region before the menu', async ({ page }) => {

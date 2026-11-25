@@ -26,6 +26,6 @@ const member = account.kind === 'member' ? { did: account.did, handle: account.h
 const initialQuery = Astro.url.searchParams.get('q') ?? '';
 ---
 
-<AppShell title={`${site.name} — ${explore.title}`} currentPath={mapHref} app>
+<AppShell title={`${site.name} — ${explore.title}`} currentPath={mapHref} app search>
   <Explore client:load register={register} signInEnabled={authEnabled} member={member} initialQuery={initialQuery} />
 </AppShell>

@@ -22,12 +22,13 @@ test('Layout: header sits in the same place on every route', async ({ page }) =>
   }
 });
 
-test('Layout: one main landmark on every route, and one site footer on every route but the map', async ({ page }) => {
+test('Layout: one main landmark on every route, and one site footer on every route but the app screens', async ({ page }) => {
+  // The map and the questions fill the window and have no footer: the header carries the reading pages.
+  const appScreens = ['/map', '/questions'];
   for (const route of routes) {
     await page.goto(route);
     await expect(page.locator('main'), route).toHaveCount(1);
-    // The map fills the window and has no footer: its header carries the reading pages.
-    await expect(page.locator('footer'), route).toHaveCount(route === '/map' ? 0 : 1);
+    await expect(page.locator('footer'), route).toHaveCount(appScreens.includes(route) ? 0 : 1);
     await expect(page.getByRole('navigation', { name: 'Main navigation' }), route).toBeVisible();
   }
 });

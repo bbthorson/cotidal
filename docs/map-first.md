@@ -76,7 +76,8 @@ map with no script. A drink's page has one action, See where it sits for you
 front door: the sample palate (`sample-palate.ts`: the start, then a 9, a 3,
 a 9 and two 8s, ending on two hills), six frames of the real terrain worked
 out on the server and cycled by CSS (`.tide-frame`), the last one held for
-anyone who asks for less motion.
+anyone who asks for less motion. The questions: in the card over the map,
+the shoal narrowing on it, the point settling there at the reveal.
 
 ## Why
 
