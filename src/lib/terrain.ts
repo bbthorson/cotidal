@@ -20,6 +20,18 @@ import { drinkOf } from './drink-match';
  * - **Every rated pour reshapes the ground where its drink sits.** A 9 raises
  *   it, a 2 digs it out, over a few points around the drink (`LENGTH`). Two
  *   liked parts of the map become two hills.
+ * - **A rating is partly about the drink itself** (`DRINK_SD`). Two drinks
+ *   a point apart on the map are still two drinks: a 2 for the Martinez
+ *   between a 9 for the Manhattan and an 8 for the Penicillin sinks the
+ *   Martinez and dents the ground around it, rather than sinking the hill.
+ *   A second dislike nearby is a second drink saying the same, and is
+ *   believed as the ground's.
+ * - **A rating carries less to a different kind of drink** (`KIN_ACROSS`).
+ *   The map puts a Rioja beside a Manhattan; a 9 for the Manhattan says less
+ *   about the Rioja than about the Martinez. Cocktails and spirits are one
+ *   kind; wine and beer are each their own. The drawn ground is the best of
+ *   any kind (`heightAt` with no kind); a drink is ranked by its own
+ *   (`drinkHeight`).
  * - **Every height has an uncertainty** (`sd`), small where you have rated
  *   drinks and back to the prior's far from any, so a screen can fade what
  *   nothing supports instead of claiming it.
@@ -38,10 +50,21 @@ import { drinkOf } from './drink-match';
 
 /** How far a rating's influence reaches, in map points (the kernel's length scale). */
 export const LENGTH = 2.5;
-/** How far the ground can rise or fall from the prior, in rating points (the kernel's standard deviation). */
-export const SIGNAL_SD = 2;
+/** How far the ground can rise or fall from the prior, in rating points (the smooth kernel's standard deviation). */
+export const SIGNAL_SD = 2.5;
+/**
+ * How far one drink can stand above or below the ground around it, in rating
+ * points: what a rating says about that drink alone rather than its corner of
+ * the map.
+ */
+export const DRINK_SD = 1.5;
 /** How much one rating of a drink can differ from the next of the same drink, in rating points. */
-export const RATING_NOISE_SD = 1.5;
+export const RATING_NOISE_SD = 1;
+/**
+ * How much a rating says about a drink of another kind than the one rated,
+ * as a share of what it says about the same kind (a correlation, 0 to 1).
+ */
+export const KIN_ACROSS = 0.4;
 /** How high the questions' hill stands at its centre, in rating points above sea level (5). */
 export const PRIOR_PEAK = 2;
 /** How broad a taste the questions' hill assumes before any pour, in map points. */
@@ -64,6 +87,11 @@ export interface TerrainPour {
   rating: { hedonic: number };
 }
 
+/** Which kind a drink is, for how far a rating of it carries: cocktails and spirits are one. */
+export type Kind = 'spirits' | 'wine' | 'beer';
+export const kindOf = (d: Pick<Drink, 'type'>): Kind => (d.type === 'Wine' ? 'wine' : d.type === 'Beer' ? 'beer' : 'spirits');
+const KINDS: readonly Kind[] = ['spirits', 'wine', 'beer'];
+
 /** A rated pour placed on the map. */
 interface Observation {
   drink: Drink;
@@ -81,7 +109,7 @@ export interface Terrain {
 }
 
 export interface Height {
-  /** Expected rating at this point, on the 9-point scale. */
+  /** Expected rating, on the 9-point scale. */
   rating: number;
   /** How unsure that is, in rating points (one standard deviation). */
   sd: number;
@@ -106,9 +134,15 @@ function priorAt(start: TerrainStart, x: number, y: number): number {
   return PRIOR_PEAK * Math.exp(-0.5 * (dx * dx + dy * dy));
 }
 
-function kernel(ax: number, ay: number, bx: number, by: number): number {
+/** How much the ground at one place and kind says about another: near and alike, much; far or unlike, little. */
+function ground(ax: number, ay: number, ak: Kind, bx: number, by: number, bk: Kind): number {
   const d2 = (ax - bx) ** 2 + (ay - by) ** 2;
-  return SIGNAL_SD ** 2 * Math.exp(-d2 / (2 * LENGTH ** 2));
+  return SIGNAL_SD ** 2 * Math.exp(-d2 / (2 * LENGTH ** 2)) * (ak === bk ? 1 : KIN_ACROSS);
+}
+
+/** Two ratings' covariance: the ground they share, and the drink itself when it is the same drink. */
+function between(a: Drink, b: Drink): number {
+  return ground(a.x, a.y, kindOf(a), b.x, b.y, kindOf(b)) + (a.name === b.name ? DRINK_SD ** 2 : 0);
 }
 
 /** Lower-triangular Cholesky factor of a symmetric positive-definite n×n matrix (row-major). */
@@ -163,30 +197,48 @@ export function buildTerrain(
   for (let i = 0; i < n; i++) {
     const a = observations[i].drink;
     resid[i] = observations[i].hedonic - SEA_LEVEL - priorAt(start, a.x, a.y);
-    for (let j = 0; j < n; j++) {
-      const b = observations[j].drink;
-      k[i * n + j] = kernel(a.x, a.y, b.x, b.y) + (i === j ? RATING_NOISE_SD ** 2 : 0);
-    }
+    for (let j = 0; j < n; j++) k[i * n + j] = between(a, observations[j].drink) + (i === j ? RATING_NOISE_SD ** 2 : 0);
   }
   const chol = cholesky(k, n);
   const alpha = backward(chol, n, forward(chol, n, resid));
   return { start, observations, alpha, chol };
 }
 
-/** The height of the ground at a coordinate: the expected rating there, and how sure. */
-export function heightAt(t: Terrain, x: number, y: number): Height {
+/** The posterior at a query whose covariance with each rating is `cov` and whose own prior variance is `prior`. */
+function posterior(t: Terrain, x: number, y: number, cov: (o: Observation) => number, prior: number): Height {
   const n = t.observations.length;
   const kx = new Float64Array(n);
   let mean = priorAt(t.start, x, y);
   for (let i = 0; i < n; i++) {
-    const d = t.observations[i].drink;
-    kx[i] = kernel(x, y, d.x, d.y);
+    kx[i] = cov(t.observations[i]);
     mean += kx[i] * t.alpha[i];
   }
   const v = forward(t.chol, n, kx);
   let explained = 0;
   for (let i = 0; i < n; i++) explained += v[i] * v[i];
-  return { rating: SEA_LEVEL + mean, sd: Math.sqrt(Math.max(0, SIGNAL_SD ** 2 - explained)) };
+  return { rating: SEA_LEVEL + mean, sd: Math.sqrt(Math.max(0, prior - explained)) };
+}
+
+/**
+ * The ground at a coordinate for a drink of one kind: what you are likely to
+ * think of a drink there you have not had. With no kind, the best of any
+ * kind: the ground as the map draws it.
+ */
+export function heightAt(t: Terrain, x: number, y: number, kind?: Kind): Height {
+  if (!kind) {
+    let best: Height | null = null;
+    for (const k of KINDS) {
+      const h = heightAt(t, x, y, k);
+      if (!best || h.rating > best.rating) best = h;
+    }
+    return best!;
+  }
+  return posterior(t, x, y, (o) => ground(x, y, kind, o.drink.x, o.drink.y, kindOf(o.drink)), SIGNAL_SD ** 2);
+}
+
+/** One drink's height: the ground under it, and what you have said of that drink itself. */
+export function drinkHeight(t: Terrain, drink: Drink): Height {
+  return posterior(t, drink.x, drink.y, (o) => between(drink, o.drink), SIGNAL_SD ** 2 + DRINK_SD ** 2);
 }
 
 /** A pour that supports a drink's height: one near it, and how near. */
@@ -208,22 +260,27 @@ export interface Ranked extends Height {
 /** How far a pour can be from a drink and still be named as a reason for it, in map points. */
 export const EVIDENCE_REACH = 2 * LENGTH;
 
-/** The rated pours that bear on a coordinate, most weight first; each drink once, at its latest rating. */
-export function evidenceAt(t: Terrain, x: number, y: number, limit = 2): Evidence[] {
+/**
+ * The rated pours that bear on a coordinate, most pull first: nearer, further
+ * from a 5, and of the same kind. Each drink once, at its latest rating.
+ */
+export function evidenceAt(t: Terrain, x: number, y: number, kind?: Kind, limit = 2): Evidence[] {
   const latest = new Map<string, Observation>();
   for (const o of t.observations) latest.set(o.drink.name, o);
+  const pull = (o: Observation, distance: number) =>
+    Math.abs(o.hedonic - SEA_LEVEL) * Math.exp(-(distance ** 2) / (2 * LENGTH ** 2)) * (!kind || kindOf(o.drink) === kind ? 1 : KIN_ACROSS);
   return [...latest.values()]
-    .map((o) => ({ drink: o.drink, hedonic: o.hedonic, distance: Math.hypot(o.drink.x - x, o.drink.y - y) }))
+    .map((o) => ({ o, distance: Math.hypot(o.drink.x - x, o.drink.y - y) }))
     .filter((e) => e.distance <= EVIDENCE_REACH)
-    .sort((a, b) => Math.abs(b.hedonic - SEA_LEVEL) * Math.exp(-(b.distance ** 2) / (2 * LENGTH ** 2)) - Math.abs(a.hedonic - SEA_LEVEL) * Math.exp(-(a.distance ** 2) / (2 * LENGTH ** 2)))
+    .sort((a, b) => pull(b.o, b.distance) - pull(a.o, a.distance))
     .slice(0, limit)
-    .map((e) => ({ ...e, distance: Math.round(e.distance * 10) / 10 }));
+    .map(({ o, distance }) => ({ drink: o.drink, hedonic: o.hedonic, distance: Math.round(distance * 10) / 10 }));
 }
 
-/** Every drink by the height of the ground under it, highest first. */
+/** Every drink by its height, highest first. */
 export function rankByTerrain(t: Terrain, drinks: readonly Drink[] = drinkDatabase): Ranked[] {
   return drinks
-    .map((drink) => ({ drink, ...heightAt(t, drink.x, drink.y), evidence: evidenceAt(t, drink.x, drink.y) }))
+    .map((drink) => ({ drink, ...drinkHeight(t, drink), evidence: evidenceAt(t, drink.x, drink.y, kindOf(drink)) }))
     .sort((a, b) => b.rating - a.rating || a.drink.name.localeCompare(b.drink.name));
 }
 
@@ -276,4 +333,40 @@ export function peaks(t: Terrain, step = 0.5): Peak[] {
     }
   }
   return found.sort((a, b) => b.rating - a.rating);
+}
+
+/** Which way a hill leans on each axis; null where it sits in the middle of that axis. */
+export interface Leaning {
+  x: 'rich' | 'crisp' | null;
+  y: 'sweet' | 'savory' | null;
+  /** The hilltop's height, for ordering. */
+  rating: number;
+}
+
+/** How far from the middle of an axis a hilltop must sit to lean that way, in map points. */
+export const LEAN_FROM = 1.5;
+
+/**
+ * Your taste in the axes' own words, one entry per hill, highest first:
+ * rich or crisp, sweet or savory, or neither where a hill sits in the middle.
+ * Two hills that lean the same way are one entry. Not a region: someone with
+ * a hill in the Deep and one in the Surf leans rich and savory, and crisp and
+ * sweet.
+ */
+export function leanings(t: Terrain, limit = 3): Leaning[] {
+  const seen = new Set<string>();
+  const out: Leaning[] = [];
+  for (const p of peaks(t)) {
+    const lean: Leaning = {
+      x: p.x >= LEAN_FROM ? 'crisp' : p.x <= -LEAN_FROM ? 'rich' : null,
+      y: p.y >= LEAN_FROM ? 'sweet' : p.y <= -LEAN_FROM ? 'savory' : null,
+      rating: p.rating,
+    };
+    const key = `${lean.x}/${lean.y}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(lean);
+    if (out.length === limit) break;
+  }
+  return out;
 }

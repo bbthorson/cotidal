@@ -4,10 +4,14 @@ import { quadrantIdFor } from '@/lib/quadrant';
 import { createInitialPalateState, applyPour } from '@/lib/palate-state';
 import {
   buildTerrain,
+  drinkHeight,
   evidenceAt,
   heightAt,
   hillWidth,
+  kindOf,
+  leanings,
   peaks,
+  PEAK_MIN,
   rankByTerrain,
   SEA_LEVEL,
   SIGNAL_SD,
@@ -160,5 +164,80 @@ describe('the evidence for a drink', () => {
     const t = buildTerrain(middle, [pour('Negroni', 3), pour('Negroni', 9)]);
     const at = drink('Negroni');
     expect(evidenceAt(t, at.x, at.y)).toEqual([{ drink: at, hedonic: 9, distance: 0 }]);
+  });
+});
+
+describe('a rating is partly about the drink itself', () => {
+  // A Manhattan 9 and a Penicillin 8 make a hill in the Deep; then the Martinez, between them, is a 2.
+  const loves = [pour('Manhattan', 9), pour('Penicillin', 8), pour('Daiquiri (Classic)', 8)];
+  const withOne = [...loves, pour('Martinez', 2)];
+  const withThree = [...withOne, pour('Bijou', 2), pour('Sazerac', 3)];
+  const deepTop = (ps: TerrainPour[]) =>
+    Math.max(...peaks(buildTerrain(middle, ps)).filter((p) => quadrantIdFor(p.x, p.y) === 'deep').map((p) => p.rating), 0);
+
+  test('one dislike sinks that drink, not the hill around it', () => {
+    const t = buildTerrain(middle, withOne);
+    expect(drinkHeight(t, drink('Martinez')).rating).toBeLessThan(4);
+    expect(drinkHeight(t, drink('Manhattan')).rating).toBeGreaterThan(8);
+    expect(deepTop(withOne)).toBeGreaterThanOrEqual(PEAK_MIN);
+  });
+
+  test('dislikes that agree add up: the unrated drinks beside them sink further with each', () => {
+    const at = (ps: TerrainPour[]) => drinkHeight(buildTerrain(middle, ps), drink('Old Fashioned')).rating;
+    expect(at(withOne)).toBeLessThan(at(loves));
+    expect(at(withThree)).toBeLessThan(at(withOne));
+    expect(at(withThree)).toBeLessThan(at(loves) - 1);
+  });
+
+  test('a drink rated keeps close to its own rating', () => {
+    const t = buildTerrain(middle, [pour('Negroni', 9)]);
+    expect(drinkHeight(t, drink('Negroni')).rating).toBeGreaterThan(8);
+    // Its neighbour, unrated, is raised less than it.
+    expect(heightAt(t, drink('Bijou').x, drink('Bijou').y, 'spirits').rating).toBeLessThan(drinkHeight(t, drink('Negroni')).rating);
+  });
+});
+
+describe('a rating carries less to another kind of drink', () => {
+  test('after cocktails in the Deep, the cocktails beside them come before the wines beside them', () => {
+    const t = buildTerrain(middle, [pour('Manhattan', 9), pour('Penicillin', 8)]);
+    const ranked = rankByTerrain(t);
+    // Rioja and Malbec sit a point from the Manhattan, as close as the cocktails do.
+    for (const wine of ['Rioja (Tempranillo)', 'Malbec (Mendoza)']) {
+      for (const cocktail of ['Martinez', 'Oaxaca Old Fashioned', 'Old Fashioned']) {
+        expect(rankOf(ranked, cocktail), `${cocktail} before ${wine}`).toBeLessThan(rankOf(ranked, wine));
+      }
+    }
+  });
+
+  test('and the other way: after a Barolo, the wines beside it come before the cocktails', () => {
+    const ranked = rankByTerrain(buildTerrain(middle, [pour('Barolo (Nebbiolo)', 9)]));
+    expect(rankOf(ranked, 'Syrah (Northern Rhône)')).toBeLessThan(rankOf(ranked, 'Negroni'));
+    expect(rankOf(ranked, 'Syrah (Northern Rhône)')).toBeLessThan(rankOf(ranked, 'Bijou'));
+  });
+
+  test('cocktails and spirits are one kind', () => {
+    expect(kindOf(drink('Islay Scotch (Neat)'))).toBe(kindOf(drink('Penicillin')));
+    expect(kindOf(drink('Guinness'))).not.toBe(kindOf(drink('Penicillin')));
+  });
+});
+
+describe('your taste in words', () => {
+  test('two hills are two leanings, highest first, in the axes’ words', () => {
+    const lean = leanings(buildTerrain(middle, twoLoves));
+    const words = lean.map((l) => `${l.x} ${l.y}`);
+    expect(words).toContain('rich savory');
+    expect(words).toContain('crisp sweet');
+    for (let i = 1; i < lean.length; i++) expect(lean[i].rating).toBeLessThanOrEqual(lean[i - 1].rating);
+  });
+
+  test('a hill in the middle of an axis does not lean on it', () => {
+    const lean = leanings(buildTerrain({ x: 0, y: 6, variance: { x: 2, y: 2 } }, []));
+    expect(lean).toEqual([expect.objectContaining({ x: null, y: 'sweet' })]);
+  });
+
+  test('two hilltops leaning the same way are said once', () => {
+    const lean = leanings(buildTerrain(middle, [pour('Daiquiri (Classic)', 9), pour('Hugo Spritz', 9), pour('Tequila Sunrise', 9)]));
+    const keys = lean.map((l) => `${l.x}/${l.y}`);
+    expect(new Set(keys).size).toBe(keys.length);
   });
 });
