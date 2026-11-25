@@ -106,6 +106,8 @@ export const explore = {
   title: 'Map',
   /** The map, read aloud. */
   mapLabel: 'Your map: every drink at its place, on the ground your answers and ratings make',
+  /** The same map on a page that draws nobody's taste: a drink's, the front door. */
+  chartLabel: 'The map: every drink at its place, rich to crisp and savory to sweet',
   /** The card, read aloud. */
   cardLabel: 'Where to next',
   /** The card's handle, read aloud, and its words on a phone. */
@@ -514,9 +516,10 @@ export const drinks = {
   compareLabel: 'Your palate',
   compareTitle: (title: string) => `See how ${title} fits your palate.`,
   compareBody:
-    'Every drink on the chart has a coordinate. Place yours to see how close this pour sits to your taste, or open it on your map if you already have one.',
-  compareMapCta: 'See it on your map',
-  compareQuizCta: 'Find your coordinate',
+    'Every drink on the chart has a coordinate. Your map opens on this one; with no coordinate yet, a few questions place you first.',
+  compareCta: 'See where it sits for you',
+  /** Under a drink's entry: the drinks nearest it on the map. */
+  nearLabel: 'Near it on the map',
 } as const;
 
 /**

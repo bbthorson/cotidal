@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { QUADRANT_ORDER, quadrantIdFor, regionPath } from '../src/lib/quadrant';
 import { drinkDatabase } from '../src/lib/data';
-import { quadrants, drinks, hero, nav as nav_, notFound } from '../src/lib/copy';
+import { quadrants, drinks, explore, hero, nav as nav_, notFound } from '../src/lib/copy';
 import { AUTH_ERROR_MESSAGES } from '@bbthorson/atproto-cf-auth/client';
 
 /**
@@ -93,12 +93,45 @@ test('Drinks: a region filter lists only that region’s drinks, and is read as 
   }
 });
 
-test('Drinks: a drink entry has Recipe structured data and links to compare against your palate', async ({ page }) => {
+test('Drinks: a drink entry has Recipe structured data and one way to compare it against your palate', async ({ page }) => {
   const html = await (await page.request.get('/drinks/absinthe-drip')).text();
   expect(html).toContain('"@type":"Recipe"');
-  expect(html).toContain('href="/map?drink=absinthe-drip"');
-  expect(html).toContain('href="/questions"');
-  expect(html).toContain(drinks.compareMapCta);
+  // One link for a member and a stranger alike: the questions go straight on to the drink on your map if you have a coordinate.
+  expect(html).toContain('href="/questions?drink=absinthe-drip"');
+  expect(html).toContain(drinks.compareCta);
+});
+
+test('Drinks: a drink is the map with the drink marked and its entry in the card, and ships no script', async ({ page }) => {
+  const scripts: string[] = [];
+  page.on('response', (res) => {
+    if (res.request().resourceType() === 'script' && !isDevServerScript(res.url())) scripts.push(res.url());
+  });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/drinks/negroni', { waitUntil: 'networkidle' });
+  expect(scripts).toHaveLength(0);
+  expect(await page.locator('astro-island').count()).toBe(0);
+
+  const map = page.getByRole('group', { name: explore.chartLabel });
+  const card = page.getByRole('region', { name: 'Negroni' });
+  await expect(map).toBeVisible();
+  await expect(map.getByText('Negroni', { exact: true })).toBeVisible();
+  await expect(card.getByRole('heading', { level: 1, name: 'Negroni' })).toBeVisible();
+  await expect(card.getByRole('heading', { name: drinks.nearLabel })).toBeAttached();
+
+  // On a phone the card rests under the map and scrolling the page pulls it up over it.
+  const mapTop = (await map.boundingBox())!.y;
+  const cardTop = (await card.boundingBox())!.y;
+  expect(cardTop).toBeGreaterThan(mapTop + 200);
+  await page.mouse.wheel(0, 400);
+  await expect.poll(async () => (await card.boundingBox())!.y).toBeLessThan(cardTop - 300);
+  // The map stays on screen, at the top, under the card.
+  expect((await map.boundingBox())!.y).toBeGreaterThanOrEqual(-1);
+
+  // From `lg` the card is a panel down the left, the map beside it.
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.evaluate(() => window.scrollTo(0, 0));
+  const [c, m] = [(await card.boundingBox())!, (await map.boundingBox())!];
+  expect(c.x + c.width).toBeLessThan(m.x);
 });
 
 test('Sign in: works without JavaScript, from its own page', async ({ browser }) => {

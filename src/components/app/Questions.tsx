@@ -6,7 +6,7 @@ import { useDiscoveryQuiz, type UserProfile } from '@/hooks/useDiscoveryQuiz';
 import { getConnectedPalate } from '@/lib/api-client';
 import { clearProfile, loadProfile, saveProfile } from '@/lib/device-store';
 import { START_OVER_PARAM } from '@/lib/atproto/paths';
-import { mapHref as MAP } from '@/lib/site-nav';
+import { DRINK_PARAM, drinkMapHref, mapHref as MAP } from '@/lib/site-nav';
 import { takeParam } from '@/lib/url-params';
 
 /**
@@ -20,6 +20,16 @@ import { takeParam } from '@/lib/url-params';
  * when the new one is published (`useDiscoveryQuiz`), not before: leaving
  * partway changes nothing there.
  */
+/**
+ * Where the questions hand over: the map, or the map open on the drink the
+ * reader came from (`/questions?drink=<slug>`, a drink page's one action).
+ */
+function nextHref(): string {
+  if (typeof window === 'undefined') return MAP;
+  const slug = new URLSearchParams(window.location.search).get(DRINK_PARAM);
+  return slug ? drinkMapHref(slug) : MAP;
+}
+
 function QuestionsContent({ member }: { member: boolean }) {
   const [profile, setProfile] = useState<UserProfile | null>(null);
 
@@ -37,7 +47,7 @@ function QuestionsContent({ member }: { member: boolean }) {
       return;
     }
     if (loadProfile()) {
-      window.location.replace(MAP);
+      window.location.replace(nextHref());
       return;
     }
     if (!member) return;
@@ -45,7 +55,7 @@ function QuestionsContent({ member }: { member: boolean }) {
     getConnectedPalate().then((remote) => {
       if (cancelled || !remote) return;
       saveProfile(remote);
-      window.location.replace(MAP);
+      window.location.replace(nextHref());
     });
     return () => {
       cancelled = true;
@@ -63,7 +73,7 @@ function QuestionsContent({ member }: { member: boolean }) {
       <Reveal
         x={Math.max(-10, Math.min(10, profile.x))}
         y={Math.max(-10, Math.min(10, profile.y))}
-        onContinue={() => window.location.assign(MAP)}
+        onContinue={() => window.location.assign(nextHref())}
         onRetake={retake}
       />
     );
@@ -79,7 +89,7 @@ function QuestionsContent({ member }: { member: boolean }) {
       canGoBack={quiz.canGoBack}
       onSelectOption={quiz.handleAnswer}
       onBack={quiz.handleBack}
-      onExploreAsGuest={() => window.location.assign(MAP)}
+      onExploreAsGuest={() => window.location.assign(nextHref())}
     />
   );
 }

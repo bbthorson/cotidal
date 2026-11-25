@@ -60,6 +60,12 @@ export interface LabelWant {
   offset: number;
   /** Higher is placed first. */
   priority: number;
+  /**
+   * Gives way to the other drinks' marks as well as to labels: a name drawn
+   * only to show what is near (a drink page's neighbours), which is not worth
+   * covering a drink for. The open drink, pins and your pours do not yield.
+   */
+  yields?: boolean;
 }
 
 export interface PlacedLabel {
@@ -70,7 +76,7 @@ export interface PlacedLabel {
   side: 'right' | 'left';
 }
 
-interface Box {
+export interface Box {
   x0: number;
   y0: number;
   x1: number;
@@ -82,10 +88,17 @@ const overlaps = (a: Box, b: Box) => a.x0 < b.x1 && a.x1 > b.x0 && a.y0 < b.y1 &
 /**
  * Which labels to draw, and on which side: most important first, to the right
  * of the mark if it fits and to the left if not, never over another label or
- * anything in `keepClear` (your mark, say), and never past `bounds`. A label
- * that fits nowhere is left out; its drink is still in the card's lists.
+ * anything in `keepClear`, and never past `bounds`. A label that `yields`
+ * also stays off every box in `yieldTo` (the region names, the other drinks'
+ * marks). A label that
+ * fits nowhere is left out; its drink is still in the card's lists.
  */
-export function placeLabels(wants: readonly LabelWant[], bounds: Box, keepClear: readonly Box[] = []): PlacedLabel[] {
+export function placeLabels(
+  wants: readonly LabelWant[],
+  bounds: Box,
+  keepClear: readonly Box[] = [],
+  yieldTo: readonly Box[] = []
+): PlacedLabel[] {
   const taken: Box[] = [...keepClear];
   const placed: PlacedLabel[] = [];
   for (const w of [...wants].sort((a, b) => b.priority - a.priority)) {
@@ -94,6 +107,7 @@ export function placeLabels(wants: readonly LabelWant[], bounds: Box, keepClear:
       const box = { x0: x - 2, y0: w.y - w.height / 2, x1: x + w.width + 2, y1: w.y + w.height / 2 };
       if (box.x0 < bounds.x0 || box.x1 > bounds.x1 || box.y0 < bounds.y0 || box.y1 > bounds.y1) continue;
       if (taken.some((t) => overlaps(t, box))) continue;
+      if (w.yields && yieldTo.some((t) => overlaps(t, box))) continue;
       taken.push(box);
       placed.push({ id: w.id, x, y: w.y, side });
       break;
@@ -148,4 +162,17 @@ export function groundShade({ rating, sd }: { rating: number; sd: number }): { r
   }
   if (rating < 4.5) return { rise: 0, top: 0, low: Math.min(1, (4.5 - rating) / 1.5) * 0.28 * sure };
   return { rise: 0, top: 0, low: 0 };
+}
+
+/**
+ * The drinks nearest a drink on the map, nearest first, ties by name so a
+ * page draws the same ones every time: the neighbours a drink's page names.
+ */
+export function neighboursOf<D extends { name: string; x: number; y: number }>(drink: D, drinks: readonly D[], count = 5): D[] {
+  return drinks
+    .filter((d) => d.name !== drink.name)
+    .map((d) => ({ d, distance: Math.hypot(d.x - drink.x, d.y - drink.y) }))
+    .sort((a, b) => a.distance - b.distance || a.d.name.localeCompare(b.d.name))
+    .slice(0, count)
+    .map(({ d }) => d);
 }

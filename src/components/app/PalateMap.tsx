@@ -73,6 +73,7 @@ export function PalateMap({
   tide = false,
   onSelect,
   name = (n) => n,
+  label = explore.mapLabel,
   children,
 }: {
   /** Your terrain, or null with no coordinate. */
@@ -94,6 +95,8 @@ export function PalateMap({
   /** Listen for taps. Without it the map is a picture. */
   onSelect?: (drinkName: string) => void;
   name?: (drinkName: string) => string;
+  /** Its accessible name: "your map" on `/map`, the map itself on a page that draws nobody's. */
+  label?: string;
   /** More of the plane, drawn over the ground and under the marks (in its viewBox). */
   children?: ReactNode;
 }) {
@@ -145,9 +148,38 @@ export function PalateMap({
               : 0;
       if (priority <= 0) continue;
       texts.set(m.drink.name, text);
-      wants.push({ id: m.drink.name, x: px(m.x), y: py(m.y), width: measure(text), height: 16, offset: m.rank !== undefined ? 14 : 8, priority });
+      wants.push({
+        id: m.drink.name,
+        x: px(m.x),
+        y: py(m.y),
+        width: measure(text),
+        height: 16,
+        offset: m.rank !== undefined ? 14 : 8,
+        priority,
+        yields: priority < 100,
+      });
     }
-    return placeLabels(wants, { x0: 0, y0: 0, x1: side, y1: side }).map((p) => {
+    // What a yielding label stays off: the region names, the axis words and the other drinks.
+    const names = quadrants.map((q) => {
+      const s = REGION_AT[q.id];
+      const cx = px(s.x * 5.6);
+      const cy = py(s.y * 9.2);
+      const half = (q.name.length * 11) / 2;
+      return { x0: cx - half, y0: cy - 15, x1: cx + half, y1: cy + 15 };
+    });
+    const words = [
+      { x0: 0, y0: side / 2 - 20, x1: 44, y1: side / 2 },
+      { x0: side - 50, y0: side / 2 - 20, x1: side, y1: side / 2 },
+      { x0: side / 2, y0: 0, x1: side / 2 + 56, y1: 20 },
+      { x0: side / 2, y0: side - 20, x1: side / 2 + 64, y1: side },
+    ];
+    const dots = marks
+      .filter((m) => !pins || m.rank !== undefined)
+      .map((m) => {
+        const r = m.rank !== undefined ? 10 : 4;
+        return { x0: px(m.x) - r, y0: py(m.y) - r, x1: px(m.x) + r, y1: py(m.y) + r };
+      });
+    return placeLabels(wants, { x0: 0, y0: 0, x1: side, y1: side }, [], [...names, ...words, ...dots]).map((p) => {
       const m = marks.find((k) => k.drink.name === p.id)!;
       return { ...p, mark: m, offset: m.rank !== undefined ? 14 : 8, text: texts.get(p.id)!, rated: m.hedonic !== undefined && !pins, pinned: m.rank !== undefined, first: m.rank === 1 };
     });
@@ -183,7 +215,7 @@ export function PalateMap({
     <div
       ref={box}
       role="group"
-      aria-label={explore.mapLabel}
+      aria-label={label}
       onPointerUp={tap}
       className={cn('map-plane relative select-none', onSelect && 'touch-manipulation')}
     >
@@ -202,10 +234,10 @@ export function PalateMap({
 
         {region && (
           <rect
-            x={REGION_AT[region].x < 0 ? -10 : 0}
-            y={REGION_AT[region].y > 0 ? -10 : 0}
-            width={10}
-            height={10}
+            x={REGION_AT[region].x < 0 ? -PLANE_EDGE : 0}
+            y={REGION_AT[region].y > 0 ? -PLANE_EDGE : 0}
+            width={PLANE_EDGE}
+            height={PLANE_EDGE}
             className="fill-shoal"
           />
         )}

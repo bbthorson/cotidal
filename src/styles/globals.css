@@ -490,10 +490,10 @@ bsky-sign-in[data-state='error'] input[name='handle'] {
     inset: -50%;
     background: conic-gradient(
       from 0deg,
-      transparent 0deg,
-      hsl(var(--secondary) / 0.1) 30deg,
-      hsl(var(--secondary) / 0.04) 70deg,
-      transparent 110deg
+      hsl(var(--secondary) / 0) 0deg,
+      hsl(var(--secondary) / 0.08) 50deg,
+      hsl(var(--secondary) / 0.03) 100deg,
+      hsl(var(--secondary) / 0) 150deg
     );
     animation: tide-turn 48s linear infinite reverse;
   }

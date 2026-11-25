@@ -19,7 +19,10 @@ until ~860 KB of JavaScript had downloaded and hydrated — on every route,
 landing page included. Astro was being used as a slower Next.js.
 
 - Prefer `.astro` for anything without state. Reach for an island only when
-  something genuinely needs to be interactive, and scope it tightly.
+  something genuinely needs to be interactive, and scope it tightly. A page
+  that shows the map is `MapPage.astro`, which renders the same React
+  `MapScreen` and `PalateMap` that `/map` hydrates, on the server with no
+  directive: one copy of the map, and still no script.
 - Prefer `client:load` over `client:only` so the shell server-renders.
 - The header is the same on every page: wordmark · Menu on a phone (the map,
   the visible reading pages, then the account), the nav and the account control from
@@ -268,7 +271,13 @@ An Astro content collection behind `/drinks`, prerendered and script-free.
 Drink pages are built for SEO/AEO rather than homepage discovery by
 unauthenticated visitors (`memberOnly: true` in `site-nav.ts`): each
 `/drinks/<slug>` page emits Schema.org `Recipe` JSON-LD and a compare-to-palate
-section linking to `/map?drink=<slug>` and `/questions`.
+section whose one link, `/questions?drink=<slug>` (`questionsForDrink`), places
+a stranger and then opens the drink on their map — or, for anyone with a
+coordinate already, goes straight to `/map?drink=<slug>`.
+Every drinks page is a map page (`MapPage.astro`): the map with the drink
+marked, its neighbours named (`neighboursOf`) and its region washed, the tide
+turning behind it, and the entry in the card. No terrain: the page does not
+know who is reading.
 
 Two rules make it safe to grow. **Frontmatter carries no coordinates** — an
 entry joins to `drinkDatabase` by `name`, so the map stays the one place a
@@ -298,7 +307,8 @@ npm run test:unit -- tests/unit/drink-content.test.ts
 ### Region prose — `src/content/regions/`, `src/pages/drinks/regions/[id].astro`
 **A region is a filter on the drinks**, not a page of its own:
 `/drinks/regions/<id>` (`regionPath`) is `/drinks` narrowed to one region,
-with `RegionFilter` across the top, the drinks first and the region's prose
+on the map with the region washed and its drinks named, and in the card
+`RegionFilter` across the top, the drinks first and the region's prose
 under them. Prerendered and script-free. There is no Regions item in the
 navigation (`RegionFilter` marks the active region). Same format as a drink
 (`documented` required, `claimed`, `sources`), one entry per region, and the

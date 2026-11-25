@@ -30,8 +30,8 @@ export function MapScreen({
   children,
 }: {
   mode: 'live' | 'static';
-  /** The map (`PalateMap`). */
-  map: ReactNode;
+  /** The map (`PalateMap`). Optional only to the type checker: an Astro page passes it as a named slot. */
+  map?: ReactNode;
   /** The card's accessible name. */
   label: string;
   /** The card's head (`CardHead`), or nothing (the reveal). */
@@ -88,6 +88,21 @@ export function CardHead({
         <p className="min-w-0 truncate">{children}</p>
         {action}
       </div>
+    </div>
+  );
+}
+
+/**
+ * The top of a card's body on a page with no script: the title and its lede,
+ * at the card's size rather than a reading page's plate (`PageTitle`).
+ * Anything under the lede (a readout) is `children`.
+ */
+export function CardTitle({ title, lede, children }: { title: string; lede?: string; children?: ReactNode }) {
+  return (
+    <div className="pt-4">
+      <h1 className="break-words font-serif text-title font-bold text-foreground">{title}</h1>
+      {lede && <p className="mt-2 font-serif text-ui italic leading-relaxed text-muted-foreground">{lede}</p>}
+      {children}
     </div>
   );
 }

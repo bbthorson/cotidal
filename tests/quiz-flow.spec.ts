@@ -39,6 +39,9 @@ test('Questionnaire: someone who already has a coordinate is sent on to the map'
   );
   await page.goto('/questions');
   await expect(page).toHaveURL(/\/map$/);
+  // From a drink's page the same link goes on to that drink on the map.
+  await page.goto('/questions?drink=negroni');
+  await expect(page).toHaveURL(/\/map\?drink=negroni$/);
 });
 
 test('Questionnaire: answering options advances questions and supports undo', async ({ page }) => {

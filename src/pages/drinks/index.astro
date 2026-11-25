@@ -1,17 +1,19 @@
 ---
 import { getCollection } from 'astro:content';
-import AppShell from '../../layouts/AppShell.astro';
-import PageTitle from '../../components/marketing/PageTitle.astro';
+import MapPage from '../../layouts/MapPage.astro';
+import { PalateMap } from '../../components/app/PalateMap';
+import { CardHead, CardTitle } from '../../components/app/MapScreen';
 import RegionFilter from '../../components/marketing/RegionFilter.astro';
 import DrinkRow from '../../components/marketing/DrinkRow.astro';
-import { site, drinks as copy, quadrants } from '../../lib/copy';
+import { site, drinks as copy, explore, quadrants } from '../../lib/copy';
 import { drinkDatabase } from '../../lib/data';
 import { quadrantIdFor, regionPath } from '../../lib/quadrant';
 import { drinksHref } from '../../lib/site-nav';
 
 /**
- * Static, like `/`. Nothing on this route is interactive, so nothing here
- * mounts an island — see AGENTS.md on keeping the front door script-free.
+ * The map with every drink written up named where its label fits, and the
+ * list in the card. Static, like `/`: the map and the card are React rendered
+ * on the server with no directive, so nothing here ships a script.
  *
  * Set as a printed list: quadrants are section heads the way a wine list uses
  * regions, and each drink is a ruled row. The regions are also a filter
@@ -42,19 +44,22 @@ const grouped = quadrants.map((quadrant) => ({
 }));
 ---
 
-<AppShell
-  title={`${copy.title} · ${site.name}`}
-  description={copy.intro}
-  currentPath={drinksHref}
-  width="standard"
->
-  <PageTitle eyebrow={copy.eyebrow} title={copy.title} lede={copy.intro} />
-  <RegionFilter />
+<MapPage title={`${copy.title} · ${site.name}`} description={copy.intro} currentPath={drinksHref} label={copy.title}>
+  <PalateMap slot="map" label={explore.chartLabel} named={placed.map(({ drink }) => drink.name)} tide />
 
-  <div class="mt-12 space-y-14">
+  <CardHead slot="head">
+    <span class="label-caps">{copy.eyebrow}</span>
+  </CardHead>
+
+  <CardTitle title={copy.title} lede={copy.intro} />
+  <div class="mt-6">
+    <RegionFilter />
+  </div>
+
+  <div class="mt-10 space-y-12">
     {
       grouped.map(({ quadrant, items }) => (
-        <section>
+        <section id={quadrant.id}>
           <div class="flex items-baseline justify-between border-b border-foreground pb-2">
             <h2 class="font-serif text-heading font-bold text-foreground">
               <a href={regionPath(quadrant.id)} class="hover:underline hover:underline-offset-4">{quadrant.name}</a>
@@ -74,4 +79,4 @@ const grouped = quadrants.map((quadrant) => ({
       ))
     }
   </div>
-</AppShell>
+</MapPage>

@@ -103,3 +103,23 @@ describe('drawn to scale', () => {
     expect(alphaAt(mid, 2)).toBe(Math.round(groundShade(rows[rows.length - 3][mid]).rise * 255));
   });
 });
+
+describe('labels that yield', () => {
+  const want = (id: string, x: number, priority: number, yields = false): LabelWant => ({ id, x, y: 50, width: 40, height: 16, offset: 8, priority, yields });
+  const bounds = { x0: 0, y0: 0, x1: 300, y1: 100 };
+  const dot = { x0: 66, y0: 46, x1: 74, y1: 54 };
+
+  test('a neighbour\'s name stays off another drink\'s mark, on whichever side is clear', () => {
+    const [placed] = placeLabels([want('near', 60, 50, true)], bounds, [], [{ x0: 85, y0: 46, x1: 93, y1: 54 }]);
+    expect(placed.side).toBe('left');
+  });
+
+  test('the open drink is named over a mark all the same', () => {
+    expect(placeLabels([want('open', 60, 1000)], bounds, [], [dot])).toHaveLength(1);
+    expect(placeLabels([want('open', 60, 1000)], bounds, [], [{ x0: 85, y0: 46, x1: 93, y1: 54 }])[0].side).toBe('right');
+  });
+
+  test('nothing is written over what is kept clear: a region\'s name', () => {
+    expect(placeLabels([want('near', 60, 50, true)], bounds, [{ x0: 0, y0: 40, x1: 300, y1: 60 }])).toEqual([]);
+  });
+});

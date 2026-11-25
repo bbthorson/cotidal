@@ -69,7 +69,10 @@ are the layout of the whole site, not only of `/map`.
 6. **Settings stays a page of its own**: forms that post to the server and
    the account's destructive actions, nothing that is a place on the map.
 
-Built so far: the server-drawn map and `MapScreen`, on `/map`.
+Built so far: the server-drawn map and `MapScreen`, on `/map`; the drink
+pages, `/drinks` and the region filters, on `MapPage.astro`, each drawing the
+map with no script. A drink's page has one action, See where it sits for you
+(`/questions?drink=<slug>`), which goes on to the drink on your map.
 
 ## Why
 
