@@ -11,22 +11,30 @@ sample bars and pours: https://claude.ai/artifact/HJNpUB2kta14LW3aCZkLj1
 
 ## Decided
 
-1. **Your map is a view of the same map, not a page.** As a maps app has a
-   terrain view, the map has two: Drinks (every drink, measured from you)
-   and Terrain (you: the shoal, your track, the drinks you have poured).
-   Terrain filters the pours: all, rated recently (the last 30 days),
-   favourites (7 or more, the rating that pulls you toward a drink).
-2. **Zoom is an improvement, not a prerequisite.** The first version can
-   show the whole plane at one scale, with every drink also reachable
-   through search and the sheet's lists. Pan and zoom follow.
-3. **A menu comes from a photo, and becomes official only when the bar
+1. **The map is the background, and it does not move.** It sits in one
+   place, sized to the screen, and is interactive: tap a drink or your dot.
+   What changes is what is drawn on it (a bar's pins, the line to a drink,
+   your dot moving after a pour), never where it is. No camera flights, no
+   panning.
+2. **One map, no views to switch.** It always shows you (the dot, the shoal,
+   your track), the drinks you have poured (filled where you rated them 7 or
+   more, with the rating beside the name), and every other drink as a small
+   ring. "Your menu" and a separate terrain view were two names for the same
+   picture and are gone.
+3. **One card for everything else.** Discovery (drinks close to you, bars
+   near you, your pours, recent or favourites), a drink, a bar's menu, and
+   rating a pour all happen in the card. There is no rating dialog and no
+   Rate a drink button: open a drink, tap a score, log it.
+4. **A menu comes from a photo, and becomes official only when the bar
    confirms it.** Anyone can photograph a bar's menu; it is saved to that
    bar as a patron's photo. It is the bar's listing only once the bar has
    proved it owns its address and approved those photos.
-4. **Searching for a bar is core; a street map is not.** A bar is a filter
+5. **Searching for a bar is core; a street map is not.** A bar is a filter
    on the tide map. Typing a bar we know nothing about opens an empty tide
    map, "No known menu", and asks for a photo of the menu; once read, its
    drinks appear on the map.
+6. **Zoom can wait.** Labels are placed for what matters, and every drink is
+   reachable through search and the card's lists.
 
 ## Why
 
@@ -38,9 +46,9 @@ sample bars and pours: https://claude.ai/artifact/HJNpUB2kta14LW3aCZkLj1
   you see at a glance that this bar's drinks are all in the Deep and you
   are in the Surf, which a list of distances does not show.
 - **The chart is too small to read.** 122 drinks sit on 103 spots of a
-  20 × 20 plane. At phone width that is about 17 px per point, so the
-  current chart cannot label its drinks. Zooming, and labels that appear as
-  you zoom (as street names do), is the standard answer to that density.
+  20 × 20 plane. Given the whole width of a phone and labels placed by what
+  matters to you, the map can name the drinks you are choosing between; the
+  current chart, a figure at the top of a page, names none.
 - **Your two screens describe one thing.** Compass is the drinks with your
   dot; Your map is your dot with your drinks. On one map they are layers,
   and the split rule ("draw your state on Your map, not on Compass") stops
@@ -53,71 +61,66 @@ sample bars and pours: https://claude.ai/artifact/HJNpUB2kta14LW3aCZkLj1
 │ ◐ COTIDAL                     @handle    │ header, unchanged
 ├──────────────────────────────────────────┤
 │ [ Search drinks or bars            ]     │ floats over the map
-│ (Your menu) | Cocktails · Wine · Beer…   │ chips (Terrain: All pours ·
-│                                          │   Rated recently · Favourites)
-│                                          │
-│        the palate plane, edge to edge    │
-│                                       ▤  │ Drinks ⇄ Terrain
-│     pan · pinch · labels by zoom      ◎  │ go to you
-│            · · ● you · ·              ±  │ zoom
-│                                       ▦  │ whole map
+│┌────────────────────────────────────────┐│
+││ The Eddy        SWEET        The Surf  ││
+││     ·  ·    ·        ·  ● Daiquiri · 8 ││ the plane, fixed:
+││ RICH          ──┼──      ◉ you   CRISP ││ full width on a phone
+││     ·   ·        ·   ·    ·   ·        ││
+││ The Deep       SAVORY    The Salt Line ││
+│└────────────────────────────────────────┘│
 ├──────────────────────────────────────────┤
-│ ▔▔  Where to next / a bar / a drink / you│ bottom sheet (phone),
-│                                          │ left panel from lg
-├──────────────────────────────────────────┤
-│ You are in The Surf +4.2, +3.1  [Rate a drink] │ footer: the cartouche
+│ ▔▔ You are in The Surf · +4.2, +3.1  More│ the card's head (drag or tap)
+│ Where to next                            │ the card, resting under the
+│ Close to you · Bars near you · Your pours│ map; pulls up over it
 └──────────────────────────────────────────┘
 ```
 
-**The map.** The plane is drawn the way `CoordinateMap` draws it now: the
-four regions named in large italic like seas, the axis words held inside the
-view as you pan, a graticule that gets finer as you zoom, and dashed rings
-around your dot at 1, 2, 3… points. The rings are the distance figure drawn,
-so how far a drink is can be read off the map without a score. Your dot sits
-in the shoal. Drink labels are placed greedily by priority (the selected
-drink, a bar's pins, your menu, then nearest to you) and are dropped where
-they would overlap, so more appear as you zoom in.
+**The map.** On a phone the plane is the full width of the screen, under
+the search box; the card rests in the space below it, so at rest nothing
+covers the map. From `lg` the card is a panel down the left and the plane
+fills the rest. The ground beyond the plane carries the same graticule to
+the screen's edges. It is drawn as `CoordinateMap` draws it now: the four
+regions named in italic, the axis words, the shoal and your track. Labels
+are placed by priority (the selected drink, a bar's pins, your pours, the
+drinks nearest you) and dropped where they would overlap.
 
-**Search** is one box over drinks and bars, as Compass's is now:
+**The card** has a head and a body. The head is always the same line —
+"You are in The Surf · +4.2, +3.1" and More — and is where you drag it up or
+tap it. The body scrolls on its own, so dragging and scrolling never fight.
+It rests below the map and goes up to cover it. It holds one of four
+things:
 
-- **A drink** flies the camera to frame you and the drink, draws the line
-  between you with its distance, and opens the drink card in the sheet: how
-  far, which way, your last pour, Also here, Pick this, Rate this.
+- **Where to next** (the start): your waiting pick, if there is one, with
+  Rate it; *Close to you*, eight drinks nearest you with which way and how
+  far; *Bars near you*, each with what we know of its menu; *Your pours*,
+  Recent or Favourites. Tapping a row selects the drink on the map; on a
+  wide screen, hovering a row rings its drink.
+- **A drink**: region and coordinate, how far and which way, your last pour,
+  Also here, Read the entry, Pick this here (in a bar), and the rating: nine
+  cells, then **Log it**. Logging replaces the cells with what the pour did
+  ("Moved 0.4 toward the Daiquiri", or "Held"), and the dot moves on the map.
+  On the map, a line runs from you to the drink with its distance.
+- **A bar**: where its menu came from, its drinks numbered nearest first
+  (the same numbers as the pins), and the lines that did not place. Or, with
+  no known menu, **Photograph the menu**, with typing as the fallback.
+- **You**: tapping your dot opens the card full and scrolls to Your pours.
+
+**Search** is one box over drinks and bars:
+
+- **A drink** selects it: the line from you, the drink in the card.
 - **A bar** becomes the map's context, a chip in the search box ("The
-  Lantern Room ×"), as a maps app's search chip narrows its map. Every other
-  drink fades to a speck, the bar's drinks become numbered pins (1 in
-  terracotta, as the top of your menu is now), and the camera frames them
-  and you. The sheet lists the same numbers, nearest first (`rankMenu`), with
-  the lines that did not place listed under them, and says where the menu
-  came from: **Confirmed by the bar**, or **From a patron's photo, not
-  confirmed by the bar**.
+  Lantern Room ×"), and the search then looks inside its menu. Every other
+  drink fades to a speck and the bar's drinks become numbered pins (1 in
+  terracotta, as the top of your menu is now).
 - **A bar we don't know.** Any name typed can be opened as a bar. Its map is
-  empty — "No known menu" over the faded drinks — and the sheet offers
-  **Photograph the menu**, with typing the drinks as the fallback. The
-  photo is read into lines, each line is placed (`addMenuLine`), and the
-  pins drop onto the map.
+  empty, "No known menu" written in the half of the map you are not in, and
+  the card asks for a photo. The photo is read into lines, each line is
+  placed (`addMenuLine`), and the pins drop onto the map.
+- **A drink not on the map** can still be opened and rated: it is kept, and
+  moves nothing.
 
-**Chips** belong to the view. Drinks: Your menu (filled dots, on by
-default) and the type filters (Cocktails, Wine, Beer, Spirits). Terrain: All
-pours, Rated recently, Favourites.
-
-**Terrain** is Your map. A control on the map (as a maps app's layers
-button), your dot, or the footer's cartouche switches to it. The drinks you
-have not poured fade to specks; the ones you have are drawn with your
-latest rating beside the name, filled at 7 or more; your track and the
-shoal are drawn; the distance rings are not, because this view is about
-where you are rather than how far anything is. The sheet holds what `/map`
-holds now: region and coordinate, the figures, the ledger (What moved it)
-through the same filter, your link. That replaces the `/map` page.
-
-**The footer** is the chart's cartouche: your region and coordinate, and the
-one action, **Rate a drink**. When a pick is waiting it says so and the button
-becomes **Rate it**, replacing the `WaitingPick` strip. Logging a pour switches to
-Terrain and moves the dot, with the track extending behind it, so the loop of
-drink → log → the map changes happens in place.
-
-**From `lg`** the sheet is a panel down the left, over the map, and the
-legend sits in the footer.
+There is no footer and no button bar: the card's head is the cartouche, and
+its body holds every action.
 
 ## Where a bar's menu comes from
 
@@ -187,22 +190,25 @@ screen is a hook and a drawing" (AGENTS.md):
   `drinksAtSameSpot`, `rankMenu`, `addMenuLine`.
 - You: `useTrack` / `track.ts`, `logTotals`, `PourLedger`.
 - Bars: `useNearby` (the list, not the map), `barsFromPours`, `poursAtBars`.
-- Rating: `RateSheet`, `useRateSheet`, the `?rate=` and `?draft=1` contract.
+- Rating: `useRatePour`, `usePourForm`, `logPour`, the `?rate=` and
+  `?draft=1` contract (now opening the card).
 
 New:
 
-- **A canvas** (`PalateCanvas`) for the app pages: pan, pinch, wheel and
-  keyboard zoom; layers; label placement. `CoordinateMap` stays for the
+- **The map** (`PalateMap`) for the app page: fixed, sized to the space the
+  search and the resting card leave, tappable. `CoordinateMap` stays for the
   static pictures (`/p/<handle>`, the reveal, the questions' shoal).
-- **Two pure modules** with unit tests: the camera (project, fit a set of
-  points into the part of the screen the chrome leaves, fly between views)
-  and label placement (priority, collision, fan-out for drinks that share a
-  coordinate, such as the Daiquiri and the Southside at +7, +5).
+- **Label placement** as a pure module with unit tests: priority, collision,
+  and fanning out a bar's pins that share a coordinate (the Daiquiri and the
+  Southside are both at +7, +5).
 - **One hook for the screen**, merging `useCompass` and `useMap`, holding
-  the view (Drinks, Terrain), the context (none, a drink, a bar) and the
-  sheet state.
-- **The context in the address.** `?drink=<slug>`, `?bar=<name>`,
-  `?view=terrain`, so a view can be linked, as `?rate=` already can.
+  what the card is about (nothing, a drink, a bar) and whether it is up.
+- **Rating in the card.** `PourForm`'s rating moves into the drink card;
+  the detail fields (what was off, spirit, glass, the note) open under it
+  for a member. `RateSheet` goes; `?rate=` and `?draft=1` open the drink in
+  the card instead.
+- **The context in the address.** `?drink=<slug>` and `?bar=<name>`, so a
+  card can be linked, as `?rate=` already can.
 - **Menu capture**: a photo route under the generation rules, the
   confirm-the-lines step, the sighting write, and the index of sightings
   by bar.
@@ -212,17 +218,17 @@ New:
 - **One route instead of two tabs.** Recommend `/map`, which a chat
   assistant's draft link already opens; `/compass` goes, with every link
   updated (there are no members yet, so no redirect). The phone's app bar
-  (Compass · Your map) becomes the cartouche footer.
+  (Compass · Your map) goes; the card's head takes its place.
 - **AGENTS.md and `docs/design-system.md`.** The split between the two
-  charts, "Choosing what to have is one screen, Compass", the two tabs, rule
-  10 (one action per screen; it stays, as Rate a drink) and rule 12 (a map
-  sits in a frame on the ground; the plane's edge becomes the frame, drawn
-  on the canvas).
+  charts, "Choosing what to have is one screen, Compass", the two tabs,
+  "Rating a pour is a sheet" (it becomes part of the drink card), rule 10
+  (one action per screen) and rule 12 (a map sits in a frame on the ground,
+  which still holds: the plane is framed, on a ruled ground).
 - **Accessibility.** The canvas is a picture. Everything on it is also in the
   sheet as a list (your menu, a bar's pins, your pours), and a drink can
   always be reached by search, so nothing needs the map to be pointed at.
-- **Nothing moves under the reader.** The camera moves only in answer to a
-  tap or a search, and the sheet opens over the map rather than pushing it.
+- **Nothing moves under the reader.** The map never moves; the card opens
+  over it rather than pushing it.
 - **Guests.** The same canvas with no dot until the questions are answered:
   the cartouche says "No position yet" and offers Find your coordinate, as
   Compass does now. `/` stays static and island-free.
@@ -239,16 +245,13 @@ New:
 
 ## Build order
 
-1. **One screen at `/map`, at one scale.** The whole plane, fitted to the
-   space; Drinks and Terrain; search over drinks and bars, a bar as a
-   filter with its menu's pins; the sheet; the cartouche footer; the rating
-   sheet unchanged. `/compass` and `NearMap` removed, docs and tests
-   updated. Labels show for what matters (your menu, a bar's pins, the
-   selected drink, your pours in Terrain); every drink is reachable by
-   search. This is enough to test the idea.
-2. **Pan and zoom**, with the camera and label-placement modules and their
-   unit tests, so every drink can be labelled.
-3. **Menu capture**: photograph, read, check the lines, save as a sighting;
-   the index by bar, so other people see it; a typed menu for guests.
-4. **Confirmation**: the bar proves its address, reviews the photos and
+1. **One screen at `/map`.** The fixed map; the card with its four
+   contents and rating in the drink; search over drinks and bars, a bar as
+   a filter with its menu's pins and a typed menu where there is none.
+   `/compass`, `NearMap`, `RateSheet` and the app bar removed; docs and
+   tests updated. This is enough to test the idea.
+2. **Menu capture**: photograph, read, check the lines, save as a sighting;
+   the index by bar, so other people see it.
+3. **Confirmation**: the bar proves its address, reviews the photos and
    publishes its menu; the lexicon field for what it approved.
+4. **Zoom**, if the labels prove too few.
