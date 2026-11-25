@@ -1,7 +1,7 @@
 ---
 import Monogram from './Monogram.astro';
 import { a11y, account as accountCopy, compass, site, nav } from '../../lib/copy';
-import { destinations, signIn, signInHref, isCurrent, accountHref } from '../../lib/site-nav';
+import { destinations, isVisibleDestination, mapHref, signIn, signInHref, isCurrent, accountHref } from '../../lib/site-nav';
 import type { Account } from '../../lib/atproto/session';
 
 interface Props {
@@ -49,8 +49,9 @@ const onAccount = isCurrent(currentPath, accountHref);
  * destinations only; the reading pages are the footer's) and the account is
  * the bordered control beside it.
  */
-const app = destinations.filter((d) => d.header);
-const reading = destinations.filter((d) => d.menu);
+const visible = destinations.filter((d) => isVisibleDestination(d, account.kind));
+const app = visible.filter((d) => d.header);
+const reading = visible.filter((d) => d.menu);
 const controlClass =
   'flex min-h-11 items-center px-1.5 font-condensed text-meta font-semibold uppercase tracking-label transition-colors';
 const menuItem =
@@ -70,7 +71,7 @@ const menuItem =
 
     {search && (
       <div id="app-search" class="order-1 mx-2 flex min-w-0 flex-1 lg:mx-4">
-        <form action="/map" method="get" role="search" class="flex min-h-11 min-w-0 flex-1 items-center border border-foreground bg-card px-2">
+        <form action={mapHref} method="get" role="search" class="flex min-h-11 min-w-0 flex-1 items-center border border-foreground bg-card px-2">
           <label class="flex min-w-0 flex-1">
             <span class="sr-only">{compass.searchLabel}</span>
             <input

@@ -78,9 +78,12 @@ their own. The four parts come from four places:
 - **What they share** is counted from those drinks' own ingredient lists
   (`src/lib/ingredients.ts`), so it cannot disagree with them.
 
-The reading path is the third door. Today a visitor may take the quiz or look
-at the map; both ask to measure them. Some people want to read first, and they
-are not a lesser visitor.
+The reading path is primarily an SEO/AEO entry point (not linked from the
+homepage chrome for unauthenticated visitors; `memberOnly: true` on `/drinks`
+in `site-nav.ts`). Each `/drinks/<slug>` page carries Schema.org `Recipe`
+structured data alongside the prose and a **Your palate** section linking to
+`/map?drink=<slug>` and `/questions` so readers arriving from search or chat
+assistants can compare the drink directly against their palate.
 
 ## The return visit
 
@@ -104,10 +107,13 @@ publish professional profiles, recipes are authored works with adoption counts
 product can offer someone who is not a drinker.** It is also the cheapest to
 build, because the protocol does the hard part:
 
-- **Claiming is publishing.** A venue proves `attaboy.nyc` through
-  handle-as-domain and publishes `app.cotidal.venue` at rkey `self`. That
-  *is* the claim. No approval queue, no registry, nothing for us to
-  administer — and nothing for us to be a chokepoint over.
+- **Claiming matches the URL to the DID.** On `/bars/publish`, claiming checks
+  that the bar's website domain (`attaboy.nyc`) resolves to the signed-in
+  account's DID (`src/lib/atproto/venue-verify.ts`), then writes
+  `app.cotidal.venue` at rkey `self` and renders it live at `/v/<handle>`. No
+  approval queue, no registry, nothing for us to administer. A second level of
+  verification — mailing a postcard with a unique code to prove physical
+  presence at the street address — is planned for later (`docs/venues.md`).
 - **Menus are posts, never rows.** Re-published rather than edited, so version
   history is free and a menu from March stays true about March.
 - **Authority comes from the signing repo.** A menu in the venue's repo is the
@@ -120,11 +126,11 @@ the bar ever joined. **A bar that claims itself in two years lights up every
 old log at once.** That is the argument to a venue, and it is true because
 reconciliation happens in the app view and never by rewriting anyone's records.
 
-What is needed is a route, not a schema: a `/venues` (or `/bars`) surface where
-a venue signs in with its domain handle, sees what patrons have already logged
-there, and publishes a menu. The lexicons exist; nothing renders them. The placeholder
-route lives at `/bars`. Detailed product and commercial reasoning for the B2B
-suite lives in `docs/venues.md`.
+`/bars` introduces the supply side, `/bars/publish` handles self-serve domain
+verification and menu publishing, `/bars/audit` lets any bar check menu balance
+without an account, and `/v/<handle>` renders a claimed bar's live venue and
+menu. Detailed product and commercial reasoning for the B2B suite lives in
+`docs/venues.md`.
 
 **Menu capture is the same corpus from the other end.** A patron photographing
 a menu gets a recommendation with no account required — value before signup —

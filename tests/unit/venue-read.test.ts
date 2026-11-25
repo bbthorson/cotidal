@@ -64,6 +64,7 @@ describe('readPublicVenue', () => {
     expect(result.status).toBe('ok');
     if (result.status !== 'ok') return;
     expect(result.venue.name).toBe('Attaboy');
+    expect(result.venue.domainVerified).toBe(true);
     expect(result.venue.menu?.title).toBe('House Classics');
     expect(result.venue.menu?.sections[0].items[0].placed?.name).toBe('Paper Plane');
     expect(result.venue.menu?.sections[0].items[1].placed).toBeNull();

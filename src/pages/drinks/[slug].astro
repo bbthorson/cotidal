@@ -9,6 +9,7 @@ import { formatCoordinate } from '../../lib/coordinate';
 import { site, drinks as copy } from '../../lib/copy';
 import { drinkDatabase } from '../../lib/data';
 import { quadrantFor, regionPath } from '../../lib/quadrant';
+import { drinkMapHref, drinksHref, questionsHref } from '../../lib/site-nav';
 
 /** Static, like `/`. No island, no client JavaScript. */
 export const prerender = true;
@@ -28,15 +29,34 @@ const d = entry.data;
  */
 const drink = drinkDatabase.find((item) => item.name === d.name);
 const quadrant = drink ? quadrantFor(drink.x, drink.y) : null;
+
+/** Structured data for search and answer engines (SEO / AEO). */
+const recipeJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Recipe',
+  name: d.title,
+  description: d.summary,
+  recipeCategory: d.family,
+  recipeIngredient: d.ingredients.map((i) =>
+    `${i.amount} ${i.name}${i.optional ? ` (${copy.optionalLabel})` : ''}`
+  ),
+  recipeInstructions: [
+    d.build.method,
+    ...(d.build.garnish ? [`${copy.garnishLabel}: ${d.build.garnish}`] : []),
+  ],
+  ...(quadrant ? { keywords: [d.family, quadrant.name, quadrant.axis].join(', ') } : {}),
+};
 ---
 
 <AppShell
   title={`${d.title} · ${site.name}`}
   description={d.summary}
-  currentPath={`/drinks/${entry.id}`}
-  backLink={{ href: '/drinks', label: copy.backLabel }}
+  currentPath={`${drinksHref}/${entry.id}`}
+  backLink={{ href: drinksHref, label: copy.backLabel }}
   width="prose"
 >
+  <script is:inline type="application/ld+json" set:html={JSON.stringify(recipeJsonLd)} />
+
   <article>
         <PageTitle eyebrow={`${copy.eyebrow} · ${d.family}`} title={d.title} lede={d.summary} ruled>
           {
@@ -50,6 +70,29 @@ const quadrant = drink ? quadrantFor(drink.x, drink.y) : null;
             )
           }
         </PageTitle>
+
+        <!-- Compare to your palate -->
+        {
+          drink && (
+            <section class="border-b border-foreground py-8">
+              <p class="label-caps text-secondary">{copy.compareLabel}</p>
+              <h2 class="mt-1.5 font-serif text-heading font-bold text-foreground">
+                {copy.compareTitle(d.title)}
+              </h2>
+              <p class="mt-2 font-serif text-ui leading-relaxed text-muted-foreground">
+                {copy.compareBody}
+              </p>
+              <div class="mt-5 flex flex-wrap items-center gap-3">
+                <a href={drinkMapHref(entry.id)} class="btn btn-primary px-6">
+                  {copy.compareMapCta}
+                </a>
+                <a href={questionsHref} class="btn btn-outline px-6">
+                  {copy.compareQuizCta}
+                </a>
+              </div>
+            </section>
+          )
+        }
 
         <div class="prose-entry py-12">
           <Content />

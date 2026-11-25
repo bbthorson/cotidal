@@ -50,6 +50,8 @@ function toleranceAdjustment(tolerances: Tolerances | null | undefined, drink: D
 export const HEIGHT_BAND = 0.25;
 /** A latest rating at or below this takes a drink off your menu, and below everything in a bar's. */
 export const DISLIKED_AT = 3;
+/** A rating at or above this counts as liked across the map, scoring, and pour movement. */
+export const LIKED_AT = 7;
 
 export interface Relevance {
   /** From your point to the drink, on the map, to one decimal: which way and how far, on a drink's card. */
@@ -104,7 +106,7 @@ export const relevanceOf = (
   const venue =
     selectedLocation &&
     drinkLogs.some(
-      (log) => log.location?.toLowerCase().trim() === selectedLocation.toLowerCase().trim() && log.hedonicScale >= 7
+      (log) => log.location?.toLowerCase().trim() === selectedLocation.toLowerCase().trim() && log.hedonicScale >= LIKED_AT
     )
       ? 10
       : 0;

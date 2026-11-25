@@ -6,6 +6,7 @@ import { formatCoordinate } from '@/lib/coordinate';
 import { quadrantFor } from '@/lib/quadrant';
 import { fitPlane, type PlaneFit } from '@/lib/map-draw';
 import { publicMapPath, startOverPath } from '@/lib/atproto/paths';
+import { drinksHref, questionsHref } from '@/lib/site-nav';
 import type { Register } from '@/lib/register';
 import { neutralProfile } from '@/lib/guest-palate';
 import { useExplore, type Explore as ExploreState } from '@/hooks/useExplore';
@@ -425,7 +426,9 @@ function DrinkPanel({ e, drink }: { e: ExploreState; drink: Drink }) {
         {region.name} · {formatCoordinate(drink.x, drink.y)}
       </p>
       <h1 className="mt-1 font-serif text-title font-bold leading-tight text-foreground">{e.name(drink.name)}</h1>
-      <p className="mt-2 font-serif text-ui italic text-secondary">{e.reasonFor(drink)}</p>
+      <p className="mt-2 font-serif text-ui italic text-secondary">
+        {e.cold ? chart.coldDrinkPrompt : e.reasonFor(drink)}
+      </p>
 
       {lastLine && (
         <dl className="mt-3 border-t border-border pt-1">
@@ -449,14 +452,22 @@ function DrinkPanel({ e, drink }: { e: ExploreState; drink: Drink }) {
       )}
 
       <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2">
-        <button type="button" onClick={() => e.rate.open({ drink: drink.name })} className="btn btn-primary px-5">
-          {chart.logThis}
-        </button>
-        <button type="button" onClick={() => e.pick(drink.name)} className="btn btn-outline px-5">
-          {atBar ? compass.pickAt(e.venue?.name ?? '') : chart.pickThis}
-        </button>
+        {e.cold ? (
+          <a href={questionsHref} className="btn btn-primary px-5">
+            {chart.findYours}
+          </a>
+        ) : (
+          <>
+            <button type="button" onClick={() => e.rate.open({ drink: drink.name })} className="btn btn-primary px-5">
+              {chart.logThis}
+            </button>
+            <button type="button" onClick={() => e.pick(drink.name)} className="btn btn-outline px-5">
+              {atBar ? compass.pickAt(e.venue?.name ?? '') : chart.pickThis}
+            </button>
+          </>
+        )}
         {e.register[drink.name] && (
-          <a href={`/drinks/${e.register[drink.name].slug}`} className="link-caps text-secondary hover:underline">
+          <a href={`${drinksHref}/${e.register[drink.name].slug}`} className="link-caps text-secondary hover:underline">
             {chart.readEntry} &rarr;
           </a>
         )}

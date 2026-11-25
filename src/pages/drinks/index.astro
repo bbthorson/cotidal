@@ -7,6 +7,7 @@ import DrinkRow from '../../components/marketing/DrinkRow.astro';
 import { site, drinks as copy, quadrants } from '../../lib/copy';
 import { drinkDatabase } from '../../lib/data';
 import { quadrantIdFor, regionPath } from '../../lib/quadrant';
+import { drinksHref } from '../../lib/site-nav';
 
 /**
  * Static, like `/`. Nothing on this route is interactive, so nothing here
@@ -44,7 +45,7 @@ const grouped = quadrants.map((quadrant) => ({
 <AppShell
   title={`${copy.title} · ${site.name}`}
   description={copy.intro}
-  currentPath="/drinks"
+  currentPath={drinksHref}
   width="standard"
 >
   <PageTitle eyebrow={copy.eyebrow} title={copy.title} lede={copy.intro} />

@@ -6,10 +6,8 @@ import { useDiscoveryQuiz, type UserProfile } from '@/hooks/useDiscoveryQuiz';
 import { getConnectedPalate } from '@/lib/api-client';
 import { clearProfile, loadProfile, saveProfile } from '@/lib/device-store';
 import { START_OVER_PARAM } from '@/lib/atproto/paths';
+import { mapHref as MAP } from '@/lib/site-nav';
 import { takeParam } from '@/lib/url-params';
-
-/** Where the questions lead: the map, the one app screen. */
-const MAP = '/map';
 
 /**
  * The questions and the reveal: two beats, on a page of their own. Finishing

@@ -5,6 +5,7 @@ import ConnectForm from '../components/marketing/ConnectForm.astro';
 import Principles from '../components/marketing/Principles.astro';
 import { connect, sections, site } from '../lib/copy';
 import { signInEnabled } from '../lib/atproto/auth';
+import { signIn } from '../lib/site-nav';
 import { AUTH_ERROR_MESSAGES, AUTH_ERROR_PARAM, isAuthErrorCode } from '@bbthorson/atproto-cf-auth/client';
 
 /**
@@ -25,7 +26,7 @@ const error = errorParam
   : null;
 ---
 
-<AppShell title={`${site.name} — ${sections.connect}`} currentPath="/sign-in" width="prose">
+<AppShell title={`${site.name} — ${sections.connect}`} currentPath={signIn.href} width="prose">
   <PageTitle eyebrow={sections.connect} title={connect.title} lede={connect.lede} />
   <div class="space-y-12 pb-6">
     <section class="space-y-5">

@@ -87,14 +87,18 @@ domain name), patrons who save or follow the venue are direct subscribers:
 ## Verification & Hosting model
 
 A bar does not need a special crypto wallet, manual approval queue, or separate CMS.
-Ownership and web publishing derive from **handle-as-domain + Standard.site**:
+Verification has two levels:
 
-1. **One DNS Record:** The bar points its domain (`attaboy.nyc`) via CNAME to Cotidal's static edge proxy.
-2. **Handle Verification:** The edge responds to `https://attaboy.nyc/.well-known/atproto-did` with the venue's DID, completing ATProto domain-handle verification without manual TXT record juggling.
-3. **Standard.site Publication:** The edge responds to `https://attaboy.nyc/.well-known/site.standard.publication` pointing to `at://<did>/site.standard.publication/self`.
-4. **Canonical Claim:** The venue signs `app.cotidal.venue` at `rkey: self` in its repository, pointing `currentMenu` to its live menu and `publication` to its Standard.site publication.
-5. **Retroactive Reconciliation:** All patron sightings and historic pour records referencing `attaboy.nyc` instantly light up under the venue's account.
-6. **Zero-JS Astro Web Site:** The edge renders a fast, accessible, paper-and-ink web presence directly from the repository's signed records. Documents include `<link rel="site.standard.document" href="...">` in `<head>` for rich Bluesky preview cards and ATProto reader unfurls.
+### Level 1 — URL matched to DID (today)
+Claiming a bar is about matching the bar's website URL to its AT Protocol DID (`src/lib/atproto/venue-verify.ts`):
+
+1. **Domain-to-DID Match:** The bar's website domain (`attaboy.nyc`) resolves to the bar's DID — either because the bar uses that domain as its AT Protocol handle (via DNS `_atproto.attaboy.nyc` TXT or `https://attaboy.nyc/.well-known/atproto-did`), or via CNAME to Cotidal's static edge proxy.
+2. **Canonical Claim:** `/bars/publish` checks that the website URL's domain resolves to the signed-in account's DID before writing `app.cotidal.venue` at `rkey: self` (and pointing `currentMenu` to its live menu).
+3. **Retroactive Reconciliation:** All patron sightings and historic pour records referencing `attaboy.nyc` light up under the venue's account.
+4. **Standard.site & Zero-JS Web Site (later):** The edge responds to `https://attaboy.nyc/.well-known/site.standard.publication` pointing to `at://<did>/site.standard.publication/self` and renders a fast, accessible, paper-and-ink web presence directly from the repository's signed records.
+
+### Level 2 — Physical address by postcard (later)
+A domain match proves control of the website; it does not by itself prove physical occupancy of a street address. A second level of verification — to come later — will mail a physical postcard to the bar's address with a unique one-time code to enter, proving the claimant is actually at that address.
 
 ## Commercial model
 
