@@ -87,22 +87,6 @@ export async function flushPendingElicitation(record?: ElicitationRecord): Promi
   return ok;
 }
 
-export async function sharePalateToFeed(
-  topDrink: string,
-  quadrant: string
-): Promise<{ success: boolean; uri?: string; error?: string }> {
-  try {
-    const res = await fetch('/api/atproto-publish', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'sharePalateToFeed', topDrink, quadrant }),
-    });
-    return await res.json();
-  } catch {
-    return { success: false, error: apiErrors.shareFailed };
-  }
-}
-
 export async function getConnectedPalate(): Promise<UserProfile | null> {
   try {
     const res = await fetch('/api/atproto-publish', {

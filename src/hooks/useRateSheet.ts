@@ -3,7 +3,7 @@ import { parseRateRequest, withoutRateRequest, type RateRequest } from '@/lib/po
 
 /**
  * Whether the rating sheet is open, and on what. One hook for every screen
- * that can show it (Compass, Log), so the URL contract is handled in one
+ * that can show it (Compass, Your map), so the URL contract is handled in one
  * place: `?rate=<drink>` or `?draft=1&…` on arrival opens it (the same way
  * `?signin=1` opens the sign-in sheet), in-app triggers call `open()` with no
  * navigation, and closing takes the request out of the URL so a reload does

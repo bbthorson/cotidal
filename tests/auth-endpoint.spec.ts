@@ -94,7 +94,7 @@ test('Auth: the sign-in sheet on every app page agrees with the server', async (
       ])
     );
   });
-  for (const path of ['/compass', '/log', '/questions']) {
+  for (const path of ['/compass', '/map', '/questions']) {
     await page.goto(`${path}?signin=1`);
     const dialog = page.getByRole('dialog');
     await expect(dialog, path).toBeVisible();

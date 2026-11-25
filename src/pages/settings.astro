@@ -1,17 +1,22 @@
 ---
 import AppShell from '../layouts/AppShell.astro';
-import PageTitle from '../components/marketing/PageTitle.astro';
 import { account as accountCopy, settings as copy, site } from '../lib/copy';
-import { accountFor } from '../lib/atproto/session';
+import { accountFor, oauthSession } from '../lib/atproto/session';
 import { AUTH_BASE_PATH, publicMapPath, startOverPath } from '../lib/atproto/paths';
+import { getPalateProfile, shareToFeed } from '../lib/atproto/publish';
 import { authorizeContext } from '../lib/mcp/authorize-context.server';
 import { disconnectAssistant, listAssistants, type ConnectedAssistant } from '../lib/settings/assistants.server';
+import { quadrantFor } from '../lib/quadrant';
+import { closestDrinks } from '../lib/drink-search';
+import { loadRegister } from '../lib/register.server';
+import { titleOf } from '../lib/register';
 
 /**
- * A member's account as one page: who they are signed in as, the chat
- * assistants they have let act as them (src/lib/settings/assistants.server.ts),
- * and signing out. Server-rendered with plain form posts, so it ships no
- * JavaScript.
+ * A member's account, as one app screen of rows: who they are signed in as
+ * and signing out (the only place it is offered), their link (`/p/<handle>`) and
+ * sharing it, the chat assistants they have let act as them
+ * (src/lib/settings/assistants.server.ts), and starting over.
+ * Server-rendered with plain form posts, so it ships no JavaScript.
  *
  * Who is asking comes from the session cookie and nothing else: a Disconnect
  * names only a grant id, and grants are stored under the member, so another
@@ -26,11 +31,33 @@ if (account.kind !== 'member') return Astro.redirect('/sign-in', 303);
 const context = await authorizeContext(Astro.url);
 
 if (Astro.request.method === 'POST') {
+  const form = await Astro.request.formData().catch(() => null);
+  if (form?.get('intent') === 'share') {
+    // The post links to the map by DID: a handle can change and a post is never rewritten.
+    let outcome = 'shared';
+    try {
+      const session = await oauthSession(Astro.request);
+      const palate = session ? await getPalateProfile(session) : null;
+      const at = palate?.mapCoordinates;
+      if (!session || !at) {
+        outcome = 'nomap';
+      } else {
+        const nearest = closestDrinks(at, 1)[0];
+        const register = await loadRegister();
+        const mapUrl = new URL(publicMapPath(session.did), Astro.url.origin).toString();
+        await shareToFeed(session, nearest ? titleOf(register, nearest.name) : '', quadrantFor(at.x, at.y).name, mapUrl);
+      }
+    } catch (e) {
+      console.error('Could not share to the feed:', e);
+      outcome = 'sharefailed';
+    }
+    return Astro.redirect(`/settings?${outcome}=1#map`, 303);
+  }
+
   let outcome = 'disconnected';
   try {
-    const form = await Astro.request.formData();
     if (!context) throw new Error('Assistants are off here');
-    await disconnectAssistant(context.oauth, account.did, String(form.get('grant') ?? ''));
+    await disconnectAssistant(context.oauth, account.did, String(form?.get('grant') ?? ''));
   } catch (e) {
     console.error('Could not disconnect an assistant:', e);
     outcome = 'failed';
@@ -50,57 +77,101 @@ if (context) {
   }
 }
 
-const notice = Astro.url.searchParams.has('disconnected')
-  ? copy.disconnected
-  : Astro.url.searchParams.has('failed')
-    ? copy.disconnectFailed
-    : null;
+const has = (key: string) => Astro.url.searchParams.has(key);
+const assistantNotice = has('disconnected') ? copy.disconnected : has('failed') ? copy.disconnectFailed : null;
+const mapNotice = has('shared')
+  ? { text: copy.shared, error: false }
+  : has('sharefailed')
+    ? { text: copy.shareFailed, error: true }
+    : has('nomap')
+      ? { text: copy.shareNoMap, error: true }
+      : null;
 const date = (d: Date) => d.toLocaleDateString('en', { year: 'numeric', month: 'long', day: 'numeric' });
 const name = account.handle ? `@${account.handle}` : account.did;
-const label = 'font-condensed text-label uppercase tracking-label text-muted-foreground';
+const mapHref = publicMapPath(account.handle ?? account.did);
 const link = 'text-foreground underline decoration-muted-foreground underline-offset-4 hover:decoration-foreground';
+// One row: what it is, a line about it, and its action on the right.
+const row = 'flex items-center justify-between gap-4 border-b border-border py-4';
+const rowTitle = 'text-ui font-bold text-foreground';
+const rowBody = 'mt-0.5 text-meta text-muted-foreground';
 Astro.response.headers.set('Cache-Control', 'no-store');
 ---
 
-<AppShell title={`${site.name} — ${copy.title}`} currentPath="/settings" width="prose">
-  <div class="space-y-12 pb-6">
-    <PageTitle eyebrow={copy.eyebrow} title={copy.title} />
+<AppShell title={`${site.name} — ${copy.title}`} currentPath="/settings" width="prose" bottomBar>
+  <div class="space-y-10 pb-6 pt-6 lg:pt-10">
+    <h1 class="font-serif text-title font-bold text-foreground">{copy.title}</h1>
 
-    <section class="space-y-2" data-testid="settings-account">
-      <p class={label}>{copy.signedInAs}</p>
-      <p class="font-serif text-plate font-bold text-foreground">{name}</p>
-      <a href={publicMapPath(account.handle ?? account.did)} class:list={['text-ui', link]}>{copy.publicMap}</a>
+    <section data-testid="settings-account" class="border-y border-foreground py-4">
+      <div class="flex items-center justify-between gap-4">
+        <div class="min-w-0">
+          <p class="label-caps">{copy.signedInAs}</p>
+          <p class="mt-1 truncate font-serif text-plate font-bold text-foreground">{name}</p>
+        </div>
+        <form method="POST" action={`${AUTH_BASE_PATH}/logout`} class="shrink-0">
+          <button type="submit" class="btn btn-outline px-4">{copy.signOut}</button>
+        </form>
+      </div>
+      <p class="mt-3 text-meta text-muted-foreground">{copy.signOutNote}</p>
     </section>
 
-    <section id="assistants" class="scroll-mt-4 space-y-4" data-testid="settings-assistants">
+    <section id="map" class="scroll-mt-4" data-testid="settings-map">
+      <h2 class="section-title">{copy.mapTitle}</h2>
+      {
+        mapNotice && (
+          <p
+            role={mapNotice.error ? 'alert' : 'status'}
+            class:list={['border-b border-border py-2.5 text-meta', mapNotice.error ? 'text-destructive' : 'text-foreground']}
+          >
+            {mapNotice.text}
+          </p>
+        )
+      }
+      <div class={row}>
+        <div class="min-w-0">
+          <p class={rowTitle}>{copy.publicMap}</p>
+          <p class={rowBody}>{copy.publicMapBody}</p>
+        </div>
+        <a href={mapHref} class="btn btn-outline shrink-0 px-4">{copy.open}</a>
+      </div>
+      <form method="POST" action="/settings" class={row}>
+        <input type="hidden" name="intent" value="share" />
+        <div class="min-w-0">
+          <p class={rowTitle}>{copy.share}</p>
+          <p class={rowBody}>{copy.shareBody}</p>
+        </div>
+        <button type="submit" class="btn btn-outline shrink-0 px-4">{copy.shareCta}</button>
+      </form>
+    </section>
+
+    <section id="assistants" class="scroll-mt-4" data-testid="settings-assistants">
       <h2 class="section-title">{copy.assistantsTitle}</h2>
 
       {
-        notice && (
-          <p role="status" class="border-y border-border py-2.5 text-meta text-foreground">
-            {notice}
+        assistantNotice && (
+          <p role="status" class="border-b border-border py-2.5 text-meta text-foreground">
+            {assistantNotice}
           </p>
         )
       }
 
       {
         !context ? (
-          <p class="text-ui text-muted-foreground">
-            {copy.assistantsOff} <a href="/mcp" class={link}>{copy.howToConnect}</a>
+          <p class="border-b border-border py-4 text-ui text-muted-foreground">
+            {copy.assistantsOff} <a href="/mcp" class={link}>{copy.howToSetUp}</a>
           </p>
         ) : listFailed ? (
-          <p role="alert" class="text-meta text-destructive">
+          <p role="alert" class="border-b border-border py-4 text-meta text-destructive">
             {copy.disconnectFailed}
           </p>
         ) : (
           <>
-            <p class="text-ui text-muted-foreground">{copy.assistantsLede}</p>
+            <p class="pt-3 text-meta text-muted-foreground">{copy.assistantsLede}</p>
             {assistants && assistants.length > 0 ? (
-              <ul class="border-t border-foreground">
+              <ul>
                 {assistants.map((a) => (
-                  <li class="flex flex-col gap-3 border-b border-border py-4 sm:flex-row sm:items-start sm:justify-between">
-                    <div class="min-w-0 space-y-1">
-                      <p class="text-ui font-bold text-foreground">{a.name ?? copy.unnamed}</p>
+                  <li class={row}>
+                    <div class="min-w-0 space-y-0.5">
+                      <p class={rowTitle}>{a.name ?? copy.unnamed}</p>
                       <p class="text-meta text-muted-foreground">
                         {a.domain ? copy.verified(a.domain) : copy.unverified}
                         {a.redirectHost && <> · {copy.sendsTo(a.redirectHost)}</>}
@@ -110,6 +181,7 @@ Astro.response.headers.set('Cache-Control', 'no-store');
                       </p>
                     </div>
                     <form method="POST" action="/settings" class="shrink-0">
+                      <input type="hidden" name="intent" value="disconnect" />
                       <input type="hidden" name="grant" value={a.grantId} />
                       <button type="submit" class="btn btn-outline px-4">
                         {copy.disconnect}
@@ -119,7 +191,7 @@ Astro.response.headers.set('Cache-Control', 'no-store');
                 ))}
               </ul>
             ) : (
-              <p class="border-y border-border py-3 text-ui text-muted-foreground">
+              <p class="border-b border-border py-4 text-ui text-muted-foreground">
                 {copy.assistantsNone} <a href="/mcp" class={link}>{copy.howToConnect}</a>
               </p>
             )}
@@ -128,27 +200,17 @@ Astro.response.headers.set('Cache-Control', 'no-store');
       }
     </section>
 
-    <section class="space-y-3" data-testid="settings-coordinate">
-      <h2 class="section-title">{copy.coordinateTitle}</h2>
-      <p class="text-ui text-muted-foreground">{accountCopy.startOverBody}</p>
-      <details class="group">
-        <summary class="summary-plain btn btn-outline cursor-pointer px-4 group-open:hidden">
-          {accountCopy.startOver}
+    <section data-testid="settings-coordinate">
+      <h2 class="section-title">{accountCopy.startOver}</h2>
+      <details class="group border-b border-border py-4">
+        <summary class="summary-plain flex cursor-pointer items-center justify-between gap-4">
+          <span class="text-meta text-muted-foreground">{accountCopy.startOverBody}</span>
+          <span class="btn btn-outline shrink-0 px-4 group-open:hidden">{accountCopy.startOver}</span>
         </summary>
-        <div class="flex flex-wrap items-center gap-x-4 gap-y-2 pt-1">
-          <a href={startOverPath} class="btn btn-primary px-4">
-            {accountCopy.startOverCta}
-          </a>
+        <div class="flex flex-wrap items-center gap-x-5 gap-y-2 pt-3">
+          <a href={startOverPath} class="btn btn-primary px-4">{accountCopy.startOverCta}</a>
         </div>
       </details>
-    </section>
-
-    <section class="space-y-3">
-      <h2 class="section-title">{copy.signOutTitle}</h2>
-      <p class="text-ui text-muted-foreground">{copy.signOutBody}</p>
-      <form method="POST" action={`${AUTH_BASE_PATH}/logout`}>
-        <button type="submit" class="btn btn-outline px-4">{copy.signOutTitle}</button>
-      </form>
     </section>
   </div>
 </AppShell>

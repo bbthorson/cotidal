@@ -4,7 +4,7 @@ import type { Register } from '@/lib/register';
 import { drinkOf } from '@/lib/drink-match';
 import type { TrackPoint } from '@/lib/track';
 import { formatCoordinate } from '@/lib/coordinate';
-import { logPage, pour } from '@/lib/copy';
+import { mapPage, pour } from '@/lib/copy';
 import { cn } from '@/lib/utils';
 import { Empty, Loading } from './ui';
 
@@ -32,7 +32,7 @@ const dateOf = (iso: string) =>
  * what was off and the note. A log, not a stack of cards. With a track, the
  * last entry is where it starts: the questions, and the coordinate they gave.
  */
-export function PourLedger({ pours, register = {}, empty, loading = false, track = null, startLabel = logPage.started }: PourLedgerProps) {
+export function PourLedger({ pours, register = {}, empty, loading = false, track = null, startLabel = mapPage.started }: PourLedgerProps) {
   if (loading) {
     return <Loading />;
   }
@@ -51,7 +51,7 @@ export function PourLedger({ pours, register = {}, empty, loading = false, track
         <span aria-hidden="true" className="w-5.5 shrink-0 font-condensed text-meta font-bold text-primary">·</span>
         <span className="font-serif text-prose font-bold text-foreground">{startLabel}</span>
       </div>
-      <p className="text-meta text-muted-foreground">{logPage.startedAt(formatCoordinate(start.x, start.y))}</p>
+      <p className="text-meta text-muted-foreground">{mapPage.startedAt(formatCoordinate(start.x, start.y))}</p>
     </li>
   );
 
@@ -94,7 +94,7 @@ export function PourLedger({ pours, register = {}, empty, loading = false, track
               </span>
               {moved !== undefined && (
                 <span className={cn('shrink-0 font-condensed font-bold tabular-nums', moved > 0 ? 'text-foreground' : 'text-muted-foreground')}>
-                  {moved > 0 ? logPage.movedOf(moved) : logPage.held}
+                  {moved > 0 ? mapPage.movedOf(moved) : mapPage.held}
                 </span>
               )}
             </p>

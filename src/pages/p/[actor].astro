@@ -13,6 +13,7 @@ import { questionsHref } from '../../lib/site-nav';
 import { oauthSession } from '../../lib/atproto/session';
 import { getPalateProfile } from '../../lib/atproto/publish';
 import { compareMaps, nearestDrinks, type MapPoint } from '../../lib/overlap';
+import { readFollowedPalates, type FollowedOverlap } from '../../lib/atproto/follows-overlap';
 import { loadRegister } from '../../lib/register.server';
 import { titleOf } from '../../lib/register';
 import { coasterPath } from '../../lib/coaster';
@@ -55,6 +56,12 @@ const viewer: MapPoint | null = viewerRecord?.mapCoordinates
   : null;
 
 const overlap = subject && viewer ? compareMaps(subject, viewer) : null;
+
+// On your own map: the people you follow who have one, to compare with.
+// Read on the server inside a budget, so a slow follow graph shows fewer
+// people rather than holding the page back.
+const follows: FollowedOverlap[] =
+  isSelf && session && subject ? await readFollowedPalates(session.did, subject, { budgetMs: 2500 }) : [];
 const near = subject && !overlap ? nearestDrinks(subject) : [];
 const register = subject ? await loadRegister() : {};
 const entryHref = (drink: Drink) => {
@@ -115,7 +122,7 @@ const pairs: { label: string; drink: Drink }[] = overlap
   : [];
 
 // What a chat assistant reads is this map: on someone else's, what to ask
-// yours about them. Setting one up is the member's own business, at /log.
+// yours about them. Setting one up is the member's own business, at /map.
 const subjectHandle = result.status === 'ok' ? result.actor.handle : null;
 
 const ctaClass =
@@ -131,7 +138,7 @@ const ctaClass =
 >
   {result.status === 'ok' && subject && region && name ? (
     <article class="space-y-12" data-testid="public-map">
-      <PageTitle eyebrow={publicMap.eyebrow} title={publicMap.title(name)} lede={region.gloss} ruled>
+      <PageTitle eyebrow={isSelf ? publicMap.selfEyebrow : publicMap.eyebrow} title={publicMap.title(name)} lede={region.gloss} ruled>
         <Readout
           cells={[
             { label: publicMap.coordinateLabel, value: formatCoordinate(subject.x, subject.y), figure: true },
@@ -230,6 +237,55 @@ const ctaClass =
               {coaster.makeCode}
             </a>
           </p>
+        </section>
+      )}
+
+      {isSelf && (
+        <section id="compare" class="scroll-mt-4 space-y-3" data-testid="compare">
+          <h2 class="section-title">{publicMap.compareTitle}</h2>
+          {follows.length > 0 && (
+            <>
+              <p class="text-meta text-muted-foreground">{publicMap.followsLede}</p>
+              <ul class="divide-y divide-border border-b border-border">
+                {follows.map((f) => (
+                  <li class="py-3">
+                    <a href={f.path} class="group block">
+                      <div class="dot-leader">
+                        <span class="font-serif text-prose font-bold text-foreground group-hover:underline group-hover:underline-offset-4">
+                          @{f.handle}
+                        </span>
+                        <span aria-hidden="true" class="leader" />
+                        <span class="shrink-0 font-condensed text-meta text-secondary">{f.region}</span>
+                      </div>
+                      <p class="mt-0.5 text-meta text-muted-foreground">
+                        {f.description}
+                        {f.theirs && <> · {publicMap.followsContrast(titleOf(register, f.theirs))}</>}
+                      </p>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+          <form method="GET" action="/p" class="flex flex-col gap-2 pt-1">
+            <label for="compare-handle" class="text-meta text-muted-foreground">{publicMap.compareHint}</label>
+            <div class="flex gap-2">
+              <input
+                id="compare-handle"
+                name="handle"
+                required
+                placeholder={publicMap.comparePlaceholder}
+                aria-label={publicMap.compareLabel}
+                autocomplete="off"
+                autocapitalize="none"
+                autocorrect="off"
+                spellcheck="false"
+                inputmode="url"
+                class="field min-h-11 flex-1"
+              />
+              <button type="submit" class="btn btn-outline shrink-0 px-4">{publicMap.compareSubmit}</button>
+            </div>
+          </form>
         </section>
       )}
 

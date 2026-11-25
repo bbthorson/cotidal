@@ -1,7 +1,7 @@
 ---
 import AppShell from '../layouts/AppShell.astro';
-import LogScreen from '../components/app/LogScreen';
-import { site, logPage } from '../lib/copy';
+import MapScreen from '../components/app/MapScreen';
+import { site, mapPage } from '../lib/copy';
 import { loadRegister } from '../lib/register.server';
 import { signInEnabled } from '../lib/atproto/auth';
 import { accountFor } from '../lib/atproto/session';
@@ -19,6 +19,6 @@ const account = await accountFor(Astro.request, false);
 const member = account.kind === 'member' ? { did: account.did, handle: account.handle } : null;
 ---
 
-<AppShell title={`${site.name} — ${logPage.title}`} currentPath="/log" width="frame" bottomBar>
-  <LogScreen client:load register={register} signInEnabled={authEnabled} member={member} />
+<AppShell title={`${site.name} — ${mapPage.title}`} currentPath="/map" width="frame" bottomBar>
+  <MapScreen client:load register={register} signInEnabled={authEnabled} member={member} />
 </AppShell>

@@ -7,7 +7,7 @@ routes exist and why.
 ## The home page sells one thing
 
 `/` makes a single argument: *every palate has a coordinate → here is how it
-goes (the questions, Pick a drink, Log) → here are the four regions → sign in
+goes (the questions, Pick a drink, Your map) → here are the four regions → sign in
 to keep it with you.* It works because it promises one thing, and the chart is
 allowed to be the one large move on it (`docs/brand.md`, "Bold is one move per
 screen").
@@ -22,6 +22,25 @@ public map, and chat assistants, not logging or the menu.
 worth building and none of them belongs on `/` as a tile. A front door that
 offers six equal choices has stopped making an argument and become a portal.
 The footer is where routes live until one earns promotion.
+
+## The screens
+
+The drinker's app is two tabs and a page behind your name; everything else is
+a sheet or a reading page. Your state — where you are, how sure, the way you
+came — is drawn on Your map alone; Compass shows it only through the drinks,
+each with which way it lies from you and how far. Settings holds the account,
+not the palate.
+
+| Screen | What it is for | Reached from |
+|---|---|---|
+| **Compass** (tab) | Choosing: every drink measured from you, search, your menu, a bar's menu, bars near you | App bar, Menu |
+| **Your map** (tab, `/map`) | You: where you are, how sure, the way you came, the pours that moved you | App bar, Menu |
+| **Rating sheet** | One pour, rated | Rate a drink (Your map), Rate this (Compass), a chat's draft link |
+| **Settings** | The account: sign out, your link, share, assistants, start over | Your handle (header, Menu) |
+| **Your link** (`/p/<handle>`) | What a friend sees; comparing with people you follow, or any handle | Settings, Your map, a link someone sent |
+| **The questions** | Placing the coordinate | The front door, Start over |
+
+Each app screen has one action of its own. Sign out lives on Settings only.
 
 ## Destinations and gated actions
 
@@ -72,7 +91,7 @@ door: logging a pour and watching the point move.
 
 **The loop is: drink → log → the map changes.** That is the entire premise of a
 taste profile that lives in a repository and accumulates, so it is a route
-of its own: `/log`, in the site navigation, where a guest can log on this
+of its own: `/map`, in the site navigation, where a guest can log on this
 device and a member to their repository.
 
 ## The supply side

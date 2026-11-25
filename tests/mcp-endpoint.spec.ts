@@ -112,7 +112,7 @@ test('MCP endpoint: drafting a pour returns a link and writes nothing', async ({
   });
   expect(body.result?.isError).toBeFalsy();
   const url = new URL(body.result?.structuredContent.url);
-  expect(url.pathname).toBe('/log');
+  expect(url.pathname).toBe('/map');
   expect(url.searchParams.get('draft')).toBe('1');
   expect(url.searchParams.get('drink')).toBe('Negroni');
   expect(url.searchParams.has('rating')).toBe(false);

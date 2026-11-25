@@ -1,5 +1,5 @@
 import type { TrackPoint } from '@/lib/track';
-import { axes, logPage } from '@/lib/copy';
+import { axes, mapPage } from '@/lib/copy';
 
 /** The figure is 16:9 (`aspect-video`); its window onto the map keeps that shape. */
 const ASPECT = 16 / 9;
@@ -28,7 +28,7 @@ function frameFor(track: readonly TrackPoint[]): Frame {
 const place = (f: Frame, x: number, y: number) => ({ left: ((x - f.left) / f.width) * 100, top: ((f.top - y) / f.height) * 100 });
 
 /**
- * Your track drawn large on Log: from where the questions put you (a square)
+ * Your track up close, under Your map's chart: from where the questions put you (a square)
  * through each pour that moved you, to where you are. Zoomed to the track,
  * so a move of half a point is visible; the axes are drawn where they cross
  * the window, and the side of the map it shows is named.
@@ -53,7 +53,7 @@ export function TrackFigure({ track }: { track: readonly TrackPoint[] }) {
   const now = pts[pts.length - 1];
 
   return (
-    <figure aria-label={logPage.trackLabel(track.length - 1)} className="relative aspect-video w-full overflow-hidden border border-foreground bg-card">
+    <figure aria-label={mapPage.trackLabel(track.length - 1)} className="relative aspect-video w-full overflow-hidden border border-foreground bg-card">
       <svg aria-hidden="true" viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0 h-full w-full">
         {zero.left > 0 && zero.left < 100 && (
           <line x1={zero.left} y1={0} x2={zero.left} y2={100} className="stroke-chart-axis" vectorEffect="non-scaling-stroke" />

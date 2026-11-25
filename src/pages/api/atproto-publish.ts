@@ -1,7 +1,6 @@
 import type { APIRoute } from 'astro';
 import {
   publishPalateProfile,
-  shareToFeed,
   getPalateProfile,
   getPours,
   getLatestElicitation,
@@ -13,7 +12,6 @@ import { z } from 'zod';
 import { loadRegister } from '@/lib/register.server';
 import type { LogDrinkOptions } from '@/lib/api-client';
 import { oauthSession } from '@/lib/atproto/session';
-import { publicMapPath } from '@/lib/atproto/paths';
 import { logPour, sessionStore } from '@/lib/pours.server';
 import { apiErrors } from '@/lib/copy';
 import { tolerancesFromDynamic } from '@/lib/profile';
@@ -108,26 +106,6 @@ export const POST: APIRoute = async ({ request }) => {
     } catch (e) {
       console.error('Failed to publish answers:', e);
       return fail(apiErrors.publishAnswersFailed, 500);
-    }
-  }
-
-  if (body.action === 'sharePalateToFeed') {
-    const topDrink = body.topDrink as string;
-    const quadrant = body.quadrant as string;
-
-    if (!topDrink || topDrink.length > 100) return fail(apiErrors.invalidDrink, 400);
-    if (!quadrant || quadrant.length > 50) return fail(apiErrors.invalidRegion, 400);
-
-    // The post links to the sharer's public map, by DID: a handle can change
-    // and a post is never rewritten, so the link has to outlive the handle.
-    const mapUrl = new URL(publicMapPath(session.did), appUrl).toString();
-
-    try {
-      const result = await shareToFeed(session, topDrink, quadrant, mapUrl);
-      return json({ success: true, uri: result.uri });
-    } catch (e) {
-      console.error('Failed to share to feed:', e);
-      return fail(apiErrors.shareFailed, 500);
     }
   }
 

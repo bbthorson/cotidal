@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { drinkDatabase } from '@/lib/data';
 import { savePick } from '@/lib/device-store';
 import { titleOf, type Register } from '@/lib/register';
-import { chart } from '@/lib/copy';
 import { userFromProfile } from '@/lib/profile';
 import { barsFromPours, foldName, lastPourByDrink, poursAtBars } from '@/lib/pour-history';
 import { drinksAtSameSpot, namesMatching, searchDrinks, unlistedBar, wayTo } from '@/lib/drink-search';
@@ -11,10 +10,6 @@ import { useNearby } from '@/hooks/useNearby';
 import { usePours } from '@/hooks/usePours';
 import { useProfile } from '@/hooks/useProfile';
 import { useRateSheet } from '@/hooks/useRateSheet';
-import { useTrack } from '@/hooks/useTrack';
-
-/** What the chart shows: your menu filled in, or your pours. */
-export type Lens = (typeof chart.lenses)[number]['id'];
 
 /** Where a menu open on Compass is. No name means no bar named: at home. `at` is where the map says the bar is. */
 export interface Venue {
@@ -26,7 +21,7 @@ export interface Venue {
 
 /**
  * Everything Compass knows and can do, so `Compass.tsx` only draws it: your
- * coordinate, track and menu on the chart, one search over drinks and bars, the bars near you and
+ * coordinate and menu on the chart, one search over drinks and bars, the bars near you and
  * which you have poured at, what is open (a drink, a bar, a bar's menu), and
  * the rating sheet. The rules live in `src/lib` (`searchDrinks`,
  * `poursAtBars`, `scoreDrinks`); this hook holds state and wires them up.
@@ -40,9 +35,6 @@ export function useCompass(register: Register, member: { handle: string | null }
   const lastPour = useMemo(() => lastPourByDrink(history), [history]);
   const { scored, menu, distance } = useMenu(user, profile?.vibeTags, history);
   const nearby = useNearby();
-  const { track } = useTrack(!!member, profile, pours);
-  // The chart's reading: your menu filled in, or your pours.
-  const [lens, setLensState] = useState<Lens>('drinks');
   // With no position yet, search and bars wait until asked for ("or look up a drink").
   const [browsing, setBrowsing] = useState(false);
 
@@ -158,13 +150,6 @@ export function useCompass(register: Register, member: { handle: string | null }
     distance,
     lastPour,
 
-    // The chart
-    track,
-    lens,
-    setLens: (next: Lens) => {
-      setLensState(next);
-      setSelected(null);
-    },
     browsing,
     browse: () => setBrowsing(true),
 

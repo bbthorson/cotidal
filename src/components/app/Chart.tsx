@@ -1,14 +1,12 @@
-import { useMemo } from 'react';
+import { useMemo, type ReactNode } from 'react';
 import { drinkDatabase, type Drink } from '@/lib/data';
 import { quadrantFor } from '@/lib/quadrant';
 import { formatCoordinate } from '@/lib/coordinate';
-import { chart, menu, pour } from '@/lib/copy';
+import { chart, pour } from '@/lib/copy';
 import { titleOf, type Register } from '@/lib/register';
 import type { PourRecord } from '@/lib/atproto/records';
-import type { TrackPoint } from '@/lib/track';
-import type { Lens } from '@/hooks/useCompass';
 import { cn } from '@/lib/utils';
-import { CoordinateMap, DrinkSpot, ShoalMark, TrackLine, YouMark } from './CoordinateMap';
+import { CoordinateMap, DrinkSpot, YouMark } from './CoordinateMap';
 import { PinnedCard } from './PinnedCard';
 
 
@@ -22,93 +20,51 @@ interface Spot {
 const key = (d: { x: number; y: number }) => `${d.x},${d.y}`;
 
 /**
- * The chart: every drink at its coordinate, your position, and a title block
- * under the frame — where you are and what the marks mean — the way a chart
- * carries its title and legend in a cartouche rather than on loose lines
- * around it. Two readings: the drinks (your menu filled), or your pours.
- * Tapping a mark selects the drink; the screen opens it in `DrinkCard`.
+ * Compass's chart: every drink at its coordinate, with you as the point they
+ * are measured from, and a legend under the frame the way a chart carries
+ * its key in a cartouche. It is about the drinks: your track, the shoal and
+ * your pours are Your map's (`YourChart`). Tapping a mark selects the drink;
+ * the screen opens it in `DrinkCard`.
  */
 export function Chart({
   you,
   menuNames,
-  lastPour,
-  lens,
-  onLens,
   selected,
   onSelect,
   register,
-  onTakeQuiz,
-  eyebrow,
-  track = null,
   bare = false,
 }: {
   you: { x: number; y: number } | null;
   menuNames: string[];
-  lastPour: Map<string, PourRecord>;
-  lens: Lens;
-  onLens: (lens: Lens) => void;
   selected: string | null;
   onSelect: (drinkName: string) => void;
   register: Register;
-  /** Shown in place of the position when there is none yet. */
-  onTakeQuiz: () => void;
-  /** Said before "You are in" — "On this device", for a guest. */
-  eyebrow?: string;
-  /** Your track (`useTrack`), when it adds up: drawn with the shoal around where it ends. */
-  track?: readonly TrackPoint[] | null;
-  /** The map alone, without its title block: before you have a position, the screen says the rest. */
+  /** The map alone, without its legend: before you have a position, the screen says the rest. */
   bare?: boolean;
 }) {
   const name = (n: string) => titleOf(register, n);
   const region = you ? quadrantFor(you.x, you.y) : null;
 
   const spots = useMemo(() => {
-    const visible = lens === 'pours' ? drinkDatabase.filter((d) => lastPour.has(d.name)) : drinkDatabase;
     const byKey = new Map<string, Spot>();
-    for (const d of visible) {
+    for (const d of drinkDatabase) {
       const k = key(d);
       const spot = byKey.get(k) ?? { key: k, x: d.x, y: d.y, drinks: [] };
       spot.drinks.push(d);
       byKey.set(k, spot);
     }
     return [...byKey.values()];
-  }, [lens, lastPour]);
-
-  const variantFor = (spot: Spot): 'filled' | 'hollow' | 'muted' => {
-    if (lens === 'pours') {
-      const best = Math.max(...spot.drinks.map((d) => lastPour.get(d.name)?.rating.hedonic ?? 0));
-      return best >= 7 ? 'filled' : best <= 4 ? 'muted' : 'hollow';
-    }
-    return spot.drinks.some((d) => menuNames.includes(d.name)) ? 'filled' : 'hollow';
-  };
-
-  const legend =
-    lens === 'pours'
-      ? [
-          { variant: 'filled', label: chart.legendLiked },
-          { variant: 'hollow', label: pour.hedonic[4] },
-          { variant: 'muted', label: chart.legendNot },
-        ]
-      : [
-          { variant: 'filled', label: chart.legendMenu },
-          { variant: 'hollow', label: chart.legendElsewhere },
-        ];
+  }, []);
 
   return (
     <section aria-label={chart.label}>
       <CoordinateMap you={you ?? undefined} showAxes graticule>
-        {you && track && track.length > 0 && (
-          <>
-            <ShoalMark x={you.x} y={you.y} spread={track[track.length - 1].spread} />
-            <TrackLine points={track} />
-          </>
-        )}
         {spots.map((spot) => (
           <DrinkSpot
             key={spot.key}
             x={spot.x}
             y={spot.y}
-            variant={variantFor(spot)}
+            variant={spot.drinks.some((d) => menuNames.includes(d.name)) ? 'filled' : 'hollow'}
             selected={spot.drinks.some((d) => d.name === selected)}
             label={spot.drinks.map((d) => name(d.name)).join(', ')}
             onSelect={() => onSelect(spot.drinks[0].name)}
@@ -117,80 +73,42 @@ export function Chart({
         {you && region && <YouMark x={you.x} y={you.y} label={chart.youIn(region.name)} />}
       </CoordinateMap>
 
-      {/* The title block: the frame continues around it. */}
+      {/* The legend: the frame continues around it. */}
       {!bare && (
-      <div className="flex items-start justify-between gap-4 border-x border-b border-foreground bg-card px-3.5 py-3">
-        <div className="flex min-w-0 flex-col gap-1">
-          {you && region ? (
-            <>
-              <span className="label-caps">
-                {eyebrow && `${eyebrow} · `}
-                {menu.youAreIn}
-              </span>
-              <span className="flex flex-wrap items-baseline gap-x-2.5">
-                <span className="font-serif text-subtitle italic leading-none text-primary">{region.name}</span>
-                <span className="font-condensed text-label font-semibold tabular-nums tracking-label text-secondary">
-                  {formatCoordinate(you.x, you.y)}
-                </span>
-              </span>
-            </>
-          ) : (
-            <button
-              type="button"
-              onClick={onTakeQuiz}
-              className="link-serif flex min-h-11 items-center text-left text-plate"
-            >
-              {chart.findYours}
-            </button>
-          )}
-          <ul className="mt-1 flex flex-wrap gap-x-3.5 gap-y-0.5">
-            {you && track && track.length > 1 && (
-              <li className="flex items-center gap-1.5 text-meta text-muted-foreground">
-                <span aria-hidden="true" className="h-0.5 w-3 bg-primary" />
-                {chart.legendTrack}
-              </li>
-            )}
-            {you && track && track.length > 0 && (
-              <li className="flex items-center gap-1.5 text-meta text-muted-foreground">
-                <span aria-hidden="true" className="h-2 w-2 rounded-full border border-dashed border-secondary bg-shoal" />
-                {chart.legendShoal}
-              </li>
-            )}
-            {legend.map((item) => (
-              <li key={item.label} className="flex items-center gap-1.5 text-meta text-muted-foreground">
-                <span
-                  aria-hidden="true"
-                  className={cn(
-                    'h-1.75 w-1.75 rounded-full border',
-                    item.variant === 'filled'
-                      ? 'border-foreground bg-foreground'
-                      : item.variant === 'muted'
-                        ? 'border-muted-foreground bg-muted'
-                        : 'border-foreground bg-card'
-                  )}
-                />
-                {item.label}
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        <div role="group" aria-label={chart.lensLabel} className="segmented segmented-stack flex shrink-0 flex-col">
-          {chart.lenses.map((l) => (
-            <button
-              key={l.id}
-              type="button"
-              aria-pressed={lens === l.id}
-              onClick={() => onLens(l.id)}
-              className="segment px-3"
-            >
-              {l.label}
-            </button>
-          ))}
-        </div>
-      </div>
+        <ul className="flex flex-wrap gap-x-3.5 gap-y-0.5 border-x border-b border-foreground bg-card px-3.5 py-2.5">
+          {you && <LegendItem mark="you">{chart.legendYou}</LegendItem>}
+          <LegendItem mark="filled">{chart.legendMenu}</LegendItem>
+          <LegendItem mark="hollow">{chart.legendElsewhere}</LegendItem>
+        </ul>
       )}
     </section>
+  );
+}
+
+/** One entry in a chart's legend: the mark as it is drawn, and what it means. */
+export function LegendItem({
+  mark,
+  children,
+}: {
+  mark: 'you' | 'filled' | 'hollow' | 'track' | 'shoal';
+  children: ReactNode;
+}) {
+  return (
+    <li className="flex items-center gap-1.5 text-meta text-muted-foreground">
+      <span
+        aria-hidden="true"
+        className={cn(
+          mark === 'track'
+            ? 'h-0.5 w-3 bg-primary'
+            : mark === 'shoal'
+              ? 'h-2 w-2 rounded-full border border-dashed border-secondary bg-shoal'
+              : mark === 'you'
+                ? 'h-2 w-2 rounded-full bg-primary'
+                : cn('h-1.75 w-1.75 rounded-full border border-foreground', mark === 'filled' ? 'bg-foreground' : 'bg-card')
+        )}
+      />
+      {children}
+    </li>
   );
 }
 
@@ -260,7 +178,7 @@ export function DrinkCard({
   sameSpot: Drink[];
   onPick: (name: string) => void;
   onLog: () => void;
-  /** Keep this as the pick, waiting to be rated. Absent where picking is not offered (Log). */
+  /** Keep this as the pick, waiting to be rated. Absent where picking is not offered. */
   onChoose?: () => void;
   onClose: () => void;
 }) {
