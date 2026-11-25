@@ -273,6 +273,16 @@ export const hero = {
   primaryCta: 'Find your coordinate',
   /** Stated under the one primary action, so the cost is known up front. */
   cost: 'About two minutes · no account needed',
+  /** A member at the front door already has a map: the one action opens it. */
+  memberCta: 'Open your map',
+  /** The card's head: what the map behind it is (`sample-palate.ts`), so nobody takes it for theirs. */
+  sampleLabel: 'A sample palate, rated as it goes',
+  /** Under the fold of the card, pulled up: how it works, briefly, then the whole account. */
+  howTitle: 'How it works',
+  howMore: 'How it works, in full',
+  /** Then signing in, for someone who has a map on another device. */
+  signInTitle: 'Already have a map?',
+  signInBody: 'Sign in with Bluesky and it comes with you: your coordinate and your pours are kept in your own account.',
 } as const;
 
 export const quadrants = [

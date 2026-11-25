@@ -27,9 +27,16 @@ export function MapScreen({
   tone = 'card',
   bodyRef,
   overlay,
+  rest = 'standard',
   children,
 }: {
   mode: 'live' | 'static';
+  /**
+   * How much of a phone's first screen the card takes at rest, on a static
+   * page: `tall` leaves room for the front door's lede and its one action
+   * on the smallest phones, and shrinks the map to make it.
+   */
+  rest?: 'standard' | 'tall';
   /** The map (`PalateMap`). Optional only to the type checker: an Astro page passes it as a named slot. */
   map?: ReactNode;
   /** The card's accessible name. */
@@ -46,7 +53,7 @@ export function MapScreen({
   children: ReactNode;
 }) {
   return (
-    <div className={mode === 'live' ? 'map-screen-live' : 'map-screen-static'}>
+    <div className={mode === 'live' ? 'map-screen-live' : 'map-screen-static'} data-rest={rest === 'tall' ? 'tall' : undefined}>
       {overlay}
       <div className="map-region">{map}</div>
       <section

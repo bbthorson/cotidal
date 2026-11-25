@@ -1,42 +1,71 @@
 ---
-import AppShell from '../layouts/AppShell.astro';
-import ChartFigure from '../components/marketing/ChartFigure.astro';
-import { hero } from '../lib/copy';
-import { questionsHref } from '../lib/site-nav';
+import MapPage from '../layouts/MapPage.astro';
+import { PalateMap } from '../components/app/PalateMap';
+import { CardHead } from '../components/app/MapScreen';
+import { accountFor } from '../lib/atproto/session';
+import { explore, hero, howItWorks, nav, site } from '../lib/copy';
+import { sampleFrames } from '../lib/sample-palate';
+import { mapHref, questionsHref, signIn } from '../lib/site-nav';
 
 /**
- * The front door asks a stranger one thing: find your coordinate. The chart
- * (the one large move), the headline, one line, and the button with its cost.
- * Everything else has a page of its own — How it works, Drinks, Sign in —
- * and the footer and header carry them.
+ * The front door is the map, as every page that is a place on it is
+ * (docs/map-first.md, The map on every page): a sample palate gaining
+ * ratings behind, labelled as one, and the card. At rest the card asks a
+ * stranger one thing — find your coordinate — with what it costs; pulled up
+ * (on a phone, scrolled), it says how it works and offers sign-in to someone
+ * whose map is on another device.
  *
- * Ships zero JavaScript: `tests/landing-static.spec.ts` fails if it does.
+ * The sample's frames are the real terrain code's, worked out here; the
+ * animation is CSS. Ships zero JavaScript: `tests/landing-static.spec.ts`
+ * fails if it does.
  */
+const account = await accountFor(Astro.request, false);
+const member = account.kind === 'member';
+const canSignIn = account.kind === 'guest' && account.canSignIn;
+const frames = sampleFrames();
 ---
 
-<AppShell currentPath="/" width="standard" fill>
-  <!-- The first screen, exactly: header, chart, words, one action, and footer all within 100dvh. -->
-  <section class="flex flex-1 flex-col justify-center py-3 text-center md:py-4">
-    <div class="my-auto">
-      <div class="mx-auto w-44 sm:w-52 md:w-56">
-        <ChartFigure />
-      </div>
+<MapPage title={`${site.name} — ${hero.headline} ${hero.headlineAccent}`} currentPath="/" label={site.name} rest="tall">
+  <PalateMap slot="map" label={explore.chartLabel} frames={frames} />
 
-      <h1 class="mx-auto mt-4 max-w-2xl font-serif text-hero font-bold text-foreground md:mt-5 md:text-hero-lg">
-        {hero.headline}<br />
-        <em class="font-normal italic text-primary">{hero.headlineAccent}</em>
-      </h1>
+  <CardHead slot="head">
+    <span class="label-caps">{hero.sampleLabel}</span>
+  </CardHead>
 
-      <p class="mx-auto mt-2.5 max-w-xs font-serif text-prose text-muted-foreground md:mt-3 md:max-w-md md:text-plate">
-        {hero.body}
-      </p>
-
-      <div class="mx-auto flex w-full max-w-sm flex-col items-center pt-4 md:pt-5">
-        <a href={questionsHref} class="btn btn-primary btn-lg w-full px-8">
-          {hero.primaryCta}
-        </a>
-        <p class="mt-2 text-meta text-muted-foreground">{hero.cost}</p>
-      </div>
-    </div>
+  <section class="pt-4">
+    <h1 class="font-serif text-title font-bold text-foreground lg:text-display">
+      {hero.headline}{' '}
+      <em class="font-normal italic text-primary">{hero.headlineAccent}</em>
+    </h1>
+    <p class="mt-2 font-serif text-ui leading-relaxed text-muted-foreground">{hero.body}</p>
+    <a href={member ? mapHref : questionsHref} class="btn btn-primary btn-lg mt-4 w-full">
+      {member ? hero.memberCta : hero.primaryCta}
+    </a>
+    {!member && <p class="mt-2 text-center text-meta text-muted-foreground">{hero.cost}</p>}
   </section>
-</AppShell>
+
+  <section class="mt-12">
+    <h2 class="section-title">{hero.howTitle}</h2>
+    <div class="space-y-5">
+      {
+        howItWorks.sections.map((s) => (
+          <div>
+            <h3 class="font-serif text-ui font-bold text-foreground">{s.title}</h3>
+            <p class="mt-1 text-meta leading-relaxed text-muted-foreground">{s.paragraphs[0]}</p>
+          </div>
+        ))
+      }
+    </div>
+    <a href="/how-it-works" class="link-caps mt-5 inline-block text-secondary">{hero.howMore} &rarr;</a>
+  </section>
+
+  {
+    canSignIn && (
+      <section class="mt-12">
+        <h2 class="section-title">{hero.signInTitle}</h2>
+        <p class="text-meta leading-relaxed text-muted-foreground">{hero.signInBody}</p>
+        <a href={signIn.href} class="link-caps mt-4 inline-block text-secondary">{nav.signIn} &rarr;</a>
+      </section>
+    )
+  }
+</MapPage>

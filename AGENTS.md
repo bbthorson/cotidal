@@ -6,12 +6,15 @@ is about the code.
 
 ## Rendering: keep the front door static
 
-`/` is pure Astro with **zero client JavaScript**, and so is `/p/<handle>`
+`/` is the map with **zero client JavaScript** — a sample palate gaining
+ratings (`sample-palate.ts`, frames from the terrain code, animated in CSS)
+and the card (`MapPage.astro`) — and so is `/p/<handle>`
 (a link sent to a stranger, and where a member compares with people they
 follow: a server-read follows list and a plain GET form). `/sign-in` renders a plain form post that works
 with JavaScript off and progressively enhances it via `<bsky-sign-in>` (zero
 React). `/` asks one thing — find your coordinate — and keeps nothing else:
-sign-in is its own page. The app is one screen, `/map`; it and `/questions`
+pulled up, its card says how it works and links to sign-in, which is its own
+page. The app is one screen, `/map`; it and `/questions`
 mount React islands.
 
 The whole app was previously one `client:only` island, so nothing painted

@@ -2,7 +2,8 @@ import { test, expect } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { QUADRANT_ORDER, quadrantIdFor, regionPath } from '../src/lib/quadrant';
 import { drinkDatabase } from '../src/lib/data';
-import { quadrants, drinks, explore, hero, nav as nav_, notFound } from '../src/lib/copy';
+import { quadrants, drinks, explore, hero, nav as nav_, notFound, site } from '../src/lib/copy';
+import { SAMPLE_FRAMES, SAMPLE_POURS } from '../src/lib/sample-palate';
 import { AUTH_ERROR_MESSAGES } from '@bbthorson/atproto-cf-auth/client';
 
 /**
@@ -48,8 +49,8 @@ test('Landing: the front door is server-rendered, and asks one thing', async ({ 
 
   expect(html).toContain(hero.headline);
   expect(html).not.toMatch(/triangulat/i);
-  // The regions are withheld until you have one: the axes are not labelled at the door.
-  for (const { name } of quadrants) expect(html).not.toContain(name);
+  // The front door is the map, drawn by the server: the regions are named on it as on every map.
+  for (const { name } of quadrants) expect(html).toContain(name);
 
   await page.goto('/');
   await expect(page.locator('main a.btn')).toHaveCount(1);
@@ -228,15 +229,36 @@ test('Header: on a phone the destinations fold under "Menu", without JavaScript'
   await context.close();
 });
 
-test('Landing: header, front door, action, and footer all fit within 100dvh with no scroll', async ({ page }) => {
+test('Landing: the map, then the one action, on the first screen of any phone; the footer is the card\'s foot', async ({ page }) => {
   for (const viewport of [{ width: 375, height: 667 }, { width: 390, height: 844 }, { width: 1280, height: 800 }]) {
     await page.setViewportSize(viewport);
     await page.goto('/');
+    const map = (await page.getByRole('group', { name: explore.chartLabel }).boundingBox())!;
     const cta = (await page.getByRole('link', { name: hero.primaryCta }).boundingBox())!;
-    const footer = (await page.locator('footer').boundingBox())!;
-    expect(cta.y + cta.height, `${viewport.width}×${viewport.height}`).toBeLessThanOrEqual(viewport.height);
-    expect(Math.round(footer.y + footer.height), `${viewport.width}×${viewport.height}`).toBeLessThanOrEqual(viewport.height);
+    const size = `${viewport.width}×${viewport.height}`;
+    expect(map.width, size).toBeGreaterThan(250);
+    expect(cta.y + cta.height, size).toBeLessThanOrEqual(viewport.height);
+    // How it works and the footer are in the card, under its fold.
+    const card = page.getByRole('region', { name: site.name });
+    await expect(card.getByRole('heading', { name: hero.howTitle })).toBeAttached();
+    await expect(card.locator('footer')).toHaveCount(1);
   }
+});
+
+test('Landing: the sample palate is the terrain code\'s, labelled as a sample, and still for less motion', async ({ browser }) => {
+  const context = await browser.newContext({ reducedMotion: 'reduce', javaScriptEnabled: false });
+  const page = await context.newPage();
+  await page.goto('/');
+  await expect(page.getByText(hero.sampleLabel)).toBeVisible();
+  const map = page.getByRole('group', { name: explore.chartLabel });
+  // One frame per pour and one for the start, the last held: every sample pour is named with its rating.
+  const frames = map.locator('div.tide-frame');
+  await expect(frames).toHaveCount(SAMPLE_FRAMES);
+  const last = map.locator('div.tide-frame[data-last]');
+  for (const p of SAMPLE_POURS) await expect(last.getByText(explore.ratedMark(p.drink, p.rating))).toBeVisible();
+  // Every other frame is out of sight.
+  await expect(frames.first()).toHaveCSS('opacity', '0');
+  await context.close();
 });
 
 test('Landing: one primary action, with its cost stated', async ({ page }) => {

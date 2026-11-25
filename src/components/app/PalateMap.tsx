@@ -64,6 +64,7 @@ const pct = (x: number, y: number) => {
 export function PalateMap({
   ground = null,
   ratings,
+  frames,
   pins = null,
   emptyBar = false,
   selected = null,
@@ -80,6 +81,12 @@ export function PalateMap({
   ground?: Ground | null;
   /** Your latest rating of each drink you have poured, by name. */
   ratings?: ReadonlyMap<string, number>;
+  /**
+   * A palate told in steps, in place of `ground` and `ratings`: each frame's
+   * ground and ratings, shown in turn (`.tide-frame`), the last held for
+   * anyone who asks for less motion. The front door's sample.
+   */
+  frames?: readonly { ground: Ground; ratings: ReadonlyMap<string, number> }[];
   /** A bar's menu, placed: null when no bar is open. */
   pins?: Pin[] | null;
   /** A bar is open and nothing on its menu is placed yet. */
@@ -103,87 +110,24 @@ export function PalateMap({
   const box = useRef<HTMLDivElement>(null);
   const side = useSide(box);
   const measure = useTextMeasure();
-  const masks = useMemo(() => (ground ? groundMasks(ground.rows) : null), [ground]);
   const maskId = `ground${useId().replace(/[^a-zA-Z0-9]/g, '')}`;
 
-  const marks = useMemo(() => {
-    const seen = new Map<string, number>();
-    const pinned = new Map(pins?.map((p) => [p.drink.name, p.rank]) ?? []);
-    return drinkDatabase.map((d) => {
-      const rank = pinned.get(d.name);
-      // Pins sharing a coordinate fan out, so each number can be read: 13px, as a share of the plane.
-      let { x, y } = d;
-      if (rank !== undefined) {
-        const key = `${d.x},${d.y}`;
-        const n = seen.get(key) ?? 0;
-        seen.set(key, n + 1);
-        if (n) {
-          const reach = (13 / side) * 2 * PLANE_EDGE;
-          x += Math.cos(n * 2.1) * reach;
-          y -= Math.sin(n * 2.1) * reach;
-        }
-      }
-      return { drink: d, x, y, rank, hedonic: ratings?.get(d.name) };
-    });
-  }, [pins, ratings, side]);
-
-  const labels = useMemo(() => {
-    const px = (v: number) => ((v + PLANE_EDGE) / (2 * PLANE_EDGE)) * side;
-    const py = (v: number) => ((PLANE_EDGE - v) / (2 * PLANE_EDGE)) * side;
-    const extra = new Set(named ?? []);
-    const wants: LabelWant[] = [];
-    const texts = new Map<string, string>();
-    for (const m of marks) {
-      const isSel = m.drink.name === selected || m.drink.name === hover;
-      if (pins && m.rank === undefined && !isSel) continue;
-      const text = m.hedonic !== undefined && !pins ? explore.ratedMark(name(m.drink.name), m.hedonic) : name(m.drink.name);
-      const priority = isSel
-        ? 1000
-        : m.rank !== undefined
-          ? 500 - m.rank
-          : m.hedonic !== undefined
-            ? 100 + m.hedonic
-            : extra.has(m.drink.name)
-              ? 50
-              : 0;
-      if (priority <= 0) continue;
-      texts.set(m.drink.name, text);
-      wants.push({
-        id: m.drink.name,
-        x: px(m.x),
-        y: py(m.y),
-        width: measure(text),
-        height: 16,
-        offset: m.rank !== undefined ? 14 : 8,
-        priority,
-        yields: priority < 100,
-      });
-    }
-    // What a yielding label stays off: the region names, the axis words and the other drinks.
-    const names = quadrants.map((q) => {
-      const s = REGION_AT[q.id];
-      const cx = px(s.x * 5.6);
-      const cy = py(s.y * 9.2);
-      const half = (q.name.length * 11) / 2;
-      return { x0: cx - half, y0: cy - 15, x1: cx + half, y1: cy + 15 };
-    });
-    const words = [
-      { x0: 0, y0: side / 2 - 20, x1: 44, y1: side / 2 },
-      { x0: side - 50, y0: side / 2 - 20, x1: side, y1: side / 2 },
-      { x0: side / 2, y0: 0, x1: side / 2 + 56, y1: 20 },
-      { x0: side / 2, y0: side - 20, x1: side / 2 + 64, y1: side },
-    ];
-    const dots = marks
-      .filter((m) => !pins || m.rank !== undefined)
-      .map((m) => {
-        const r = m.rank !== undefined ? 10 : 4;
-        return { x0: px(m.x) - r, y0: py(m.y) - r, x1: px(m.x) + r, y1: py(m.y) + r };
-      });
-    return placeLabels(wants, { x0: 0, y0: 0, x1: side, y1: side }, [], [...names, ...words, ...dots]).map((p) => {
-      const m = marks.find((k) => k.drink.name === p.id)!;
-      return { ...p, mark: m, offset: m.rank !== undefined ? 14 : 8, text: texts.get(p.id)!, rated: m.hedonic !== undefined && !pins, pinned: m.rank !== undefined, first: m.rank === 1 };
-    });
-  }, [marks, pins, selected, hover, named, name, measure, side]);
+  const marks = useMemo(() => placeMarks(pins, ratings, side), [pins, ratings, side]);
+  const view: LabelView = { pins, selected, hover, named, name, measure, side };
+  const labels = useMemo(
+    () => placeMapLabels(marks, view),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `view` is these
+    [marks, pins, selected, hover, named, name, measure, side]
+  );
+  const steps = useMemo(
+    () =>
+      frames?.map((f) => {
+        const rated = placeMarks(null, f.ratings, side);
+        return { ground: f.ground, marks: rated.filter((m) => m.hedonic !== undefined), labels: placeMapLabels(rated, view) };
+      }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `view` is these
+    [frames, side, name, measure]
+  );
 
   const tap = onSelect
     ? (e: React.PointerEvent<HTMLDivElement>) => {
@@ -191,7 +135,7 @@ export function PalateMap({
         const toPx = rect.width / (2 * PLANE_EDGE);
         const px = e.clientX - rect.left;
         const py = e.clientY - rect.top;
-        let best: (typeof marks)[number] | null = null;
+        let best: MapMark | null = null;
         let bestD = Infinity;
         for (const m of marks) {
           if (pins && m.rank === undefined) continue;
@@ -207,9 +151,8 @@ export function PalateMap({
 
   const ticks: number[] = [];
   for (let v = -GRATICULE_REACH; v <= GRATICULE_REACH; v += TICK) ticks.push(v);
-  const faded = pins ? 0.4 : 1;
-  const imageAt = ground ? -10 - ground.step / 2 : 0;
-  const imageSide = ground ? 20 + ground.step : 0;
+  const frameStyle = (i: number) => ({ animationDelay: `${i * FRAME_SECONDS}s` });
+  const lastFrame = (i: number) => (steps && i === steps.length - 1 ? true : undefined);
 
   return (
     <div
@@ -242,21 +185,12 @@ export function PalateMap({
           />
         )}
 
-        {ground && masks && (
-          <g opacity={faded}>
-            <defs>
-              {(['rise', 'top', 'low'] as const).map((k) => (
-                <mask key={k} id={`${maskId}-${k}`} maskUnits="userSpaceOnUse" style={{ maskType: 'alpha' }} x={imageAt} y={imageAt} width={imageSide} height={imageSide}>
-                  <image href={masks[k]} x={imageAt} y={imageAt} width={imageSide} height={imageSide} preserveAspectRatio="none" />
-                </mask>
-              ))}
-            </defs>
-            <rect x={imageAt} y={imageAt} width={imageSide} height={imageSide} mask={`url(#${maskId}-rise)`} className="fill-accent" />
-            <rect x={imageAt} y={imageAt} width={imageSide} height={imageSide} mask={`url(#${maskId}-top)`} className="fill-secondary" />
-            <rect x={imageAt} y={imageAt} width={imageSide} height={imageSide} mask={`url(#${maskId}-low)`} className="fill-primary" />
-            <Contours ground={ground} />
+        {ground && <GroundLayer ground={ground} id={maskId} faded={!!pins} />}
+        {steps?.map((f, i) => (
+          <g key={i} className="tide-frame" data-last={lastFrame(i)} style={frameStyle(i)}>
+            <GroundLayer ground={f.ground} id={`${maskId}f${i}`} faded={false} />
           </g>
-        )}
+        ))}
 
         {children}
 
@@ -301,58 +235,9 @@ export function PalateMap({
 
       {/* The drinks. */}
       <div className={cn(!onSelect && 'pointer-events-none')} aria-hidden={onSelect ? undefined : true}>
-        {marks.map((m) => {
-          const isSel = m.drink.name === selected;
-          const isHover = m.drink.name === hover;
-          const at = pct(m.x, m.y);
-          if (pins && m.rank === undefined && !isSel) {
-            return <span key={m.drink.name} style={at} className="absolute h-1 w-1 -translate-x-1/2 -translate-y-1/2 rounded-full bg-border" />;
-          }
-          const label = m.hedonic !== undefined ? explore.ratedMark(name(m.drink.name), m.hedonic) : name(m.drink.name);
-          return (
-            <span
-              key={m.drink.name}
-              style={at}
-              role={onSelect ? 'button' : undefined}
-              aria-label={onSelect ? label : undefined}
-              aria-pressed={onSelect ? isSel : undefined}
-              className={cn('absolute -translate-x-1/2 -translate-y-1/2', onSelect && 'cursor-pointer')}
-            >
-              {m.rank !== undefined ? (
-                <span
-                  className={cn(
-                    'flex items-center justify-center rounded-full border-2 border-card font-condensed text-label font-bold text-card',
-                    isSel || isHover ? 'h-6 w-6' : 'h-5 w-5',
-                    m.rank === 1 ? 'bg-primary' : 'bg-foreground'
-                  )}
-                >
-                  {m.rank}
-                </span>
-              ) : (
-                <span
-                  className={cn(
-                    'block rounded-full',
-                    m.hedonic === undefined
-                      ? isSel
-                        ? 'h-2.5 w-2.5 bg-foreground'
-                        : 'h-1.75 w-1.75 border border-foreground bg-card'
-                      : m.hedonic >= LIKED_AT
-                        ? 'h-2.5 w-2.5 border-2 border-primary bg-primary'
-                        : 'h-2.5 w-2.5 border-2 border-primary bg-card'
-                  )}
-                />
-              )}
-              {(isSel || isHover) && (
-                <span
-                  className={cn(
-                    'absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border border-foreground',
-                    m.rank !== undefined ? 'h-9 w-9' : 'h-6 w-6'
-                  )}
-                />
-              )}
-            </span>
-          );
-        })}
+        {marks.map((m) => (
+          <Mark key={m.drink.name} m={m} pins={pins} selected={selected} hover={hover} name={name} listening={!!onSelect} />
+        ))}
       </div>
 
       {emptyBar && (
@@ -361,21 +246,240 @@ export function PalateMap({
         </p>
       )}
 
-      <div aria-hidden="true" className="pointer-events-none font-body text-meta">
-        {labels.map((l) => (
-          <span
-            key={l.id}
-            style={{
-              ...pct(l.mark.x, l.mark.y),
-              transform: l.side === 'right' ? `translate(${l.offset}px, -50%)` : `translate(calc(-100% - ${l.offset}px), -50%)`,
-            }}
-            className={cn('halo-card absolute whitespace-nowrap', l.first || l.rated ? 'text-primary' : 'text-foreground', (l.pinned || l.rated) && 'font-bold')}
-          >
-            {l.text}
-          </span>
-        ))}
-      </div>
+      <Labels labels={labels} />
+
+      {steps?.map((f, i) => (
+        <div key={i} aria-hidden="true" className="tide-frame pointer-events-none" data-last={lastFrame(i)} style={frameStyle(i)}>
+          {f.marks.map((m) => (
+            <Mark key={m.drink.name} m={m} pins={null} selected={null} hover={null} name={name} listening={false} />
+          ))}
+          <Labels labels={f.labels} />
+        </div>
+      ))}
     </div>
+  );
+}
+
+/** How long each of a told palate's frames holds (`.tide-frame` gives each a sixth of the cycle). */
+const FRAME_SECONDS = 5;
+
+interface MapMark {
+  drink: Drink;
+  x: number;
+  y: number;
+  rank: number | undefined;
+  hedonic: number | undefined;
+}
+
+/** Every drink where it is drawn: at its coordinate, or fanned out where a bar's pins share one. */
+function placeMarks(pins: Pin[] | null, ratings: ReadonlyMap<string, number> | undefined, side: number): MapMark[] {
+  const seen = new Map<string, number>();
+  const pinned = new Map(pins?.map((p) => [p.drink.name, p.rank]) ?? []);
+  return drinkDatabase.map((d) => {
+    const rank = pinned.get(d.name);
+    // Pins sharing a coordinate fan out, so each number can be read: 13px, as a share of the plane.
+    let { x, y } = d;
+    if (rank !== undefined) {
+      const key = `${d.x},${d.y}`;
+      const n = seen.get(key) ?? 0;
+      seen.set(key, n + 1);
+      if (n) {
+        const reach = (13 / side) * 2 * PLANE_EDGE;
+        x += Math.cos(n * 2.1) * reach;
+        y -= Math.sin(n * 2.1) * reach;
+      }
+    }
+    return { drink: d, x, y, rank, hedonic: ratings?.get(d.name) };
+  });
+}
+
+interface LabelView {
+  pins: Pin[] | null;
+  selected: string | null;
+  hover: string | null;
+  named: readonly string[] | undefined;
+  name: (drinkName: string) => string;
+  measure: (text: string) => number;
+  side: number;
+}
+
+type MapLabel = ReturnType<typeof placeMapLabels>[number];
+
+/**
+ * Which drinks are named, by what matters: the open drink, a bar's pins, your
+ * pours, then any drink named only to show what is near, which gives way to
+ * the region names, the axis words and the other drinks' marks.
+ */
+function placeMapLabels(marks: readonly MapMark[], { pins, selected, hover, named, name, measure, side }: LabelView) {
+  const px = (v: number) => ((v + PLANE_EDGE) / (2 * PLANE_EDGE)) * side;
+  const py = (v: number) => ((PLANE_EDGE - v) / (2 * PLANE_EDGE)) * side;
+  const extra = new Set(named ?? []);
+  const wants: LabelWant[] = [];
+  const texts = new Map<string, string>();
+  for (const m of marks) {
+    const isSel = m.drink.name === selected || m.drink.name === hover;
+    if (pins && m.rank === undefined && !isSel) continue;
+    const text = m.hedonic !== undefined && !pins ? explore.ratedMark(name(m.drink.name), m.hedonic) : name(m.drink.name);
+    const priority = isSel
+      ? 1000
+      : m.rank !== undefined
+        ? 500 - m.rank
+        : m.hedonic !== undefined
+          ? 100 + m.hedonic
+          : extra.has(m.drink.name)
+            ? 50
+            : 0;
+    if (priority <= 0) continue;
+    texts.set(m.drink.name, text);
+    wants.push({
+      id: m.drink.name,
+      x: px(m.x),
+      y: py(m.y),
+      width: measure(text),
+      height: 16,
+      offset: m.rank !== undefined ? 14 : 8,
+      priority,
+      yields: priority < 100,
+    });
+  }
+  const names = quadrants.map((q) => {
+    const s = REGION_AT[q.id];
+    const cx = px(s.x * 5.6);
+    const cy = py(s.y * 9.2);
+    const half = (q.name.length * 11) / 2;
+    return { x0: cx - half, y0: cy - 15, x1: cx + half, y1: cy + 15 };
+  });
+  const words = [
+    { x0: 0, y0: side / 2 - 20, x1: 44, y1: side / 2 },
+    { x0: side - 50, y0: side / 2 - 20, x1: side, y1: side / 2 },
+    { x0: side / 2, y0: 0, x1: side / 2 + 56, y1: 20 },
+    { x0: side / 2, y0: side - 20, x1: side / 2 + 64, y1: side },
+  ];
+  const dots = marks
+    .filter((m) => !pins || m.rank !== undefined)
+    .map((m) => {
+      const r = m.rank !== undefined ? 10 : 4;
+      return { x0: px(m.x) - r, y0: py(m.y) - r, x1: px(m.x) + r, y1: py(m.y) + r };
+    });
+  return placeLabels(wants, { x0: 0, y0: 0, x1: side, y1: side }, [], [...names, ...words, ...dots]).map((p) => {
+    const m = marks.find((k) => k.drink.name === p.id)!;
+    return {
+      ...p,
+      mark: m,
+      offset: m.rank !== undefined ? 14 : 8,
+      text: texts.get(p.id)!,
+      rated: m.hedonic !== undefined && !pins,
+      pinned: m.rank !== undefined,
+      first: m.rank === 1,
+    };
+  });
+}
+
+/** One drink on the map: a ring, your pour of it, or a bar's numbered pin. */
+function Mark({
+  m,
+  pins,
+  selected,
+  hover,
+  name,
+  listening,
+}: {
+  m: MapMark;
+  pins: Pin[] | null;
+  selected: string | null;
+  hover: string | null;
+  name: (drinkName: string) => string;
+  listening: boolean;
+}) {
+  const isSel = m.drink.name === selected;
+  const isHover = m.drink.name === hover;
+  const at = pct(m.x, m.y);
+  if (pins && m.rank === undefined && !isSel) {
+    return <span style={at} className="absolute h-1 w-1 -translate-x-1/2 -translate-y-1/2 rounded-full bg-border" />;
+  }
+  const label = m.hedonic !== undefined ? explore.ratedMark(name(m.drink.name), m.hedonic) : name(m.drink.name);
+  return (
+    <span
+      style={at}
+      role={listening ? 'button' : undefined}
+      aria-label={listening ? label : undefined}
+      aria-pressed={listening ? isSel : undefined}
+      className={cn('absolute -translate-x-1/2 -translate-y-1/2', listening && 'cursor-pointer')}
+    >
+      {m.rank !== undefined ? (
+        <span
+          className={cn(
+            'flex items-center justify-center rounded-full border-2 border-card font-condensed text-label font-bold text-card',
+            isSel || isHover ? 'h-6 w-6' : 'h-5 w-5',
+            m.rank === 1 ? 'bg-primary' : 'bg-foreground'
+          )}
+        >
+          {m.rank}
+        </span>
+      ) : (
+        <span
+          className={cn(
+            'block rounded-full',
+            m.hedonic === undefined
+              ? isSel
+                ? 'h-2.5 w-2.5 bg-foreground'
+                : 'h-1.75 w-1.75 border border-foreground bg-card'
+              : m.hedonic >= LIKED_AT
+                ? 'h-2.5 w-2.5 border-2 border-primary bg-primary'
+                : 'h-2.5 w-2.5 border-2 border-primary bg-card'
+          )}
+        />
+      )}
+      {(isSel || isHover) && (
+        <span
+          className={cn(
+            'absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border border-foreground',
+            m.rank !== undefined ? 'h-9 w-9' : 'h-6 w-6'
+          )}
+        />
+      )}
+    </span>
+  );
+}
+
+function Labels({ labels }: { labels: readonly MapLabel[] }) {
+  return (
+    <div aria-hidden="true" className="pointer-events-none font-body text-meta">
+      {labels.map((l) => (
+        <span
+          key={l.id}
+          style={{
+            ...pct(l.mark.x, l.mark.y),
+            transform: l.side === 'right' ? `translate(${l.offset}px, -50%)` : `translate(calc(-100% - ${l.offset}px), -50%)`,
+          }}
+          className={cn('halo-card absolute whitespace-nowrap', l.first || l.rated ? 'text-primary' : 'text-foreground', (l.pinned || l.rated) && 'font-bold')}
+        >
+          {l.text}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+/** Your terrain: the three washes through their masks, and the contour lines. */
+function GroundLayer({ ground, id, faded }: { ground: Ground; id: string; faded: boolean }) {
+  const masks = useMemo(() => groundMasks(ground.rows), [ground]);
+  const at = -10 - ground.step / 2;
+  const size = 20 + ground.step;
+  return (
+    <g opacity={faded ? 0.4 : 1}>
+      <defs>
+        {(['rise', 'top', 'low'] as const).map((k) => (
+          <mask key={k} id={`${id}-${k}`} maskUnits="userSpaceOnUse" style={{ maskType: 'alpha' }} x={at} y={at} width={size} height={size}>
+            <image href={masks[k]} x={at} y={at} width={size} height={size} preserveAspectRatio="none" />
+          </mask>
+        ))}
+      </defs>
+      <rect x={at} y={at} width={size} height={size} mask={`url(#${id}-rise)`} className="fill-accent" />
+      <rect x={at} y={at} width={size} height={size} mask={`url(#${id}-top)`} className="fill-secondary" />
+      <rect x={at} y={at} width={size} height={size} mask={`url(#${id}-low)`} className="fill-primary" />
+      <Contours ground={ground} />
+    </g>
   );
 }
 

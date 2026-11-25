@@ -11,6 +11,8 @@ interface Props {
   currentPath: string;
   /** The card's accessible name. */
   label: string;
+  /** How much of a phone's first screen the card takes (`MapScreen`'s `rest`). */
+  rest?: 'standard' | 'tall';
 }
 
 /**
@@ -21,12 +23,12 @@ interface Props {
  * Slots: `map` (a `PalateMap`), `head` (a `CardHead`), and the card's body.
  * The site footer is the card's foot.
  */
-const { title, description, image, currentPath, label } = Astro.props;
+const { title, description, image, currentPath, label, rest } = Astro.props;
 const account = await accountFor(Astro.request, Astro.isPrerendered);
 ---
 
 <AppShell title={title} description={description} image={image} currentPath={currentPath} map>
-  <MapScreen mode="static" label={label}>
+  <MapScreen mode="static" label={label} rest={rest}>
     <Fragment slot="map"><slot name="map" /></Fragment>
     <Fragment slot="head"><slot name="head" /></Fragment>
     <slot />
