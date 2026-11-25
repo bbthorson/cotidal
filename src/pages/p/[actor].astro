@@ -164,25 +164,19 @@ const ctaClass =
             { label: publicMap.lands, value: region.name, href: regionPath(region.id) },
           ]}
         />
+        <p class="mt-3 text-meta text-muted-foreground">
+          {result.palate.pours ? publicMap.pours(result.palate.pours) : publicMap.quizOnly}
+        </p>
       </CardTitle>
 
-      <dl class="grid grid-cols-2 gap-x-6 gap-y-1 border-y border-border py-3 text-meta">
-        <dt class="label-caps text-muted-foreground">{isSelf ? publicMap.you : publicMap.them}</dt>
-        <dd class="text-right font-condensed tabular-nums text-foreground">
-          {formatCoordinate(subject.x, subject.y)}
-        </dd>
-        <dd class="col-span-2 pb-1 text-muted-foreground">
-          {result.palate.pours ? publicMap.pours(result.palate.pours) : publicMap.quizOnly}
-        </dd>
-        {viewer && (
-          <>
-            <dt class="label-caps text-muted-foreground">{publicMap.you}</dt>
-            <dd class="text-right font-condensed tabular-nums text-foreground">
-              {formatCoordinate(viewer.x, viewer.y)}
-            </dd>
-          </>
-        )}
-      </dl>
+      {viewer && (
+        <dl class="grid grid-cols-2 gap-x-6 gap-y-1 border-y border-border py-3 text-meta">
+          <dt class="label-caps text-muted-foreground">{publicMap.you}</dt>
+          <dd class="text-right font-condensed tabular-nums text-foreground">
+            {formatCoordinate(viewer.x, viewer.y)}
+          </dd>
+        </dl>
+      )}
 
       {overlap && (
         <section class="space-y-6" data-testid="overlap">

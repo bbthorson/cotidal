@@ -2,7 +2,7 @@
 import Base from './Base.astro';
 import SiteHeader from '../components/marketing/SiteHeader.astro';
 import SiteFooter from '../components/marketing/SiteFooter.astro';
-import { accountFor } from '../lib/atproto/session';
+import { accountFor, type Account } from '../lib/atproto/session';
 import { a11y } from '../lib/copy';
 
 interface Props {
@@ -20,13 +20,6 @@ interface Props {
    */
   app?: boolean;
   /**
-   * The header and the content fill the first screen exactly (100dvh, the
-   * viewport less a phone browser's own bars), and the footer starts below
-   * it. The front door uses it so its one action sits at the foot of the
-   * first screen; the content lays itself out in the space with flex.
-   */
-  fill?: boolean;
-  /**
    * A map page with no script (`MapPage.astro`): the header, then the map and
    * its card. On a phone the page scrolls, and the card scrolls up over the
    * map; from `lg` it fills the window like the app, and the card scrolls.
@@ -35,12 +28,14 @@ interface Props {
   map?: boolean;
   /** The search in the header: the map's alone (`app` pages only). */
   search?: boolean;
+  /** Pass when the caller already resolved `accountFor`, so SSR pages read the session once. */
+  account?: Account;
 }
 
-const { title, description, image, currentPath, backLink, width = 'standard', app = false, fill = false, map = false, search = false } = Astro.props;
+const { title, description, image, currentPath, backLink, width = 'standard', app = false, map = false, search = false } = Astro.props;
 
 // Read here once, so every route's header tells the truth about who is signed in.
-const account = await accountFor(Astro.request, Astro.isPrerendered);
+const account = Astro.props.account ?? (await accountFor(Astro.request, Astro.isPrerendered));
 
 /**
  * The header and footer sit in one fixed band on every route; `width` sizes
@@ -76,12 +71,12 @@ const widthClass = {
       </div>
     </div>
   ) : (
-  <div class:list={['bar-texture min-h-dvh bg-background text-foreground', fill && 'flex flex-col']}>
-    <div data-site-chrome class:list={['mx-auto w-full max-w-5xl px-6', fill ? 'pt-4 md:pt-8' : 'pt-5 md:pt-14']}>
+  <div class="bar-texture min-h-dvh bg-background text-foreground">
+    <div data-site-chrome class="mx-auto w-full max-w-5xl px-6 pt-5 md:pt-14">
       <SiteHeader currentPath={currentPath} account={account} />
     </div>
 
-    <div class:list={['mx-auto w-full px-6', widthClass, fill && 'flex flex-1 flex-col']}>
+    <div class:list={['mx-auto w-full px-6', widthClass]}>
       {backLink && (
         <nav aria-label={a11y.breadcrumb} class="pt-6">
           <a
@@ -95,14 +90,8 @@ const widthClass = {
       <slot />
     </div>
 
-    <div
-      data-site-chrome
-      class:list={[
-        'mx-auto w-full max-w-5xl px-6',
-        fill ? 'pt-3 pb-4 md:pt-4 md:pb-6' : 'pt-16 pb-10 md:pb-14',
-      ]}
-    >
-      <SiteFooter currentPath={currentPath} compact={fill} account={account} />
+    <div data-site-chrome class="mx-auto w-full max-w-5xl px-6 pb-10 pt-16 md:pb-14">
+      <SiteFooter currentPath={currentPath} account={account} />
     </div>
   </div>
   )}

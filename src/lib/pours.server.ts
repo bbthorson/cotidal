@@ -3,7 +3,7 @@ import type { UserProfile } from '@/hooks/useDiscoveryQuiz';
 import type { LogDrinkOptions } from '@/lib/api-client';
 import type { Drink } from '@/lib/data';
 import { matchDrink } from '@/lib/drink-match';
-import { catalogSlug, type Register } from '@/lib/register';
+import { catalogSlug } from '@/lib/register';
 import { derivePalateRecord } from '@/lib/sensory';
 import {
   PourWriteSchema,
@@ -74,7 +74,6 @@ function venueRef(venueName: string, venue: LogDrinkOptions['venue']) {
  */
 export function buildPour(
   options: Partial<LogDrinkOptions> | undefined,
-  register: Register,
   now: Date = new Date()
 ): BuildResult {
   if (!options || typeof options !== 'object') return { ok: false, error: apiErrors.invalidRequest };
@@ -221,9 +220,9 @@ export type LogPourResult =
 export async function logPour(
   store: PourStore,
   options: Partial<LogDrinkOptions> | undefined,
-  context: { register: Register; appUrl: string }
+  context: { appUrl: string }
 ): Promise<LogPourResult> {
-  const built = buildPour(options, context.register);
+  const built = buildPour(options);
   if (!built.ok) return { ok: false, status: 400, error: built.error };
   const { pour } = built;
 

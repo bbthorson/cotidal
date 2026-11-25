@@ -32,9 +32,9 @@ export function MapScreen({
 }: {
   mode: 'live' | 'static';
   /**
-   * How much of a phone's first screen the card takes at rest, on a static
-   * page: `tall` leaves room for the front door's lede and its one action
-   * on the smallest phones, and shrinks the map to make it.
+   * How much of a phone's first screen the card takes at rest: `tall` leaves
+   * room for the front door's lede and action or a question and its plates on
+   * the smallest phones, shrinking the map to make it.
    */
   rest?: 'standard' | 'tall';
   /** The map (`PalateMap`). Optional only to the type checker: an Astro page passes it as a named slot. */
@@ -61,7 +61,7 @@ export function MapScreen({
         data-up={up || undefined}
         className={cn(
           'map-card z-20 flex flex-col border-t border-foreground lg:border lg:shadow-mcm',
-          tone === 'reveal' ? 'bg-reveal text-reveal-foreground' : 'bg-card text-foreground'
+          tone === 'reveal' ? 'bg-reveal text-reveal-foreground' : 'bg-background text-foreground'
         )}
       >
         {head}

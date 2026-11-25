@@ -29,6 +29,6 @@ export const ALL: APIRoute = async ({ request, locals, url }) => {
       register,
       origin: url.origin,
     },
-    (did) => memberTools(did, url.origin, register)
+    (did) => memberTools(did, url.origin)
   );
 };

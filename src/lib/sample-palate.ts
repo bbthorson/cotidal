@@ -35,12 +35,17 @@ export interface SampleFrame {
   ratings: Map<string, number>;
 }
 
+const frameCache = new Map<number, SampleFrame[]>();
+
 /**
  * Every frame, sampled every `step` points. A coarse step keeps the page
  * light (the browser smooths the shading as it scales it); the contours are
- * drawn from the same samples.
+ * drawn from the same samples. Cached per step so SSR requests to `/` do not
+ * recompute the same six terrains on every visit.
  */
 export function sampleFrames(step = 1): SampleFrame[] {
+  const cached = frameCache.get(step);
+  if (cached) return cached;
   const frames: SampleFrame[] = [];
   for (let k = 0; k <= SAMPLE_POURS.length; k++) {
     const pours: TerrainPour[] = SAMPLE_POURS.slice(0, k).map((p) => ({ drink: { name: p.drink }, rating: { hedonic: p.rating } }));
@@ -49,5 +54,6 @@ export function sampleFrames(step = 1): SampleFrame[] {
       ratings: new Map(SAMPLE_POURS.slice(0, k).map((p) => [p.drink, p.rating])),
     });
   }
+  frameCache.set(step, frames);
   return frames;
 }

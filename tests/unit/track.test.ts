@@ -62,7 +62,7 @@ describe('a member: the server path', () => {
   const records: PourRecord[] = [];
   const positions = [{ x: palate.mapCoordinates.x, y: palate.mapCoordinates.y }];
   pours.forEach((e, i) => {
-    const built = buildPour(toLogOptions(e), {}, timeOf(i));
+    const built = buildPour(toLogOptions(e), timeOf(i));
     if (!built.ok) throw new Error(built.error);
     palate = decodePalate(encodePalate(palateAfterPour(palate, built.pour, timeOf(i))))!;
     records.push(built.pour.record);

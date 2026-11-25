@@ -25,7 +25,7 @@ const canSignIn = account.kind === 'guest' && account.canSignIn;
 const frames = sampleFrames();
 ---
 
-<MapPage title={`${site.name} — ${hero.headline} ${hero.headlineAccent}`} currentPath="/" label={site.name} rest="tall">
+<MapPage title={`${site.name} — ${hero.headline} ${hero.headlineAccent}`} currentPath="/" label={site.name} rest="tall" account={account}>
   <PalateMap slot="map" label={explore.chartLabel} frames={frames} />
 
   <CardHead slot="head">
@@ -46,7 +46,7 @@ const frames = sampleFrames();
 
   <section class="mt-12">
     <h2 class="section-title">{hero.howTitle}</h2>
-    <div class="space-y-5">
+    <div class="mt-4 space-y-5">
       {
         howItWorks.sections.map((s) => (
           <div>
@@ -63,7 +63,7 @@ const frames = sampleFrames();
     canSignIn && (
       <section class="mt-12">
         <h2 class="section-title">{hero.signInTitle}</h2>
-        <p class="text-meta leading-relaxed text-muted-foreground">{hero.signInBody}</p>
+        <p class="mt-4 text-meta leading-relaxed text-muted-foreground">{hero.signInBody}</p>
         <a href={signIn.href} class="link-caps mt-4 inline-block text-secondary">{nav.signIn} &rarr;</a>
       </section>
     )

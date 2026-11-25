@@ -9,7 +9,6 @@ import {
 import { ElicitationWriteSchema } from '@/lib/atproto/records';
 import type { UserProfile } from '@/hooks/useDiscoveryQuiz';
 import { z } from 'zod';
-import { loadRegister } from '@/lib/register.server';
 import type { LogDrinkOptions } from '@/lib/api-client';
 import { oauthSession } from '@/lib/atproto/session';
 import { logPour, sessionStore } from '@/lib/pours.server';
@@ -113,7 +112,6 @@ export const POST: APIRoute = async ({ request }) => {
     // Request body: every field is unvalidated, hence Partial; `logPour`
     // checks it before anything is written (src/lib/pours.server.ts).
     const result = await logPour(sessionStore(session), body.options as Partial<LogDrinkOptions> | undefined, {
-      register: await loadRegister(),
       appUrl,
     });
     if (!result.ok) return fail(result.error, result.status);

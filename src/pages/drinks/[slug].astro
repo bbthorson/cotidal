@@ -43,7 +43,7 @@ const quadrant = drink ? quadrantFor(drink.x, drink.y) : null;
 
 /** The drinks nearest it, named on the map and listed under the entry, linked where they have entries of their own. */
 const entries = await getCollection('drinks');
-const slugOf = new Map(entries.map((e) => [e.data.name, e.id]));
+const entryByName = new Map(entries.map((e) => [e.data.name, { slug: e.id, title: e.data.title }]));
 const neighbours = drink ? neighboursOf(drink, drinkDatabase, 5) : [];
 
 /** Structured data for search and answer engines (SEO / AEO). */
@@ -164,12 +164,12 @@ const recipeJsonLd = {
           <h2 class="section-title">{copy.nearLabel}</h2>
           <ul class="border-b border-border">
             {neighbours.map((n) => {
-              const slug = slugOf.get(n.name);
+              const neighbour = entryByName.get(n.name);
               return (
                 <li class="menu-row dot-leader py-2.5 first:border-t-0">
-                  {slug ? (
-                    <a href={`${drinksHref}/${slug}`} class="font-serif text-ui text-foreground hover:underline hover:underline-offset-4">
-                      {n.name}
+                  {neighbour ? (
+                    <a href={`${drinksHref}/${neighbour.slug}`} class="font-serif text-ui text-foreground hover:underline hover:underline-offset-4">
+                      {neighbour.title}
                     </a>
                   ) : (
                     <span class="font-serif text-ui text-foreground">{n.name}</span>

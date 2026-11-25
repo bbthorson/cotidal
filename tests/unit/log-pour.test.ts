@@ -14,8 +14,7 @@ import { apiErrors, pour as pourCopy } from '../../src/lib/copy';
  * refused without a PDS.
  */
 
-const register = { 'Daiquiri (Classic)': { slug: 'daiquiri', title: 'Daiquiri', build: 'Rum · Lime · Sugar' } };
-const context = { register, appUrl: 'https://cotidal.example' };
+const context = { appUrl: 'https://cotidal.example' };
 
 const palate = (x: number, y: number): Palate => ({
   $type: 'app.cotidal.palate',
@@ -59,15 +58,15 @@ function fakeStore(prior: Palate | null, fail: Partial<Record<keyof PourStore, b
 }
 
 test('Log pour: a request without a drink, or one that does not fit its lexicon, is refused', () => {
-  expect(buildPour(undefined, register)).toEqual({ ok: false, error: apiErrors.invalidRequest });
-  expect(buildPour({ rating: 8 }, register)).toEqual({ ok: false, error: pourCopy.needDrink });
-  expect(buildPour({ drinkName: '   ' }, register)).toEqual({ ok: false, error: pourCopy.needDrink });
+  expect(buildPour(undefined)).toEqual({ ok: false, error: apiErrors.invalidRequest });
+  expect(buildPour({ rating: 8 })).toEqual({ ok: false, error: pourCopy.needDrink });
+  expect(buildPour({ drinkName: '   ' })).toEqual({ ok: false, error: pourCopy.needDrink });
   const badSpirit = { drinkName: 'Negroni', baseSpirit: 'kerosene' } as unknown as Partial<LogDrinkOptions>;
-  expect(buildPour(badSpirit, register)).toEqual({ ok: false, error: apiErrors.invalidPour });
+  expect(buildPour(badSpirit)).toEqual({ ok: false, error: apiErrors.invalidPour });
 });
 
 test('Log pour: what was not said is absent from the record', () => {
-  const built = buildPour({ drinkName: 'Negroni', rating: 8, isHomePour: true }, register);
+  const built = buildPour({ drinkName: 'Negroni', rating: 8, isHomePour: true });
   expect(built.ok).toBe(true);
   if (!built.ok) return;
   const { record } = built.pour;
@@ -81,7 +80,7 @@ test('Log pour: what was not said is absent from the record', () => {
 
 test('Log pour: the rating maps onto the 9-point hedonic, and the drink onto its entry', () => {
   const at = (rating: number) => {
-    const built = buildPour({ drinkName: 'daiquiri (classic)', rating }, register);
+    const built = buildPour({ drinkName: 'daiquiri (classic)', rating });
     if (!built.ok) throw new Error(built.error);
     return built.pour;
   };
@@ -143,7 +142,7 @@ test('Log pour: a repository that fails is a 500, and a failed palate write logs
 });
 
 test('Log pour: a drink not on the map is logged, but cannot move the coordinate', () => {
-  const built = buildPour({ drinkName: 'Grandma’s Punch', rating: 9 }, register);
+  const built = buildPour({ drinkName: 'Grandma’s Punch', rating: 9 });
   expect(built.ok).toBe(true);
   if (!built.ok) return;
   expect(built.pour.drink).toBeUndefined();
@@ -155,7 +154,7 @@ test('Log pour: a drink not on the map is logged, but cannot move the coordinate
 });
 
 const postFor = (options: Partial<LogDrinkOptions>) => {
-  const built = buildPour({ drinkName: 'Negroni', ...options }, register);
+  const built = buildPour({ drinkName: 'Negroni', ...options });
   if (!built.ok) throw new Error(built.error);
   return pourPostText(built.pour);
 };

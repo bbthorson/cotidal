@@ -55,6 +55,9 @@ are the layout of the whole site, not only of `/map`.
    The front door is the map with a sample palate gaining ratings, and the
    card holds the lede and Find your coordinate; pulled up, how it works and
    sign in. The questions run in the card, the shoal narrowing on the big map.
+   The card/drawer sits on the warm paper ground (`bg-background`, matching
+   the header/app bar), while the map plane and controls inside the card use
+   the brighter `--card` stock.
 2. **The map is drawn by the server.** One component (`PalateMap.tsx`)
    draws `/map` and the pages with no script, so a reading page ships no
    JavaScript for it and `/map` paints before its island hydrates.

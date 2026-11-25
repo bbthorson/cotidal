@@ -6,7 +6,7 @@ import { test, expect } from '@playwright/test';
  * paper; see docs/brand.md for why.
  */
 
-test('Visual Identity: the ground is warm paper, not obsidian', async ({ page }) => {
+test('Visual Identity: the ground and map drawer are warm paper, not obsidian', async ({ page }) => {
   await page.goto('/');
 
   const body = page.locator('body');
@@ -14,6 +14,8 @@ test('Visual Identity: the ground is warm paper, not obsidian', async ({ page })
   await expect(body).toHaveCSS('background-color', 'rgb(244, 241, 230)');
   // --foreground: 148 20% 17% — forest ink, not black
   await expect(body).toHaveCSS('color', 'rgb(35, 52, 43)');
+  // The drawer matches the tan ground of the app bar.
+  await expect(page.locator('.map-card')).toHaveCSS('background-color', 'rgb(244, 241, 230)');
 });
 
 test('Visual Identity: the headline accent is a different ink from the body', async ({ page }) => {

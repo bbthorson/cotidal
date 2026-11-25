@@ -152,7 +152,14 @@ units, with the marks and labels laid over it in percentages), so the server
 draws it whole and `/map` paints before its script arrives; the screen's
 geometry is CSS. Every page that shows the map uses one layout,
 `MapScreen.tsx` (`live` on `/map`, `static` on a page with no script), and
-an Astro page renders it with no directive rather than keeping its own copy. The card holds
+an Astro page renders it with no directive rather than keeping its own copy.
+The drawer (`.map-card`) uses `bg-background` (matching the header/app bar,
+asserted by `tests/visual-identity.spec.ts`) so `bg-card` controls inside it
+lift off the paper ground; only the reveal (`Reveal.tsx`, `Moved.tsx`) switches
+it to `bg-reveal`. SSR pages that already resolved `accountFor` pass `account`
+into `MapPage` / `AppShell` so each request reads the session once, and
+`sampleFrames()` (`sample-palate.ts`) is cached per step so `/` does not
+recompute six terrains on every request. The card holds
 where to next (your menu, your bars, bars near you, your pours, your track),
 a drink, a bar's menu, or rating a pour; on a phone it rests under the map
 and is pulled up over it by its head, and from `lg` it is a panel down the

@@ -20,7 +20,7 @@ import { takeParam } from '@/lib/url-params';
  * settles there and the card turns to the reveal. Finishing hands over to
  * the map.
  *
- * Someone who already has a coordinate is sent straight on to Compass — the
+ * Someone who already has a coordinate is sent straight on to the map — the
  * landing page's "Find your coordinate" is the same link for everyone — unless
  * they came to start over (`?startover=1`, from Settings, or the foot of Your map for a guest), which clears
  * this device's copy first. The coordinate on a member's account is replaced

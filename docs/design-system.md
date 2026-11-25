@@ -9,7 +9,7 @@ This document specifies the design system of **Cotidal** and details the technic
 The visual voice is an empirical, printed specimen catalog rather than a dim speakeasy:
 - **Paper Ground**: Everything is ink on warm stock, not a glowing obsidian screen.
 - **Restraint Over Ornamentation**: 1px hairline rules, generous whitespace, square edges, and dot leaders.
-- **One Large Move Per Screen**: On `/`, it is the cotidal chart, `ChartFigure`. On `/drinks`, it is the title plate.
+- **One Large Move Per Screen**: On `/`, `/drinks`, and every map page, it is the map itself (`PalateMap`). On reading pages, it is the title plate (`PageTitle`).
 - **Zero Client JavaScript on Reading Routes**: The homepage (`/`) and register (`/drinks`, `/drinks/[slug]`) are pure static Astro.
 
 ---
@@ -21,8 +21,8 @@ All colors, typography, elevations, and layout metrics are defined centrally in 
 ### Palette (HSL)
 | Token | HSL Value | Hex Equivalent | Role |
 |---|---|---|---|
-| `--background` | `47 39% 93%` | `#F4F1E6` | Warm paper ground stock |
-| `--card` | `45 50% 97%` | `#FAF8F2` | Brighter specimen sheet |
+| `--background` | `47 39% 93%` | `#F4F1E6` | Warm paper ground stock (page ground, header/app bar, map drawer `.map-card`, `SignInSheet`) |
+| `--card` | `45 50% 97%` | `#FAF8F2` | Brighter specimen sheet (the map plane, text fields, segmented controls, option plates, `TrackFigure`) |
 | `--foreground` | `148 20% 17%` | `#23342B` | Deep forest ink (body text, dark rules) |
 | `--primary` | `8 55% 40%` | `#9E3E2F` | Terracotta (accent marks, focus, highlights) |
 | `--secondary` | `140 22% 24%` | `#30493B` | Forest green (buttons, badges, active tabs) |
@@ -161,11 +161,15 @@ picks one rather than laying itself out:
   no script). Any page that is about a place on the map, or explains it: the
   front door, the drinks and the region filters, a drink, someone's public
   map, how it works, sign-in, and the two app screens, `/map` and
-  `/questions`. The card opens with `CardHead` (a caps line saying what the
-  card holds, and at most one control) and, on a static page, `CardTitle`
-  (the title and its lede at the card's size); its foot is the site footer.
-  The map says what it draws in its accessible name: "your map" on `/map`,
-  the map itself (`explore.chartLabel`) where it draws nobody's.
+  `/questions`. The card/drawer (`.map-card`) sits on `bg-background` to
+  match the warm tan paper ground of the header/app bar (except on the reveal
+  ground, `bg-reveal`), so inputs, option plates and figures (`bg-card`) lift
+  cleanly off it; `tests/visual-identity.spec.ts` asserts this. The card opens
+  with `CardHead` (a caps line saying what the card holds, and at most one
+  control) and, on a static page, `CardTitle` (the title and its lede at the
+  card's size); its foot is the site footer. The map says what it draws in its
+  accessible name: "your map" on `/map`, the map itself (`explore.chartLabel`)
+  where it draws nobody's.
 - **A reading column** (`AppShell` with a `width`, opening with
   `PageTitle`): pages that are forms or records rather than places — Settings,
   For bars, Chat assistants, a bar's own page, the coasters.
@@ -276,6 +280,6 @@ To guarantee the design system never drifts, automated enforcement is active at 
 - `tsc --noEmit`: Validates TypeScript types across the entire project.
 
 ### 4. Tests (`npm test`: Vitest in `tests/unit/`, Playwright in `tests/`)
-- `tests/landing-static.spec.ts`: Asserts zero client scripts or hydration islands on `/` and `/sign-in`, a front door that asks one thing and fills the first screen exactly (header and content are `100dvh`, AppShell's `fill`, with the action at its foot), and the non-JS sign-in form.
-- `tests/visual-identity.spec.ts`: Asserts computed CSS colors match the exact token values for paper ground (`rgb(244, 241, 230)`) and forest ink (`rgb(35, 52, 43)`).
+- `tests/landing-static.spec.ts`: Asserts zero client scripts or hydration islands on `/` and `/sign-in`, a front door that asks one thing and shows the map and action on the first screen (`MapPage`), and the non-JS sign-in form.
+- `tests/visual-identity.spec.ts`: Asserts computed CSS colors match the exact token values for paper ground (`rgb(244, 241, 230)`), map drawer (`rgb(244, 241, 230)`), and forest ink (`rgb(35, 52, 43)`).
 - `tests/unit/drink-content.test.ts`: Asserts all drink entries join cleanly to the coordinate database and contain primary sources.

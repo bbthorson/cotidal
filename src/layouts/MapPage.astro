@@ -2,7 +2,7 @@
 import AppShell from './AppShell.astro';
 import SiteFooter from '../components/marketing/SiteFooter.astro';
 import { MapScreen } from '../components/app/MapScreen';
-import { accountFor } from '../lib/atproto/session';
+import { accountFor, type Account } from '../lib/atproto/session';
 
 interface Props {
   title?: string;
@@ -13,6 +13,8 @@ interface Props {
   label: string;
   /** How much of a phone's first screen the card takes (`MapScreen`'s `rest`). */
   rest?: 'standard' | 'tall';
+  /** Pass when the caller already resolved `accountFor`, so SSR pages read the session once. */
+  account?: Account;
 }
 
 /**
@@ -24,10 +26,10 @@ interface Props {
  * The site footer is the card's foot.
  */
 const { title, description, image, currentPath, label, rest } = Astro.props;
-const account = await accountFor(Astro.request, Astro.isPrerendered);
+const account = Astro.props.account ?? (await accountFor(Astro.request, Astro.isPrerendered));
 ---
 
-<AppShell title={title} description={description} image={image} currentPath={currentPath} map>
+<AppShell title={title} description={description} image={image} currentPath={currentPath} account={account} map>
   <MapScreen mode="static" label={label} rest={rest}>
     <Fragment slot="map"><slot name="map" /></Fragment>
     <Fragment slot="head"><slot name="head" /></Fragment>

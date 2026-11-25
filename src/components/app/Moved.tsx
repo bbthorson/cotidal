@@ -65,7 +65,7 @@ export function Moved({
   }
 
   return (
-    <div className="flex min-h-dvh flex-col bg-reveal px-6 pb-8 pt-14 text-reveal-foreground sm:min-h-0 sm:pt-12">
+    <div className="flex flex-col pb-2 pt-6">
       <div className="flex flex-col gap-2.5">
         <span className="font-condensed text-label font-semibold uppercase tracking-label text-reveal-muted">
           {moved.eyebrow} · {displayName(drink?.name ?? drinkName)} · {scoreLabel}
