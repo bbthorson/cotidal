@@ -16,7 +16,7 @@ const COMPASS = '/compass';
  *
  * Someone who already has a coordinate is sent straight on to Compass — the
  * landing page's "Find your coordinate" is the same link for everyone — unless
- * they came to start over (`?startover=1`, from Log's account), which clears
+ * they came to start over (`?startover=1`, from Settings, or the foot of Your map for a guest), which clears
  * this device's copy first. The coordinate on a member's account is replaced
  * when the new one is published (`useDiscoveryQuiz`), not before: leaving
  * partway changes nothing there.

@@ -11,7 +11,7 @@ is about the code.
 follow: a server-read follows list and a plain GET form). `/sign-in` renders a plain form post that works
 with JavaScript off and progressively enhances it via `<bsky-sign-in>` (zero
 React). `/` asks one thing — find your coordinate — and keeps nothing else:
-sign-in is its own page. The app pages (`/compass`, `/log`, `/questions`)
+sign-in is its own page. The app pages (`/compass`, `/map`, `/questions`)
 mount React islands.
 
 The whole app was previously one `client:only` island, so nothing painted
@@ -22,24 +22,24 @@ landing page included. Astro was being used as a slower Next.js.
   something genuinely needs to be interactive, and scope it tightly.
 - Prefer `client:load` over `client:only` so the shell server-renders.
 - The header is the same on every page: wordmark · Menu on a phone (Compass,
-  Log, the reading pages, then the account), the tabs and the account control
+  Your map, the reading pages, then the account), the tabs and the account control
   from `lg`. The account control is server truth: `@handle` (opening
   `/settings`) for a member, Sign in for a guest, a neutral Account on a
   prerendered page that cannot know. Signing out is on `/settings` alone,
-  never in the header; `/log` carries no account strip (a guest's Start over
+  never in the header; `/map` carries no account strip (a guest's Start over
   sits at its foot, since a guest has no Settings).
   Signing out lands on `/compass?signed_out=1`,
   where `AtprotoProvider` — every island mounts it — clears the device's
   copy of the palate while leaving remembered account cards for one-tap return.
-- Rating a pour is a sheet over Compass or Log, never a page (`RateSheet.tsx`,
+- Rating a pour is a sheet over Compass or Your map, never a page (`RateSheet.tsx`,
   `useRateSheet`; the contract is `docs/design-system.md` § Rating a pour):
   `?rate=<drink>` or `?draft=1&…` opens it on either, handled once, and a
   screen that can rate gives the sheet its own coordinate and pours so it is
   current the moment the sheet closes. A new trigger calls `open()`; it does
   not navigate.
-- **An app screen is a hook and a drawing.** `useCompass`, `useLog`,
+- **An app screen is a hook and a drawing.** `useCompass`, `useMap`,
   `useRatePour`, `usePourForm` and `useSignIn` (`src/hooks/`) hold a screen's state and
-  what a tap does; `Compass.tsx`, `LogScreen.tsx`, `RateSheet.tsx`,
+  what a tap does; `Compass.tsx`, `MapScreen.tsx`, `RateSheet.tsx`,
   `PourForm.tsx` and `SignInSheet.tsx` only draw it, so a redesign changes the component and
   leaves the hook alone. The rules a screen applies are plain functions in
   `src/lib/` — `drink-search.ts`, `pour-entry.ts`, `pour-history.ts`,
@@ -90,7 +90,7 @@ a string to `copy.ts` before rendering it.
 
 ## Key modules
 
-### Palate map — `src/lib/data.ts`, `src/components/app/Compass.tsx`
+### Palate map — `src/lib/data.ts`, `Compass.tsx`, `MapScreen.tsx`
 2D plane. Users and drinks both carry `x` (Rich −10 → Crisp +10) and `y`
 (Savory −10 → Sweet +10). Euclidean distance gives the raw match; `VibeTag`s
 sort within it — only among drinks in the same 1-point band (`relevanceOf`,
@@ -128,6 +128,11 @@ what they pour, `addMenuLine` matches each line through `matchDrink`,
 `rankMenu` (`src/lib/menu-rank.ts`) orders the placed ones, and "Pick this"
 saves a `DrinkPick` on the device, the waiting pick that `WaitingPick`
 shows and the rating sheet clears. There is no separate harbour page.
+
+Two screens draw the map, split on purpose: Compass's chart (`Chart.tsx`) is
+the drinks, with your dot only as the point they are measured from; Your map
+(`/map`, `YourChart.tsx`) is you — the dot, the shoal, your track and the
+drinks you have poured. Draw your state on Your map, not on Compass.
 
 The dot on the map is not the filter's estimate: `applyPour` moves crisp/sweet
 by a capped, simpler rule and leaves the other three axes to the EKF.
@@ -274,7 +279,7 @@ app at `http://127.0.0.1:9002`, not `localhost`.
 
 **Each member's session restores queue at one Durable Object** (`AUTH_LOCK`,
 the package's `AuthLock`), because a refresh token can be used once: two
-isolates refreshing the same session at once sign the member out, and `/log`
+isolates refreshing the same session at once sign the member out, and `/map`
 restores twice in parallel. The class is exported by `src/worker.ts`, which is
 `main` in `wrangler.toml` and otherwise only re-exports Astro's handler. Off
 Workers the binding is absent and the package locks within the process.
@@ -305,11 +310,11 @@ search drinks. Stateless and read-only; the tools are plain functions over
 `readPublicPalate` and `overlap.ts`, so they give the answers `/p/<handle>`
 gives. Their descriptions are interface copy and live in `copy.ts`.
 A pour is logged from a chat by drafting, not writing: `draft_pour` returns a
-`/log?draft=1` link (`src/lib/pour-draft.ts`) that opens the rating sheet
+`/map?draft=1` link (`src/lib/pour-draft.ts`) that opens the rating sheet
 filled in, with no rating, and the member taps one and logs it (`docs/mcp.md`).
 How to connect an assistant is one component, `AssistantSteps` (React,
 server-rendered with no script at `/mcp`): under your account at the foot of
-`/log` (`#assistant`), with your handle in the example, and at
+`/map` (`#assistant`), with your handle in the example, and at
 `/mcp` for a browser (the same page answers an MCP client with the tools).
 
 **No floats in records.** The AT Protocol data model has none, and
@@ -361,7 +366,7 @@ The browser loads `vocab.ts` (names and vocabularies) and
 server needs (`@atproto/lex-data`, for CIDs) are registered there. Writes go through the schema: a pour is
 validated (`PourWriteSchema`) before the palate or the pour is written —
 by `logPour` in `src/lib/pours.server.ts`, the one pipeline every caller
-uses (`tests/unit/log-pour.test.ts` holds the order of writes) — and
+uses (`tests/unit/map-pour.test.ts` holds the order of writes) — and
 reads are parsed (`readPour`) rather than cast. Vocabularies the app writes
 (`DEVIATIONS`, `CATA`) are stable ids declared as `knownValues`; the words
 shown for them live in `copy.ts`.

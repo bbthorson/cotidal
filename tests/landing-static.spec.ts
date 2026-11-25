@@ -185,7 +185,7 @@ test('Header: on a phone the destinations fold under "Menu", without JavaScript'
   await expect(page.locator('header').getByRole('link', { name: nav_.signIn, exact: true })).toBeHidden();
   await page.locator('header summary').click();
   await expect(nav).toBeVisible();
-  await expect(nav.getByRole('link', { name: nav_.log, exact: true })).toBeVisible();
+  await expect(nav.getByRole('link', { name: nav_.map, exact: true })).toBeVisible();
   await expect(nav.getByRole('link', { name: nav_.signIn, exact: true })).toHaveAttribute('href', '/sign-in');
   await context.close();
 });

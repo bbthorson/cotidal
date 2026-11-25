@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { quadrantFor } from '@/lib/quadrant';
-import { logPage } from '@/lib/copy';
+import { mapPage } from '@/lib/copy';
 import { titleOf, type Register } from '@/lib/register';
 import { logTotals } from '@/lib/pour-history';
 import { distanceRun } from '@/lib/track';
@@ -10,11 +10,11 @@ import { useRateSheet } from '@/hooks/useRateSheet';
 import { useTrack } from '@/hooks/useTrack';
 
 /**
- * Everything Log knows and can do, so `LogScreen.tsx` only draws it: your
+ * Everything Your map knows and can do, so `MapScreen.tsx` only draws it: your
  * coordinate and region, your track, what your pours add up to, and the
  * rating sheet.
  */
-export function useLog(register: Register, member: { did: string; handle: string | null } | null) {
+export function useMap(register: Register, member: { did: string; handle: string | null } | null) {
   const isMember = !!member;
   const [profile, setProfile] = useProfile(isMember);
   const { pours, reload } = usePours(isMember);
@@ -31,13 +31,13 @@ export function useLog(register: Register, member: { did: string; handle: string
   // No figures before the first pour: "Pours 0 · Bars 0" only repeated the
   // log's own empty line under it.
   const stats = totals.pours === 0 ? [] : [
-    { label: logPage.stats.pours, value: String(totals.pours) },
-    { label: logPage.stats.bars, value: String(totals.bars) },
-    ...(track && track.length > 1 ? [{ label: logPage.stats.moved, value: String(distanceRun(track)) }] : []),
+    { label: mapPage.stats.pours, value: String(totals.pours) },
+    { label: mapPage.stats.bars, value: String(totals.bars) },
+    ...(track && track.length > 1 ? [{ label: mapPage.stats.moved, value: String(distanceRun(track)) }] : []),
     ...(totals.first
       ? [
           {
-            label: logPage.stats.since,
+            label: mapPage.stats.since,
             value: new Date(totals.first.createdAt).toLocaleDateString(undefined, { month: 'short', year: 'numeric' }),
           },
         ]
@@ -48,9 +48,9 @@ export function useLog(register: Register, member: { did: string; handle: string
   const tolerances =
     t && t.eventCount >= 3
       ? [
-          { label: logPage.tolerances.bitter, value: t.bitter.toFixed(1) },
-          { label: logPage.tolerances.tannin, value: t.tannin.toFixed(1) },
-          { label: logPage.tolerances.complexity, value: t.complexity.toFixed(1) },
+          { label: mapPage.tolerances.bitter, value: t.bitter.toFixed(1) },
+          { label: mapPage.tolerances.tannin, value: t.tannin.toFixed(1) },
+          { label: mapPage.tolerances.complexity, value: t.complexity.toFixed(1) },
         ]
       : null;
 
@@ -69,7 +69,7 @@ export function useLog(register: Register, member: { did: string; handle: string
     region: quadrantFor(x, y),
     /** Your track when it adds up (`useTrack`), and what it starts from. */
     track,
-    startLabel: fromQuiz ? logPage.started : logPage.startedCentre,
+    startLabel: fromQuiz ? mapPage.started : mapPage.startedCentre,
     stats,
     tolerances,
   };

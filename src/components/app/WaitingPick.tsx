@@ -4,7 +4,7 @@ import { clearPick, loadPick, type DrinkPick } from '@/lib/device-store';
 import { cleanDraft, type PourDraft } from '@/lib/pour-draft';
 
 /**
- * A drink picked on Compass, waiting to be rated: on Compass and Log
+ * A drink picked on Compass, waiting to be rated: on Compass and Your map
  * alike, until it is rated (the rating sheet clears it) or set aside. It is on the
  * device, so it is read after mount.
  *

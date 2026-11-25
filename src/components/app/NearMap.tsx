@@ -20,7 +20,7 @@ const token = (name: string) => `hsl(${getComputedStyle(document.documentElement
 /**
  * The street map on Compass: you, and the bars OpenStreetMap knows around
  * you. Its tiles are washed toward paper (`.map-paper` in globals.css) so it
- * reads as quieter than the taste chart on Log — two maps in one app should
+ * reads as quieter than the taste chart on Your map — two maps in one app should
  * not look alike. Bars you have poured at are marked in terracotta, the
  * colour for what is yours.
  *

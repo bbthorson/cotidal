@@ -1,18 +1,18 @@
 import { test, expect } from '@playwright/test';
-import { coldState, logPage, menu, moved, pour, ratePage } from '../src/lib/copy';
+import { coldState, mapPage, menu, moved, pour, ratePage } from '../src/lib/copy';
 
-test('Log: server-renders the route shell', async ({ page }) => {
-  const response = await page.request.get('/log');
+test('Your map: server-renders the route shell', async ({ page }) => {
+  const response = await page.request.get('/map');
   expect(response.status()).toBe(200);
 
   const html = await response.text();
   expect(html).toContain(coldState.title);
   expect(html).toContain('aria-label="Main navigation"');
-  expect(html).toContain('href="/log"');
+  expect(html).toContain('href="/map"');
 });
 
 test('Rate: a guest logs a pour, sees the coordinate move, then the ledger', async ({ page }) => {
-  await page.goto('/log');
+  await page.goto('/map');
 
   // The cold state says what the page is, and the ways in.
   await expect(page.getByText(coldState.title)).toBeVisible();
@@ -20,7 +20,7 @@ test('Rate: a guest logs a pour, sees the coordinate move, then the ledger', asy
   await page.getByRole('button', { name: coldState.guestCta }).click();
 
   // Trying a pour as a guest opens the rating sheet over Log: the one pour form.
-  await expect(page).toHaveURL(/\/log$/);
+  await expect(page).toHaveURL(/\/map$/);
   const sheet = page.getByRole('dialog', { name: ratePage.title });
   await expect(sheet.getByRole('heading', { name: ratePage.heading })).toBeVisible();
 
@@ -43,9 +43,9 @@ test('Rate: a guest logs a pour, sees the coordinate move, then the ledger', asy
   await expect(sheet).toHaveCount(0);
 
   // Back on Log: where you are now, and the pour in the ledger.
-  await expect(page).toHaveURL(/\/log$/);
+  await expect(page).toHaveURL(/\/map$/);
   await expect(page.getByText(menu.youAreIn)).toBeVisible();
-  await expect(page.getByRole('heading', { name: logPage.ledgerTitle, exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: mapPage.ledgerTitle, exact: true })).toBeVisible();
   const ledger = page.locator('ol').filter({ hasText: 'Too sweet' });
   await expect(ledger).toContainText(pour.home);
   await expect(ledger).toContainText('8 of 9');

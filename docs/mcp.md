@@ -3,7 +3,7 @@
 The palate map as tools a chat assistant can call, at `/mcp`: a Streamable
 HTTP MCP server, so any assistant that takes a remote connector can use it.
 In Claude: *Settings → Connectors → Add custom connector*, URL
-`https://cotidal.app/mcp`. Once a member has a coordinate, `/log` links to
+`https://cotidal.app/mcp`. Once a member has a coordinate, `/map` links to
 `/mcp` from under their account. A browser opening `/mcp` is shown the
 instructions at that URL (an MCP client never asks for HTML), personalized
 with their handle when signed in, so the address bar holds the address to paste.
@@ -17,7 +17,7 @@ with their handle when signed in, so the address bar holds the address to paste.
 | `rank_menu` | A menu's items ordered by distance; avoided flavours flagged and sunk, unknown drinks returned as unplaced |
 | `compare_palates` | Two coordinates: the distance, a drink each would order, one they'd share |
 | `search_drinks` | A drink someone names → the name the map knows it by |
-| `draft_pour` | A link to `/log` with the pour filled in, for the person to confirm |
+| `draft_pour` | A link to `/map` with the pour filled in, for the person to confirm |
 
 Every tool but `draft_pour` reads public records the way `/p/<handle>` does
 (`public-read.ts`), so none needs sign-in, and every answer is computed by
@@ -36,9 +36,9 @@ JSON answers — because nothing streams and nothing is kept.
 
 ## Drafting a pour: the person confirms in the app
 
-`draft_pour` writes nothing. It returns `/log?draft=1&…` with what the person
+`draft_pour` writes nothing. It returns `/map?draft=1&…` with what the person
 said (drink, where, what was off, tasting notes, a note), and the rating sheet
-opens over Log on it; they check it, tap the rating and log it as any other pour, through
+opens over Your map on it; they check it, tap the rating and log it as any other pour, through
 the same `logPour`. The draft lives only in the link (`src/lib/pour-draft.ts`),
 so there is nothing to store, sign in for or protect.
 
@@ -152,7 +152,7 @@ make); until then it shows the one read-only address, as before.
 
 ### Disconnecting an assistant
 
-`/settings` (linked from the account on `/log`) lists the assistants a member
+`/settings` (linked from the account on `/map`) lists the assistants a member
 has connected: the name each gave (marked as its own claim), where its access
 goes, whether it may log pours, and when. Disconnect revokes the grant and
 every token under it (`src/lib/settings/assistants.server.ts`, over

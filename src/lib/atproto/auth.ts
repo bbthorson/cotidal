@@ -28,7 +28,7 @@ export const SESSION_KV_BINDING = 'ATPROTO_SESSIONS';
 /**
  * The Durable Object that serialises each member's session restores across
  * isolates, declared in `wrangler.toml` and exported by `src/worker.ts`.
- * `/log` restores twice at once (palate and pours); without this, two isolates
+ * `/map` restores twice at once (palate and pours); without this, two isolates
  * can both refresh the same one-use token and the loser signs the member out.
  * Off Workers it is absent, and the package locks within the process instead.
  */

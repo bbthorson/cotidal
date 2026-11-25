@@ -3,7 +3,7 @@ import { account } from '@/lib/copy';
 import { cn } from '@/lib/utils';
 
 /**
- * Start over, at the foot of Log for a guest, who has no Settings (a member
+ * Start over, at the foot of Your map for a guest, who has no Settings (a member
  * starts over there). Two steps: the link says what it is, the second step
  * does it. A coordinate built from a quiz and a ledger of pours is not
  * something to lose to a stray tap.

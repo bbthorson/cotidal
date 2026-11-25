@@ -17,7 +17,7 @@ const KEYS = {
   guestState: 'palate_state',
   /** The drink picked on Compass, until it is rated (or set aside). Kept under its first name. */
   pick: 'open_order',
-  /** A guest's pours, newest first, so Log has them after a reload. */
+  /** A guest's pours, newest first, so Your map has them after a reload. */
   guestPours: 'guest_pours',
   /** The latest finished quiz's answers, kept after they are written: where your track starts. */
   lastQuiz: 'last_quiz',

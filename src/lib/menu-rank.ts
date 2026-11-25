@@ -57,7 +57,7 @@ export const MENU_LENGTH = 8;
 /**
  * Every drink still on offer to you, closest first: your aversions taken
  * off, and a drink you rated 3 or lower last time taken off with them. The
- * one ranking, so Compass (which lists it) and Log (whose map fills it in)
+ * one ranking, so Compass's list and the chart it fills in
  * cannot disagree. No venue here: the venue term is for a bar's menu
  * (`rankMenu`), which knows the bar.
  */

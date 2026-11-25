@@ -13,8 +13,8 @@ import { MenuView } from './MenuView';
 import { cn } from '@/lib/utils';
 
 /**
- * Compass: the chart first. Where you are, the shoal around you, the way you
- * came, and every drink at its place; then your menu, each drink with which
+ * Compass: the chart first — every drink at its place, measured from you
+ * (your track and the shoal are Your map's); then your menu, each drink with which
  * way it lies from you and how far, and one search over drinks and bars. A
  * drink opens in the card; a bar opens its menu (`MenuView`) in place of the
  * list: type what they pour, see it ranked for you, pick one. "Have a menu?"
@@ -106,14 +106,9 @@ function CompassContent({
           <Chart
             you={c.hasCoordinate ? { x: c.user.x, y: c.user.y } : null}
             menuNames={c.menuNames}
-            lastPour={c.lastPour}
-            lens={c.lens}
-            onLens={c.setLens}
             selected={c.selected}
             onSelect={c.chooseDrink}
             register={register}
-            onTakeQuiz={() => window.location.assign(questionsHref)}
-            track={c.track}
             bare={!c.hasCoordinate}
           />
         </div>

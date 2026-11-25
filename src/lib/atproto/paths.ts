@@ -21,7 +21,7 @@ export function publicMapPath(actor: string): string {
 export const SIGNED_OUT_PARAM = 'signed_out';
 export const signedOutPath = `/compass?${SIGNED_OUT_PARAM}=1`;
 
-/** The questions, and the marker that makes them start over (from Log's account). */
+/** The questions, and the marker that makes them start over (from Settings, or the foot of Your map for a guest). */
 export const QUESTIONS_PATH = '/questions';
 export const START_OVER_PARAM = 'startover';
 export const startOverPath = `${QUESTIONS_PATH}?${START_OVER_PARAM}=1`;
@@ -29,9 +29,9 @@ export const startOverPath = `${QUESTIONS_PATH}?${START_OVER_PARAM}=1`;
 /**
  * Rating a pour is a sheet over an app page, not a page of its own. A URL asks
  * for it with `?rate=<drink>` (an empty value opens on the drink closest to
- * you) or `?draft=1&drink=…` (pour-draft.ts), on Compass or Log. A link made
- * outside the app — a chat assistant's draft — lands on Log, where the pour
+ * you) or `?draft=1&drink=…` (pour-draft.ts), on Compass or Your map. A link made
+ * outside the app — a chat assistant's draft — lands on Your map, where the pour
  * is kept.
  */
 export const RATE_PARAM = 'rate';
-export const RATE_LANDING_PATH = '/log';
+export const RATE_LANDING_PATH = '/map';

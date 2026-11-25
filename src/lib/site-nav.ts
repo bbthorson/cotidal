@@ -11,10 +11,10 @@ import { QUESTIONS_PATH } from './atproto/paths';
  *
  * "For Bars" is the supply side, a different product from the drinker's app:
  * it is read from the footer and the landing page, not offered in the header
- * beside Compass and Log.
+ * beside Compass and Your map.
  *
  * `footer` marks the reading pages the footer lists; `menu` the ones a
- * phone's folded Menu lists under Compass and Log (the footer is not drawn
+ * phone's folded Menu lists under Compass and Your map (the footer is not drawn
  * on a phone's app pages, so Menu is how they are reached there).
  *
  * There is no Regions item: a region is a filter on the drinks
@@ -22,7 +22,7 @@ import { QUESTIONS_PATH } from './atproto/paths';
  */
 export const destinations = [
   { href: '/compass', label: nav.compass, match: '/compass', app: true, header: true, menu: false, footer: false },
-  { href: '/log', label: nav.log, match: '/log', app: true, header: true, menu: false, footer: false },
+  { href: '/map', label: nav.map, match: '/map', app: true, header: true, menu: false, footer: false },
   { href: '/drinks', label: nav.register, match: '/drinks', app: false, header: false, menu: true, footer: true },
   { href: '/how-it-works', label: nav.howItWorks, match: '/how-it-works', app: false, header: false, menu: true, footer: true },
   { href: '/bars', label: nav.bars, match: '/bars', app: false, header: false, menu: false, footer: true },
@@ -36,7 +36,7 @@ export const signIn = { href: '/sign-in', label: nav.signIn } as const;
  * back to the landing page's form; the island reads `?signin=1`. Everywhere
  * else the static form is the target, so it keeps working without JavaScript.
  */
-const sheetPaths = ['/compass', '/log', QUESTIONS_PATH];
+const sheetPaths = ['/compass', '/map', QUESTIONS_PATH];
 
 export const signInHref = (currentPath: string) =>
   sheetPaths.some((p) => currentPath.startsWith(p)) ? `${currentPath}?signin=1` : signIn.href;
@@ -44,7 +44,7 @@ export const signInHref = (currentPath: string) =>
 /** The bar along the foot of the app on a phone (`AppBar.astro`). */
 export const appDestinations = [
   { href: '/compass', label: appBar.compass, match: '/compass' },
-  { href: '/log', label: appBar.log, match: '/log' },
+  { href: '/map', label: appBar.map, match: '/map' },
 ] as const;
 
 /** The questions that place a coordinate (`startOverPath` clears the old one first). */

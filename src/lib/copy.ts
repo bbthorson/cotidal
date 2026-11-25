@@ -26,23 +26,23 @@ export const nav = {
   /** Beside your handle in a phone's Menu: where it goes. */
   settings: 'Settings',
   footer: 'Site',
-  log: 'Log',
+  map: 'Your map',
   bars: 'For bars',
   howItWorks: 'How it works',
 } as const;
 
 /**
- * The bar along the foot of the app on a phone: choose (Compass), record (Log).
+ * The bar along the foot of the app on a phone: choose (Compass), and you (Your map).
  * Picking a drink happens on Compass, so it needs no button of its own.
  */
 export const appBar = {
   label: 'App',
   compass: 'Compass',
-  log: 'Log',
+  map: 'Your map',
 } as const;
 
 /**
- * Compass: finding something — a drink, a bar. Your map is Log's; this
+ * Compass: finding something — a drink, a bar. You are Your map's; this
  * points outward.
  */
 export const compass = {
@@ -110,12 +110,12 @@ export const compass = {
   },
 } as const;
 
-/** /log: yours — where you are, what you have poured, and the account. */
-export const logPage = {
-  title: 'Log',
-  heading: 'Your log',
+/** /map, Your map: you — where you are, how sure, the way you came, and what moved you. */
+export const mapPage = {
+  title: 'Your map',
+  heading: 'Your map',
   guestEyebrow: 'On this device',
-  guestTitle: 'Keep your log with you',
+  guestTitle: 'Keep your map with you',
   guestBody: 'As a guest, your coordinate and pours live on this device. Sign in with Bluesky and they’re kept in your own account, on any phone.',
   stats: {
     pours: 'Pours',
@@ -123,6 +123,8 @@ export const logPage = {
     since: 'Since',
     moved: 'Moved in all',
   },
+  /** Over the track figure, under the chart: the same track at a scale a half-point shows at. */
+  upClose: 'The way you came, up close',
   /** The track figure, read aloud. */
   trackLabel: (pours: number) => `Your track, through ${pours === 1 ? 'one pour' : `${pours} pours`}`,
   /** What one pour did to your coordinate, at the end of its entry. */
@@ -144,11 +146,11 @@ export const logPage = {
     tannin: 'Structure',
     complexity: 'Complexity',
   },
-  /** Under the log, for a member: comparing is on your public map. */
+  /** Under the ledger, for a member: comparing is on your public map. */
   compareLink: 'Compare palates on your public map',
 } as const;
 
-/** The rating sheet, over Compass or Log: one pour, rated, and where the coordinate went. */
+/** The rating sheet, over Compass or Your map: one pour, rated, and where the coordinate went. */
 export const ratePage = {
   title: 'Rate a drink',
   heading: 'How was it?',
@@ -158,7 +160,7 @@ export const ratePage = {
 } as const;
 
 /**
- * What Log and the rating sheet say to someone with no coordinate yet: what the loop
+ * What Your map and the rating sheet say to someone with no coordinate yet: what the loop
  * is, and the ways in.
  */
 export const coldState = {
@@ -172,7 +174,7 @@ export const coldState = {
 
 /**
  * A drink picked on Compass, kept on the device until it is rated: the strip
- * on Compass and Log that says so.
+ * on Compass and Your map that says so.
  */
 export const waitingPick = {
   atHome: 'At home',
@@ -182,7 +184,7 @@ export const waitingPick = {
 } as const;
 
 /**
- * Starting over, which a guest finds at the foot of Log and a member on
+ * Starting over, which a guest finds at the foot of Your map and a member on
  * Settings; and the header's word for an account it cannot name.
  */
 export const account = {
@@ -207,7 +209,7 @@ export const settings = {
   signOut: 'Sign out',
   signOutNote: 'Signing out clears your coordinate from this device. It stays in your account, and connected assistants keep working.',
 
-  mapTitle: 'Your map',
+  mapTitle: 'Sharing',
   publicMap: 'Public map',
   publicMapBody: 'Your coordinate at a link anyone can open, and where you compare with people you follow.',
   open: 'Open',
@@ -289,7 +291,7 @@ export const sections = {
 } as const;
 
 export const connect = {
-  title: 'Keep your log with you.',
+  title: 'Keep your map with you.',
   /** Compact subtitle inside the in-app sheet so the form stays above the fold. */
   sheetLede: 'Your coordinate, pours, and public map — saved in your own Bluesky account.',
   /** The sign-in page's lede: what differs, which also says that nothing else does. */
@@ -365,11 +367,10 @@ export const menu = {
 /** The chart: the whole map, your menu under it, and any drink on it. */
 export const chart = {
   label: 'The chart',
-  lensLabel: 'Show',
-  lenses: [
-    { id: 'drinks', label: 'Drinks' },
-    { id: 'pours', label: 'Your pours' },
-  ],
+  /** Your map's chart: you, the way you came, and what you have poured. */
+  yoursLabel: 'Your map',
+  legendYou: 'You',
+  legendPoured: 'Other pours',
   findYours: 'Find your coordinate',
   howFar: 'How far',
   legendTrack: 'Your track',
@@ -392,7 +393,6 @@ export const chart = {
   legendMenu: 'On your menu',
   legendElsewhere: 'Elsewhere',
   legendLiked: 'Liked (7+)',
-  legendNot: 'Not for you',
 } as const;
 
 /** After a pour is logged: the payoff of signing in, shown every time. */
@@ -854,7 +854,7 @@ export const publicMap = {
 } as const;
 
 /**
- * How to reach a palate from a chat assistant: linked from `/log` once a
+ * How to reach a palate from a chat assistant: linked from `/map` once a
  * member has a coordinate, and what a browser sees at `/mcp`.
  */
 export const assistants = {
