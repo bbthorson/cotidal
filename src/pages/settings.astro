@@ -1,6 +1,11 @@
 ---
-import AppShell from '../layouts/AppShell.astro';
-import { account as accountCopy, settings as copy, site } from '../lib/copy';
+import MapPage from '../layouts/MapPage.astro';
+import { PalateMap } from '../components/app/PalateMap';
+import { ScreenHeader } from '../components/app/ui';
+import { MapCode } from '../components/app/MapCode';
+import { account as accountCopy, coaster, explore, publicMap, settings as copy, site } from '../lib/copy';
+import { readPublicPalate } from '../lib/atproto/public-read';
+import { memberCodeUrl, qrPath } from '../lib/coaster';
 import { accountFor, oauthSession } from '../lib/atproto/session';
 import { AUTH_BASE_PATH, publicMapPath, startOverPath } from '../lib/atproto/paths';
 import { getPalateProfile, shareToFeed } from '../lib/atproto/publish';
@@ -13,9 +18,10 @@ import { titleOf } from '../lib/register';
 import { accountHref, signIn } from '../lib/site-nav';
 
 /**
- * A member's account, as one app screen of rows: who they are signed in as
- * and signing out (the only place it is offered), their link (`/p/<handle>`) and
- * sharing it, the chat assistants they have let act as them
+ * A member's account, on their map, as rows in the card: who they are
+ * signed in as and signing out (the only place it is offered), their link
+ * (`/p/<handle>`) and sharing it, their code (drawn over their map; it prints
+ * as a coaster), the chat assistants they have let act as them
  * (src/lib/settings/assistants.server.ts), and starting over.
  * Server-rendered with plain form posts, so it ships no JavaScript.
  *
@@ -87,6 +93,12 @@ const mapNotice = has('shared')
     : has('nomap')
       ? { text: copy.shareNoMap, error: true }
       : null;
+// Their point, read as anyone would read it: the map behind the card, and under their code.
+const palate = await readPublicPalate(account.did);
+const point = palate.status === 'ok' ? { x: palate.palate.x, y: palate.palate.y } : null;
+const codeHref = memberCodeUrl(Astro.url.origin, account.did);
+const qr = qrPath(codeHref);
+
 const date = (d: Date) => d.toLocaleDateString('en', { year: 'numeric', month: 'long', day: 'numeric' });
 const name = account.handle ? `@${account.handle}` : account.did;
 const mapHref = publicMapPath(account.handle ?? account.did);
@@ -98,9 +110,16 @@ const rowBody = 'mt-0.5 text-meta text-muted-foreground';
 Astro.response.headers.set('Cache-Control', 'no-store');
 ---
 
-<AppShell title={`${site.name} — ${copy.title}`} currentPath={accountHref} width="prose">
-  <div class="space-y-10 pb-6 pt-6 lg:pt-10">
-    <h1 class="font-serif text-title font-bold text-foreground">{copy.title}</h1>
+<MapPage title={`${site.name} — ${copy.title}`} currentPath={accountHref} label={copy.title} eyebrow={copy.title}>
+  {
+    point ? (
+      <PalateMap slot="map" label={publicMap.plotLabel(name)} points={[{ ...point, label: publicMap.you, caption: publicMap.you, tone: 'yours' }]} />
+    ) : (
+      <PalateMap slot="map" label={explore.chartLabel} tide />
+    )
+  }
+  <div class="space-y-10">
+    <ScreenHeader title={copy.title} />
 
     <section data-testid="settings-account" class="border-y border-foreground py-4">
       <div class="flex items-center justify-between gap-4">
@@ -142,6 +161,15 @@ Astro.response.headers.set('Cache-Control', 'no-store');
         </div>
         <button type="submit" class="btn btn-outline shrink-0 px-4">{copy.shareCta}</button>
       </form>
+    </section>
+
+    <section id="code" class="scroll-mt-4" data-testid="settings-code">
+      <h2 class="section-title">{coaster.memberTitle}</h2>
+      <p class="text-meta text-muted-foreground">{coaster.memberLede}</p>
+      <div class="mt-4">
+        <MapCode href={codeHref} label={coaster.memberLabel(name)} point={point} qr={qr} />
+      </div>
+      <p class="mt-3 text-meta text-muted-foreground">{coaster.printNote}</p>
     </section>
 
     <section id="assistants" class="scroll-mt-4" data-testid="settings-assistants">
@@ -214,4 +242,4 @@ Astro.response.headers.set('Cache-Control', 'no-store');
       </details>
     </section>
   </div>
-</AppShell>
+</MapPage>

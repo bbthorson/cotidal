@@ -117,18 +117,3 @@ export function CardHead({
     </div>
   );
 }
-
-/**
- * The top of a card's body on a page with no script: the title and its lede,
- * at the card's size rather than a reading page's plate (`PageTitle`).
- * Anything under the lede (a readout) is `children`.
- */
-export function CardTitle({ title, lede, children }: { title: string; lede?: string; children?: ReactNode }) {
-  return (
-    <div className="pt-4">
-      <h1 className="break-words font-serif text-title font-bold text-foreground">{title}</h1>
-      {lede && <p className="mt-2 font-serif text-ui italic leading-relaxed text-muted-foreground">{lede}</p>}
-      {children}
-    </div>
-  );
-}

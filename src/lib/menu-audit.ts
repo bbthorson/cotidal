@@ -6,9 +6,11 @@ import type { Drink } from './data';
 import type { Register } from './register';
 
 /**
- * Free B2B sensory audit for a bar's menu: paste a cocktail or wine list and
- * see where it sits on the Cotidal chart, which regions are covered, which
- * are blind spots, and how many drinks carry smoke, bitterness, or anise.
+ * A bar's menu, audited: where its drinks sit on the chart, which regions are
+ * covered, which are blind spots, and how many drinks carry smoke, bitterness,
+ * or anise. Its page was retired for the map itself (a bar's pins show the
+ * spread); kept as the rule a bar's card will summarise its menu by
+ * (docs/map-first.md).
  */
 
 export interface AuditedDrink {

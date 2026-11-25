@@ -1,7 +1,8 @@
 ---
 import MapPage from '../../layouts/MapPage.astro';
 import { PalateMap } from '../../components/app/PalateMap';
-import { CardHead, CardTitle } from '../../components/app/MapScreen';
+import { CardHead } from '../../components/app/MapScreen';
+import { ScreenHeader } from '../../components/app/ui';
 import Readout from '../../components/marketing/Readout.astro';
 import { site, publicMap, coaster, assistants, share, explore } from '../../lib/copy';
 import { shareImagePath } from '../../lib/share';
@@ -9,14 +10,13 @@ import { formatCoordinate } from '../../lib/coordinate';
 import { quadrantFor, regionPath } from '../../lib/quadrant';
 import { readPublicPalate } from '../../lib/atproto/public-read';
 import { publicMapPath } from '../../lib/atproto/paths';
-import { questionsHref } from '../../lib/site-nav';
+import { accountHref, questionsHref } from '../../lib/site-nav';
 import { oauthSession } from '../../lib/atproto/session';
 import { getPalateProfile } from '../../lib/atproto/publish';
 import { compareMaps, nearestDrinks, type MapPoint } from '../../lib/overlap';
 import { readFollowedPalates, type FollowedOverlap } from '../../lib/atproto/follows-overlap';
 import { loadRegister } from '../../lib/register.server';
 import { titleOf } from '../../lib/register';
-import { coasterPath } from '../../lib/coaster';
 import type { Drink } from '../../lib/data';
 
 /**
@@ -157,14 +157,14 @@ const ctaClass =
 
   {result.status === 'ok' && subject && region && name ? (
     <article class="space-y-10" data-testid="public-map">
-      <CardTitle title={publicMap.title(name)} lede={region.gloss}>
+      <ScreenHeader title={publicMap.title(name)} gloss={region.gloss}>
         <Readout
           cells={[
             { label: publicMap.coordinateLabel, value: formatCoordinate(subject.x, subject.y), figure: true },
             { label: publicMap.lands, value: region.name, href: regionPath(region.id) },
           ]}
         />
-      </CardTitle>
+      </ScreenHeader>
 
       <dl class="grid grid-cols-2 gap-x-6 gap-y-1 border-y border-border py-3 text-meta">
         <dt class="label-caps text-muted-foreground">{isSelf ? publicMap.you : publicMap.them}</dt>
@@ -249,9 +249,8 @@ const ctaClass =
             />
           </label>
           <p class="pt-2 font-serif text-ui text-muted-foreground">
-            {coaster.makeCodeNote}{' '}
-            <a href={coasterPath(result.actor.did)} class="text-foreground underline decoration-muted-foreground underline-offset-4 hover:decoration-foreground" data-testid="make-code">
-              {coaster.makeCode}
+            <a href={`${accountHref}#code`} class="text-foreground underline decoration-muted-foreground underline-offset-4 hover:decoration-foreground" data-testid="make-code">
+              {coaster.findIt}
             </a>
           </p>
         </section>
@@ -327,7 +326,7 @@ const ctaClass =
     </article>
   ) : (
     <article class="space-y-8" data-testid="public-map-empty">
-      <CardTitle
+      <ScreenHeader
         title={
           result.status === 'no-palate'
             ? publicMap.noPalateTitle
@@ -335,7 +334,7 @@ const ctaClass =
               ? publicMap.unavailableTitle
               : publicMap.notFoundTitle
         }
-        lede={
+        gloss={
           result.status === 'no-palate'
             ? publicMap.noPalateBody
             : result.status === 'unavailable'

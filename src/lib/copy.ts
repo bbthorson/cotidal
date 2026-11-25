@@ -812,8 +812,6 @@ export const venuesCopy = {
   exampleTag: 'Example',
   examplesSpecs: (n: number) => `On the map (${n})`,
   publishCta: 'Claim your bar',
-  auditCta: 'Audit your menu',
-  auditNote: 'Paste your cocktail list to see how it covers the four regions — no account needed.',
 } as const;
 
 /** `/bars/publish` — self-serve AT Protocol venue claim & menu publisher. */
@@ -842,28 +840,6 @@ export const barPublish = {
   publishFailed: 'Could not publish your venue record. Try again.',
   postcardNote:
     'Later: a second level of verification will mail a postcard with a one-time code to prove you are at that address.',
-} as const;
-
-/** `/bars/audit` — free sensory balance check for any bar's menu. */
-export const barAudit = {
-  eyebrow: 'For bars · Menu audit',
-  title: 'See where your menu sits.',
-  lede: 'Paste your drinks, one per line. Placed drinks plot onto the chart so you can see region coverage, blind spots, and aversion exposure at a glance.',
-  inputLabel: 'Your menu (one drink per line)',
-  inputPlaceholder: 'Negroni\nDry Martini\nDaiquiri\nPaper Tiger — mezcal, Aperol, lime',
-  sampleCta: 'Load an example menu',
-  clearCta: 'Clear',
-  coverageTitle: 'Region coverage',
-  blindSpotsTitle: 'Blind spots',
-  blindSpotsNone: 'All four regions are covered.',
-  blindSpotsNote: (names: string[]) => `No placed drinks in ${names.join(' or ')}.`,
-  aversionsTitle: 'Aversion exposure',
-  aversionLine: (smoke: number, bitter: number, anise: number) =>
-    `${smoke} smoky · ${bitter} bitter · ${anise} anise`,
-  placedTitle: (n: number) => `Placed (${n})`,
-  unplacedTitle: (n: number) => `Not on the map (${n})`,
-  empty: 'Paste a few drinks above to plot your menu.',
-  countOf: (count: number, percent: number) => `${count} (${percent}%)`,
 } as const;
 
 /** `/v/<handle>` — live AT Protocol venue & menu page. */
@@ -1190,18 +1166,14 @@ export const share = {
 } as const;
 
 export const coaster = {
-  makeCode: 'Make my code',
-  makeCodeNote: 'A coaster with your region on it and a code that opens this map.',
   memberTitle: 'Your code',
   memberLede:
     'Scan it and it opens your map. It points at your account rather than your handle, so it keeps working if your handle changes.',
-  memberLabel: (name: string) => `A coaster for @${name}: their region, and a code that opens their map`,
-  backToMap: 'Back to your map',
-  regionLink: 'This region’s coaster',
-  regionTitle: (region: string) => `${region}, on a coaster`,
-  regionLede: 'Scan the code to read about the region, then find where you land.',
-  regionLabel: (region: string) => `A coaster for ${region}, with a code that opens its page`,
-  backToRegion: (region: string) => `Back to ${region}`,
+  memberLabel: (name: string) => `${name} on the map, with a code that opens their map`,
+  /** Printing the page prints the code alone, at a coaster's size. */
+  printNote: 'Print this page and the code prints on its own, the size of a coaster.',
+  /** On your public map: where your code is. */
+  findIt: 'Your code is in Settings.',
 } as const;
 
 /**

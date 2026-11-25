@@ -3,13 +3,13 @@ import { getCollection, getEntry, render } from 'astro:content';
 import type { GetStaticPaths } from 'astro';
 import MapPage from '../../../layouts/MapPage.astro';
 import { PalateMap } from '../../../components/app/PalateMap';
-import { CardHead, CardTitle } from '../../../components/app/MapScreen';
+import { CardHead } from '../../../components/app/MapScreen';
+import { ScreenHeader } from '../../../components/app/ui';
 import RegionFilter from '../../../components/marketing/RegionFilter.astro';
 import DrinkRow from '../../../components/marketing/DrinkRow.astro';
 import OnTheRecord from '../../../components/marketing/OnTheRecord.astro';
-import { site, quadrants, regionPage as copy, coaster, share, explore } from '../../../lib/copy';
+import { site, quadrants, regionPage as copy, share, explore } from '../../../lib/copy';
 import { shareImagePath } from '../../../lib/share';
-import { regionCoasterPath } from '../../../lib/coaster';
 import { drinkDatabase } from '../../../lib/data';
 import { sharedIngredients } from '../../../lib/ingredients';
 import { QUADRANT_ORDER, quadrantIdFor, regionPath, type QuadrantId } from '../../../lib/quadrant';
@@ -64,7 +64,7 @@ const shared = sharedIngredients(placed.map(({ entry }) => entry.data));
     <span class="label-caps">{copy.eyebrow(region.axis)}</span>
   </CardHead>
 
-  <CardTitle title={region.name} lede={region.gloss} />
+  <ScreenHeader title={region.name} gloss={region.gloss} />
   <div class="mt-6">
     <RegionFilter current={region.id} />
   </div>
@@ -116,14 +116,5 @@ const shared = sharedIngredients(placed.map(({ entry }) => entry.data));
 
     {entry && <OnTheRecord {...entry.data} />}
 
-    <p class="pt-6 text-center font-serif text-ui">
-      <a
-        href={regionCoasterPath(region.id)}
-        class="text-foreground underline decoration-muted-foreground underline-offset-4 hover:decoration-foreground"
-        data-testid="region-coaster-link"
-      >
-        {coaster.regionLink}
-      </a>
-    </p>
   </article>
 </MapPage>

@@ -1,96 +1,32 @@
 ---
 import Base from './Base.astro';
-import SiteHeader from '../components/marketing/SiteHeader.astro';
-import SiteFooter from '../components/marketing/SiteFooter.astro';
-import { accountFor } from '../lib/atproto/session';
-import { a11y } from '../lib/copy';
 
 interface Props {
   title?: string;
   description?: string;
   /** The share card (see Base.astro). */
   image?: { path: string; alt: string };
-  currentPath: string;
-  backLink?: { href: string; label: string };
-  width?: 'prose' | 'standard' | 'wide' | 'frame';
   /**
    * An app screen (`/map`, `/questions`): the screen fills the window exactly,
-   * edge to edge, and nothing scrolls but its own card. The app bar is the
-   * top of the card, so the page passes `SiteHeader` (compact) to its island
-   * as the `bar` slot; there is no footer.
+   * edge to edge, and nothing scrolls but its own card. Otherwise a map page
+   * with no script (`MapPage.astro`): on a phone the page scrolls and the card
+   * scrolls up over the map; from `lg` it fills the window like the app.
    */
   app?: boolean;
-  /**
-   * The header and the content fill the first screen exactly (100dvh, the
-   * viewport less a phone browser's own bars), and the footer starts below
-   * it. The front door uses it so its one action sits at the foot of the
-   * first screen; the content lays itself out in the space with flex.
-   */
-  fill?: boolean;
-  /**
-   * A map page with no script (`MapPage.astro`): the map at the top of the
-   * screen and the card, whose top is the app bar. On a phone the page
-   * scrolls, and the card scrolls up over the map; from `lg` it fills the
-   * window like the app, and the card scrolls. The footer is the card's foot.
-   */
-  map?: boolean;
 }
 
-const { title, description, image, currentPath, backLink, width = 'standard', app = false, fill = false, map = false } = Astro.props;
-
-// Read here once, so every route's header tells the truth about who is signed in.
-const account = await accountFor(Astro.request, Astro.isPrerendered);
-
 /**
- * The header and footer sit in one fixed band on every route; `width` sizes
- * only the content column between them. Applying it to the header as well
- * made the logo and nav jump sideways from page to page.
+ * The page's frame, and nothing else: every page is the map and its card
+ * (`MapScreen`), whose top is the app bar and whose foot is the footer, so
+ * the frame draws neither (docs/design-system.md, One kind of page).
  */
-const widthClass = {
-  prose: 'max-w-2xl',
-  standard: 'max-w-3xl',
-  wide: 'max-w-4xl',
-  // The header's own band: a screen laid out in columns on a wide screen.
-  frame: 'max-w-5xl',
-}[width];
+const { title, description, image, app = false } = Astro.props;
 ---
 
 <Base title={title} description={description} image={image}>
-  {map || app ? (
-    <div class:list={['bar-texture flex flex-col bg-background text-foreground', app ? 'h-dvh overflow-hidden' : 'min-h-dvh lg:h-dvh lg:overflow-hidden']}>
-      <div class="flex min-h-0 flex-1 flex-col">
-        <slot />
-      </div>
-    </div>
-  ) : (
-  <div class:list={['bar-texture min-h-dvh bg-background text-foreground', fill && 'flex flex-col']}>
-    <div data-site-chrome class:list={['mx-auto w-full max-w-5xl px-6', fill ? 'pt-4 md:pt-8' : 'pt-5 md:pt-14']}>
-      <SiteHeader currentPath={currentPath} account={account} />
-    </div>
-
-    <div class:list={['mx-auto w-full px-6', widthClass, fill && 'flex flex-1 flex-col']}>
-      {backLink && (
-        <nav aria-label={a11y.breadcrumb} class="pt-6">
-          <a
-            href={backLink.href}
-            class="font-condensed text-label uppercase tracking-label text-muted-foreground transition-colors hover:text-foreground"
-          >
-            &larr; {backLink.label}
-          </a>
-        </nav>
-      )}
+  <div class:list={['bar-texture flex flex-col bg-background text-foreground', app ? 'h-dvh overflow-hidden' : 'min-h-dvh lg:h-dvh lg:overflow-hidden']}>
+    <div class="flex min-h-0 flex-1 flex-col">
       <slot />
     </div>
-
-    <div
-      data-site-chrome
-      class:list={[
-        'mx-auto w-full max-w-5xl px-6',
-        fill ? 'pt-3 pb-4 md:pt-4 md:pb-6' : 'pt-16 pb-10 md:pb-14',
-      ]}
-    >
-      <SiteFooter currentPath={currentPath} compact={fill} account={account} />
-    </div>
   </div>
-  )}
 </Base>

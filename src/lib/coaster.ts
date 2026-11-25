@@ -1,9 +1,9 @@
 import { encode } from 'uqr';
 import { publicMapPath } from './atproto/paths';
-import { regionPath, type QuadrantId } from './quadrant';
 
 /**
- * What a coaster's QR code says, and the code itself (docs/coasters.md).
+ * What a member's code says, and the code itself (docs/coasters.md): drawn
+ * over their map in Settings (`MapCode`), which prints as the coaster.
  *
  * A member's code is their public map by DID — never the handle, which can
  * change after the code is printed — with nothing appended: a query string is
@@ -12,21 +12,6 @@ import { regionPath, type QuadrantId } from './quadrant';
  */
 export function memberCodeUrl(origin: string, did: string): string {
   return new URL(publicMapPath(did), origin).href;
-}
-
-/** A region coaster's code: the drinks, filtered to the region. */
-export function regionCodeUrl(origin: string, id: QuadrantId): string {
-  return new URL(regionPath(id), origin).href;
-}
-
-/** Where a member's coaster is shown: under their own map, by DID. */
-export function coasterPath(did: string): string {
-  return `${publicMapPath(did)}/code`;
-}
-
-/** Where a region's coaster is shown. */
-export function regionCoasterPath(id: QuadrantId): string {
-  return `${regionPath(id)}/coaster`;
 }
 
 /**

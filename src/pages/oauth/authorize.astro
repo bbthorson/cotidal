@@ -1,6 +1,6 @@
 ---
-import AppShell from '../../layouts/AppShell.astro';
-import PageTitle from '../../components/marketing/PageTitle.astro';
+import MapPage from '../../layouts/MapPage.astro';
+import { ScreenHeader } from '../../components/app/ui';
 import { decide, showConsent, type AuthorizeView } from '@/lib/mcp/authorize.server';
 import { authorizeContext } from '@/lib/mcp/authorize-context.server';
 import { MEMBER_SCOPES, OAUTH_AUTHORIZE_PATH } from '@/lib/mcp/member-auth';
@@ -44,18 +44,18 @@ const memberName = member ? (member.handle ?? member.did) : null;
 const label = 'font-condensed text-label uppercase tracking-label text-muted-foreground';
 ---
 
-<AppShell title={`${site.name} — ${copy.eyebrow}`} currentPath={OAUTH_AUTHORIZE_PATH} width="prose">
+<MapPage title={`${site.name} — ${copy.eyebrow}`} currentPath={OAUTH_AUTHORIZE_PATH} label={copy.eyebrow} eyebrow={copy.eyebrow}>
   {
     view.kind === 'refused' ? (
       <div class="space-y-6 pb-6">
-        <PageTitle eyebrow={copy.eyebrow} title={copy.refusedTitle} />
+        <ScreenHeader title={copy.refusedTitle} />
         <p role="alert" class="text-meta text-destructive">
           {view.message}
         </p>
       </div>
     ) : (
       <div class="space-y-10 pb-6">
-        <PageTitle eyebrow={copy.eyebrow} title={copy.title(view.details.clientName)} />
+        <ScreenHeader title={copy.title(view.details.clientName)} />
 
         <section class="space-y-3">
           <p class="font-serif text-prose text-muted-foreground">
@@ -153,4 +153,4 @@ const label = 'font-condensed text-label uppercase tracking-label text-muted-for
       </div>
     )
   }
-</AppShell>
+</MapPage>

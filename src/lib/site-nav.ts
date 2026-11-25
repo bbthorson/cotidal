@@ -2,10 +2,10 @@ import { account as accountCopy, nav } from './copy';
 import { QUESTIONS_PATH } from './atproto/paths';
 
 /**
- * The one list of destinations. The header renders the ones marked `header`;
- * the footer renders the reading pages only (`app: false`), because the app
- * destinations and the account are always one tap away in the header, and
- * seven links wrapped into three ragged rows on a phone.
+ * The one list of destinations. The app bar renders the ones marked `header`
+ * and `menu`; the footer renders the reading pages only (`app: false`),
+ * because the app destinations and the account are always one tap away in
+ * the app bar, and seven links wrapped into three ragged rows on a phone.
  *
  * `match` is the path prefix that marks an item current.
  *
@@ -13,10 +13,9 @@ import { QUESTIONS_PATH } from './atproto/paths';
  * different product from the drinker's app: it is read from the footer and
  * the landing page, not offered in the header.
  *
- * `footer` marks the reading pages the footer lists; `menu` the ones a
- * phone's folded Menu lists under the map, and the header lists beside the
- * map's search from `lg` (the map has no footer, so these are how they are
- * reached from it).
+ * `footer` marks the reading pages the footer lists; `menu` the ones the
+ * app bar lists beside the map (folded under Menu on a phone, as tabs from
+ * `lg`), since the app screens have no footer.
  *
  * There is no Regions item: a region is a filter on the drinks
  * (`/drinks/regions/<id>`), so Drinks is current there too.
@@ -67,8 +66,7 @@ export const isCurrent = (currentPath: string, match: string) => currentPath.sta
  * sees their handle, which opens Settings, where signing out is, so no bar
  * repeats it. A guest sees Sign in. A prerendered page was built before
  * anyone visited, so it cannot know, and says Account rather than guess.
- * Both bars draw it from here: `SiteHeader` on a reading page, `AppBar` in a
- * map page's card.
+ * The app bar (`AppBar`) draws it, at the top of every page's card.
  */
 export function accountControl(
   account: { kind: 'member'; handle: string | null } | { kind: 'guest' } | { kind: 'unknown' },

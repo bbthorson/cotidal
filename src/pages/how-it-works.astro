@@ -1,7 +1,8 @@
 ---
 import MapPage from '../layouts/MapPage.astro';
 import { PalateMap } from '../components/app/PalateMap';
-import { CardHead, CardTitle } from '../components/app/MapScreen';
+import { CardHead } from '../components/app/MapScreen';
+import { ScreenHeader } from '../components/app/ui';
 import { explore, howItWorks as copy, site } from '../lib/copy';
 import { questionsHref } from '../lib/site-nav';
 
@@ -24,7 +25,7 @@ import { questionsHref } from '../lib/site-nav';
     <span class="label-caps">{copy.eyebrow}</span>
   </CardHead>
 
-  <CardTitle title={copy.title} lede={copy.lede} />
+  <ScreenHeader title={copy.title} gloss={copy.lede} />
   <div class="space-y-10 pt-8">
     {copy.sections.map((section) => (
       <section id={section.id} class="scroll-mt-8 space-y-3">

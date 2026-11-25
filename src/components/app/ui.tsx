@@ -22,32 +22,38 @@ export function Chip({
 }
 
 /**
- * How an app screen opens: the title, and a lede if the screen needs one —
- * left-aligned, at one size, on every app screen. A tab's screen has no
- * eyebrow: the app bar (or the header, from `lg`) already marks the tab
- * current, and a second "Compass" over the title only repeats it. A sheet,
- * which no tab names, keeps one to say what it is for. The reading
- * pages open with `PageTitle` instead; the two tiers differ on purpose.
+ * How every card opens: the title, and a lede if the card needs one — left
+ * aligned, at one size, on every page (docs/design-system.md, One kind of
+ * page). The eyebrow names the way in, when the card's head does not already
+ * (rule 16). A `gloss` is the italic line under a drink's, a region's or a
+ * person's name (rule 15); a `lede` is plain prose. Anything under them (a
+ * readout) is `children`.
  */
 export function ScreenHeader({
   eyebrow,
   title,
   lede,
+  gloss,
   action,
+  children,
 }: {
   eyebrow?: string;
   title: string;
   lede?: string;
+  gloss?: string;
   action?: ReactNode;
+  children?: ReactNode;
 }) {
   return (
     <div className="pb-5">
       {eyebrow && <p className="label-caps">{eyebrow}</p>}
       <div className={cn('flex flex-wrap items-baseline justify-between gap-x-4 gap-y-3', eyebrow && 'mt-2')}>
-        <h1 className="font-serif text-title font-bold text-foreground">{title}</h1>
+        <h1 className="break-words font-serif text-title font-bold text-foreground">{title}</h1>
         {action}
       </div>
+      {gloss && <p className="mt-2 font-serif text-ui italic leading-relaxed text-muted-foreground">{gloss}</p>}
       {lede && <p className="mt-2 text-ui text-muted-foreground">{lede}</p>}
+      {children}
     </div>
   );
 }

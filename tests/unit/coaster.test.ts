@@ -1,10 +1,9 @@
 import { test, expect } from 'vitest';
-import { coasterPath, memberCodeUrl, qrPath } from '../../src/lib/coaster';
+import { memberCodeUrl, qrPath } from '../../src/lib/coaster';
 
 /**
- * Coasters (docs/coasters.md). A member's code is their map by DID with
- * nothing appended; a member's coaster exists only for that member; a
- * region's coaster is public. Neither page ships script.
+ * A member's code (docs/coasters.md): their map by DID with nothing appended,
+ * drawn as whole modules, over their map in Settings.
  */
 
 const DID = 'did:plc:abcdefghijklmnopqrstuvwx';
@@ -14,7 +13,6 @@ test('Coaster: a member’s code is their map by DID, with nothing appended', ()
   expect(url.pathname).toBe(`/p/${DID}`);
   expect(url.search).toBe('');
   expect(url.hash).toBe('');
-  expect(coasterPath(DID)).toBe(`/p/${DID}/code`);
 });
 
 test('Coaster: the code is drawn as whole modules inside its square', () => {

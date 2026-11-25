@@ -56,7 +56,7 @@ are the layout of the whole site, not only of `/map`.
    card holds the lede and Find your coordinate; pulled up, how it works and
    sign in. The questions run in the card, the shoal narrowing on the big map.
 2. **The map is drawn by the server.** One component (`PalateMap.tsx`)
-   draws `/map` and the pages with no script, so a reading page ships no
+   draws `/map` and the pages with no script, so a static page ships no
    JavaScript for it and `/map` paints before its island hydrates.
 3. **On a page with no script, pulling the card up is scrolling.** The map
    stays at the top of a phone's screen and the card scrolls up over it.
@@ -80,8 +80,12 @@ anyone who asks for less motion. The questions: in the card over the map,
 the shoal narrowing on it, the point settling there at the reveal. Someone's
 public map (`/p/<handle>`): their point, and a signed-in visitor's beside it,
 on the map, their region washed. How it works and sign-in: the tide turning
-behind the card. Settings, For bars and Chat assistants stay reading pages
-(docs/design-system.md, Two kinds of page).
+behind the card. Then every other page too — Settings (your point, and your
+code over your map, which prints as a coaster), For bars and its claim form,
+a bar's page (its menu as numbered pins), Chat assistants, an assistant
+asking for access, not found: one kind of page (docs/design-system.md). The
+bar audit was cut for the map itself; its rule (`menu-audit.ts`) stays for a
+bar's card to summarise its menu by.
 
 The app bar is the top of the card (`AppBar.astro`), and the map has the
 top of the screen: on a phone it runs from the top edge, and from `lg` the

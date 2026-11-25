@@ -2,7 +2,8 @@
 import { getCollection } from 'astro:content';
 import MapPage from '../../layouts/MapPage.astro';
 import { PalateMap } from '../../components/app/PalateMap';
-import { CardHead, CardTitle } from '../../components/app/MapScreen';
+import { CardHead } from '../../components/app/MapScreen';
+import { ScreenHeader } from '../../components/app/ui';
 import RegionFilter from '../../components/marketing/RegionFilter.astro';
 import DrinkRow from '../../components/marketing/DrinkRow.astro';
 import { site, drinks as copy, explore, quadrants } from '../../lib/copy';
@@ -51,7 +52,7 @@ const grouped = quadrants.map((quadrant) => ({
     <span class="label-caps">{copy.eyebrow}</span>
   </CardHead>
 
-  <CardTitle title={copy.title} lede={copy.intro} />
+  <ScreenHeader title={copy.title} gloss={copy.intro} />
   <div class="mt-6">
     <RegionFilter />
   </div>

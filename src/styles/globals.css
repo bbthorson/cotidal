@@ -573,3 +573,31 @@ bsky-sign-in[data-state='error'] input[name='handle'] {
     navigation: none;
   }
 }
+
+/* A square of the map inside a card (`MapCode`): the plane sizes itself to
+   its container, as it does in the screen's map region. */
+.map-frame {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  overflow: clip;
+  container-type: size;
+}
+
+/* Printing a page with a code on it (Settings) prints the code alone, the size
+   of a coaster: the figure is the coaster. */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  [data-print],
+  [data-print] * {
+    visibility: visible;
+  }
+  [data-print] {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 90mm;
+  }
+}

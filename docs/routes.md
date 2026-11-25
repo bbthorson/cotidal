@@ -127,9 +127,9 @@ old log at once.** That is the argument to a venue, and it is true because
 reconciliation happens in the app view and never by rewriting anyone's records.
 
 `/bars` introduces the supply side, `/bars/publish` handles self-serve domain
-verification and menu publishing, `/bars/audit` lets any bar check menu balance
-without an account, and `/v/<handle>` renders a claimed bar's live venue and
-menu. Detailed product and commercial reasoning for the B2B suite lives in
+verification and menu publishing, and `/v/<handle>` renders a claimed bar's
+live venue and menu, its drinks as numbered pins on the map. (A menu audit
+page was cut: a bar's pins show its spread at a glance.) Detailed product and commercial reasoning for the B2B suite lives in
 `docs/venues.md`.
 
 **Menu capture is the same corpus from the other end.** A patron photographing

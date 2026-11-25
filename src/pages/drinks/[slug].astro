@@ -3,7 +3,8 @@ import { getCollection, render } from 'astro:content';
 import type { GetStaticPaths } from 'astro';
 import MapPage from '../../layouts/MapPage.astro';
 import { PalateMap } from '../../components/app/PalateMap';
-import { CardHead, CardTitle } from '../../components/app/MapScreen';
+import { CardHead } from '../../components/app/MapScreen';
+import { ScreenHeader } from '../../components/app/ui';
 import OnTheRecord from '../../components/marketing/OnTheRecord.astro';
 import Readout from '../../components/marketing/Readout.astro';
 import { formatCoordinate } from '../../lib/coordinate';
@@ -87,7 +88,7 @@ const recipeJsonLd = {
   </CardHead>
 
   <article>
-    <CardTitle title={d.title} lede={d.summary}>
+    <ScreenHeader title={d.title} gloss={d.summary}>
       {
         drink && quadrant && (
           <Readout
@@ -98,7 +99,7 @@ const recipeJsonLd = {
           />
         )
       }
-    </CardTitle>
+    </ScreenHeader>
 
     <!-- Compare to your palate: the card's one action, for a member and a stranger alike -->
     {

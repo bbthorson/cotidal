@@ -6,9 +6,9 @@ is about the code.
 
 ## Rendering: keep the front door static
 
-Every page is one of two templates (`docs/design-system.md`, Two kinds of
-page): the map and its card (`MapScreen`, `MapPage.astro`), or a reading
-column (`AppShell` and `PageTitle`).
+Every page is one template (`docs/design-system.md`, One kind of page): the
+map and its card (`MapScreen`; `MapPage.astro` for a page with no script),
+the app bar (`AppBar`) the card's top and `ScreenHeader` its title.
 `/` is the map with **zero client JavaScript** — a sample palate gaining
 ratings (`sample-palate.ts`, frames from the terrain code, animated in CSS)
 and the card (`MapPage.astro`) — and so is `/p/<handle>`
@@ -30,12 +30,10 @@ landing page included. Astro was being used as a slower Next.js.
   `MapScreen` and `PalateMap` that `/map` hydrates, on the server with no
   directive: one copy of the map, and still no script.
 - Prefer `client:load` over `client:only` so the shell server-renders.
-- A reading page's header runs across its top (`SiteHeader`); a map page's
-  app bar is the top of its card (`AppBar`), since the map has the top of the
-  screen. Both are wordmark · Menu on a phone (the map, the visible reading
-  pages, then the account); from `lg` the header shows the nav inline and the
-  app bar a row of tabs under the account control. Both draw the account from
-  `accountControl` in `site-nav.ts`. `Drinks` (`/drinks`) is `memberOnly` in `site-nav.ts`, so unauthenticated
+- The app bar is the top of every page's card (`AppBar`), since the map has
+  the top of the screen: wordmark · Menu on a phone (the map, the visible
+  reading pages, then the account), and from `lg` a row of tabs under the
+  account control (`accountControl` in `site-nav.ts`). `Drinks` (`/drinks`) is `memberOnly` in `site-nav.ts`, so unauthenticated
   visitors on `/` are not sent there from the header or footer; drink pages stay
   live for SEO/AEO and link back to `/map?drink=<slug>` and `/questions`. On `/map`
   the app bar holds the search in the wordmark's place (`AppBar`'s `search`: a
@@ -206,7 +204,7 @@ it, and `leanings` says your taste in the axes' words in the card's head
 ("crisp and sweet · rich and savory", `taste` in `copy.ts`) — never one
 region's name. Not yet on
 it: the chat tools (`src/lib/mcp/`), `/p/<handle>`, the reveal, share cards
-and coasters, which still read the point and its region
+and the code in Settings, which still read the point and its region
 (`docs/map-first.md`). The dot, the track and `applyPour` are unchanged.
 
 
@@ -320,8 +318,8 @@ on the map with the region washed and its drinks named, and in the card
 under them. Prerendered and script-free. There is no Regions item in the
 navigation (`RegionFilter` marks the active region). Same format as a drink
 (`documented` required, `claimed`, `sources`), one entry per region, and the
-filename is the id — which is a URL: `/drinks`, `/p/<handle>`,
-the chat tools and the region coasters link to it.
+filename is the id — which is a URL: `/drinks`, `/p/<handle>`
+and the chat tools link to it.
 
 The entry holds only prose. Name, axis and gloss come from `quadrants` in
 `copy.ts`; the drinks come from the map; what they share is counted from the
@@ -543,7 +541,8 @@ Open work only; what is built is described above.
    anyone who subscribes to Cotidal's labeler — the first step into the follow
    graph. Waits on working sign-in and enough members to show it to
    (`docs/routes.md` § Friends).
-   **Coasters**: the chart on a coaster, a member's QR code as their profile
+   **Coasters**: a member's code over their map, in Settings (`MapCode`),
+   printed as a coaster; print sizing and the code's look are open
    (`docs/coasters.md`).
 
 Sequencing and the reasoning behind it: `docs/routes.md`.

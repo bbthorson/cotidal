@@ -1,6 +1,6 @@
 ---
-import AppShell from '../layouts/AppShell.astro';
-import PageTitle from '../components/marketing/PageTitle.astro';
+import MapPage from '../layouts/MapPage.astro';
+import { ScreenHeader } from '../components/app/ui';
 import { notFound as copy, site } from '../lib/copy';
 import { questionsHref } from '../lib/site-nav';
 
@@ -8,17 +8,16 @@ import { questionsHref } from '../lib/site-nav';
  * Any address that is not a page. Without this file the host answered with
  * Astro's own dark 404, the one screen that did not look like Cotidal.
  *
- * Prerendered, zero client JavaScript, like the other reading pages.
+ * The map with the tide turning, and a way back in the card. Prerendered,
+ * zero client JavaScript.
  */
 export const prerender = true;
 ---
 
-<AppShell title={`${site.name} — ${copy.title}`} currentPath="/404" width="prose">
-  <article class="space-y-8 py-12 text-center">
-    <PageTitle title={copy.title} lede={copy.lede} />
-    <div class="mx-auto max-w-sm space-y-4">
-      <a href={questionsHref} class="btn btn-primary btn-lg w-full px-8">{copy.cta}</a>
-      <a href="/drinks" class="link-serif inline-block text-ui">{copy.drinks}</a>
-    </div>
-  </article>
-</AppShell>
+<MapPage title={`${site.name} — ${copy.title}`} currentPath="/404" label={copy.title}>
+  <ScreenHeader title={copy.title} gloss={copy.lede} />
+  <div class="space-y-4 pt-6 text-center">
+    <a href={questionsHref} class="btn btn-primary btn-lg w-full">{copy.cta}</a>
+    <a href="/drinks" class="link-serif inline-block text-ui">{copy.drinks}</a>
+  </div>
+</MapPage>
