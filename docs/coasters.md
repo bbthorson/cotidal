@@ -40,8 +40,8 @@ square over the member's map — with the URL and the code in
 a coaster (`[data-print]` in `globals.css`). It needs
 no bar, and it is the Overlap's way into the world.
 
-- A coaster drawn from a member's palate: their map, with the QR code at
-  the centre. (It was the cotidal chart with their region's band filled; a
+- A coaster drawn from a member's palate: their map, their taste as ground,
+  with the QR code at the centre. (It was the cotidal chart with their region's band filled; a
   person is no longer given a region.)
 - **The QR code is their profile.** It encodes the public URL of their map,
   so one code is both the thing you print and the way someone sees who you
@@ -64,9 +64,9 @@ no bar, and it is the Overlap's way into the world.
 
 Decided:
 
-- **The dot goes stale in print.** It moves with every pour; the live page
-  the code opens has it right. Open: whether the printed map should show the
-  terrain (once it is read from records) or a plainer field.
+- **It prints the ground as it is that day.** Taste moves with every pour;
+  the live page the code opens has it right. Open: whether a printed coaster
+  wants a plainer field than the day's terrain.
 - **Members only.** A guest has no DID, so there is nothing permanent for the
   code to point at. Making a coaster is something you keep by signing in.
 - **Opt in.** `/p/<did>` is already public, but a code in someone's hand at a
