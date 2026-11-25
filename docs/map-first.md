@@ -33,7 +33,13 @@ sample bars and pours: https://claude.ai/artifact/HJNpUB2kta14LW3aCZkLj1
    on the tide map. Typing a bar we know nothing about opens an empty tide
    map, "No known menu", and asks for a photo of the menu; once read, its
    drinks appear on the map.
-6. **Zoom can wait.** Labels are placed for what matters, and every drink is
+6. **Your taste is terrain, not a point.** A single point assumes liking
+   falls off evenly in every direction and lives in one place; pours
+   contradict both. The terrain (`src/lib/terrain.ts`) is the expected
+   rating everywhere on the map: the questions lay a first hill, each rated
+   pour raises or lowers the ground around its drink, and two liked parts of
+   the map become two hills. See Your taste as terrain, below.
+7. **Zoom can wait.** Labels are placed for what matters, and every drink is
    reachable through search and the card's lists.
 
 ## Why
@@ -121,6 +127,42 @@ things:
 
 There is no footer and no button bar: the card's head is the cartouche, and
 its body holds every action.
+
+## Your taste as terrain
+
+Measured on the app's own code (`applyPour`): someone the quiz put near the
+middle who rates ten drinks 9, half in the Deep and half in the Surf, ends at
+about (0.7, 0.0). Their nearest drinks are Hazy IPA and Hefeweizen; every
+drink they rated 9 is 8 to 11 points away; and the shoal narrows as it goes.
+The point is pulled to the middle, where neither part of their taste is.
+
+The terrain fixes that by being a surface. With the same ten pours its two
+hilltops are at (−6.5, −6.5) and (7, 5.5); every drink rated 9 ranks above
+Hazy IPA, and the questions' own hill is still there at (1, 0), at a 7,
+because nothing they rated contradicts it.
+
+**What the map draws.** The ground as contours — the co-range lines of the
+cotidal chart the brand is named for — high ground darker, and fading where
+`sd` says nothing supports it. Your pours on it as now. No dot.
+
+**What a screen says about a drink.** The reason, not a score: "near your
+Negroni (9)" (`evidenceAt`), or, where only the questions speak, "near where
+your answers put you". Which way and how far remain for a drink selected on
+the map, measured from the nearest hilltop.
+
+**Still to decide before it is wired in:**
+
+- **Your region.** "You are in The Surf", the region badge, coasters,
+  comparing with a friend and the chat tools all read one coordinate. With
+  two hilltops, are you in two regions, or the highest one? Until decided,
+  the record's point stays what it is, and the terrain is drawn beside it.
+- **The track.** The way you came becomes the way the ground changed; it
+  needs its own drawing.
+- **Breadth in the questions.** The quiz reads answers that disagree as a
+  noisy answerer; some of that may be broad or two-sided taste, which the
+  terrain can now hold.
+- **Drift.** Old pours count as much as new ones. Taste moves; a pour's
+  weight may need to fade with age.
 
 ## Where a bar's menu comes from
 

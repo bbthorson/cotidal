@@ -145,7 +145,21 @@ replay to both paths step by step. A replay that does not land where you are
 answers `null` and nothing is drawn; change `applyPour` and old tracks stop
 adding up, which is the honest outcome.
 
-### Placement — `src/lib/placement.ts`
+### Terrain — `src/lib/terrain.ts`
+Your taste as ground over the map rather than a point on it: the expected
+rating at every coordinate, by Gaussian-process regression, with the quiz's
+point as a first hill (longer along an axis the quiz was unsure of) and every
+rated pour raising or lowering the ground around its drink. Two liked parts of
+the map are two hills; the point model settles between them, and
+`tests/unit/terrain.test.ts` holds both to that case. Recomputed from the quiz
+answers and the pours, never stored; pour order does not matter. Every height
+carries an `sd`, and `evidenceAt` names the pours behind it, so a screen can
+say "near your Negroni (9)" rather than show a predicted score. The constants
+are uncalibrated, and `LENGTH` stays above placement's 2.9-point error.
+**Not yet wired into any screen**: the menu still ranks by distance from the
+point (`docs/map-first.md`).
+
+
 The first 94 drinks were placed by hand. A wine or beer added since is placed
 by its style: `profile` (body 1–5, residual sugar g/L, structure 0–4 —
 tannin or hop bitterness) through `placeStyle`, whose coefficients are a
