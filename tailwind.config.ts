@@ -53,6 +53,10 @@ export default {
         // below, so its offset shadow shows rather than running off the window.
         sheet: 'calc(100dvh - 4rem)',
       },
+      transitionProperty: {
+        // The map's card on a phone, pulled up over the map and let down again.
+        height: 'height',
+      },
       borderWidth: {
         // The active tab's top rule
         '3': '3px',

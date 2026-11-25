@@ -2,7 +2,6 @@
 import Base from './Base.astro';
 import SiteHeader from '../components/marketing/SiteHeader.astro';
 import SiteFooter from '../components/marketing/SiteFooter.astro';
-import AppBar from '../components/marketing/AppBar.astro';
 import { accountFor } from '../lib/atproto/session';
 import { a11y } from '../lib/copy';
 
@@ -15,12 +14,11 @@ interface Props {
   backLink?: { href: string; label: string };
   width?: 'prose' | 'standard' | 'wide' | 'frame';
   /**
-   * An app page (Compass, Your map, Settings): Compass · Your map is pinned to
-   * the bottom of a phone (`AppBar`). Below `lg` the
-   * footer is left out there: it repeats the header's Menu, and with the bar
-   * it was a screen of padding under the content. The content clears the bar.
+   * The app screen, the map: the header (with the search in it) and the
+   * screen fill the window exactly, edge to edge, and nothing scrolls but the
+   * screen's own card. No footer: the reading pages are in the header.
    */
-  bottomBar?: boolean;
+  app?: boolean;
   /**
    * The header and the content fill the first screen exactly (100dvh, the
    * viewport less a phone browser's own bars), and the footer starts below
@@ -30,7 +28,7 @@ interface Props {
   fill?: boolean;
 }
 
-const { title, description, image, currentPath, backLink, width = 'standard', bottomBar = false, fill = false } = Astro.props;
+const { title, description, image, currentPath, backLink, width = 'standard', app = false, fill = false } = Astro.props;
 
 // Read here once, so every route's header tells the truth about who is signed in.
 const account = await accountFor(Astro.request, Astro.isPrerendered);
@@ -50,12 +48,22 @@ const widthClass = {
 ---
 
 <Base title={title} description={description} image={image}>
+  {app ? (
+    <div class="bar-texture flex h-dvh flex-col overflow-hidden bg-background text-foreground">
+      <div data-site-chrome class="mx-auto w-full max-w-5xl shrink-0 px-4 pt-3 md:px-6">
+        <SiteHeader currentPath={currentPath} account={account} search />
+      </div>
+      <div class="flex min-h-0 flex-1 flex-col">
+        <slot />
+      </div>
+    </div>
+  ) : (
   <div class:list={['bar-texture min-h-dvh bg-background text-foreground', fill && 'flex flex-col']}>
     <div data-site-chrome class:list={['mx-auto w-full max-w-5xl px-6', fill ? 'pt-4 md:pt-8' : 'pt-5 md:pt-14']}>
       <SiteHeader currentPath={currentPath} account={account} />
     </div>
 
-    <div class:list={['mx-auto w-full px-6', widthClass, bottomBar && 'pb-tabbar lg:pb-0', fill && 'flex flex-1 flex-col']}>
+    <div class:list={['mx-auto w-full px-6', widthClass, fill && 'flex flex-1 flex-col']}>
       {backLink && (
         <nav aria-label={a11y.breadcrumb} class="pt-6">
           <a
@@ -74,12 +82,10 @@ const widthClass = {
       class:list={[
         'mx-auto w-full max-w-5xl px-6',
         fill ? 'pt-3 pb-4 md:pt-4 md:pb-6' : 'pt-16 pb-10 md:pb-14',
-        bottomBar && 'hidden lg:block',
       ]}
     >
       <SiteFooter currentPath={currentPath} compact={fill} />
     </div>
-
-    {bottomBar && <AppBar currentPath={currentPath} />}
   </div>
+  )}
 </Base>

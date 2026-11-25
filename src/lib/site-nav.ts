@@ -1,4 +1,4 @@
-import { appBar, nav } from './copy';
+import { nav } from './copy';
 import { QUESTIONS_PATH } from './atproto/paths';
 
 /**
@@ -9,19 +9,19 @@ import { QUESTIONS_PATH } from './atproto/paths';
  *
  * `match` is the path prefix that marks an item current.
  *
- * "For Bars" is the supply side, a different product from the drinker's app:
- * it is read from the footer and the landing page, not offered in the header
- * beside Compass and Your map.
+ * The app is one screen, the map. "For Bars" is the supply side, a
+ * different product from the drinker's app: it is read from the footer and
+ * the landing page, not offered in the header.
  *
  * `footer` marks the reading pages the footer lists; `menu` the ones a
- * phone's folded Menu lists under Compass and Your map (the footer is not drawn
- * on a phone's app pages, so Menu is how they are reached there).
+ * phone's folded Menu lists under the map, and the header lists beside the
+ * map's search from `lg` (the map has no footer, so these are how they are
+ * reached from it).
  *
  * There is no Regions item: a region is a filter on the drinks
  * (`/drinks/regions/<id>`), so Drinks is current there too.
  */
 export const destinations = [
-  { href: '/compass', label: nav.compass, match: '/compass', app: true, header: true, menu: false, footer: false },
   { href: '/map', label: nav.map, match: '/map', app: true, header: true, menu: false, footer: false },
   { href: '/drinks', label: nav.register, match: '/drinks', app: false, header: false, menu: true, footer: true },
   { href: '/how-it-works', label: nav.howItWorks, match: '/how-it-works', app: false, header: false, menu: true, footer: true },
@@ -36,16 +36,10 @@ export const signIn = { href: '/sign-in', label: nav.signIn } as const;
  * back to the landing page's form; the island reads `?signin=1`. Everywhere
  * else the static form is the target, so it keeps working without JavaScript.
  */
-const sheetPaths = ['/compass', '/map', QUESTIONS_PATH];
+const sheetPaths = ['/map', QUESTIONS_PATH];
 
 export const signInHref = (currentPath: string) =>
   sheetPaths.some((p) => currentPath.startsWith(p)) ? `${currentPath}?signin=1` : signIn.href;
-
-/** The bar along the foot of the app on a phone (`AppBar.astro`). */
-export const appDestinations = [
-  { href: '/compass', label: appBar.compass, match: '/compass' },
-  { href: '/map', label: appBar.map, match: '/map' },
-] as const;
 
 /** The questions that place a coordinate (`startOverPath` clears the old one first). */
 export const questionsHref = QUESTIONS_PATH;

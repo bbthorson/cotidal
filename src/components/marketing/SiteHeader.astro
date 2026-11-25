@@ -1,15 +1,22 @@
 ---
 import Monogram from './Monogram.astro';
-import { a11y, account as accountCopy, site, nav } from '../../lib/copy';
+import { a11y, account as accountCopy, compass, site, nav } from '../../lib/copy';
 import { destinations, signIn, signInHref, isCurrent, accountHref } from '../../lib/site-nav';
 import type { Account } from '../../lib/atproto/session';
 
 interface Props {
   currentPath?: string;
   account: Account;
+  /**
+   * The map's search, in the header: a plain GET form to `/map?q=` that works
+   * with script off, which the map's island takes over once it is up
+   * (`SearchBox.tsx`, by the id `app-search`). Only on the map.
+   */
+  search?: boolean;
 }
 
-const { currentPath = '/', account } = Astro.props;
+const { currentPath = '/', account, search = false } = Astro.props;
+const query = search ? (Astro.url.searchParams.get('q') ?? '') : '';
 
 /**
  * The account control says what the server knows. A member sees their handle,
@@ -31,11 +38,10 @@ const control =
 const onAccount = isCurrent(currentPath, accountHref);
 
 /**
- * On a phone the header is wordmark · Menu on every page, app or reading, so
- * it reads the same wherever you are. Menu opens the whole site in three
- * groups: the app (Compass, Your map), the reading pages, and the account last.
- * On an app page the bar along the foot repeats Compass and Your map; that is the
- * one duplication, and it is the one a thumb wants.
+ * On a phone the header is wordmark · Menu on every page, so it reads the
+ * same wherever you are; on the map, the search sits between them and the
+ * wordmark is the mark alone. Menu opens the whole site in three groups: the
+ * map, the reading pages, and the account last.
  *
  * The disclosure is a <details> driving its sibling <nav> through `peer-open`,
  * so it needs no script — `/` must stay free of client JavaScript
@@ -51,16 +57,34 @@ const menuItem =
   'flex min-h-11 items-center justify-between gap-4 border-b border-border font-condensed text-meta uppercase tracking-label transition-colors';
 ---
 
-<header class="border-b border-foreground pb-3.5 lg:pb-4">
+<header class:list={['border-b border-foreground', search ? 'pb-3' : 'pb-3.5 lg:pb-4']}>
   <div class="flex flex-wrap items-center gap-x-0.5 gap-y-2 lg:flex-nowrap lg:gap-x-3">
-    <a href="/" class="group order-1 mr-auto flex items-center gap-2.5 md:gap-3">
+    <a href="/" class:list={['group order-1 flex items-center gap-2.5 md:gap-3', !search && 'mr-auto']}>
       <Monogram class="h-7 w-7 shrink-0 transition-transform group-hover:scale-105 md:h-9 md:w-9" />
-      <div class="whitespace-nowrap leading-none">
+      <div class:list={['whitespace-nowrap leading-none', search && 'hidden md:block']}>
         <span class="block font-serif text-ui font-bold uppercase tracking-wordmark text-foreground md:text-prose">
           {site.name}
         </span>
       </div>
     </a>
+
+    {search && (
+      <div id="app-search" class="order-1 mx-2 flex min-w-0 flex-1 lg:mx-4">
+        <form action="/map" method="get" role="search" class="flex min-h-11 min-w-0 flex-1 items-center border border-foreground bg-card px-2">
+          <label class="flex min-w-0 flex-1">
+            <span class="sr-only">{compass.searchLabel}</span>
+            <input
+              type="search"
+              name="q"
+              value={query}
+              placeholder={compass.placeholder}
+              autocomplete="off"
+              class="min-h-10 w-full min-w-0 border-0 bg-transparent px-1 text-field text-foreground outline-none placeholder:text-muted-foreground"
+            />
+          </label>
+        </form>
+      </div>
+    )}
 
     {/* From `lg`: the account, beside the nav. On a phone it is the folded menu's last row. */}
     <a
@@ -104,14 +128,18 @@ const menuItem =
         );
       })}
 
-      {/* The reading pages, on a phone only: from `lg` they are the footer's. */}
+      {/* The reading pages: on a phone, in Menu; from `lg` they are the footer's, except on the map, which has none. */}
       {reading.map((item) => {
         const active = isCurrent(currentPath, item.match);
         return (
           <a
             href={item.href}
             aria-current={active ? 'page' : undefined}
-            class:list={[menuItem, 'lg:hidden', active ? 'font-bold text-foreground' : 'text-muted-foreground hover:text-foreground']}
+            class:list={[
+              menuItem,
+              search ? 'whitespace-nowrap lg:min-h-0 lg:border-b-0 lg:px-2 lg:py-1.5 lg:text-label' : 'lg:hidden',
+              active ? 'font-bold text-foreground' : 'text-muted-foreground hover:text-foreground',
+            ]}
           >
             {item.label}
           </a>

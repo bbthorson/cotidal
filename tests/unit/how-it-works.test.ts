@@ -3,7 +3,8 @@ import { howItWorks } from '../../src/lib/copy';
 import { MAX_QUESTIONS, MIN_QUESTIONS } from '../../src/lib/belief-state';
 import { MAX_POUR_STEP, applyPour, createInitialPalateState, projectTo2D } from '../../src/lib/palate-state';
 import { drinkDatabase } from '../../src/lib/data';
-import { LIKED_LIFT, RELEVANCE_BAND } from '../../src/lib/scoring';
+import { DISLIKED_AT } from '../../src/lib/scoring';
+import { buildTerrain, drinkHeight, KIN_ACROSS } from '../../src/lib/terrain';
 
 /**
  * /how-it-works explains, in public, how answers and ratings move a
@@ -44,8 +45,13 @@ test('How it works: the rating rules are the ones a pour applies', () => {
 
 test('How it works: the menu is said the way relevanceOf ranks it', () => {
   const menu = howItWorks.sections.find((s) => s.id === 'menu')!.paragraphs.join(' ');
-  expect(RELEVANCE_BAND).toBe(1);
-  expect(menu).toContain('within a point of each other');
-  expect(LIKED_LIFT).toBe(2);
-  expect(menu).toContain('A drink you rated 7 or more last time counts as two points closer');
+  expect(menu).toContain(`Anything you rated ${DISLIKED_AT} or less last time comes off your menu`);
+  // "less again about a different kind of drink"
+  expect(KIN_ACROSS).toBeLessThan(1);
+  expect(menu).toContain('less again about a different kind of drink');
+  // "most about the drink itself and less about its neighbours"
+  const byName = (n: string) => drinkDatabase.find((d) => d.name === n)!;
+  const t = buildTerrain({ x: 0, y: 0 }, [{ drink: { name: 'Negroni' }, rating: { hedonic: 9 } }]);
+  expect(drinkHeight(t, byName('Negroni')).rating).toBeGreaterThan(drinkHeight(t, byName('Bijou')).rating);
+  expect(menu).toContain('A rating says most about the drink itself and less about its neighbours');
 });

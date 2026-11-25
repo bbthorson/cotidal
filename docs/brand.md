@@ -67,10 +67,10 @@ nautical where a plain word allows it.
 
 | Word | Means | |
 |---|---|---|
-| **Compass** | The map and your menu | Which way to go next |
-| **Log** | Yours: coordinate, pours, account | A ship's log is its own record |
-| **Pick a drink** | A bar's menu on Compass (`MenuView`), and the button that opens it | Never *order*: Cotidal is not connected to the bar, and the bartender takes the order |
-| **Rate** | Open the sheet for a drink you had | "Rate this", "Rate a drink", "Rate it". The sheet's button says **Log it**, and **Done** closes it |
+| **Map** | The app: your terrain, every drink, and the card | A chart you read, not a street map |
+| **You lean** | Your taste in the axes' words, one phrase per hill: "crisp and sweet · rich and savory" | Never a region's name for a person: the regions name parts of the map |
+| **Pick a drink** | A bar's menu on the map (`MenuView`), and the offer that opens it | Never *order*: Cotidal is not connected to the bar, and the bartender takes the order |
+| **Rate** | Open rating in the card for a drink you had | "Rate this", "Rate a drink", "Rate it". Its button says **Log it**, and **Done** closes it |
 | **Log** (the record) | Where a rated pour lands | Never *ledger* in the interface |
 | **Sign in / Sign out** | Bluesky sign-in | Plain words: they are navigation |
 | **Your track** | The way your coordinate came, from the questions through each pour | A chart word a reader knows. Not *wake*, not *course* |

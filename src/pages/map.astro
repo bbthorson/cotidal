@@ -1,15 +1,20 @@
 ---
 import AppShell from '../layouts/AppShell.astro';
-import MapScreen from '../components/app/MapScreen';
-import { site, mapPage } from '../lib/copy';
+import Explore from '../components/app/Explore';
+import { site, explore } from '../lib/copy';
 import { loadRegister } from '../lib/register.server';
 import { signInEnabled } from '../lib/atproto/auth';
 import { accountFor } from '../lib/atproto/session';
 
 /**
- * Yours: your map, what your pours add up to, the ledger of what moved you,
- * and the account. `client:load` so the shell server-renders and paints
- * before hydration finishes.
+ * The app, on one screen: your map fixed in place, the search in the header,
+ * and one card for your menu, a bar's menu, a drink, rating a pour and your
+ * pours. The server says whether the reader is a member, so the island knows
+ * where their pours live without asking; `?q=` is the header's search, which
+ * works before the island does.
+ *
+ * `client:load` (not `client:only`) so the shell server-renders and the page
+ * has painted content before hydration finishes.
  */
 export const prerender = false;
 
@@ -17,8 +22,9 @@ const register = await loadRegister();
 const authEnabled = await signInEnabled();
 const account = await accountFor(Astro.request, false);
 const member = account.kind === 'member' ? { did: account.did, handle: account.handle } : null;
+const initialQuery = Astro.url.searchParams.get('q') ?? '';
 ---
 
-<AppShell title={`${site.name} — ${mapPage.title}`} currentPath="/map" width="frame" bottomBar>
-  <MapScreen client:load register={register} signInEnabled={authEnabled} member={member} />
+<AppShell title={`${site.name} — ${explore.title}`} currentPath="/map" app>
+  <Explore client:load register={register} signInEnabled={authEnabled} member={member} initialQuery={initialQuery} />
 </AppShell>

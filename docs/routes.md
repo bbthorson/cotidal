@@ -12,7 +12,7 @@ to keep it with you.* It works because it promises one thing, and the chart is
 allowed to be the one large move on it (`docs/brand.md`, "Bold is one move per
 screen").
 
-"How it goes" names each step by the screen it happens on, in the app bar's
+"How it goes" names each step by where it happens in the app, in the app's own
 words, so the front door and the app describe the same product. The sign-in
 section promises only what a guest does not already have: everything works
 signed out, on the device, so signing in buys the account (any phone), the
@@ -25,19 +25,18 @@ The footer is where routes live until one earns promotion.
 
 ## The screens
 
-The drinker's app is two tabs and a page behind your name; everything else is
-a sheet or a reading page. Your state — where you are, how sure, the way you
-came — is drawn on Your map alone; Compass shows it only through the drinks,
-each with which way it lies from you and how far. Settings holds the account,
-not the palate.
+The drinker's app is one screen, the map, and a page behind your name;
+everything else happens in the map's card or is a reading page
+(`docs/map-first.md`). The map draws your taste as terrain; the card holds
+your menu, a bar's menu, a drink, rating a pour and your pours. Settings
+holds the account, not the palate.
 
 | Screen | What it is for | Reached from |
 |---|---|---|
-| **Compass** (tab) | Choosing: every drink measured from you, search, your menu, a bar's menu, bars near you | App bar, Menu |
-| **Your map** (tab, `/map`) | You: where you are, how sure, the way you came, the pours that moved you | App bar, Menu |
-| **Rating sheet** | One pour, rated | Rate a drink (Your map), Rate this (Compass), a chat's draft link |
+| **The map** (`/map`) | Everything: your terrain, every drink, the search (drinks and bars) in the header, and the card — your menu, a bar's menu pinned on the map, a drink, your pours | The header, Menu, the front door |
+| **Rating** (in the card) | One pour, rated | Rate a drink, Rate this on a drink, a waiting pick, a chat's draft link |
 | **Settings** | The account: sign out, your link, share, assistants, start over | Your handle (header, Menu) |
-| **Your link** (`/p/<handle>`) | What a friend sees; comparing with people you follow, or any handle | Settings, Your map, a link someone sent |
+| **Your link** (`/p/<handle>`) | What a friend sees; comparing with people you follow, or any handle | Settings, the map's card, a link someone sent |
 | **The questions** | Placing the coordinate | The front door, Start over |
 
 Each app screen has one action of its own. Sign out lives on Settings only.

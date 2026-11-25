@@ -1,56 +1,59 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type Dispatch, type SetStateAction } from 'react';
 import { drinkDatabase } from '@/lib/data';
-import { addMenuLine, addMenuLines, rankMenu, type MenuItem } from '@/lib/menu-rank';
+import { addMenuLine, addMenuLines, type MenuItem, type RankedDrink } from '@/lib/menu-rank';
 import { clashingAversions } from '@/lib/ingredient-match';
-import { chart, compass, mcp, menu } from '@/lib/copy';
+import { chart, compass, explore, mcp, menu } from '@/lib/copy';
 import { titleOf, type Register } from '@/lib/register';
-import type { PourRecord } from '@/lib/atproto/records';
 import type { UserProfile } from '@/hooks/useDiscoveryQuiz';
-import type { Venue } from '@/hooks/useCompass';
+import type { Venue } from '@/hooks/useExplore';
 import { questionsHref } from '@/lib/site-nav';
-import { savePick, type DrinkPick } from '@/lib/device-store';
 import { cn } from '@/lib/utils';
-import { DrinkRow } from './Chart';
+import { DrinkRow } from './DrinkRow';
 import { Empty, ScreenHeader } from './ui';
 
 /**
- * A menu, on Compass: a bar's, or one with no bar. Type or paste what they
- * pour (each line is matched to the map, `addMenuLine` / `addMenuLines`), see
- * it ranked for you (`rankMenu`), pick one. Unplaced house cocktails still
- * warn on avoided flavours and hint at close classics when ingredients are
- * present. The pick is kept on the device as a waiting pick (`savePick`).
- * It orders nothing: Cotidal is not connected to the bar.
+ * A bar open on the map, in the card: a bar's menu, or one with no bar. Type
+ * or paste what they pour (each line is matched to the map, `addMenuLine` /
+ * `addMenuLines`) and each placed drink becomes a numbered pin on your map,
+ * ranked for you (`rankMenu`, done by `useExplore` so the map and this list
+ * agree); pick one. Unplaced house cocktails still warn on avoided flavours
+ * and hint at close classics when ingredients are present. The pick is kept
+ * on the device as a waiting pick. It orders nothing: Cotidal is not
+ * connected to the bar.
  */
 export function MenuView({
   venue,
   register,
   profile,
-  pours,
+  items,
+  setItems,
+  typedBar,
+  setTypedBar,
+  ranked,
+  reasonFor,
   onBack,
-  onPicked,
+  onPick,
 }: {
   venue: Venue;
   register: Register;
   profile: UserProfile | null;
-  pours: PourRecord[];
+  items: MenuItem[];
+  setItems: Dispatch<SetStateAction<MenuItem[]>>;
+  /** A menu with no bar to start from can still say which bar it is. */
+  typedBar: string;
+  setTypedBar: (name: string) => void;
+  /** The menu's placed drinks, ranked: the pins on the map, numbered the same. */
+  ranked: RankedDrink[];
+  reasonFor: (drink: RankedDrink['drink']) => string;
   onBack: () => void;
-  onPicked: (pick: DrinkPick) => void;
+  onPick: (drinkName: string) => void;
 }) {
-  const [items, setItems] = useState<MenuItem[]>(() =>
-    venue.initialLines?.length ? addMenuLines([], venue.initialLines.join('\n'), register) : []
-  );
   const [entry, setEntry] = useState('');
   const [pasting, setPasting] = useState(false);
   const [pasteText, setPasteText] = useState('');
-  // A menu with no bar to start from can still say which bar it is.
-  const [typedBar, setTypedBar] = useState('');
   const [choice, setChoice] = useState<string | null>(null);
 
   const bar = (venue.name ?? typedBar).trim() || null;
-  const ranked = useMemo(
-    () => (profile ? rankMenu(items, profile, pours, bar ?? 'Home Pour') : []),
-    [profile, items, pours, bar]
-  );
   const chosen = choice ?? ranked[0]?.drink.name;
   const aversions = useMemo(
     () => ({
@@ -73,21 +76,13 @@ export function MenuView({
   };
 
   const pick = () => {
-    if (!chosen) return;
-    const next: DrinkPick = {
-      drink: chosen,
-      ...(bar ? { bar } : { atHome: true }),
-      ...(bar && venue.at && bar === venue.name ? { at: venue.at } : {}),
-      pickedAt: new Date().toISOString(),
-    };
-    savePick(next);
-    onPicked(next);
+    if (chosen) onPick(chosen);
   };
 
   return (
-    <div className="mx-auto max-w-xl pb-6 pt-6 motion-safe:animate-in motion-safe:fade-in lg:pt-10">
-      <button type="button" onClick={onBack} className="link-caps mb-4 flex min-h-11 items-center text-muted-foreground hover:text-foreground">
-        &larr; {compass.atMenu.back}
+    <div className="pb-6 motion-safe:animate-in motion-safe:fade-in">
+      <button type="button" onClick={onBack} className="link-caps mb-2 flex min-h-11 items-center text-muted-foreground hover:text-foreground">
+        &larr; {explore.backToStart}
       </button>
       <ScreenHeader
         title={venue.name ?? compass.atMenu.homeTitle}
@@ -241,13 +236,12 @@ export function MenuView({
               <h2 className="section-title">{bar ? compass.atMenu.rankedAt(bar) : compass.atMenu.rankedHome}</h2>
               <p className="mb-2 text-meta text-muted-foreground">{compass.atMenu.rankedBody}</p>
               <ol className="border-t border-foreground">
-                {ranked.map(({ drink, distance }, i) => (
+                {ranked.map(({ drink }, i) => (
                   <li key={drink.name} className="border-b border-border">
                     <DrinkRow
                       rank={i + 1}
                       title={titleOf(register, drink.name)}
-                      figure={distance}
-                      figureLabel={chart.farOf(distance)}
+                      note={reasonFor(drink)}
                       selected={chosen === drink.name}
                       onSelect={() => setChoice(drink.name)}
                     />

@@ -3,7 +3,7 @@ import { readPublicVenue } from '@/lib/atproto/venue-read';
 
 /**
  * Public read endpoint for a claimed bar's live AT Protocol venue & menu.
- * Used by Compass (`/compass?venue=<handle>`) to preload a bar's published
+ * Used by the map (`/map?venue=<handle>`) to preload a bar's published
  * menu directly into `MenuView` and rank it for the drinker's coordinate.
  */
 export const GET: APIRoute = async ({ url }) => {

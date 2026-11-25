@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { SIGNED_OUT_PARAM, START_OVER_PARAM, signedOutPath, startOverPath } from '../src/lib/atproto/paths';
-import { a11y, account, compass, menu, nav } from '../src/lib/copy';
+import { a11y, account, coldState, nav, taste } from '../src/lib/copy';
 import { destinations } from '../src/lib/site-nav';
 import { questions } from '../src/lib/discovery-questions';
 
@@ -22,19 +22,19 @@ test('Header: a server-rendered page says Sign in to a guest', async ({ request 
 
 test('Header: a phone gets wordmark · Menu on every page, app or reading', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  for (const path of ['/', '/compass', '/map', '/drinks']) {
+  for (const path of ['/', '/map', '/drinks']) {
     await page.goto(path);
     await expect(page.locator('header summary'), path).toHaveText(nav.menu);
     await expect(page.locator('header summary'), path).toBeVisible();
   }
-  // Menu holds the app, the reading pages a drinker reads, and the account last.
+  // Menu holds the app (the map), the reading pages a drinker reads, and the account last.
   await page.locator('header summary').click();
   const menuNav = page.getByRole('navigation', { name: a11y.mainNav });
-  await expect(menuNav.getByRole('link')).toHaveText([nav.compass, nav.map, nav.register, nav.howItWorks, account.neutral]);
+  await expect(menuNav.getByRole('link')).toHaveText([nav.map, nav.register, nav.howItWorks, account.neutral]);
 });
 
 test('Header: on an app page, Sign in opens the sheet there instead of leaving', async ({ request }) => {
-  for (const path of ['/compass', '/map']) {
+  for (const path of ['/map']) {
     const html = await (await request.get(path)).text();
     const header = html.slice(html.indexOf('<header'), html.indexOf('</header>'));
     expect(header, path).toContain(`href="${path}?signin=1"`);
@@ -49,8 +49,8 @@ test('Header: a prerendered page cannot know who is reading, and says Account', 
   expect(header).not.toContain(nav.signIn);
 });
 
-test('Sign out: the page it lands on forgets the coordinate on this device', async ({ page }) => {
-  await page.goto('/compass');
+test('Sign out: the map it lands on forgets the coordinate on this device', async ({ page }) => {
+  await page.goto('/map');
   await page.evaluate((p) => {
     localStorage.setItem('user_profile', JSON.stringify(p));
     localStorage.setItem('pending_elicitation', '{}');
@@ -59,8 +59,8 @@ test('Sign out: the page it lands on forgets the coordinate on this device', asy
   }, profile);
 
   await page.goto(signedOutPath);
-  // Forgotten, so Compass has no position: it asks for one.
-  await expect(page.getByRole('button', { name: compass.findYours })).toBeVisible();
+  // Forgotten, so the map has no position: the card asks for one.
+  await expect(page.getByRole('link', { name: coldState.quizCta })).toBeVisible();
   // The page is server-rendered, so it shows before the island hydrates
   // and acts on the marker: wait for that, rather than reading once.
   await expect
@@ -70,14 +70,7 @@ test('Sign out: the page it lands on forgets the coordinate on this device', asy
   await expect.poll(() => new URL(page.url()).searchParams.has(SIGNED_OUT_PARAM)).toBe(false);
 });
 
-test('Sign out: any app page forgets the device, not only Compass', async ({ page }) => {
-  await page.goto('/map');
-  await page.evaluate((p) => localStorage.setItem('user_profile', JSON.stringify(p)), profile);
-  await page.goto(`/map?${SIGNED_OUT_PARAM}=1`);
-  await expect.poll(() => page.evaluate(() => localStorage.getItem('user_profile'))).toBeNull();
-});
-
-test('Start over: two steps on Log, and Keep it changes nothing', async ({ page }) => {
+test('Start over: two steps at the foot of the map\'s card, and Keep it changes nothing', async ({ page }) => {
   await page.goto('/map');
   await page.evaluate((p) => localStorage.setItem('user_profile', JSON.stringify(p)), profile);
   await page.goto('/map');
@@ -85,7 +78,7 @@ test('Start over: two steps on Log, and Keep it changes nothing', async ({ page 
   await page.getByRole('button', { name: account.startOver }).click();
   await expect(page.getByText(account.startOverBody)).toBeVisible();
   await page.getByRole('button', { name: account.startOverCancel }).click();
-  await expect(page.getByText(menu.youAreIn)).toBeVisible();
+  await expect(page.getByText(taste.label)).toBeVisible();
   expect(await page.evaluate(() => localStorage.getItem('user_profile'))).not.toBeNull();
 
   await page.getByRole('button', { name: account.startOver }).click();
@@ -96,7 +89,7 @@ test('Start over: two steps on Log, and Keep it changes nothing', async ({ page 
 });
 
 test('Start over: the questions clear the old coordinate and take the marker off the address', async ({ page }) => {
-  await page.goto('/compass');
+  await page.goto('/map');
   await page.evaluate((p) => localStorage.setItem('user_profile', JSON.stringify(p)), profile);
   await page.goto(startOverPath);
   await expect(page.getByText(questions.find((q) => q.id === 'triad_sugar_texture')!.text)).toBeVisible();

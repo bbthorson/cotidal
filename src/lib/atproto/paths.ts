@@ -19,7 +19,7 @@ export function publicMapPath(actor: string): string {
  * clear this device's copy of the coordinate (AtprotoProvider).
  */
 export const SIGNED_OUT_PARAM = 'signed_out';
-export const signedOutPath = `/compass?${SIGNED_OUT_PARAM}=1`;
+export const signedOutPath = `/map?${SIGNED_OUT_PARAM}=1`;
 
 /** The questions, and the marker that makes them start over (from Settings, or the foot of Your map for a guest). */
 export const QUESTIONS_PATH = '/questions';

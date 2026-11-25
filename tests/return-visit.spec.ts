@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { coldState, mapPage, menu, moved, pour, ratePage } from '../src/lib/copy';
+import { coldState, mapPage, moved, pour, ratePage, taste } from '../src/lib/copy';
 
 test('Your map: server-renders the route shell', async ({ page }) => {
   const response = await page.request.get('/map');
@@ -19,9 +19,9 @@ test('Rate: a guest logs a pour, sees the coordinate move, then the ledger', asy
   await expect(page.getByText(coldState.body)).toBeVisible();
   await page.getByRole('button', { name: coldState.guestCta }).click();
 
-  // Trying a pour as a guest opens the rating sheet over Log: the one pour form.
+  // Trying a pour as a guest opens rating in the map's card: the one pour form.
   await expect(page).toHaveURL(/\/map$/);
-  const sheet = page.getByRole('dialog', { name: ratePage.title });
+  const sheet = page.getByRole('region', { name: ratePage.title });
   await expect(sheet.getByRole('heading', { name: ratePage.heading })).toBeVisible();
 
   const where = page.getByRole('group', { name: pour.whereLabel });
@@ -42,9 +42,9 @@ test('Rate: a guest logs a pour, sees the coordinate move, then the ledger', asy
   await page.getByRole('button', { name: moved.back }).click();
   await expect(sheet).toHaveCount(0);
 
-  // Back on Log: where you are now, and the pour in the ledger.
+  // Back to where to next: your taste in words, and the pour in the ledger.
   await expect(page).toHaveURL(/\/map$/);
-  await expect(page.getByText(menu.youAreIn)).toBeVisible();
+  await expect(page.getByText(taste.label)).toBeVisible();
   await expect(page.getByRole('heading', { name: mapPage.ledgerTitle, exact: true })).toBeVisible();
   const ledger = page.locator('ol').filter({ hasText: 'Too sweet' });
   await expect(ledger).toContainText(pour.home);
