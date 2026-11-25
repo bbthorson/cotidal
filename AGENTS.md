@@ -20,10 +20,13 @@ landing page included. Astro was being used as a slower Next.js.
 - Prefer `.astro` for anything without state. Reach for an island only when
   something genuinely needs to be interactive, and scope it tightly.
 - Prefer `client:load` over `client:only` so the shell server-renders.
-- The header's account control is server truth: `@handle` (opening `/settings`)
-  and a Sign out form for a member, Sign in for a guest, a neutral Account
-  link on a prerendered page that cannot know. Full account management lives
-  on `/settings`; `/log` keeps only a quiet foot strip.
+- The header is the same on every page: wordmark · Menu on a phone (Compass,
+  Log, the reading pages, then the account), the tabs and the account control
+  from `lg`. The account control is server truth: `@handle` (opening
+  `/settings`) for a member, Sign in for a guest, a neutral Account on a
+  prerendered page that cannot know. Signing out is on `/settings` alone,
+  never in the header; `/log` carries no account strip (a guest's Start over
+  sits at its foot, since a guest has no Settings).
   Signing out lands on `/compass?signed_out=1`,
   where `AtprotoProvider` — every island mounts it — clears the device's
   copy of the palate while leaving remembered account cards for one-tap return.

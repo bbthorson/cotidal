@@ -1,24 +1,23 @@
 import { test, expect } from '@playwright/test';
-import { appBar, coldState, compass, logPage, menu, moved, pour, ratePage } from '../src/lib/copy';
+import { a11y, appBar, coldState, logPage, menu, moved, pour, ratePage } from '../src/lib/copy';
 
 const profile = { x: 4, y: -2, dislikesSmoke: false, dislikesBitter: false, dislikesAnise: false, vibeTags: {} };
 
-test('App bar: Compass · Log, and picking a drink is a button, not a tab', async ({ page }) => {
+test('App bar: Compass · Log, and Log has one action of its own', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/compass');
   const bar = page.getByRole('navigation', { name: appBar.label });
   await expect(bar.getByRole('link')).toHaveText([appBar.compass, appBar.log]);
   await expect(bar.getByRole('link', { name: appBar.compass })).toHaveAttribute('aria-current', 'page');
-  // Compass has its own entry to a menu, so the floating button is not drawn there.
-  await expect(page.getByRole('link', { name: appBar.pick, exact: true })).toHaveCount(0);
 
-  // The app bar is a phone's navigation here: no Menu repeating it in the header.
-  await expect(page.locator('header summary')).toBeHidden();
+  // The header is the same on an app page as on a reading page: wordmark · Menu.
+  await expect(page.locator('header summary')).toBeVisible();
 
-  // On Log, once there is a coordinate to rank around, it opens Compass on a menu.
+  // Log's one action is rating; choosing a drink is the Compass tab's.
   await page.evaluate((p) => localStorage.setItem('user_profile', JSON.stringify(p)), profile);
   await page.goto('/log');
-  await expect(page.getByRole('link', { name: appBar.pick, exact: true })).toHaveAttribute('href', '/compass?menu=1');
+  await expect(page.getByRole('button', { name: logPage.rateDrink })).toHaveCount(1);
+  await expect(page.locator('.btn-primary:visible')).toHaveCount(1);
 });
 
 test('Log: a guest’s pour is kept on the device', async ({ page }) => {
@@ -84,30 +83,14 @@ test('Log: your track, and what each pour did to it', async ({ page }) => {
   await expect(log.getByRole('listitem').nth(1)).toContainText(/Moved \d/);
   await expect(log.getByRole('listitem').last()).toContainText(logPage.startedCentre);
 
-  // On desktop, SiteFooter carries the reading pages so Log's mobile reading nav stays hidden.
-  await expect(page.getByRole('navigation', { name: logPage.readingLabel })).toHaveCount(0);
+  // A guest can compare nothing (the distance needs a map on an account), so it is not offered.
+  await expect(page.getByRole('heading', { name: logPage.compareTitle })).toHaveCount(0);
 
-  // On a phone there is no Menu or SiteFooter on app pages, so the reading pages sit at Log's foot.
+  // On a phone there is no SiteFooter on app pages: the reading pages are in the header's Menu.
   await page.setViewportSize({ width: 390, height: 844 });
-  const reading = page.getByRole('navigation', { name: logPage.readingLabel });
-  await expect(reading.getByRole('link', { name: 'Drinks' })).toHaveAttribute('href', '/drinks');
-});
-
-test('Pick a drink: not offered on a Log with no coordinate, which has its own ways in', async ({ page }) => {
-  await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto('/log');
-  await expect(page.getByRole('button', { name: coldState.guestCta })).toBeVisible();
-  await expect(page.getByRole('link', { name: appBar.pick, exact: true })).toBeHidden();
-});
-
-test('Pick a drink: from Log it opens Compass on a menu with no bar', async ({ page }) => {
-  await page.addInitScript((p) => localStorage.setItem('user_profile', JSON.stringify(p)), profile);
-  await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto('/log');
-  await page.getByRole('link', { name: appBar.pick, exact: true }).click();
-  await expect(page).toHaveURL(/\/compass\?menu=1/);
-  await expect(page.getByLabel(compass.atMenu.addLabel)).toBeVisible();
-  await expect(page.getByLabel(compass.atMenu.barLabel)).toBeVisible();
+  await page.locator('header summary').click();
+  const menuNav = page.getByRole('navigation', { name: a11y.mainNav });
+  await expect(menuNav.getByRole('link', { name: 'Drinks' })).toHaveAttribute('href', '/drinks');
 });
 
 test('Log: where you are sits beside the log on a wide screen, above it on a phone', async ({ page }) => {

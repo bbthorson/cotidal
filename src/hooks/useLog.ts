@@ -7,7 +7,6 @@ import { logPage } from '@/lib/copy';
 import { titleOf, type Register } from '@/lib/register';
 import { logTotals } from '@/lib/pour-history';
 import { distanceRun } from '@/lib/track';
-import { closestDrinks } from '@/lib/drink-search';
 import { usePours } from '@/hooks/usePours';
 import { useProfile } from '@/hooks/useProfile';
 import { useRateSheet } from '@/hooks/useRateSheet';
@@ -20,7 +19,8 @@ const COMPARE_LIMIT = 5;
 /**
  * Everything Log knows and can do, so `LogScreen.tsx` only draws it: your
  * coordinate and region, your track, what your pours add up to, followed
- * friends on Cotidal, friend-handle comparison with live Bluesky typeahead,
+ * friends on Cotidal and (for a member) a handle to compare with, with live
+ * Bluesky typeahead,
  * and the rating sheet.
  */
 export function useLog(register: Register, member: { did: string; handle: string | null } | null) {
@@ -126,9 +126,6 @@ export function useLog(register: Register, member: { did: string; handle: string
   const { track, fromQuiz } = useTrack(isMember, profile, pours);
   const name = (n: string) => titleOf(register, n);
 
-  // The drink closest to you, for the account's "share" line.
-  const nearest = useMemo(() => closestDrinks({ x, y }, 1)[0]?.name ?? '', [x, y]);
-
   const totals = logTotals(history);
   // No figures before the first pour: "Pours 0 · Bars 0" only repeated the
   // log's own empty line under it.
@@ -184,7 +181,6 @@ export function useLog(register: Register, member: { did: string; handle: string
     /** Your track when it adds up (`useTrack`), and what it starts from. */
     track,
     startLabel: fromQuiz ? logPage.started : logPage.startedCentre,
-    nearestName: name(nearest),
     stats,
     tolerances,
   };

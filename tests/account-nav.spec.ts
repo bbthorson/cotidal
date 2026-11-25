@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { SIGNED_OUT_PARAM, START_OVER_PARAM, signedOutPath, startOverPath } from '../src/lib/atproto/paths';
-import { account, compass, menu, nav } from '../src/lib/copy';
+import { a11y, account, compass, menu, nav } from '../src/lib/copy';
 import { destinations } from '../src/lib/site-nav';
 import { questions } from '../src/lib/discovery-questions';
 
@@ -16,7 +16,21 @@ test('Header: a server-rendered page says Sign in to a guest', async ({ request 
   const html = await (await request.get('/')).text();
   const header = html.slice(html.indexOf('<header'), html.indexOf('</header>'));
   expect(header).toContain(nav.signIn);
-  expect(header).not.toContain(nav.signOut);
+  // Signing out is on Settings, never in the header.
+  expect(header).not.toContain('/logout');
+});
+
+test('Header: a phone gets wordmark · Menu on every page, app or reading', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  for (const path of ['/', '/compass', '/log', '/drinks']) {
+    await page.goto(path);
+    await expect(page.locator('header summary'), path).toHaveText(nav.menu);
+    await expect(page.locator('header summary'), path).toBeVisible();
+  }
+  // Menu holds the app, the reading pages a drinker reads, and the account last.
+  await page.locator('header summary').click();
+  const menuNav = page.getByRole('navigation', { name: a11y.mainNav });
+  await expect(menuNav.getByRole('link')).toHaveText([nav.compass, nav.log, nav.register, nav.howItWorks, account.neutral]);
 });
 
 test('Header: on an app page, Sign in opens the sheet there instead of leaving', async ({ request }) => {

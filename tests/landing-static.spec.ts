@@ -164,10 +164,12 @@ test('Navigation: unified header navigation renders on landing, drinks and compa
   expect(compass).toContain('aria-label="Main navigation"');
   expect(compass).toContain('href="/compass"');
 
-  // Drinks is a reading page: the footer carries it, the header does not.
-  for (const html of [landing, register, compass]) {
-    const header = html.slice(html.indexOf('<header'), html.indexOf('</header>'));
-    expect(header).not.toContain('href="/drinks"');
+  // Drinks is a reading page: on a wide screen the footer carries it, not the header
+  // (a phone's Menu lists it, since a phone's app pages have no footer).
+  await page.setViewportSize({ width: 1280, height: 900 });
+  for (const path of ['/', '/drinks', '/compass']) {
+    await page.goto(path);
+    await expect(page.locator('header a[href="/drinks"]'), path).toBeHidden();
   }
 });
 

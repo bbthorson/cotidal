@@ -22,8 +22,9 @@ export const nav = {
   compass: 'Compass',
   register: 'Drinks',
   signIn: 'Sign in',
-  signOut: 'Sign out',
   menu: 'Menu',
+  /** Beside your handle in a phone's Menu: where it goes. */
+  settings: 'Settings',
   footer: 'Site',
   log: 'Log',
   bars: 'For bars',
@@ -31,14 +32,13 @@ export const nav = {
 } as const;
 
 /**
- * The bar along the foot of the app on a phone: navigate, record.
- * Picking a drink is not a place, so it is a button (`PickButton.astro`), not a tab.
+ * The bar along the foot of the app on a phone: choose (Compass), record (Log).
+ * Picking a drink happens on Compass, so it needs no button of its own.
  */
 export const appBar = {
   label: 'App',
   compass: 'Compass',
   log: 'Log',
-  pick: 'Pick a drink',
 } as const;
 
 /**
@@ -136,7 +136,7 @@ export const logPage = {
   /** The way into rating a drink that was not handed over (a pick, "Rate this", a chat's draft). */
   rateDrink: 'Rate a drink',
   ledgerTitle: 'What moved it',
-  ledgerEmpty: 'No pours yet. Pick a drink, rate it, and it lands here.',
+  ledgerEmpty: 'No pours yet. Pick a drink on Compass, rate it, and it lands here.',
   /** The three EKF readings beyond x/y, shown once at least 3 pours have trained them. */
   tolerancesTitle: 'Beyond the chart',
   tolerances: {
@@ -144,7 +144,7 @@ export const logPage = {
     tannin: 'Structure',
     complexity: 'Complexity',
   },
-  /** Quick ATProto friend comparison, shown once you have a coordinate. */
+  /** Comparing with someone: a member's, since the distance needs your own map on your account. */
   compareTitle: 'Compare palates',
   compareHint: 'Type any Bluesky handle to see the distance between your charts.',
   compareLabel: 'Friend’s Bluesky handle',
@@ -154,8 +154,6 @@ export const logPage = {
   /** Bluesky follow-graph intersection on `/log`, shown only when at least one follow has a palate. */
   followsTitle: 'People you follow on the chart',
   followsContrast: (drink: string) => `They’d order ${drink}`,
-  /** The reading pages, at the foot of Log on phones: app pages have no Menu. */
-  readingLabel: 'Read',
 } as const;
 
 /** The rating sheet, over Compass or Log: one pour, rated, and where the coordinate went. */
@@ -191,42 +189,51 @@ export const waitingPick = {
   dismiss: 'Set it aside',
 } as const;
 
-/** The account, at the foot of Log: who you are, and what you can do about it. */
+/**
+ * Starting over, which a guest finds at the foot of Log and a member on
+ * Settings; and the header's word for an account it cannot name.
+ */
 export const account = {
   title: 'Your account',
-  signedInAs: 'Signed in as',
   /** The header's link where the page cannot know who is reading (prerendered). */
   neutral: 'Account',
-  publicMap: 'Your public map',
-  assistants: 'Chat assistants',
-  share: 'Share to your feed',
-  shared: 'Shared',
-  shareFailed: 'That did not go through. Try again.',
   startOver: 'Start over',
   startOverBody:
-    'Retake the questions for a new coordinate. It replaces the one on your account; the pours you have logged stay in your log.',
+    'Retake the questions for a new coordinate. It replaces the one you have; the pours you have logged stay in your log.',
   startOverCta: 'Retake the questions',
   startOverCancel: 'Keep it',
-  signOutTitle: 'Sign out',
-  signOutBody: 'Signing out clears your coordinate from this device. It stays in your account.',
 } as const;
 
 /**
- * `/settings` — a member's account, as one page: who they are signed in as,
- * the chat assistants they have let act as them, and signing out.
+ * `/settings` — a member's account, as one screen of rows: who they are
+ * signed in as (and signing out), their public map, the chat assistants they
+ * have let act as them, and starting over.
  */
 export const settings = {
   title: 'Settings',
-  eyebrow: 'Your account',
-  signedInAs: 'Signed in as',
-  publicMap: 'Your public map',
-  assistantsTitle: 'Connected assistants',
+  signedInAs: 'Signed in with Bluesky as',
+  signOut: 'Sign out',
+  signOutNote: 'Signing out clears your coordinate from this device. It stays in your account, and connected assistants keep working.',
+
+  mapTitle: 'Your map',
+  publicMap: 'Public map',
+  publicMapBody: 'Your coordinate at a link anyone can open. Signed-in visitors see theirs beside it.',
+  open: 'Open',
+  share: 'Share to your feed',
+  shareBody: 'A Bluesky post with your region, the drink nearest you, and the link.',
+  shareCta: 'Share',
+  shared: 'Posted to your feed.',
+  shareFailed: 'That did not go through. Try again.',
+  shareNoMap: 'There is no map on your account to share yet. Answer the questions first.',
+
+  assistantsTitle: 'Chat assistants',
   assistantsLede:
-    'Chat assistants you have let use Cotidal as you. Disconnecting one revokes its access at once; to reconnect, you will have to approve it again.',
+    'Assistants you have let use Cotidal as you. Disconnecting one revokes its access at once; to reconnect, you approve it again.',
   assistantsNone: 'No assistant is connected.',
   howToConnect: 'Connect one',
-  assistantsOff:
-    'Assistants can read your public map at the public address. Connecting one to act as you is not switched on here yet.',
+  /** When member connections are off here: what still works, and where to set it up. */
+  assistantsOff: 'An assistant can read your public map by your handle, with nothing to connect here.',
+  howToSetUp: 'Set one up',
   unnamed: 'An assistant with no name',
   unverified: 'Name given by the assistant',
   verified: (domain: string) => `From ${domain}`,
@@ -238,9 +245,6 @@ export const settings = {
   disconnected:
     'Disconnected. Remove Cotidal from that assistant’s connectors too, or it will ask to connect again.',
   disconnectFailed: 'That did not go through. Try again.',
-  coordinateTitle: 'Your coordinate',
-  signOutTitle: 'Sign out',
-  signOutBody: 'Signing out clears your coordinate from this device. It stays in your account, and connected assistants keep working.',
 } as const;
 
 export const hero = {
@@ -686,7 +690,7 @@ export const howItWorks = {
       paragraphs: [
         'Before you sign in, your coordinate, answers and ratings stay on this device.',
         'Once you sign in, your coordinate, every answer as you gave it and every drink you rate are saved to your own Bluesky account. They’re public there, and they’re yours. Retaking the questions adds a new set beside the old one.',
-        account.signOutBody,
+        'Signing out clears your coordinate from this device. It stays in your account.',
       ],
     },
     {
@@ -1145,13 +1149,10 @@ export const apiErrors = {
   invalidRequest: 'That request was not understood.',
   invalidProfile: 'That coordinate didn’t look right.',
   invalidAnswers: 'Those answers didn’t look right.',
-  invalidDrink: 'That drink name didn’t look right.',
-  invalidRegion: 'That region didn’t look right.',
   invalidPour: 'That pour didn’t look right.',
   unknownAction: 'That request was not understood.',
   publishFailed: 'Couldn’t save your coordinate. Try again.',
   publishAnswersFailed: 'Couldn’t save your answers. Try again.',
-  shareFailed: 'Couldn’t post to Bluesky. Try again.',
   logFailed: 'That pour did not save. Try again.',
 } as const;
 

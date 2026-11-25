@@ -18,7 +18,7 @@ export function ColdState({
   onGuest: () => void;
 }) {
   return (
-    <div data-cold-state className="mx-auto max-w-xl pb-10 pt-6 lg:pt-10">
+    <div className="mx-auto max-w-xl pb-10 pt-6 lg:pt-10">
       <ScreenHeader eyebrow={eyebrow} title={coldState.title} lede={coldState.body} />
       <div className="mt-3 flex flex-col gap-3">
         <a href={questionsHref} className="btn btn-primary btn-lg px-6">

@@ -4,7 +4,6 @@ import { formatCoordinate } from '@/lib/coordinate';
 import { startOverPath } from '@/lib/atproto/paths';
 import type { Register } from '@/lib/register';
 import { neutralProfile } from '@/lib/guest-palate';
-import { destinations } from '@/lib/site-nav';
 import { useLog } from '@/hooks/useLog';
 import { cn } from '@/lib/utils';
 import { AtprotoProvider, useAtprotoContext } from './AtprotoProvider';
@@ -14,13 +13,14 @@ import { PourLedger } from './PourLedger';
 import { WaitingPick } from './WaitingPick';
 import { RateSheet } from './RateSheet';
 import { GuestPrompt, ScreenHeader } from './ui';
-import { AccountSection } from './AccountSection';
+import { StartOver } from './StartOver';
 
 /**
  * Log: yours. Where you are, the track that brought you there, what your
- * pours add up to, the ledger of what moved you, and comparing palates.
- * Full account management lives on `/settings`; Log keeps only a quiet foot
- * strip (public map, share, Settings -> for members; Start over for guests).
+ * pours add up to, the ledger of what moved you, and — for a member —
+ * comparing with someone. Its one action is Rate a drink; choosing one is
+ * Compass's. The account is Settings (your handle, in the header's Menu); a
+ * guest, who has no Settings, finds Start over at the foot.
  *
  * From `lg` the coordinate, track and figures hold the sticky left column
  * while the ledger and compare scroll beside them; on a phone they stack.
@@ -173,144 +173,130 @@ function LogContent({
             />
           </section>
 
-          {/* Consolidated social / comparison band: followed friends + Bluesky handle lookup with typeahead. */}
-          <section className="mt-10">
-            <h2 className="section-title">{logPage.compareTitle}</h2>
-            {follows.length > 0 && (
-              <ul className="mt-1">
-                {follows.map((f) => (
-                  <li key={f.did} className="border-b border-border py-3">
-                    <a href={f.path} className="group block">
-                      <div className="dot-leader">
-                        <span className="font-serif text-prose font-bold text-foreground group-hover:underline group-hover:underline-offset-4">
-                          @{f.handle}
-                        </span>
-                        <span aria-hidden="true" className="leader" />
-                        <span className="shrink-0 font-condensed text-meta text-secondary">{f.region}</span>
-                      </div>
-                      <p className="mt-0.5 text-meta text-muted-foreground">
-                        {f.description}
-                        {f.theirs ? ` · ${logPage.followsContrast(name(f.theirs))}` : ''}
-                      </p>
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            )}
-
-            <form onSubmit={onCompareSubmit} className="mt-4 flex flex-col gap-2">
-              <p className="text-meta text-muted-foreground">{logPage.compareHint}</p>
-              <div className="relative flex gap-2">
-                <label className="flex flex-1 flex-col">
-                  <span className="sr-only">{logPage.compareLabel}</span>
-                  <input
-                    value={compare.query}
-                    onChange={(e) => compare.setQuery(e.target.value)}
-                    onKeyDown={onCompareKeyDown}
-                    onBlur={compare.closeSuggestions}
-                    placeholder={logPage.comparePlaceholder}
-                    autoComplete="off"
-                    autoCapitalize="none"
-                    autoCorrect="off"
-                    spellCheck={false}
-                    inputMode="url"
-                    role="combobox"
-                    aria-autocomplete="list"
-                    aria-expanded={compareOpen}
-                    aria-controls={compareListboxId}
-                    aria-activedescendant={
-                      compareOpen && compare.activeIndex >= 0
-                        ? `${compareListboxId}-opt-${compare.activeIndex}`
-                        : undefined
-                    }
-                    className="field min-h-11"
-                  />
-                </label>
-                <button type="submit" className="btn btn-outline shrink-0 px-4">
-                  {logPage.compareSubmit}
-                </button>
-
-                {compareOpen && (
-                  <ul
-                    id={compareListboxId}
-                    role="listbox"
-                    aria-label={logPage.compareSuggestionsLabel}
-                    onMouseDown={(e) => e.preventDefault()}
-                    className="absolute inset-x-0 top-full z-10 mt-1 max-h-60 overflow-y-auto border border-foreground bg-card shadow-bar"
-                  >
-                    {compare.suggestions.map((suggestion, index) => (
-                      <li
-                        key={suggestion.did}
-                        id={`${compareListboxId}-opt-${index}`}
-                        role="option"
-                        aria-selected={index === compare.activeIndex}
-                        onMouseEnter={() => compare.setActive(index)}
-                        onClick={() => compare.choose(suggestion)}
-                        className={cn(
-                          'flex cursor-pointer items-center gap-3 border-b border-border px-3 py-2.5 last:border-b-0',
-                          index === compare.activeIndex ? 'bg-muted' : 'hover:bg-muted'
-                        )}
-                      >
-                        {suggestion.avatar ? (
-                          <img
-                            src={suggestion.avatar}
-                            alt=""
-                            loading="lazy"
-                            decoding="async"
-                            referrerPolicy="no-referrer"
-                            className="h-8 w-8 shrink-0 rounded-full bg-muted object-cover"
-                          />
-                        ) : (
-                          <span
-                            aria-hidden="true"
-                            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-border bg-muted font-condensed text-meta font-bold uppercase text-foreground"
-                          >
-                            {(suggestion.displayName || suggestion.handle).charAt(0)}
+          {/* Comparing: a member's only, since the distance is measured from your map on your account. */}
+          {isMember && (
+            <section className="mt-10">
+              <h2 className="section-title">{logPage.compareTitle}</h2>
+              {follows.length > 0 && (
+                <ul className="mt-1">
+                  {follows.map((f) => (
+                    <li key={f.did} className="border-b border-border py-3">
+                      <a href={f.path} className="group block">
+                        <div className="dot-leader">
+                          <span className="font-serif text-prose font-bold text-foreground group-hover:underline group-hover:underline-offset-4">
+                            @{f.handle}
                           </span>
-                        )}
-                        <span className="flex min-w-0 flex-1 flex-col">
-                          {suggestion.displayName && (
-                            <span className="truncate font-serif text-ui font-bold text-foreground">
-                              {suggestion.displayName}
+                          <span aria-hidden="true" className="leader" />
+                          <span className="shrink-0 font-condensed text-meta text-secondary">{f.region}</span>
+                        </div>
+                        <p className="mt-0.5 text-meta text-muted-foreground">
+                          {f.description}
+                          {f.theirs ? ` · ${logPage.followsContrast(name(f.theirs))}` : ''}
+                        </p>
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              )}
+
+              <form onSubmit={onCompareSubmit} className="mt-4 flex flex-col gap-2">
+                <p className="text-meta text-muted-foreground">{logPage.compareHint}</p>
+                <div className="relative flex gap-2">
+                  <label className="flex flex-1 flex-col">
+                    <span className="sr-only">{logPage.compareLabel}</span>
+                    <input
+                      value={compare.query}
+                      onChange={(e) => compare.setQuery(e.target.value)}
+                      onKeyDown={onCompareKeyDown}
+                      onBlur={compare.closeSuggestions}
+                      placeholder={logPage.comparePlaceholder}
+                      autoComplete="off"
+                      autoCapitalize="none"
+                      autoCorrect="off"
+                      spellCheck={false}
+                      inputMode="url"
+                      role="combobox"
+                      aria-autocomplete="list"
+                      aria-expanded={compareOpen}
+                      aria-controls={compareListboxId}
+                      aria-activedescendant={
+                        compareOpen && compare.activeIndex >= 0
+                          ? `${compareListboxId}-opt-${compare.activeIndex}`
+                          : undefined
+                      }
+                      className="field min-h-11"
+                    />
+                  </label>
+                  <button type="submit" className="btn btn-outline shrink-0 px-4">
+                    {logPage.compareSubmit}
+                  </button>
+
+                  {compareOpen && (
+                    <ul
+                      id={compareListboxId}
+                      role="listbox"
+                      aria-label={logPage.compareSuggestionsLabel}
+                      onMouseDown={(e) => e.preventDefault()}
+                      className="absolute inset-x-0 top-full z-10 mt-1 max-h-60 overflow-y-auto border border-foreground bg-card shadow-bar"
+                    >
+                      {compare.suggestions.map((suggestion, index) => (
+                        <li
+                          key={suggestion.did}
+                          id={`${compareListboxId}-opt-${index}`}
+                          role="option"
+                          aria-selected={index === compare.activeIndex}
+                          onMouseEnter={() => compare.setActive(index)}
+                          onClick={() => compare.choose(suggestion)}
+                          className={cn(
+                            'flex cursor-pointer items-center gap-3 border-b border-border px-3 py-2.5 last:border-b-0',
+                            index === compare.activeIndex ? 'bg-muted' : 'hover:bg-muted'
+                          )}
+                        >
+                          {suggestion.avatar ? (
+                            <img
+                              src={suggestion.avatar}
+                              alt=""
+                              loading="lazy"
+                              decoding="async"
+                              referrerPolicy="no-referrer"
+                              className="h-8 w-8 shrink-0 rounded-full bg-muted object-cover"
+                            />
+                          ) : (
+                            <span
+                              aria-hidden="true"
+                              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-border bg-muted font-condensed text-meta font-bold uppercase text-foreground"
+                            >
+                              {(suggestion.displayName || suggestion.handle).charAt(0)}
                             </span>
                           )}
-                          <span className="truncate text-meta text-muted-foreground">@{suggestion.handle}</span>
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            </form>
-          </section>
+                          <span className="flex min-w-0 flex-1 flex-col">
+                            {suggestion.displayName && (
+                              <span className="truncate font-serif text-ui font-bold text-foreground">
+                                {suggestion.displayName}
+                              </span>
+                            )}
+                            <span className="truncate text-meta text-muted-foreground">@{suggestion.handle}</span>
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              </form>
+            </section>
+          )}
 
           {/* A guest, once a pour is here to keep: what signing in buys, under the log it would keep. */}
           {!isMember && isEnabled && history.length > 0 && (
             <GuestPrompt className="mt-8" title={logPage.guestTitle} body={logPage.guestBody} onSignIn={openSignIn} />
           )}
 
-          <AccountSection
-            handle={member?.handle ?? null}
-            topName={log.nearestName}
-            regionName={log.region.name}
-            onStartOver={() => window.location.assign(startOverPath)}
-            flush={!isMember && isEnabled && history.length > 0}
-          />
-
-          {/* The reading pages on a phone: app pages hide SiteFooter below lg, so they live here only on phones. */}
-          <nav aria-label={logPage.readingLabel} className="mt-6 flex flex-wrap gap-x-5 border-t border-border pt-2 lg:hidden">
-            {destinations
-              .filter((d) => !d.app)
-              .map((d) => (
-                <a
-                  key={d.href}
-                  href={d.href}
-                  className="link-caps text-muted-foreground hover:text-foreground"
-                >
-                  {d.label}
-                </a>
-              ))}
-          </nav>
+          {!isMember && (
+            <StartOver
+              onConfirm={() => window.location.assign(startOverPath)}
+              flush={isEnabled && history.length > 0}
+            />
+          )}
         </div>
       </div>
       {sheet}

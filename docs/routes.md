@@ -23,6 +23,22 @@ worth building and none of them belongs on `/` as a tile. A front door that
 offers six equal choices has stopped making an argument and become a portal.
 The footer is where routes live until one earns promotion.
 
+## The screens
+
+The drinker's app is two tabs and a page behind your name; everything else is
+a sheet or a reading page.
+
+| Screen | What it is for | Reached from |
+|---|---|---|
+| **Compass** (tab) | Choosing: the chart, search, your menu, a bar's menu, bars near you | App bar, Menu |
+| **Log** (tab) | Recording: where you are, your track, what moved you; compare (members) | App bar, Menu |
+| **Rating sheet** | One pour, rated | Rate a drink (Log), Rate this (Compass), a chat's draft link |
+| **Settings** | The account: sign out, public map, share, assistants, start over | Your handle (header, Menu) |
+| **Your public map** (`/p/<handle>`) | What a friend sees, and comparing with them | Settings, a link someone sent |
+| **The questions** | Placing the coordinate | The front door, Start over |
+
+Each app screen has one action of its own. Sign out lives on Settings only.
+
 ## Destinations and gated actions
 
 The distinction that decides what a stranger can be shown:
