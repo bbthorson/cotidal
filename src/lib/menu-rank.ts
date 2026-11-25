@@ -1,5 +1,5 @@
 import { drinkDatabase, type Drink, type Tolerances, type User } from '@/lib/data';
-import { baseName, matchDrink } from '@/lib/drink-match';
+import { baseName, drinkOf, matchDrink } from '@/lib/drink-match';
 import { splitMenuLine, suggestClosestDrink } from '@/lib/ingredient-match';
 import { byRelevance, relevanceOf, type MinimalDrinkLog, type Relevance } from '@/lib/scoring';
 import { titleOf, type Register } from '@/lib/register';
@@ -96,7 +96,9 @@ export function scoreDrinks(
 /** Pours as the scorer reads them: what was rated, where, and when. */
 export function pourLogs(pours: PourRecord[]): MinimalDrinkLog[] {
   return pours.map((p) => ({
-    drinkName: p.drink.name,
+    // The catalog's name for the drink the pour means, by slug then name: the scorer
+    // compares names, and a pour saved as typed ("margarita") is the Tommy's.
+    drinkName: drinkOf(p.drink)?.name ?? p.drink.name,
     location: p.isHomePour ? 'Home Pour' : p.venue?.entity?.name,
     hedonicScale: p.rating.hedonic,
     createdAt: p.createdAt,

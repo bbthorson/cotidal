@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { MENU_COLLECTION, VENUE_COLLECTION } from './records';
 import { resolvePublicRepo, type PublicActor, type ReadOptions } from './public-read';
-import { matchDrink } from '../drink-match';
+import { drinkOf } from '../drink-match';
 import type { Drink } from '../data';
 
 /** `app.cotidal.venue` is always held at literal rkey `self` in the venue's repo. */
@@ -129,7 +129,7 @@ export async function readPublicVenue(
                 name: item.drink.name,
                 description: item.description ?? null,
                 price: item.price ?? null,
-                placed: matchDrink(item.drink.name),
+                placed: drinkOf(item.drink),
               })),
             })),
           };

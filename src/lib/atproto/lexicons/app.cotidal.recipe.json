@@ -12,9 +12,9 @@
         "properties": {
           "name": { "type": "string", "maxLength": 200, "maxGraphemes": 100 },
           "slug": {
-            "type": "string",
-            "description": "Folk category this belongs to, if any, e.g. `sour`. Unowned.",
-            "maxLength": 64
+            "type": "ref",
+            "ref": "app.cotidal.defs#drinkSlug",
+            "description": "The drink this is a spec of, e.g. `negroni` for a bar's own Negroni. Absent for an original that is not on the map."
           },
           "description": { "type": "string", "maxLength": 2000, "maxGraphemes": 1000 },
           "ingredients": {

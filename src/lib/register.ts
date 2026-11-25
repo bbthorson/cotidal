@@ -17,16 +17,13 @@ export interface RegisterEntry {
 export type Register = Record<string, RegisterEntry>;
 
 /**
- * The catalog key a pour stores as `drink.slug`: the drink's entry in the
- * register (`/drinks/<slug>`), found by the same name join as everything else.
- * `undefined` for a drink the register has no entry for — a slug made up from
- * the name would name a page that does not exist (`daiquiri-classic` for
- * `/drinks/daiquiri`).
+ * The catalog key a pour stores as `drink.slug`: the slug of the drink the
+ * name means ("margarita" is the Tommy's), as every lookup is. Every drink on
+ * the map has one, whether or not the register has written it up;
+ * `undefined` only for a drink the map does not know.
  */
-export function catalogSlug(register: Register, drinkName: string): string | undefined {
-  // By the drink the name means ("margarita" is the Tommy's), as every lookup is.
-  const name = matchDrink(drinkName)?.name;
-  return name ? register[name]?.slug : undefined;
+export function catalogSlug(drinkName: string): string | undefined {
+  return matchDrink(drinkName)?.slug;
 }
 
 /** The printed name for a drink: its register title, or the name it goes by on the map. */

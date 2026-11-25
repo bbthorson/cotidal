@@ -15,6 +15,7 @@ import {
 import { drinkDatabase } from '../../src/lib/data';
 import { compareMaps, nearestDrinks } from '../../src/lib/overlap';
 import type { PublicPalateResult } from '../../src/lib/atproto/public-read';
+import { mcp } from '../../src/lib/copy';
 
 /**
  * `/mcp`: the palate map as tools a chat assistant can call.
@@ -90,6 +91,8 @@ test('MCP: recommendations are nearest first, honour aversions and the type filt
   expect(result.data.drinks).toHaveLength(8);
   const distances = result.data.drinks.map((d) => d.distance);
   expect(distances).toEqual([...distances].sort((a, b) => a - b));
+  // Each says which way it lies, in the app's own words.
+  for (const d of result.data.drinks) expect(d.way).toMatch(/^(right here|(richer|crisper|sweeter|more savory)(, (sweeter|more savory))?)$/);
   for (const d of result.data.drinks) {
     const drink = drinkDatabase.find((x) => x.name === d.name)!;
     expect(drink.type).toBe('Cocktail');
@@ -182,20 +185,39 @@ test('MCP: rankMenu flags avoided flavours and suggests close classics on unplac
   expect(result.data.unplaced[1].closestClassic?.name).toBe('Naked & Famous');
 });
 
-test('MCP: getDrink returns coordinate, flags, tags, and register build', () => {
+test('MCP: getDrink returns coordinate, flags, tags, and register build', async () => {
   const withBuild: ToolContext = {
     ...ctx,
     register: {
       Negroni: { slug: 'negroni', title: 'Negroni', build: 'Gin · Campari · Sweet vermouth' },
     },
   };
-  const found = getDrink('negroni', withBuild);
+  const found = await getDrink('negroni', withBuild);
   expect(found.ok).toBe(true);
   if (!found.ok) return;
   expect(found.data.name).toBe('Negroni');
   expect(found.data.isBitter).toBe(true);
   expect(found.data.build).toBe('Gin · Campari · Sweet vermouth');
-  expect(getDrink('not a real drink', withBuild).ok).toBe(false);
+  expect(found.data.fromThem).toBeUndefined();
+  expect((await getDrink('not a real drink', withBuild)).ok).toBe(false);
+});
+
+test('MCP: getDrink with a handle says how far the drink sits from them, which way, and what they avoid in it', async () => {
+  // "What about an oaky Chardonnay?" — answered from the map, not guessed.
+  const found = await getDrink('Chardonnay (Oaked)', ctx, 'alice.bsky.social');
+  expect(found.ok).toBe(true);
+  if (!found.ok) return;
+  const alice = people['alice.bsky.social'];
+  if (alice.status !== 'ok') throw new Error('fixture');
+  const drink = matchDrink('Chardonnay (Oaked)')!;
+  expect(found.data.fromThem?.handle).toBe('alice.bsky.social');
+  expect(found.data.fromThem?.distance).toBe(Math.round(Math.hypot(drink.x - alice.palate.x, drink.y - alice.palate.y) * 10) / 10);
+  expect(found.data.fromThem?.way).toBe('richer, more savory');
+  // Alice avoids bitter; a bitter drink says so rather than being left out.
+  const negroni = await getDrink('negroni', ctx, 'alice.bsky.social');
+  expect(negroni.ok && negroni.data.fromThem?.avoided).toEqual([mcp.flavours.bitter]);
+  // A handle that does not resolve is an error, not a drink with no distance.
+  expect((await getDrink('negroni', ctx, 'nobody.bsky.social')).ok).toBe(false);
 });
 
 test('MCP: recommendForGroup respects every person’s aversions and returns widestContrast', async () => {

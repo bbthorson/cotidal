@@ -1,6 +1,6 @@
 import { applyPour, createInitialPalateState, fromDynamicRecord, projectTo2D, toDynamicRecord, type PalateState } from './palate-state';
 import { axesFromResponses } from './belief-state';
-import { matchDrink } from './drink-match';
+import { drinkOf } from './drink-match';
 import type { PourRecord } from './atproto/records';
 import type { ElicitationRecord } from './atproto/elicitation-record';
 
@@ -115,7 +115,7 @@ export function replayTrack(
   for (const pour of since) {
     const moved = applyPour(
       state,
-      matchDrink(pour.drink.name) ?? undefined,
+      drinkOf(pour.drink) ?? undefined,
       {
         hedonic: pour.rating.hedonic,
         glmsValence: pour.rating.glmsValence,

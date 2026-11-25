@@ -144,10 +144,13 @@ export function createMcpServer(ctx: ToolContext): McpServer {
     {
       title: t.getDrink.title,
       description: t.getDrink.description,
-      inputSchema: { name: z.string().trim().min(1).max(200).describe(t.getDrink.name) },
-      annotations: { readOnlyHint: true, openWorldHint: false },
+      inputSchema: {
+        name: z.string().trim().min(1).max(200).describe(t.getDrink.name),
+        handle: z.string().trim().min(1).max(256).optional().describe(member ? mcp.memberHandle : t.getDrink.handle),
+      },
+      annotations: readOnly,
     },
-    async ({ name }) => answer(getDrink(name, ctx))
+    async ({ name, handle }) => answer(await getDrink(name, ctx, handle ?? member?.did))
   );
 
   server.registerTool(

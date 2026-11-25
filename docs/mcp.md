@@ -13,9 +13,10 @@ with their handle when signed in, so the address bar holds the address to paste.
 | Tool | Answers |
 |---|---|
 | `get_palate` | Someone's coordinate, region, the flavours they avoid, pours that moved it, the nearest drinks |
-| `recommend_drinks` | The nearest drinks, optionally of one type, leaving out what they avoid |
+| `recommend_drinks` | The nearest drinks, optionally of one type, leaving out what they avoid; each with its distance and which way it lies (`wayTo`, the words the menu uses) |
 | `rank_menu` | A menu's items ordered by distance; avoided flavours flagged and sunk, unknown drinks returned as unplaced |
 | `compare_palates` | Two coordinates: the distance, a drink each would order, one they'd share |
+| `get_drink` | One drink: where it sits, its flags and build; given a handle, how far it is from them, which way, and what in it they avoid |
 | `search_drinks` | A drink someone names → the name the map knows it by |
 | `draft_pour` | A link to `/log` with the pour filled in, for the person to confirm |
 
@@ -25,6 +26,13 @@ the same functions the page draws from (`src/lib/mcp/tools.ts` over
 `overlap.ts`). The assistant on the other end is the only model involved,
 and it only reads results: **a generated sentence may describe a result, never
 produce one** (`docs/generation.md`) holds here too.
+
+A distance is where a drink sits, not a forecast that someone will like it,
+and the server's instructions say so: an assistant asked "what wines would I
+like?" once answered "Cotidal says you'll like dry, high-acid wines", and
+guessed that an oaked Chardonnay was far away because no list it had included
+one. The tools now give it Cotidal's own words for which way a drink lies,
+and `get_drink` with a handle answers for any drink on the map.
 
 `rank_menu` matches a menu item to a drink by its full name or its name
 without the parenthetical (`Daiquiri` → `Daiquiri (Classic)`), and nothing

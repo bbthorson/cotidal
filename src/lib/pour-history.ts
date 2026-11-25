@@ -1,6 +1,6 @@
 import type { PourRecord } from '@/lib/atproto/records';
 import { readGeo } from '@/lib/atproto/location';
-import { matchDrink } from '@/lib/drink-match';
+import { drinkOf } from '@/lib/drink-match';
 import { metresBetween } from '@/lib/osm';
 
 /** Folded for matching: case and accents aside. */
@@ -46,7 +46,7 @@ export function recentBarNames(pours: PourRecord[], limit?: number): string[] {
 export function lastPourByDrink(pours: PourRecord[]): Map<string, PourRecord> {
   const byName = new Map<string, PourRecord>();
   for (const p of pours) {
-    const drink = matchDrink(p.drink.name);
+    const drink = drinkOf(p.drink);
     if (!drink) continue;
     const prev = byName.get(drink.name);
     if (!prev || new Date(p.createdAt) > new Date(prev.createdAt)) byName.set(drink.name, p);

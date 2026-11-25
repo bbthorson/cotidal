@@ -109,7 +109,7 @@ export function buildPour(
     $type: POUR_COLLECTION,
     drink: {
       name: name(drinkName),
-      slug: catalogSlug(register, drinkName),
+      slug: catalogSlug(drinkName),
       baseSpirit,
     },
     venue: isHomePour ? undefined : venueRef(name(finalLocation), venue),

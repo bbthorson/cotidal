@@ -149,7 +149,13 @@ measurements — check them before a drink is written up. Which outside sources
 can supply profiles, names and recipes, and on what terms, is
 `docs/drink-sources.md`; none is called at runtime.
 A drink needs no prose entry to be on the map; without one it has no page and
-nothing links to one (`catalogSlug` is `undefined`).
+nothing links to one. It has a `slug` all the same: every drink in
+`drinkDatabase` carries one, typed beside its coordinate, and that is what a
+pour or a recipe stores (`app.cotidal.defs#drinkSlug`). A stored reference is
+read back through `drinkOf` (`drink-match.ts`): by slug, then by name, so a
+renamed drink keeps its pours. **A slug never changes once a record points at
+it** — while there are no members it may; after, it is as fixed as a printed
+URL.
 
 ### Elicitation — `belief-state.ts`, `question-selector.ts`, `useDiscoveryQuiz.ts`
 `belief-state` holds an exact posterior over the map (a half-point grid)
@@ -212,8 +218,9 @@ quadrant `id` as an anchor (`/drinks#deep`), and each region is also a
 filter (`regionPath`); `tests/landing-static.spec.ts` asserts `/drinks`
 offers every region's filter and that each names its region.
 
-**To add an entry**, create `src/content/drinks/<slug>.md`. The filename is the
-URL. `name` in the frontmatter must match a `name` in `drinkDatabase` exactly —
+**To add an entry**, create `src/content/drinks/<slug>.md`, where `<slug>` is
+the drink's `slug` in `drinkDatabase` (`tests/unit/drink-content.test.ts`
+holds them equal). The filename is the URL. `name` in the frontmatter must match a `name` in `drinkDatabase` exactly —
 including the parenthetical, as in `Daiquiri (Classic)`. `family` is a closed
 enum in `src/content.config.ts`; extend it there before using a new value. Then:
 
