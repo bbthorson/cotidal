@@ -2,7 +2,7 @@
 name: "Hanky Panky"
 title: "Hanky Panky"
 family: "martini"
-summary: "Equal parts London Dry gin and sweet vermouth, spiked with two dashes of Fernet-Branca. Ada Coleman's legendary Savoy American Bar invention."
+summary: "Equal parts London Dry gin and sweet vermouth, with two dashes of Fernet-Branca. A sweet Martini with a bitter, menthol finish."
 build:
   glass: "Coupe or Nick & Nora, chilled"
   method: "Stirred with ice until chilled and strained up."

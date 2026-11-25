@@ -12,13 +12,13 @@ export function ColdState({
   onSignIn,
   onGuest,
 }: {
-  /** The page's own name. */
-  eyebrow: string;
+  /** What the sheet is, where no tab already says it (the rating sheet). */
+  eyebrow?: string;
   onSignIn: () => void;
   onGuest: () => void;
 }) {
   return (
-    <div className="mx-auto max-w-xl pb-10 pt-6 lg:pt-10">
+    <div data-cold-state className="mx-auto max-w-xl pb-10 pt-6 lg:pt-10">
       <ScreenHeader eyebrow={eyebrow} title={coldState.title} lede={coldState.body} />
       <div className="mt-3 flex flex-col gap-3">
         <a href={questionsHref} className="btn btn-primary btn-lg px-6">

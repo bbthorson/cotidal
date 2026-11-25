@@ -36,15 +36,15 @@ export interface Question {
 }
 
 /**
- * `label` is shown as the question's eyebrow and `short` in the quiz's stage
- * row. "Architecture" is internal vocabulary (AGENTS.md), so the interface
+ * `label` is shown as the question's eyebrow. "Architecture" is internal
+ * vocabulary (AGENTS.md), so the interface
  * calls that stage "The Method".
  */
-export const QUESTION_CATEGORIES: { id: QuestionCategory; index: string; label: string; short: string; description: string }[] = [
-  { id: 'palate',       index: '01', label: 'The Palate',       short: 'Palate', description: 'Taste & Chemistry' },
-  { id: 'architecture', index: '02', label: 'The Method',       short: 'Method', description: 'Method, Ice & Texture' },
-  { id: 'ritual',       index: '03', label: 'The Ritual',       short: 'Ritual', description: 'Vessel & Aromatics' },
-  { id: 'occasion',     index: '04', label: 'The Hour',         short: 'Hour',   description: 'Setting & Tempo' },
+export const QUESTION_CATEGORIES: { id: QuestionCategory; index: string; label: string; description: string }[] = [
+  { id: 'palate',       index: '01', label: 'The Palate',       description: 'Taste & Chemistry' },
+  { id: 'architecture', index: '02', label: 'The Method',       description: 'Method, Ice & Texture' },
+  { id: 'ritual',       index: '03', label: 'The Ritual',       description: 'Vessel & Aromatics' },
+  { id: 'occasion',     index: '04', label: 'The Hour',         description: 'Setting & Tempo' },
 ];
 
 export const questions: Question[] = [

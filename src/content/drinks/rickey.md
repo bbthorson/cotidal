@@ -2,7 +2,7 @@
 name: "Rickey"
 title: "Gin Rickey"
 family: "highball"
-summary: "Dry gin, half a fresh lime squeezed and dropped into the glass, and zero sugar, topped with sparkling club soda. An unsweetened, bone-dry highball."
+summary: "Dry gin, half a lime squeezed and dropped into the glass, and club soda. No sugar at all: sour, dry, and cold."
 build:
   glass: "Highball or Collins glass"
   method: "Built in the glass: lime half squeezed over ice and dropped into the glass, gin added, topped with cold club soda, and stirred once."

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { addMenuLine, addMenuLines, rankMenu, scoreDrinks, type MenuItem } from '@/lib/menu-rank';
+import { calculateDistance, RELEVANCE_BAND } from '@/lib/scoring';
 
 const you = { x: 4, y: -2, vibeTags: {} };
 
@@ -40,7 +41,7 @@ describe('rankMenu', () => {
     for (const line of ['Last Word', 'negroni', 'House Special']) items = addMenuLine(items, line, {});
     const ranked = rankMenu(items, you, [], 'Attaboy');
     expect(ranked).toHaveLength(2);
-    expect(ranked[0].score).toBeGreaterThanOrEqual(ranked[1].score);
+    expect(ranked[0].distance).toBeLessThanOrEqual(ranked[1].distance);
   });
 });
 
@@ -55,7 +56,15 @@ describe('your menu', () => {
 
   it('is ranked closest first', () => {
     const scored = scoreDrinks({ x: -4, y: -3, filters: [] }, undefined, []);
-    expect(scored.map((d) => d.score)).toEqual([...scored.map((d) => d.score)].sort((a, b) => b - a));
+    const far = scored.map((d) => d.distance);
+    expect(far).toEqual([...far].sort((a, b) => a - b));
+  });
+
+  it('lets the quiz\'s tags reorder only drinks about as close, never jump a band', () => {
+    const user = { x: -1.4, y: 0, filters: [] };
+    const scored = scoreDrinks(user, { crushable: 5, social: 3, classic: 2, bright: 4 }, []);
+    const bands = scored.map((d) => Math.floor(calculateDistance(user, d) / RELEVANCE_BAND));
+    expect(bands).toEqual([...bands].sort((a, b) => a - b));
   });
 
   it('leaves out what you avoid', () => {

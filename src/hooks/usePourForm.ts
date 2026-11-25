@@ -1,7 +1,7 @@
-import { useState, type SubmitEvent } from 'react';
+import { useEffect, useState, type SubmitEvent } from 'react';
 import { matchDrink } from '@/lib/drink-match';
 import type { AskedIntensity, BaseSpirit, CataNote, Deviation, Glassware } from '@/lib/atproto/vocab';
-import { entryFromFields, type PourEntry } from '@/lib/pour-entry';
+import { entryFromFields, type PourEntry, type PourField } from '@/lib/pour-entry';
 import type { PourDraft } from '@/lib/pour-draft';
 
 /** Add it if absent, take it out if present. */
@@ -32,8 +32,9 @@ export function usePourForm({
 }) {
   const [drinkName, setDrinkName] = useState(draft?.drink ?? initialDrink);
   const [isHomePour, setIsHomePour] = useState(draft?.atHome ?? false);
-  // `null` until tapped, for a draft only: what was said in a chat is not a rating.
-  const [hedonic, setHedonic] = useState<number | null>(draft ? null : 7);
+  // `null` until tapped: a rating is what the drinker said, never a default
+  // (an untouched 7 would pull the coordinate in their name).
+  const [hedonic, setHedonic] = useState<number | null>(null);
   const [deviations, setDeviations] = useState<Deviation[]>(draft?.deviations ?? []);
   const [cata, setCata] = useState<CataNote[]>(draft?.cata ?? []);
   const [note, setNote] = useState(draft?.note ?? '');
@@ -42,7 +43,13 @@ export function usePourForm({
   const [glassware, setGlassware] = useState<Glassware | ''>('');
   const [garnish, setGarnish] = useState('');
   const [intensities, setIntensities] = useState<Partial<Record<AskedIntensity, number>>>({});
-  const [localError, setLocalError] = useState<string | null>(null);
+  // What is missing, and where: shown under that field, which the form focuses.
+  // `attempt` counts tries, so a second tap on Log it focuses the field again.
+  const [missing, setMissing] = useState<{ field: PourField; message: string; attempt: number } | null>(null);
+  // Answering the field takes its message away.
+  useEffect(() => {
+    setMissing(null);
+  }, [drinkName, isHomePour, venue, hedonic]);
 
   const submit = (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -50,8 +57,10 @@ export function usePourForm({
       { drinkName, isHomePour, venue, hedonic, deviations, cata, note, crosspost, baseSpirit, glassware, garnish, intensities },
       isMember
     );
-    if ('error' in result) return setLocalError(result.error);
-    setLocalError(null);
+    if ('error' in result) {
+      return setMissing((prev) => ({ field: result.field, message: result.error, attempt: (prev?.attempt ?? 0) + 1 }));
+    }
+    setMissing(null);
     onSubmit(result.entry);
     setDeviations([]);
     setCata([]);
@@ -89,6 +98,9 @@ export function usePourForm({
     intensities,
     setIntensity: (quality: AskedIntensity, value: number) => setIntensities((prev) => ({ ...prev, [quality]: value })),
     submit,
-    shownError: localError ?? error,
+    /** A missing answer, shown under its field. */
+    missing,
+    /** What the server said, shown under the button. */
+    shownError: error,
   };
 }

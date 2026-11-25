@@ -135,14 +135,29 @@ export function DrinkDot({
   tone = 'paper',
   filled = false,
   label,
+  clear,
 }: {
   x: number;
   y: number;
   tone?: MapTone;
   filled?: boolean;
   label?: string;
+  /**
+   * A point the label must keep clear of — your mark, which a drink that just
+   * pulled you usually sits beside. Its crosshair runs along two lines through
+   * that point, so the corner diagonally away from it is always open: the
+   * label goes there. Where that would run it off the map, it turns the other
+   * way and drops further than the crosshair's arm (28px) instead.
+   */
+  clear?: { x: number; y: number };
 }) {
   const ink = tone === 'ink';
+  const below = clear ? clear.y >= y : false;
+  let leftward = clear ? clear.x > x || (clear.x === x && x > 0) : x > 0;
+  // A label is about a quarter of the map across; past ±5 it would leave the frame.
+  const offEdge = (leftward && x < -5) || (!leftward && x > 5);
+  if (offEdge) leftward = !leftward;
+  const far = !!clear && offEdge;
   return (
     <>
       <span
@@ -160,7 +175,10 @@ export function DrinkDot({
       {label && (
         <span
           className={cn(
-            'absolute translate-x-2 translate-y-1/2 whitespace-nowrap font-condensed text-label tracking-label',
+            'absolute whitespace-nowrap font-condensed text-label tracking-label',
+            // Bottom-anchored at the dot: below shifts it down a line and pads it clear; above pads up.
+            below ? cn('translate-y-full', far ? 'pt-8' : 'pt-1.5') : far ? 'pb-8' : 'pb-1.5',
+            leftward ? '-translate-x-full pr-1.5' : 'pl-1.5',
             ink ? 'text-reveal-foreground' : 'text-foreground'
           )}
           style={at(x, y)}

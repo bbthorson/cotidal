@@ -2,7 +2,7 @@
 name: "Absinthe Drip"
 title: "Absinthe Drip"
 family: "spirit"
-summary: "High-proof verte absinthe slowly louched with ice-cold water over a slotted spoon and sugar cube. The ritualistic Parisian café rite of anise, fennel, and wormwood."
+summary: "Verte absinthe, iced water dripped through a slotted spoon over a sugar cube. The water clouds it and opens the anise, fennel, and wormwood."
 build:
   glass: "Traditional Pontarlier absinthe glass"
   method: "Absinthe poured into reservoir; slotted absinthe spoon placed across the rim with a sugar cube; ice water dripped drop-by-drop until the spirit turns cloudy opalescent (louche) at roughly a 3:1 to 5:1 ratio."

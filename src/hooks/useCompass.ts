@@ -38,7 +38,7 @@ export function useCompass(register: Register, member: { handle: string | null }
   const { pours, reload } = usePours(!!member);
   const history = useMemo(() => pours ?? [], [pours]);
   const lastPour = useMemo(() => lastPourByDrink(history), [history]);
-  const { scored, menu, closeness } = useMenu(user, profile?.vibeTags, history);
+  const { scored, menu, distance } = useMenu(user, profile?.vibeTags, history);
   const nearby = useNearby();
   const { track } = useTrack(!!member, profile, pours);
   // The chart's reading: your menu filled in, or your pours.
@@ -65,7 +65,7 @@ export function useCompass(register: Register, member: { handle: string | null }
   const drinkHits = useMemo(() => searchDrinks(query, scored, register), [query, scored, register]);
   const barHits = searching ? namesMatching(query, bars) : bars;
   const nearHits = searching ? namesMatching(query, nearby.bars) : [];
-  const offerBar = unlistedBar(query, barHits, nearHits);
+  const offerBar = unlistedBar(query, drinkHits.length > 0, barHits, nearHits);
 
   const setQuery = (next: string) => {
     setQueryState(next);
@@ -153,8 +153,9 @@ export function useCompass(register: Register, member: { handle: string | null }
 
     // Your menu, each drink with which way it lies and how far
     menu: menu.map((d) => ({ ...d, way: wayTo(user, d) })),
-    menuNames: menu.map((d) => d.name),
-    closeness,
+    // No position, no menu: the chart fills nothing ranked around a point nobody chose.
+    menuNames: profile ? menu.map((d) => d.name) : [],
+    distance,
     lastPour,
 
     // The chart

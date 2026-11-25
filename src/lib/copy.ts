@@ -46,7 +46,6 @@ export const appBar = {
  * points outward.
  */
 export const compass = {
-  title: 'Compass',
   heading: 'Where to next',
   /** Before you have a position: the chart, one line, and the one way on. */
   startTitle: 'No position yet',
@@ -295,12 +294,10 @@ export const sections = {
 
 export const connect = {
   title: 'Keep your log with you.',
-  /** The sign-in page's lede; concise framing above the form. */
-  lede: 'Everything here works without an account.',
   /** Compact subtitle inside the in-app sheet so the form stays above the fold. */
   sheetLede: 'Your coordinate, pours, and public map — saved in your own Bluesky account.',
-  body:
-    'As a guest, your coordinate and pours stay on this device. Sign in with Bluesky and they’re kept in your own account instead.',
+  /** The sign-in page's lede: what differs, which also says that nothing else does. */
+  lede: 'As a guest, your coordinate and pours stay on this device. Sign in with Bluesky and they’re kept in your own account instead.',
   continueAs: 'Continue on this device',
   continueAsAccount: (name: string) => `Continue as ${name}`,
   forgetAccount: (handle: string) => `Forget @${handle} on this device`,
@@ -325,7 +322,8 @@ export const connect = {
   buys: [
     {
       title: 'On any phone',
-      body: 'Your coordinate and every pour are kept in your own Bluesky account, so they follow you to the next phone, and survive a cleared browser.',
+      // Whose account it is, and that it is public, is "Whose log it is"; this is only the phone.
+      body: 'Your coordinate and every pour follow you to the next phone, and survive a cleared browser.',
     },
     {
       title: 'A map you can send',
@@ -377,8 +375,7 @@ export const chart = {
     { id: 'pours', label: 'Your pours' },
   ],
   findYours: 'Find your coordinate',
-  closeness: 'Closeness',
-  closenessOf: (n: number) => `Closeness ${n}`,
+  howFar: 'How far',
   legendTrack: 'Your track',
   legendShoal: 'Where you probably are',
   /** Which way a drink lies from you, in the axes' own words (`wayTo`). */
@@ -672,7 +669,7 @@ export const howItWorks = {
       id: 'menu',
       title: 'Your menu',
       paragraphs: [
-        'Your menu ranks every drink, mostly by how close it sits to your point. The kinds of drink your answers and liked pours point to count too, along with your last rating of that drink.',
+        'Your menu ranks every drink by how close it sits to your point. Only among drinks within a point of each other do the kinds of drink your answers point to decide the order. A drink you rated 7 or more last time counts as two points closer.',
         'Anything you rated 3 or less last time comes off your menu, and so does any drink with a flavour you avoid.',
       ],
     },
@@ -814,6 +811,14 @@ export const venuePage = {
  * `/p/<handle>` — someone's coordinate at a public URL, and, for a signed-in
  * visitor, theirs beside it. Two dots and the distance between them.
  */
+/** A page that is not there (`src/pages/404.astro`). */
+export const notFound = {
+  title: 'Nothing charted here.',
+  lede: 'That address does not lead to a page. The link may be old, or mistyped.',
+  cta: 'Find your coordinate',
+  drinks: 'or look through every drink',
+} as const;
+
 export const publicMap = {
   eyebrow: 'Public map',
   coordinateLabel: 'Coordinate',

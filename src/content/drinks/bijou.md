@@ -2,7 +2,7 @@
 name: "Bijou"
 title: "Bijou"
 family: "manhattan"
-summary: "Equal parts gin, Green Chartreuse, and sweet vermouth, with orange bitters. A jewel-toned, botanical tour de force uniting diamond, emerald, and ruby."
+summary: "Equal parts gin, Green Chartreuse, and sweet vermouth, with orange bitters. Chartreuse at a third of the glass, so the herbs lead and the gin follows."
 build:
   glass: "Coupe or Nick & Nora, chilled"
   method: "Stirred with ice until freezing cold and properly diluted, strained up."

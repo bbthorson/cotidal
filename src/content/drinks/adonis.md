@@ -2,7 +2,7 @@
 name: "Adonis"
 title: "Adonis"
 family: "aperitivo"
-summary: "Fino or amontillado sherry, sweet Italian vermouth, and orange bitters. A rich, nutty, low-proof sister to the Manhattan."
+summary: "Fino or amontillado sherry, sweet Italian vermouth, and orange bitters. A Manhattan's shape with sherry where the whiskey would be, so it stays low in alcohol."
 build:
   glass: "Coupe or Nick & Nora, chilled"
   method: "Stirred with ice and strained into a chilled coupe."

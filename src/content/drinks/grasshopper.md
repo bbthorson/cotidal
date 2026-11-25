@@ -2,7 +2,7 @@
 name: "Grasshopper"
 title: "Grasshopper"
 family: "dessert"
-summary: "Equal parts green crème de menthe, white crème de cacao, and heavy cream. A vivid jade, mint-chocolate confection born in the French Quarter."
+summary: "Equal parts green crème de menthe, white crème de cacao, and heavy cream. Mint and chocolate in cream: a dessert, and green."
 build:
   glass: "Coupe or cocktail glass, well-chilled"
   method: "Shaken vigorously with ice until frosty and emulsified, double-strained."

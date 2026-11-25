@@ -2,7 +2,7 @@
 name: "Cosmopolitan"
 title: "Cosmopolitan"
 family: "sour"
-summary: "Citron vodka, Cointreau, fresh lime juice, and a splash of cranberry juice. The pink, flamed-orange juggernaut that defined late-century cocktail culture."
+summary: "Citron vodka, Cointreau, fresh lime juice, and a splash of cranberry juice. A vodka sour, pink from the cranberry and tarter than it looks."
 build:
   glass: "Coupe or V-stem martini glass, chilled"
   method: "Shaken vigorously with ice and double-strained."

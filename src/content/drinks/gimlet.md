@@ -2,7 +2,7 @@
 name: "Gimlet (Gin)"
 title: "Gimlet"
 family: "sour"
-summary: "London Dry gin and preserved lime cordial. The British naval anti-scurvy ration elevated into a taut, crystalline, bittersweet sour."
+summary: "London Dry gin and preserved lime cordial. Sweet and sour in one ingredient, so the cordial you choose decides the drink."
 build:
   glass: "Coupe or Nick & Nora, well-chilled"
   method: "Shaken or stirred with ice until thoroughly cold, strained up."

@@ -2,7 +2,7 @@
 name: "Vodka Soda"
 title: "Vodka Soda"
 family: "highball"
-summary: "Vodka, highly carbonated soda water, and fresh lime oil. The ultimate minimalist highball that prioritizes clean dilution and effervescence over flavor."
+summary: "Vodka, soda water, and a squeeze of lime. Cold, dry, and close to flavourless, which is the point."
 build:
   glass: "Highball or Collins glass, packed with clear ice"
   method: "Built in the glass: high-proof neutral spirit poured over dense ice, topped with intensely cold sparkling water, stirred once to integrate without knocking out bubbles."

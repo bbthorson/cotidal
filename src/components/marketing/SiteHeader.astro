@@ -48,6 +48,8 @@ const signOutAction = `${AUTH_BASE_PATH}/logout`;
  * so it needs no script — `/` must stay free of client JavaScript
  * (tests/landing-static.spec.ts). From `lg` up the nav is always shown inline.
  */
+// No tagline under the wordmark: "Every palate has a coordinate." is the
+// landing page's headline, and under the name on every page it only repeated it.
 const controlClass =
   'flex min-h-11 items-center px-1.5 font-condensed text-meta font-semibold uppercase tracking-label transition-colors';
 ---
@@ -62,9 +64,6 @@ const controlClass =
       <div class="whitespace-nowrap leading-none">
         <span class="block font-serif text-ui font-bold uppercase tracking-wordmark text-foreground md:text-prose">
           {site.name}
-        </span>
-        <span class="mt-1 hidden font-condensed text-label uppercase tracking-label text-muted-foreground md:block">
-          {site.tagline}
         </span>
       </div>
     </a>
@@ -127,10 +126,10 @@ const controlClass =
         );
       })}
       {
-        /* On a phone the account is the folded menu's last item: Sign in, your handle, or Account. From `lg` it is the control beside the nav. */
+        /* On a phone the account is the folded menu's last item: Sign in, your handle, or Account. From `lg` it is the control beside the nav. Regular weight: bold here means the page you are on. */
         <a
           href={control.href}
-          class="flex min-h-11 items-center border-b border-border font-condensed text-meta font-semibold uppercase tracking-label text-foreground lg:hidden"
+          class="flex min-h-11 items-center border-b border-border font-condensed text-meta uppercase tracking-label text-foreground lg:hidden"
         >
           <span class:list={['truncate', control.isHandle && 'normal-case tracking-normal']}>{control.label}</span>
         </a>

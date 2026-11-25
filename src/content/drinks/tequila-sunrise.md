@@ -2,7 +2,7 @@
 name: "Tequila Sunrise"
 title: "Tequila Sunrise"
 family: "highball"
-summary: "Blanco tequila, fresh orange juice, and a heavy sink of pomegranate grenadine. The rock-and-roll sunrise gradient that defined 1970s California decadence."
+summary: "Blanco tequila, fresh orange juice, and grenadine sunk to the bottom. Orange juice and tequila, with the grenadine settling into a gradient."
 build:
   glass: "Collins or highball glass, filled with ice"
   method: "Built in the glass: tequila and orange juice stirred over ice; grenadine poured down the inside edge of the glass, settling to the bottom to create the sunrise color gradient."

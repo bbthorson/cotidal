@@ -2,7 +2,7 @@
 name: "Moscow Mule"
 title: "Moscow Mule"
 family: "highball"
-summary: "Vodka, spicy ginger beer, and fresh lime, served freezing cold in a solid copper mug. The mid-century drink that introduced vodka to America."
+summary: "Vodka, ginger beer, and fresh lime, served in a copper mug. The ginger beer is most of the flavour, and the copper makes it cold to hold."
 build:
   glass: "Copper mug (or highball glass), packed with crushed ice"
   method: "Built in the mug: vodka and lime juice poured over crushed ice, topped with ginger beer, and stirred gently."

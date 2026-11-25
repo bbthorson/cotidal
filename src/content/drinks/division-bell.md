@@ -2,7 +2,7 @@
 name: "Division Bell"
 title: "Division Bell"
 family: "sour"
-summary: "Mezcal, Aperol, Maraschino liqueur, and fresh lime juice. A smoky, bitter-cherry riff on the Last Word architecture."
+summary: "Mezcal, Aperol, maraschino liqueur, and fresh lime juice. A Last Word's equal-parts frame, with smoke and bitter orange in place of gin and Chartreuse."
 build:
   glass: "Coupe, chilled"
   method: "Shaken with ice and double-strained."

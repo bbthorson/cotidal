@@ -2,7 +2,7 @@
 name: "Martinez"
 title: "Martinez"
 family: "martini"
-summary: "Old Tom gin, sweet vermouth, Maraschino liqueur, and Boker's or orange bitters. The amber, botanical ancestor linking the Manhattan to the Dry Martini."
+summary: "Old Tom gin, sweet vermouth, maraschino liqueur, and Boker's or orange bitters. Sweet vermouth and cherry over gin: closer to a Manhattan than a Martini."
 build:
   glass: "Coupe or Nick & Nora, chilled"
   method: "Stirred with ice and strained into a chilled glass."

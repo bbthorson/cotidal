@@ -2,7 +2,7 @@
 name: "Bee's Knees"
 title: "Bee's Knees"
 family: "sour"
-summary: "London Dry gin, fresh lemon juice, and wildflower honey syrup. The Prohibition phrase that became a radiant, floral honey sour."
+summary: "London Dry gin, fresh lemon juice, and honey syrup. A gin sour sweetened with honey, which shows up as flowers as much as sugar."
 build:
   glass: "Coupe, chilled"
   method: "Shaken vigorously with ice and double-strained."

@@ -2,7 +2,7 @@
 name: "Millionaire"
 title: "Millionaire"
 family: "sour"
-summary: "Bourbon, Grand Marnier, absinthe, and grenadine, shaken with egg white. An opulent Gilded Age sour layered with orange cognac, anise, and dark pomegranate."
+summary: "Bourbon, Grand Marnier, absinthe, and grenadine, shaken with egg white. A whiskey sour sweetened with orange and pomegranate, with anise at the edge."
 build:
   glass: "Coupe, chilled"
   method: "Dry shaken without ice to emulsify egg white, then shaken hard with ice and double-strained."

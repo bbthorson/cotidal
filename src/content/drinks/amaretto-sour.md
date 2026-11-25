@@ -2,7 +2,7 @@
 name: "Amaretto Sour"
 title: "Amaretto Sour"
 family: "sour"
-summary: "Italian amaretto, cask-strength bourbon, fresh lemon juice, rich simple syrup, and egg white. Jeffrey Morgenthaler's structural rehabilitation of an Italian liqueur icon."
+summary: "Italian amaretto, cask-strength bourbon, fresh lemon juice, rich simple syrup, and egg white. Bourbon added to dry out a sour that amaretto alone makes cloying."
 build:
   glass: "Old Fashioned or rocks glass"
   method: "Dry shaken without ice to emulsify egg white, then shaken hard with ice and strained over fresh rocks."

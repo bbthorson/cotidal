@@ -2,7 +2,7 @@
 name: "Paper Plane"
 title: "Paper Plane"
 family: "sour"
-summary: "Equal parts bourbon, Aperol, Amaro Nonino Quintessentia, and fresh lemon juice. The modern equal-parts masterpiece that launched a thousand amaro riffs."
+summary: "Equal parts bourbon, Aperol, Amaro Nonino, and fresh lemon juice. Bitter, sweet, and sour in even measure, with bourbon underneath."
 build:
   glass: "Coupe, chilled"
   method: "Shaken vigorously with ice and double-strained."

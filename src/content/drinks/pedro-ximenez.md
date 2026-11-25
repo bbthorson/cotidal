@@ -2,7 +2,7 @@
 name: "Pedro Ximénez Sherry"
 title: "Pedro Ximénez"
 family: "fortified-wine"
-summary: "Sun-dried Pedro Ximénez grapes aged in Andalusian soleras. Viscous as warm motor oil, intensely sweet, tasting of black raisins, molasses, espresso, and dark fig."
+summary: "Sun-dried Pedro Ximénez grapes aged in Andalusian soleras. Thick and intensely sweet: raisin, molasses, coffee, and fig."
 build:
   glass: "Sherry copita or small dessert wine glass"
   method: "Served cellar temperature or lightly chilled (54–58°F); coats the glass completely."

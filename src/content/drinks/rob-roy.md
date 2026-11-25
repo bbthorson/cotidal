@@ -2,7 +2,7 @@
 name: "Rob Roy"
 title: "Rob Roy"
 family: "manhattan"
-summary: "Blended Scotch whisky, sweet Italian vermouth, and Angostura bitters. The smoky, malty Manhattan that took the American formula to the Scottish Highlands."
+summary: "Blended Scotch whisky, sweet Italian vermouth, and Angostura bitters. A Manhattan made with Scotch: drier, and a little smoky."
 build:
   glass: "Coupe or Nick & Nora, chilled"
   method: "Stirred thoroughly with ice until properly chilled and diluted, strained up."

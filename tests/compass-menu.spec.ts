@@ -38,11 +38,12 @@ test('Compass menu: a menu with a bar, ranked, picked — then the pick waits an
 
   // Ranked, closest first; the unplaced line is not ranked.
   await expect(page.getByRole('heading', { name: compass.atMenu.rankedAt('Attaboy') })).toBeVisible();
-  const scores = await page.getByLabel(/^Closeness \d+$/).evaluateAll((els) => els.map((el) => Number(el.textContent)));
-  expect(scores).toHaveLength(2);
-  expect(scores).toEqual([...scores].sort((a, b) => b - a));
+  // Each says how far it sits from you, as Your menu does: one figure everywhere.
+  const far = await page.getByLabel(/ away$/).evaluateAll((els) => els.map((el) => Number(el.textContent)));
+  expect(far).toHaveLength(2);
+  expect(far).toEqual([...far].sort((a, b) => a - b));
 
-  await page.getByRole('button', { name: /Negroni.*Closeness/ }).click();
+  await page.getByRole('button', { name: /Negroni.* away/ }).click();
   await page.getByRole('button', { name: chart.pickThis }).click();
 
   // Back on Compass, the pick waits, and rating opens the sheet on a draft with no rating in it.

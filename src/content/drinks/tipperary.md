@@ -2,7 +2,7 @@
 name: "Tipperary"
 title: "Tipperary"
 family: "manhattan"
-summary: "Irish whiskey, sweet vermouth, and Green Chartreuse. The herbal, potent green-gold Manhattan that elevated pot-still whiskey into the classic canon."
+summary: "Irish whiskey, sweet vermouth, and Green Chartreuse. A Manhattan with Chartreuse: herbal, sweet, and strong."
 build:
   glass: "Coupe or Nick & Nora, chilled"
   method: "Stirred with ice until chilled and diluted, strained up."

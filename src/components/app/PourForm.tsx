@@ -1,4 +1,4 @@
-import { useId, type ReactNode } from 'react';
+import { useEffect, useId, useRef, type ReactNode } from 'react';
 import { drinkDatabase } from '@/lib/data';
 import {
   ASKED_INTENSITIES,
@@ -63,6 +63,27 @@ export function PourForm({
   const id = useId();
   const f = usePourForm({ draft, initialDrink, isMember, venue, error, onSubmit });
 
+  // A missing answer is said under its field, and the field takes focus, so
+  // the message is where the eye and the thumb already are — not under the button.
+  const drinkRef = useRef<HTMLInputElement>(null);
+  const barRef = useRef<HTMLInputElement>(null);
+  const ratingRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!f.missing) return;
+    const target =
+      f.missing.field === 'drink'
+        ? drinkRef.current
+        : f.missing.field === 'where'
+          ? barRef.current
+          : ratingRef.current?.querySelector<HTMLElement>('[role="radio"]');
+    target?.focus();
+    target?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  }, [f.missing]);
+  const missingAt = (field: 'drink' | 'where' | 'rating') =>
+    f.missing?.field === field ? <FieldError id={`${id}-${field}-missing`}>{f.missing.message}</FieldError> : null;
+  const describedBy = (field: 'drink' | 'where' | 'rating') =>
+    f.missing?.field === field ? `${id}-${field}-missing` : undefined;
+
   return (
     <form onSubmit={f.submit} className="flex flex-col gap-6">
       {draft && (
@@ -75,7 +96,10 @@ export function PourForm({
       <div className="flex flex-col gap-2">
         <FieldLabel htmlFor={`${id}-drink`}>{pour.drinkLabel}</FieldLabel>
         <input
+          ref={drinkRef}
           id={`${id}-drink`}
+          aria-invalid={f.missing?.field === 'drink' || undefined}
+          aria-describedby={describedBy('drink')}
           type="text"
           list={`${id}-catalog`}
           value={f.drinkName}
@@ -84,6 +108,7 @@ export function PourForm({
           autoComplete="off"
           className={inputClass}
         />
+        {missingAt('drink')}
         {f.unlisted && <p className="text-meta text-muted-foreground">{pour.unlisted(f.drinkName.trim())}</p>}
         <datalist id={`${id}-catalog`}>
           {drinkDatabase.map((d) => (
@@ -126,13 +151,17 @@ export function PourForm({
               {pour.barLabel}
             </label>
             <input
+              ref={barRef}
               id={`${id}-bar`}
+              aria-invalid={f.missing?.field === 'where' || undefined}
+              aria-describedby={describedBy('where')}
               type="text"
               value={venue}
               onChange={(e) => onVenueChange(e.target.value)}
               placeholder={pour.barPlaceholder}
               className={inputClass}
             />
+            {missingAt('where')}
             {recentVenues.length > 0 && (
               <div className="flex flex-wrap items-center gap-2">
                 <span className="font-condensed text-label uppercase tracking-label text-muted-foreground">
@@ -160,7 +189,13 @@ export function PourForm({
             {f.hedonic === null ? pour.tapRating : pour.hedonic[f.hedonic - 1]}
           </span>
         </div>
-        <div role="radiogroup" aria-label={pour.ratingLabel} className="segmented grid grid-cols-9">
+        <div
+          ref={ratingRef}
+          role="radiogroup"
+          aria-label={pour.ratingLabel}
+          aria-describedby={describedBy('rating')}
+          className="segmented grid grid-cols-9"
+        >
           {pour.hedonic.map((label, i) => {
             const n = i + 1;
             const active = n === f.hedonic;
@@ -183,6 +218,7 @@ export function PourForm({
           <span>{pour.hedonic[0]}</span>
           <span>{pour.hedonic[8]}</span>
         </div>
+        {missingAt('rating')}
       </div>
 
       {/* What was off: each one moves the coordinate */}
@@ -351,6 +387,14 @@ export function PourForm({
 }
 
 const inputClass = 'field';
+
+function FieldError({ id, children }: { id: string; children: ReactNode }) {
+  return (
+    <p id={id} role="alert" className="text-meta text-destructive">
+      {children}
+    </p>
+  );
+}
 
 function FieldLabel({
   children,

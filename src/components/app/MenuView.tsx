@@ -90,7 +90,6 @@ export function MenuView({
         &larr; {compass.atMenu.back}
       </button>
       <ScreenHeader
-        eyebrow={compass.title}
         title={venue.name ?? compass.atMenu.homeTitle}
         lede={compass.atMenu.body}
       />
@@ -154,9 +153,11 @@ export function MenuView({
             <button
               type="button"
               onClick={() => setPasting(true)}
+              aria-expanded={false}
               className="link-caps mt-2 text-secondary hover:underline hover:underline-offset-4"
             >
-              {compass.atMenu.pasteToggle}
+              {/* "+": it opens here. "→" is for what goes somewhere ("Have a menu? →"). */}
+              {compass.atMenu.pasteToggle} +
             </button>
           ) : (
             <form
@@ -240,13 +241,13 @@ export function MenuView({
               <h2 className="section-title">{bar ? compass.atMenu.rankedAt(bar) : compass.atMenu.rankedHome}</h2>
               <p className="mb-2 text-meta text-muted-foreground">{compass.atMenu.rankedBody}</p>
               <ol className="border-t border-foreground">
-                {ranked.map(({ drink, score }, i) => (
+                {ranked.map(({ drink, distance }, i) => (
                   <li key={drink.name} className="border-b border-border">
                     <DrinkRow
                       rank={i + 1}
                       title={titleOf(register, drink.name)}
-                      figure={score}
-                      figureLabel={chart.closenessOf(score)}
+                      figure={distance}
+                      figureLabel={chart.farOf(distance)}
                       selected={chosen === drink.name}
                       onSelect={() => setChoice(drink.name)}
                     />

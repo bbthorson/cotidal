@@ -2,7 +2,7 @@
 name: "Irish Coffee"
 title: "Irish Coffee"
 family: "dessert"
-summary: "Hot drip coffee, Irish whiskey, brown sugar, and lightly whipped heavy cream. The transatlantic airport warmer that mastered thermal and textural contrast."
+summary: "Hot coffee, Irish whiskey, brown sugar, and lightly whipped cream floated on top. Drunk through the cold cream, so every sip is hot and cold at once."
 build:
   glass: "Irish Coffee stemmed glass or footed mug, pre-warmed"
   method: "Pre-warm glass with hot water and empty; dissolve brown sugar in hot fresh coffee, stir in Irish whiskey, and float cold, lightly whipped cream over the back of a spoon."

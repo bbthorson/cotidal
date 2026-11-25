@@ -1,4 +1,4 @@
-import { chart, compass, logPage, menu } from '@/lib/copy';
+import { chart, compass, menu } from '@/lib/copy';
 import { questionsHref } from '@/lib/site-nav';
 import type { Register } from '@/lib/register';
 import type { BarVisits } from '@/lib/pour-history';
@@ -82,9 +82,9 @@ function CompassContent({
       )}
     >
       {c.hasCoordinate ? (
-        <ScreenHeader eyebrow={compass.title} title={compass.heading} />
+        <ScreenHeader title={compass.heading} />
       ) : (
-        <ScreenHeader eyebrow={compass.title} title={compass.startTitle} lede={compass.startBody} />
+        <ScreenHeader title={compass.startTitle} lede={compass.startBody} />
       )}
       <WaitingPick displayName={c.displayName} version={c.waitingVersion} onRate={(draft) => rate.open({ drink: draft.drink, draft })} />
 
@@ -113,7 +113,6 @@ function CompassContent({
             onSelect={c.chooseDrink}
             register={register}
             onTakeQuiz={() => window.location.assign(questionsHref)}
-            eyebrow={member ? undefined : logPage.guestEyebrow}
             track={c.track}
             bare={!c.hasCoordinate}
           />
@@ -170,8 +169,8 @@ function CompassContent({
                         <li key={d.name} className="border-b border-border">
                           <DrinkRow
                             title={c.displayName(d.name)}
-                            figure={d.score}
-                            figureLabel={chart.closenessOf(d.score)}
+                            figure={d.distance}
+                            figureLabel={chart.farOf(d.distance)}
                             selected={c.selected === d.name}
                             onSelect={() => c.chooseDrink(d.name)}
                           />
@@ -245,7 +244,7 @@ function CompassContent({
         <DrinkCard
           drink={selectedDrink}
           register={register}
-          closeness={c.closeness[selectedDrink.name]}
+          distance={c.distance[selectedDrink.name]}
           last={c.lastPour.get(selectedDrink.name)}
           sameSpot={c.sameSpot}
           onPick={c.setSelected}

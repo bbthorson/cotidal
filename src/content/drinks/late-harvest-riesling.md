@@ -2,7 +2,7 @@
 name: "Late-Harvest Riesling"
 title: "Late-Harvest Riesling"
 family: "wine"
-summary: "Grapes left on the vine well past standard harvest into late autumn (Spätlese / Auslese). Lush, nectar-like honey, ripe apricot, and bracing mineral acidity."
+summary: "Riesling grapes left on the vine into late autumn (Spätlese / Auslese). Honey and ripe apricot, held up by Riesling's acidity."
 build:
   glass: "Standard white wine glass or tulip dessert glass"
   method: "Served cool (48–52°F); allows the dense orchard fruit and honey notes to bloom."

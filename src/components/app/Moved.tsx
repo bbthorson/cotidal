@@ -93,19 +93,20 @@ export function Moved({
       <CoordinateMap tone="ink" you={to} className="mt-7">
         <TraceMark from={from} to={to} tone="ink" />
         <YouMark x={to.x} y={to.y} tone="ink" land label={chart.youNowIn(after.name)} />
-        {drink && <DrinkDot x={drink.x} y={drink.y} tone="ink" filled label={displayName(drink.name)} />}
+        {drink && <DrinkDot x={drink.x} y={drink.y} tone="ink" filled label={displayName(drink.name)} clear={to} />}
       </CoordinateMap>
 
       {rows.length > 0 && (
-      <ul className="mt-4.5 border-t border-reveal-rule">
-        {rows.map((row) => (
-          <li key={row.name} className="dot-leader border-b border-reveal-hairline py-3">
-            <span className="font-serif text-prose font-bold">{row.name}</span>
-            <span aria-hidden="true" className="leader leader-reveal" />
-            <span className="font-condensed text-ui font-semibold tracking-label text-reveal-muted">{row.note}</span>
-          </li>
-        ))}
-      </ul>
+        <ul className="mt-4.5 border-t border-reveal-rule">
+          {rows.map((row) => (
+            <li key={row.name} className="dot-leader border-b border-reveal-hairline py-3">
+              <span className="font-serif text-prose font-bold">{row.name}</span>
+              <span aria-hidden="true" className="leader leader-reveal" />
+              {/* What a reader reads is sentence case in PT Sans; caps are for structure. */}
+              <span className="shrink-0 font-body text-meta text-reveal-muted">{row.note}</span>
+            </li>
+          ))}
+        </ul>
       )}
 
       <button

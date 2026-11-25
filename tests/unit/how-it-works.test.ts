@@ -3,6 +3,7 @@ import { howItWorks } from '../../src/lib/copy';
 import { MAX_QUESTIONS, MIN_QUESTIONS } from '../../src/lib/belief-state';
 import { MAX_POUR_STEP, applyPour, createInitialPalateState, projectTo2D } from '../../src/lib/palate-state';
 import { drinkDatabase } from '../../src/lib/data';
+import { LIKED_LIFT, RELEVANCE_BAND } from '../../src/lib/scoring';
 
 /**
  * /how-it-works explains, in public, how answers and ratings move a
@@ -40,3 +41,11 @@ test('How it works: the rating rules are the ones a pour applies', () => {
   for (const h of [4, 5, 6]) expect(distanceAfter(h), String(h)).toBeCloseTo(start, 9);
 });
 
+
+test('How it works: the menu is said the way relevanceOf ranks it', () => {
+  const menu = howItWorks.sections.find((s) => s.id === 'menu')!.paragraphs.join(' ');
+  expect(RELEVANCE_BAND).toBe(1);
+  expect(menu).toContain('within a point of each other');
+  expect(LIKED_LIFT).toBe(2);
+  expect(menu).toContain('A drink you rated 7 or more last time counts as two points closer');
+});

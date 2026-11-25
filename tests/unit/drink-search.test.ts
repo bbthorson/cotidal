@@ -34,10 +34,16 @@ test('Search: keeps the order it was given', () => {
 test('Bars: by name, case and accents aside; an unlisted name is offered', () => {
   const bars = [{ name: 'Attaboy' }, { name: 'Café Dante' }];
   expect(namesMatching('dante', bars)).toEqual([{ name: 'Café Dante' }]);
-  expect(unlistedBar('cafe dante', bars)).toBeNull();
-  expect(unlistedBar(' Dante ', bars)).toBe('Dante');
-  expect(unlistedBar('', bars)).toBeNull();
-  expect(unlistedBar('Attaboy', [], bars)).toBeNull();
+  expect(unlistedBar('cafe dante', false, bars)).toBeNull();
+  expect(unlistedBar(' Dante ', false, bars)).toBe('Dante');
+  expect(unlistedBar('', false, bars)).toBeNull();
+  expect(unlistedBar('Attaboy', false, [], bars)).toBeNull();
+});
+
+test('Bars: words that found drinks are not offered as a bar', () => {
+  const found = searchDrinks('mezcal', drinkDatabase, {}).length > 0;
+  expect(found).toBe(true);
+  expect(unlistedBar('mezcal', found, [])).toBeNull();
 });
 
 test('Closest drinks: nearest first, ties in the map’s order', () => {

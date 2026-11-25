@@ -2,7 +2,7 @@
 name: "Penicillin"
 title: "Penicillin"
 family: "sour"
-summary: "Blended Scotch, fresh lemon, ginger-honey syrup, and a smoky float of Islay single malt. The modern classic that brought peat into the sour canon."
+summary: "Blended Scotch, fresh lemon, ginger-honey syrup, and a float of Islay single malt. A whisky sour with ginger heat, and peat on the nose before the first sip."
 build:
   glass: "Rocks"
   method: "Blended scotch, lemon juice, and honey-ginger syrup shaken with ice, strained over a large ice cube, and topped with the peated float."

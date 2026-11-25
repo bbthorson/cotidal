@@ -16,7 +16,8 @@ interface RevealProps {
  * The reveal. The one big move: the region's name,
  * then the dot landing on the full square map. It is set on the ink ground —
  * evolution B, used only for reveals — so the warm secret reads differently
- * from the paper instrument around it.
+ * from the paper instrument around it. From `lg` it is a panel under the site
+ * header, sized so "Continue" and "Retake" both sit above a 900px fold.
  */
 export function Reveal({ x, y, onContinue, onRetake }: RevealProps) {
   const region = quadrantFor(x, y);
@@ -30,7 +31,7 @@ export function Reveal({ x, y, onContinue, onRetake }: RevealProps) {
   return (
     <div
       data-focus-mode
-      className="-mx-6 flex min-h-dvh flex-col bg-reveal px-6 pb-8 pt-16 text-reveal-foreground lg:mx-auto lg:my-6 lg:min-h-0 lg:max-w-md lg:pt-12"
+      className="-mx-6 flex min-h-dvh flex-col bg-reveal px-6 pb-8 pt-16 text-reveal-foreground lg:mx-auto lg:my-4 lg:min-h-0 lg:max-w-sm lg:pt-10"
     >
       <div className="flex flex-col gap-2.5">
         <span className="font-condensed text-label font-semibold uppercase tracking-label text-reveal-muted">

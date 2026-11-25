@@ -2,7 +2,7 @@
 name: "Sauvignon Blanc (Sancerre)"
 title: "Sancerre"
 family: "wine"
-summary: "100% Sauvignon Blanc from the eastern Loire Valley. Piercing acidity, flinty minerality (silex), boxwood, and green citrus over fossilized limestone."
+summary: "Sauvignon Blanc from the eastern Loire Valley. High acidity, a flinty edge, boxwood, and green citrus."
 build:
   glass: "Standard white wine glass"
   method: "Served cool (48–52°F), un-oaked, in pristine stemware."

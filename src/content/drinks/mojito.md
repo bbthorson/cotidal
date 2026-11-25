@@ -2,7 +2,7 @@
 name: "Mojito"
 title: "Mojito"
 family: "highball"
-summary: "White rum, muddled fresh spearmint, lime juice, cane sugar, and sparkling soda. Cuba's pastoral cooler that trades citrus sharpness for herbal oils."
+summary: "White rum, muddled spearmint, lime juice, cane sugar, and soda. Long and cold; the mint leads."
 build:
   glass: "Collins or highball glass"
   method: "Mint leaves pressed gently with sugar and lime juice (avoid tearing the leaves), rum added with crushed ice, swizzled, and topped with club soda."

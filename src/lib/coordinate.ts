@@ -1,4 +1,5 @@
 import { quadrantFor } from './quadrant';
+import { axes } from './copy';
 
 /**
  * How a coordinate is written in the interface. x runs Rich (−10) to Crisp
@@ -7,16 +8,23 @@ import { quadrantFor } from './quadrant';
 
 const MINUS = '−';
 
+/** To one decimal, as written: −0.04 is 0.0, not "−0.0". */
+const tenths = (value: number) => Math.round(value * 10) / 10 || 0;
+
 function signed(value: number): string {
-  const abs = Math.abs(value).toFixed(1);
-  if (value < 0) return `${MINUS}${abs}`;
-  if (value > 0) return `+${abs}`;
+  const v = tenths(value);
+  const abs = Math.abs(v).toFixed(1);
+  if (v < 0) return `${MINUS}${abs}`;
+  if (v > 0) return `+${abs}`;
   return abs;
 }
 
 /** "Rich −3.8" — the pole the value leans toward, then the value. */
 export function formatAxis(value: number, axis: 'x' | 'y'): string {
-  const pole = axis === 'x' ? (value < 0 ? 'Rich' : 'Crisp') : value < 0 ? 'Savory' : 'Sweet';
+  const [low, high] = axis === 'x' ? [axes.rich, axes.crisp] : [axes.savory, axes.sweet];
+  const v = tenths(value);
+  // On the axis it leans neither way, so it names both: "Savory–Sweet 0.0", not "Sweet 0.0".
+  const pole = v < 0 ? low : v > 0 ? high : `${low}–${high}`;
   return `${pole} ${signed(value)}`;
 }
 

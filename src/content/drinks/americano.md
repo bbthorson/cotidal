@@ -2,7 +2,7 @@
 name: "Americano (Cocktail)"
 title: "Americano"
 family: "aperitivo"
-summary: "Campari, sweet vermouth, and sparkling club soda. The father of the Negroni and the quintessential Northern Italian low-proof bitter highball."
+summary: "Campari, sweet vermouth, and sparkling club soda. The Negroni's build with soda in place of gin: bitter, long, and low in alcohol."
 build:
   glass: "Collins or rocks glass, packed with ice"
   method: "Built in the glass over ice: equal parts Campari and sweet vermouth, topped with cold club soda, and stirred once gently."

@@ -2,7 +2,7 @@
 name: "Aperol Spritz"
 title: "Aperol Spritz"
 family: "aperitivo"
-summary: "Aperol, Prosecco, and club soda. The bright orange Veneto terrace standard built on bitter orange, gentian, and effervescence."
+summary: "Aperol, Prosecco, and club soda. Bitter orange and gentian, lengthened with wine and bubbles."
 build:
   glass: "Large wine glass, filled with ice"
   method: "Built directly in the glass with ice: Prosecco first, followed by Aperol, topped with a splash of soda to prevent Aperol settling at the bottom."

@@ -119,6 +119,12 @@ function RateDialog({
         <Dialog.Content
           ref={content}
           onPointerDownOutside={(e) => e.preventDefault()}
+          // Focus the sheet itself, not Close: the first thing a tap should see is
+          // the form, without a focus ring on the way out. Tab reaches Close next.
+          onOpenAutoFocus={(e) => {
+            e.preventDefault();
+            content.current?.focus();
+          }}
           onCloseAutoFocus={(e) => {
             e.preventDefault();
             if (opener?.isConnected) opener.focus();
@@ -128,7 +134,7 @@ function RateDialog({
             // The payoff is the reveal ground, full-bleed on a phone; everything else is paper.
             r.reveal
               ? 'inset-0 bg-reveal text-reveal-foreground sm:inset-auto sm:left-1/2 sm:top-1/2 sm:w-full sm:max-w-md sm:-translate-x-1/2 sm:-translate-y-1/2'
-              : 'inset-x-0 bottom-0 border-t border-foreground bg-background px-6 pb-8 pt-3 text-foreground max-sm:data-open:slide-in-from-bottom sm:inset-x-auto sm:bottom-auto sm:left-1/2 sm:top-1/2 sm:w-full sm:max-w-xl sm:-translate-x-1/2 sm:-translate-y-1/2 sm:border sm:pt-4 sm:shadow-mcm'
+              : 'inset-x-0 bottom-0 border-t border-foreground bg-background px-6 pb-8 pt-3 text-foreground max-sm:data-open:slide-in-from-bottom sm:inset-x-auto sm:bottom-auto sm:left-1/2 sm:top-1/2 sm:max-h-sheet sm:w-full sm:max-w-xl sm:-translate-x-1/2 sm:-translate-y-1/2 sm:border sm:pt-4 sm:shadow-mcm'
           )}
         >
           <Dialog.Title className="sr-only">{ratePage.title}</Dialog.Title>

@@ -89,7 +89,11 @@ a string to `copy.ts` before rendering it.
 ### Palate map — `src/lib/data.ts`, `src/components/app/Compass.tsx`
 2D plane. Users and drinks both carry `x` (Rich −10 → Crisp +10) and `y`
 (Savory −10 → Sweet +10). Euclidean distance gives the raw match; `VibeTag`s
-sort within it. The menu is one list ranked by that relevance alone.
+sort within it — only among drinks in the same 1-point band (`relevanceOf`,
+`src/lib/scoring.ts`), so a tag can never carry a drink past a nearer one.
+The menu is one list ranked by that relevance alone, and every screen shows
+a drink's distance, never a score. A weighted sum let tags outweigh several
+points of distance; `tests/unit/relevance-score.test.ts` holds the bands apart.
 
 ### Psychophysical State & EKF — `src/lib/palate-state.ts`
 Models longitudinal taste preference drift via an Extended Kalman Filter (EKF).

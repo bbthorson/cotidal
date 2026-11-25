@@ -2,7 +2,7 @@
 name: "Sauternes"
 title: "Sauternes"
 family: "wine"
-summary: "Sémillon and Sauvignon Blanc transformed by Botrytis cinerea (noble rot) in Bordeaux. Golden amber, viscous, smelling of honeyed apricot, beeswax, saffron, and ginger."
+summary: "Sémillon and Sauvignon Blanc from Bordeaux, concentrated by noble rot (Botrytis cinerea). Golden and viscous: honeyed apricot, beeswax, and saffron."
 build:
   glass: "Dessert wine glass or standard tulip glass"
   method: "Served cellar temperature or lightly chilled (50–54°F); too cold mutes the intricate botrytis aromatics."

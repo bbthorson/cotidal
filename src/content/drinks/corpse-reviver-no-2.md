@@ -2,7 +2,7 @@
 name: "Corpse Reviver No. 2"
 title: "Corpse Reviver No. 2"
 family: "sour"
-summary: "Equal parts gin, Cointreau, Lillet Blanc, and fresh lemon juice, accented with an absinthe rinse. The benchmark equal-parts restorative sour."
+summary: "Equal parts gin, Cointreau, Lillet Blanc, and fresh lemon juice, with an absinthe rinse. The rinse is a few drops, and it is the first thing you smell."
 build:
   glass: "Coupe, chilled and absinthe-rinsed"
   method: "Shaken hard with ice and double-strained into the absinthe-rinsed glass."

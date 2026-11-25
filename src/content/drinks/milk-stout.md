@@ -2,7 +2,7 @@
 name: "Milk Stout"
 title: "Milk Stout"
 family: "beer"
-summary: "Dark, top-fermented stout brewed with unfermentable milk sugar (lactose). Creamy, velvety mouthfeel balancing roasted espresso bitterness with sweetened cream."
+summary: "Dark stout brewed with lactose, a sugar yeast cannot ferment. Roast bitterness with a sweet, creamy body."
 build:
   glass: "Nonic pint glass or snifter"
   method: "Poured cellar-cool (50–54°F) to build a dense, tan, mocha-colored foam head."

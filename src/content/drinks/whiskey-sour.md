@@ -2,7 +2,7 @@
 name: "Whiskey Sour"
 title: "Whiskey Sour"
 family: "sour"
-summary: "Bourbon or rye, fresh lemon juice, and simple syrup, optionally softened with egg white. The archetype of the American sour."
+summary: "Bourbon or rye, fresh lemon juice, and simple syrup, sometimes shaken with egg white. Whiskey, sour, sweet, in that order."
 build:
   glass: "Rocks or coupe"
   method: "Shaken vigorously with ice (or dry shaken first if using egg white) and strained over ice or served up."
