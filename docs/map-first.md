@@ -116,7 +116,12 @@ They combine: `/map?palate=alice.bsky.social&drink=negroni` is where a
 Negroni sits for Alice — how far and which way (`wayTo`), and Where it sits
 for you, which is `/map?drink=negroni`. `/map?palate=` is `/p/<handle>`
 rendered at the map's address (`Astro.rewrite`), so there is one page for
-someone's map; which address is canonical is decided with the merges.
+someone's map. Decided: **the path is canonical** — `/p/<handle>` by their
+verified handle, else their DID — because a person is the thing the card is
+about, and printed codes point at `/p/<did>`. Every page names its plain
+path as canonical (`Base`'s `canonical`): the parameters only change what
+the map draws. A person's link unfurls into the site's card and says how
+they lean, not a region.
 
 Values are checked, never guessed at: a drink through `drinkOf`, a person
 by the protocol's handle and DID syntax; anything else is dropped and the

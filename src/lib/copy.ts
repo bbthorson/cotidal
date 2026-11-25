@@ -919,7 +919,7 @@ export const publicMap = {
   notFoundBody: 'That handle does not resolve to an account.',
   unavailableTitle: 'The record did not answer.',
   unavailableBody: 'Their server did not respond in time. Try again in a moment.',
-  description: (name: string, region: string) => `@${name}’s palate lands in ${region}. Where does yours?`,
+  description: (name: string, leans: string) => `@${name} leans ${leans}. Where do you?`,
   plotLabel: (who: string) => `${who} on the palate map`,
   /** On your own map: comparing with someone. Opening theirs draws your dot beside it. */
   compareTitle: 'Compare palates',

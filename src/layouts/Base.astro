@@ -14,6 +14,12 @@ interface Props {
   image?: { path: string; alt: string };
   /** Keep the page out of search: the share cards' own source pages. */
   noindex?: boolean;
+  /**
+   * The page's own address, for search engines: by default its path with no
+   * parameters, since the parameters only change what the map draws
+   * (`map-url.ts`); a page that answers at more than one path names its one.
+   */
+  canonical?: string;
 }
 
 const {
@@ -21,6 +27,7 @@ const {
   description = site.description,
   image = { path: SHARE_IMAGES.site, alt: share.siteAlt },
   noindex = false,
+  canonical,
 } = Astro.props;
 
 /**
@@ -30,7 +37,8 @@ const {
  * path, which the scrapers that matter here resolve against the page.
  */
 const imageUrl = Astro.isPrerendered ? image.path : new URL(image.path, Astro.url).toString();
-const pageUrl = Astro.isPrerendered ? null : new URL(Astro.url.pathname, Astro.url).toString();
+const canonicalPath = canonical ?? Astro.url.pathname;
+const pageUrl = Astro.isPrerendered ? null : new URL(canonicalPath, Astro.url).toString();
 ---
 
 <!DOCTYPE html>
@@ -45,6 +53,7 @@ const pageUrl = Astro.isPrerendered ? null : new URL(Astro.url.pathname, Astro.u
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
     {pageUrl && <meta property="og:url" content={pageUrl} />}
+    {!noindex && <link rel="canonical" href={pageUrl ?? canonicalPath} />}
     <meta property="og:image" content={imageUrl} />
     <meta property="og:image:width" content={String(SHARE_SIZE.width)} />
     <meta property="og:image:height" content={String(SHARE_SIZE.height)} />

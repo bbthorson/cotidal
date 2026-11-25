@@ -3,10 +3,8 @@ import MapPage from '../../layouts/MapPage.astro';
 import { PalateMap } from '../../components/app/PalateMap';
 import { CardHead } from '../../components/app/MapScreen';
 import { ScreenHeader } from '../../components/app/ui';
-import { site, publicMap, coaster, assistants, share, explore, taste as taste_ } from '../../lib/copy';
-import { shareImagePath } from '../../lib/share';
+import { site, publicMap, coaster, assistants, explore, taste as taste_ } from '../../lib/copy';
 import { formatCoordinate } from '../../lib/coordinate';
-import { quadrantFor } from '../../lib/quadrant';
 import { readPublicPalate } from '../../lib/atproto/public-read';
 import { publicMapPath } from '../../lib/atproto/paths';
 import { accountHref, questionsHref } from '../../lib/site-nav';
@@ -130,7 +128,6 @@ const name =
       ? (result.actor.handle ?? result.actor.did)
       : null;
 
-const region = subject ? quadrantFor(subject.x, subject.y) : null;
 
 // Canonical by handle when it is verified; a DID link still works and
 // is what the feed share uses, because a handle can change and a post cannot.
@@ -156,7 +153,10 @@ Astro.response.headers.set(
 );
 
 const pageTitle = name ? `${publicMap.title(name)} · ${site.name}` : site.name;
-const description = name && region ? publicMap.description(name, region.name) : site.description;
+// A person is described by their taste, not a region (docs/map-first.md), and unfurls into the site's card.
+const description = name && lean.length > 0 ? publicMap.description(name, taste_.phrases(lean)) : site.description;
+// One address for someone's map: by their verified handle, else their DID; `/map?palate=` and `/p/<did>` point here.
+const canonical = result.status === 'ok' ? publicMapPath(result.actor.handle ?? result.actor.did) : undefined;
 
 // Leading with disagreement (docs/routes.md, Friends): what each would reach for that the other would not, then one for both.
 const pairs: { label: string; drink: Drink }[] = comparison
@@ -178,7 +178,7 @@ const ctaClass =
 <MapPage
   title={pageTitle}
   description={description}
-  image={region ? { path: shareImagePath(region.id), alt: share.regionAlt(region.name) } : undefined}
+  canonical={canonical}
   currentPath="/p"
   label={name ? publicMap.title(name) : site.name}
 >
@@ -197,7 +197,7 @@ const ctaClass =
     <span class="label-caps">{isSelf ? publicMap.selfEyebrow : publicMap.eyebrow}</span>
   </CardHead>
 
-  {result.status === 'ok' && subject && region && name ? (
+  {result.status === 'ok' && subject && name ? (
     <article class="space-y-10" data-testid="public-map">
       <ScreenHeader title={publicMap.title(name)}>
         {lean.length > 0 && (

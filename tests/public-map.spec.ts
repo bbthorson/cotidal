@@ -62,3 +62,10 @@ test('The map\'s address: ?palate= is someone\'s public map, at /map, with no sc
   expect(plain.status()).toBe(200);
   expect(await plain.text()).toContain('id="app-search"');
 });
+
+test('One address for a page: the parameters only change what the map draws, so the canonical link drops them', async ({ request }) => {
+  const html = await (await request.get('/map?drink=negroni&palate=not%20a%20handle')).text();
+  expect(html).toMatch(/<link rel="canonical" href="[^"]*\/map"/);
+  const drink = await (await request.get('/drinks/negroni/')).text();
+  expect(drink).toMatch(/<link rel="canonical" href="\/drinks\/negroni\/?"/);
+});
