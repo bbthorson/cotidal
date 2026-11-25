@@ -77,7 +77,16 @@ front door: the sample palate (`sample-palate.ts`: the start, then a 9, a 3,
 a 9 and two 8s, ending on two hills), six frames of the real terrain worked
 out on the server and cycled by CSS (`.tide-frame`), the last one held for
 anyone who asks for less motion. The questions: in the card over the map,
-the shoal narrowing on it, the point settling there at the reveal.
+the shoal narrowing on it, the point settling there at the reveal. Someone's
+public map (`/p/<handle>`): their point, and a signed-in visitor's beside it,
+on the map, their region washed. How it works and sign-in: the tide turning
+behind the card. Settings, For bars and Chat assistants stay reading pages
+(docs/design-system.md, Two kinds of page).
+
+Still open: the search in the header of every map page (only `/map` has it);
+a drink tapped on a static page's map going to its page; the terrain on
+`/p/<handle>` in place of the point (as the chat tools and share cards still
+read the point too).
 
 ## Why
 

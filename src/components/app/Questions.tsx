@@ -94,7 +94,7 @@ function QuestionsContent({ member }: { member: boolean }) {
               ? { x: axes.x.mean, y: axes.y.mean, rx: Math.sqrt(axes.x.variance), ry: Math.sqrt(axes.y.variance) }
               : null
           }
-          you={profile ? { x, y, label: chart.youIn(quadrantFor(x, y).name) } : null}
+          points={profile ? [{ x, y, label: chart.youIn(quadrantFor(x, y).name), tone: 'yours' }] : undefined}
         />
       }
     >

@@ -152,6 +152,27 @@ Navigation is unified across the entire site through `<SiteHeader.astro>` and `<
 15. **Nothing smaller than 13px is prose.** `text-label` (12px) is for condensed caps only. A note or citation under an item is `text-meta` in PT Sans; an italic gloss is Playfair at `text-ui`.
 16. **The eyebrow is the name of the way in.** The small caps line over a title is the label of the nav item, tab or button that opens the page — Drinks, Regions, For bars, Chat assistants, Public map, Rate a drink — and a page about one item adds what kind of item after a middle dot (`Drinks · Aperitivo`, `Regions · Rich and savory`). The landing page has none, and nor does an app tab's screen, whose tab is already marked current on the same screen (rule 11). Write it in sentence case in `copy.ts`; the caps are CSS.
 
+## Two kinds of page
+
+Every page is one of two templates, built from shared parts so a new page
+picks one rather than laying itself out:
+
+- **The map and its card** (`MapScreen.tsx`; `MapPage.astro` for a page with
+  no script). Any page that is about a place on the map, or explains it: the
+  front door, the drinks and the region filters, a drink, someone's public
+  map, how it works, sign-in, and the two app screens, `/map` and
+  `/questions`. The card opens with `CardHead` (a caps line saying what the
+  card holds, and at most one control) and, on a static page, `CardTitle`
+  (the title and its lede at the card's size); its foot is the site footer.
+  The map says what it draws in its accessible name: "your map" on `/map`,
+  the map itself (`explore.chartLabel`) where it draws nobody's.
+- **A reading column** (`AppShell` with a `width`, opening with
+  `PageTitle`): pages that are forms or records rather than places — Settings,
+  For bars, Chat assistants, a bar's own page, the coasters.
+
+Moving between map pages, the map holds still (`view-transition-name: map`,
+CSS only), so the site reads as one screen.
+
 ## The app as a chart
 
 The screens show what the model already knows instead of describing it: your terrain on the map (where your answers and ratings are high and low, and how sure), what put each drink where it stands, your track in the card, how far a pour moved you after it, and the shoal narrowing on the map while the questions run in the card over it (`PalateMap`'s `shoal`, drawn by `Questions.tsx`: the quiz's best guess, one standard deviation across on each axis). The question's stage is its eyebrow; there is no row of stages at the foot, because after the four fixed openers the questions do not come in stage order.

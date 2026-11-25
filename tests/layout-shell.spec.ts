@@ -32,3 +32,16 @@ test('Layout: one main landmark on every route, and one site footer on every rou
     await expect(page.getByRole('navigation', { name: 'Main navigation' }), route).toBeVisible();
   }
 });
+
+test('Layout: every page that is a place on the map draws it, and a reading page does not', async ({ page }) => {
+  // Two templates (docs/design-system.md, Two kinds of page): the map and its card, or a reading column.
+  const mapPages = ['/', '/drinks', '/drinks/negroni', '/drinks/regions/deep', '/how-it-works', '/sign-in', '/map', '/questions'];
+  for (const route of mapPages) {
+    await page.goto(route);
+    await expect(page.locator('.map-plane'), route).toHaveCount(1);
+  }
+  for (const route of ['/bars', '/mcp']) {
+    await page.goto(route);
+    await expect(page.locator('.map-plane'), route).toHaveCount(0);
+  }
+});

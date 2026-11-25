@@ -6,6 +6,9 @@ is about the code.
 
 ## Rendering: keep the front door static
 
+Every page is one of two templates (`docs/design-system.md`, Two kinds of
+page): the map and its card (`MapScreen`, `MapPage.astro`), or a reading
+column (`AppShell` and `PageTitle`).
 `/` is the map with **zero client JavaScript** — a sample palate gaining
 ratings (`sample-palate.ts`, frames from the terrain code, animated in CSS)
 and the card (`MapPage.astro`) — and so is `/p/<handle>`
@@ -376,7 +379,7 @@ in front of a server that would have signed people in.
 `tests/auth-endpoint.spec.ts` holds the three to one answer.
 
 `public-read.ts` reads *other people's* palates with no session, for
-`/p/<handle>` — handle → DID → document → PDS → record. It runs on a public
+`/p/<handle>` (a map page: their point, and a signed-in visitor's beside it) — handle → DID → document → PDS → record. It runs on a public
 route, so it fetches only `https:` hosts, time-boxes every lookup, and parses
 the record down to the fields the page draws. The DID document is checked and
 read by `@atproto/did` (`didDocumentValidator`, `extractAtprotoData`), not a

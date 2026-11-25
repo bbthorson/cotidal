@@ -76,7 +76,7 @@ export function PalateMap({
   name = (n) => n,
   label = explore.mapLabel,
   shoal = null,
-  you = null,
+  points,
   children,
 }: {
   /** Your terrain, or null with no coordinate. */
@@ -112,8 +112,12 @@ export function PalateMap({
    * answers agree and stays wide when they do not.
    */
   shoal?: { x: number; y: number; rx: number; ry: number } | null;
-  /** The point the questions placed, landing when they finish. */
-  you?: { x: number; y: number; label: string } | null;
+  /**
+   * People as points: the one the questions placed, settling when they
+   * finish; someone's public map, and yours beside it. Terracotta is yours,
+   * forest is someone else's (docs/design-system.md).
+   */
+  points?: readonly { x: number; y: number; label: string; caption?: string; tone: 'yours' | 'theirs' }[];
   /** More of the plane, drawn over the ground and under the marks (in its viewBox). */
   children?: ReactNode;
 }) {
@@ -267,11 +271,24 @@ export function PalateMap({
 
       <Labels labels={labels} />
 
-      {you && (
-        <span role="img" aria-label={you.label} style={pct(you.x, you.y)} className="absolute -translate-x-1/2 -translate-y-1/2">
-          <span className="block h-4 w-4 rounded-full border-2 border-card bg-foreground motion-safe:animate-settle" />
+      {points?.map((p) => (
+        <span key={p.label} role="img" aria-label={p.label} style={pct(p.x, p.y)} className="absolute -translate-x-1/2 -translate-y-1/2">
+          <span
+            className={cn(
+              'block h-4 w-4 rounded-full border-2 border-card motion-safe:animate-settle',
+              p.tone === 'yours' ? 'bg-primary' : 'bg-secondary'
+            )}
+          />
+          {p.caption && (
+            <span
+              aria-hidden="true"
+              className="halo-card absolute left-full top-1/2 ml-1.5 -translate-y-1/2 whitespace-nowrap font-condensed text-label font-bold uppercase tracking-label text-foreground"
+            >
+              {p.caption}
+            </span>
+          )}
         </span>
-      )}
+      ))}
 
       {steps?.map((f, i) => (
         <div key={i} aria-hidden="true" className="tide-frame pointer-events-none" data-last={lastFrame(i)} style={frameStyle(i)}>

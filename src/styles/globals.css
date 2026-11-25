@@ -551,3 +551,20 @@ bsky-sign-in[data-state='error'] input[name='handle'] {
     }
   }
 }
+
+/* Moving between pages that show the map (a drink, the next drink, the
+   front door, the questions), the map holds still and the card's contents
+   change, so the site reads as one screen. A same-origin navigation the
+   browser animates itself: no script. A browser without view transitions
+   simply loads the next page. */
+@view-transition {
+  navigation: auto;
+}
+.map-region {
+  view-transition-name: map;
+}
+@media (prefers-reduced-motion: reduce) {
+  @view-transition {
+    navigation: none;
+  }
+}

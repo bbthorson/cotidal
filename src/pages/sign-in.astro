@@ -1,17 +1,19 @@
 ---
-import AppShell from '../layouts/AppShell.astro';
-import PageTitle from '../components/marketing/PageTitle.astro';
+import MapPage from '../layouts/MapPage.astro';
+import { PalateMap } from '../components/app/PalateMap';
+import { CardHead, CardTitle } from '../components/app/MapScreen';
 import ConnectForm from '../components/marketing/ConnectForm.astro';
 import Principles from '../components/marketing/Principles.astro';
-import { connect, sections, site } from '../lib/copy';
+import { connect, explore, sections, site } from '../lib/copy';
 import { signInEnabled } from '../lib/atproto/auth';
 import { signIn } from '../lib/site-nav';
 import { AUTH_ERROR_MESSAGES, AUTH_ERROR_PARAM, isAuthErrorCode } from '@bbthorson/atproto-cf-auth/client';
 
 /**
- * Signing in, as a page: the form first (progressively enhanced with
- * `<bsky-sign-in>`, working with JavaScript off too), followed by what signing
- * in keeps and whose log it is.
+ * Signing in, as a page on the map (`MapPage`, the tide turning behind): the
+ * form first in the card (progressively enhanced with `<bsky-sign-in>`,
+ * working with JavaScript off too), followed by what signing in keeps and
+ * whose log it is.
  */
 
 export const prerender = false;
@@ -26,9 +28,15 @@ const error = errorParam
   : null;
 ---
 
-<AppShell title={`${site.name} — ${sections.connect}`} currentPath={signIn.href} width="prose">
-  <PageTitle eyebrow={sections.connect} title={connect.title} lede={connect.lede} />
-  <div class="space-y-12 pb-6">
+<MapPage title={`${site.name} — ${sections.connect}`} currentPath={signIn.href} label={sections.connect}>
+  <PalateMap slot="map" label={explore.chartLabel} tide />
+
+  <CardHead slot="head">
+    <span class="label-caps">{sections.connect}</span>
+  </CardHead>
+
+  <CardTitle title={connect.title} lede={connect.lede} />
+  <div class="space-y-12 pt-8">
     <section class="space-y-5">
       <ConnectForm enabled={enabled} error={error} />
     </section>
@@ -55,4 +63,4 @@ const error = errorParam
       <Principles />
     </section>
   </div>
-</AppShell>
+</MapPage>
