@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { Drink } from '@/lib/data';
 import type { PourRecord } from '@/lib/atproto/records';
 import { chart, compass, explore, mapPage, pour, taste } from '@/lib/copy';
@@ -40,10 +40,12 @@ function ExploreContent({
   register,
   member,
   initialQuery,
+  bar,
 }: {
   register: Register;
   member: { did: string; handle: string | null } | null;
   initialQuery: string;
+  bar?: ReactNode;
 }) {
   const e = useExplore(register, member, initialQuery);
   const { isEnabled, openSignIn } = useAtprotoContext();
@@ -66,6 +68,8 @@ function ExploreContent({
   const pins = e.venue ? e.ranked.map((r, i) => ({ drink: r.drink, rank: i + 1 })) : null;
 
   let content;
+  // Where to next is the one card whose action is the screen's: Rate a drink.
+  let home = false;
   if (e.rate.request) {
     content = (
       <RatePanel
@@ -114,15 +118,17 @@ function ExploreContent({
     );
   } else {
     content = <Home e={e} member={member} signInEnabled={isEnabled} onSignIn={openSignIn} />;
+    home = true;
   }
 
   return (
     <MapScreen
       mode="live"
+      bar={bar}
       label={explore.cardLabel}
       up={e.up || !!e.rate.request}
       tone={reveal ? 'reveal' : 'card'}
-      head={reveal ? undefined : <CardHead e={e} />}
+      head={reveal ? undefined : <CardHead e={e} rateHere={home} />}
       bodyRef={body}
       overlay={<SearchBox e={e} />}
       map={
@@ -147,7 +153,7 @@ function ExploreContent({
  * The card's head: what your map says about you, in the axes' words, and the
  * one handle — dragged up or down on a phone, or tapped (More, Less).
  */
-function CardHead({ e }: { e: ExploreState }) {
+function CardHead({ e, rateHere }: { e: ExploreState; rateHere: boolean }) {
   const drag = useRef<{ y: number; moved: boolean } | null>(null);
   return (
     <CardHeadFrame
@@ -171,9 +177,17 @@ function CardHead({ e }: { e: ExploreState }) {
         if (d && !d.moved) e.setUp(!e.up);
       }}
       action={
-        <button type="button" aria-expanded={e.up} onClick={() => e.setUp(!e.up)} className="link-caps shrink-0 text-secondary lg:hidden">
-          {e.up ? explore.less : explore.more}
-        </button>
+        <>
+          <button type="button" aria-expanded={e.up} onClick={() => e.setUp(!e.up)} className="link-caps shrink-0 text-secondary lg:hidden">
+            {e.up ? explore.less : explore.more}
+          </button>
+          {/* From `lg` the screen's one action sits here, above the list; on a phone it floats (`Home`). */}
+          {rateHere && (
+            <button type="button" onClick={() => e.rate.open()} className="btn btn-primary hidden shrink-0 px-4 lg:inline-flex">
+              {mapPage.rateDrink}
+            </button>
+          )}
+        </>
       }
     >
       {e.leanings.length > 0 ? (
@@ -202,14 +216,18 @@ function Home({
 }) {
   const statCols = e.stats.length === 3 ? 3 : 2;
   return (
-    <div className="pt-3">
-      <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2 pb-1">
-        <h1 className="font-serif text-title font-bold text-foreground">{explore.heading}</h1>
-        <button type="button" onClick={() => e.rate.open()} className="btn btn-primary px-4">
-          {mapPage.rateDrink}
-        </button>
-      </div>
-      <div className="mt-3">
+    <div className="pb-20 pt-3 lg:pb-0">
+      {/* The card's head says where you are and each section names itself, so the title is for a screen reader alone. */}
+      <h1 className="sr-only">{explore.heading}</h1>
+      {/*
+        On a phone the screen's one action floats at the foot of the screen, over the card, where a thumb is;
+        first in the card so a keyboard reaches it first. Hidden while the search has the keyboard (`.rate-float`).
+        From `lg` it is in the card's head instead.
+      */}
+      <button type="button" onClick={() => e.rate.open()} className="rate-float btn btn-primary fixed bottom-safe-b right-4 z-30 px-5 shadow-mcm lg:hidden">
+        {mapPage.rateDrink}
+      </button>
+      <div>
         <WaitingPick displayName={e.name} version={e.pickVersion} onRate={(draft) => e.rate.open({ drink: draft.drink, draft })} />
       </div>
 
@@ -436,6 +454,7 @@ export default function Explore({
   signInEnabled,
   member,
   initialQuery = '',
+  bar,
 }: {
   register: Register;
   signInEnabled: boolean;
@@ -443,10 +462,12 @@ export default function Explore({
   member: { did: string; handle: string | null } | null;
   /** `?q=` from the header's search, which works before the island does. */
   initialQuery?: string;
+  /** The app bar (`AppBar`, with the search), passed by the page as a slot: the top of the card. */
+  bar?: ReactNode;
 }) {
   return (
     <AtprotoProvider enabled={signInEnabled} member={member}>
-      <ExploreContent register={register} member={member} initialQuery={initialQuery} />
+      <ExploreContent register={register} member={member} initialQuery={initialQuery} bar={bar} />
     </AtprotoProvider>
   );
 }

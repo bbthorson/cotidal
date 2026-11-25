@@ -130,48 +130,58 @@ Width and padding stay with the layout (`w-full`, `px-8`).
 
 ## 3. Navigation System
 
-Navigation is unified across the entire site through `<SiteHeader.astro>` and `<SiteFooter.astro>`, both rendered from one list (`destinations` in `src/lib/site-nav.ts`):
+Navigation is unified across the site through two bars and a footer, all rendered from one list (`destinations` in `src/lib/site-nav.ts`) and one account control (`accountControl`):
+
+- **`AppBar.astro`** is the top of every page's card (`MapScreen`'s `bar`): the map has the top of the screen to itself. The card is a phone's width at every size, so the bar is laid out for it: the mark, then the wordmark (or on `/map` the search), then Menu on a phone or the account control from `lg`; from `lg` a row of tabs under it (the map and the reading pages a drinker reads), so nothing is folded away on a wide screen. Islands receive it as a slot rendered on the server.
+- **`SiteFooter.astro`** is the foot of a static page's card (the app screens have none).
 1. **Zero Client JavaScript**: Rendered as semantic HTML `<header>` and `<nav aria-label="Main Navigation">`.
-2. **Destinations** (header): the map (`/map`), the one app screen. How it works (`/how-it-works`) and For Bars (`/bars`) are public reading pages in the footer; Drinks (`/drinks`) is `memberOnly: true` in `site-nav.ts` (shown in header/footer chrome to signed-in members, and otherwise reached via SEO/AEO search or drink cards on `/map`). For Bars is also the supply side, a different product from the drinker's app; `/bars/*` is reserved for it and will get its own layout.
+2. **Destinations** (header): the map (`/map`), the one app screen. How it works (`/how-it-works`) and For Bars (`/bars`) are public reading pages in the footer; Drinks (`/drinks`) is `memberOnly: true` in `site-nav.ts` (shown in header/footer chrome to signed-in members, and otherwise reached via SEO/AEO search or drink cards on `/map`). For Bars is also the supply side, a different product from the drinker's app, on the same one kind of page.
 3. **The account control** (header) says what the server knows (`accountFor` in `session.ts`, read once in `AppShell`):
    - a member sees `@handle`, which opens `/settings` (on a phone, the last row of Menu, marked **Settings →**). **Sign out** is on `/settings` alone — a plain form post that answers with a redirect, like sign-in, so it needs no script; the header never repeats it;
    - a guest sees **Sign in** (on a phone, inside Menu);
    - a prerendered page (`/drinks`, `/drinks/regions/*`) was built before anyone visited, so it says **Account** (also `/settings`, which sends a guest to `/sign-in`) rather than guess.
    - on an app page, **Sign in** opens the one sign-in sheet in place (`?signin=1`, handled by `AtprotoProvider`) rather than leaving for a page. On every other page it goes to `/sign-in`, which renders a plain form post and progressively enhances it with `<bsky-sign-in>`.
-4. **Footer**: the visible reading pages only — How it works and For Bars for guests, plus Drinks for signed-in members (`footer: true` and `isVisibleDestination` in `site-nav.ts`). The map and the account are always in the header. The map has no footer (`AppShell`'s `app`): it fills the window, and its header carries the visible reading pages instead.
+4. **Footer**: the visible reading pages only — How it works and For Bars for guests, plus Drinks for signed-in members (`footer: true` and `isVisibleDestination` in `site-nav.ts`). The map and the account are always in the bar. The app screens (`/map`, `/questions`) have no footer (`AppShell`'s `app`): they fill the window, and the app bar carries the visible reading pages instead.
 5. **Active State Indicators**: Routes are identified via `currentPath` and styled as a tab: bold ink over a 3px `foreground` rule from `lg`, bold alone in the phone's folded menu.
 6. **Sub-Route Navigation**: In `/drinks/[slug]`, the header supports a semantic `backLink` while retaining global site navigation.
-7. **Phones**: on every page, app or reading, the header is wordmark · Menu — one control, so the header reads the same wherever you are; on the map the search sits between them and the wordmark is the mark alone. Menu opens three groups: the map, the visible reading pages a drinker reads (`menu` in `destinations`: How it works, plus Drinks for members), and the account last, under an ink rule (Sign in, `@handle · Settings →`, or Account). "Menu" is a `<details>` that opens the same `<nav>` through `peer-open`, so `/` still ships no JavaScript.
+7. **Phones**: on every page the bar is wordmark · Menu — one control, so it reads the same wherever you are; on `/map` the search takes the wordmark's place. Menu opens three groups: the map, the visible reading pages a drinker reads (`menu` in `destinations`: How it works, plus Drinks for members), and the account last, under an ink rule (Sign in, `@handle · Settings →`, or Account). "Menu" is a `<details>` that opens the same `<nav>` through `peer-open`, so `/` still ships no JavaScript.
 8. **Focus mode**: any element marked `data-focus-mode` (the questions, the reveal) hides the site header and footer below `lg` (`globals.css`, pure CSS so nothing flashes before hydration).
-9. **The search is in the header, on the map** (`SiteHeader`'s `search`): a plain GET form to `/map?q=`, so it works before the island does and with script off, which `SearchBox.tsx` takes over once the island is up, keeping anything already typed. There is no bar along the foot: the app is one screen.
-10. **One action per app screen.** The map's is **Rate a drink**, at the top of its card. Choosing what to have is the search, the card's lists and the map itself; Pick this and Rate this belong to a drink, opened in the card.
-11. **Two tiers of page title.** Reading pages open with the centred `PageTitle`. App screens open with `ScreenHeader` — the screen's own title, with an optional action button — left-aligned and at one size. Every app screen uses it: the map's card (where to next, a bar's menu titled with the bar's name, a drink), and the cold state (`ColdState`). Rating, in the card, keeps its eyebrow ("Rate a drink").
+9. **The search is in the app bar, on the map** (`AppBar`'s `search`): a plain GET form to `/map?q=`, so it works before the island does and with script off, which `SearchBox.tsx` takes over once the island is up, keeping anything already typed. There is no bar along the foot: the app is one screen.
+10. **One action per app screen.** The map's is **Rate a drink**: on a phone it floats at the foot of the screen, over the card, where a thumb is (hidden while the search has the keyboard), and the card's list keeps room under its last row for it; from `lg` it sits in the card's head line, beside what your map says about you. It shows only on where to next — a drink, a bar, rating and the reveal each carry their own action. Choosing what to have is the search, the card's lists and the map itself; Pick this and Rate this belong to a drink, opened in the card.
+11. **One page title.** Every card opens with `ScreenHeader` (`ui.tsx`): the title, left-aligned and at one size, with an optional action, a `gloss` (the italic line under a drink's, a region's or a bar's name) or a `lede` (plain prose), and a readout under them if the card has one. The app screens use it (where to next, a bar's menu titled with the bar's name, a drink, the cold state) and so does every static page. The eyebrow is the card head's (`MapPage`'s `eyebrow`); rating, in the card, keeps its own ("Rate a drink").
 12. **One sheet per screen.** Only what is yours — the chosen option, the pinned card — is a sheet with `shadow-mcm`. Everything else is a ruled section (`section-title`) or rows. The map sits in a frame on a ruled ground, as a printed chart does; that is a figure, not a sheet. The map's card is the screen's one sheet (`shadow-mcm` from `lg`). A pick waiting to be rated (`WaitingPick`) is a strip ruled in ink, not a sheet.
 13. **Two kinds of empty.** A list with nothing in it yet is `Empty`: your pours' ledger, a search with no match, no bars near. A screen that cannot start without a coordinate is a `ScreenHeader` and its ways in: `ColdState` in the map's card and in rating; a bar's menu says what it needs in an `Empty`. Nothing else says "empty".
-14. **One section heading.** A section inside any page, reading or app, opens with `section-title`: a bold Playfair line over an ink rule. A heading with a link beside it ("Its drinks →") draws the same rule under the row. Small caps label a field or a column, never a section.
+14. **One section heading.** A section inside any card opens with `section-title`: a bold Playfair line over an ink rule. A heading with a link beside it ("Its drinks →") draws the same rule under the row. Small caps label a field or a column, never a section.
 15. **Nothing smaller than 13px is prose.** `text-label` (12px) is for condensed caps only. A note or citation under an item is `text-meta` in PT Sans; an italic gloss is Playfair at `text-ui`.
 16. **The eyebrow is the name of the way in.** The small caps line over a title is the label of the nav item, tab or button that opens the page — Drinks, Regions, For bars, Chat assistants, Public map, Rate a drink — and a page about one item adds what kind of item after a middle dot (`Drinks · Aperitivo`, `Regions · Rich and savory`). The landing page has none, and nor does an app tab's screen, whose tab is already marked current on the same screen (rule 11). Write it in sentence case in `copy.ts`; the caps are CSS.
 
-## Two kinds of page
+## One kind of page
 
-Every page is one of two templates, built from shared parts so a new page
-picks one rather than laying itself out:
+Every page a person visits is the map and its card (`MapScreen.tsx`):
+`MapPage.astro` for a page with no script, and the two app screens, `/map`
+and `/questions`, as islands. A new page does not lay itself out; it says
+what the map draws and what the card holds:
 
-- **The map and its card** (`MapScreen.tsx`; `MapPage.astro` for a page with
-  no script). Any page that is about a place on the map, or explains it: the
-  front door, the drinks and the region filters, a drink, someone's public
-  map, how it works, sign-in, and the two app screens, `/map` and
-  `/questions`. The card opens with `CardHead` (a caps line saying what the
-  card holds, and at most one control) and, on a static page, `CardTitle`
-  (the title and its lede at the card's size); its foot is the site footer.
-  The map says what it draws in its accessible name: "your map" on `/map`,
-  the map itself (`explore.chartLabel`) where it draws nobody's.
-- **A reading column** (`AppShell` with a `width`, opening with
-  `PageTitle`): pages that are forms or records rather than places — Settings,
-  For bars, Chat assistants, a bar's own page, the coasters.
+- **The map** is a `PalateMap`: a drink marked, a region washed, someone's
+  point, a bar's menu as pins, the sample palate, or, where the page has
+  nothing of anyone's to draw, the tide turning (`MapPage`'s default). It
+  says what it draws in its accessible name: "your map" on `/map`, the map
+  itself (`explore.chartLabel`) where it draws nobody's.
+- **The card** opens with the app bar (`AppBar`), then its head (`CardHead`:
+  a caps line naming the way in, `MapPage`'s `eyebrow`, and at most one
+  control, such as `back`), then `ScreenHeader`, then ruled sections; its
+  foot is the site footer.
 
-Moving between map pages, the map holds still (`view-transition-name: map`,
-CSS only), so the site reads as one screen.
+Pages that are forms or records rather than places — Settings, For bars, a
+bar's claim form, Chat assistants, an assistant asking for access, not found
+— are cards like any other, with the tide turning or the reader's own point
+behind them. Settings draws your point, and your code over your map
+(`MapCode`), which prints as a coaster.
+
+Moving between pages, the map holds still (`view-transition-name: map`,
+CSS only), so the site reads as one screen. The map has the top of the
+screen and the app bar is the top of the card; the card comes first in
+the page's reading order, and CSS draws the map above it.
 
 ## The app as a chart
 
@@ -218,7 +228,7 @@ On a phone the map is the full width under the header and the card rests in the 
 
 **The card.** Its head is the same line whatever it holds — what your map says about you in the axes' words ("You lean *crisp and sweet · rich and savory*", `leanings`), or "No position yet" — and on a phone it is the handle: dragged or tapped (**More**, **Less**) to pull the card up over the map and let it down. Its body scrolls on its own. It holds one of:
 
-- **Where to next**: **Rate a drink** (the screen's one action), a waiting pick, **Your menu** (`useMenu`: eight drinks, each with what put it there — "Near your Manhattan (9) and Penicillin (8)", "You gave it 8", "Near where your answers put you" — the first in terracotta), **Have a menu?**, **Your bars** (from your pours), **Bars near you** (`Near.tsx`, a list), and **Your pours**: the figures, your track up close (`TrackFigure`), the ledger (`PourLedger`), and for a member Compare with someone, for a guest what signing in keeps and Start over. Before a position it holds the cold state instead.
+- **Where to next** (titled for a screen reader alone: the head says where you are and each section names itself): **Rate a drink** (the screen's one action, rule 10), a waiting pick, **Your menu** (`useMenu`: eight drinks, each with what put it there — "Near your Manhattan (9) and Penicillin (8)", "You gave it 8", "Near where your answers put you" — the first in terracotta), **Have a menu?**, **Your bars** (from your pours), **Bars near you** (`Near.tsx`, a list), and **Your pours**: the figures, your track up close (`TrackFigure`), the ledger (`PourLedger`), and for a member Compare with someone, for a guest what signing in keeps and Start over. Before a position it holds the cold state instead.
 - **A drink**: its region and coordinate, what put it where it stands for you, your last pour of it, Also here, **Rate this**, **Pick this** (at the open bar, if any), and its entry. It is ringed on the map.
 - **A bar's menu** (below).
 - **Rating a pour** (below).

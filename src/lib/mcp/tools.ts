@@ -1,9 +1,11 @@
 import { drinkDatabase, type Drink } from '../data';
-import { calculateDistance } from '../scoring';
-import { quadrantFor, regionPath } from '../quadrant';
+import { quadrantFor } from '../quadrant';
 import { formatCoordinate } from '../coordinate';
-import { compareMaps, describeDistance, nearestDrinks, type MapPoint } from '../overlap';
-import { mcp } from '../copy';
+import { compareTerrains, TOP, type MapPoint } from '../overlap';
+import { mcp, publicMap, taste as tasteCopy } from '../copy';
+import { drinkHeight, leanings, type Terrain } from '../terrain';
+import { avoids, evidenceFor, menuOf, nearestHilltop, ratingsOf, terrainOf } from '../taste-reading';
+import { titleOf } from '../register';
 import { publicMapPath } from '../atproto/paths';
 import type { PublicPalateResult } from '../atproto/public-read';
 import type { PublicVenueResult } from '../atproto/venue-read';
@@ -15,6 +17,7 @@ import { wayTo } from '../drink-search';
 import { clashingAversions, splitMenuLine, suggestClosestDrink } from '../ingredient-match';
 import { pour as pourCopy } from '../copy';
 import { hedonicToRating } from '../pour-entry';
+import { DISLIKED_AT } from '../scoring';
 import type { LogDrinkOptions } from '../api-client';
 import type { PourRecord } from '../atproto/records';
 import type { LogPourResult } from '../pours.server';
@@ -23,8 +26,11 @@ import type { LogPourResult } from '../pours.server';
  * What the `/mcp` tools answer, as plain functions.
  *
  * Read-only, and computed rather than generated: every answer here comes from
- * the same functions `/p/<handle>` draws from (`overlap.ts`, `quadrant.ts`),
- * so a chat assistant and the page give the same answer twice
+ * the same functions `/p/<handle>` draws from (`taste-reading.ts`,
+ * `overlap.ts`): a person is read as their taste, the ground their questions
+ * and pours make, never one point or one region, and a drink is said by what
+ * put it where it stands, never by a predicted score. So a chat assistant and
+ * the page give the same answer twice
  * (docs/generation.md). The assistant on the other end is the only model
  * involved, and it only ever reads results.
  *
@@ -79,7 +85,8 @@ export interface PalateSummary {
   x: number;
   y: number;
   coordinate: string;
-  region: { id: string; name: string; axis: string; gloss: string; url: string };
+  /** Their taste in the axes' words, one phrase per hill (`leanings`): "crisp and sweet · rich and savory". */
+  leans: string;
   avoids: string[];
   /** Pours that have moved the coordinate; `null` when the record does not say. */
   pours: number | null;
@@ -107,18 +114,29 @@ function clashes(drink: Drink, aversions: Aversions): string[] {
 }
 
 /**
- * How far a drink sits from someone and which way, in the words the app uses
- * ("crisper, more savory"), so an assistant repeats Cotidal's reading of the
- * map instead of making its own from the coordinates.
+ * Where a drink stands for someone, in the words the app uses, so an
+ * assistant repeats Cotidal's reading of the map instead of making its own:
+ * what put it there ("Near their Manhattan (9)"), and how far and which way it
+ * lies from the nearest of their hilltops ("crisper, more savory").
  */
 export interface Bearing {
+  reason: string;
   distance: number;
   way: string;
 }
 
-function bearing(from: MapPoint, drink: Drink): Bearing {
-  const { words, distance } = wayTo(from, drink);
-  return { distance, way: words };
+/** A person as the tools read them: their summary, and their taste as ground. */
+interface Person {
+  point: MapPoint;
+  terrain: Terrain;
+  rated: Map<string, number>;
+  summary: PalateSummary;
+}
+
+function bearing(p: Person, drink: Drink, ctx: ToolContext): Bearing {
+  const { words, distance } = wayTo(nearestHilltop(p.terrain, drink, p.point), drink);
+  const near = evidenceFor(p.terrain, drink).map((e) => ({ ...e, name: titleOf(ctx.register, e.name) }));
+  return { reason: publicMap.reason(near, p.rated.get(drink.name)), distance, way: words };
 }
 
 function summarize(drink: Drink, ctx: ToolContext): DrinkSummary {
@@ -139,10 +157,7 @@ export { matchDrink };
 const normalize = normalizeName;
 
 
-async function palateOf(
-  input: string,
-  ctx: ToolContext
-): Promise<ToolResult<{ point: MapPoint; summary: PalateSummary }>> {
+async function palateOf(input: string, ctx: ToolContext): Promise<ToolResult<Person>> {
   const result = await ctx.readPalate(input);
   switch (result.status) {
     case 'invalid':
@@ -158,24 +173,21 @@ async function palateOf(
       return { ok: false, message: mcp.noPalate(result.actor.handle ?? result.actor.did) };
   }
   const { actor, palate } = result;
-  const region = quadrantFor(palate.x, palate.y);
+  const pours = result.taste?.pours ?? [];
+  const terrain = terrainOf(result.taste?.start ?? null, palate, pours);
   return {
     ok: true,
     data: {
       point: { x: palate.x, y: palate.y, aversions: palate.aversions },
+      terrain,
+      rated: ratingsOf(pours),
       summary: {
         handle: actor.handle,
         did: actor.did,
         x: round(palate.x),
         y: round(palate.y),
         coordinate: formatCoordinate(palate.x, palate.y),
-        region: {
-          id: region.id,
-          name: region.name,
-          axis: region.axis,
-          gloss: region.gloss,
-          url: new URL(regionPath(region.id), ctx.origin).toString(),
-        },
+        leans: tasteCopy.phrases(leanings(terrain, 2)),
         avoids: avoidedFlavours(palate.aversions),
         pours: palate.pours,
         updatedAt: palate.updatedAt,
@@ -188,11 +200,12 @@ async function palateOf(
 export async function getPalate(
   input: string,
   ctx: ToolContext
-): Promise<ToolResult<PalateSummary & { nearest: DrinkSummary[] }>> {
+): Promise<ToolResult<PalateSummary & { menu: (DrinkSummary & Bearing)[] }>> {
   const found = await palateOf(input, ctx);
   if (!found.ok) return found;
-  const nearest = nearestDrinks(found.data.point).map((d) => summarize(d, ctx));
-  return { ok: true, data: { ...found.data.summary, nearest } };
+  const p = found.data;
+  const menu = menuOf(p.terrain, p.point.aversions, p.rated, 3).map((d) => ({ ...summarize(d, ctx), ...bearing(p, d, ctx) }));
+  return { ok: true, data: { ...p.summary, menu } };
 }
 
 export async function recommendDrinks(
@@ -202,13 +215,13 @@ export async function recommendDrinks(
 ): Promise<ToolResult<{ palate: PalateSummary; drinks: (DrinkSummary & Bearing)[] }>> {
   const found = await palateOf(input, ctx);
   if (!found.ok) return found;
-  const { point, summary } = found.data;
+  const p = found.data;
   const pool = options.type ? drinkDatabase.filter((d) => d.type === options.type) : drinkDatabase;
-  const drinks = nearestDrinks(point, options.count ?? 5, pool).map((d) => ({
+  const drinks = menuOf(p.terrain, p.point.aversions, p.rated, options.count ?? 5, pool).map((d) => ({
     ...summarize(d, ctx),
-    ...bearing(point, d),
+    ...bearing(p, d, ctx),
   }));
-  return { ok: true, data: { palate: summary, drinks } };
+  return { ok: true, data: { palate: p.summary, drinks } };
 }
 
 export interface RankedItem extends DrinkSummary, Bearing {
@@ -238,9 +251,10 @@ export async function rankMenu(
 > {
   const found = await palateOf(input, ctx);
   if (!found.ok) return found;
-  const { point, summary } = found.data;
+  const p = found.data;
+  const { point, summary } = p;
 
-  const ranked: RankedItem[] = [];
+  const ranked: (RankedItem & { height: number })[] = [];
   const unplaced: UnplacedItem[] = [];
   for (const raw of items) {
     const parsed =
@@ -268,18 +282,20 @@ export async function rankMenu(
     ranked.push({
       item: label,
       ...summarize(drink, ctx),
-      ...bearing(point, drink),
+      ...bearing(p, drink, ctx),
       caution: avoided.length > 0 ? mcp.avoids(avoided) : null,
+      height: drinkHeight(p.terrain, drink).rating,
     });
   }
-  // A drink they avoid still sits where it sits; it goes below the ones they don't.
+  // Highest on their ground first, as their menu orders it; a drink they avoid still stands where it
+  // stands, and goes below the ones they don't. The height orders the list and is never shown.
   ranked.sort(
     (a, b) =>
       Number(!!a.caution) - Number(!!b.caution) ||
-      a.distance - b.distance ||
+      b.height - a.height ||
       a.name.localeCompare(b.name)
   );
-  return { ok: true, data: { palate: summary, ranked, unplaced } };
+  return { ok: true, data: { palate: summary, ranked: ranked.map(({ height: _height, ...r }) => r), unplaced } };
 }
 
 export async function comparePalates(
@@ -290,7 +306,8 @@ export async function comparePalates(
   ToolResult<{
     first: PalateSummary;
     second: PalateSummary;
-    distance: number;
+    /** How many of the first's top ten are in the second's (`compareTerrains`). */
+    inCommon: number;
     description: string;
     firstWouldOrder: DrinkSummary | null;
     secondWouldOrder: DrinkSummary | null;
@@ -300,32 +317,33 @@ export async function comparePalates(
   const [a, b] = await Promise.all([palateOf(first, ctx), palateOf(second, ctx)]);
   if (!a.ok) return a;
   if (!b.ok) return b;
-  const overlap = compareMaps(a.data.point, b.data.point);
+  const overlap = compareTerrains(
+    { terrain: a.data.terrain, aversions: a.data.point.aversions },
+    { terrain: b.data.terrain, aversions: b.data.point.aversions }
+  );
   const maybe = (d: Drink | null) => (d ? summarize(d, ctx) : null);
   return {
     ok: true,
     data: {
       first: a.data.summary,
       second: b.data.summary,
-      distance: round(overlap.distance),
-      description: overlap.description,
-      firstWouldOrder: maybe(overlap.theirs),
-      secondWouldOrder: maybe(overlap.yours),
+      inCommon: overlap.inCommon,
+      description: publicMap.inCommon(overlap.inCommon, TOP),
+      firstWouldOrder: maybe(overlap.firstOnly),
+      secondWouldOrder: maybe(overlap.secondOnly),
       shared: maybe(overlap.shared),
     },
   };
 }
 
-export interface GroupDrink extends DrinkSummary {
-  /** Largest distance to any person at the table (minimax objective). */
-  maxDistance: number;
-  /** Average distance across the table. */
-  meanDistance: number;
-}
+export type GroupDrink = DrinkSummary;
 
 /**
  * Shared recommendations for a table of 2–8 people: respects every person's
- * aversions and minimizes the worst-case distance across the group.
+ * aversions, leaves out anything one of them rated low, and puts first the
+ * drinks that stand highest for whoever at the table they suit least — the
+ * best worst case, on each person's own ground. The order is the answer; no
+ * height is shown.
  */
 export async function recommendForGroup(
   handles: string[],
@@ -335,48 +353,47 @@ export async function recommendForGroup(
   ToolResult<{
     people: PalateSummary[];
     drinks: GroupDrink[];
-    widestContrast: { first: string; second: string; distance: number; description: string } | null;
+    widestContrast: { first: string; second: string; inCommon: number; description: string } | null;
   }>
 > {
   const unique = [...new Set(handles.map((h) => h.trim()).filter(Boolean))];
   if (unique.length < 2) return { ok: false, message: mcp.needGroup };
 
   const results = await Promise.all(unique.map((h) => palateOf(h, ctx)));
-  const resolved: { point: MapPoint; summary: PalateSummary }[] = [];
+  const resolved: Person[] = [];
   for (const r of results) {
     if (!r.ok) return r;
     resolved.push(r.data);
   }
 
   const pool = (options.type ? drinkDatabase.filter((d) => d.type === options.type) : drinkDatabase).filter((drink) =>
-    resolved.every(({ point }) => clashes(drink, point.aversions).length === 0)
+    resolved.every((p) => !avoids(drink, p.point.aversions) && !((p.rated.get(drink.name) ?? Infinity) <= DISLIKED_AT))
   );
 
   const count = Math.min(Math.max(options.count ?? 5, 1), 15);
   const drinks: GroupDrink[] = pool
     .map((drink) => {
-      const dists = resolved.map(({ point }) => calculateDistance(point, drink));
-      const maxDistance = Math.max(...dists);
-      const meanDistance = dists.reduce((a, b) => a + b, 0) / dists.length;
-      return {
-        ...summarize(drink, ctx),
-        maxDistance: round(maxDistance),
-        meanDistance: round(meanDistance),
-      };
+      const heights = resolved.map((p) => drinkHeight(p.terrain, drink).rating);
+      return { drink, worst: Math.min(...heights), mean: heights.reduce((a, b) => a + b, 0) / heights.length };
     })
-    .sort((a, b) => a.maxDistance - b.maxDistance || a.meanDistance - b.meanDistance || a.name.localeCompare(b.name))
-    .slice(0, count);
+    .sort((a, b) => b.worst - a.worst || b.mean - a.mean || a.drink.name.localeCompare(b.drink.name))
+    .slice(0, count)
+    .map(({ drink }) => summarize(drink, ctx));
 
-  let widestContrast: { first: string; second: string; distance: number; description: string } | null = null;
+  // The two at the table whose maps part most: the fewest of the first's top drinks in the second's.
+  let widestContrast: { first: string; second: string; inCommon: number; description: string } | null = null;
   for (let i = 0; i < resolved.length; i++) {
     for (let j = i + 1; j < resolved.length; j++) {
-      const d = calculateDistance(resolved[i].point, resolved[j].point);
-      if (!widestContrast || d > widestContrast.distance) {
+      const { inCommon } = compareTerrains(
+        { terrain: resolved[i].terrain, aversions: resolved[i].point.aversions },
+        { terrain: resolved[j].terrain, aversions: resolved[j].point.aversions }
+      );
+      if (!widestContrast || inCommon < widestContrast.inCommon) {
         widestContrast = {
           first: resolved[i].summary.handle ?? resolved[i].summary.did,
           second: resolved[j].summary.handle ?? resolved[j].summary.did,
-          distance: round(d),
-          description: describeDistance(d),
+          inCommon,
+          description: publicMap.inCommon(inCommon, TOP),
         };
       }
     }
@@ -422,10 +439,10 @@ export async function getDrink(name: string, ctx: ToolContext, from?: string): P
   if (!from) return { ok: true, data: detail };
   const found = await palateOf(from, ctx);
   if (!found.ok) return found;
-  const { point, summary } = found.data;
+  const p = found.data;
   return {
     ok: true,
-    data: { ...detail, fromThem: { handle: summary.handle, ...bearing(point, drink), avoided: clashes(drink, point.aversions) } },
+    data: { ...detail, fromThem: { handle: p.summary.handle, ...bearing(p, drink, ctx), avoided: clashes(drink, p.point.aversions) } },
   };
 }
 
@@ -654,7 +671,11 @@ export async function myFollows(
   if (!ctx.member) return { ok: false, message: mcp.memberOnly };
   const own = await palateOf(ctx.member.did, ctx);
   if (!own.ok) return own;
-  const friends = await readFollows(ctx.member.did, own.data.point, { readPalate: ctx.readPalate });
+  const friends = await readFollows(
+    ctx.member.did,
+    { terrain: own.data.terrain, aversions: own.data.point.aversions },
+    { readPalate: ctx.readPalate }
+  );
   return { ok: true, data: { friends } };
 }
 

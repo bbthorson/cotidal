@@ -56,7 +56,7 @@ are the layout of the whole site, not only of `/map`.
    card holds the lede and Find your coordinate; pulled up, how it works and
    sign in. The questions run in the card, the shoal narrowing on the big map.
 2. **The map is drawn by the server.** One component (`PalateMap.tsx`)
-   draws `/map` and the pages with no script, so a reading page ships no
+   draws `/map` and the pages with no script, so a static page ships no
    JavaScript for it and `/map` paints before its island hydrates.
 3. **On a page with no script, pulling the card up is scrolling.** The map
    stays at the top of a phone's screen and the card scrolls up over it.
@@ -80,13 +80,82 @@ anyone who asks for less motion. The questions: in the card over the map,
 the shoal narrowing on it, the point settling there at the reveal. Someone's
 public map (`/p/<handle>`): their point, and a signed-in visitor's beside it,
 on the map, their region washed. How it works and sign-in: the tide turning
-behind the card. Settings, For bars and Chat assistants stay reading pages
-(docs/design-system.md, Two kinds of page).
+behind the card. Then every other page too — Settings (your point, and your
+code over your map, which prints as a coaster), For bars and its claim form,
+a bar's page (its menu as numbered pins), Chat assistants, an assistant
+asking for access, not found: one kind of page (docs/design-system.md). The
+bar audit was cut for the map itself; its rule (`menu-audit.ts`) stays for a
+bar's card to summarise its menu by.
 
-Still open: the search in the header of every map page (only `/map` has it);
+The app bar is the top of the card (`AppBar.astro`), and the map has the
+top of the screen: on a phone it runs from the top edge, and from `lg` the
+panel holds the bar, its tabs and the card while the map takes the window's
+full height.
+
+Still open: the search in the app bar of every map page (only `/map` has it);
 a drink tapped on a static page's map going to its page; the terrain on
 `/p/<handle>` in place of the point (as the chat tools and share cards still
 read the point too).
+
+## The map's address
+
+Decided with the owner: **the path picks the card, the parameters pick what
+the map draws.** A path names the thing the card is about — a drink, a
+person, a bar — and is what a search engine indexes. The parameters are one
+small vocabulary, read and written by `src/lib/map-url.ts` and nowhere else
+(`tests/unit/map-url.test.ts`):
+
+| Parameter | The map draws | Built |
+|---|---|---|
+| *(none)* | Yours: your account, or this device | yes |
+| `drink=<slug>` | That drink marked, its card open | yes |
+| `palate=<handle or DID>` | Someone else's taste — their terrain, from their questions and pours — read-only | yes |
+| `with=<handle or DID>` | A second taste over the first, as terracotta contour lines, to compare | yes |
+
+They combine: `/map?palate=alice.bsky.social&drink=negroni` is where a
+Negroni sits for Alice — how far and which way (`wayTo`), and Where it sits
+for you, which is `/map?drink=negroni`. `/map?palate=` is `/p/<handle>`
+rendered at the map's address (`Astro.rewrite`), so there is one page for
+someone's map. Decided: **the path is canonical** — `/p/<handle>` by their
+verified handle, else their DID — because a person is the thing the card is
+about, and printed codes point at `/p/<did>`. Every page names its plain
+path as canonical (`Base`'s `canonical`): the parameters only change what
+the map draws. A person's link unfurls into the site's card and says how
+they lean, not a region.
+
+Values are checked, never guessed at: a drink through `drinkOf`, a person
+by the protocol's handle and DID syntax; anything else is dropped and the
+map is yours. Rating links (`?rate=`, `?draft=1&…`, `pour-draft.ts`) carry
+their own `drink=`, which belongs to the pour. Someone else's palate never
+writes to your device, and you rate only on your own map.
+
+Their taste is computed from their records (their answers and their pours),
+never stored as a record of its own: a record holds what its author said,
+the terrain is the app's reading of it and improves when the model does.
+The reads (`public-taste.ts`: their latest quiz and up to `MAX_POURS` pours,
+newest first) are cached in the Workers cache by their repository's
+revision, so a view of an unchanged repository reads one small record.
+Their map says what yours says: their taste in the axes' words
+(`leanings`), their menu with what put each drink there (their ratings, or
+their answers), and for `drink=`, which way it lies from their nearest
+hilltop. No region names a person here any more; the share card still reads
+the point.
+
+**Comparing** (`with=`, `compareTerrains` in `overlap.ts`): on someone's map
+a signed-in reader is compared with by default, and `with=` names anyone, so
+`/map?palate=alice.bsky.social&with=bob.bsky.social` compares two other
+people. Both tastes are read the same way, from public records. The map
+draws the first as shaded ground and the second as terracotta contour lines
+over it; the card says how many of the top ten they have in common, then
+leads with where they part — a drink each would reach for that the other
+would not, at least a point higher on their ground — and one for both. Two
+people who like the same things get no invented contrast. The follows list
+and the chat tools read and compare people the same way, through
+`taste-reading.ts`; the point comparison (`compareMaps`) is gone.
+
+Not yet: `?palate=` on a drink's page (`/drinks/negroni?palate=…`, which
+means rendering drink pages per request, cached at the edge), and the chat
+tools answering with these links.
 
 ## Why
 

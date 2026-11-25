@@ -12,18 +12,22 @@ with their handle when signed in, so the address bar holds the address to paste.
 
 | Tool | Answers |
 |---|---|
-| `get_palate` | Someone's coordinate, region, the flavours they avoid, pours that moved it, the nearest drinks |
-| `recommend_drinks` | The nearest drinks, optionally of one type, leaving out what they avoid; each with its distance and which way it lies (`wayTo`, the words the menu uses) |
-| `rank_menu` | A menu's items ordered by distance; avoided flavours flagged and sunk, unknown drinks returned as unplaced |
-| `compare_palates` | Two coordinates: the distance, a drink each would order, one they'd share |
-| `get_drink` | One drink: where it sits, its flags and build; given a handle, how far it is from them, which way, and what in it they avoid |
+| `get_palate` | Someone's taste: how they lean in the map's words, the flavours they avoid, pours rated, and the top of their menu, each drink with what put it there |
+| `recommend_drinks` | Their menu, optionally of one type, leaving out what they avoid or rated low; each with what put it there and which way it lies from the nearest of their hilltops (`wayTo`, the words the menu uses) |
+| `rank_menu` | A menu's items ordered by where each stands on their taste; avoided flavours flagged and sunk, unknown drinks returned as unplaced |
+| `compare_palates` | Two tastes: how many of the first's top ten are in the second's, a drink each would reach for that the other would not, one for both |
+| `recommend_for_group` | Drinks for a table, best for whoever they suit least; and the two whose tastes part most |
+| `get_drink` | One drink: where it sits, its flags and build; given a handle, what put it where it stands for them, which way it lies, and what in it they avoid |
 | `search_drinks` | A drink someone names → the name the map knows it by |
 | `draft_pour` | A link to `/map` with the pour filled in, for the person to confirm |
 
 Every tool but `draft_pour` reads public records the way `/p/<handle>` does
-(`public-read.ts`), so none needs sign-in, and every answer is computed by
-the same functions the page draws from (`src/lib/mcp/tools.ts` over
-`overlap.ts`). The assistant on the other end is the only model involved,
+(`public-read.ts`, with their taste: `public-taste.ts`), so none needs
+sign-in, and every answer is computed by the same functions the page draws
+from (`src/lib/mcp/tools.ts` over `taste-reading.ts` and `overlap.ts`). A
+person is their taste — ground from their questions and pours — never a
+point or a region, and no tool hands over a height or a predicted score:
+the order of a list is the answer, and each drink says what put it there. The assistant on the other end is the only model involved,
 and it only reads results: **a generated sentence may describe a result, never
 produce one** (`docs/generation.md`) holds here too.
 

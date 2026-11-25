@@ -3,6 +3,7 @@ import { type AtprotoDidDocument, didDocumentValidator, extractAtprotoData } fro
 import { isValidHandle, normalizeHandle } from '@bbthorson/atproto-cf-auth/server';
 import { PALATE_COLLECTION, PALATE_RKEY, decodeCoordinates } from './records';
 import { lexInteger } from './lex-string';
+import { readPublicTaste, type PublicTaste, type TasteCache } from './public-taste';
 
 /**
  * Reading someone else's palate, with no session.
@@ -20,6 +21,8 @@ import { lexInteger } from './lex-string';
 
 const TIMEOUT_MS = 4000;
 const MAX_BYTES = 64 * 1024;
+/** A page of records (`listRecords`) is many records: allowed more, and still bounded. */
+const MAX_LIST_BYTES = 512 * 1024;
 
 const DEFAULT_HANDLE_RESOLVER = 'https://public.api.bsky.app';
 const PLC_DIRECTORY = 'https://plc.directory';
@@ -79,12 +82,22 @@ export type PublicPalateResult =
   | { status: 'not-found' }
   | { status: 'unavailable'; actor: PublicActor | null }
   | { status: 'no-palate'; actor: PublicActor }
-  | { status: 'ok'; actor: PublicActor; palate: PublicPalate };
+  | {
+      status: 'ok';
+      actor: PublicActor;
+      palate: PublicPalate;
+      /** Their questions and pours, when asked for (`taste: true`); `null` when they could not be read. */
+      taste?: PublicTaste | null;
+    };
 
 export interface ReadOptions {
   fetch?: typeof fetch;
   /** XRPC host for `resolveHandle`; the auth package honours the same variable. */
   handleResolver?: string;
+  /** Also read their taste (`public-taste.ts`): what the map draws as their terrain. */
+  taste?: boolean;
+  /** Where a taste is cached; the Workers cache by default (`defaultTasteCache`). */
+  tasteCache?: TasteCache | null;
 }
 
 /** Thrown for a lookup that failed for reasons other than "it does not exist". */
@@ -124,7 +137,8 @@ function safeUrl(raw: string): URL | null {
 
 async function getJson(
   url: URL,
-  fetchImpl: typeof fetch
+  fetchImpl: typeof fetch,
+  maxBytes = MAX_BYTES
 ): Promise<{ status: number; body: unknown }> {
   let res: Response;
   try {
@@ -140,7 +154,7 @@ async function getJson(
   }
   if (!res.ok) return { status: res.status, body: null };
   const text = await res.text();
-  if (text.length > MAX_BYTES) throw new Unavailable(`response too large: ${url.host}`);
+  if (text.length > maxBytes) throw new Unavailable(`response too large: ${url.host}`);
   try {
     return { status: res.status, body: JSON.parse(text) };
   } catch {
@@ -251,6 +265,10 @@ export type PublicRepoResult =
       actor: PublicActor;
       pds: URL;
       getRecord(collection: string, rkey: string): Promise<{ status: number; value: unknown | null }>;
+      /** One page of a collection, newest first: the records' values, and where the next page starts. */
+      listRecords(collection: string, page?: { limit?: number; cursor?: string }): Promise<{ values: unknown[]; cursor: string | null }>;
+      /** The repository's latest revision, which changes whenever anything in it does; `null` when the PDS will not say. */
+      latestRev(): Promise<string | null>;
     };
 
 /**
@@ -300,7 +318,29 @@ export async function resolvePublicRepo(
       return { status, value: (body as { value?: unknown }).value ?? null };
     };
 
-    return { status: 'ok', actor, pds: doc.pds, getRecord };
+    const listRecords = async (collection: string, page: { limit?: number; cursor?: string } = {}) => {
+      const listUrl = new URL('/xrpc/com.atproto.repo.listRecords', doc.pds);
+      listUrl.searchParams.set('repo', did);
+      listUrl.searchParams.set('collection', collection);
+      listUrl.searchParams.set('limit', String(Math.max(1, Math.min(100, page.limit ?? 100))));
+      if (page.cursor) listUrl.searchParams.set('cursor', page.cursor);
+      const { status, body } = await getJson(listUrl, fetchImpl, MAX_LIST_BYTES);
+      if (status === 400 || status === 404) return { values: [], cursor: null };
+      if (!body) throw new Unavailable(`listRecords ${status}`);
+      const b = body as { records?: unknown; cursor?: unknown };
+      const values = Array.isArray(b.records) ? b.records.map((r) => (r as { value?: unknown })?.value ?? null) : [];
+      return { values, cursor: typeof b.cursor === 'string' && b.cursor ? b.cursor : null };
+    };
+
+    const latestRev = async () => {
+      const revUrl = new URL('/xrpc/com.atproto.sync.getLatestCommit', doc.pds);
+      revUrl.searchParams.set('did', did);
+      const { body } = await getJson(revUrl, fetchImpl).catch(() => ({ body: null }));
+      const rev = (body as { rev?: unknown } | null)?.rev;
+      return typeof rev === 'string' && /^[a-z2-7]{13}$/.test(rev) ? rev : null;
+    };
+
+    return { status: 'ok', actor, pds: doc.pds, getRecord, listRecords, latestRev };
   } catch (e) {
     if (e instanceof Unavailable) return { status: 'unavailable', actor };
     console.error('resolvePublicRepo:', e);
@@ -324,7 +364,10 @@ export async function readPublicPalate(
     const { value } = await repo.getRecord(PALATE_COLLECTION, PALATE_RKEY);
     if (!value) return { status: 'no-palate', actor: repo.actor };
     const palate = toPalate(value);
-    return palate ? { status: 'ok', actor: repo.actor, palate } : { status: 'no-palate', actor: repo.actor };
+    if (!palate) return { status: 'no-palate', actor: repo.actor };
+    if (!options.taste) return { status: 'ok', actor: repo.actor, palate };
+    const taste = await readPublicTaste(repo, { aversions: palate.aversions, cache: options.tasteCache });
+    return { status: 'ok', actor: repo.actor, palate, taste };
   } catch (e) {
     if (e instanceof Unavailable) return { status: 'unavailable', actor: repo.actor };
     console.error('readPublicPalate:', e);

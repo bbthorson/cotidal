@@ -41,3 +41,31 @@ test('Public map route: ships no client JavaScript', async ({ page }) => {
   expect(scripts, `unexpected scripts: ${scripts.join(', ')}`).toHaveLength(0);
   expect(await page.locator('astro-island').count()).toBe(0);
 });
+
+test('The map\'s address: ?palate= is someone\'s public map, at /map, with no script', async ({ page, request }) => {
+  // The same page /p/<handle> is, rendered at the map's address (map-url.ts).
+  const res = await request.get('/map?palate=nobody.invalid&drink=negroni');
+  expect(res.status()).toBe(404);
+  expect(await res.text()).toContain(publicMap.notFoundTitle);
+
+  const scripts: string[] = [];
+  page.on('response', (r) => {
+    if (r.request().resourceType() === 'script' && r.url().includes('/_astro/')) scripts.push(r.url());
+  });
+  await page.goto('/map?palate=@Nobody.invalid', { waitUntil: 'networkidle' });
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText(publicMap.notFoundTitle);
+  expect(page.url()).toContain('/map?palate=');
+  expect(scripts).toHaveLength(0);
+
+  // A palate that is not a handle or a DID is dropped: the map is yours, as without it.
+  const plain = await request.get('/map?palate=not%20a%20handle');
+  expect(plain.status()).toBe(200);
+  expect(await plain.text()).toContain('id="app-search"');
+});
+
+test('One address for a page: the parameters only change what the map draws, so the canonical link drops them', async ({ request }) => {
+  const html = await (await request.get('/map?drink=negroni&palate=not%20a%20handle')).text();
+  expect(html).toMatch(/<link rel="canonical" href="[^"]*\/map"/);
+  const drink = await (await request.get('/drinks/negroni/')).text();
+  expect(drink).toMatch(/<link rel="canonical" href="\/drinks\/negroni\/?"/);
+});

@@ -382,7 +382,7 @@ bsky-sign-in[data-state='error'] input[name='handle'] {
    geometry is here rather than measured, so the server lays the screen out
    whole and nothing moves when the page's script arrives.
 
-   - live (/map): the screen fills the window under the header. On a phone the
+   - live (/map): the screen fills the window, the app bar the top of its card. On a phone the
      plane is as wide as the screen and the card rests in the space under it
      (`--map-side` is the plane's side), pulled up over it by its head
      (`data-up`). From `lg` the card is a panel down the left.
@@ -407,7 +407,7 @@ bsky-sign-in[data-state='error'] input[name='handle'] {
     min-height: 0;
     overflow: hidden;
     container-type: size;
-    --map-side: clamp(220px, calc(100cqh - 200px), 100cqw);
+    --map-side: clamp(220px, calc(100cqh - 260px), 100cqw);
   }
   /* The questions: the card holds a question and its plates, so the map gives way. */
   .map-screen-live[data-rest='tall'] {
@@ -428,7 +428,12 @@ bsky-sign-in[data-state='error'] input[name='handle'] {
     height: calc(100cqh - 0.5rem);
   }
 
+  .map-screen-static {
+    display: flex;
+    flex-direction: column;
+  }
   .map-screen-static > .map-region {
+    order: -1;
     position: sticky;
     top: 0;
     height: min(100vw, calc(100svh - 17rem));
@@ -567,4 +572,39 @@ bsky-sign-in[data-state='error'] input[name='handle'] {
   @view-transition {
     navigation: none;
   }
+}
+
+/* A square of the map inside a card (`MapCode`): the plane sizes itself to
+   its container, as it does in the screen's map region. */
+.map-frame {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  overflow: clip;
+  container-type: size;
+}
+
+/* Printing a page with a code on it (Settings) prints the code alone, the size
+   of a coaster: the figure is the coaster. */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  [data-print],
+  [data-print] * {
+    visibility: visible;
+  }
+  [data-print] {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 90mm;
+  }
+}
+
+/* The map's floating Rate a drink (Explore.tsx, a phone only): out of the way
+   while the search has the keyboard, which would otherwise lift it over the
+   results. */
+body:has(#app-search input:focus) .rate-float {
+  display: none;
 }

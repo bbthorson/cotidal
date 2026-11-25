@@ -1,14 +1,16 @@
 ---
-import AppShell from '../../layouts/AppShell.astro';
-import PageTitle from '../../components/marketing/PageTitle.astro';
+import MapPage from '../../layouts/MapPage.astro';
+import { ScreenHeader } from '../../components/app/ui';
+import { PalateMap, type Pin } from '../../components/app/PalateMap';
 import { readPublicVenue } from '../../lib/atproto/venue-read';
 import { formatCoordinate } from '../../lib/coordinate';
-import { site, venuePage as copy } from '../../lib/copy';
+import { explore, site, venuePage as copy } from '../../lib/copy';
 
 /**
- * `/v/<handle>` — a bar's live AT Protocol venue & menu page.
- * Server-rendered directly from the venue's own PDS (`app.cotidal.venue` +
- * `app.cotidal.menu`), shipping zero client JavaScript.
+ * `/v/<handle>` — a bar's live AT Protocol venue & menu page: the map with
+ * the bar's menu on it as numbered pins, as `/map` draws a bar, and the menu
+ * in the card. Server-rendered directly from the venue's own PDS
+ * (`app.cotidal.venue` + `app.cotidal.menu`), shipping zero client JavaScript.
  */
 export const prerender = false;
 
@@ -26,6 +28,14 @@ const title =
     ? `${result.venue.name} — ${site.name}`
     : `${site.name} — ${copy.eyebrow}`;
 
+/** The menu's drinks that are on the map, numbered in the menu's own order. */
+const pins: Pin[] = [];
+if (result.status === 'ok' && result.venue.menu) {
+  for (const section of result.venue.menu.sections)
+    for (const item of section.items)
+      if (item.placed && !pins.some((p) => p.drink.name === item.placed!.name)) pins.push({ drink: item.placed, rank: pins.length + 1 });
+}
+
 const formatDate = (iso: string) => {
   const d = new Date(iso);
   return Number.isNaN(d.getTime())
@@ -34,16 +44,18 @@ const formatDate = (iso: string) => {
 };
 ---
 
-<AppShell title={title} currentPath={`/v/${encodeURIComponent(handle)}`} width="standard">
-  <div class="space-y-10 pb-8 pt-6">
+<MapPage
+  title={title}
+  currentPath={`/v/${encodeURIComponent(handle)}`}
+  label={result.status === 'ok' ? result.venue.name : copy.eyebrow}
+  eyebrow={result.status === 'ok' || result.status === 'no-venue' ? (result.actor.handle ? `@${result.actor.handle}` : copy.eyebrow) : copy.eyebrow}
+>
+  {pins.length > 0 ? <PalateMap slot="map" label={explore.chartLabel} pins={pins} /> : <PalateMap slot="map" label={explore.chartLabel} tide />}
+  <div class="space-y-10">
     {result.status === 'ok' ? (
       <>
         <div class="space-y-3">
-          <PageTitle
-            eyebrow={result.actor.handle ? `@${result.actor.handle}` : copy.eyebrow}
-            title={result.venue.name}
-            lede={result.venue.description ?? undefined}
-          />
+          <ScreenHeader title={result.venue.name} gloss={result.venue.description ?? undefined} />
           <div class="flex flex-wrap items-center gap-x-5 gap-y-2">
             {result.venue.menu && (
               <a
@@ -86,7 +98,10 @@ const formatDate = (iso: string) => {
                   {section.items.map((item) => (
                     <li class="border-b border-border py-3">
                       <div class="dot-leader">
-                        <span class="font-serif text-prose font-bold text-foreground">{item.name}</span>
+                        <span class="font-serif text-prose font-bold text-foreground">
+                          {item.placed && <span class="mr-2 font-condensed text-meta tabular-nums text-muted-foreground">{pins.find((p) => p.drink.name === item.placed!.name)?.rank}</span>}
+                          {item.name}
+                        </span>
                         <span aria-hidden="true" class="leader" />
                         <span class="shrink-0 font-condensed text-meta tabular-nums text-muted-foreground">
                           {item.placed ? formatCoordinate(item.placed.x, item.placed.y) : copy.unplaced}
@@ -106,15 +121,11 @@ const formatDate = (iso: string) => {
         )}
       </>
     ) : result.status === 'no-venue' ? (
-      <PageTitle
-        eyebrow={result.actor.handle ? `@${result.actor.handle}` : copy.eyebrow}
-        title={copy.noVenueTitle}
-        lede={copy.noVenueBody}
-      />
+      <ScreenHeader title={copy.noVenueTitle} gloss={copy.noVenueBody} />
     ) : result.status === 'unavailable' ? (
-      <PageTitle eyebrow={copy.eyebrow} title={copy.unavailableTitle} lede={copy.unavailableBody} />
+      <ScreenHeader title={copy.unavailableTitle} gloss={copy.unavailableBody} />
     ) : (
-      <PageTitle eyebrow={copy.eyebrow} title={copy.notFoundTitle} lede={copy.notFoundBody} />
+      <ScreenHeader title={copy.notFoundTitle} gloss={copy.notFoundBody} />
     )}
   </div>
-</AppShell>
+</MapPage>

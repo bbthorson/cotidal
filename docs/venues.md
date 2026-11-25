@@ -93,7 +93,7 @@ Verification has two levels:
 Claiming a bar is about matching the bar's website URL to its AT Protocol DID (`src/lib/atproto/venue-verify.ts`):
 
 1. **Domain-to-DID Match:** The bar's website domain (`attaboy.nyc`) resolves to the bar's DID — either because the bar uses that domain as its AT Protocol handle (via DNS `_atproto.attaboy.nyc` TXT or `https://attaboy.nyc/.well-known/atproto-did`), or via CNAME to Cotidal's static edge proxy.
-2. **Canonical Claim:** `/bars/publish` checks that the website URL's domain resolves to the signed-in account's DID before writing `app.cotidal.venue` at `rkey: self` (and pointing `currentMenu` to its live menu).
+2. **Canonical Claim:** `/bars` (its Claim your bar section) checks that the website URL's domain resolves to the signed-in account's DID before writing `app.cotidal.venue` at `rkey: self` (and pointing `currentMenu` to its live menu).
 3. **Retroactive Reconciliation:** All patron sightings and historic pour records referencing `attaboy.nyc` light up under the venue's account.
 4. **Standard.site & Zero-JS Web Site (later):** The edge responds to `https://attaboy.nyc/.well-known/site.standard.publication` pointing to `at://<did>/site.standard.publication/self` and renders a fast, accessible, paper-and-ink web presence directly from the repository's signed records.
 

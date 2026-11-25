@@ -1,6 +1,6 @@
 ---
-import AppShell from '../layouts/AppShell.astro';
-import PageTitle from '../components/marketing/PageTitle.astro';
+import MapPage from '../layouts/MapPage.astro';
+import { ScreenHeader } from '../components/app/ui';
 import { AssistantSteps } from '../components/app/AssistantSteps';
 import { serveMcp } from '@/lib/mcp/serve';
 import { memberMcpAddress } from '@/lib/mcp/authorize-context.server';
@@ -29,7 +29,7 @@ const isBrowser = request.method === 'GET' && accept.includes('text/html') && !a
 
 if (!isBrowser) {
   return serveMcp(request, {
-    readPalate: (actor) => readPublicPalate(actor),
+    readPalate: (actor) => readPublicPalate(actor, { taste: true }),
     readVenue: (actor) => readPublicVenue(actor),
     register: await loadRegister(),
     origin: Astro.url.origin,
@@ -42,9 +42,9 @@ const account = await accountFor(request, false);
 const handle = account.kind === 'member' ? account.handle : null;
 ---
 
-<AppShell title={`${site.name} — ${copy.eyebrow}`} currentPath="/mcp" width="prose">
-  <div class="space-y-12 pb-6">
-    <PageTitle eyebrow={copy.eyebrow} title={copy.title} lede={copy.lede} />
+<MapPage title={`${site.name} — ${copy.eyebrow}`} currentPath="/mcp" label={copy.eyebrow} eyebrow={copy.eyebrow}>
+  <ScreenHeader title={copy.title} gloss={copy.lede} />
+  <div class="pt-8">
     <AssistantSteps address={address} memberAddress={memberAddress} handle={handle} />
   </div>
-</AppShell>
+</MapPage>

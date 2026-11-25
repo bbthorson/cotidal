@@ -5,16 +5,16 @@ import { formatDistance } from '@/lib/osm';
 import type { Explore } from '@/hooks/useExplore';
 import { cn } from '@/lib/utils';
 
-/** Where the header keeps its search (`SiteHeader`'s `search`): a plain form until the map takes it over. */
+/** Where the app bar keeps its search (`AppBar`'s `search`): a plain form until the map takes it over. */
 export const SEARCH_HOST_ID = 'app-search';
 
 /**
- * The one search, in the header: drinks by name or what is in them, bars by
+ * The one search, in the app bar at the top of the card: drinks by name or what is in them, bars by
  * name (yours, near you, or any name typed, which opens as a bar with no known
  * menu), and a drink not on the map, which can still be rated. With a bar
  * open its name sits in the box, and the box searches its menu.
  *
- * The header renders a plain GET form there (`/map?q=`), which works with
+ * The app bar renders a plain GET form there (`/map?q=`), which works with
  * script off; once the island is up, this takes its place, keeping anything
  * already typed.
  */

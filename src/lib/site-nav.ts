@@ -1,11 +1,12 @@
-import { nav } from './copy';
+import { account as accountCopy, nav } from './copy';
 import { QUESTIONS_PATH } from './atproto/paths';
+import { viewHref } from './map-url';
 
 /**
- * The one list of destinations. The header renders the ones marked `header`;
- * the footer renders the reading pages only (`app: false`), because the app
- * destinations and the account are always one tap away in the header, and
- * seven links wrapped into three ragged rows on a phone.
+ * The one list of destinations. The app bar renders the ones marked `header`
+ * and `menu`; the footer renders the reading pages only (`app: false`),
+ * because the app destinations and the account are always one tap away in
+ * the app bar, and seven links wrapped into three ragged rows on a phone.
  *
  * `match` is the path prefix that marks an item current.
  *
@@ -13,10 +14,9 @@ import { QUESTIONS_PATH } from './atproto/paths';
  * different product from the drinker's app: it is read from the footer and
  * the landing page, not offered in the header.
  *
- * `footer` marks the reading pages the footer lists; `menu` the ones a
- * phone's folded Menu lists under the map, and the header lists beside the
- * map's search from `lg` (the map has no footer, so these are how they are
- * reached from it).
+ * `footer` marks the reading pages the footer lists; `menu` the ones the
+ * app bar lists beside the map (folded under Menu on a phone, as tabs from
+ * `lg`), since the app screens have no footer.
  *
  * There is no Regions item: a region is a filter on the drinks
  * (`/drinks/regions/<id>`), so Drinks is current there too.
@@ -24,7 +24,8 @@ import { QUESTIONS_PATH } from './atproto/paths';
 export const mapHref = '/map';
 export const drinksHref = '/drinks';
 export const barsHref = '/bars';
-export const drinkMapHref = (slug: string) => `${mapHref}?drink=${encodeURIComponent(slug)}`;
+/** A drink on your map: the map's address (`map-url.ts`). */
+export const drinkMapHref = (slug: string) => viewHref(mapHref, { drink: slug });
 
 export const destinations = [
   { href: mapHref, label: nav.map, match: mapHref, app: true, header: true, menu: false, footer: false, memberOnly: false },
@@ -54,10 +55,33 @@ export const signInHref = (currentPath: string) =>
 /** The questions that place a coordinate (`startOverPath` clears the old one first). */
 export const questionsHref = QUESTIONS_PATH;
 /** The questions, from a drink: they finish (or, with a coordinate already, go straight) on that drink on the map. */
-export const DRINK_PARAM = 'drink';
-export const questionsForDrink = (slug: string) => `${QUESTIONS_PATH}?${DRINK_PARAM}=${encodeURIComponent(slug)}`;
+export const questionsForDrink = (slug: string) => viewHref(QUESTIONS_PATH, { drink: slug });
 
 /** Where a member manages their account, and where a page that cannot know sends everyone. */
 export const accountHref = '/settings';
 
 export const isCurrent = (currentPath: string, match: string) => currentPath.startsWith(match);
+
+/**
+ * The account control says what the server knows (`accountFor`). A member
+ * sees their handle, which opens Settings, where signing out is, so no bar
+ * repeats it. A guest sees Sign in. A prerendered page was built before
+ * anyone visited, so it cannot know, and says Account rather than guess.
+ * The app bar (`AppBar`) draws it, at the top of every page's card.
+ */
+export function accountControl(
+  account: { kind: 'member'; handle: string | null } | { kind: 'guest' } | { kind: 'unknown' },
+  currentPath: string
+): { href: string; label: string; isHandle: boolean; opensSettings: boolean; current: boolean } {
+  const current = isCurrent(currentPath, accountHref);
+  if (account.kind === 'member')
+    return {
+      href: accountHref,
+      label: account.handle ? `@${account.handle}` : accountCopy.neutral,
+      isHandle: !!account.handle,
+      opensSettings: true,
+      current,
+    };
+  if (account.kind === 'guest') return { href: signInHref(currentPath), label: signIn.label, isHandle: false, opensSettings: false, current };
+  return { href: accountHref, label: accountCopy.neutral, isHandle: false, opensSettings: false, current };
+}

@@ -107,7 +107,7 @@ publish professional profiles, recipes are authored works with adoption counts
 product can offer someone who is not a drinker.** It is also the cheapest to
 build, because the protocol does the hard part:
 
-- **Claiming matches the URL to the DID.** On `/bars/publish`, claiming checks
+- **Claiming matches the URL to the DID.** On `/bars`, claiming checks
   that the bar's website domain (`attaboy.nyc`) resolves to the signed-in
   account's DID (`src/lib/atproto/venue-verify.ts`), then writes
   `app.cotidal.venue` at rkey `self` and renders it live at `/v/<handle>`. No
@@ -126,10 +126,11 @@ the bar ever joined. **A bar that claims itself in two years lights up every
 old log at once.** That is the argument to a venue, and it is true because
 reconciliation happens in the app view and never by rewriting anyone's records.
 
-`/bars` introduces the supply side, `/bars/publish` handles self-serve domain
-verification and menu publishing, `/bars/audit` lets any bar check menu balance
-without an account, and `/v/<handle>` renders a claimed bar's live venue and
-menu. Detailed product and commercial reasoning for the B2B suite lives in
+`/bars` introduces the supply side and, in the same card, handles
+self-serve domain verification and menu publishing (Claim your bar), and
+`/v/<handle>` renders a claimed bar's
+live venue and menu, its drinks as numbered pins on the map. (A menu audit
+page was cut: a bar's pins show its spread at a glance.) Detailed product and commercial reasoning for the B2B suite lives in
 `docs/venues.md`.
 
 **Menu capture is the same corpus from the other end.** A patron photographing

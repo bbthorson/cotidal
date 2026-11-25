@@ -1,7 +1,8 @@
 ---
 import MapPage from '../layouts/MapPage.astro';
 import { PalateMap } from '../components/app/PalateMap';
-import { CardHead, CardTitle } from '../components/app/MapScreen';
+import { CardHead } from '../components/app/MapScreen';
+import { ScreenHeader } from '../components/app/ui';
 import ConnectForm from '../components/marketing/ConnectForm.astro';
 import Principles from '../components/marketing/Principles.astro';
 import { connect, explore, sections, site } from '../lib/copy';
@@ -35,7 +36,7 @@ const error = errorParam
     <span class="label-caps">{sections.connect}</span>
   </CardHead>
 
-  <CardTitle title={connect.title} lede={connect.lede} />
+  <ScreenHeader title={connect.title} gloss={connect.lede} />
   <div class="space-y-12 pt-8">
     <section class="space-y-5">
       <ConnectForm enabled={enabled} error={error} />

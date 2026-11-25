@@ -1,47 +1,38 @@
 import { test, expect } from '@playwright/test';
 
 /**
- * Every route renders through AppShell, which owns the header and footer. The
- * header used to take the page's content width, so it sat at a different
- * position and height on nearly every route; footers were pasted per page and
- * missing from three. This asserts the shell stays the one owner.
+ * One kind of page (docs/design-system.md): every page a person visits is the
+ * map and its card (`MapScreen`), the app bar the card's top. Before, the
+ * header took each page's content width and sat somewhere different on nearly
+ * every route, and footers were pasted per page and missing from three; then
+ * there were two templates with the bar in two places. These hold it to one.
  */
-const routes = ['/', '/drinks', '/drinks/20th-century', '/drinks/regions/deep', '/bars', '/how-it-works', '/map', '/questions'];
+const routes = ['/', '/drinks', '/drinks/20th-century', '/drinks/regions/deep', '/bars', '/mcp', '/how-it-works', '/sign-in', '/map', '/questions'];
 
-test('Layout: header sits in the same place on every route', async ({ page }) => {
+test('Layout: every page is the map and its card, with the app bar in the same place', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
-  let reference: { x: number; width: number } | null = null;
-
+  let reference: { x: number; y: number; width: number } | null = null;
   for (const route of routes) {
     await page.goto(route);
+    await expect(page.locator('.map-plane').first(), route).toBeVisible();
     const box = await page.locator('header').first().boundingBox();
-    expect(box, `no header on ${route}`).not.toBeNull();
-    const { x, width } = box!;
-    reference ??= { x, width };
-    expect({ x, width }, `header moved on ${route}`).toEqual(reference);
+    expect(box, `no app bar on ${route}`).not.toBeNull();
+    const { x, y, width } = box!;
+    reference ??= { x, y, width };
+    expect({ x, y, width }, `the app bar moved on ${route}`).toEqual(reference);
   }
+  // The address nobody visits on purpose is the same page.
+  expect((await page.goto('/nowhere'))?.status()).toBe(404);
+  await expect(page.locator('.map-plane').first()).toBeVisible();
 });
 
 test('Layout: one main landmark on every route, and one site footer on every route but the app screens', async ({ page }) => {
-  // The map and the questions fill the window and have no footer: the header carries the reading pages.
+  // The map and the questions fill the window and have no footer: the app bar carries the reading pages.
   const appScreens = ['/map', '/questions'];
   for (const route of routes) {
     await page.goto(route);
     await expect(page.locator('main'), route).toHaveCount(1);
     await expect(page.locator('footer'), route).toHaveCount(appScreens.includes(route) ? 0 : 1);
     await expect(page.getByRole('navigation', { name: 'Main navigation' }), route).toBeVisible();
-  }
-});
-
-test('Layout: every page that is a place on the map draws it, and a reading page does not', async ({ page }) => {
-  // Two templates (docs/design-system.md, Two kinds of page): the map and its card, or a reading column.
-  const mapPages = ['/', '/drinks', '/drinks/negroni', '/drinks/regions/deep', '/how-it-works', '/sign-in', '/map', '/questions'];
-  for (const route of mapPages) {
-    await page.goto(route);
-    await expect(page.locator('.map-plane'), route).toHaveCount(1);
-  }
-  for (const route of ['/bars', '/mcp']) {
-    await page.goto(route);
-    await expect(page.locator('.map-plane'), route).toHaveCount(0);
   }
 });

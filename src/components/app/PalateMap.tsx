@@ -77,6 +77,7 @@ export function PalateMap({
   label = explore.mapLabel,
   shoal = null,
   points,
+  against = null,
   children,
 }: {
   /** Your terrain, or null with no coordinate. */
@@ -118,6 +119,12 @@ export function PalateMap({
    * forest is someone else's (docs/design-system.md).
    */
   points?: readonly { x: number; y: number; label: string; caption?: string; tone: 'yours' | 'theirs' }[];
+  /**
+   * A second taste over the first, to compare them (`with=`): its high ground
+   * as contour lines in terracotta and nothing else, so the two read apart —
+   * the first as shaded ground, the second as lines over it.
+   */
+  against?: Ground | null;
   /** More of the plane, drawn over the ground and under the marks (in its viewBox). */
   children?: ReactNode;
 }) {
@@ -200,6 +207,7 @@ export function PalateMap({
         )}
 
         {ground && <GroundLayer ground={ground} id={maskId} faded={!!pins} />}
+        {against && <Contours ground={against} tone="against" />}
         {steps?.map((f, i) => (
           <g key={i} className="tide-frame" data-last={lastFrame(i)} style={frameStyle(i)}>
             <GroundLayer ground={f.ground} id={`${maskId}f${i}`} faded={false} />
@@ -525,7 +533,7 @@ function GroundLayer({ ground, id, faded }: { ground: Ground; id: string; faded:
   );
 }
 
-function Contours({ ground }: { ground: Ground }) {
+function Contours({ ground, tone = 'own' }: { ground: Ground; tone?: 'own' | 'against' }) {
   const lines = useMemo(() => {
     const rows = ground.rows.map((r) => r.map((h) => h.rating));
     return {
@@ -533,6 +541,15 @@ function Contours({ ground }: { ground: Ground }) {
       high: HIGH.map((level) => contourPath(rows, ground.step, level)),
     };
   }, [ground]);
+  if (tone === 'against') {
+    return (
+      <g fill="none" data-against="">
+        {lines.high.map((d, i) => (
+          <path key={HIGH[i]} d={d} className="stroke-primary" strokeWidth={1 + i * 0.4} vectorEffect="non-scaling-stroke" />
+        ))}
+      </g>
+    );
+  }
   return (
     <g fill="none">
       <path d={lines.hollow} className="stroke-primary" strokeDasharray="2 3" vectorEffect="non-scaling-stroke" />

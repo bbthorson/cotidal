@@ -13,7 +13,11 @@ import {
   type ToolContext,
 } from '../../src/lib/mcp/tools';
 import { drinkDatabase } from '../../src/lib/data';
-import { compareMaps, nearestDrinks } from '../../src/lib/overlap';
+import { compareTerrains } from '../../src/lib/overlap';
+import { menuOf, nearestHilltop, terrainOf } from '../../src/lib/taste-reading';
+import { leanings } from '../../src/lib/terrain';
+import { taste } from '../../src/lib/copy';
+import { wayTo } from '../../src/lib/drink-search';
 import type { PublicPalateResult } from '../../src/lib/atproto/public-read';
 import { mcp } from '../../src/lib/copy';
 
@@ -52,18 +56,20 @@ const ctx: ToolContext = {
   origin: 'https://cotidal.example',
 };
 
-test('MCP: a palate reads as its region, flavours avoided and public map', async () => {
+test('MCP: a palate reads as how it leans, flavours avoided, its menu and public map — never a region', async () => {
   const result = await getPalate('alice.bsky.social', ctx);
   expect(result.ok).toBe(true);
   if (!result.ok) return;
   expect(result.data.x).toBe(6);
-  expect(result.data.region.id).toBe('surf');
-  expect(result.data.region.url).toBe('https://cotidal.example/drinks/regions/surf');
+  expect('region' in result.data).toBe(false);
   expect(result.data.avoids).toEqual(['bitterness']);
   expect(result.data.pours).toBe(4);
   expect(result.data.url).toBe('https://cotidal.example/p/alice.bsky.social');
-  const point = { x: 6.04, y: 5.2, aversions: { ...none, bitter: true } };
-  expect(result.data.nearest.map((d) => d.name)).toEqual(nearestDrinks(point).map((d) => d.name));
+  // The same reading her map gives: her ground (here from her point, with no records), its menu, its words.
+  const terrain = terrainOf(null, { x: 6.04, y: 5.2 }, []);
+  expect(result.data.leans).toBe(taste.phrases(leanings(terrain, 2)));
+  expect(result.data.menu.map((d) => d.name)).toEqual(menuOf(terrain, { ...none, bitter: true }, new Map(), 3).map((d) => d.name));
+  for (const d of result.data.menu) expect(d.reason).toMatch(/their/);
 });
 
 test('MCP: an unverified handle links the public map by DID', async () => {
@@ -140,10 +146,13 @@ test('MCP: comparing two palates agrees with the public map', async () => {
   const a = people['alice.bsky.social'];
   const b = people['bob.bsky.social'];
   if (a.status !== 'ok' || b.status !== 'ok') throw new Error('fixture');
-  const overlap = compareMaps(a.palate, b.palate);
-  expect(result.data.description).toBe(overlap.description);
-  expect(result.data.firstWouldOrder?.name).toBe(overlap.theirs?.name);
-  expect(result.data.secondWouldOrder?.name).toBe(overlap.yours?.name);
+  const overlap = compareTerrains(
+    { terrain: terrainOf(null, a.palate, []), aversions: a.palate.aversions },
+    { terrain: terrainOf(null, b.palate, []), aversions: b.palate.aversions }
+  );
+  expect(result.data.inCommon).toBe(overlap.inCommon);
+  expect(result.data.firstWouldOrder?.name).toBe(overlap.firstOnly?.name);
+  expect(result.data.secondWouldOrder?.name).toBe(overlap.secondOnly?.name);
   expect(result.data.shared?.name).toBe(overlap.shared?.name);
 });
 
@@ -202,7 +211,7 @@ test('MCP: getDrink returns coordinate, flags, tags, and register build', async 
   expect((await getDrink('not a real drink', withBuild)).ok).toBe(false);
 });
 
-test('MCP: getDrink with a handle says how far the drink sits from them, which way, and what they avoid in it', async () => {
+test('MCP: getDrink with a handle says what put it there for them, which way it lies from their high ground, and what they avoid in it', async () => {
   // "What about an oaky Chardonnay?" — answered from the map, not guessed.
   const found = await getDrink('Chardonnay (Oaked)', ctx, 'alice.bsky.social');
   expect(found.ok).toBe(true);
@@ -211,8 +220,11 @@ test('MCP: getDrink with a handle says how far the drink sits from them, which w
   if (alice.status !== 'ok') throw new Error('fixture');
   const drink = matchDrink('Chardonnay (Oaked)')!;
   expect(found.data.fromThem?.handle).toBe('alice.bsky.social');
-  expect(found.data.fromThem?.distance).toBe(Math.round(Math.hypot(drink.x - alice.palate.x, drink.y - alice.palate.y) * 10) / 10);
+  const terrain = terrainOf(null, alice.palate, []);
+  const from = wayTo(nearestHilltop(terrain, drink, alice.palate), drink);
+  expect(found.data.fromThem?.distance).toBe(from.distance);
   expect(found.data.fromThem?.way).toBe('richer, more savory');
+  expect(found.data.fromThem?.reason).toBe('Near where their answers put them');
   // Alice avoids bitter; a bitter drink says so rather than being left out.
   const negroni = await getDrink('negroni', ctx, 'alice.bsky.social');
   expect(negroni.ok && negroni.data.fromThem?.avoided).toEqual([mcp.flavours.bitter]);
@@ -230,7 +242,10 @@ test('MCP: recommendForGroup respects every person’s aversions and returns wid
     const full = drinkDatabase.find((x) => x.name === d.name)!;
     expect(full.isBitter).toBe(false);
   }
-  expect(result.data.widestContrast?.distance).toBeGreaterThan(10);
+  // Alice and Bob sit far apart: few of her top drinks are in his.
+  expect(result.data.widestContrast?.inCommon).toBeLessThan(5);
+  // The order is the answer: no heights or distances are handed to the assistant.
+  for (const d of result.data.drinks) expect(Object.keys(d)).not.toContain('maxDistance');
 });
 
 test('MCP: myBars summarizes visited bars and excludes home pours', async () => {

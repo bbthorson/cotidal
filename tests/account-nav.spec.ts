@@ -118,3 +118,10 @@ test('Navigation: the footer lists the public reading pages; the app and the acc
   expect(html).not.toContain('href="/#regions"');
   expect(footer).not.toContain(nav.signIn);
 });
+
+test('For bars: one page, the pitch then the claim — a guest is asked to sign in as their bar, not shown the form', async ({ request }) => {
+  const html = await (await request.get('/bars')).text();
+  const claim = html.slice(html.indexOf('data-testid="claim"'));
+  expect(claim).toContain('href="/sign-in"');
+  expect(claim).not.toContain('name="website"');
+});

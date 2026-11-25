@@ -15,6 +15,10 @@ import { cn } from '@/lib/utils';
  * From `lg` both are the same: the card is a panel down the left, and the
  * map fills the rest.
  *
+ * The card comes before the map in the page, so a screen reader or a
+ * keyboard meets the app bar and the card's contents first and the map, a
+ * figure, after; CSS puts the map on top.
+ *
  * Drawn by React so the islands and the Astro pages share one copy: a page
  * renders it on the server with no directive, and ships no script for it.
  */
@@ -28,9 +32,17 @@ export function MapScreen({
   bodyRef,
   overlay,
   rest = 'standard',
+  bar,
   children,
 }: {
   mode: 'live' | 'static';
+  /**
+   * The app bar (`AppBar.astro`), at the top of the card: the map takes the
+   * top of the screen, and the card carries the wordmark, the menu, the
+   * account and, on `/map`, the search. Optional only to the type
+   * checker: an Astro page passes it as a named slot.
+   */
+  bar?: ReactNode;
   /**
    * How much of a phone's first screen the card takes at rest, on a static
    * page: `tall` leaves room for the front door's lede and its one action
@@ -55,7 +67,6 @@ export function MapScreen({
   return (
     <div className={mode === 'live' ? 'map-screen-live' : 'map-screen-static'} data-rest={rest === 'tall' ? 'tall' : undefined}>
       {overlay}
-      <div className="map-region">{map}</div>
       <section
         aria-label={label}
         data-up={up || undefined}
@@ -64,6 +75,12 @@ export function MapScreen({
           tone === 'reveal' ? 'bg-reveal text-reveal-foreground' : 'bg-card text-foreground'
         )}
       >
+        <span aria-hidden="true" className="mx-auto mt-1.5 block h-0.75 w-10 shrink-0 bg-border lg:hidden" />
+        {bar && (
+          <div data-site-chrome className="shrink-0 px-4 pt-2 lg:px-5 lg:pt-4">
+            {bar}
+          </div>
+        )}
         {head}
         <div
           ref={bodyRef}
@@ -72,15 +89,18 @@ export function MapScreen({
           {children}
         </div>
       </section>
+      {/* After the card in reading order (its bar, then what it holds), drawn first: CSS places it. */}
+      <div className="map-region">{map}</div>
     </div>
   );
 }
 
 /**
  * The card's head: a line saying what the card is about, and on the right
- * its one control (on `/map`, More or Less). On a phone the grip above it
- * says the card can be pulled up; on `/map` the head is what is dragged
- * (pass the pointer handlers), on a static page the page scrolls.
+ * its one control (on `/map`, More or Less). On `/map` the head is what is
+ * dragged (pass the pointer handlers); on a static page the page scrolls.
+ * The grip that says the card can be pulled up is the card's own, above the
+ * app bar.
  */
 export function CardHead({
   children,
@@ -89,27 +109,11 @@ export function CardHead({
   ...rest
 }: { children: ReactNode; action?: ReactNode } & HTMLAttributes<HTMLDivElement>) {
   return (
-    <div className={cn('shrink-0 select-none px-4 pt-1.5 lg:px-5 lg:pt-3', className)} {...rest}>
-      <span aria-hidden="true" className="mx-auto mb-2 block h-0.75 w-10 bg-border lg:hidden" />
+    <div className={cn('shrink-0 select-none px-4 pt-2 lg:px-5 lg:pt-3', className)} {...rest}>
       <div className="flex items-baseline justify-between gap-3 border-b border-border pb-2">
         <p className="min-w-0 truncate">{children}</p>
         {action}
       </div>
-    </div>
-  );
-}
-
-/**
- * The top of a card's body on a page with no script: the title and its lede,
- * at the card's size rather than a reading page's plate (`PageTitle`).
- * Anything under the lede (a readout) is `children`.
- */
-export function CardTitle({ title, lede, children }: { title: string; lede?: string; children?: ReactNode }) {
-  return (
-    <div className="pt-4">
-      <h1 className="break-words font-serif text-title font-bold text-foreground">{title}</h1>
-      {lede && <p className="mt-2 font-serif text-ui italic leading-relaxed text-muted-foreground">{lede}</p>}
-      {children}
     </div>
   );
 }

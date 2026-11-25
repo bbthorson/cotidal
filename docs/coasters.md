@@ -1,7 +1,8 @@
 # Coasters
 
-The four-sector chart, the member's coaster and the region coasters are
-built. Venue coasters and print are notes for later.
+The four-sector chart and the member's code are built: the code drawn over
+the member's map in Settings, printed as the coaster. Venue coasters and
+print sizing are notes for later.
 
 The logo is a cotidal circle, the landing chart is a circle, and a bar coaster
 is a circle. A coaster carrying the chart is the product's mark in the place
@@ -33,21 +34,24 @@ stretched to a disc as the coaster is.
 
 ## The personal coaster is the user's QR code
 
-*Built* at `/p/<did>/code` (`src/pages/p/[actor]/code.astro`), drawn by
-`Coaster.astro`, with the URL and the code in `src/lib/coaster.ts`. It needs
+*Built* in Settings (`#code`), drawn by `MapCode.tsx` — the code on a quiet
+square over the member's map — with the URL and the code in
+`src/lib/coaster.ts`. Printing the page prints the figure alone, the size of
+a coaster (`[data-print]` in `globals.css`). It needs
 no bar, and it is the Overlap's way into the world.
 
-- A coaster drawn from a member's palate: their region's band filled, with
-  a QR code at the amphidrome (the centre point).
+- A coaster drawn from a member's palate: their map, their taste as ground,
+  with the QR code at the centre. (It was the cotidal chart with their region's band filled; a
+  person is no longer given a region.)
 - **The QR code is their profile.** It encodes the public URL of their map,
   so one code is both the thing you print and the way someone sees who you
   are. Scanned by a stranger, it shows the map, as `/p/<handle>`
   does today. Scanned by a signed-in member, it shows both coordinates, the
   distance and three drinks (`src/lib/overlap.ts`) — two people at the same bar
   comparing coasters.
-- It is on screen, not only in print: "Make my code", under the link on the
-  member's own map, opens it, so the coaster and the phone are the same
-  object. Anyone else asking for that page gets a 404.
+- It is on screen, not only in print: it is a section of the member's
+  Settings, linked from their own public map, so the coaster and the phone
+  are the same object. Settings is the member's alone.
 - The code must work with no app installed, so it is a plain `https:` URL and
   the page it opens stays script-free like `/p/<handle>`.
 - **The code encodes the DID, never the handle:** `publicMapPath(did)`, i.e.
@@ -60,10 +64,9 @@ no bar, and it is the Overlap's way into the world.
 
 Decided:
 
-- **Print the band, not the dot.** The dot moves with every pour; a printed
-  one goes stale, and enough pours can carry it into another region. The
-  coaster shows the member's region band only. The exact coordinate is on the
-  live page the code opens.
+- **It prints the ground as it is that day.** Taste moves with every pour;
+  the live page the code opens has it right. Open: whether a printed coaster
+  wants a plainer field than the day's terrain.
 - **Members only.** A guest has no DID, so there is nothing permanent for the
   code to point at. Making a coaster is something you keep by signing in.
 - **Opt in.** `/p/<did>` is already public, but a code in someone's hand at a
@@ -80,11 +83,9 @@ the move.
 
 ## Region coasters
 
-*Built* at `/drinks/regions/<id>/coaster`, linked from each region's page. The region's
-band is filled and the code opens the drinks filtered to that region: "which one did you get?"
-starts the conversation, and the page it opens leads to the questions. Public
-and cached; server-rendered rather than prerendered only so the code can use
-the request's origin. Placing each region's drinks on the rings is still to do.
+Retired with the regions as an identity: a person is described by their
+terrain, not a region, so a coaster that names one says less than it seems
+to. Its page and its link from each region's page are gone.
 
 ## The code's look
 

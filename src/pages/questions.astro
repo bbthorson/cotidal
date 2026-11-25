@@ -1,5 +1,6 @@
 ---
 import AppShell from '../layouts/AppShell.astro';
+import AppBar from '../components/marketing/AppBar.astro';
 import Questions from '../components/app/Questions';
 import { site, hero } from '../lib/copy';
 import { signInEnabled } from '../lib/atproto/auth';
@@ -19,6 +20,8 @@ const account = await accountFor(Astro.request, false);
 const member = account.kind === 'member' ? { did: account.did, handle: account.handle } : null;
 ---
 
-<AppShell title={`${site.name} — ${hero.primaryCta}`} currentPath={questionsHref} app>
-  <Questions client:load signInEnabled={authEnabled} member={member} />
+<AppShell title={`${site.name} — ${hero.primaryCta}`} app>
+  <Questions client:load signInEnabled={authEnabled} member={member}>
+    <AppBar slot="bar" currentPath={questionsHref} account={account} />
+  </Questions>
 </AppShell>

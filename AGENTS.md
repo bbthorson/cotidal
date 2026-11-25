@@ -6,9 +6,9 @@ is about the code.
 
 ## Rendering: keep the front door static
 
-Every page is one of two templates (`docs/design-system.md`, Two kinds of
-page): the map and its card (`MapScreen`, `MapPage.astro`), or a reading
-column (`AppShell` and `PageTitle`).
+Every page is one template (`docs/design-system.md`, One kind of page): the
+map and its card (`MapScreen`; `MapPage.astro` for a page with no script),
+the app bar (`AppBar`) the card's top and `ScreenHeader` its title.
 `/` is the map with **zero client JavaScript** — a sample palate gaining
 ratings (`sample-palate.ts`, frames from the terrain code, animated in CSS)
 and the card (`MapPage.astro`) — and so is `/p/<handle>`
@@ -30,15 +30,15 @@ landing page included. Astro was being used as a slower Next.js.
   `MapScreen` and `PalateMap` that `/map` hydrates, on the server with no
   directive: one copy of the map, and still no script.
 - Prefer `client:load` over `client:only` so the shell server-renders.
-- The header is the same on every page: wordmark · Menu on a phone (the map,
-  the visible reading pages, then the account), the nav and the account control from
-  `lg`. `Drinks` (`/drinks`) is `memberOnly` in `site-nav.ts`, so unauthenticated
+- The app bar is the top of every page's card (`AppBar`), since the map has
+  the top of the screen: wordmark · Menu on a phone (the map, the visible
+  reading pages, then the account), and from `lg` a row of tabs under the
+  account control (`accountControl` in `site-nav.ts`). `Drinks` (`/drinks`) is `memberOnly` in `site-nav.ts`, so unauthenticated
   visitors on `/` are not sent there from the header or footer; drink pages stay
-  live for SEO/AEO and link back to `/map?drink=<slug>` and `/questions`. On the
-  map alone the header also holds the search (`SiteHeader`'s `search`: a plain
-  GET form to `/map?q=` that `SearchBox.tsx` takes over once the island is up),
-  the wordmark is the mark alone on a phone, and from `lg` it lists the visible
-  reading pages, since the map has no footer. The account control is server
+  live for SEO/AEO and link back to `/map?drink=<slug>` and `/questions`. On `/map`
+  the app bar holds the search in the wordmark's place (`AppBar`'s `search`: a
+  plain GET form to `/map?q=` that `SearchBox.tsx` takes over once the island
+  is up; the page passes the bar to the island as a slot). The account control is server
   truth: `@handle` (opening `/settings`) for a member, Sign in for a guest, a
   neutral Account on a prerendered page that cannot know. Signing
   out is on `/settings` alone, never in the header; `/map` carries no account
@@ -160,6 +160,15 @@ left. A drink is reached by tapping it on the map (the nearest mark within
 reach) or from the card's lists and the search, which is how a keyboard
 reaches every one.
 
+**The map's address** (`src/lib/map-url.ts`, `docs/map-first.md`): the path
+picks the card, the parameters pick what the map draws — `drink=<slug>`, and
+`palate=<handle or DID>` for someone else's taste, read-only. Read and write
+them through `readMapView` and `viewHref`, never by hand: a drink is checked
+by `drinkOf`, a person by the protocol's syntax, and anything else is
+dropped. `/map?palate=` renders `/p/<handle>` at the map's address
+(`Astro.rewrite`). A taste is computed from its author's records, never
+stored as one.
+
 A bar is a filter on the map, not a place on a street map: from the search,
 your bars, bars near you (a list from OpenStreetMap, `useNearby`), or any
 name typed. It opens `MenuView` in the card: type what they pour,
@@ -203,8 +212,10 @@ It ranks your menu and a bar's (`scoreDrinks`, `rankMenu`), the map draws
 it, and `leanings` says your taste in the axes' words in the card's head
 ("crisp and sweet · rich and savory", `taste` in `copy.ts`) — never one
 region's name. Not yet on
-it: the chat tools (`src/lib/mcp/`), `/p/<handle>`, the reveal, share cards
-and coasters, which still read the point and its region
+it: the reveal after the questions, and the region share cards (a region's
+own, which name a region, not a person), which still read the point and its
+region. Someone else's taste — their map, the follows list and
+the chat tools — is read by one set of rules, `taste-reading.ts`
 (`docs/map-first.md`). The dot, the track and `applyPour` are unchanged.
 
 
@@ -318,8 +329,8 @@ on the map with the region washed and its drinks named, and in the card
 under them. Prerendered and script-free. There is no Regions item in the
 navigation (`RegionFilter` marks the active region). Same format as a drink
 (`documented` required, `claimed`, `sources`), one entry per region, and the
-filename is the id — which is a URL: `/drinks`, `/p/<handle>`,
-the chat tools and the region coasters link to it.
+filename is the id — which is a URL: `/drinks`, `/p/<handle>`
+and the chat tools link to it.
 
 The entry holds only prose. Name, axis and gloss come from `quadrants` in
 `copy.ts`; the drinks come from the map; what they share is counted from the
@@ -344,7 +355,7 @@ would attach a share-alike obligation to the entry.
   and writes
 - `venue-verify.ts`, `venue-publish.ts`, `venue-read.ts` — Level 1 bar claiming
   matches the bar's website URL domain to its DID (`verifyVenueDomain` on
-  `/bars/publish`; `domainVerified` on `/v/<handle>`). Level 2 physical address
+  `/bars`, Claim your bar; `domainVerified` on `/v/<handle>`). Level 2 physical address
   verification (mailed postcard with a one-time code) is planned in `docs/venues.md`.
 - `session.ts` — the `bsky_sid` cookie is an opaque id into a sealed
   server-side store; `oauthSession()` is the authorisation. Anything billed or
@@ -379,7 +390,13 @@ in front of a server that would have signed people in.
 `tests/auth-endpoint.spec.ts` holds the three to one answer.
 
 `public-read.ts` reads *other people's* palates with no session, for
-`/p/<handle>` (a map page: their point, and a signed-in visitor's beside it) — handle → DID → document → PDS → record. It runs on a public
+`/p/<handle>` (a map page: their terrain, and for a signed-in visitor both
+points to compare) — handle → DID → document → PDS → record. With `taste:
+true` it also reads their latest quiz and their pours (`public-taste.ts`,
+newest first, at most `MAX_POURS`), which `/p/<handle>` builds their terrain
+from as `/map` builds yours; that read is cached in the Workers cache by the
+repository's revision (`com.atproto.sync.getLatestCommit`), so an unchanged
+repository costs one small request. It runs on a public
 route, so it fetches only `https:` hosts, time-boxes every lookup, and parses
 the record down to the fields the page draws. The DID document is checked and
 read by `@atproto/did` (`didDocumentValidator`, `extractAtprotoData`), not a
@@ -532,8 +549,9 @@ Open work only; what is built is described above.
 4. **Elicitation.** Swipes for breadth, and fitting `NOISE_LEVELS`,
    `EVIDENCE_SCALE` and `PAIR_NOISE_SCALE` from the logged answers against
    pours. Never swipe on drink *names* — that measures familiarity, not taste.
-5. **The Overlap.** `/p/<handle>` draws a coordinate and, for a signed-in
-   visitor, theirs beside it (`src/lib/overlap.ts`). Next: two people in the
+5. **The Overlap.** `/p/<handle>` draws a taste and, for a signed-in visitor
+   or anyone named by `with=`, a second over it (`compareTerrains` in
+   `src/lib/overlap.ts`). Next: two people in the
    same bar, conversation starters from what their maps share. Discovery
    comes from the user's existing follow graph, not a second one built here.
    Surface only the intersection; lead with disagreement about drinks.
@@ -541,7 +559,8 @@ Open work only; what is built is described above.
    anyone who subscribes to Cotidal's labeler — the first step into the follow
    graph. Waits on working sign-in and enough members to show it to
    (`docs/routes.md` § Friends).
-   **Coasters**: the chart on a coaster, a member's QR code as their profile
+   **Coasters**: a member's code over their map, in Settings (`MapCode`),
+   printed as a coaster; print sizing and the code's look are open
    (`docs/coasters.md`).
 
 Sequencing and the reasoning behind it: `docs/routes.md`.
