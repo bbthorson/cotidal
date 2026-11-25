@@ -453,9 +453,14 @@ function DrinkPanel({ e, drink }: { e: ExploreState; drink: Drink }) {
 
       <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2">
         {e.cold ? (
-          <a href={questionsHref} className="btn btn-primary px-5">
-            {chart.findYours}
-          </a>
+          <>
+            <a href={questionsHref} className="btn btn-primary px-5">
+              {chart.findYours}
+            </a>
+            <button type="button" onClick={() => e.rate.open({ drink: drink.name })} className="btn btn-outline px-5">
+              {chart.logThis}
+            </button>
+          </>
         ) : (
           <>
             <button type="button" onClick={() => e.rate.open({ drink: drink.name })} className="btn btn-primary px-5">

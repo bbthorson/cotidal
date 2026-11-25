@@ -130,10 +130,10 @@ export function useExplore(
     setUp(false);
   };
 
-  // Arrivals: ?drink=<slug>, ?menu=1, ?venue=<handle>.
+  // Arrivals: ?drink=<slug> (not on ?draft= or ?rate= links), ?menu=1, ?venue=<handle>.
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const drinkParam = params.get('drink')?.trim();
+    const drinkParam = !params.has('draft') && !params.has('rate') ? params.get('drink')?.trim() : undefined;
     if (drinkParam) {
       const matched = drinkOf({ slug: drinkParam, name: drinkParam });
       if (matched) {
