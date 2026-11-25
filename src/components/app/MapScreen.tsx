@@ -28,9 +28,17 @@ export function MapScreen({
   bodyRef,
   overlay,
   rest = 'standard',
+  bar,
   children,
 }: {
   mode: 'live' | 'static';
+  /**
+   * The site's app bar (`SiteHeader`, compact), at the top of the card: the
+   * map takes the top of the screen, and the card carries the wordmark, the
+   * menu, the account and, on `/map`, the search. Optional only to the type
+   * checker: an Astro page passes it as a named slot.
+   */
+  bar?: ReactNode;
   /**
    * How much of a phone's first screen the card takes at rest, on a static
    * page: `tall` leaves room for the front door's lede and its one action
@@ -64,6 +72,12 @@ export function MapScreen({
           tone === 'reveal' ? 'bg-reveal text-reveal-foreground' : 'bg-card text-foreground'
         )}
       >
+        <span aria-hidden="true" className="mx-auto mt-1.5 block h-0.75 w-10 shrink-0 bg-border lg:hidden" />
+        {bar && (
+          <div data-site-chrome className="shrink-0 px-4 pt-2 lg:px-5 lg:pt-4">
+            {bar}
+          </div>
+        )}
         {head}
         <div
           ref={bodyRef}
@@ -78,9 +92,10 @@ export function MapScreen({
 
 /**
  * The card's head: a line saying what the card is about, and on the right
- * its one control (on `/map`, More or Less). On a phone the grip above it
- * says the card can be pulled up; on `/map` the head is what is dragged
- * (pass the pointer handlers), on a static page the page scrolls.
+ * its one control (on `/map`, More or Less). On `/map` the head is what is
+ * dragged (pass the pointer handlers); on a static page the page scrolls.
+ * The grip that says the card can be pulled up is the card's own, above the
+ * app bar.
  */
 export function CardHead({
   children,
@@ -89,8 +104,7 @@ export function CardHead({
   ...rest
 }: { children: ReactNode; action?: ReactNode } & HTMLAttributes<HTMLDivElement>) {
   return (
-    <div className={cn('shrink-0 select-none px-4 pt-1.5 lg:px-5 lg:pt-3', className)} {...rest}>
-      <span aria-hidden="true" className="mx-auto mb-2 block h-0.75 w-10 bg-border lg:hidden" />
+    <div className={cn('shrink-0 select-none px-4 pt-2 lg:px-5 lg:pt-3', className)} {...rest}>
       <div className="flex items-baseline justify-between gap-3 border-b border-border pb-2">
         <p className="min-w-0 truncate">{children}</p>
         {action}

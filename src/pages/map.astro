@@ -1,5 +1,6 @@
 ---
 import AppShell from '../layouts/AppShell.astro';
+import SiteHeader from '../components/marketing/SiteHeader.astro';
 import Explore from '../components/app/Explore';
 import { site, explore } from '../lib/copy';
 import { loadRegister } from '../lib/register.server';
@@ -26,6 +27,8 @@ const member = account.kind === 'member' ? { did: account.did, handle: account.h
 const initialQuery = Astro.url.searchParams.get('q') ?? '';
 ---
 
-<AppShell title={`${site.name} — ${explore.title}`} currentPath={mapHref} app search>
-  <Explore client:load register={register} signInEnabled={authEnabled} member={member} initialQuery={initialQuery} />
+<AppShell title={`${site.name} — ${explore.title}`} currentPath={mapHref} app>
+  <Explore client:load register={register} signInEnabled={authEnabled} member={member} initialQuery={initialQuery}>
+    <SiteHeader slot="bar" currentPath={mapHref} account={account} search compact />
+  </Explore>
 </AppShell>

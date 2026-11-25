@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, type ReactNode } from 'react';
 import { Questionnaire } from '@/components/app/Questionnaire';
 import { Reveal } from '@/components/app/Reveal';
 import { AtprotoProvider } from '@/components/app/AtprotoProvider';
@@ -37,7 +37,7 @@ function nextHref(): string {
   return slug ? drinkMapHref(slug) : MAP;
 }
 
-function QuestionsContent({ member }: { member: boolean }) {
+function QuestionsContent({ member, bar }: { member: boolean; bar?: ReactNode }) {
   const [profile, setProfile] = useState<UserProfile | null>(null);
 
   const handleComplete = useCallback((finished: UserProfile) => {
@@ -84,6 +84,7 @@ function QuestionsContent({ member }: { member: boolean }) {
     <MapScreen
       mode="live"
       rest="tall"
+      bar={bar}
       label={hero.primaryCta}
       tone={answering ? 'card' : 'reveal'}
       map={
@@ -119,13 +120,16 @@ function QuestionsContent({ member }: { member: boolean }) {
 export default function Questions({
   signInEnabled,
   member,
+  bar,
 }: {
   signInEnabled: boolean;
   member: { did: string; handle: string | null } | null;
+  /** The app bar (`SiteHeader`), passed by the page as a slot: the top of the card. */
+  bar?: ReactNode;
 }) {
   return (
     <AtprotoProvider enabled={signInEnabled} member={member}>
-      <QuestionsContent member={!!member} />
+      <QuestionsContent member={!!member} bar={bar} />
     </AtprotoProvider>
   );
 }

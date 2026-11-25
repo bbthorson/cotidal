@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { Drink } from '@/lib/data';
 import type { PourRecord } from '@/lib/atproto/records';
 import { chart, compass, explore, mapPage, pour, taste } from '@/lib/copy';
@@ -40,10 +40,12 @@ function ExploreContent({
   register,
   member,
   initialQuery,
+  bar,
 }: {
   register: Register;
   member: { did: string; handle: string | null } | null;
   initialQuery: string;
+  bar?: ReactNode;
 }) {
   const e = useExplore(register, member, initialQuery);
   const { isEnabled, openSignIn } = useAtprotoContext();
@@ -119,6 +121,7 @@ function ExploreContent({
   return (
     <MapScreen
       mode="live"
+      bar={bar}
       label={explore.cardLabel}
       up={e.up || !!e.rate.request}
       tone={reveal ? 'reveal' : 'card'}
@@ -436,6 +439,7 @@ export default function Explore({
   signInEnabled,
   member,
   initialQuery = '',
+  bar,
 }: {
   register: Register;
   signInEnabled: boolean;
@@ -443,10 +447,12 @@ export default function Explore({
   member: { did: string; handle: string | null } | null;
   /** `?q=` from the header's search, which works before the island does. */
   initialQuery?: string;
+  /** The app bar (`SiteHeader`, with the search), passed by the page as a slot: the top of the card. */
+  bar?: ReactNode;
 }) {
   return (
     <AtprotoProvider enabled={signInEnabled} member={member}>
-      <ExploreContent register={register} member={member} initialQuery={initialQuery} />
+      <ExploreContent register={register} member={member} initialQuery={initialQuery} bar={bar} />
     </AtprotoProvider>
   );
 }

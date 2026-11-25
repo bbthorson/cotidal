@@ -407,7 +407,7 @@ bsky-sign-in[data-state='error'] input[name='handle'] {
     min-height: 0;
     overflow: hidden;
     container-type: size;
-    --map-side: clamp(220px, calc(100cqh - 200px), 100cqw);
+    --map-side: clamp(220px, calc(100cqh - 260px), 100cqw);
   }
   /* The questions: the card holds a question and its plates, so the map gives way. */
   .map-screen-live[data-rest='tall'] {
