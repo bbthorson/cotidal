@@ -8,6 +8,7 @@ import { barsFromPours, foldName, lastPourByDrink, logTotals } from '@/lib/pour-
 import { drinksAtSameSpot, namesMatching, searchDrinks, unlistedBar } from '@/lib/drink-search';
 import { addMenuLines, rankMenu, type MenuItem } from '@/lib/menu-rank';
 import { readMapView } from '@/lib/map-url';
+import type { Side } from '@/lib/compare';
 import { quadrantIdFor, type QuadrantId } from '@/lib/quadrant';
 import { buildTerrain, evidenceAt, kindOf, leanings, sampleTerrain, type TerrainStart } from '@/lib/terrain';
 import { distanceRun } from '@/lib/track';
@@ -69,6 +70,14 @@ export function useExplore(
   );
   const terrain = useMemo(() => (terrainStart ? buildTerrain(terrainStart, history) : null), [terrainStart, history]);
   const ground = useMemo(() => (terrain ? sampleTerrain(terrain, 0.5) : null), [terrain]);
+  // Your taste as one side of a comparison (`compare.ts`): what a drink, or a person, is measured against.
+  const side: Side | null = useMemo(
+    () =>
+      terrain && profile
+        ? { terrain, point: { x: profile.x, y: profile.y }, aversions: { smoke: profile.dislikesSmoke, bitter: profile.dislikesBitter, anise: profile.dislikesAnise } }
+        : null,
+    [terrain, profile]
+  );
   const lean = useMemo(() => (terrain ? leanings(terrain, 2) : []), [terrain]);
   const lastPour = useMemo(() => lastPourByDrink(history), [history]);
 
@@ -232,6 +241,7 @@ export function useExplore(
 
     // The map
     ground,
+    side,
     lastPour,
     leanings: lean,
     hover,

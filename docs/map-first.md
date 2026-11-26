@@ -293,6 +293,27 @@ of drink, so a Manhattan no longer brings up a Rioja.
 - **Drift.** Old pours count as much as new ones. Taste moves; a pour's
   weight may need to fade with age.
 
+## Comparing
+
+Comparing your map with a drink and with a person is one comparison: a drink
+is a point on the map, a person is a set of points — their ground
+(`compareWith`, `src/lib/compare.ts`; `Comparison.tsx`). Either way the card
+says the same three things, on the map of whoever it is about:
+
+- **From the nearest hill, which way**: from the nearest of the taste's
+  hilltops to the drink, or to the highest of the person's hills (`wayTo`).
+- **Whether it is reached for**: a drink at `REACH_FOR` or higher on the
+  ground and not a flavour avoided; for a person, how many of their top ten
+  are the taste's too.
+- **What is behind it**: the taste's own ratings — near the drink, or of the
+  person's top drinks.
+
+A person adds where the two part (`compareTerrains`): what each would reach
+for that the other would not, and one for both. The map's drink card, a
+drink on someone's map and two people compared (`/p`, `/map?palate=`) all
+draw it, and the chat tools' `compare_palates` gives the same distance and
+way. A height decides "reached for" and is never shown.
+
 ## Where a bar's menu comes from
 
 A photo, read and kept as a sighting. The record for it exists already:

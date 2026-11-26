@@ -867,6 +867,29 @@ export const notFound = {
   drinks: 'Every drink is on the map',
 } as const;
 
+/**
+ * One comparison (`compare.ts`, `Comparison.tsx`): a drink or a person against
+ * a taste — yours, or the person's whose map it is. `whose` is "your" or
+ * "@alice’s"; `who` is "you" or "@alice".
+ */
+export const compare = {
+  /** `whose` for the reader's own map, and for someone else's. */
+  yours: 'your',
+  theirs: (who: string) => `${who}’s`,
+  you: 'you',
+  title: (whose: string) => `On ${whose} map`,
+  fromLabel: 'From the nearest hill',
+  wayLabel: 'Which way',
+  drinkReach: (who: string, reach: boolean) =>
+    reach ? `High on the ground: one ${who} would reach for.` : `Off the high ground: not one ${who} would reach for yet.`,
+  /** What is behind a person's comparison: the taste's own ratings of their top drinks. */
+  personBehind: (whose: string, rated: readonly { name: string; hedonic: number }[]) =>
+    rated.length
+      ? `${whose[0].toUpperCase()}${whose.slice(1)} ratings of their top drinks: ${rated.map((r) => `${r.name} (${r.hedonic})`).join(', ')}`
+      : `No ratings of their top drinks on ${whose} map yet.`,
+  partLabel: 'Where you part',
+} as const;
+
 export const publicMap = {
   eyebrow: 'Public map',
   /** The eyebrow on your own: the name Settings and Your map give it. */

@@ -221,7 +221,10 @@ it: the reveal after the questions, and the region share cards (a region's
 own, which name a region, not a person), which still read the point and its
 region. Someone else's taste — their map, the follows list and
 the chat tools — is read by one set of rules, `taste-reading.ts`
-(`docs/map-first.md`). The dot, the track and `applyPour` are unchanged.
+(`docs/map-first.md`). Comparing a taste with a drink or with a person is one
+comparison (`compareWith`, `compare.ts`; `Comparison.tsx`): a drink is a point,
+a person a set of points, and both are said from the taste's nearest hill —
+how far, which way, whether it is reached for, and the ratings behind it. The dot, the track and `applyPour` are unchanged.
 
 
 The first 94 drinks were placed by hand. A wine or beer added since is placed

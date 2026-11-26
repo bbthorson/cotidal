@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { drinkDatabase, type Drink } from '@/lib/data';
 import type { PourRecord } from '@/lib/atproto/records';
-import { chart, compass, drinks, explore, mapPage, pour, quadrants, regionPage, taste } from '@/lib/copy';
+import { chart, compare as compareCopy, compass, drinks, explore, mapPage, pour, quadrants, regionPage, taste } from '@/lib/copy';
 import { formatCoordinate } from '@/lib/coordinate';
 import { quadrantFor, regionPath, type QuadrantId } from '@/lib/quadrant';
 import { matchDrink } from '@/lib/drink-match';
@@ -33,6 +33,8 @@ import { usePrerendered } from '@/hooks/usePrerendered';
 import { drinkEntryPath, type DrinkEntryData } from '@/lib/drink-entry';
 import { regionEntryPath, type RegionEntryData } from '@/lib/region-entry';
 import { RegionEntry } from './RegionEntry';
+import { Comparison } from './Comparison';
+import { compareWith } from '@/lib/compare';
 import { RegionFilter } from './RegionFilter';
 import { neighboursOf } from '@/lib/map-draw';
 
@@ -435,7 +437,7 @@ function DrinkPanel({ e, drink, initialEntry, onQuiz }: { e: ExploreState; drink
       <button type="button" onClick={e.closeDrink} className="link-caps flex min-h-11 items-center text-muted-foreground hover:text-foreground">
         &larr; {e.venue?.name ?? (e.venue ? compass.atMenu.homeTitle : (regionOpen?.name ?? explore.backToStart))}
       </button>
-      <ScreenHeader title={e.name(drink.name)} gloss={e.cold ? chart.coldDrinkPrompt : e.reasonFor(drink)}>
+      <ScreenHeader title={e.name(drink.name)} gloss={e.cold || !e.side ? chart.coldDrinkPrompt : undefined}>
         <Readout
           className="mt-4"
           cells={[
@@ -444,6 +446,15 @@ function DrinkPanel({ e, drink, initialEntry, onQuiz }: { e: ExploreState; drink
           ]}
         />
       </ScreenHeader>
+
+      {e.side && (
+        <Comparison
+          comparison={compareWith(e.side, { kind: 'drink', drink })}
+          whose={compareCopy.yours}
+          who={compareCopy.you}
+          reason={e.reasonFor(drink)}
+        />
+      )}
 
       {lastLine && (
         <dl className="mt-3 border-t border-border pt-1">

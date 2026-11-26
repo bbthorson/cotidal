@@ -2,6 +2,7 @@ import { drinkDatabase, type Drink } from '../data';
 import { quadrantFor } from '../quadrant';
 import { formatCoordinate } from '../coordinate';
 import { compareTerrains, TOP, type MapPoint } from '../overlap';
+import { compareWith } from '../compare';
 import { mcp, publicMap, taste as tasteCopy } from '../copy';
 import { drinkHeight, leanings, type Terrain } from '../terrain';
 import { avoids, evidenceFor, menuOf, nearestHilltop, ratingsOf, terrainOf } from '../taste-reading';
@@ -308,6 +309,9 @@ export async function comparePalates(
     second: PalateSummary;
     /** How many of the first's top ten are in the second's (`compareTerrains`). */
     inCommon: number;
+    /** How far the second's highest hill lies from the first's nearest, and which way (`compareWith`), as `/p` says it. */
+    distance: number;
+    way: string;
     description: string;
     firstWouldOrder: DrinkSummary | null;
     secondWouldOrder: DrinkSummary | null;
@@ -317,10 +321,10 @@ export async function comparePalates(
   const [a, b] = await Promise.all([palateOf(first, ctx), palateOf(second, ctx)]);
   if (!a.ok) return a;
   if (!b.ok) return b;
-  const overlap = compareTerrains(
-    { terrain: a.data.terrain, aversions: a.data.point.aversions },
-    { terrain: b.data.terrain, aversions: b.data.point.aversions }
-  );
+  // One comparison, as `/p` makes it: the second is a set of points measured against the first.
+  const side = (p: typeof a.data) => ({ terrain: p.terrain, aversions: p.point.aversions, point: { x: p.point.x, y: p.point.y } });
+  const c = compareWith(side(a.data), { kind: 'person', side: side(b.data) });
+  const overlap = c.overlap!;
   const maybe = (d: Drink | null) => (d ? summarize(d, ctx) : null);
   return {
     ok: true,
@@ -328,6 +332,8 @@ export async function comparePalates(
       first: a.data.summary,
       second: b.data.summary,
       inCommon: overlap.inCommon,
+      distance: c.distance,
+      way: c.words,
       description: publicMap.inCommon(overlap.inCommon, TOP),
       firstWouldOrder: maybe(overlap.firstOnly),
       secondWouldOrder: maybe(overlap.secondOnly),
