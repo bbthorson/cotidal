@@ -2,10 +2,10 @@
 import { getCollection } from 'astro:content';
 import MapPage from '../../layouts/MapPage.astro';
 import { PalateMap } from '../../components/app/PalateMap';
-import { CardHead } from '../../components/app/MapScreen';
-import { ScreenHeader } from '../../components/app/ui';
-import RegionFilter from '../../components/marketing/RegionFilter.astro';
-import DrinkRow from '../../components/marketing/DrinkRow.astro';
+import { ScreenHeader, SectionTitle } from '../../components/app/ui';
+import RegionFilter from '../../components/site/RegionFilter.astro';
+import { DrinkRow } from '../../components/app/DrinkRow';
+import { formatCoordinate } from '../../lib/coordinate';
 import { site, drinks as copy, explore, quadrants } from '../../lib/copy';
 import { drinkDatabase } from '../../lib/data';
 import { quadrantIdFor, regionPath } from '../../lib/quadrant';
@@ -45,12 +45,8 @@ const grouped = quadrants.map((quadrant) => ({
 }));
 ---
 
-<MapPage title={`${copy.title} · ${site.name}`} description={copy.intro} currentPath={drinksHref} label={copy.title}>
+<MapPage title={`${copy.title} · ${site.name}`} description={copy.intro} currentPath={drinksHref} label={copy.title} eyebrow={copy.eyebrow}>
   <PalateMap slot="map" label={explore.chartLabel} named={placed.map(({ drink }) => drink.name)} tide />
-
-  <CardHead slot="head">
-    <span class="label-caps">{copy.eyebrow}</span>
-  </CardHead>
 
   <ScreenHeader title={copy.title} gloss={copy.intro} />
   <div class="mt-6">
@@ -61,19 +57,16 @@ const grouped = quadrants.map((quadrant) => ({
     {
       grouped.map(({ quadrant, items }) => (
         <section id={quadrant.id}>
-          <div class="flex items-baseline justify-between border-b border-foreground pb-2">
-            <h2 class="font-serif text-heading font-bold text-foreground">
-              <a href={regionPath(quadrant.id)} class="hover:underline hover:underline-offset-4">{quadrant.name}</a>
-            </h2>
-            <span class="label-caps text-secondary">{quadrant.axis}</span>
-          </div>
+          <SectionTitle aside={quadrant.axis}>
+            <a href={regionPath(quadrant.id)} class="hover:underline hover:underline-offset-4">{quadrant.name}</a>
+          </SectionTitle>
           <p class="mt-2 font-serif text-ui italic leading-relaxed text-muted-foreground">{quadrant.gloss}</p>
 
           {items.length === 0 ? (
             <p class="mt-5 font-serif text-ui italic text-muted-foreground">{copy.emptyQuadrant}</p>
           ) : (
-            <ul class="mt-4 border-b border-border">
-              {items.map(({ entry, drink }) => <DrinkRow entry={entry} drink={drink} />)}
+            <ul class="mt-2">
+              {items.map(({ entry, drink }) => <DrinkRow href={`/drinks/${entry.id}`} title={entry.data.title} figure={formatCoordinate(drink.x, drink.y)} note={entry.data.summary} />)}
             </ul>
           )}
         </section>

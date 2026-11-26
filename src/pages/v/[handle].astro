@@ -1,6 +1,7 @@
 ---
 import MapPage from '../../layouts/MapPage.astro';
-import { ScreenHeader } from '../../components/app/ui';
+import { ScreenHeader, SectionTitle } from '../../components/app/ui';
+import { DrinkRow } from '../../components/app/DrinkRow';
 import { PalateMap, type Pin } from '../../components/app/PalateMap';
 import { readPublicVenue } from '../../lib/atproto/venue-read';
 import { formatCoordinate } from '../../lib/coordinate';
@@ -60,7 +61,7 @@ const formatDate = (iso: string) => {
             {result.venue.menu && (
               <a
                 href={`/map?venue=${encodeURIComponent(result.actor.handle ?? result.actor.did)}`}
-                class="btn btn-primary px-6"
+                class="btn btn-primary w-full"
               >
                 {copy.rankForMe}
               </a>
@@ -69,7 +70,7 @@ const formatDate = (iso: string) => {
               <a
                 href={result.venue.website}
                 rel="noopener noreferrer"
-                class="link-caps text-muted-foreground underline decoration-muted-foreground underline-offset-4 hover:text-foreground"
+                class="link-caps text-secondary hover:underline hover:underline-offset-4"
               >
                 {copy.websiteLabel}
               </a>
@@ -82,35 +83,21 @@ const formatDate = (iso: string) => {
 
         {result.venue.menu ? (
           <section class="space-y-8">
-            <div class="flex flex-wrap items-baseline justify-between gap-2 border-b border-foreground pb-2">
-              <h2 class="font-serif text-heading font-bold text-foreground">
-                {result.venue.menu.title ?? copy.menuTitle}
-              </h2>
-              <span class="font-condensed text-label uppercase tracking-label text-muted-foreground">
-                {copy.publishedOn(formatDate(result.venue.menu.publishedAt))}
-              </span>
-            </div>
+            <SectionTitle aside={copy.publishedOn(formatDate(result.venue.menu.publishedAt))}>
+              {result.venue.menu.title ?? copy.menuTitle}
+            </SectionTitle>
 
             {result.venue.menu.sections.map((section) => (
               <div class="space-y-2">
-                {section.name && <h3 class="section-title">{section.name}</h3>}
+                {section.name && <SectionTitle as="h3">{section.name}</SectionTitle>}
                 <ul class="border-t border-border">
                   {section.items.map((item) => (
-                    <li class="border-b border-border py-3">
-                      <div class="dot-leader">
-                        <span class="font-serif text-prose font-bold text-foreground">
-                          {item.placed && <span class="mr-2 font-condensed text-meta tabular-nums text-muted-foreground">{pins.find((p) => p.drink.name === item.placed!.name)?.rank}</span>}
-                          {item.name}
-                        </span>
-                        <span aria-hidden="true" class="leader" />
-                        <span class="shrink-0 font-condensed text-meta tabular-nums text-muted-foreground">
-                          {item.placed ? formatCoordinate(item.placed.x, item.placed.y) : copy.unplaced}
-                        </span>
-                      </div>
-                      {item.description && (
-                        <p class="mt-1 text-ui text-muted-foreground">{item.description}</p>
-                      )}
-                    </li>
+                    <DrinkRow
+                      rank={item.placed ? pins.find((p) => p.drink.name === item.placed!.name)?.rank : undefined}
+                      title={item.name}
+                      figure={item.placed ? formatCoordinate(item.placed.x, item.placed.y) : copy.unplaced}
+                      note={item.description || undefined}
+                    />
                   ))}
                 </ul>
               </div>

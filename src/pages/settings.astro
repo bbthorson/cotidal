@@ -1,8 +1,8 @@
 ---
 import MapPage from '../layouts/MapPage.astro';
 import { PalateMap } from '../components/app/PalateMap';
-import { ScreenHeader } from '../components/app/ui';
 import { MapCode } from '../components/app/MapCode';
+import { Notice } from '../components/app/ui';
 import { account as accountCopy, coaster, explore, publicMap, settings as copy, site } from '../lib/copy';
 import { readPublicPalate } from '../lib/atproto/public-read';
 import { memberCodeUrl, qrPath } from '../lib/coaster';
@@ -109,7 +109,7 @@ const qr = qrPath(codeHref);
 const date = (d: Date) => d.toLocaleDateString('en', { year: 'numeric', month: 'long', day: 'numeric' });
 const name = account.handle ? `@${account.handle}` : account.did;
 const mapHref = publicMapPath(account.handle ?? account.did);
-const link = 'text-foreground underline decoration-muted-foreground underline-offset-4 hover:decoration-foreground';
+const link = 'link-inline';
 // One row: what it is, a line about it, and its action on the right.
 const row = 'flex items-center justify-between gap-4 border-b border-border py-4';
 const rowTitle = 'text-ui font-bold text-foreground';
@@ -117,7 +117,7 @@ const rowBody = 'mt-0.5 text-meta text-muted-foreground';
 Astro.response.headers.set('Cache-Control', 'no-store');
 ---
 
-<MapPage title={`${site.name} — ${copy.title}`} currentPath={accountHref} label={copy.title} eyebrow={copy.title}>
+<MapPage title={`${site.name} — ${copy.title}`} currentPath={accountHref} label={copy.title} eyebrow={copy.title} heading>
   {
     ground ? (
       <PalateMap slot="map" label={publicMap.plotLabel(name)} ground={ground} ratings={rated} />
@@ -126,7 +126,6 @@ Astro.response.headers.set('Cache-Control', 'no-store');
     )
   }
   <div class="space-y-10">
-    <ScreenHeader title={copy.title} />
 
     <section data-testid="settings-account" class="border-y border-foreground py-4">
       <div class="flex items-center justify-between gap-4">
@@ -145,12 +144,7 @@ Astro.response.headers.set('Cache-Control', 'no-store');
       <h2 class="section-title">{copy.mapTitle}</h2>
       {
         mapNotice && (
-          <p
-            role={mapNotice.error ? 'alert' : 'status'}
-            class:list={['border-b border-border py-2.5 text-meta', mapNotice.error ? 'text-destructive' : 'text-foreground']}
-          >
-            {mapNotice.text}
-          </p>
+          <Notice tone={mapNotice.error ? 'alert' : 'status'} className="mt-3">{mapNotice.text}</Notice>
         )
       }
       <div class={row}>
@@ -196,9 +190,7 @@ Astro.response.headers.set('Cache-Control', 'no-store');
             {copy.assistantsOff} <a href="/mcp" class={link}>{copy.howToSetUp}</a>
           </p>
         ) : listFailed ? (
-          <p role="alert" class="border-b border-border py-4 text-meta text-destructive">
-            {copy.disconnectFailed}
-          </p>
+          <Notice tone="alert" className="mt-3">{copy.disconnectFailed}</Notice>
         ) : (
           <>
             <p class="pt-3 text-meta text-muted-foreground">{copy.assistantsLede}</p>

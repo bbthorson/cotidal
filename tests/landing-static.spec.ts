@@ -98,7 +98,7 @@ test('Drinks: a drink entry has Recipe structured data and one way to compare it
   const html = await (await page.request.get('/drinks/absinthe-drip')).text();
   expect(html).toContain('"@type":"Recipe"');
   // One link for a member and a stranger alike: the questions go straight on to the drink on your map if you have a coordinate.
-  expect(html).toContain('href="/questions?drink=absinthe-drip"');
+  expect(html).toContain('href="/map?drink=absinthe-drip&amp;quiz=1"');
   expect(html).toContain(drinks.compareCta);
 });
 
@@ -118,6 +118,10 @@ test('Drinks: a drink is the map with the drink marked and its entry in the card
   await expect(map.getByText('Negroni', { exact: true })).toBeVisible();
   await expect(card.getByRole('heading', { level: 1, name: 'Negroni' })).toBeVisible();
   await expect(card.getByRole('heading', { name: drinks.nearLabel })).toBeAttached();
+  // The page's name is said once, in the app bar, with its way back; no line of its own under the bar.
+  await expect(card.getByTestId('page-name')).toHaveText(/^Drinks · /);
+  await expect(card.locator('header').getByRole('link', { name: drinks.backLabel })).toHaveAttribute('href', '/drinks');
+  await expect(card.getByText(/^Drinks · /)).toHaveCount(1);
 
   // On a phone the card rests under the map and scrolling the page pulls it up over it.
   const mapTop = (await map.boundingBox())!.y;
@@ -151,7 +155,7 @@ test('Sign in: works without JavaScript, from its own page', async ({ browser })
   await page.goto('/');
   await expect(page.getByRole('link', { name: /find your coordinate/i })).toHaveAttribute(
     'href',
-    '/questions'
+    '/map?quiz=1'
   );
   await context.close();
 });

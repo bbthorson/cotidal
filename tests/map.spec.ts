@@ -18,13 +18,15 @@ const theMap = (page: import('@playwright/test').Page) => page.locator(`[role="g
 const card = (page: import('@playwright/test').Page) => page.getByRole('region', { name: explore.cardLabel });
 const rating = (page: import('@playwright/test').Page) => page.getByRole('region', { name: ratePage.title });
 
-test('Map: one screen, the search in the header, and one action of its own', async ({ page }) => {
+test('Map: one screen, the search in its card, and one action of its own', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.addInitScript(seed, profile);
   await page.goto('/map');
-  // The header holds the search, between the mark and Menu; there is no bar along the foot.
+  // The search is content, not navigation: the first thing in the card, not in the app bar, which names the page.
   const header = page.locator('header');
-  await expect(header.getByRole('searchbox', { name: compass.searchLabel })).toBeVisible();
+  await expect(header.getByRole('searchbox')).toHaveCount(0);
+  await expect(header.getByTestId('page-name')).toHaveText(nav.map);
+  await expect(card(page).getByRole('searchbox', { name: compass.searchLabel })).toBeVisible();
   await expect(header.locator('summary')).toHaveText(nav.menu);
   await expect(page.locator('footer')).toHaveCount(0);
   await expect(theMap(page)).toBeVisible();
@@ -33,18 +35,17 @@ test('Map: one screen, the search in the header, and one action of its own', asy
   // On a phone the visible reading pages are in Menu.
   await header.locator('summary').click();
   const menuNav = page.getByRole('navigation', { name: a11y.mainNav });
-  await expect(menuNav.getByRole('link', { name: nav.howItWorks })).toHaveAttribute('href', '/how-it-works');
+  await expect(menuNav.getByRole('link', { name: nav.howItWorks })).toHaveAttribute('href', '/#how-it-works');
 });
 
-test('Map: the header search works before the map does, as a plain form', async ({ request }) => {
+test('Map: the search works before the map does, as a plain form drawn by the server', async ({ request }) => {
   const html = await (await request.get('/map?q=negroni')).text();
-  const header = html.slice(html.indexOf('<header'), html.indexOf('</header>'));
-  expect(header).toContain('id="app-search"');
-  expect(header).toContain('action="/map"');
-  expect(header).toContain('value="negroni"');
+  const search = html.slice(html.indexOf('id="map-search"'));
+  expect(search).toContain('action="/map"');
+  expect(search.slice(0, 2000)).toContain('value="negroni"');
   // Only the map has it.
   const drinks = await (await request.get('/drinks')).text();
-  expect(drinks).not.toContain('id="app-search"');
+  expect(drinks).not.toContain('id="map-search"');
 });
 
 test('Map: the server draws the map whole, so it is there before any script runs', async ({ browser }) => {
@@ -69,8 +70,10 @@ test('Map: with no coordinate the card asks one thing, and the search still find
   await page.getByRole('searchbox', { name: compass.searchLabel }).fill('negroni');
   await expect(page.locator('[data-result]').first()).toContainText('Negroni');
   await page.keyboard.press('Escape');
+  // The questions open in the card, in place: no page of their own.
   await card(page).getByRole('link', { name: coldState.quizCta }).click();
-  await expect(page).toHaveURL(/\/questions$/);
+  await expect(page).toHaveURL(/\/map$/);
+  await expect(card(page).getByRole('group', { name: a11y.answerOptions })).toBeVisible();
 });
 
 test('Map: your menu says what put each drink there, and a drink opens in the card', async ({ page }) => {
@@ -107,7 +110,11 @@ test('Map: rating happens in the card, and a guest’s pour is kept on the devic
   await rating(page).getByRole('group', { name: pour.whereLabel }).getByRole('button', { name: pour.atHome }).click();
   await page.getByRole('radio', { name: /^7:/ }).click();
   await page.getByRole('button', { name: pour.submit }).click();
+  // The move is drawn on the map itself, not a second chart: a trail to your point, the drink marked.
+  await expect(theMap(page).locator('[data-trail]')).toHaveCount(1);
+  await expect(theMap(page).getByRole('img', { name: /^Your coordinate, now in / })).toBeVisible();
   await page.getByRole('button', { name: moved.back }).click();
+  await expect(theMap(page).locator('[data-trail]')).toHaveCount(0);
 
   await expect(page).toHaveURL(/\/map$/);
   await expect(rating(page)).toHaveCount(0);
@@ -157,7 +164,7 @@ test('Map: the card sits beside the map on a wide screen, under it on a phone', 
   const [c, m] = [(await card(page).boundingBox())!, (await theMap(page).boundingBox())!];
   expect(c.x + c.width).toBeLessThan(m.x);
   // The visible reading pages are in the header beside the search, since the map has no footer.
-  await expect(page.locator('header a[href="/how-it-works"]')).toBeVisible();
+  await expect(page.locator('header a[href="/#how-it-works"]')).toBeVisible();
 
   await page.setViewportSize({ width: 390, height: 844 });
   await expect.poll(async () => {
@@ -165,12 +172,27 @@ test('Map: the card sits beside the map on a wide screen, under it on a phone', 
     return c2.y >= m2.y + m2.height - 1;
   }).toBe(true);
 
-  // The card pulls up over the map, and lets down again.
-  const before = (await card(page).boundingBox())!.height;
-  await card(page).getByRole('button', { name: explore.more }).click();
-  await expect.poll(async () => (await card(page).boundingBox())!.height).toBeGreaterThan(before + 100);
-  await card(page).getByRole('button', { name: explore.less }).click();
-  await expect.poll(async () => (await card(page).boundingBox())!.height).toBeLessThan(before + 5);
+  // As on every page, the card is the page's scroll: scrolling pulls it up over the map, and its app bar sticks to the top.
+  const restTop = (await card(page).boundingBox())!.y;
+  await page.mouse.wheel(0, 600);
+  await expect.poll(async () => (await card(page).boundingBox())!.y).toBeLessThan(restTop - 300);
+  const barTop = async () => (await page.locator('header').first().boundingBox())!.y;
+  await expect.poll(barTop).toBeLessThan(16);
+  const stuck = await barTop();
+  await page.mouse.wheel(0, 400);
+  await page.waitForTimeout(300);
+  expect(Math.abs((await barTop()) - stuck)).toBeLessThan(1);
+  // There is no handle to drag and no More: pulling is scrolling.
+  await expect(card(page).getByRole('button', { name: /^(More|Less)$/ })).toHaveCount(0);
+
+  // A drink is a place on the map: opening one scrolls back, so the map shows and pushes the card down.
+  await card(page).locator('ol li button').first().click();
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeLessThan(5);
+  await expect(card(page).getByRole('heading', { level: 1 })).toBeVisible();
+
+  // Rating needs the room: it scrolls the card up to the top of the screen.
+  await card(page).getByRole('button', { name: chart.logThis }).click();
+  await expect.poll(async () => Math.abs((await card(page).boundingBox())!.y)).toBeLessThan(2);
 });
 
 test('Map: Rate a drink floats at a phone\'s thumb on where to next, sits in the card\'s head from lg, and gives way to a drink\'s own', async ({ page }) => {

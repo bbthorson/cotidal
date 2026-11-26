@@ -1,8 +1,8 @@
 ---
 import AppShell from './AppShell.astro';
-import SiteFooter from '../components/marketing/SiteFooter.astro';
-import AppBar from '../components/marketing/AppBar.astro';
-import { CardHead, MapScreen } from '../components/app/MapScreen';
+import SiteFooter from '../components/site/SiteFooter.astro';
+import AppBar from '../components/site/AppBar.astro';
+import { MapScreen } from '../components/app/MapScreen';
 import { PalateMap } from '../components/app/PalateMap';
 import { accountFor } from '../lib/atproto/session';
 import { explore } from '../lib/copy';
@@ -13,16 +13,20 @@ interface Props {
   image?: { path: string; alt: string };
   /** The page's own address for search engines (`Base`'s `canonical`). */
   canonical?: string;
+  /** Keep the page out of search: a made-up person's map. */
+  noindex?: boolean;
   currentPath: string;
   /** The card's accessible name. */
   label: string;
   /**
-   * The card head's caps line: the name of the way in (docs/design-system.md,
-   * rule 16). A page with a `head` slot of its own leaves it out.
+   * The page's name, in the app bar (`AppBar`'s `title`): the name of the way
+   * in (docs/design-system.md, rule 16), said once, in the bar.
    */
   eyebrow?: string;
-  /** A way back, on the right of the card's head: `← All drinks`. */
+  /** A way back, as an arrow before the name in the app bar. */
   back?: { href: string; label: string };
+  /** The name is the page's only title (Settings): the bar's name is its `h1`, and the card opens with no other. */
+  heading?: boolean;
   /** How much of a phone's first screen the card takes (`MapScreen`'s `rest`). */
   rest?: 'standard' | 'tall';
 }
@@ -33,36 +37,19 @@ interface Props {
  * draws, rendered on the server with no directive.
  *
  * Slots: `map` (a `PalateMap`; without one, the map with the tide turning
- * on it), `head` (a `CardHead`; without one, `eyebrow` and `back` make it),
- * and the card's body. The app bar (`AppBar`) is the card's top and the site
- * footer its foot: the map has the top of the screen to itself.
+ * on it, which may carry a `caption` about what it shows), and the card's body. The
+ * app bar (`AppBar`) is the card's top, carrying the page's name, and the
+ * site footer its foot: the map has the top of the screen to itself.
  */
-const { title, description, image, canonical, currentPath, label, eyebrow, back, rest } = Astro.props;
+const { title, description, image, canonical, noindex, currentPath, label, eyebrow, back, heading, rest } = Astro.props;
 const account = await accountFor(Astro.request, Astro.isPrerendered);
 const hasMap = Astro.slots.has('map');
-const hasHead = Astro.slots.has('head');
 ---
 
-<AppShell title={title} description={description} image={image} canonical={canonical}>
-  <MapScreen mode="static" label={label} rest={rest}>
-    <AppBar slot="bar" currentPath={currentPath} account={account} />
+<AppShell title={title} description={description} image={image} canonical={canonical} noindex={noindex}>
+  <MapScreen label={label} rest={rest}>
+    <AppBar slot="bar" currentPath={currentPath} account={account} title={eyebrow} back={back} heading={heading} />
     {hasMap ? <Fragment slot="map"><slot name="map" /></Fragment> : <PalateMap slot="map" label={explore.chartLabel} tide />}
-    {
-      hasHead ? (
-        <Fragment slot="head"><slot name="head" /></Fragment>
-      ) : (
-        eyebrow && (
-          <CardHead slot="head">
-            <span class="label-caps">{eyebrow}</span>
-            {back && (
-              <a slot="action" href={back.href} class="link-caps shrink-0 text-secondary">
-                &larr; {back.label}
-              </a>
-            )}
-          </CardHead>
-        )
-      )
-    }
     <div class="pt-4"><slot /></div>
     <div class="pt-12">
       <SiteFooter currentPath={currentPath} compact account={account} />

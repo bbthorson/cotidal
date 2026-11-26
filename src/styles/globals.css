@@ -122,9 +122,10 @@
   .link-caps {
     @apply inline-flex min-h-11 items-center font-condensed text-label uppercase tracking-label transition-colors;
   }
-  /* The italic underlined link in running serif: "Find your coordinate". The size is the caller's. */
-  .link-serif {
-    @apply font-serif italic text-foreground underline decoration-muted-foreground underline-offset-4 transition-colors hover:decoration-foreground;
+  /* A link inside a sentence: ink, underlined in grey-green, the underline inks on hover.
+     It takes the sentence's face and size. A link standing on its own is `.link-caps`. */
+  .link-inline {
+    @apply text-foreground underline decoration-muted-foreground underline-offset-4 transition-colors hover:decoration-foreground;
   }
 
   /* "You are here": a bold label over a heavy ink rule, like a printed tab —
@@ -378,17 +379,17 @@ bsky-sign-in[data-state='error'] input[name='handle'] {
   }
 }
 
-/* The map screen (MapScreen.tsx): the map fixed in place and one card. Its
-   geometry is here rather than measured, so the server lays the screen out
-   whole and nothing moves when the page's script arrives.
+/* The map screen (MapScreen.tsx): the map and one card, the same on every
+   page — the app screens too. Its geometry is here rather than measured, so
+   the server lays the screen out whole and nothing moves when a script
+   arrives.
 
-   - live (/map): the screen fills the window, the app bar the top of its card. On a phone the
-     plane is as wide as the screen and the card rests in the space under it
-     (`--map-side` is the plane's side), pulled up over it by its head
-     (`data-up`). From `lg` the card is a panel down the left.
-   - static (the reading pages, no script): on a phone the plane stays at the
-     top as the page scrolls and the card scrolls up over it, so pulling the
-     card up is scrolling the page. From `lg`, as live, and the card scrolls. */
+   On a phone the map stays at the top of the screen as the page scrolls and
+   the card scrolls up over it: pulling the card up is scrolling the page,
+   and the card's app bar sticks to the top once it gets there. Something
+   about a place on the map (a drink tapped) scrolls back to the top, so the
+   map pushes the card down again (`Explore.tsx`). From `lg` the card is a
+   panel down the left that scrolls on its own, and the map fills the rest. */
 @layer components {
   .map-region {
     display: grid;
@@ -401,83 +402,59 @@ bsky-sign-in[data-state='error'] input[name='handle'] {
     aspect-ratio: 1;
   }
 
-  .map-screen-live {
-    position: relative;
-    flex: 1 1 0%;
-    min-height: 0;
-    overflow: hidden;
-    container-type: size;
-    --map-side: clamp(220px, calc(100cqh - 260px), 100cqw);
-  }
-  /* The questions: the card holds a question and its plates, so the map gives way. */
-  .map-screen-live[data-rest='tall'] {
-    --map-side: clamp(160px, calc(100cqh - 470px), 100cqw);
-  }
-  .map-screen-live > .map-region {
-    position: absolute;
-    inset: 0 0 auto 0;
-    height: var(--map-side);
-  }
-  .map-screen-live > .map-card {
-    position: absolute;
-    inset: auto 0 0 0;
-    height: calc(100cqh - var(--map-side));
-    transition: height 300ms;
-  }
-  .map-screen-live > .map-card[data-up] {
-    height: calc(100cqh - 0.5rem);
-  }
 
-  .map-screen-static {
+  .map-screen {
     display: flex;
     flex-direction: column;
   }
-  .map-screen-static > .map-region {
+  .map-screen > .map-region {
+    /* Drawn above the card, which comes first in reading order. */
     order: -1;
     position: sticky;
     top: 0;
     height: min(100vw, calc(100svh - 17rem));
   }
   @media (max-width: 1023px) {
-    .map-screen-static[data-rest='tall'] > .map-region {
+    /* The front door: the card at rest holds the lede and one action, so the map gives way. */
+    .map-screen[data-rest='tall'] > .map-region {
       height: min(100vw, calc(100svh - 24rem));
     }
+    /* The questions: a question and every plate on one screen, even an iPhone SE's
+       (tests/quiz-flow.spec.ts), so the map gives way further. */
+    .map-screen[data-rest='quiz'] > .map-region {
+      height: min(100vw, calc(100svh - 28.5rem));
+    }
   }
-  .map-screen-static > .map-card {
+  .map-screen > .map-card {
     position: relative;
     min-height: calc(100svh - 3rem);
   }
-
-  @media (prefers-reduced-motion: reduce) {
-    .map-screen-live > .map-card {
-      transition: none;
-    }
+  /* The app bar, stuck to the top of the screen once the card reaches it. */
+  .map-card > .map-bar {
+    position: sticky;
+    top: 0;
+    z-index: 10;
   }
 
   @media (min-width: 1024px) {
-    .map-screen-static {
+    .map-screen {
       position: relative;
       flex: 1 1 0%;
       min-height: 0;
       overflow: hidden;
     }
-    .map-screen-live > .map-region,
-    .map-screen-static > .map-region {
+    .map-screen > .map-region {
       position: absolute;
       inset: 0;
       height: auto;
       /* Clear of the panel: its width and the ground either side of it. */
       padding: 1rem 1rem 1rem 26rem;
     }
-    .map-screen-live > .map-card,
-    .map-screen-live > .map-card[data-up],
-    .map-screen-static > .map-card {
+    .map-screen > .map-card {
       position: absolute;
       inset: 1rem auto 1rem 1rem;
       width: 24rem;
-      height: auto;
       min-height: 0;
-      transition: none;
     }
   }
 
@@ -604,7 +581,21 @@ bsky-sign-in[data-state='error'] input[name='handle'] {
 
 /* The map's floating Rate a drink (Explore.tsx, a phone only): out of the way
    while the search has the keyboard, which would otherwise lift it over the
-   results. */
-body:has(#app-search input:focus) .rate-float {
+   results (`SEARCH_ID`). */
+body:has(#map-search input:focus) .rate-float {
   display: none;
+}
+
+/* A region's name is set for a map a phone's width; on a smaller one (the
+   questions on an iPhone SE) it steps down so neighbours do not run together.
+   Unlayered, so it outranks the name's own size utility. */
+@container (max-width: 300px) {
+  .map-region-name {
+    font-size: 0.9375rem;
+  }
+}
+@container (max-height: 300px) {
+  .map-region-name {
+    font-size: 0.9375rem;
+  }
 }

@@ -38,7 +38,7 @@ test('Answers route: a guest cannot write answers', async ({ request }) => {
 });
 
 test('Answers: a guest who finishes the quiz keeps the answers on the device', async ({ page }) => {
-  await page.goto('/questions');
+  await page.goto('/map?quiz=1');
 
   // The path is adaptive: take the first plate until the reveal appears.
   const reveal = page.getByText('Your coordinate lands in');

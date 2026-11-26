@@ -1,10 +1,9 @@
 ---
 import MapPage from '../layouts/MapPage.astro';
 import { PalateMap } from '../components/app/PalateMap';
-import { CardHead } from '../components/app/MapScreen';
 import { ScreenHeader } from '../components/app/ui';
-import ConnectForm from '../components/marketing/ConnectForm.astro';
-import Principles from '../components/marketing/Principles.astro';
+import ConnectForm from '../components/site/ConnectForm.astro';
+import Principles from '../components/site/Principles.astro';
 import { connect, explore, sections, site } from '../lib/copy';
 import { signInEnabled } from '../lib/atproto/auth';
 import { signIn } from '../lib/site-nav';
@@ -29,12 +28,8 @@ const error = errorParam
   : null;
 ---
 
-<MapPage title={`${site.name} — ${sections.connect}`} currentPath={signIn.href} label={sections.connect}>
+<MapPage title={`${site.name} — ${sections.connect}`} currentPath={signIn.href} label={sections.connect} eyebrow={sections.connect}>
   <PalateMap slot="map" label={explore.chartLabel} tide />
-
-  <CardHead slot="head">
-    <span class="label-caps">{sections.connect}</span>
-  </CardHead>
 
   <ScreenHeader title={connect.title} gloss={connect.lede} />
   <div class="space-y-12 pt-8">

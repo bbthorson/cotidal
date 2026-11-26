@@ -1,36 +1,27 @@
 import { useEffect, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
 import { compass, explore } from '@/lib/copy';
+import { mapHref } from '@/lib/site-nav';
 import { formatDistance } from '@/lib/osm';
 import type { Explore } from '@/hooks/useExplore';
 import { cn } from '@/lib/utils';
 
-/** Where the app bar keeps its search (`AppBar`'s `search`): a plain form until the map takes it over. */
-export const SEARCH_HOST_ID = 'app-search';
+/** The search's id: what the floating Rate a drink steps aside for while it has the keyboard (`.rate-float`). */
+export const SEARCH_ID = 'map-search';
 
 /**
- * The one search, in the app bar at the top of the card: drinks by name or what is in them, bars by
- * name (yours, near you, or any name typed, which opens as a bar with no known
- * menu), and a drink not on the map, which can still be rated. With a bar
- * open its name sits in the box, and the box searches its menu.
+ * The one search, the first thing in the map's card: drinks by name or what
+ * is in them, bars by name (yours, near you, or any name typed, which opens as
+ * a bar with no known menu), and a drink not on the map, which can still be
+ * rated. With a bar open its name sits in the box, and the box searches its
+ * menu.
  *
- * The app bar renders a plain GET form there (`/map?q=`), which works with
- * script off; once the island is up, this takes its place, keeping anything
- * already typed.
+ * It is content, not navigation, so it lives in the card rather than the app
+ * bar. Rendered on the server as a plain GET form to `/map?q=`, so it works
+ * before the island does and with script off; once the island is up, a
+ * submit opens the first result in place.
  */
 export function SearchBox({ e }: { e: Explore }) {
-  const [host, setHost] = useState<HTMLElement | null>(null);
-  useEffect(() => {
-    const el = document.getElementById(SEARCH_HOST_ID);
-    if (!el) return;
-    const typed = el.querySelector('input')?.value;
-    if (typed && !e.query) e.setQuery(typed);
-    el.replaceChildren();
-    setHost(el);
-    // Taken over once, on arrival.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-  return host ? createPortal(<Box e={e} />, host) : null;
+  return <Box e={e} />;
 }
 
 function Box({ e }: { e: Explore }) {
@@ -55,9 +46,11 @@ function Box({ e }: { e: Explore }) {
   const showResults = open && (e.searching || (!inMenu && (e.barHits.length > 0 || e.nearHits.length > 0)));
 
   return (
-    <div ref={root} className="relative min-w-0 flex-1">
+    <div ref={root} id={SEARCH_ID} className="relative min-w-0 flex-1">
       <form
         role="search"
+        action={mapHref}
+        method="get"
         onSubmit={(ev) => {
           ev.preventDefault();
           const first = root.current?.querySelector<HTMLButtonElement>('[data-result]');

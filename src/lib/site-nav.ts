@@ -1,5 +1,5 @@
 import { account as accountCopy, nav } from './copy';
-import { QUESTIONS_PATH } from './atproto/paths';
+import { QUIZ_PARAM } from './atproto/paths';
 import { viewHref } from './map-url';
 
 /**
@@ -30,7 +30,8 @@ export const drinkMapHref = (slug: string) => viewHref(mapHref, { drink: slug })
 export const destinations = [
   { href: mapHref, label: nav.map, match: mapHref, app: true, header: true, menu: false, footer: false, memberOnly: false },
   { href: drinksHref, label: nav.register, match: drinksHref, app: false, header: false, menu: true, footer: true, memberOnly: true },
-  { href: '/how-it-works', label: nav.howItWorks, match: '/how-it-works', app: false, header: false, menu: true, footer: true, memberOnly: false },
+  // How it works is the front door's card, pulled up: an anchor there, never a page of its own, and never "current".
+  { href: '/#how-it-works', label: nav.howItWorks, match: '#how-it-works', app: false, header: false, menu: true, footer: true, memberOnly: false },
   { href: barsHref, label: nav.bars, match: barsHref, app: false, header: false, menu: false, footer: true, memberOnly: false },
 ] as const;
 
@@ -47,15 +48,15 @@ export const signIn = { href: '/sign-in', label: nav.signIn } as const;
  * back to the landing page's form; the island reads `?signin=1`. Everywhere
  * else the static form is the target, so it keeps working without JavaScript.
  */
-const sheetPaths = [mapHref, QUESTIONS_PATH];
+const sheetPaths = [mapHref];
 
 export const signInHref = (currentPath: string) =>
   sheetPaths.some((p) => currentPath.startsWith(p)) ? `${currentPath}?signin=1` : signIn.href;
 
-/** The questions that place a coordinate (`startOverPath` clears the old one first). */
-export const questionsHref = QUESTIONS_PATH;
+/** The questions that place a coordinate: a state of the map's card (`startOverPath` clears the old one first). */
+export const questionsHref = `${mapHref}?${QUIZ_PARAM}=1`;
 /** The questions, from a drink: they finish (or, with a coordinate already, go straight) on that drink on the map. */
-export const questionsForDrink = (slug: string) => viewHref(QUESTIONS_PATH, { drink: slug });
+export const questionsForDrink = (slug: string) => `${viewHref(mapHref, { drink: slug })}&${QUIZ_PARAM}=1`;
 
 /** Where a member manages their account, and where a page that cannot know sends everyone. */
 export const accountHref = '/settings';

@@ -1,19 +1,16 @@
-import type { HTMLAttributes, ReactNode, Ref } from 'react';
+import type { ReactNode, Ref } from 'react';
 import { cn } from '@/lib/utils';
 
 /**
- * The one layout every map page shares: the map fixed in place, and one card
- * for everything else (docs/map-first.md). Its geometry is CSS
- * (`.map-screen-*` in globals.css), so the server lays the screen out whole.
+ * The one layout every page shares: the map, and one card for everything
+ * else (docs/design-system.md, One kind of page). Its geometry is CSS
+ * (`.map-screen` in globals.css), so the server lays the screen out whole.
  *
- * - `live` is `/map`: the screen fills the window, and on a phone the card
- *   rests under the map and is pulled up over it (`up`) by its head.
- * - `static` is a page with no script — a drink, the front door: on a phone
- *   the map stays put at the top while the page scrolls the card up over it,
- *   so the pull is a scroll.
- *
- * From `lg` both are the same: the card is a panel down the left, and the
- * map fills the rest.
+ * On a phone the map stays at the top while the page scrolls the card up
+ * over it, and the card's app bar sticks to the top of the screen once it
+ * gets there; from `lg` the card is a panel down the left that scrolls on its
+ * own. The same on every page, the app screen (`/map`, the questions too)
+ * included: what a tap moves on `/map` is the page's scroll, not the card.
  *
  * The card comes before the map in the page, so a screen reader or a
  * keyboard meets the app bar and the card's contents first and the map, a
@@ -23,97 +20,58 @@ import { cn } from '@/lib/utils';
  * renders it on the server with no directive, and ships no script for it.
  */
 export function MapScreen({
-  mode,
   map,
   label,
-  head,
-  up = false,
   tone = 'card',
+  cardRef,
   bodyRef,
-  overlay,
   rest = 'standard',
   bar,
   children,
 }: {
-  mode: 'live' | 'static';
   /**
-   * The app bar (`AppBar.astro`), at the top of the card: the map takes the
-   * top of the screen, and the card carries the wordmark, the menu, the
-   * account and, on `/map`, the search. Optional only to the type
-   * checker: an Astro page passes it as a named slot.
+   * How much of a phone's first screen the card takes at rest: `tall` leaves
+   * room for the front door's lede and one action, `quiz` for a question and
+   * every plate, on the smallest phones, and the map shrinks to make it.
+   */
+  rest?: 'standard' | 'tall' | 'quiz';
+  /**
+   * The app bar (`AppBar.astro`), at the top of the card, stuck to the top of
+   * the screen as the card scrolls up. Optional only to the type checker: an
+   * Astro page passes it as a named slot.
    */
   bar?: ReactNode;
-  /**
-   * How much of a phone's first screen the card takes at rest, on a static
-   * page: `tall` leaves room for the front door's lede and its one action
-   * on the smallest phones, and shrinks the map to make it.
-   */
-  rest?: 'standard' | 'tall';
-  /** The map (`PalateMap`). Optional only to the type checker: an Astro page passes it as a named slot. */
+  /** The map (`PalateMap`). Optional only to the type checker, as `bar`. */
   map?: ReactNode;
   /** The card's accessible name. */
   label: string;
-  /** The card's head (`CardHead`), or nothing (the reveal). */
-  head?: ReactNode;
-  /** On a phone, the card pulled up over the map (live only). */
-  up?: boolean;
   /** The reveal after a pour lays the card on the reveal's ground. */
   tone?: 'card' | 'reveal';
+  /** The card itself, for scrolling it to the top of a phone's screen. */
+  cardRef?: Ref<HTMLElement>;
+  /** The card's body, which scrolls on its own from `lg`. */
   bodyRef?: Ref<HTMLDivElement>;
-  /** Drawn over the map: the search's results. */
-  overlay?: ReactNode;
   children: ReactNode;
 }) {
+  const ground = tone === 'reveal' ? 'bg-reveal text-reveal-foreground' : 'bg-card text-foreground';
   return (
-    <div className={mode === 'live' ? 'map-screen-live' : 'map-screen-static'} data-rest={rest === 'tall' ? 'tall' : undefined}>
-      {overlay}
+    <div className="map-screen" data-rest={rest === 'standard' ? undefined : rest}>
       <section
+        ref={cardRef}
         aria-label={label}
-        data-up={up || undefined}
-        className={cn(
-          'map-card z-20 flex flex-col border-t border-foreground lg:border lg:shadow-mcm',
-          tone === 'reveal' ? 'bg-reveal text-reveal-foreground' : 'bg-card text-foreground'
-        )}
+        className={cn('map-card z-20 flex flex-col border-t border-foreground lg:border lg:shadow-mcm', ground)}
       >
         <span aria-hidden="true" className="mx-auto mt-1.5 block h-0.75 w-10 shrink-0 bg-border lg:hidden" />
         {bar && (
-          <div data-site-chrome className="shrink-0 px-4 pt-2 lg:px-5 lg:pt-4">
+          <div data-site-chrome className={cn('map-bar shrink-0 px-4 pt-2 lg:px-5 lg:pt-4', ground)}>
             {bar}
           </div>
         )}
-        {head}
-        <div
-          ref={bodyRef}
-          className={cn('min-h-0 flex-1 px-4 pb-8 lg:px-5', mode === 'live' ? 'overflow-y-auto overscroll-contain' : 'lg:overflow-y-auto')}
-        >
+        <div ref={bodyRef} className="min-h-0 flex-1 px-4 pb-8 lg:overflow-y-auto lg:overscroll-contain lg:px-5">
           {children}
         </div>
       </section>
-      {/* After the card in reading order (its bar, then what it holds), drawn first: CSS places it. */}
       <div className="map-region">{map}</div>
-    </div>
-  );
-}
-
-/**
- * The card's head: a line saying what the card is about, and on the right
- * its one control (on `/map`, More or Less). On `/map` the head is what is
- * dragged (pass the pointer handlers); on a static page the page scrolls.
- * The grip that says the card can be pulled up is the card's own, above the
- * app bar.
- */
-export function CardHead({
-  children,
-  action,
-  className,
-  ...rest
-}: { children: ReactNode; action?: ReactNode } & HTMLAttributes<HTMLDivElement>) {
-  return (
-    <div className={cn('shrink-0 select-none px-4 pt-2 lg:px-5 lg:pt-3', className)} {...rest}>
-      <div className="flex items-baseline justify-between gap-3 border-b border-border pb-2">
-        <p className="min-w-0 truncate">{children}</p>
-        {action}
-      </div>
     </div>
   );
 }

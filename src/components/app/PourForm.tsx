@@ -117,7 +117,7 @@ export function PourForm({
         </datalist>
         {suggestions.length > 0 && (
           <div className="flex flex-wrap items-center gap-2">
-            <span className="font-condensed text-label uppercase tracking-label text-muted-foreground">
+            <span className="label-caps">
               {suggestionsLabel}
             </span>
             {suggestions.slice(0, 4).map((name) => (
@@ -164,7 +164,7 @@ export function PourForm({
             {missingAt('where')}
             {recentVenues.length > 0 && (
               <div className="flex flex-wrap items-center gap-2">
-                <span className="font-condensed text-label uppercase tracking-label text-muted-foreground">
+                <span className="label-caps">
                   {pour.recentLabel}
                 </span>
                 {recentVenues.slice(0, 5).map((v) => (
@@ -280,7 +280,7 @@ export function PourForm({
 
       {isMember && (
         <details className="group border-y border-border">
-          <summary className="summary-plain flex min-h-11 cursor-pointer items-center justify-between font-condensed text-meta font-semibold uppercase tracking-label text-foreground">
+          <summary className="summary-plain link-caps flex cursor-pointer justify-between font-semibold text-foreground">
             {pour.moreDetail}
             <span aria-hidden="true" className="text-foreground transition-transform group-open:rotate-45">
               +
@@ -372,7 +372,7 @@ export function PourForm({
         <button
           type="submit"
           disabled={submitting}
-          className="btn btn-primary btn-lg w-full disabled:cursor-wait"
+          className="btn btn-primary w-full disabled:cursor-wait"
         >
           {submitting ? pour.submitting : pour.submit}
         </button>
@@ -405,7 +405,7 @@ function FieldLabel({
   htmlFor?: string;
   as?: 'label' | 'span';
 }) {
-  const className = 'font-condensed text-label uppercase tracking-label text-muted-foreground';
+  const className = 'label-caps';
   return as === 'label' ? (
     <label htmlFor={htmlFor} className={className}>
       {children}
@@ -430,7 +430,7 @@ function SelectField({
 }) {
   return (
     <label className="flex flex-col gap-2">
-      <span className="font-condensed text-label uppercase tracking-label text-muted-foreground">{label}</span>
+      <span className="label-caps">{label}</span>
       <select value={value} onChange={(e) => onChange(e.target.value)} className={inputClass}>
         <option value="">{pour.notSet}</option>
         {options.map((o) => (

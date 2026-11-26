@@ -1,5 +1,6 @@
 ---
 import { connect } from '../../lib/copy';
+import { Notice } from '../app/ui';
 import { AUTH_BASE_PATH } from '../../lib/atproto/paths';
 import { mapHref } from '../../lib/site-nav';
 
@@ -84,7 +85,7 @@ const { enabled, error } = Astro.props;
             </p>
           </div>
 
-          <button type="submit" class="btn btn-primary btn-lg w-full px-4">
+          <button type="submit" class="btn btn-primary w-full">
             {connect.submit}
           </button>
 
@@ -96,7 +97,7 @@ const { enabled, error } = Astro.props;
               value="1"
               formnovalidate
               data-bsky-sign-up
-              class="link-serif text-meta"
+              class="link-inline"
             >
               {connect.createAccount}
             </button>
@@ -110,9 +111,7 @@ const { enabled, error } = Astro.props;
             {error}
           </p>
         )}
-        <p class="border-y border-border py-2.5 text-meta text-muted-foreground">
-          {connect.disabled}
-        </p>
+        <Notice>{connect.disabled}</Notice>
       </>
     )
   }

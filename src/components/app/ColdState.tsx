@@ -4,38 +4,50 @@ import { ScreenHeader } from './ui';
 
 /**
  * What a page that needs a coordinate says to someone with none: what the
- * page is for, and the three ways in — answer the questions, sign in to bring
- * one from an account, or try a pour as a guest.
+ * page is for, and one thing to do — answer the questions. The other two ways
+ * in, signing in to bring one from an account or trying a pour as a guest,
+ * are a quiet line under it, so the card asks one thing (docs/design-system.md,
+ * rule 10).
  */
 export function ColdState({
   eyebrow,
+  onQuiz,
   onSignIn,
   onGuest,
 }: {
   /** What the sheet is, where no tab already says it (the rating sheet). */
   eyebrow?: string;
+  /** Open the questions in place, on the map (`?quiz=1` is the same, as a link). */
+  onQuiz?: () => void;
   onSignIn: () => void;
   onGuest: () => void;
 }) {
+  const quiet =
+    'link-caps px-1 text-secondary hover:underline hover:underline-offset-4';
   return (
-    <div className="mx-auto max-w-xl pb-10 pt-6 lg:pt-10">
+    <div className="pb-10 pt-4">
       <ScreenHeader eyebrow={eyebrow} title={coldState.title} lede={coldState.body} />
-      <div className="mt-3 flex flex-col gap-3">
-        <a href={questionsHref} className="btn btn-primary btn-lg px-6">
-          {coldState.quizCta}
-        </a>
-        <button type="button" onClick={onSignIn} className="btn btn-outline px-6">
+      <a
+        href={questionsHref}
+        onClick={(ev) => {
+          if (!onQuiz) return;
+          ev.preventDefault();
+          onQuiz();
+        }}
+        className="btn btn-primary w-full"
+      >
+        {coldState.quizCta}
+      </a>
+      <p className="mt-3 flex flex-wrap items-center justify-center gap-x-2 text-muted-foreground">
+        <button type="button" onClick={onSignIn} className={quiet}>
           {coldState.signInCta}
         </button>
-        <button
-          type="button"
-          onClick={onGuest}
-          className="mt-1 min-h-11 self-center px-2 font-condensed text-meta uppercase tracking-label text-muted-foreground underline decoration-muted-foreground underline-offset-4 transition-colors hover:text-foreground"
-        >
+        <span aria-hidden="true">·</span>
+        <button type="button" onClick={onGuest} className={quiet}>
           {coldState.guestCta}
         </button>
-        <p className="text-center text-meta text-muted-foreground">{coldState.guestNote}</p>
-      </div>
+      </p>
+      <p className="text-center text-meta text-muted-foreground">{coldState.guestNote}</p>
     </div>
   );
 }

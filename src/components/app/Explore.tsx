@@ -1,28 +1,33 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { Drink } from '@/lib/data';
 import type { PourRecord } from '@/lib/atproto/records';
-import { chart, compass, explore, mapPage, pour, taste } from '@/lib/copy';
+import { chart, compass, drinks, explore, mapPage, pour, taste } from '@/lib/copy';
 import { formatCoordinate } from '@/lib/coordinate';
-import { quadrantFor } from '@/lib/quadrant';
-import { publicMapPath, startOverPath } from '@/lib/atproto/paths';
+import { quadrantFor, regionPath } from '@/lib/quadrant';
+import { matchDrink } from '@/lib/drink-match';
+import { publicMapPath, QUIZ_PARAM, START_OVER_PARAM, startOverPath } from '@/lib/atproto/paths';
+import { takeParam } from '@/lib/url-params';
+import type { AxisBelief } from '@/lib/belief-state';
+import { buildTerrain, sampleTerrain } from '@/lib/terrain';
 import { drinksHref, questionsHref } from '@/lib/site-nav';
 import type { Register } from '@/lib/register';
 import { neutralProfile } from '@/lib/guest-palate';
 import { useExplore, type Explore as ExploreState } from '@/hooks/useExplore';
-import { cn } from '@/lib/utils';
 import { AtprotoProvider, useAtprotoContext } from './AtprotoProvider';
 import { ColdState } from './ColdState';
+import { QuizCard } from './QuizCard';
 import { MenuView } from './MenuView';
 import { NearList } from './Near';
-import { CardHead as CardHeadFrame, MapScreen } from './MapScreen';
+import { MapScreen } from './MapScreen';
 import { PalateMap } from './PalateMap';
 import { PourLedger } from './PourLedger';
-import { RatePanel } from './RatePanel';
+import { RatePanel, type PourMove } from './RatePanel';
 import { SearchBox } from './SearchBox';
 import { StartOver } from './StartOver';
 import { TrackFigure } from './TrackFigure';
 import { WaitingPick } from './WaitingPick';
-import { Empty, GuestPrompt } from './ui';
+import { Empty, GuestPrompt, Readout, ScreenHeader, SectionTitle } from './ui';
+import { DrinkRow } from './DrinkRow';
 
 /**
  * The app, on one screen: your map fixed in place as the background, the
@@ -50,15 +55,78 @@ function ExploreContent({
   const e = useExplore(register, member, initialQuery);
   const { isEnabled, openSignIn } = useAtprotoContext();
   const body = useRef<HTMLDivElement>(null);
-  const [reveal, setReveal] = useState(false);
+  const card = useRef<HTMLElement>(null);
+  // How a pour just moved you, while the reveal has the card: the map draws it (`RatePanel`).
+  const [moved, setMoved] = useState<PourMove | null>(null);
+  const reveal = !!moved;
 
-  // A different card starts from its top.
-  const cardKey = e.rate.request ? 'rate' : e.selectedDrink ? `drink:${e.selected}` : e.venue ? `bar:${e.venue.name ?? ''}` : 'home';
+  // The questions, as a state of the card (`?quiz=1`): asked for on arrival, or by Find your coordinate here.
+  // Someone who already has a coordinate goes straight on — to the drink they came from, if any — unless they
+  // came to start over (`?startover=1`), which forgets this device's copy first.
+  const [quiz, setQuiz] = useState(false);
+  const [quizShoal, setQuizShoal] = useState<Record<'x' | 'y', AxisBelief> | null>(null);
+  const [quizPoint, setQuizPoint] = useState<{ x: number; y: number } | null>(null);
+  // Each answer adds depth: the ground the answers so far make, the questions' own hill (`buildTerrain` with no
+  // pours), broad and faint while they are unsure and rising and sharpening as they agree. Kept through the reveal,
+  // so the point settles on the hill it made.
+  const quizGround = useMemo(
+    () =>
+      quizShoal
+        ? sampleTerrain(
+            buildTerrain({ x: quizShoal.x.mean, y: quizShoal.y.mean, variance: { x: quizShoal.x.variance, y: quizShoal.y.variance } }, []),
+            1
+          )
+        : null,
+    [quizShoal]
+  );
+  const startOver = useRef(false);
+  const [quizAnswered, setQuizAnswered] = useState(false);
+  const markAnswered = useCallback(() => setQuizAnswered(true), []);
   useEffect(() => {
-    body.current?.scrollTo(0, 0);
-  }, [cardKey]);
+    const over = takeParam(START_OVER_PARAM);
+    if (!takeParam(QUIZ_PARAM) && !over) return;
+    startOver.current = over;
+    if (over) e.forgetProfile();
+    setQuiz(true);
+    // Arrival only.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  // A coordinate that arrives while the questions wait (this device's, or a member's account's) answers them.
+  useEffect(() => {
+    if (quiz && e.profile && !startOver.current && !quizAnswered) setQuiz(false);
+  }, [quiz, e.profile, quizAnswered]);
+  const closeQuiz = useCallback(() => {
+    setQuiz(false);
+    setQuizShoal(null);
+    setQuizPoint(null);
+    setQuizAnswered(false);
+    startOver.current = false;
+  }, []);
 
-  const onReveal = useCallback((r: boolean) => setReveal(r), []);
+  // A different card starts from its top. On a phone the card is the page's scroll: something about a place on
+  // the map (a drink, a bar, back to where to next) scrolls back to the top, so the map shows and pushes the card
+  // down; rating scrolls the card up to the top of the screen, where it has the room (`e.up`). From `lg` the card
+  // is a panel that scrolls on its own, and starts from its top.
+  const cardKey = quiz ? 'quiz' : e.rate.request ? (moved ? 'moved' : 'rate') : e.selectedDrink ? `drink:${e.selected}` : e.venue ? `bar:${e.venue.name ?? ''}` : 'home';
+  // The reveal after a pour scrolls back down to the map, which draws the move.
+  const cardUp = !moved && (e.up || !!e.rate.request);
+  const arrived = useRef(false);
+  useEffect(() => {
+    // The first card is where the page already is: nothing to scroll to.
+    if (!arrived.current) {
+      arrived.current = true;
+      return;
+    }
+    const behavior: ScrollBehavior = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
+    if (window.matchMedia('(min-width: 1024px)').matches) {
+      body.current?.scrollTo({ top: 0, behavior });
+      return;
+    }
+    if (cardUp && card.current) window.scrollTo({ top: window.scrollY + card.current.getBoundingClientRect().top, behavior });
+    else window.scrollTo({ top: 0, behavior });
+  }, [cardKey, cardUp]);
+
+  const onReveal = useCallback((m: PourMove | null) => setMoved(m), []);
   const closeRate = () => {
     e.rate.close();
     e.setUp(false);
@@ -68,9 +136,20 @@ function ExploreContent({
   const pins = e.venue ? e.ranked.map((r, i) => ({ drink: r.drink, rank: i + 1 })) : null;
 
   let content;
-  // Where to next is the one card whose action is the screen's: Rate a drink.
-  let home = false;
-  if (e.rate.request) {
+  if (quiz) {
+    content = (
+      <QuizCard
+        onShoal={setQuizShoal}
+        onPoint={setQuizPoint}
+        onAnswered={markAnswered}
+        onDone={(finished) => {
+          e.setProfile(finished);
+          closeQuiz();
+        }}
+        onSkip={closeQuiz}
+      />
+    );
+  } else if (e.rate.request) {
     content = (
       <RatePanel
         request={e.rate.request}
@@ -85,7 +164,7 @@ function ExploreContent({
       />
     );
   } else if (e.selectedDrink) {
-    content = <DrinkPanel e={e} drink={e.selectedDrink} />;
+    content = <DrinkPanel e={e} drink={e.selectedDrink} onQuiz={() => setQuiz(true)} />;
   } else if (e.venue) {
     content = (
       <MenuView
@@ -109,6 +188,7 @@ function ExploreContent({
   } else if (e.cold) {
     content = (
       <ColdState
+        onQuiz={() => setQuiz(true)}
         onSignIn={openSignIn}
         onGuest={() => {
           e.setProfile(neutralProfile);
@@ -118,87 +198,56 @@ function ExploreContent({
     );
   } else {
     content = <Home e={e} member={member} signInEnabled={isEnabled} onSignIn={openSignIn} />;
-    home = true;
   }
 
   return (
     <MapScreen
-      mode="live"
       bar={bar}
       label={explore.cardLabel}
-      up={e.up || !!e.rate.request}
-      tone={reveal ? 'reveal' : 'card'}
-      head={reveal ? undefined : <CardHead e={e} rateHere={home} />}
+      tone={reveal || quizPoint ? 'reveal' : 'card'}
+      rest={quiz ? 'quiz' : 'standard'}
+      cardRef={card}
       bodyRef={body}
-      overlay={<SearchBox e={e} />}
       map={
         <PalateMap
-          ground={e.ground}
+          ground={quiz ? quizGround : e.ground}
+          shoal={quizShoal && !quizPoint ? { x: quizShoal.x.mean, y: quizShoal.y.mean, rx: Math.sqrt(quizShoal.x.variance), ry: Math.sqrt(quizShoal.y.variance) } : null}
+          points={
+            quizPoint
+              ? [{ ...quizPoint, label: chart.youIn(quadrantFor(quizPoint.x, quizPoint.y).name), tone: 'yours' }]
+              : moved
+                ? [{ ...moved.to, label: chart.youNowIn(quadrantFor(moved.to.x, moved.to.y).name), tone: 'yours' }]
+                : undefined
+          }
+          trail={moved}
           ratings={ratings}
           pins={pins}
           emptyBar={!!e.venue && e.ranked.length === 0}
-          selected={e.selected}
+          selected={moved ? (matchDrink(moved.drinkName)?.name ?? null) : e.selected}
           hover={e.hover}
           onSelect={e.chooseDrink}
           name={e.name}
+          caption={
+            quiz ? undefined : e.leanings.length > 0 ? (
+              <>
+                <span className="label-caps">{taste.label} </span>
+                <span className="font-serif text-ui italic text-primary">{taste.phrases(e.leanings)}</span>
+              </>
+            ) : (
+              <span className="label-caps">{explore.noPosition}</span>
+            )
+          }
         />
       }
     >
+      {/* The search is the card's first line, but not during the questions, rating or a reveal, which have the card to themselves. */}
+      {!quiz && !e.rate.request && !reveal && (
+        <div className="pt-3">
+          <SearchBox e={e} />
+        </div>
+      )}
       {content}
     </MapScreen>
-  );
-}
-
-/**
- * The card's head: what your map says about you, in the axes' words, and the
- * one handle — dragged up or down on a phone, or tapped (More, Less).
- */
-function CardHead({ e, rateHere }: { e: ExploreState; rateHere: boolean }) {
-  const drag = useRef<{ y: number; moved: boolean } | null>(null);
-  return (
-    <CardHeadFrame
-      className="cursor-grab touch-none lg:cursor-auto"
-      onPointerDown={(ev) => {
-        if ((ev.target as HTMLElement).closest('button')) return;
-        drag.current = { y: ev.clientY, moved: false };
-        ev.currentTarget.setPointerCapture(ev.pointerId);
-      }}
-      onPointerMove={(ev) => {
-        const d = drag.current;
-        if (!d) return;
-        if (Math.abs(ev.clientY - d.y) > 24) {
-          d.moved = true;
-          e.setUp(ev.clientY < d.y);
-        }
-      }}
-      onPointerUp={() => {
-        const d = drag.current;
-        drag.current = null;
-        if (d && !d.moved) e.setUp(!e.up);
-      }}
-      action={
-        <>
-          <button type="button" aria-expanded={e.up} onClick={() => e.setUp(!e.up)} className="link-caps shrink-0 text-secondary lg:hidden">
-            {e.up ? explore.less : explore.more}
-          </button>
-          {/* From `lg` the screen's one action sits here, above the list; on a phone it floats (`Home`). */}
-          {rateHere && (
-            <button type="button" onClick={() => e.rate.open()} className="btn btn-primary hidden shrink-0 px-4 lg:inline-flex">
-              {mapPage.rateDrink}
-            </button>
-          )}
-        </>
-      }
-    >
-      {e.leanings.length > 0 ? (
-        <>
-          <span className="label-caps">{taste.label} </span>
-          <span className="font-serif text-ui italic text-primary">{taste.phrases(e.leanings)}</span>
-        </>
-      ) : (
-        <span className="label-caps">{explore.noPosition}</span>
-      )}
-    </CardHeadFrame>
   );
 }
 
@@ -214,7 +263,6 @@ function Home({
   signInEnabled: boolean;
   onSignIn: () => void;
 }) {
-  const statCols = e.stats.length === 3 ? 3 : 2;
   return (
     <div className="pb-20 pt-3 lg:pb-0">
       {/* The card's head says where you are and each section names itself, so the title is for a screen reader alone. */}
@@ -227,30 +275,31 @@ function Home({
       <button type="button" onClick={() => e.rate.open()} className="rate-float btn btn-primary fixed bottom-safe-b right-4 z-30 px-5 shadow-mcm lg:hidden">
         {mapPage.rateDrink}
       </button>
+      {/* From `lg` it is the card's first action, full width, like every card's (docs/design-system.md, rule 10). */}
+      <button type="button" onClick={() => e.rate.open()} className="btn btn-primary mt-4 hidden w-full lg:flex">
+        {mapPage.rateDrink}
+      </button>
       <div>
         <WaitingPick displayName={e.name} version={e.pickVersion} onRate={(draft) => e.rate.open({ drink: draft.drink, draft })} />
       </div>
 
       <section className="mt-2">
-        <div className="flex items-baseline justify-between gap-4 border-b border-foreground pb-1">
-          <h2 className="font-serif text-heading font-bold">{compass.menuTitle}</h2>
-          <span className="text-meta text-muted-foreground">{compass.menuNote}</span>
-        </div>
+        <SectionTitle aside={compass.menuNote}>{compass.menuTitle}</SectionTitle>
         {e.menu.length === 0 ? (
           <Empty>{compass.noDrinks}</Empty>
         ) : (
           <ol>
             {e.menu.map((d, i) => (
-              <li key={d.name} className="border-b border-border">
-                <MenuRow
-                  rank={i + 1}
-                  title={e.name(d.name)}
-                  reason={d.reason}
-                  selected={e.selected === d.name}
-                  onSelect={() => e.chooseDrink(d.name)}
-                  onHover={(on) => e.setHover(on ? d.name : null)}
-                />
-              </li>
+              <DrinkRow
+                key={d.name}
+                rank={i + 1}
+                title={e.name(d.name)}
+                note={d.reason}
+                selected={e.selected === d.name}
+                lead={i === 0}
+                onSelect={() => e.chooseDrink(d.name)}
+                onHover={(on) => e.setHover(on ? d.name : null)}
+              />
             ))}
           </ol>
         )}
@@ -265,16 +314,10 @@ function Home({
 
       {e.barHits.length > 0 && !e.searching && (
         <section className="mt-6">
-          <h2 className="section-title">{compass.yourBars}</h2>
+          <SectionTitle>{compass.yourBars}</SectionTitle>
           <ol>
             {e.barHits.map((b) => (
-              <li key={b.name} className="border-b border-border">
-                <button type="button" onClick={() => e.openBar({ name: b.name })} className="dot-leader min-h-11 w-full py-3 text-left focus-ring-inset">
-                  <span className="font-serif text-prose font-bold text-foreground hover:underline hover:underline-offset-4">{b.name}</span>
-                  <span aria-hidden="true" className="leader" />
-                  <span className="shrink-0 text-meta text-muted-foreground">{compass.barPours(b.pours)}</span>
-                </button>
-              </li>
+              <DrinkRow key={b.name} title={b.name} figure={compass.barPours(b.pours)} onSelect={() => e.openBar({ name: b.name })} />
             ))}
           </ol>
         </section>
@@ -283,27 +326,15 @@ function Home({
       <NearList nearby={e.nearby} onOpen={(b) => e.openBar({ name: b.name, at: { lat: b.lat, lon: b.lon } })} />
 
       <section id="yours" className="mt-8">
-        <h2 className="section-title">{explore.yoursTitle}</h2>
-        {e.stats.length > 0 && (
-          <dl className={cn('grid border-b border-border', statCols === 3 ? 'grid-cols-3' : 'grid-cols-2')}>
-            {e.stats.map((st, i) => (
-              <div
-                key={st.label}
-                className={cn('flex flex-col gap-0.5 py-2.5', i % statCols !== 0 && 'border-l border-border pl-3.5', i % statCols !== statCols - 1 && 'pr-3.5')}
-              >
-                <dt className="label-caps">{st.label}</dt>
-                <dd className="truncate font-condensed text-ui font-semibold tabular-nums text-foreground">{st.value}</dd>
-              </div>
-            ))}
-          </dl>
-        )}
+        <SectionTitle>{explore.yoursTitle}</SectionTitle>
+        {e.stats.length > 0 && <Readout className="border-t-0" cells={e.stats.map((st) => ({ ...st, figure: true }))} />}
         {e.track && e.track.length > 1 && (
           <div className="mt-4 flex flex-col gap-2">
             <p className="label-caps">{mapPage.upClose}</p>
             <TrackFigure track={e.track} />
           </div>
         )}
-        <h3 className="mt-6 font-serif text-heading font-bold">{mapPage.ledgerTitle}</h3>
+        {e.history.length > 0 && <SectionTitle as="h3" className="mt-6">{mapPage.ledgerTitle}</SectionTitle>}
         <PourLedger
           pours={e.history}
           register={e.register}
@@ -326,53 +357,12 @@ function Home({
   );
 }
 
-/** A drink on your menu: its rank, its name, and what put it there. The first is yours above all, in terracotta. */
-function MenuRow({
-  rank,
-  title,
-  reason,
-  selected,
-  onSelect,
-  onHover,
-}: {
-  rank: number;
-  title: string;
-  reason: string;
-  selected: boolean;
-  onSelect: () => void;
-  onHover: (on: boolean) => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onSelect}
-      onMouseEnter={() => onHover(true)}
-      onMouseLeave={() => onHover(false)}
-      aria-pressed={selected}
-      className="flex min-h-11 w-full items-center gap-3 py-2.5 text-left focus-ring-inset"
-    >
-      <span className="w-4 shrink-0 font-condensed text-meta tabular-nums text-muted-foreground">{rank}</span>
-      <span className="flex min-w-0 flex-1 flex-col">
-        <span
-          className={cn(
-            'font-serif text-prose font-bold transition-colors hover:underline hover:underline-offset-4',
-            selected || rank === 1 ? 'text-primary' : 'text-foreground'
-          )}
-        >
-          {title}
-        </span>
-        <span className="text-meta text-muted-foreground">{reason}</span>
-      </span>
-    </button>
-  );
-}
-
 /**
  * A drink, opened in the card: where it sits, what put it where it stands for
  * you, your last pour of it, what shares its spot, and the two things to do —
  * rate it (in the card) or keep it as your pick.
  */
-function DrinkPanel({ e, drink }: { e: ExploreState; drink: Drink }) {
+function DrinkPanel({ e, drink, onQuiz }: { e: ExploreState; drink: Drink; onQuiz: () => void }) {
   const region = quadrantFor(drink.x, drink.y);
   const last: PourRecord | undefined = e.lastPour.get(drink.name);
   const lastLine = last
@@ -390,13 +380,15 @@ function DrinkPanel({ e, drink }: { e: ExploreState; drink: Drink }) {
       <button type="button" onClick={e.closeDrink} className="link-caps flex min-h-11 items-center text-muted-foreground hover:text-foreground">
         &larr; {e.venue?.name ?? (e.venue ? compass.atMenu.homeTitle : explore.backToStart)}
       </button>
-      <p className="label-caps">
-        {region.name} · {formatCoordinate(drink.x, drink.y)}
-      </p>
-      <h1 className="mt-1 font-serif text-title font-bold leading-tight text-foreground">{e.name(drink.name)}</h1>
-      <p className="mt-2 font-serif text-ui italic text-secondary">
-        {e.cold ? chart.coldDrinkPrompt : e.reasonFor(drink)}
-      </p>
+      <ScreenHeader title={e.name(drink.name)} gloss={e.cold ? chart.coldDrinkPrompt : e.reasonFor(drink)}>
+        <Readout
+          className="mt-4"
+          cells={[
+            { label: drinks.coordinateLabel, value: formatCoordinate(drink.x, drink.y), figure: true },
+            { label: region.axis, value: region.name, href: regionPath(region.id) },
+          ]}
+        />
+      </ScreenHeader>
 
       {lastLine && (
         <dl className="mt-3 border-t border-border pt-1">
@@ -419,28 +411,36 @@ function DrinkPanel({ e, drink }: { e: ExploreState; drink: Drink }) {
         </div>
       )}
 
-      <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2">
+      <div className="mt-4 flex flex-col gap-3">
         {e.cold ? (
           <>
-            <a href={questionsHref} className="btn btn-primary px-5">
+            <a
+              href={questionsHref}
+              onClick={(ev) => {
+                // In place: the drink stays open, and is where the questions finish.
+                ev.preventDefault();
+                onQuiz();
+              }}
+              className="btn btn-primary w-full"
+            >
               {chart.findYours}
             </a>
-            <button type="button" onClick={() => e.rate.open({ drink: drink.name })} className="btn btn-outline px-5">
+            <button type="button" onClick={() => e.rate.open({ drink: drink.name })} className="btn btn-outline w-full">
               {chart.logThis}
             </button>
           </>
         ) : (
           <>
-            <button type="button" onClick={() => e.rate.open({ drink: drink.name })} className="btn btn-primary px-5">
+            <button type="button" onClick={() => e.rate.open({ drink: drink.name })} className="btn btn-primary w-full">
               {chart.logThis}
             </button>
-            <button type="button" onClick={() => e.pick(drink.name)} className="btn btn-outline px-5">
+            <button type="button" onClick={() => e.pick(drink.name)} className="btn btn-outline w-full">
               {atBar ? compass.pickAt(e.venue?.name ?? '') : chart.pickThis}
             </button>
           </>
         )}
         {e.register[drink.name] && (
-          <a href={`${drinksHref}/${e.register[drink.name].slug}`} className="link-caps text-secondary hover:underline">
+          <a href={`${drinksHref}/${e.register[drink.name].slug}`} className="link-caps self-start text-secondary hover:underline">
             {chart.readEntry} &rarr;
           </a>
         )}

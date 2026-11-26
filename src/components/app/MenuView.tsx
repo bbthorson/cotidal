@@ -9,7 +9,7 @@ import type { Venue } from '@/hooks/useExplore';
 import { questionsHref } from '@/lib/site-nav';
 import { cn } from '@/lib/utils';
 import { DrinkRow } from './DrinkRow';
-import { Empty, ScreenHeader } from './ui';
+import { Empty, ScreenHeader, SectionTitle } from './ui';
 
 /**
  * A bar open on the map, in the card: a bar's menu, or one with no bar. Type
@@ -233,22 +233,21 @@ export function MenuView({
 
           {ranked.length > 0 && (
             <section className="mt-6">
-              <h2 className="section-title">{bar ? compass.atMenu.rankedAt(bar) : compass.atMenu.rankedHome}</h2>
-              <p className="mb-2 text-meta text-muted-foreground">{compass.atMenu.rankedBody}</p>
-              <ol className="border-t border-foreground">
+              <SectionTitle>{bar ? compass.atMenu.rankedAt(bar) : compass.atMenu.rankedHome}</SectionTitle>
+              <p className="mt-2 text-meta text-muted-foreground">{compass.atMenu.rankedBody}</p>
+              <ol>
                 {ranked.map(({ drink }, i) => (
-                  <li key={drink.name} className="border-b border-border">
-                    <DrinkRow
-                      rank={i + 1}
-                      title={titleOf(register, drink.name)}
-                      note={reasonFor(drink)}
-                      selected={chosen === drink.name}
-                      onSelect={() => setChoice(drink.name)}
-                    />
-                  </li>
+                  <DrinkRow
+                    key={drink.name}
+                    rank={i + 1}
+                    title={titleOf(register, drink.name)}
+                    note={reasonFor(drink)}
+                    selected={chosen === drink.name}
+                    onSelect={() => setChoice(drink.name)}
+                  />
                 ))}
               </ol>
-              <button type="button" onClick={pick} className="btn btn-primary btn-lg mt-6 w-full px-6">
+              <button type="button" onClick={pick} className="btn btn-primary mt-6 w-full">
                 {chart.pickThis}
               </button>
             </section>

@@ -76,8 +76,10 @@ export function PalateMap({
   name = (n) => n,
   label = explore.mapLabel,
   shoal = null,
+  trail = null,
   points,
   against = null,
+  caption,
   children,
 }: {
   /** Your terrain, or null with no coordinate. */
@@ -114,6 +116,11 @@ export function PalateMap({
    */
   shoal?: { x: number; y: number; rx: number; ry: number } | null;
   /**
+   * How far a pour just moved you: a line from where you were (a ring) to
+   * where you are, drawn under the point (`points`) that marks the end.
+   */
+  trail?: { from: { x: number; y: number }; to: { x: number; y: number } } | null;
+  /**
    * People as points: the one the questions placed, settling when they
    * finish; someone's public map, and yours beside it. Terracotta is yours,
    * forest is someone else's (docs/design-system.md).
@@ -125,6 +132,12 @@ export function PalateMap({
    * the first as shaded ground, the second as lines over it.
    */
   against?: Ground | null;
+  /**
+   * A line about what the map shows, in its lower-left corner: what your
+   * map says about you on `/map`, the sample on the front door. It is about
+   * the map, so it is drawn on it rather than taking a line of the card.
+   */
+  caption?: ReactNode;
   /** More of the plane, drawn over the ground and under the marks (in its viewBox). */
   children?: ReactNode;
 }) {
@@ -134,11 +147,12 @@ export function PalateMap({
   const maskId = `ground${useId().replace(/[^a-zA-Z0-9]/g, '')}`;
 
   const marks = useMemo(() => placeMarks(pins, ratings, side), [pins, ratings, side]);
-  const view: LabelView = { pins, selected, hover, named, name, measure, side };
+  const captioned = !!caption;
+  const view: LabelView = { pins, selected, hover, named, name, measure, side, captioned };
   const labels = useMemo(
     () => placeMapLabels(marks, view),
     // eslint-disable-next-line react-hooks/exhaustive-deps -- `view` is these
-    [marks, pins, selected, hover, named, name, measure, side]
+    [marks, pins, selected, hover, named, name, measure, side, captioned]
   );
   const steps = useMemo(
     () =>
@@ -147,7 +161,7 @@ export function PalateMap({
         return { ground: f.ground, marks: rated.filter((m) => m.hedonic !== undefined), labels: placeMapLabels(rated, view) };
       }),
     // eslint-disable-next-line react-hooks/exhaustive-deps -- `view` is these
-    [frames, side, name, measure]
+    [frames, side, name, measure, captioned]
   );
 
   const tap = onSelect
@@ -223,6 +237,21 @@ export function PalateMap({
           />
         )}
 
+        {trail && (
+          <g data-trail="" className="stroke-primary" fill="none">
+            <line
+              x1={trail.from.x}
+              y1={-trail.from.y}
+              x2={trail.to.x}
+              y2={-trail.to.y}
+              strokeWidth={2}
+              strokeDasharray="5 4"
+              vectorEffect="non-scaling-stroke"
+            />
+            <circle cx={trail.from.x} cy={-trail.from.y} r={0.32} strokeWidth={2} className="fill-card" vectorEffect="non-scaling-stroke" />
+          </g>
+        )}
+
         {children}
 
         {/* Axes and the frame. */}
@@ -251,13 +280,13 @@ export function PalateMap({
         {quadrants.map((q) => {
           const s = REGION_AT[q.id];
           return (
-            <span key={q.id} style={pct(s.x * 5.6, s.y * 9.2)} className="halo-card absolute -translate-x-1/2 -translate-y-1/2 whitespace-nowrap text-subtitle">
+            <span key={q.id} style={pct(s.x * 5.6, regionNameY(q.id, captioned))} className="map-region-name halo-card absolute -translate-x-1/2 -translate-y-1/2 whitespace-nowrap text-subtitle">
               {q.name}
             </span>
           );
         })}
       </div>
-      <div aria-hidden="true" className="pointer-events-none font-condensed text-label uppercase tracking-label text-muted-foreground">
+      <div aria-hidden="true" className="pointer-events-none label-caps">
         <span style={pct(-PLANE_EDGE, 0)} className="halo-card absolute -translate-y-full pb-1 pl-1.5">{axes.rich}</span>
         <span style={pct(PLANE_EDGE, 0)} className="halo-card absolute -translate-x-full -translate-y-full pb-1 pr-1.5">{axes.crisp}</span>
         <span style={pct(0, PLANE_EDGE)} className="halo-card absolute pl-1.5 pt-1">{axes.sweet}</span>
@@ -279,6 +308,12 @@ export function PalateMap({
 
       <Labels labels={labels} />
 
+      {caption && (
+        <p data-testid="map-caption" className="pointer-events-none absolute bottom-1 left-1.5 max-w-full truncate border border-border bg-card px-2 py-0.5">
+          {caption}
+        </p>
+      )}
+
       {points?.map((p) => (
         <span key={p.label} role="img" aria-label={p.label} style={pct(p.x, p.y)} className="absolute -translate-x-1/2 -translate-y-1/2">
           <span
@@ -290,7 +325,7 @@ export function PalateMap({
           {p.caption && (
             <span
               aria-hidden="true"
-              className="halo-card absolute left-full top-1/2 ml-1.5 -translate-y-1/2 whitespace-nowrap font-condensed text-label font-bold uppercase tracking-label text-foreground"
+              className="halo-card absolute left-full top-1/2 ml-1.5 -translate-y-1/2 whitespace-nowrap label-caps font-bold text-foreground"
             >
               {p.caption}
             </span>
@@ -309,6 +344,12 @@ export function PalateMap({
     </div>
   );
 }
+
+/**
+ * Where a region's name sits, up and down: near the plane's edge, except the
+ * lower-left one when a caption takes that corner, which stands clear above it.
+ */
+const regionNameY = (id: QuadrantId, captioned: boolean) => REGION_AT[id].y * (captioned && id === 'deep' ? 7.7 : 9.2);
 
 /** How long each of a told palate's frames holds (`.tide-frame` gives each a sixth of the cycle). */
 const FRAME_SECONDS = 5;
@@ -345,6 +386,8 @@ function placeMarks(pins: Pin[] | null, ratings: ReadonlyMap<string, number> | u
 
 interface LabelView {
   pins: Pin[] | null;
+  /** A caption sits in the lower-left corner, and the region name there stands clear of it. */
+  captioned: boolean;
   selected: string | null;
   hover: string | null;
   named: readonly string[] | undefined;
@@ -360,7 +403,7 @@ type MapLabel = ReturnType<typeof placeMapLabels>[number];
  * pours, then any drink named only to show what is near, which gives way to
  * the region names, the axis words and the other drinks' marks.
  */
-function placeMapLabels(marks: readonly MapMark[], { pins, selected, hover, named, name, measure, side }: LabelView) {
+function placeMapLabels(marks: readonly MapMark[], { pins, selected, hover, named, name, measure, side, captioned }: LabelView) {
   const px = (v: number) => ((v + PLANE_EDGE) / (2 * PLANE_EDGE)) * side;
   const py = (v: number) => ((PLANE_EDGE - v) / (2 * PLANE_EDGE)) * side;
   const extra = new Set(named ?? []);
@@ -395,7 +438,7 @@ function placeMapLabels(marks: readonly MapMark[], { pins, selected, hover, name
   const names = quadrants.map((q) => {
     const s = REGION_AT[q.id];
     const cx = px(s.x * 5.6);
-    const cy = py(s.y * 9.2);
+    const cy = py(regionNameY(q.id, captioned));
     const half = (q.name.length * 11) / 2;
     return { x0: cx - half, y0: cy - 15, x1: cx + half, y1: cy + 15 };
   });

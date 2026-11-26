@@ -3,10 +3,9 @@ import { getCollection, render } from 'astro:content';
 import type { GetStaticPaths } from 'astro';
 import MapPage from '../../layouts/MapPage.astro';
 import { PalateMap } from '../../components/app/PalateMap';
-import { CardHead } from '../../components/app/MapScreen';
-import { ScreenHeader } from '../../components/app/ui';
-import OnTheRecord from '../../components/marketing/OnTheRecord.astro';
-import Readout from '../../components/marketing/Readout.astro';
+import { Readout, ScreenHeader, SectionTitle } from '../../components/app/ui';
+import { DrinkRow } from '../../components/app/DrinkRow';
+import OnTheRecord from '../../components/site/OnTheRecord.astro';
 import { formatCoordinate } from '../../lib/coordinate';
 import { site, drinks as copy, explore } from '../../lib/copy';
 import { drinkDatabase } from '../../lib/data';
@@ -70,6 +69,8 @@ const recipeJsonLd = {
   description={d.summary}
   currentPath={`${drinksHref}/${entry.id}`}
   label={d.title}
+  eyebrow={`${copy.eyebrow} · ${d.family}`}
+  back={{ href: drinksHref, label: copy.backLabel }}
 >
   <script is:inline type="application/ld+json" set:html={JSON.stringify(recipeJsonLd)} />
 
@@ -82,16 +83,12 @@ const recipeJsonLd = {
     tide
   />
 
-  <CardHead slot="head">
-    <span class="label-caps">{copy.eyebrow} · {d.family}</span>
-    <a slot="action" href={drinksHref} class="link-caps shrink-0 text-secondary">&larr; {copy.backLabel}</a>
-  </CardHead>
-
   <article>
     <ScreenHeader title={d.title} gloss={d.summary}>
       {
         drink && quadrant && (
           <Readout
+            className="mt-6"
             cells={[
               { label: copy.coordinateLabel, value: formatCoordinate(drink.x, drink.y), figure: true },
               { label: quadrant.axis, value: quadrant.name, href: regionPath(quadrant.id) },
@@ -106,7 +103,7 @@ const recipeJsonLd = {
       drink && (
         <section class="mt-6 border-y border-foreground py-5">
           <p class="label-caps text-secondary">{copy.compareLabel}</p>
-          <h2 class="mt-1.5 font-serif text-heading font-bold text-foreground">{copy.compareTitle(d.title)}</h2>
+          <h2 class="mt-1.5 font-serif text-plate font-bold text-foreground">{copy.compareTitle(d.title)}</h2>
           <p class="mt-2 text-meta leading-relaxed text-muted-foreground">{copy.compareBody}</p>
           <a href={questionsForDrink(entry.id)} class="btn btn-primary mt-4 w-full">
             {copy.compareCta}
@@ -121,7 +118,7 @@ const recipeJsonLd = {
 
     <!-- The build -->
     <section class="pb-8">
-      <h2 class="section-title">{copy.buildLabel}</h2>
+      <SectionTitle>{copy.buildLabel}</SectionTitle>
       {
         d.ingredients.length > 0 && (
           <ul class="border-b border-border">
@@ -162,23 +159,11 @@ const recipeJsonLd = {
     {
       neighbours.length > 0 && (
         <section class="pb-8">
-          <h2 class="section-title">{copy.nearLabel}</h2>
-          <ul class="border-b border-border">
+          <SectionTitle>{copy.nearLabel}</SectionTitle>
+          <ul>
             {neighbours.map((n) => {
               const slug = slugOf.get(n.name);
-              return (
-                <li class="menu-row dot-leader py-2.5 first:border-t-0">
-                  {slug ? (
-                    <a href={`${drinksHref}/${slug}`} class="font-serif text-ui text-foreground hover:underline hover:underline-offset-4">
-                      {n.name}
-                    </a>
-                  ) : (
-                    <span class="font-serif text-ui text-foreground">{n.name}</span>
-                  )}
-                  <span class="leader" aria-hidden="true" />
-                  <span class="shrink-0 font-condensed text-ui tabular-nums text-muted-foreground">{formatCoordinate(n.x, n.y)}</span>
-                </li>
-              );
+              return <DrinkRow href={slug ? `${drinksHref}/${slug}` : undefined} title={n.name} figure={formatCoordinate(n.x, n.y)} />;
             })}
           </ul>
         </section>

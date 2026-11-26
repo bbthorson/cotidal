@@ -2,8 +2,7 @@ import { useEffect, useRef } from 'react';
 import { matchDrink } from '@/lib/drink-match';
 import { quadrantFor } from '@/lib/quadrant';
 import { describeMove } from '@/lib/coordinate';
-import { chart, moved } from '@/lib/copy';
-import { CoordinateMap, DrinkDot, TraceMark, YouMark } from './CoordinateMap';
+import { moved } from '@/lib/copy';
 
 interface MovedProps {
   from: { x: number; y: number };
@@ -24,9 +23,10 @@ interface MovedProps {
 /**
  * After a pour, in the rating sheet. The payoff of logging, shown every time:
  * how far it moved you ("Moved 0.7", or "Held." for a rating in the middle),
- * which way, where you were and where you are with the drink that pulled
- * you, and what changed on the menu. The second and last use of the ink
- * ground. No shoal here: one pour narrows it too little to see.
+ * which way, and what changed on the menu, on the card's ink ground. Where
+ * you were and where you are, with the drink that pulled you, are drawn on
+ * the map above it (`Explore` draws `trail` and your point from `onReveal`),
+ * not on a second chart. No shoal: one pour narrows it too little to see.
  */
 const same = (name: string) => name;
 
@@ -42,7 +42,7 @@ export function Moved({
 }: MovedProps) {
   const heading = useRef<HTMLHeadingElement>(null);
   useEffect(() => {
-    heading.current?.focus();
+    heading.current?.focus({ preventScroll: true });
   }, []);
 
   const before = quadrantFor(from.x, from.y);
@@ -65,9 +65,9 @@ export function Moved({
   }
 
   return (
-    <div className="flex min-h-dvh flex-col bg-reveal px-6 pb-8 pt-14 text-reveal-foreground sm:min-h-0 sm:pt-12">
+    <div data-focus-mode className="flex flex-col pb-2 pt-6">
       <div className="flex flex-col gap-2.5">
-        <span className="font-condensed text-label font-semibold uppercase tracking-label text-reveal-muted">
+        <span className="label-caps text-reveal-muted">
           {moved.eyebrow} · {displayName(drink?.name ?? drinkName)} · {scoreLabel}
         </span>
         <h1 ref={heading} tabIndex={-1} className="font-serif text-hero font-normal italic outline-none">
@@ -90,14 +90,8 @@ export function Moved({
         </p>
       </div>
 
-      <CoordinateMap tone="ink" you={to} className="mt-7">
-        <TraceMark from={from} to={to} tone="ink" />
-        <YouMark x={to.x} y={to.y} tone="ink" land label={chart.youNowIn(after.name)} />
-        {drink && <DrinkDot x={drink.x} y={drink.y} tone="ink" filled label={displayName(drink.name)} clear={to} />}
-      </CoordinateMap>
-
       {rows.length > 0 && (
-        <ul className="mt-4.5 border-t border-reveal-rule">
+        <ul className="mt-6 border-t border-reveal-rule">
           {rows.map((row) => (
             <li key={row.name} className="dot-leader border-b border-reveal-hairline py-3">
               <span className="font-serif text-prose font-bold">{row.name}</span>
@@ -112,7 +106,7 @@ export function Moved({
       <button
         type="button"
         onClick={onDone}
-        className="btn btn-reveal btn-lg mt-auto w-full sm:mt-8"
+        className="btn btn-reveal btn-lg mt-8 w-full"
       >
         {backLabel}
       </button>

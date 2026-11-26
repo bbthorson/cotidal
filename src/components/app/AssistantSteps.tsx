@@ -1,4 +1,5 @@
 import { assistants as copy } from '@/lib/copy';
+import { SectionTitle } from './ui';
 
 /**
  * How to reach a palate from a chat assistant: the address, where to paste
@@ -37,7 +38,7 @@ export function AssistantSteps({
       )}
 
       <section className="space-y-3">
-        <h3 className="section-title">{copy.stepsTitle}</h3>
+        <SectionTitle as="h3">{copy.stepsTitle}</SectionTitle>
         <ol className="list-decimal space-y-2 pl-6 text-ui text-foreground">
           {(memberAddress ? copy.memberSteps : copy.steps).map((step) => (
             <li key={step}>{step}</li>
@@ -47,7 +48,7 @@ export function AssistantSteps({
       </section>
 
       <section className="space-y-3">
-        <h3 className="section-title">{copy.canTitle}</h3>
+        <SectionTitle as="h3">{copy.canTitle}</SectionTitle>
         <ul className="list-disc space-y-2 pl-6 text-ui text-foreground">
           {(memberAddress ? copy.memberCan : copy.can).map((line) => (
             <li key={line}>{line}</li>
@@ -59,7 +60,7 @@ export function AssistantSteps({
       </section>
 
       <section className="space-y-3">
-        <h3 className="section-title">{memberAddress ? copy.memberLimitsTitle : copy.readOnlyTitle}</h3>
+        <SectionTitle as="h3">{memberAddress ? copy.memberLimitsTitle : copy.readOnlyTitle}</SectionTitle>
         <p className="text-ui text-muted-foreground">{memberAddress ? copy.memberLimits : copy.readOnly}</p>
       </section>
     </div>

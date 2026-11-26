@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import type { PourRecord } from '@/lib/atproto/records';
 import type { UserProfile } from '@/hooks/useDiscoveryQuiz';
 import { coldState, moved, pour, ratePage } from '@/lib/copy';
@@ -22,6 +22,13 @@ import { ScreenHeader } from './ui';
  * The card holds it, not a dialog: rating happens where you found the drink.
  * Logging the pour, and what it moved, is `useRatePour`.
  */
+/** How a pour just moved you: drawn on the map while the reveal is in the card. */
+export interface PourMove {
+  from: { x: number; y: number };
+  to: { x: number; y: number };
+  drinkName: string;
+}
+
 export function RatePanel({
   request,
   onClose,
@@ -42,22 +49,25 @@ export function RatePanel({
   setProfile: (profile: UserProfile) => void;
   pours: PourRecord[] | null;
   reload: () => Promise<void>;
-  /** Told when the form gives way to the reveal, so the card can take the reveal ground. */
-  onReveal: (reveal: boolean) => void;
+  /**
+   * Told when the form gives way to the reveal, and how the pour moved you,
+   * so the card takes the reveal ground and the map draws the move.
+   */
+  onReveal: (move: PourMove | null) => void;
 }) {
   const { openSignIn } = useAtprotoContext();
   const isMember = !!member;
   const r = useRatePour({ request, isMember, profile, setProfile, pours, reload });
-  const top = useRef<HTMLElement>(null);
 
-  // The result replaces the form: start it from the top.
+  // The screen scrolls to the map when the reveal takes the card (`Explore`), so the move shows.
+  const move = r.reveal && r.lastPour ? { from: r.lastPour.from, to: r.to, drinkName: r.lastPour.drinkName } : null;
+  const moveKey = move ? `${move.from.x},${move.from.y},${move.to.x},${move.to.y},${move.drinkName}` : '';
   useEffect(() => {
-    top.current?.scrollIntoView({ block: 'start' });
-  }, [r.lastPour]);
-  useEffect(() => {
-    onReveal(r.reveal);
-    return () => onReveal(false);
-  }, [r.reveal, onReveal]);
+    onReveal(move);
+    // `move` is derived from the key.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [moveKey, onReveal]);
+  useEffect(() => () => onReveal(null), [onReveal]);
 
   if (r.cold) {
     return (
@@ -68,7 +78,7 @@ export function RatePanel({
   }
   if (r.lastPour && r.menuChange) {
     return (
-      <section ref={top} aria-label={ratePage.title}>
+      <section aria-label={ratePage.title}>
         <Moved
           from={r.lastPour.from}
           to={r.to}
@@ -83,7 +93,7 @@ export function RatePanel({
     );
   }
   return (
-    <section ref={top} aria-label={ratePage.title} className="w-full pb-2">
+    <section aria-label={ratePage.title} className="w-full pb-2">
       <div className="flex items-baseline justify-between gap-4">
         <ScreenHeader eyebrow={ratePage.title} title={ratePage.heading} />
         <button type="button" onClick={onClose} className="link-caps shrink-0 text-muted-foreground hover:text-foreground">

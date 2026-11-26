@@ -1,6 +1,7 @@
 ---
 import MapPage from '../layouts/MapPage.astro';
-import { ScreenHeader } from '../components/app/ui';
+import { Notice, ScreenHeader } from '../components/app/ui';
+import { DrinkRow } from '../components/app/DrinkRow';
 import { barPublish as copy, site, venuesCopy } from '../lib/copy';
 import { formatCoordinate } from '../lib/coordinate';
 import { exampleVenues } from '../lib/example-menus';
@@ -85,9 +86,7 @@ Astro.response.headers.set('Cache-Control', account.kind === 'member' ? 'no-stor
       </p>
 
       {error && (
-        <p role="alert" class="border-y border-destructive py-2.5 text-meta text-destructive">
-          {error}
-        </p>
+        <Notice tone="alert">{error}</Notice>
       )}
 
       <form method="POST" action={`${barsHref}#claim`} class="space-y-5">
@@ -148,7 +147,7 @@ Astro.response.headers.set('Cache-Control', account.kind === 'member' ? 'no-stor
           >{values.menuLines}</textarea>
         </label>
 
-        <button type="submit" class="btn btn-primary btn-lg w-full px-6">
+        <button type="submit" class="btn btn-primary w-full">
           {copy.submit}
         </button>
 
@@ -194,19 +193,13 @@ Astro.response.headers.set('Cache-Control', account.kind === 'member' ? 'no-stor
               <span class="label-caps">{venue.domain}</span>
               <span class="tag">{venuesCopy.exampleTag}</span>
             </div>
-            <h3 class="mt-3 font-serif text-heading font-bold text-foreground">{venue.name}</h3>
+            <h3 class="mt-3 font-serif text-plate font-bold text-foreground">{venue.name}</h3>
             <p class="text-meta text-muted-foreground">{venue.neighborhood} · {venue.city}</p>
             <p class="mt-3 text-ui text-foreground">{venue.summary}</p>
             <p class="label-caps mt-5 text-secondary">{venuesCopy.examplesSpecs(venue.menu.length)}</p>
-            <ul class="mt-1">
+            <ul class="mt-1 border-t border-border">
               {venue.menu.map((item) => (
-                <li class="menu-row dot-leader py-2">
-                  <span class="font-serif text-ui font-bold text-foreground">{item.name}</span>
-                  <span aria-hidden="true" class="leader" />
-                  <span class="shrink-0 font-condensed text-meta tabular-nums text-muted-foreground">
-                    {formatCoordinate(item.x, item.y)}
-                  </span>
-                </li>
+                <DrinkRow title={item.name} figure={formatCoordinate(item.x, item.y)} />
               ))}
             </ul>
           </article>

@@ -1,7 +1,7 @@
 import { describe, test, expect } from 'vitest';
 import { parseActor, readPublicPalate } from '../../src/lib/atproto/public-read';
 import { publicMapPath } from '../../src/lib/atproto/paths';
-import { compareTerrains, TOP } from '../../src/lib/overlap';
+import { compareTerrains, REACH_FOR, TOP } from '../../src/lib/overlap';
 import { buildTerrain, drinkHeight } from '../../src/lib/terrain';
 import { drinkDatabase } from '../../src/lib/data';
 
@@ -160,6 +160,15 @@ describe('Overlap of two tastes as ground (compareTerrains)', () => {
     expect(o.secondOnly!.x).toBeGreaterThan(0);
     expect(drinkHeight(deep, o.firstOnly!).rating).toBeGreaterThan(drinkHeight(surf, o.firstOnly!).rating);
     expect(o.inCommon).toBeLessThan(TOP);
+  });
+
+  test('two people who part ways share nothing invented: no drink "for both" that neither would reach for', () => {
+    const o = compareTerrains({ terrain: deep, aversions: none }, { terrain: surf, aversions: none });
+    if (o.shared) {
+      expect(drinkHeight(deep, o.shared).rating).toBeGreaterThanOrEqual(REACH_FOR);
+      expect(drinkHeight(surf, o.shared).rating).toBeGreaterThanOrEqual(REACH_FOR);
+    }
+    expect(o.shared).toBeNull();
   });
 
   test('two people with the same taste get no invented contrast, and every top drink in common', () => {

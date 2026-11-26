@@ -17,8 +17,8 @@ follow: a server-read follows list and a plain GET form). `/sign-in` renders a p
 with JavaScript off and progressively enhances it via `<bsky-sign-in>` (zero
 React). `/` asks one thing — find your coordinate — and keeps nothing else:
 pulled up, its card says how it works and links to sign-in, which is its own
-page. The app is one screen, `/map`; it and `/questions`
-mount React islands.
+page. The app is one screen, `/map`, the one React island; the questions are
+a state of its card (`/map?quiz=1`, `QuizCard.tsx`), never a page.
 
 The whole app was previously one `client:only` island, so nothing painted
 until ~860 KB of JavaScript had downloaded and hydrated — on every route,
@@ -31,14 +31,17 @@ landing page included. Astro was being used as a slower Next.js.
   directive: one copy of the map, and still no script.
 - Prefer `client:load` over `client:only` so the shell server-renders.
 - The app bar is the top of every page's card (`AppBar`), since the map has
-  the top of the screen: wordmark · Menu on a phone (the map, the visible
+  the top of the screen, and sticks to the top as the card scrolls up. It
+  carries the page's name in the wordmark's place (`MapPage`'s `eyebrow`,
+  with `back` and `heading`), so a name is said once: mark · name · Menu on a phone (the map, the visible
   reading pages, then the account), and from `lg` a row of tabs under the
   account control (`accountControl` in `site-nav.ts`). `Drinks` (`/drinks`) is `memberOnly` in `site-nav.ts`, so unauthenticated
   visitors on `/` are not sent there from the header or footer; drink pages stay
-  live for SEO/AEO and link back to `/map?drink=<slug>` and `/questions`. On `/map`
-  the app bar holds the search in the wordmark's place (`AppBar`'s `search`: a
-  plain GET form to `/map?q=` that `SearchBox.tsx` takes over once the island
-  is up; the page passes the bar to the island as a slot). The account control is server
+  live for SEO/AEO and link back to `/map?drink=<slug>` and the questions (`/map?quiz=1`). On `/map`
+  the bar names the page like any other ("Map"); the search is content, the
+  first thing in the card (`SearchBox.tsx`: drawn by the island on the server
+  as a plain GET form to `/map?q=`, so it works before the island does). The
+  page passes the bar to the island as a slot. The account control is server
   truth: `@handle` (opening `/settings`) for a member, Sign in for a guest, a
   neutral Account on a prerendered page that cannot know. Signing
   out is on `/settings` alone, never in the header; `/map` carries no account
@@ -143,7 +146,7 @@ of a drink with no match is kept, and moves nothing but its deviations.
 **The app is one screen, the map** (`/map`, `Explore.tsx`,
 `docs/map-first.md`): the map fixed in place as the background
 (`PalateMap.tsx` — the plane, your terrain as shading and contour lines,
-every drink, your pours with your rating), the search in the header, and one
+every drink, your pours with your rating), the search at the top of its card, and one
 card for everything else. The map never pans, zooms or moves when something
 opens: what changes is what is drawn on it. Where a drink sits on it, its
 contours and shading and which drinks get a label are plain functions
@@ -155,7 +158,8 @@ geometry is CSS. Every page that shows the map uses one layout,
 an Astro page renders it with no directive rather than keeping its own copy. The card holds
 where to next (your menu, your bars, bars near you, your pours, your track),
 a drink, a bar's menu, or rating a pour; on a phone it rests under the map
-and is pulled up over it by its head, and from `lg` it is a panel down the
+and the page scrolls it up over the map, as on every page (a tap on a drink
+scrolls back so the map shows), and from `lg` it is a panel down the
 left. A drink is reached by tapping it on the map (the nearest mark within
 reach) or from the card's lists and the search, which is how a keyboard
 reaches every one.
@@ -179,7 +183,7 @@ pin on the map while every other drink fades to a speck. "Pick this" saves a
 rating clears. There is no separate harbour page.
 
 Your point is no longer drawn on the map, which draws your terrain; it is
-what the reveal after a pour shows moving (`Moved.tsx`) and what your track
+what the reveal after a pour shows moving (`Moved.tsx` in the card, the trail on the map: `trail` on `PalateMap`) and what your track
 replays (the card's Your pours). It is not the filter's estimate: `applyPour`
 moves crisp/sweet by a capped, simpler rule and leaves the other three axes
 to the EKF.
@@ -276,7 +280,8 @@ The quiz's x/y variance travels
 in `UserProfile.variance` and becomes the 5D starting covariance, so a
 confident quiz makes early pours move the dot less.
 Nothing in the quiz calls a model, so the flow runs offline.
-`/how-it-works` is the public account of this section and of how a pour
+How it works — the front door's card pulled up (`/#how-it-works`), never a
+page of its own — is the public account of this section and of how a pour
 moves the dot, in plain words (`howItWorks` in `copy.ts`).
 `tests/unit/how-it-works.test.ts` holds its numbers to `MIN_QUESTIONS`,
 `MAX_QUESTIONS`, `MAX_POUR_STEP` and the 7/3 rating thresholds: change one
@@ -288,7 +293,7 @@ An Astro content collection behind `/drinks`, prerendered and script-free.
 Drink pages are built for SEO/AEO rather than homepage discovery by
 unauthenticated visitors (`memberOnly: true` in `site-nav.ts`): each
 `/drinks/<slug>` page emits Schema.org `Recipe` JSON-LD and a compare-to-palate
-section whose one link, `/questions?drink=<slug>` (`questionsForDrink`), places
+section whose one link, `/map?drink=<slug>&quiz=1` (`questionsForDrink`), places
 a stranger and then opens the drink on their map — or, for anyone with a
 coordinate already, goes straight to `/map?drink=<slug>`.
 Every drinks page is a map page (`MapPage.astro`): the map with the drink
@@ -402,7 +407,13 @@ the record down to the fields the page draws. The DID document is checked and
 read by `@atproto/did` (`didDocumentValidator`, `extractAtprotoData`), not a
 hand-written shape. Its unit tests use a fake
 `fetch`; the route tests use a reserved TLD (`nobody.invalid`), which is
-refused before any network call. `publicMapPath` lives in `paths.ts` because
+refused before any network call. **Made-up people** (`sample-people.ts`)
+are records the app carries for `.test` handles — a domain the handle spec
+keeps for testing, which no real person can hold — read through the same
+reader with no network, so someone's map, a drink on it and a comparison can
+be seen and tested here: `/map?palate=deep.test`, `both.test` (two hills),
+`deep.test&with=surf.test`, `quiet.test` (no palate). Their pages say they
+are made up and are kept out of search. `publicMapPath` lives in `paths.ts` because
 the island links to it and must not import the server package.
 
 `/mcp` (`src/pages/mcp.astro`, `src/lib/mcp/`) offers the same reads to chat

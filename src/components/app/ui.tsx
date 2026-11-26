@@ -59,6 +59,42 @@ export function ScreenHeader({
 }
 
 /**
+ * How a section of a card opens, and the only section heading
+ * (docs/design-system.md, One row): serif, ruled in ink under it, with an
+ * optional `aside` at the right (a note, the axis it runs on). A list of
+ * `DrinkRow`s follows it directly.
+ */
+export function SectionTitle({
+  as: Tag = 'h2',
+  id,
+  aside,
+  className,
+  children,
+}: {
+  as?: 'h2' | 'h3';
+  id?: string;
+  aside?: ReactNode;
+  className?: string;
+  children: ReactNode;
+}) {
+  if (aside === undefined) {
+    return (
+      <Tag id={id} className={cn('section-title', className)}>
+        {children}
+      </Tag>
+    );
+  }
+  return (
+    <div className={cn('flex items-baseline justify-between gap-4 border-b border-foreground pb-1.5', className)}>
+      <Tag id={id} className="section-title border-b-0 pb-0 text-foreground">
+        {children}
+      </Tag>
+      <span className="shrink-0 text-meta text-muted-foreground">{aside}</span>
+    </div>
+  );
+}
+
+/**
  * What a guest is told signing in buys, once, in the place it would keep:
  * a title, a line, and the one sign-in button. Ruled above and below rather
  * than boxed: a screen's one sheet is what is yours, and this is not.
@@ -113,4 +149,80 @@ export function Empty({
 /** Held in a list's place while it loads. */
 export function Loading() {
   return <p className="py-6 font-serif text-ui italic text-muted-foreground motion-safe:animate-pulse">…</p>;
+}
+
+export interface ReadoutCell {
+  label: string;
+  value: ReactNode;
+  href?: string;
+  /** Set in condensed figures (a coordinate, a count) rather than Playfair (a name). */
+  figure?: boolean;
+}
+
+/**
+ * A few labelled figures side by side, ruled above and below, never boxed
+ * (docs/design-system.md, One readout): a drink's coordinate and region, a
+ * person's coordinate and pours, your pours and bars. A cell with `href`
+ * links its value.
+ */
+export function Readout({ cells, className }: { cells: ReadoutCell[]; className?: string }) {
+  return (
+    <dl className={cn('grid auto-cols-fr grid-flow-col border-y border-border', className)}>
+      {cells.map((cell, i) => {
+        const value = cn(
+          'block truncate text-prose text-foreground',
+          cell.figure ? 'font-condensed font-semibold tabular-nums' : 'font-serif font-bold'
+        );
+        return (
+          <div key={cell.label} className={cn('flex min-w-0 flex-col gap-0.5 py-2.5 pr-3', i > 0 && 'border-l border-border pl-3.5')}>
+            <dt className="label-caps truncate">{cell.label}</dt>
+            <dd className="min-w-0">
+              {cell.href ? (
+                <a href={cell.href} className={cn(value, 'hover:underline hover:underline-offset-4')}>
+                  {cell.value}
+                </a>
+              ) : (
+                <span className={value}>{cell.value}</span>
+              )}
+            </dd>
+          </div>
+        );
+      })}
+    </dl>
+  );
+}
+
+/**
+ * A line about the state of the screen — what is off, what failed, what just
+ * happened — ruled above and below (docs/design-system.md, One notice). An
+ * `alert` is in the destructive ink and announced at once; a `status` is
+ * announced politely; a `note` is quiet. A field's own error sits under the
+ * field instead, unruled.
+ */
+export function Notice({
+  tone = 'note',
+  id,
+  className,
+  children,
+}: {
+  tone?: 'note' | 'status' | 'alert';
+  id?: string;
+  className?: string;
+  children: ReactNode;
+}) {
+  return (
+    <p
+      id={id}
+      role={tone === 'alert' ? 'alert' : tone === 'status' ? 'status' : undefined}
+      className={cn(
+        'border-y py-2.5 text-meta',
+        tone === 'alert' ? 'border-destructive text-destructive' : 'border-border',
+        tone === 'note' && 'text-muted-foreground',
+        tone === 'status' && 'text-foreground',
+        className
+      )}
+    >
+      {children}
+    </p>
+  );
 }

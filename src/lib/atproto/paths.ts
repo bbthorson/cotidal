@@ -21,10 +21,15 @@ export function publicMapPath(actor: string): string {
 export const SIGNED_OUT_PARAM = 'signed_out';
 export const signedOutPath = `/map?${SIGNED_OUT_PARAM}=1`;
 
-/** The questions, and the marker that makes them start over (from Settings, or the foot of Your map for a guest). */
-export const QUESTIONS_PATH = '/questions';
+/**
+ * The questions are a state of the map's card, never a page: `?quiz=1` on
+ * `/map` opens them, handled once on arrival. `?startover=1` with it clears
+ * this device's coordinate first (from Settings, or the foot of Your map for
+ * a guest).
+ */
+export const QUIZ_PARAM = 'quiz';
 export const START_OVER_PARAM = 'startover';
-export const startOverPath = `${QUESTIONS_PATH}?${START_OVER_PARAM}=1`;
+export const startOverPath = `/map?${QUIZ_PARAM}=1&${START_OVER_PARAM}=1`;
 
 /**
  * Rating a pour is a sheet over an app page, not a page of its own. A URL asks

@@ -96,7 +96,7 @@ export function TrackFigure({ track }: { track: readonly TrackPoint[] }) {
         </span>
       ))}
 
-      <span aria-hidden="true" className="absolute left-2 top-1.5 font-condensed text-label uppercase tracking-label text-muted-foreground">
+      <span aria-hidden="true" className="absolute left-2 top-1.5 label-caps">
         {f.left + f.width / 2 < 0 ? axes.rich : axes.crisp} · {f.top - f.height / 2 < 0 ? axes.savory : axes.sweet}
       </span>
     </figure>

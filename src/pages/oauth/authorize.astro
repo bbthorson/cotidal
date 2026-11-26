@@ -1,6 +1,6 @@
 ---
 import MapPage from '../../layouts/MapPage.astro';
-import { ScreenHeader } from '../../components/app/ui';
+import { Notice, ScreenHeader } from '../../components/app/ui';
 import { decide, showConsent, type AuthorizeView } from '@/lib/mcp/authorize.server';
 import { authorizeContext } from '@/lib/mcp/authorize-context.server';
 import { MEMBER_SCOPES, OAUTH_AUTHORIZE_PATH } from '@/lib/mcp/member-auth';
@@ -41,7 +41,7 @@ Astro.response.headers.set('Cache-Control', 'no-store');
 
 const member = view.kind === 'consent' ? view.member : null;
 const memberName = member ? (member.handle ?? member.did) : null;
-const label = 'font-condensed text-label uppercase tracking-label text-muted-foreground';
+const label = 'label-caps';
 ---
 
 <MapPage title={`${site.name} — ${copy.eyebrow}`} currentPath={OAUTH_AUTHORIZE_PATH} label={copy.eyebrow} eyebrow={copy.eyebrow}>
@@ -66,9 +66,7 @@ const label = 'font-condensed text-label uppercase tracking-label text-muted-for
             <strong class="font-bold text-foreground">{view.details.redirectHost}</strong>
           </p>
           {view.details.redirectIsLoopback && (
-            <p role="alert" class="border-y border-border py-2.5 text-meta text-destructive">
-              {copy.loopback}
-            </p>
+            <Notice tone="alert">{copy.loopback}</Notice>
           )}
         </section>
 
@@ -108,7 +106,7 @@ const label = 'font-condensed text-label uppercase tracking-label text-muted-for
                 name="as"
                 value="member"
                 formnovalidate
-                class="btn btn-primary btn-lg w-full px-4"
+                class="btn btn-primary w-full"
               >
                 {copy.continueAs(memberName)}
               </button>
@@ -133,7 +131,7 @@ const label = 'font-condensed text-label uppercase tracking-label text-muted-for
               type="submit"
               name="as"
               value="handle"
-              class:list={['btn btn-lg w-full px-4', memberName ? 'btn-outline' : 'btn-primary']}
+              class:list={['btn w-full', memberName ? 'btn-outline' : 'btn-primary']}
             >
               {copy.signInAndAllow}
             </button>
@@ -143,7 +141,7 @@ const label = 'font-condensed text-label uppercase tracking-label text-muted-for
         <section class="space-y-5">
           <form method="POST" action={OAUTH_AUTHORIZE_PATH}>
             <input type="hidden" name="consent" value={view.consent} />
-            <button type="submit" name="decision" value="deny" class="btn btn-outline btn-lg w-full px-4">
+            <button type="submit" name="decision" value="deny" class="btn btn-outline w-full">
               {copy.deny}
             </button>
           </form>

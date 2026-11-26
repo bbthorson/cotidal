@@ -111,8 +111,6 @@ export const explore = {
   /** The card, read aloud. */
   cardLabel: 'Where to next',
   /** The card's handle, read aloud, and its words on a phone. */
-  more: 'More',
-  less: 'Less',
   heading: 'Where to next',
   /** Before there is a coordinate, in the card's head. */
   noPosition: 'No position yet',
@@ -276,10 +274,9 @@ export const hero = {
   /** A member at the front door already has a map: the one action opens it. */
   memberCta: 'Open your map',
   /** The card's head: what the map behind it is (`sample-palate.ts`), so nobody takes it for theirs. */
-  sampleLabel: 'A sample palate, rated as it goes',
+  sampleLabel: 'A sample palate',
   /** Under the fold of the card, pulled up: how it works, briefly, then the whole account. */
   howTitle: 'How it works',
-  howMore: 'How it works, in full',
   /** Then signing in, for someone who has a map on another device. */
   signInTitle: 'Already have a map?',
   signInBody: 'Sign in with Bluesky and it comes with you: your coordinate and your pours are kept in your own account.',
@@ -693,15 +690,13 @@ export const pour = {
 } as const;
 
 /**
- * /how-it-works: how answers and ratings place and move a coordinate, said
+ * How it works, the front door's card pulled up (`/#how-it-works`): how answers and ratings place and move a coordinate, said
  * as the code does it today (docs/brand.md, Claims). Every number here is a
  * constant in belief-state.ts or palate-state.ts, and
  * tests/unit/how-it-works.test.ts holds the two equal. Never the code's words:
  * no calibration, no latent, no triangulation.
  */
 export const howItWorks = {
-  eyebrow: 'How it works',
-  title: 'How your answers and ratings move your point',
   lede:
     'Your coordinate comes from two things only: the answers you give and the drinks you rate. This is how each one counts, and where it is kept.',
   sections: [
@@ -772,7 +767,6 @@ export const howItWorks = {
     'Today, how much each answer counts was set by testing the questions against simulated answers, not real ones.',
     'Later: checking saved answers against how people later rated drinks, to refine which questions work and how much each should count.',
   ],
-  start: 'Find your coordinate',
 } as const;
 
 export const venuesCopy = {
@@ -870,7 +864,7 @@ export const notFound = {
   title: 'Nothing charted here.',
   lede: 'That address does not lead to a page. The link may be old, or mistyped.',
   cta: 'Find your coordinate',
-  drinks: 'or look through every drink',
+  drinks: 'Look through every drink',
 } as const;
 
 export const publicMap = {
@@ -880,8 +874,9 @@ export const publicMap = {
   coordinateLabel: 'Coordinate',
   title: (name: string) => `@${name}`,
   lands: 'Lands in',
-  pours: (n: number) => (n === 1 ? 'Moved by 1 pour' : `Moved by ${n} pours`),
-  quizOnly: 'From the questions alone',
+  /** The readout's second cell: how many pours moved the map, or none yet. */
+  poursLabel: 'Pours',
+  quizOnly: 'None yet',
   them: 'Them',
   you: 'You',
   /** Two tastes compared (`compareTerrains`, `with=`): said in drinks, leading with where they part. */
@@ -897,6 +892,8 @@ export const publicMap = {
   drinkWay: (who: string, distance: number, words: string) => `${distance} from ${who}, ${words}`,
   drinkFromYou: 'you',
   drinkForYou: 'Where it sits for you',
+  /** On a made-up person's map (`sample-people.ts`): said before anything else. */
+  sampleNote: 'A made-up person, to show what someone’s map looks like. Their ratings are invented.',
   /** Their taste in the axes' words (`leanings`), as the map's card says yours. */
   leanLabel: (self: boolean) => (self ? 'You lean' : 'Leans'),
   /** Their menu: the drinks highest on their terrain, each with what put it there. */

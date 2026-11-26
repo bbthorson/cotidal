@@ -4,6 +4,7 @@ import { connect, nav } from '@/lib/copy';
 import { cn } from '@/lib/utils';
 import { useSignIn } from '@/hooks/use-sign-in';
 import { useAtprotoContext } from './AtprotoContext';
+import { Notice } from './ui';
 
 interface SignInSheetProps {
   open: boolean;
@@ -85,7 +86,7 @@ export function SignInSheet({ open, onOpenChange }: SignInSheetProps) {
           <div aria-hidden="true" className="h-0.75 w-10 self-center bg-border sm:hidden" />
 
           <div className="flex flex-col gap-1.5">
-            <span className="font-condensed text-label font-semibold uppercase tracking-label text-secondary">
+            <span className="label-caps text-secondary">
               {nav.signIn}
             </span>
             <Dialog.Title className="font-serif text-title font-bold">{connect.title}</Dialog.Title>
@@ -119,7 +120,7 @@ export function SignInSheet({ open, onOpenChange }: SignInSheetProps) {
                               )}
                               <span className="truncate text-meta text-muted-foreground">@{acct.handle}</span>
                             </span>
-                            <span className="shrink-0 font-condensed text-label font-bold uppercase tracking-label text-secondary">
+                            <span className="shrink-0 label-caps font-bold text-secondary">
                               {isPending ? connect.connecting : '\u2192'}
                             </span>
                           </button>
@@ -150,7 +151,7 @@ export function SignInSheet({ open, onOpenChange }: SignInSheetProps) {
                     <span
                       className={
                         errorMessage
-                          ? 'font-condensed text-label font-semibold uppercase tracking-label text-destructive'
+                          ? 'label-caps text-destructive'
                           : 'label-caps'
                       }
                     >
@@ -231,7 +232,7 @@ export function SignInSheet({ open, onOpenChange }: SignInSheetProps) {
                 <button
                   type="submit"
                   disabled={loading || !state.query.trim()}
-                  className="btn btn-primary btn-lg disabled:cursor-not-allowed"
+                  className="btn btn-primary w-full disabled:cursor-not-allowed"
                 >
                   {loading && state.action === 'sign-in' ? connect.connecting : connect.submit}
                 </button>
@@ -243,17 +244,17 @@ export function SignInSheet({ open, onOpenChange }: SignInSheetProps) {
                   type="button"
                   disabled={loading}
                   onClick={() => void signUp()}
-                  className="link-serif text-meta disabled:cursor-not-allowed"
+                  className="link-inline disabled:cursor-not-allowed"
                 >
                   {loading && state.action === 'sign-up' ? connect.creating : connect.createAccount}
                 </button>
               </p>
             </div>
           ) : (
-            <p className="border-y border-border py-2.5 text-meta text-muted-foreground">{connect.disabled}</p>
+            <Notice>{connect.disabled}</Notice>
           )}
 
-          <Dialog.Close className="flex min-h-11 items-center self-center px-2 font-condensed text-meta uppercase tracking-label text-muted-foreground transition-colors hover:text-foreground">
+          <Dialog.Close className="link-caps self-center px-2 text-muted-foreground transition-colors hover:text-foreground">
             {connect.guest}
           </Dialog.Close>
         </Dialog.Content>

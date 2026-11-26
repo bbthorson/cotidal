@@ -8,25 +8,23 @@ interface Props {
   image?: { path: string; alt: string };
   /** The page's own address for search engines (`Base`'s `canonical`). */
   canonical?: string;
-  /**
-   * An app screen (`/map`, `/questions`): the screen fills the window exactly,
-   * edge to edge, and nothing scrolls but its own card. Otherwise a map page
-   * with no script (`MapPage.astro`): on a phone the page scrolls and the card
-   * scrolls up over the map; from `lg` it fills the window like the app.
-   */
-  app?: boolean;
+  /** Keep the page out of search (`Base`'s `noindex`). */
+  noindex?: boolean;
 }
 
 /**
  * The page's frame, and nothing else: every page is the map and its card
  * (`MapScreen`), whose top is the app bar and whose foot is the footer, so
- * the frame draws neither (docs/design-system.md, One kind of page).
+ * the frame draws neither (docs/design-system.md, One kind of page). The same
+ * for every page, the app screens too: on a phone the page scrolls and the
+ * card scrolls up over the map; from `lg` it fills the window and the card
+ * scrolls on its own.
  */
-const { title, description, image, canonical, app = false } = Astro.props;
+const { title, description, image, canonical, noindex } = Astro.props;
 ---
 
-<Base title={title} description={description} image={image} canonical={canonical}>
-  <div class:list={['bar-texture flex flex-col bg-background text-foreground', app ? 'h-dvh overflow-hidden' : 'min-h-dvh lg:h-dvh lg:overflow-hidden']}>
+<Base title={title} description={description} image={image} canonical={canonical} noindex={noindex}>
+  <div class="bar-texture flex min-h-dvh flex-col bg-background text-foreground lg:h-dvh lg:overflow-hidden">
     <div class="flex min-h-0 flex-1 flex-col">
       <slot />
     </div>

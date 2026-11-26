@@ -1,8 +1,8 @@
 ---
 import MapPage from '../../layouts/MapPage.astro';
 import { PalateMap } from '../../components/app/PalateMap';
-import { CardHead } from '../../components/app/MapScreen';
-import { ScreenHeader } from '../../components/app/ui';
+import { Readout, ScreenHeader } from '../../components/app/ui';
+import { DrinkRow } from '../../components/app/DrinkRow';
 import { site, publicMap, coaster, assistants, explore, taste as taste_ } from '../../lib/copy';
 import { formatCoordinate } from '../../lib/coordinate';
 import { readPublicPalate } from '../../lib/atproto/public-read';
@@ -67,6 +67,8 @@ const otherGround = otherTerrain ? sampleTerrain(otherTerrain, 0.5) : null;
 /** A reader with no map of their own is asked to make one: a guest, or a member with no palate. */
 const readerHasNoMap = !isSelf && (!session || (!withParam && !other));
 /** How each side is named: "you" for the reader, a handle for anyone else. */
+/** A made-up person (`sample-people.ts`): their page says so first, and stays out of search. */
+const isSample = (result.status === 'ok' || result.status === 'no-palate') && result.actor.sample === true;
 const subjectWho = isSelf ? publicMap.drinkFromYou : publicMap.title(result.status === 'ok' ? (result.actor.handle ?? result.actor.did) : '');
 const otherWho = other ? (otherIsYou ? publicMap.drinkFromYou : publicMap.title(other.actor.handle ?? other.actor.did)) : '';
 
@@ -158,15 +160,17 @@ const pairs: { label: string; drink: Drink }[] = comparison
 const subjectHandle = result.status === 'ok' ? result.actor.handle : null;
 
 const ctaClass =
-  'btn btn-primary btn-lg w-full px-8';
+  'btn btn-primary w-full';
 ---
 
 <MapPage
   title={pageTitle}
   description={description}
   canonical={canonical}
+  noindex={isSample}
   currentPath="/p"
   label={name ? publicMap.title(name) : site.name}
+  eyebrow={isSelf ? publicMap.selfEyebrow : publicMap.eyebrow}
 >
   <PalateMap
     slot="map"
@@ -179,10 +183,13 @@ const ctaClass =
     tide={!subject}
   />
 
-  <CardHead slot="head">
-    <span class="label-caps">{isSelf ? publicMap.selfEyebrow : publicMap.eyebrow}</span>
-  </CardHead>
-
+  {
+    isSample && (
+      <p role="note" class="mb-6 border-b border-foreground pb-2.5 text-meta text-muted-foreground" data-testid="sample-note">
+        {publicMap.sampleNote}
+      </p>
+    )
+  }
   {result.status === 'ok' && subject && name ? (
     <article class="space-y-10" data-testid="public-map">
       <ScreenHeader title={publicMap.title(name)}>
@@ -198,11 +205,11 @@ const ctaClass =
         <section class="border-y border-foreground py-4" data-testid="palate-drink">
           <p class="label-caps">{publicMap.drinkLabel}</p>
           {entryHref(viewDrink) ? (
-            <a href={entryHref(viewDrink)!} class="mt-1 block font-serif text-heading font-bold text-foreground hover:underline hover:underline-offset-4">
+            <a href={entryHref(viewDrink)!} class="mt-1 block font-serif text-plate font-bold text-foreground hover:underline hover:underline-offset-4">
               {titleFor(viewDrink)}
             </a>
           ) : (
-            <p class="mt-1 font-serif text-heading font-bold text-foreground">{titleFor(viewDrink)}</p>
+            <p class="mt-1 font-serif text-plate font-bold text-foreground">{titleFor(viewDrink)}</p>
           )}
           <p class="mt-1 text-meta text-muted-foreground">{reasonFor(viewDrink)}</p>
           <p class="mt-1 text-meta text-muted-foreground">
@@ -216,40 +223,24 @@ const ctaClass =
         </section>
       )}
 
-      <dl class="grid grid-cols-2 gap-x-6 gap-y-1 border-y border-border py-3 text-meta">
-        <dt class="label-caps text-muted-foreground">{isSelf ? publicMap.you : publicMap.them}</dt>
-        <dd class="text-right font-condensed tabular-nums text-foreground">
-          {formatCoordinate(subject.x, subject.y)}
-        </dd>
-        <dd class="col-span-2 pb-1 text-muted-foreground">
-          {result.palate.pours ? publicMap.pours(result.palate.pours) : publicMap.quizOnly}
-        </dd>
-      </dl>
+      <Readout
+        cells={[
+          { label: isSelf ? publicMap.you : publicMap.them, value: formatCoordinate(subject.x, subject.y), figure: true },
+          { label: publicMap.poursLabel, value: result.palate.pours ? String(result.palate.pours) : publicMap.quizOnly, figure: true },
+        ]}
+      />
 
       {comparison && (
         <section class="space-y-4" data-testid="overlap">
           <div>
             <span class="label-caps text-muted-foreground">{publicMap.betweenLabel(subjectWho, otherWho)}</span>
-            <p class="mt-1 font-serif text-heading font-bold text-foreground">{publicMap.inCommon(comparison.inCommon, TOP)}</p>
+            <p class="mt-1 font-serif text-plate font-bold text-foreground">{publicMap.inCommon(comparison.inCommon, TOP)}</p>
             <p class="mt-1 text-meta text-muted-foreground">{publicMap.compareKey(otherWho, otherIsYou)}</p>
           </div>
-          <ul class="divide-y divide-border border-y border-foreground">
-            {pairs.map(({ label, drink }) => {
-              const href = entryHref(drink);
-              return (
-                <li class="dot-leader py-3">
-                  <span class="label-caps text-muted-foreground">{label}</span>
-                  <span class="leader" aria-hidden="true" />
-                  {href ? (
-                    <a href={href} class="font-serif text-plate font-bold text-foreground transition-colors hover:underline hover:underline-offset-4">
-                      {titleFor(drink)}
-                    </a>
-                  ) : (
-                    <span class="font-serif text-plate font-bold text-foreground">{titleFor(drink)}</span>
-                  )}
-                </li>
-              );
-            })}
+          <ul class="border-t border-foreground">
+            {pairs.map(({ label, drink }) => (
+              <DrinkRow href={entryHref(drink) ?? undefined} title={titleFor(drink)} note={label} />
+            ))}
           </ul>
         </section>
       )}
@@ -257,22 +248,10 @@ const ctaClass =
       {menu.length > 0 && (
         <section class="space-y-3" data-testid="their-menu">
           <h2 class="section-title">{publicMap.menuLabel(isSelf)}</h2>
-          <ol class="divide-y divide-border">
-            {menu.map((drink) => {
-              const href = entryHref(drink);
-              return (
-                <li class="py-3">
-                  {href ? (
-                    <a href={href} class="font-serif text-plate font-bold text-foreground transition-colors hover:underline hover:underline-offset-4">
-                      {titleFor(drink)}
-                    </a>
-                  ) : (
-                    <span class="font-serif text-plate font-bold text-foreground">{titleFor(drink)}</span>
-                  )}
-                  <p class="mt-0.5 text-meta text-muted-foreground">{reasonFor(drink)}</p>
-                </li>
-              );
-            })}
+          <ol>
+            {menu.map((drink) => (
+              <DrinkRow href={entryHref(drink) ?? undefined} title={titleFor(drink)} note={reasonFor(drink)} />
+            ))}
           </ol>
         </section>
       )}
@@ -290,7 +269,7 @@ const ctaClass =
             />
           </label>
           <p class="pt-2 font-serif text-ui text-muted-foreground">
-            <a href={`${accountHref}#code`} class="text-foreground underline decoration-muted-foreground underline-offset-4 hover:decoration-foreground" data-testid="make-code">
+            <a href={`${accountHref}#code`} class="link-inline" data-testid="make-code">
               {coaster.findIt}
             </a>
           </p>
@@ -303,23 +282,19 @@ const ctaClass =
           {follows.length > 0 && (
             <>
               <p class="text-meta text-muted-foreground">{publicMap.followsLede}</p>
-              <ul class="divide-y divide-border border-b border-border">
+              <ul class="border-t border-border">
                 {follows.map((f) => (
-                  <li class="py-3">
-                    <a href={f.path} class="group block">
-                      <div class="dot-leader">
-                        <span class="font-serif text-prose font-bold text-foreground group-hover:underline group-hover:underline-offset-4">
-                          @{f.handle}
-                        </span>
-                        <span aria-hidden="true" class="leader" />
-                        <span class="shrink-0 font-condensed text-meta text-secondary">{publicMap.inCommon(f.inCommon, TOP)}</span>
-                      </div>
-                      <p class="mt-0.5 text-meta text-muted-foreground">
+                  <DrinkRow
+                    href={f.path}
+                    title={`@${f.handle}`}
+                    figure={publicMap.inCommon(f.inCommon, TOP)}
+                    note={
+                      <>
                         {f.leans}
                         {f.theirs && <> · {publicMap.followsContrast(titleOf(register, f.theirs))}</>}
-                      </p>
-                    </a>
-                  </li>
+                      </>
+                    }
+                  />
                 ))}
               </ul>
             </>
@@ -349,7 +324,7 @@ const ctaClass =
       {!isSelf && subjectHandle && (
         <p class="font-serif text-ui italic text-muted-foreground" data-testid="assistant-ask">
           {assistants.visitorAsk(subjectHandle)}{' '}
-          <a href="/mcp" class="not-italic text-foreground underline decoration-muted-foreground underline-offset-4 hover:decoration-foreground">
+          <a href="/mcp" class="not-italic link-inline">
             {assistants.setUp}
           </a>
         </p>

@@ -31,7 +31,7 @@ const search = (page: Page) => page.getByRole('searchbox', { name: compass.searc
 test('A menu: with no coordinate, it says what it needs', async ({ page }) => {
   await page.goto('/map?menu=1');
   await expect(page.getByText(menu.coldBody)).toBeVisible();
-  await expect(page.getByRole('link', { name: compass.findYours })).toHaveAttribute('href', '/questions');
+  await expect(page.getByRole('link', { name: compass.findYours })).toHaveAttribute('href', '/map?quiz=1');
 });
 
 test('A menu with a bar: pinned on the map, ranked in the card, picked — then the pick waits and rating opens a draft', async ({ page }) => {
@@ -106,7 +106,7 @@ test('A bar typed in the header opens as a filter on the map, its name in the se
   await page.getByRole('button', { name: new RegExp(compass.pickAt('Attaboy')) }).click();
   await expect(page).toHaveURL(/\/map$/);
   await expect(card(page).getByRole('heading', { name: 'Attaboy' })).toBeVisible();
-  await expect(page.locator('header').getByText('Attaboy')).toBeVisible();
+  await expect(page.locator('#map-search').getByText('Attaboy')).toBeVisible();
   await expect(search(page)).toHaveAttribute('placeholder', explore.searchThisMenu);
   // Leaving the bar puts the whole map back.
   await page.getByRole('button', { name: explore.leave('Attaboy') }).click();

@@ -1,9 +1,19 @@
+import type { ReactNode } from 'react';
 import { cn } from '@/lib/utils';
 
 /**
- * A row of a list under the chart: the whole row selects the drink. A figure
- * (how far) sits at the end on a dot leader; a note (what put a drink on your
- * menu) sits under the name instead.
+ * One thing in a list — a drink, a bar, a person, a pour — and the only way a
+ * list row is drawn (docs/design-system.md, One row). It is the `<li>`, with
+ * the hairline under it, so a list is an `<ol>` or `<ul>` of these under a
+ * `SectionTitle`.
+ *
+ *   rank   · title · · · · · · · · figure
+ *            note
+ *            children (tags, a quote)
+ *
+ * The whole row is the target: a link with `href`, a button with `onSelect`,
+ * or plain text with neither. Rendered on the server with no directive as
+ * well as in the island, so `/drinks` and `/map` draw the same row.
  */
 export function DrinkRow({
   rank,
@@ -11,64 +21,81 @@ export function DrinkRow({
   figure,
   figureLabel,
   note,
-  selected,
+  children,
+  selected = false,
+  lead = false,
+  href,
   onSelect,
+  onHover,
 }: {
-  rank?: number;
-  title: string;
-  figure?: string | number;
+  /** A number in the margin: a place on a menu, or a pour's count. */
+  rank?: ReactNode;
+  title: ReactNode;
+  /** At the end of the title's line, on a dot leader: how far, a coordinate, a rating. */
+  figure?: ReactNode;
   figureLabel?: string;
-  note?: string;
-  selected: boolean;
-  onSelect: () => void;
+  /** One line under the title: why it is here, where and when. */
+  note?: ReactNode;
+  children?: ReactNode;
+  /** The one the map is showing: the title in terracotta. */
+  selected?: boolean;
+  /** The first of your menu, yours above all: terracotta too, without being the one shown. */
+  lead?: boolean;
+  href?: string;
+  onSelect?: () => void;
+  onHover?: (on: boolean) => void;
 }) {
-  if (note !== undefined) {
-    return (
-      <button
-        type="button"
-        onClick={onSelect}
-        aria-pressed={selected}
-        className="flex min-h-11 w-full items-center gap-3 py-2.5 text-left focus-ring-inset"
-      >
-        {rank !== undefined && (
-          <span className="w-5.5 shrink-0 font-condensed text-meta tabular-nums text-muted-foreground">{rank}</span>
-        )}
-        <span className="flex min-w-0 flex-1 flex-col">
+  const body = (
+    <>
+      {rank !== undefined && (
+        <span className="w-5.5 shrink-0 font-condensed text-meta font-bold tabular-nums text-muted-foreground">{rank}</span>
+      )}
+      <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+        <span className="dot-leader">
           <span
             className={cn(
-              'font-serif text-prose font-bold transition-colors hover:underline hover:underline-offset-4',
-              selected ? 'text-primary' : 'text-foreground'
+              'font-serif text-prose font-bold transition-colors',
+              (href || onSelect) && 'group-hover:underline group-hover:underline-offset-4',
+              selected || lead ? 'text-primary' : 'text-foreground'
             )}
           >
             {title}
           </span>
-          <span className="text-meta text-muted-foreground">{note}</span>
+          {figure !== undefined && (
+            <>
+              <span aria-hidden="true" className="leader" />
+              <span className="shrink-0 font-condensed text-ui font-semibold tabular-nums" aria-label={figureLabel}>
+                {figure}
+              </span>
+            </>
+          )}
         </span>
-      </button>
-    );
-  }
+        {note !== undefined && <span className="text-meta text-muted-foreground">{note}</span>}
+        {children}
+      </span>
+    </>
+  );
+  const row = 'group flex min-h-11 w-full items-baseline gap-3 py-3 text-left';
   return (
-    <button
-      type="button"
-      onClick={onSelect}
-      aria-pressed={selected}
-      className="dot-leader min-h-11 w-full py-3 text-left focus-ring-inset"
-    >
-      {rank !== undefined && (
-        <span className="w-5.5 shrink-0 font-condensed text-meta tabular-nums text-muted-foreground">{rank}</span>
+    <li className="border-b border-border">
+      {href ? (
+        <a href={href} className={cn(row, 'focus-ring-inset')} aria-current={selected || undefined}>
+          {body}
+        </a>
+      ) : onSelect ? (
+        <button
+          type="button"
+          onClick={onSelect}
+          onMouseEnter={onHover && (() => onHover(true))}
+          onMouseLeave={onHover && (() => onHover(false))}
+          aria-pressed={selected}
+          className={cn(row, 'focus-ring-inset')}
+        >
+          {body}
+        </button>
+      ) : (
+        <div className={row}>{body}</div>
       )}
-      <span
-        className={cn(
-          'font-serif text-prose font-bold transition-colors hover:underline hover:underline-offset-4',
-          selected ? 'text-primary' : 'text-foreground'
-        )}
-      >
-        {title}
-      </span>
-      <span aria-hidden="true" className="leader" />
-      <span className="shrink-0 font-condensed text-ui font-semibold tabular-nums" aria-label={figureLabel}>
-        {figure}
-      </span>
-    </button>
+    </li>
   );
 }
