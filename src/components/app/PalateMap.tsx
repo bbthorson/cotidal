@@ -259,7 +259,7 @@ export function PalateMap({
         {quadrants.map((q) => {
           const s = REGION_AT[q.id];
           return (
-            <span key={q.id} style={pct(s.x * 5.6, regionNameY(q.id, captioned))} className="halo-card absolute -translate-x-1/2 -translate-y-1/2 whitespace-nowrap text-subtitle">
+            <span key={q.id} style={pct(s.x * 5.6, regionNameY(q.id, captioned))} className="map-region-name halo-card absolute -translate-x-1/2 -translate-y-1/2 whitespace-nowrap text-subtitle">
               {q.name}
             </span>
           );

@@ -159,14 +159,15 @@ function QuestionStage({ question, isNavigating, canGoBack, onSelectOption, onBa
 
   return (
     <>
-      <div className="flex flex-col gap-3.5 pt-6">
+      {/* On a phone the question and every plate fit one screen under the map (tests/quiz-flow.spec.ts): the type is a size smaller and the plates tighter than from `lg`. */}
+      <div className="flex flex-col gap-1.5 pt-3 lg:gap-3.5 lg:pt-6">
         {category && <span className="label-caps">{category.label}</span>}
-        <h1 className="font-serif text-title font-bold text-foreground">{question.text}</h1>
-        {question.subtitle && <p className="text-ui text-muted-foreground">{question.subtitle}</p>}
+        <h1 className="font-serif text-subtitle font-bold text-foreground lg:text-title">{question.text}</h1>
+        {question.subtitle && <p className="text-meta text-muted-foreground lg:text-ui">{question.subtitle}</p>}
       </div>
 
       <div
-        className={cn('pb-5 pt-5', isPair ? 'grid grid-cols-2 gap-3' : 'flex flex-col gap-3')}
+        className={cn('pb-3 pt-3 lg:pb-5 lg:pt-5', isPair ? 'grid grid-cols-2 gap-2 lg:gap-3' : 'flex flex-col gap-2 lg:gap-3')}
         role="group"
         aria-label={a11y.answerOptions}
       >
@@ -180,18 +181,18 @@ function QuestionStage({ question, isNavigating, canGoBack, onSelectOption, onBa
               disabled={isNavigating && !isPicked}
               aria-pressed={isPicked}
               className={cn(
-                'flex border bg-card p-4.5 text-left transition-colors duration-150',
-                isPair ? 'flex-col gap-2' : 'items-start gap-3.5',
+                'flex border bg-card px-3 py-2.5 text-left transition-colors duration-150 lg:p-4.5',
+                isPair ? 'flex-col gap-1 lg:gap-2' : 'items-start gap-3 lg:gap-3.5',
                 isPicked ? 'border-foreground shadow-mcm' : 'border-border hover:border-foreground'
               )}
             >
               <span className="w-4.5 shrink-0 pt-0.5 font-condensed text-ui font-semibold tracking-label text-muted-foreground">
                 {ROMAN_NUMERALS[index] ?? index + 1}
               </span>
-              <span className="flex flex-1 flex-col gap-1">
+              <span className="flex flex-1 flex-col gap-0.5 lg:gap-1">
                 <span
                   className={cn(
-                    'font-serif text-plate font-bold text-foreground',
+                    'font-serif text-prose font-bold text-foreground lg:text-plate',
                     isPicked && isElimination && 'line-through decoration-primary'
                   )}
                 >

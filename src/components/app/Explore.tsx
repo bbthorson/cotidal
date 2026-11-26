@@ -7,6 +7,7 @@ import { quadrantFor } from '@/lib/quadrant';
 import { publicMapPath, QUIZ_PARAM, START_OVER_PARAM, startOverPath } from '@/lib/atproto/paths';
 import { takeParam } from '@/lib/url-params';
 import type { AxisBelief } from '@/lib/belief-state';
+import { buildTerrain, sampleTerrain } from '@/lib/terrain';
 import { drinksHref, questionsHref } from '@/lib/site-nav';
 import type { Register } from '@/lib/register';
 import { neutralProfile } from '@/lib/guest-palate';
@@ -62,6 +63,19 @@ function ExploreContent({
   const [quiz, setQuiz] = useState(false);
   const [quizShoal, setQuizShoal] = useState<Record<'x' | 'y', AxisBelief> | null>(null);
   const [quizPoint, setQuizPoint] = useState<{ x: number; y: number } | null>(null);
+  // Each answer adds depth: the ground the answers so far make, the questions' own hill (`buildTerrain` with no
+  // pours), broad and faint while they are unsure and rising and sharpening as they agree. Kept through the reveal,
+  // so the point settles on the hill it made.
+  const quizGround = useMemo(
+    () =>
+      quizShoal
+        ? sampleTerrain(
+            buildTerrain({ x: quizShoal.x.mean, y: quizShoal.y.mean, variance: { x: quizShoal.x.variance, y: quizShoal.y.variance } }, []),
+            1
+          )
+        : null,
+    [quizShoal]
+  );
   const startOver = useRef(false);
   const [quizAnswered, setQuizAnswered] = useState(false);
   const markAnswered = useCallback(() => setQuizAnswered(true), []);
@@ -187,13 +201,13 @@ function ExploreContent({
       bar={bar}
       label={explore.cardLabel}
       tone={reveal || quizPoint ? 'reveal' : 'card'}
-      rest={quiz ? 'tall' : 'standard'}
+      rest={quiz ? 'quiz' : 'standard'}
       cardRef={card}
       bodyRef={body}
       map={
         <PalateMap
-          ground={quiz ? null : e.ground}
-          shoal={quizShoal ? { x: quizShoal.x.mean, y: quizShoal.y.mean, rx: Math.sqrt(quizShoal.x.variance), ry: Math.sqrt(quizShoal.y.variance) } : null}
+          ground={quiz ? quizGround : e.ground}
+          shoal={quizShoal && !quizPoint ? { x: quizShoal.x.mean, y: quizShoal.y.mean, rx: Math.sqrt(quizShoal.x.variance), ry: Math.sqrt(quizShoal.y.variance) } : null}
           points={quizPoint ? [{ ...quizPoint, label: chart.youIn(quadrantFor(quizPoint.x, quizPoint.y).name), tone: 'yours' }] : undefined}
           ratings={ratings}
           pins={pins}

@@ -31,10 +31,10 @@ export function MapScreen({
 }: {
   /**
    * How much of a phone's first screen the card takes at rest: `tall` leaves
-   * room for the front door's lede and one action, or a question and its
-   * plates, on the smallest phones, and shrinks the map to make it.
+   * room for the front door's lede and one action, `quiz` for a question and
+   * every plate, on the smallest phones, and the map shrinks to make it.
    */
-  rest?: 'standard' | 'tall';
+  rest?: 'standard' | 'tall' | 'quiz';
   /**
    * The app bar (`AppBar.astro`), at the top of the card, stuck to the top of
    * the screen as the card scrolls up. Optional only to the type checker: an
@@ -55,7 +55,7 @@ export function MapScreen({
 }) {
   const ground = tone === 'reveal' ? 'bg-reveal text-reveal-foreground' : 'bg-card text-foreground';
   return (
-    <div className="map-screen" data-rest={rest === 'tall' ? 'tall' : undefined}>
+    <div className="map-screen" data-rest={rest === 'standard' ? undefined : rest}>
       <section
         ref={cardRef}
         aria-label={label}

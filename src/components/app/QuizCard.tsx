@@ -7,8 +7,8 @@ import { Reveal } from './Reveal';
 /**
  * The questions and the reveal, as a state of the map's card (`/map?quiz=1`,
  * `Explore.tsx`), never a page of their own: two beats over the map. While
- * the questions run, the map draws the shoal narrowing where the answers
- * point (`onShoal`); when they finish, the point settles there (`onPoint`)
+ * the questions run, the map draws the ground the answers so far make and the
+ * shoal narrowing where they point (`onShoal`); when they finish, the point settles there (`onPoint`)
  * and the card turns to the reveal on its ink ground. Continue hands the
  * new coordinate to the map (`onDone`), which is already on the drink the
  * reader came from, if any.
@@ -37,8 +37,8 @@ export function QuizCard({
   const axes = quiz.belief.axes;
 
   useEffect(() => {
-    onShoal(finished ? null : (axes ?? null));
-  }, [axes, finished, onShoal]);
+    onShoal(axes ?? null);
+  }, [axes, onShoal]);
   useEffect(() => {
     if (quiz.questionCount > 0) onAnswered();
   }, [quiz.questionCount, onAnswered]);

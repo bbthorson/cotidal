@@ -126,3 +126,34 @@ test('Menu: one ranked list, with no occasion switch', async ({ page }) => {
   await expect(page.locator(`[role="group"][aria-label="${explore.mapLabel}"]`)).toBeVisible();
 });
 
+
+test('Questionnaire: on an iPhone, a question and every one of its plates fit on one screen, with no scrolling', async ({ browser }) => {
+  for (const viewport of [{ width: 375, height: 667 }, { width: 390, height: 844 }]) {
+    const page = await (await browser.newContext({ viewport })).newPage();
+    await page.goto('/map?quiz=1');
+    const plates = page.getByRole('group', { name: a11y.answerOptions });
+    await plates.waitFor();
+    for (let i = 0; i < 6; i++) {
+      if (!(await plates.isVisible())) break;
+      const last = (await plates.getByRole('button').last().boundingBox())!;
+      expect(last.y + last.height, `${viewport.width}×${viewport.height}, question ${i + 1}`).toBeLessThanOrEqual(viewport.height);
+      expect(await page.evaluate(() => window.scrollY)).toBe(0);
+      await plates.getByRole('button').first().click();
+      await page.waitForTimeout(700);
+    }
+    await page.context().close();
+  }
+});
+
+test('Questionnaire: each answer adds depth: the map draws the ground the answers so far make', async ({ page }) => {
+  await page.goto('/map?quiz=1');
+  const map = page.getByRole('group', { name: explore.mapLabel });
+  const plates = page.getByRole('group', { name: a11y.answerOptions });
+  await plates.waitFor();
+  // From the start, the questions' own hill is shaded under the shoal.
+  await expect(map.locator('mask image').first()).toBeAttached();
+  const ground = async () => (await map.locator('mask image').first().getAttribute('href')) ?? '';
+  const before = await ground();
+  await plates.getByRole('button').first().click();
+  await expect.poll(ground).not.toBe(before);
+});

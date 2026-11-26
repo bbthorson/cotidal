@@ -401,6 +401,7 @@ bsky-sign-in[data-state='error'] input[name='handle'] {
     aspect-ratio: 1;
   }
 
+
   .map-screen {
     display: flex;
     flex-direction: column;
@@ -413,9 +414,14 @@ bsky-sign-in[data-state='error'] input[name='handle'] {
     height: min(100vw, calc(100svh - 17rem));
   }
   @media (max-width: 1023px) {
-    /* The front door and the questions: the card at rest holds more, so the map gives way. */
+    /* The front door: the card at rest holds the lede and one action, so the map gives way. */
     .map-screen[data-rest='tall'] > .map-region {
       height: min(100vw, calc(100svh - 24rem));
+    }
+    /* The questions: a question and every plate on one screen, even an iPhone SE's
+       (tests/quiz-flow.spec.ts), so the map gives way further. */
+    .map-screen[data-rest='quiz'] > .map-region {
+      height: min(100vw, calc(100svh - 28.5rem));
     }
   }
   .map-screen > .map-card {
@@ -577,4 +583,18 @@ bsky-sign-in[data-state='error'] input[name='handle'] {
    results (`SEARCH_ID`). */
 body:has(#map-search input:focus) .rate-float {
   display: none;
+}
+
+/* A region's name is set for a map a phone's width; on a smaller one (the
+   questions on an iPhone SE) it steps down so neighbours do not run together.
+   Unlayered, so it outranks the name's own size utility. */
+@container (max-width: 300px) {
+  .map-region-name {
+    font-size: 0.9375rem;
+  }
+}
+@container (max-height: 300px) {
+  .map-region-name {
+    font-size: 0.9375rem;
+  }
 }
