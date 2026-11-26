@@ -10,7 +10,7 @@ the product is used, and eventually something Cotidal can offer bars.
 
 ## First: four sectors, not six
 
-The landing chart (`src/components/marketing/ChartFigure.astro`) drew a
+The landing chart (`src/components/site/ChartFigure.astro`) drew a
 12-hour tide with six cotidal lines two hours apart, over the map's two axes.
 So it showed six sectors and four quadrants at once, and they did not line up:
 the filled band (0h–2h) covers only part of the top-right quadrant. Anyone who

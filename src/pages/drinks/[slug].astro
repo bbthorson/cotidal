@@ -5,7 +5,7 @@ import MapPage from '../../layouts/MapPage.astro';
 import { PalateMap } from '../../components/app/PalateMap';
 import { Readout, ScreenHeader, SectionTitle } from '../../components/app/ui';
 import { DrinkRow } from '../../components/app/DrinkRow';
-import OnTheRecord from '../../components/marketing/OnTheRecord.astro';
+import OnTheRecord from '../../components/site/OnTheRecord.astro';
 import { formatCoordinate } from '../../lib/coordinate';
 import { site, drinks as copy, explore } from '../../lib/copy';
 import { drinkDatabase } from '../../lib/data';
@@ -103,7 +103,7 @@ const recipeJsonLd = {
       drink && (
         <section class="mt-6 border-y border-foreground py-5">
           <p class="label-caps text-secondary">{copy.compareLabel}</p>
-          <h2 class="mt-1.5 font-serif text-heading font-bold text-foreground">{copy.compareTitle(d.title)}</h2>
+          <h2 class="mt-1.5 font-serif text-plate font-bold text-foreground">{copy.compareTitle(d.title)}</h2>
           <p class="mt-2 text-meta leading-relaxed text-muted-foreground">{copy.compareBody}</p>
           <a href={questionsForDrink(entry.id)} class="btn btn-primary mt-4 w-full">
             {copy.compareCta}

@@ -60,7 +60,7 @@ export function Questionnaire({
           onClick={onBack}
           disabled={!canGoBack || isNavigating}
           aria-label={quiz.backLabel}
-          className="flex min-h-11 items-center px-2 font-condensed text-meta font-semibold uppercase tracking-label text-muted-foreground transition-colors hover:text-foreground disabled:invisible"
+          className="link-caps px-2 text-muted-foreground transition-colors hover:text-foreground disabled:invisible"
         >
           &larr; {quiz.back}
         </button>
@@ -71,7 +71,7 @@ export function Questionnaire({
           type="button"
           onClick={onExploreAsGuest}
           aria-label={quiz.skipLabel}
-          className="flex min-h-11 items-center px-2 font-condensed text-meta font-semibold uppercase tracking-label text-muted-foreground transition-colors hover:text-foreground"
+          className="link-caps px-2 text-muted-foreground transition-colors hover:text-foreground"
         >
           {quiz.skip}
         </button>

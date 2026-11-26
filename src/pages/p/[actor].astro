@@ -205,11 +205,11 @@ const ctaClass =
         <section class="border-y border-foreground py-4" data-testid="palate-drink">
           <p class="label-caps">{publicMap.drinkLabel}</p>
           {entryHref(viewDrink) ? (
-            <a href={entryHref(viewDrink)!} class="mt-1 block font-serif text-heading font-bold text-foreground hover:underline hover:underline-offset-4">
+            <a href={entryHref(viewDrink)!} class="mt-1 block font-serif text-plate font-bold text-foreground hover:underline hover:underline-offset-4">
               {titleFor(viewDrink)}
             </a>
           ) : (
-            <p class="mt-1 font-serif text-heading font-bold text-foreground">{titleFor(viewDrink)}</p>
+            <p class="mt-1 font-serif text-plate font-bold text-foreground">{titleFor(viewDrink)}</p>
           )}
           <p class="mt-1 text-meta text-muted-foreground">{reasonFor(viewDrink)}</p>
           <p class="mt-1 text-meta text-muted-foreground">
@@ -234,7 +234,7 @@ const ctaClass =
         <section class="space-y-4" data-testid="overlap">
           <div>
             <span class="label-caps text-muted-foreground">{publicMap.betweenLabel(subjectWho, otherWho)}</span>
-            <p class="mt-1 font-serif text-heading font-bold text-foreground">{publicMap.inCommon(comparison.inCommon, TOP)}</p>
+            <p class="mt-1 font-serif text-plate font-bold text-foreground">{publicMap.inCommon(comparison.inCommon, TOP)}</p>
             <p class="mt-1 text-meta text-muted-foreground">{publicMap.compareKey(otherWho, otherIsYou)}</p>
           </div>
           <ul class="border-t border-foreground">

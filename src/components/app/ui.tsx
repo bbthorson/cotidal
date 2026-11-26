@@ -86,7 +86,7 @@ export function SectionTitle({
   }
   return (
     <div className={cn('flex items-baseline justify-between gap-4 border-b border-foreground pb-1.5', className)}>
-      <Tag id={id} className="font-serif text-heading font-bold text-foreground">
+      <Tag id={id} className="section-title border-b-0 pb-0 text-foreground">
         {children}
       </Tag>
       <span className="shrink-0 text-meta text-muted-foreground">{aside}</span>

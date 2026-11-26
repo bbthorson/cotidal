@@ -67,7 +67,7 @@ export function Moved({
   return (
     <div data-focus-mode className="flex flex-col pb-2 pt-6">
       <div className="flex flex-col gap-2.5">
-        <span className="font-condensed text-label font-semibold uppercase tracking-label text-reveal-muted">
+        <span className="label-caps text-reveal-muted">
           {moved.eyebrow} · {displayName(drink?.name ?? drinkName)} · {scoreLabel}
         </span>
         <h1 ref={heading} tabIndex={-1} className="font-serif text-hero font-normal italic outline-none">

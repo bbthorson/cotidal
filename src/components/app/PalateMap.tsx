@@ -286,7 +286,7 @@ export function PalateMap({
           );
         })}
       </div>
-      <div aria-hidden="true" className="pointer-events-none font-condensed text-label uppercase tracking-label text-muted-foreground">
+      <div aria-hidden="true" className="pointer-events-none label-caps">
         <span style={pct(-PLANE_EDGE, 0)} className="halo-card absolute -translate-y-full pb-1 pl-1.5">{axes.rich}</span>
         <span style={pct(PLANE_EDGE, 0)} className="halo-card absolute -translate-x-full -translate-y-full pb-1 pr-1.5">{axes.crisp}</span>
         <span style={pct(0, PLANE_EDGE)} className="halo-card absolute pl-1.5 pt-1">{axes.sweet}</span>
@@ -325,7 +325,7 @@ export function PalateMap({
           {p.caption && (
             <span
               aria-hidden="true"
-              className="halo-card absolute left-full top-1/2 ml-1.5 -translate-y-1/2 whitespace-nowrap font-condensed text-label font-bold uppercase tracking-label text-foreground"
+              className="halo-card absolute left-full top-1/2 ml-1.5 -translate-y-1/2 whitespace-nowrap label-caps font-bold text-foreground"
             >
               {p.caption}
             </span>

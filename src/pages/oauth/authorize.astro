@@ -41,7 +41,7 @@ Astro.response.headers.set('Cache-Control', 'no-store');
 
 const member = view.kind === 'consent' ? view.member : null;
 const memberName = member ? (member.handle ?? member.did) : null;
-const label = 'font-condensed text-label uppercase tracking-label text-muted-foreground';
+const label = 'label-caps';
 ---
 
 <MapPage title={`${site.name} — ${copy.eyebrow}`} currentPath={OAUTH_AUTHORIZE_PATH} label={copy.eyebrow} eyebrow={copy.eyebrow}>

@@ -1,7 +1,7 @@
 ---
 import Base from '../../layouts/Base.astro';
-import Monogram from '../../components/marketing/Monogram.astro';
-import ChartFigure from '../../components/marketing/ChartFigure.astro';
+import Monogram from '../../components/site/Monogram.astro';
+import ChartFigure from '../../components/site/ChartFigure.astro';
 import { site, hero, quadrants } from '../../lib/copy';
 import { SHARE_CARDS, type ShareCard } from '../../lib/share';
 
@@ -42,7 +42,7 @@ const lede = region ? region.gloss.split('. ')[0] + '.' : null;
       {
         region ? (
           <div>
-            <span class="font-condensed text-label uppercase tracking-label text-secondary">{region.axis}</span>
+            <span class="label-caps text-secondary">{region.axis}</span>
             <p class="mt-1 font-serif text-hero font-bold">{region.name}</p>
             <p class="mt-2 font-serif text-prose italic text-muted-foreground">{lede}</p>
           </div>
@@ -55,7 +55,7 @@ const lede = region ? region.gloss.split('. ')[0] + '.' : null;
         )
       }
 
-      <span class="font-condensed text-label uppercase tracking-label text-muted-foreground">
+      <span class="label-caps">
         {region ? site.tagline : site.description}
       </span>
     </div>

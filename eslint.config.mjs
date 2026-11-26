@@ -54,6 +54,23 @@ const HAND_OUTLINE =
   /(^|\s)border-foreground\b.*(^|\s)hover:bg-secondary\b|(^|\s)hover:bg-secondary\b.*(^|\s)border-foreground\b/;
 
 /**
+ * The one forms spelled out by hand (docs/design-system.md): condensed caps
+ * are `.label-caps` (a label) or `.link-caps` (a text action); a link in a
+ * sentence is `.link-inline`; a section heading is `SectionTitle` (or
+ * `.section-title`), and a title inside a callout is `text-plate`; a ruled
+ * state line is `Notice`.
+ */
+const HAND_CAPS = /font-condensed text-(label|meta)( font-(semibold|bold))? uppercase tracking-label/;
+const HAND_INLINE_LINK = /underline decoration-muted-foreground/;
+const HAND_HEADING = /font-serif text-heading font-bold/;
+const HAND_NOTICE = /border-y border-(border|destructive) py-2\.5 text-meta/;
+const FORMS_MESSAGE =
+  'Use the one form, not its parts (docs/design-system.md): `label-caps` for a caps label, ' +
+  '`link-caps` for a text action, `link-inline` for a link in a sentence, `SectionTitle` ' +
+  '(or `section-title`) for a section heading, `Notice` for a ruled line about the screen, ' +
+  'and `DrinkRow` for anything in a list.';
+
+/**
  * Words typed straight into markup: JSX text with letters in it, or a
  * `placeholder`, `aria-label`, `title` or `alt` given as a literal. Interface
  * text lives in `src/lib/copy.ts` so the voice can be revised in one place.
@@ -118,6 +135,10 @@ const tokenRuleEntries = [
   ...[HAND_FOCUS, HAND_PRIMARY, HAND_OUTLINE].flatMap((pattern) => [
     { selector: `Literal[value=/${pattern.source}/]`, message: COMPONENT_MESSAGE },
     { selector: `TemplateElement[value.raw=/${pattern.source}/]`, message: COMPONENT_MESSAGE },
+  ]),
+  ...[HAND_CAPS, HAND_INLINE_LINK, HAND_HEADING, HAND_NOTICE].flatMap((pattern) => [
+    { selector: `Literal[value=/${pattern.source}/]`, message: FORMS_MESSAGE },
+    { selector: `TemplateElement[value.raw=/${pattern.source}/]`, message: FORMS_MESSAGE },
   ]),
 ];
 

@@ -86,7 +86,7 @@ export function SignInSheet({ open, onOpenChange }: SignInSheetProps) {
           <div aria-hidden="true" className="h-0.75 w-10 self-center bg-border sm:hidden" />
 
           <div className="flex flex-col gap-1.5">
-            <span className="font-condensed text-label font-semibold uppercase tracking-label text-secondary">
+            <span className="label-caps text-secondary">
               {nav.signIn}
             </span>
             <Dialog.Title className="font-serif text-title font-bold">{connect.title}</Dialog.Title>
@@ -120,7 +120,7 @@ export function SignInSheet({ open, onOpenChange }: SignInSheetProps) {
                               )}
                               <span className="truncate text-meta text-muted-foreground">@{acct.handle}</span>
                             </span>
-                            <span className="shrink-0 font-condensed text-label font-bold uppercase tracking-label text-secondary">
+                            <span className="shrink-0 label-caps font-bold text-secondary">
                               {isPending ? connect.connecting : '\u2192'}
                             </span>
                           </button>
@@ -151,7 +151,7 @@ export function SignInSheet({ open, onOpenChange }: SignInSheetProps) {
                     <span
                       className={
                         errorMessage
-                          ? 'font-condensed text-label font-semibold uppercase tracking-label text-destructive'
+                          ? 'label-caps text-destructive'
                           : 'label-caps'
                       }
                     >
@@ -254,7 +254,7 @@ export function SignInSheet({ open, onOpenChange }: SignInSheetProps) {
             <Notice>{connect.disabled}</Notice>
           )}
 
-          <Dialog.Close className="flex min-h-11 items-center self-center px-2 font-condensed text-meta uppercase tracking-label text-muted-foreground transition-colors hover:text-foreground">
+          <Dialog.Close className="link-caps self-center px-2 text-muted-foreground transition-colors hover:text-foreground">
             {connect.guest}
           </Dialog.Close>
         </Dialog.Content>

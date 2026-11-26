@@ -28,14 +28,14 @@ export function Reveal({ x, y, onContinue, onRetake }: RevealProps) {
   return (
     <div data-focus-mode className="flex flex-col pb-2 pt-6">
       <div className="flex flex-col gap-2.5">
-        <span className="font-condensed text-label font-semibold uppercase tracking-label text-reveal-muted">{reveal.eyebrow}</span>
+        <span className="label-caps text-reveal-muted">{reveal.eyebrow}</span>
         <h1 ref={heading} tabIndex={-1} className="font-serif text-region font-normal italic outline-none">
           {region.name}.
         </h1>
         <p className="mt-1.5 font-serif text-plate leading-normal">{region.gloss}</p>
       </div>
 
-      <div className="mt-4 flex justify-between border-y border-reveal-rule py-2 font-condensed text-label uppercase tracking-label text-reveal-muted">
+      <div className="mt-4 flex justify-between border-y border-reveal-rule py-2 label-caps text-reveal-muted">
         <span>{formatAxis(x, 'x')}</span>
         <span>{formatAxis(y, 'y')}</span>
       </div>
@@ -47,7 +47,7 @@ export function Reveal({ x, y, onContinue, onRetake }: RevealProps) {
         <button
           type="button"
           onClick={onRetake}
-          className="flex min-h-11 items-center px-2 font-condensed text-meta uppercase tracking-label text-reveal-muted transition-colors hover:text-reveal-foreground focus-ring-reveal"
+          className="link-caps px-2 text-reveal-muted transition-colors hover:text-reveal-foreground focus-ring-reveal"
         >
           {reveal.retake}
         </button>
