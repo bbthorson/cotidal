@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { Drink } from '@/lib/data';
 import type { PourRecord } from '@/lib/atproto/records';
-import { chart, compass, explore, mapPage, pour, taste } from '@/lib/copy';
+import { chart, compass, drinks, explore, mapPage, pour, taste } from '@/lib/copy';
 import { formatCoordinate } from '@/lib/coordinate';
-import { quadrantFor } from '@/lib/quadrant';
+import { quadrantFor, regionPath } from '@/lib/quadrant';
 import { publicMapPath, QUIZ_PARAM, START_OVER_PARAM, startOverPath } from '@/lib/atproto/paths';
 import { takeParam } from '@/lib/url-params';
 import type { AxisBelief } from '@/lib/belief-state';
@@ -12,7 +12,6 @@ import { drinksHref, questionsHref } from '@/lib/site-nav';
 import type { Register } from '@/lib/register';
 import { neutralProfile } from '@/lib/guest-palate';
 import { useExplore, type Explore as ExploreState } from '@/hooks/useExplore';
-import { cn } from '@/lib/utils';
 import { AtprotoProvider, useAtprotoContext } from './AtprotoProvider';
 import { ColdState } from './ColdState';
 import { QuizCard } from './QuizCard';
@@ -26,7 +25,7 @@ import { SearchBox } from './SearchBox';
 import { StartOver } from './StartOver';
 import { TrackFigure } from './TrackFigure';
 import { WaitingPick } from './WaitingPick';
-import { Empty, GuestPrompt, SectionTitle } from './ui';
+import { Empty, GuestPrompt, Readout, ScreenHeader, SectionTitle } from './ui';
 import { DrinkRow } from './DrinkRow';
 
 /**
@@ -253,7 +252,6 @@ function Home({
   signInEnabled: boolean;
   onSignIn: () => void;
 }) {
-  const statCols = e.stats.length === 3 ? 3 : 2;
   return (
     <div className="pb-20 pt-3 lg:pb-0">
       {/* The card's head says where you are and each section names itself, so the title is for a screen reader alone. */}
@@ -318,19 +316,7 @@ function Home({
 
       <section id="yours" className="mt-8">
         <SectionTitle>{explore.yoursTitle}</SectionTitle>
-        {e.stats.length > 0 && (
-          <dl className={cn('grid border-b border-border', statCols === 3 ? 'grid-cols-3' : 'grid-cols-2')}>
-            {e.stats.map((st, i) => (
-              <div
-                key={st.label}
-                className={cn('flex flex-col gap-0.5 py-2.5', i % statCols !== 0 && 'border-l border-border pl-3.5', i % statCols !== statCols - 1 && 'pr-3.5')}
-              >
-                <dt className="label-caps">{st.label}</dt>
-                <dd className="truncate font-condensed text-ui font-semibold tabular-nums text-foreground">{st.value}</dd>
-              </div>
-            ))}
-          </dl>
-        )}
+        {e.stats.length > 0 && <Readout className="border-t-0" cells={e.stats.map((st) => ({ ...st, figure: true }))} />}
         {e.track && e.track.length > 1 && (
           <div className="mt-4 flex flex-col gap-2">
             <p className="label-caps">{mapPage.upClose}</p>
@@ -383,13 +369,15 @@ function DrinkPanel({ e, drink, onQuiz }: { e: ExploreState; drink: Drink; onQui
       <button type="button" onClick={e.closeDrink} className="link-caps flex min-h-11 items-center text-muted-foreground hover:text-foreground">
         &larr; {e.venue?.name ?? (e.venue ? compass.atMenu.homeTitle : explore.backToStart)}
       </button>
-      <p className="label-caps">
-        {region.name} · {formatCoordinate(drink.x, drink.y)}
-      </p>
-      <h1 className="mt-1 font-serif text-title font-bold leading-tight text-foreground">{e.name(drink.name)}</h1>
-      <p className="mt-2 font-serif text-ui italic text-secondary">
-        {e.cold ? chart.coldDrinkPrompt : e.reasonFor(drink)}
-      </p>
+      <ScreenHeader title={e.name(drink.name)} gloss={e.cold ? chart.coldDrinkPrompt : e.reasonFor(drink)}>
+        <Readout
+          className="mt-4"
+          cells={[
+            { label: drinks.coordinateLabel, value: formatCoordinate(drink.x, drink.y), figure: true },
+            { label: region.axis, value: region.name, href: regionPath(region.id) },
+          ]}
+        />
+      </ScreenHeader>
 
       {lastLine && (
         <dl className="mt-3 border-t border-border pt-1">

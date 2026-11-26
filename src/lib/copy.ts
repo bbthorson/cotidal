@@ -864,7 +864,7 @@ export const notFound = {
   title: 'Nothing charted here.',
   lede: 'That address does not lead to a page. The link may be old, or mistyped.',
   cta: 'Find your coordinate',
-  drinks: 'or look through every drink',
+  drinks: 'Look through every drink',
 } as const;
 
 export const publicMap = {
@@ -874,8 +874,9 @@ export const publicMap = {
   coordinateLabel: 'Coordinate',
   title: (name: string) => `@${name}`,
   lands: 'Lands in',
-  pours: (n: number) => (n === 1 ? 'Moved by 1 pour' : `Moved by ${n} pours`),
-  quizOnly: 'From the questions alone',
+  /** The readout's second cell: how many pours moved the map, or none yet. */
+  poursLabel: 'Pours',
+  quizOnly: 'None yet',
   them: 'Them',
   you: 'You',
   /** Two tastes compared (`compareTerrains`, `with=`): said in drinks, leading with where they part. */

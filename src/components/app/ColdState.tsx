@@ -23,7 +23,7 @@ export function ColdState({
   onGuest: () => void;
 }) {
   const quiet =
-    'min-h-11 px-1 font-condensed text-meta uppercase tracking-label text-secondary underline decoration-muted-foreground underline-offset-4 transition-colors hover:text-foreground';
+    'link-caps px-1 text-secondary hover:underline hover:underline-offset-4';
   return (
     <div className="pb-10 pt-4">
       <ScreenHeader eyebrow={eyebrow} title={coldState.title} lede={coldState.body} />

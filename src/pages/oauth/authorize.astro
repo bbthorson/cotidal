@@ -1,6 +1,6 @@
 ---
 import MapPage from '../../layouts/MapPage.astro';
-import { ScreenHeader } from '../../components/app/ui';
+import { Notice, ScreenHeader } from '../../components/app/ui';
 import { decide, showConsent, type AuthorizeView } from '@/lib/mcp/authorize.server';
 import { authorizeContext } from '@/lib/mcp/authorize-context.server';
 import { MEMBER_SCOPES, OAUTH_AUTHORIZE_PATH } from '@/lib/mcp/member-auth';
@@ -66,9 +66,7 @@ const label = 'font-condensed text-label uppercase tracking-label text-muted-for
             <strong class="font-bold text-foreground">{view.details.redirectHost}</strong>
           </p>
           {view.details.redirectIsLoopback && (
-            <p role="alert" class="border-y border-border py-2.5 text-meta text-destructive">
-              {copy.loopback}
-            </p>
+            <Notice tone="alert">{copy.loopback}</Notice>
           )}
         </section>
 

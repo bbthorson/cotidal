@@ -1,6 +1,6 @@
 ---
 import MapPage from '../layouts/MapPage.astro';
-import { ScreenHeader } from '../components/app/ui';
+import { Notice, ScreenHeader } from '../components/app/ui';
 import { DrinkRow } from '../components/app/DrinkRow';
 import { barPublish as copy, site, venuesCopy } from '../lib/copy';
 import { formatCoordinate } from '../lib/coordinate';
@@ -86,9 +86,7 @@ Astro.response.headers.set('Cache-Control', account.kind === 'member' ? 'no-stor
       </p>
 
       {error && (
-        <p role="alert" class="border-y border-destructive py-2.5 text-meta text-destructive">
-          {error}
-        </p>
+        <Notice tone="alert">{error}</Notice>
       )}
 
       <form method="POST" action={`${barsHref}#claim`} class="space-y-5">

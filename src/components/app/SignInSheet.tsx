@@ -4,6 +4,7 @@ import { connect, nav } from '@/lib/copy';
 import { cn } from '@/lib/utils';
 import { useSignIn } from '@/hooks/use-sign-in';
 import { useAtprotoContext } from './AtprotoContext';
+import { Notice } from './ui';
 
 interface SignInSheetProps {
   open: boolean;
@@ -243,14 +244,14 @@ export function SignInSheet({ open, onOpenChange }: SignInSheetProps) {
                   type="button"
                   disabled={loading}
                   onClick={() => void signUp()}
-                  className="link-serif text-meta disabled:cursor-not-allowed"
+                  className="link-inline disabled:cursor-not-allowed"
                 >
                   {loading && state.action === 'sign-up' ? connect.creating : connect.createAccount}
                 </button>
               </p>
             </div>
           ) : (
-            <p className="border-y border-border py-2.5 text-meta text-muted-foreground">{connect.disabled}</p>
+            <Notice>{connect.disabled}</Notice>
           )}
 
           <Dialog.Close className="flex min-h-11 items-center self-center px-2 font-condensed text-meta uppercase tracking-label text-muted-foreground transition-colors hover:text-foreground">

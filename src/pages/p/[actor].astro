@@ -1,7 +1,7 @@
 ---
 import MapPage from '../../layouts/MapPage.astro';
 import { PalateMap } from '../../components/app/PalateMap';
-import { ScreenHeader } from '../../components/app/ui';
+import { Readout, ScreenHeader } from '../../components/app/ui';
 import { DrinkRow } from '../../components/app/DrinkRow';
 import { site, publicMap, coaster, assistants, explore, taste as taste_ } from '../../lib/copy';
 import { formatCoordinate } from '../../lib/coordinate';
@@ -223,15 +223,12 @@ const ctaClass =
         </section>
       )}
 
-      <dl class="grid grid-cols-2 gap-x-6 gap-y-1 border-y border-border py-3 text-meta">
-        <dt class="label-caps text-muted-foreground">{isSelf ? publicMap.you : publicMap.them}</dt>
-        <dd class="text-right font-condensed tabular-nums text-foreground">
-          {formatCoordinate(subject.x, subject.y)}
-        </dd>
-        <dd class="col-span-2 pb-1 text-muted-foreground">
-          {result.palate.pours ? publicMap.pours(result.palate.pours) : publicMap.quizOnly}
-        </dd>
-      </dl>
+      <Readout
+        cells={[
+          { label: isSelf ? publicMap.you : publicMap.them, value: formatCoordinate(subject.x, subject.y), figure: true },
+          { label: publicMap.poursLabel, value: result.palate.pours ? String(result.palate.pours) : publicMap.quizOnly, figure: true },
+        ]}
+      />
 
       {comparison && (
         <section class="space-y-4" data-testid="overlap">
@@ -272,7 +269,7 @@ const ctaClass =
             />
           </label>
           <p class="pt-2 font-serif text-ui text-muted-foreground">
-            <a href={`${accountHref}#code`} class="text-foreground underline decoration-muted-foreground underline-offset-4 hover:decoration-foreground" data-testid="make-code">
+            <a href={`${accountHref}#code`} class="link-inline" data-testid="make-code">
               {coaster.findIt}
             </a>
           </p>
@@ -327,7 +324,7 @@ const ctaClass =
       {!isSelf && subjectHandle && (
         <p class="font-serif text-ui italic text-muted-foreground" data-testid="assistant-ask">
           {assistants.visitorAsk(subjectHandle)}{' '}
-          <a href="/mcp" class="not-italic text-foreground underline decoration-muted-foreground underline-offset-4 hover:decoration-foreground">
+          <a href="/mcp" class="not-italic link-inline">
             {assistants.setUp}
           </a>
         </p>

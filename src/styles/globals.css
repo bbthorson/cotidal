@@ -122,9 +122,10 @@
   .link-caps {
     @apply inline-flex min-h-11 items-center font-condensed text-label uppercase tracking-label transition-colors;
   }
-  /* The italic underlined link in running serif: "Find your coordinate". The size is the caller's. */
-  .link-serif {
-    @apply font-serif italic text-foreground underline decoration-muted-foreground underline-offset-4 transition-colors hover:decoration-foreground;
+  /* A link inside a sentence: ink, underlined in grey-green, the underline inks on hover.
+     It takes the sentence's face and size. A link standing on its own is `.link-caps`. */
+  .link-inline {
+    @apply text-foreground underline decoration-muted-foreground underline-offset-4 transition-colors hover:decoration-foreground;
   }
 
   /* "You are here": a bold label over a heavy ink rule, like a printed tab —

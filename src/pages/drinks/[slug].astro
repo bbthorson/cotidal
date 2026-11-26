@@ -3,10 +3,9 @@ import { getCollection, render } from 'astro:content';
 import type { GetStaticPaths } from 'astro';
 import MapPage from '../../layouts/MapPage.astro';
 import { PalateMap } from '../../components/app/PalateMap';
-import { ScreenHeader, SectionTitle } from '../../components/app/ui';
+import { Readout, ScreenHeader, SectionTitle } from '../../components/app/ui';
 import { DrinkRow } from '../../components/app/DrinkRow';
 import OnTheRecord from '../../components/marketing/OnTheRecord.astro';
-import Readout from '../../components/marketing/Readout.astro';
 import { formatCoordinate } from '../../lib/coordinate';
 import { site, drinks as copy, explore } from '../../lib/copy';
 import { drinkDatabase } from '../../lib/data';
@@ -89,6 +88,7 @@ const recipeJsonLd = {
       {
         drink && quadrant && (
           <Readout
+            className="mt-6"
             cells={[
               { label: copy.coordinateLabel, value: formatCoordinate(drink.x, drink.y), figure: true },
               { label: quadrant.axis, value: quadrant.name, href: regionPath(quadrant.id) },
