@@ -19,7 +19,6 @@ export const site = {
 export const nav = {
   skipToContent: 'Skip to content',
   home: 'Home',
-  register: 'Drinks',
   signIn: 'Sign in',
   menu: 'Menu',
   /** Beside your handle in a phone's Menu: where it goes. */
@@ -505,7 +504,8 @@ export const drinks = {
   intro:
     'Most of what gets said about a cocktail is repetition. Each entry gives the build, places the drink on the chart, and separates what is on the record from what bartenders only tell each other.',
   navLabel: 'Drinks',
-  backLabel: 'All drinks',
+  /** The way back from a drink's own page: to the drink on the map. */
+  backLabel: 'On the map',
   coordinateLabel: 'Coordinate',
   buildLabel: 'The build',
   documentedLabel: 'On the record',
@@ -530,7 +530,7 @@ export const drinks = {
 } as const;
 
 /**
- * `/drinks/regions/<id>`. The prose of each region lives in `src/content/regions/`;
+ * A region on the map (`/map?region=<id>`). The prose of each region lives in `src/content/regions/`;
  * these are the parts that are the same for all four, and they describe what
  * the product does rather than what a region means.
  */
@@ -864,7 +864,7 @@ export const notFound = {
   title: 'Nothing charted here.',
   lede: 'That address does not lead to a page. The link may be old, or mistyped.',
   cta: 'Find your coordinate',
-  drinks: 'Look through every drink',
+  drinks: 'Every drink is on the map',
 } as const;
 
 export const publicMap = {

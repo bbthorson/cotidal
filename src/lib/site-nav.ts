@@ -18,18 +18,20 @@ import { viewHref } from './map-url';
  * app bar lists beside the map (folded under Menu on a phone, as tabs from
  * `lg`), since the app screens have no footer.
  *
- * There is no Regions item: a region is a filter on the drinks
- * (`/drinks/regions/<id>`), so Drinks is current there too.
+ * There is no Drinks or Regions item: every drink is on the map, and opens
+ * in its card with its whole entry; a region is a filter on the map
+ * (`/map?region=<id>`). A drink's own page (`drinkPagePath`) is for search
+ * and for a link sent to someone, not for browsing.
  */
 export const mapHref = '/map';
-export const drinksHref = '/drinks';
 export const barsHref = '/bars';
 /** A drink on your map: the map's address (`map-url.ts`). */
 export const drinkMapHref = (slug: string) => viewHref(mapHref, { drink: slug });
+/** A drink's own page: its entry, prerendered and script-free, for search and for a link sent to someone. */
+export const drinkPagePath = (slug: string) => `/drinks/${slug}`;
 
 export const destinations = [
   { href: mapHref, label: nav.map, match: mapHref, app: true, header: true, menu: false, footer: false, memberOnly: false },
-  { href: drinksHref, label: nav.register, match: drinksHref, app: false, header: false, menu: true, footer: true, memberOnly: true },
   // How it works is the front door's card, pulled up: an anchor there, never a page of its own, and never "current".
   { href: '/#how-it-works', label: nav.howItWorks, match: '#how-it-works', app: false, header: false, menu: true, footer: true, memberOnly: false },
   { href: barsHref, label: nav.bars, match: barsHref, app: false, header: false, menu: false, footer: true, memberOnly: false },

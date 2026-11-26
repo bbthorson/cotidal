@@ -53,7 +53,7 @@ is the drift this codebase keeps producing.
 The names are one vocabulary — water and motion, as on a chart — never a
 mix of registers (fire, a room and a field read as three products). They are still a little astrological: a coordinate you *have*, a place
 you belong, glossed but never justified. They live in `src/lib/copy.ts` and
-can be replaced in one file. The ids are URLs (`/drinks/regions/<id>`); with
+can be replaced in one file. The ids are URLs (`/map?region=<id>`); with
 no members yet, a rename needs no redirect, but once codes are printed on
 coasters it will.
 

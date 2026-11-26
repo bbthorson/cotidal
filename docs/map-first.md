@@ -73,7 +73,7 @@ are the layout of the whole site, not only of `/map`.
 The questions are a state of `/map`'s card (`?quiz=1`), not a page: `/questions` is gone.
 
 Built so far: the server-drawn map and `MapScreen`, on `/map`; the drink
-pages, `/drinks` and the region filters, on `MapPage.astro`, each drawing the
+pages and a drink's own page, on `MapPage.astro`, each drawing the
 map with no script. A drink's page has one action, See where it sits for you
 (`/map?drink=<slug>&quiz=1`), which goes on to the drink on your map. The
 front door: the sample palate (`sample-palate.ts`: the start, then a 9, a 3,

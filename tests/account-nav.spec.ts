@@ -22,7 +22,7 @@ test('Header: a server-rendered page says Sign in to a guest', async ({ request 
 
 test('Header: a phone gets wordmark · Menu on every page, app or reading', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  for (const path of ['/', '/map', '/drinks']) {
+  for (const path of ['/', '/map', '/drinks/negroni']) {
     await page.goto(path);
     await expect(page.locator('header summary'), path).toHaveText(nav.menu);
     await expect(page.locator('header summary'), path).toBeVisible();
@@ -42,7 +42,7 @@ test('Header: on an app page, Sign in opens the sheet there instead of leaving',
 });
 
 test('Header: a prerendered page cannot know who is reading, and says Account', async ({ request }) => {
-  const html = await (await request.get('/drinks')).text();
+  const html = await (await request.get('/drinks/negroni')).text();
   const header = html.slice(html.indexOf('<header'), html.indexOf('</header>'));
   expect(header).toContain('href="/settings"');
   expect(header).toContain(`>${account.neutral}<`);

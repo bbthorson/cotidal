@@ -13,7 +13,7 @@ import { site, drinks as copy, explore } from '../../lib/copy';
 import { drinkDatabase } from '../../lib/data';
 import { quadrantFor, regionPath } from '../../lib/quadrant';
 import { neighboursOf } from '../../lib/map-draw';
-import { drinksHref, questionsForDrink } from '../../lib/site-nav';
+import { drinkMapHref, drinkPagePath, questionsForDrink } from '../../lib/site-nav';
 
 /**
  * A drink is a place on the map: the page is the map with the drink marked,
@@ -67,10 +67,10 @@ const recipeJsonLd = {
 <MapPage
   title={`${d.title} · ${site.name}`}
   description={d.summary}
-  currentPath={`${drinksHref}/${entry.id}`}
+  currentPath={drinkPagePath(entry.id)}
   label={d.title}
   eyebrow={`${copy.eyebrow} · ${d.family}`}
-  back={{ href: drinksHref, label: copy.backLabel }}
+  back={{ href: drinkMapHref(entry.id), label: copy.backLabel }}
 >
   <script is:inline type="application/ld+json" set:html={JSON.stringify(recipeJsonLd)} />
 
@@ -114,7 +114,7 @@ const recipeJsonLd = {
 
     <DrinkEntry
       entry={drinkEntryData(entry)}
-      neighbours={neighbours.map((n) => ({ ...n, title: titleOf(register, n.name), href: register[n.name] ? `${drinksHref}/${register[n.name].slug}` : undefined }))}
+      neighbours={neighbours.map((n) => ({ ...n, title: titleOf(register, n.name), href: register[n.name] ? drinkPagePath(register[n.name].slug) : undefined }))}
     />
   </article>
 </MapPage>

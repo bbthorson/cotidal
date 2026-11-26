@@ -8,6 +8,7 @@ import { barsFromPours, foldName, lastPourByDrink, logTotals } from '@/lib/pour-
 import { drinksAtSameSpot, namesMatching, searchDrinks, unlistedBar } from '@/lib/drink-search';
 import { addMenuLines, rankMenu, type MenuItem } from '@/lib/menu-rank';
 import { readMapView } from '@/lib/map-url';
+import { quadrantIdFor, type QuadrantId } from '@/lib/quadrant';
 import { buildTerrain, evidenceAt, kindOf, leanings, sampleTerrain, type TerrainStart } from '@/lib/terrain';
 import { distanceRun } from '@/lib/track';
 import { useMenu } from '@/hooks/useMenu';
@@ -45,7 +46,9 @@ export function useExplore(
   member: { did: string; handle: string | null } | null,
   initialQuery = '',
   /** The drink the address opens (`?drink=`), as the server read it, so the page is drawn with its card open. */
-  initialDrink: string | null = null
+  initialDrink: string | null = null,
+  /** The region the address narrows the map to (`?region=`), as the server read it. */
+  initialRegion: QuadrantId | null = null
 ) {
   const isMember = !!member;
   const [profile, setProfile, forgetProfile] = useProfile(isMember);
@@ -94,6 +97,8 @@ export function useExplore(
 
   // ---- What the card is about ------------------------------------------------------------
   const [selected, setSelected] = useState<string | null>(initialDrink);
+  // A region is a filter on the map (`?region=`): it washes the region and names its drinks; a drink opened from it comes back to it.
+  const [region, setRegion] = useState<QuadrantId | null>(initialRegion);
   const [hover, setHover] = useState<string | null>(null);
   const [venue, setVenue] = useState<Venue | null>(null);
   const [items, setItems] = useState<MenuItem[]>([]);
@@ -136,7 +141,8 @@ export function useExplore(
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     // The map's address (`map-url.ts`): `drink=` is the view's, except on a rating link, where it is the pour's.
-    const { drink } = readMapView(params);
+    const { drink, region: regionId } = readMapView(params);
+    if (regionId) setRegion(regionId);
     if (drink) {
       setSelected(drink.name);
       return;
@@ -253,6 +259,13 @@ export function useExplore(
     sameSpot: selectedDrink ? drinksAtSameSpot(selectedDrink) : [],
     chooseDrink,
     closeDrink: () => setSelected(null),
+    region,
+    regionDrinks: region ? drinkDatabase.filter((d) => quadrantIdFor(d.x, d.y) === region).sort((a, b) => name(a.name).localeCompare(name(b.name))) : [],
+    openRegion: (id: QuadrantId | null) => {
+      setRegion(id);
+      setSelected(null);
+      setQueryState('');
+    },
     venue,
     barName,
     typedBar,
