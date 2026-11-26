@@ -40,7 +40,7 @@ export interface TerrainOverlap {
   firstOnly: Drink | null;
   /** High on the second's ground and clearly lower on the first's. */
   secondOnly: Drink | null;
-  /** The drink standing highest on both at once. */
+  /** The drink standing highest on both at once, if both would reach for it (`REACH_FOR`). */
   shared: Drink | null;
   /** How many of the first's top `TOP` drinks are in the second's. */
   inCommon: number;
@@ -60,7 +60,7 @@ export function compareTerrains(first: TerrainSide, second: TerrainSide, drinks:
     list.reduce<T | null>((top, r) => (!top || score(r) > score(top) || (score(r) === score(top) && r.d.name < top.d.name) ? r : top), null);
 
   const shared = best(
-    rows.filter((r) => r.okA && r.okB),
+    rows.filter((r) => r.okA && r.okB && Math.min(r.a, r.b) >= REACH_FOR),
     (r) => Math.min(r.a, r.b)
   );
   const taken = shared?.d.name;
