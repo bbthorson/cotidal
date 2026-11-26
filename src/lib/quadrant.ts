@@ -37,7 +37,9 @@ export function quadrantFor(x: number, y: number): Quadrant {
 export const QUADRANT_ORDER: readonly QuadrantId[] = quadrants.map((q) => q.id);
 
 /**
- * A region is a filter on the drinks: `/drinks/regions/<id>` is `/drinks`
- * narrowed to one region, with the region's prose under its drinks.
+ * A region is a filter on the map: `/map?region=<id>` washes it, names its
+ * drinks, and puts the region in the card — its drinks, then its prose
+ * (`map-url.ts`, `VIEW_PARAMS.region`; `tests/unit/map-url.test.ts` holds
+ * the two equal).
  */
-export const regionPath = (id: QuadrantId) => `/drinks/regions/${id}`;
+export const regionPath = (id: QuadrantId) => `/map?region=${id}`;

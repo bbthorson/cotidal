@@ -3,21 +3,22 @@ import MapPage from '../../layouts/MapPage.astro';
 import { PalateMap } from '../../components/app/PalateMap';
 import { Readout, ScreenHeader } from '../../components/app/ui';
 import { DrinkRow } from '../../components/app/DrinkRow';
-import { site, publicMap, coaster, assistants, explore, taste as taste_ } from '../../lib/copy';
+import { site, publicMap, coaster, assistants, explore, compare as compareCopy, taste as taste_ } from '../../lib/copy';
 import { formatCoordinate } from '../../lib/coordinate';
 import { readPublicPalate } from '../../lib/atproto/public-read';
 import { publicMapPath } from '../../lib/atproto/paths';
 import { accountHref, questionsHref } from '../../lib/site-nav';
 import { oauthSession } from '../../lib/atproto/session';
-import { compareTerrains, TOP, type MapPoint } from '../../lib/overlap';
+import { TOP, type MapPoint } from '../../lib/overlap';
+import { compareWith } from '../../lib/compare';
+import { Comparison } from '../../components/app/Comparison';
 import { leanings, sampleTerrain } from '../../lib/terrain';
-import { evidenceFor, menuOf, nearestHilltop, ratingsOf, terrainOf } from '../../lib/taste-reading';
+import { evidenceFor, menuOf, ratingsOf, terrainOf } from '../../lib/taste-reading';
 import { readFollowedPalates, type FollowedOverlap } from '../../lib/atproto/follows-overlap';
 import { loadRegister } from '../../lib/register.server';
 import { titleOf } from '../../lib/register';
 import type { Drink } from '../../lib/data';
 import { readMapView, viewHref } from '../../lib/map-url';
-import { wayTo } from '../../lib/drink-search';
 import { mapHref } from '../../lib/site-nav';
 
 /**
@@ -71,6 +72,8 @@ const readerHasNoMap = !isSelf && (!session || (!withParam && !other));
 const isSample = (result.status === 'ok' || result.status === 'no-palate') && result.actor.sample === true;
 const subjectWho = isSelf ? publicMap.drinkFromYou : publicMap.title(result.status === 'ok' ? (result.actor.handle ?? result.actor.did) : '');
 const otherWho = other ? (otherIsYou ? publicMap.drinkFromYou : publicMap.title(other.actor.handle ?? other.actor.did)) : '';
+/** Whose map the comparison is said on: yours, or theirs by handle. */
+const subjectWhose = isSelf ? compareCopy.yours : compareCopy.theirs(subjectWho);
 
 // On your own map: the people you follow who have one, to compare with.
 // Read on the server inside a budget, so a slow follow graph shows fewer
@@ -96,13 +99,17 @@ const reasonFor = (d: Drink) =>
         rated.get(d.name)
       )
     : '';
+/** Their taste as one side of a comparison (`compare.ts`): a drink or a person is measured against it. */
+const subjectSide = terrain && subject ? { terrain, aversions: subject.aversions, point: { x: subject.x, y: subject.y } } : null;
 const comparison =
-  terrain && otherTerrain && other && subject
-    ? compareTerrains({ terrain, aversions: subject.aversions }, { terrain: otherTerrain, aversions: other.palate.aversions })
+  subjectSide && otherTerrain && other
+    ? compareWith(subjectSide, {
+        kind: 'person',
+        side: { terrain: otherTerrain, aversions: other.palate.aversions, point: { x: other.palate.x, y: other.palate.y } },
+      })
     : null;
 const menu = terrain && subject && !comparison ? menuOf(terrain, subject.aversions, rated) : [];
 /** Which way a drink lies, measured from the nearest of their hilltops (docs/map-first.md). */
-const nearestTop = (d: Drink) => (terrain && subject ? nearestHilltop(terrain, d, subject) : subject!);
 const entryHref = (drink: Drink) => {
   const entry = register[drink.name];
   return entry ? `/drinks/${entry.slug}` : null;
@@ -146,14 +153,6 @@ const description = name && lean.length > 0 ? publicMap.description(name, taste_
 // One address for someone's map: by their verified handle, else their DID; `/map?palate=` and `/p/<did>` point here.
 const canonical = result.status === 'ok' ? publicMapPath(result.actor.handle ?? result.actor.did) : undefined;
 
-// Leading with disagreement (docs/routes.md, Friends): what each would reach for that the other would not, then one for both.
-const pairs: { label: string; drink: Drink }[] = comparison
-  ? [
-      { label: publicMap.onlyLabel(subjectWho, otherWho), drink: comparison.firstOnly },
-      { label: publicMap.onlyLabel(otherWho, subjectWho), drink: comparison.secondOnly },
-      { label: publicMap.bothLabel, drink: comparison.shared },
-    ].flatMap(({ label, drink }) => (drink ? [{ label, drink }] : []))
-  : [];
 
 // What a chat assistant reads is this map: on someone else's, what to ask
 // yours about them. Setting one up is the member's own business, at /map.
@@ -211,10 +210,14 @@ const ctaClass =
           ) : (
             <p class="mt-1 font-serif text-plate font-bold text-foreground">{titleFor(viewDrink)}</p>
           )}
-          <p class="mt-1 text-meta text-muted-foreground">{reasonFor(viewDrink)}</p>
-          <p class="mt-1 text-meta text-muted-foreground">
-            {publicMap.drinkWay(isSelf ? publicMap.drinkFromYou : publicMap.title(name), wayTo(nearestTop(viewDrink), viewDrink).distance, wayTo(nearestTop(viewDrink), viewDrink).words)}
-          </p>
+          {subjectSide && (
+            <Comparison
+              comparison={compareWith(subjectSide, { kind: 'drink', drink: viewDrink })}
+              whose={subjectWhose}
+              who={subjectWho}
+              reason={reasonFor(viewDrink)}
+            />
+          )}
           {!isSelf && (
             <a href={viewHref(mapHref, { drink: viewDrink })} class="btn btn-outline mt-4 px-4">
               {publicMap.drinkForYou}
@@ -232,16 +235,15 @@ const ctaClass =
 
       {comparison && (
         <section class="space-y-4" data-testid="overlap">
-          <div>
-            <span class="label-caps text-muted-foreground">{publicMap.betweenLabel(subjectWho, otherWho)}</span>
-            <p class="mt-1 font-serif text-plate font-bold text-foreground">{publicMap.inCommon(comparison.inCommon, TOP)}</p>
-            <p class="mt-1 text-meta text-muted-foreground">{publicMap.compareKey(otherWho, otherIsYou)}</p>
-          </div>
-          <ul class="border-t border-foreground">
-            {pairs.map(({ label, drink }) => (
-              <DrinkRow href={entryHref(drink) ?? undefined} title={titleFor(drink)} note={label} />
-            ))}
-          </ul>
+          <p class="text-meta text-muted-foreground">{publicMap.compareKey(otherWho, otherIsYou)}</p>
+          <Comparison
+            comparison={comparison}
+            whose={subjectWhose}
+            who={subjectWho}
+            other={otherWho}
+            pair={(drink) => ({ title: titleFor(drink), href: entryHref(drink) ?? undefined })}
+            name={(n) => titleOf(register, n)}
+          />
         </section>
       )}
 

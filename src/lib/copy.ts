@@ -19,7 +19,6 @@ export const site = {
 export const nav = {
   skipToContent: 'Skip to content',
   home: 'Home',
-  register: 'Drinks',
   signIn: 'Sign in',
   menu: 'Menu',
   /** Beside your handle in a phone's Menu: where it goes. */
@@ -505,7 +504,8 @@ export const drinks = {
   intro:
     'Most of what gets said about a cocktail is repetition. Each entry gives the build, places the drink on the chart, and separates what is on the record from what bartenders only tell each other.',
   navLabel: 'Drinks',
-  backLabel: 'All drinks',
+  /** The way back from a drink's own page: to the drink on the map. */
+  backLabel: 'On the map',
   coordinateLabel: 'Coordinate',
   buildLabel: 'The build',
   documentedLabel: 'On the record',
@@ -530,7 +530,7 @@ export const drinks = {
 } as const;
 
 /**
- * `/drinks/regions/<id>`. The prose of each region lives in `src/content/regions/`;
+ * A region on the map (`/map?region=<id>`). The prose of each region lives in `src/content/regions/`;
  * these are the parts that are the same for all four, and they describe what
  * the product does rather than what a region means.
  */
@@ -864,7 +864,30 @@ export const notFound = {
   title: 'Nothing charted here.',
   lede: 'That address does not lead to a page. The link may be old, or mistyped.',
   cta: 'Find your coordinate',
-  drinks: 'Look through every drink',
+  drinks: 'Every drink is on the map',
+} as const;
+
+/**
+ * One comparison (`compare.ts`, `Comparison.tsx`): a drink or a person against
+ * a taste — yours, or the person's whose map it is. `whose` is "your" or
+ * "@alice’s"; `who` is "you" or "@alice".
+ */
+export const compare = {
+  /** `whose` for the reader's own map, and for someone else's. */
+  yours: 'your',
+  theirs: (who: string) => `${who}’s`,
+  you: 'you',
+  title: (whose: string) => `On ${whose} map`,
+  fromLabel: 'From the nearest hill',
+  wayLabel: 'Which way',
+  drinkReach: (who: string, reach: boolean) =>
+    reach ? `High on the ground: one ${who} would reach for.` : `Off the high ground: not one ${who} would reach for yet.`,
+  /** What is behind a person's comparison: the taste's own ratings of their top drinks. */
+  personBehind: (whose: string, rated: readonly { name: string; hedonic: number }[]) =>
+    rated.length
+      ? `${whose[0].toUpperCase()}${whose.slice(1)} ratings of their top drinks: ${rated.map((r) => `${r.name} (${r.hedonic})`).join(', ')}`
+      : `No ratings of their top drinks on ${whose} map yet.`,
+  partLabel: 'Where you part',
 } as const;
 
 export const publicMap = {

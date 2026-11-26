@@ -1,3 +1,4 @@
+import { compareWith } from '../../src/lib/compare';
 import { test, expect } from 'vitest';
 import {
   comparePalates,
@@ -154,6 +155,11 @@ test('MCP: comparing two palates agrees with the public map', async () => {
   expect(result.data.firstWouldOrder?.name).toBe(overlap.firstOnly?.name);
   expect(result.data.secondWouldOrder?.name).toBe(overlap.secondOnly?.name);
   expect(result.data.shared?.name).toBe(overlap.shared?.name);
+  // How far and which way, as /p says it: one comparison (`compareWith`), a person as a set of points.
+  const side = (p: typeof a.palate) => ({ terrain: terrainOf(null, p, []), aversions: p.aversions, point: { x: p.x, y: p.y } });
+  const c = compareWith(side(a.palate), { kind: 'person', side: side(b.palate) });
+  expect(result.data.distance).toBe(c.distance);
+  expect(result.data.way).toBe(c.words);
 });
 
 test('MCP: comparing with someone who cannot be read says who', async () => {

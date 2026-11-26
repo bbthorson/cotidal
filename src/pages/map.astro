@@ -9,6 +9,11 @@ import { accountFor } from '../lib/atproto/session';
 import { mapHref } from '../lib/site-nav';
 import { readMapView, viewHref } from '../lib/map-url';
 import { publicMapPath } from '../lib/atproto/paths';
+import { loadDrinkEntry } from '../lib/drink-entry.server';
+import { loadRegionEntry } from '../lib/region-entry.server';
+import { quadrants, share } from '../lib/copy';
+import { shareImagePath } from '../lib/share';
+import { regionPath } from '../lib/quadrant';
 
 /**
  * The app, on one screen: your map fixed in place, the search in the header,
@@ -32,11 +37,21 @@ const authEnabled = await signInEnabled();
 const account = await accountFor(Astro.request, false);
 const member = account.kind === 'member' ? { did: account.did, handle: account.handle } : null;
 const initialQuery = Astro.url.searchParams.get('q') ?? '';
+// The drink the address opens, written up: drawn with the page, so its card is whole before the script arrives.
+// A region the address narrows the map to (`?region=`), written up, and shared as its own card.
+const initialRegion = view.region ? { id: view.region, entry: await loadRegionEntry(view.region) } : null;
+const region = view.region ? quadrants.find((q) => q.id === view.region)! : null;
+const initialEntry = view.drink && register[view.drink.name] ? await loadDrinkEntry(register[view.drink.name].slug) : null;
 
 ---
 
-<AppShell title={`${site.name} — ${explore.title}`}>
-  <Explore client:load register={register} signInEnabled={authEnabled} member={member} initialQuery={initialQuery}>
+<AppShell
+  title={region ? `${region.name} · ${site.name}` : `${site.name} — ${explore.title}`}
+  description={region?.gloss}
+  image={region ? { path: shareImagePath(region.id), alt: share.regionAlt(region.name) } : undefined}
+  canonical={region ? regionPath(region.id) : undefined}
+>
+  <Explore client:load register={register} signInEnabled={authEnabled} member={member} initialQuery={initialQuery} initialEntry={initialEntry} initialDrink={view.drink?.name ?? null} initialRegion={initialRegion}>
     <AppBar slot="bar" currentPath={mapHref} account={account} title={nav.map} />
   </Explore>
 </AppShell>

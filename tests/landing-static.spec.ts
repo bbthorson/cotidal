@@ -1,5 +1,4 @@
 import { test, expect } from '@playwright/test';
-import { readFileSync } from 'node:fs';
 import { QUADRANT_ORDER, quadrantIdFor, regionPath } from '../src/lib/quadrant';
 import { drinkDatabase } from '../src/lib/data';
 import { quadrants, drinks, explore, hero, nav as nav_, notFound, site } from '../src/lib/copy';
@@ -58,40 +57,35 @@ test('Landing: the front door is server-rendered, and asks one thing', async ({ 
 });
 
 /**
- * A region is the drinks filtered to it. Asserted rather than assumed,
- * because the ids are written into links in more than one place.
+ * A region is a filter on the map (`/map?region=<id>`), not a page:
+ * asserted rather than assumed, because the ids are written into links in
+ * more than one place (the drink card, `/p`, the chat tools, the share cards).
  */
-test('Drinks: each region opens the drinks filtered to it', async ({ page }) => {
-  const register = await (await page.request.get('/drinks')).text();
-
+test('Regions: each is a filter on the map, drawn with the page: its name, every drink the map places there, and its write-up', async ({ page }) => {
   for (const id of QUADRANT_ORDER) {
     const path = regionPath(id);
-    expect(register, `/drinks does not offer the ${id} filter`).toContain(`href="${path}"`);
-
-    const filtered = await (await page.request.get(path)).text();
+    expect(path).toBe(`/map?region=${id}`);
+    await page.goto(path);
     const name = quadrants.find((q) => q.id === id)!.name;
-    expect(filtered, `${path} does not name its region`).toContain(name);
+    await expect(page.getByRole('heading', { level: 1, name })).toBeVisible();
+    const placed = drinkDatabase.filter((d) => quadrantIdFor(d.x, d.y) === id).length;
+    await expect(page.getByTestId('region-drinks').getByRole('listitem')).toHaveCount(placed);
+    await expect(page.getByTestId('region-entry')).toBeAttached();
+    // The filter moves between them in place, and All is the map.
+    const filter = page.getByRole('navigation', { name: drinks.filterLabel });
+    await expect(filter.locator('a[aria-current="page"]')).toHaveAttribute('href', path);
+    await expect(filter.getByRole('link', { name: drinks.filterAll })).toHaveAttribute('href', '/map');
   }
 });
 
-test('Drinks: a region filter lists only that region’s drinks, and is read as Drinks', async ({ page }) => {
-  const [first] = QUADRANT_ORDER;
-  await page.goto(regionPath(first));
-  const filter = page.getByRole('navigation', { name: drinks.filterLabel });
-  await expect(filter.locator('a[aria-current="page"]')).toHaveAttribute('href', regionPath(first));
-  await expect(filter.getByRole('link', { name: drinks.filterAll })).toHaveAttribute('href', '/drinks');
-
-  // Every drink listed is one the map places in this region.
-  const listed = await page.locator('main a[href^="/drinks/"]:not([href^="/drinks/regions"])').evaluateAll(
-    (links) => links.map((a) => a.getAttribute('href')!.slice('/drinks/'.length))
-  );
-  expect(listed.length).toBeGreaterThan(0);
-  for (const slug of listed) {
-    const entry = readFileSync(`src/content/drinks/${slug}.md`, 'utf8');
-    const name = /^name:\s*["']?(.+?)["']?\s*$/m.exec(entry)![1];
-    const drink = drinkDatabase.find((d) => d.name === name)!;
-    expect(quadrantIdFor(drink.x, drink.y), slug).toBe(first);
-  }
+test('Regions: a drink opened from a region comes back to it, and there is no list of drinks of its own', async ({ page }) => {
+  expect((await page.request.get('/drinks')).status()).toBe(404);
+  expect((await page.request.get('/drinks/regions/deep')).status()).toBe(404);
+  await page.goto(regionPath('deep'));
+  await page.getByTestId('region-drinks').getByRole('button').first().click();
+  await expect(page.getByTestId('region-drinks')).toHaveCount(0);
+  await page.getByRole('button', { name: /The Deep/ }).first().click();
+  await expect(page.getByTestId('region-drinks')).toBeVisible();
 });
 
 test('Drinks: a drink entry has Recipe structured data and one way to compare it against your palate', async ({ page }) => {
@@ -120,7 +114,7 @@ test('Drinks: a drink is the map with the drink marked and its entry in the card
   await expect(card.getByRole('heading', { name: drinks.nearLabel })).toBeAttached();
   // The page's name is said once, in the app bar, with its way back; no line of its own under the bar.
   await expect(card.getByTestId('page-name')).toHaveText(/^Drinks · /);
-  await expect(card.locator('header').getByRole('link', { name: drinks.backLabel })).toHaveAttribute('href', '/drinks');
+  await expect(card.locator('header').getByRole('link', { name: drinks.backLabel })).toHaveAttribute('href', '/map?drink=negroni');
   await expect(card.getByText(/^Drinks · /)).toHaveCount(1);
 
   // On a phone the card rests under the map and scrolling the page pulls it up over it.
@@ -201,16 +195,16 @@ test('Navigation: unified header navigation renders on landing, drinks and the m
   // Drinks pages are for SEO/AEO and members, not linked from the homepage for unauthenticated visitors.
   expect(landing).not.toContain('href="/drinks"');
 
-  const register = await (await page.request.get('/drinks')).text();
-  expect(register).toContain('aria-label="Main navigation"');
-  expect(register).toContain('href="/map"');
+  const drinkPage = await (await page.request.get('/drinks/negroni')).text();
+  expect(drinkPage).toContain('aria-label="Main navigation"');
+  expect(drinkPage).toContain('href="/map"');
 
   const map = await (await page.request.get('/map')).text();
   expect(map).toContain('aria-label="Main navigation"');
   expect(map).toContain('href="/map"');
 
   await page.setViewportSize({ width: 1280, height: 900 });
-  for (const path of ['/', '/drinks', '/map']) {
+  for (const path of ['/', '/drinks/negroni', '/map']) {
     await page.goto(path);
     await expect(page.locator('header a[href="/drinks"]'), path).toHaveCount(0);
   }

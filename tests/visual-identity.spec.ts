@@ -55,8 +55,8 @@ test('Share: the landing page unfurls into the site card', async ({ page, reques
   expect(res.headers()['content-type']).toBe('image/png');
 });
 
-test('Share: a region page unfurls into its region', async ({ page }) => {
-  await page.goto('/drinks/regions/deep');
+test('Share: a region on the map unfurls into its region', async ({ page }) => {
+  await page.goto('/map?region=deep');
   await expect(page.locator('meta[property="og:image"]')).toHaveAttribute('content', /\/share\/deep\.png$/);
 });
 

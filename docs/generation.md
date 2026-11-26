@@ -204,7 +204,7 @@ construction.
 
 ## Rules
 
-1. **No generated text on `/` or `/drinks`.** Both are static and script-free,
+1. **No generated text on `/` or a drink's page.** Both are static and script-free,
    and `tests/landing-static.spec.ts` guards the first. Generation lives on
    Compass only.
 2. **Every model call has a deterministic fallback**, and the fallback is

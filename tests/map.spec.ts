@@ -44,7 +44,7 @@ test('Map: the search works before the map does, as a plain form drawn by the se
   expect(search).toContain('action="/map"');
   expect(search.slice(0, 2000)).toContain('value="negroni"');
   // Only the map has it.
-  const drinks = await (await request.get('/drinks')).text();
+  const drinks = await (await request.get('/drinks/negroni')).text();
   expect(drinks).not.toContain('id="map-search"');
 });
 

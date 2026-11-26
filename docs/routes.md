@@ -47,7 +47,7 @@ The distinction that decides what a stranger can be shown:
 
 | | Works cold? | Routes |
 |---|---|---|
-| **Destination** | Yes — no account, no location, no camera | `/`, `/drinks`, the region pages, the quiz |
+| **Destination** | Yes — no account, no location, no camera | `/`, the map (a drink, a region), a drink's page, the quiz |
 | **Gated action** | No — needs an account, a place, or people | Capture a menu, claim a venue, log a pour, compare with friends |
 
 **A gated action must never be the front door.** It fails for exactly the
@@ -59,12 +59,13 @@ reached from inside, or from a link someone was sent.
 
 > "Read about tastes first, then explore drinks that match."
 
-The landing page names the four regions, and each opens the drinks filtered
-to it: `/drinks/regions/<id>`, the region's drinks first, then what the
-region is, what ordering from it says about you and the ingredients its
-drinks share. A reader treats a region as a way to narrow the drinks, not a
-destination, so the regions are a filter on `/drinks` rather than pages of
-their own. The four parts come from four places:
+The map names the four regions, and each is a filter on it:
+`/map?region=<id>` washes the region and names its drinks, and the card holds
+the region's drinks first, then what the region is, what ordering from it
+says about you and the ingredients its drinks share. A reader treats a
+region as a way to narrow the drinks, not a destination, so the regions are
+a filter on the map rather than pages of their own — and the map is the list
+of drinks, so there is no `/drinks`. The four parts come from four places:
 
 - **What it is** is prose in `src/content/regions/<id>.md`, a content
   collection held to the drinks' format — what is on the record, what is
@@ -74,13 +75,13 @@ their own. The four parts come from four places:
   move the point. That is what the product does. Anything more — bitter
   drinkers' character, sweet as a beginner's palate — is listed as claimed,
   with the reason it is not on the record.
-- **The drinks** come from the map, as on `/drinks`.
+- **The drinks** come from the map: every drink it places there.
 - **What they share** is counted from those drinks' own ingredient lists
   (`src/lib/ingredients.ts`), so it cannot disagree with them.
 
-The reading path is primarily an SEO/AEO entry point (not linked from the
-homepage chrome for unauthenticated visitors; `memberOnly: true` on `/drinks`
-in `site-nav.ts`). Each `/drinks/<slug>` page carries Schema.org `Recipe`
+A drink opened on the map shows its whole entry in the card. Its own page,
+`/drinks/<slug>`, is an SEO/AEO entry point and a link to send, not linked
+from the navigation. Each carries Schema.org `Recipe`
 structured data alongside the prose and a **Your palate** section linking to
 `/map?drink=<slug>` and the questions (`/map?quiz=1`) so readers arriving from search or chat
 assistants can compare the drink directly against their palate.
@@ -192,7 +193,7 @@ accounts or posts; clients show the tags of the labelers a user has chosen.
 Most are for moderation, but opt-in badge labelers (pronouns and the like)
 are common. Cotidal would declare four values, one per region id (`deep`,
 `salt-line`, `eddy`, `surf`), shown as badges, never as warnings, each with a
-description that points to `/drinks/regions/<id>`. Members are signed in with their
+description that points to `/map?region=<id>`. Members are signed in with their
 Bluesky identity already, so the opt-in is a button, not the like-a-post
 ritual those labelers use.
 

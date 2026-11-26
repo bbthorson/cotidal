@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { publicMap } from '../src/lib/copy';
+import { compare, publicMap } from '../src/lib/copy';
 
 /**
  * `/p/<handle>`: someone's coordinate at a public URL.
@@ -109,6 +109,24 @@ test('Two made-up people compared: where they part, each way, from their own gro
   await expect(overlap).toContainText('Manhattan');
   // The second taste is drawn over the first as lines of its own.
   expect(await page.locator('g[data-against] path').count()).toBeGreaterThan(0);
+});
+
+test('A drink and a person are compared the same way: from the nearest hill, which way, and what is behind it', async ({ page }) => {
+  // A drink is a point on their map.
+  await page.goto('/map?palate=deep.test&drink=negroni');
+  const drink = page.locator('[data-testid="comparison"][data-kind="drink"]');
+  await expect(drink.getByRole('heading', { name: compare.title(compare.theirs('@deep.test')) })).toBeVisible();
+  await expect(drink).toContainText(compare.fromLabel);
+  await expect(drink).toContainText(compare.wayLabel);
+  await expect(drink).toContainText(compare.drinkReach('@deep.test', true));
+
+  // A person is a set of points: the same comparison, from the same hill, to the highest of theirs.
+  await page.goto('/map?palate=deep.test&with=surf.test');
+  const person = page.locator('[data-testid="comparison"][data-kind="person"]');
+  await expect(person.getByRole('heading', { name: compare.title(compare.theirs('@deep.test')) })).toBeVisible();
+  await expect(person).toContainText(compare.fromLabel);
+  await expect(person).toContainText(compare.wayLabel);
+  await expect(person).toContainText(/crisper, sweeter/);
 });
 
 test('A made-up person with no palate is the page for no palate, and still says they are made up', async ({ request }) => {

@@ -35,9 +35,10 @@ landing page included. Astro was being used as a slower Next.js.
   carries the page's name in the wordmark's place (`MapPage`'s `eyebrow`,
   with `back` and `heading`), so a name is said once: mark · name · Menu on a phone (the map, the visible
   reading pages, then the account), and from `lg` a row of tabs under the
-  account control (`accountControl` in `site-nav.ts`). `Drinks` (`/drinks`) is `memberOnly` in `site-nav.ts`, so unauthenticated
-  visitors on `/` are not sent there from the header or footer; drink pages stay
-  live for SEO/AEO and link back to `/map?drink=<slug>` and the questions (`/map?quiz=1`). On `/map`
+  account control (`accountControl` in `site-nav.ts`). There is no list of
+  drinks and no Drinks item: every drink is on the map and opens in its card,
+  whole; a drink's own page (`/drinks/<slug>`) stays live for SEO/AEO and links
+  back to `/map?drink=<slug>` and the questions (`/map?quiz=1`). On `/map`
   the bar names the page like any other ("Map"); the search is content, the
   first thing in the card (`SearchBox.tsx`: drawn by the island on the server
   as a plain GET form to `/map?q=`, so it works before the island does). The
@@ -220,7 +221,10 @@ it: the reveal after the questions, and the region share cards (a region's
 own, which name a region, not a person), which still read the point and its
 region. Someone else's taste — their map, the follows list and
 the chat tools — is read by one set of rules, `taste-reading.ts`
-(`docs/map-first.md`). The dot, the track and `applyPour` are unchanged.
+(`docs/map-first.md`). Comparing a taste with a drink or with a person is one
+comparison (`compareWith`, `compare.ts`; `Comparison.tsx`): a drink is a point,
+a person a set of points, and both are said from the taste's nearest hill —
+how far, which way, whether it is reached for, and the ratings behind it. The dot, the track and `applyPour` are unchanged.
 
 
 The first 94 drinks were placed by hand. A wine or beer added since is placed
@@ -289,9 +293,14 @@ and update the page in the same commit.
 What may call a model, and who sees the result, is `docs/generation.md`.
 
 ### Drink prose — `src/content/drinks/`, `src/content.config.ts`
-An Astro content collection behind `/drinks`, prerendered and script-free.
-Drink pages are built for SEO/AEO rather than homepage discovery by
-unauthenticated visitors (`memberOnly: true` in `site-nav.ts`): each
+An Astro content collection, drawn by one component, `DrinkEntry` (React: the
+prose, the build, what is near it, what is on the record). **A dot on the
+map opens the whole entry in the card**: `DrinkPanel` fetches the drink's
+entry prerendered as data (`/drinks/<slug>.json`, `drink-entry.ts`,
+`usePrerendered`), and `/map?drink=` draws it with the page. There is no
+`/drinks` list: the map is the list. Each drink also has a page of its own,
+prerendered and script-free, built for SEO/AEO and for a link sent to
+someone rather than for browsing: each
 `/drinks/<slug>` page emits Schema.org `Recipe` JSON-LD and a compare-to-palate
 section whose one link, `/map?drink=<slug>&quiz=1` (`questionsForDrink`), places
 a stranger and then opens the drink on their map — or, for anyone with a
@@ -310,11 +319,6 @@ reason the register exists rather than being a set of encyclopedia entries.
 Prose is written from primary sources rather than adapted from any one
 reference, so no entry inherits a share-alike licence.
 
-`/drinks` groups entries under the four regions, and each section carries its
-quadrant `id` as an anchor (`/drinks#deep`), and each region is also a
-filter (`regionPath`); `tests/landing-static.spec.ts` asserts `/drinks`
-offers every region's filter and that each names its region.
-
 **To add an entry**, create `src/content/drinks/<slug>.md`, where `<slug>` is
 the drink's `slug` in `drinkDatabase` (`tests/unit/drink-content.test.ts`
 holds them equal). The filename is the URL. `name` in the frontmatter must match a `name` in `drinkDatabase` exactly —
@@ -326,15 +330,17 @@ npm run typecheck   # the frontmatter schema is checked at build time
 npm run test:unit -- tests/unit/drink-content.test.ts
 ```
 
-### Region prose — `src/content/regions/`, `src/pages/drinks/regions/[id].astro`
-**A region is a filter on the drinks**, not a page of its own:
-`/drinks/regions/<id>` (`regionPath`) is `/drinks` narrowed to one region,
-on the map with the region washed and its drinks named, and in the card
-`RegionFilter` across the top, the drinks first and the region's prose
-under them. Prerendered and script-free. There is no Regions item in the
-navigation (`RegionFilter` marks the active region). Same format as a drink
-(`documented` required, `claimed`, `sources`), one entry per region, and the
-filename is the id — which is a URL: `/drinks`, `/p/<handle>`
+### Region prose — `src/content/regions/`, `RegionEntry.tsx`
+**A region is a filter on the map**, not a page of its own:
+`/map?region=<id>` (`regionPath`, `VIEW_PARAMS.region`) washes the region,
+names its drinks, and puts the region in the card (`RegionPanel` in
+`Explore.tsx`): `RegionFilter` across the top, every drink the map places
+there (a drink opened from it comes back to it), then the region's write-up
+(`RegionEntry`, fetched prerendered as `/regions/<id>.json`,
+`region-entry.ts`). The server draws the card with the page and the region's
+share card. There is no Regions item in the navigation. Same format as a
+drink (`documented` required, `claimed`, `sources`), one entry per region,
+and the filename is the id — which is in a URL: the drink card, `/p/<handle>`
 and the chat tools link to it.
 
 The entry holds only prose. Name, axis and gloss come from `quadrants` in

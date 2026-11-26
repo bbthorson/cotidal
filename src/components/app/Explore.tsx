@@ -1,15 +1,15 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import type { Drink } from '@/lib/data';
+import { drinkDatabase, type Drink } from '@/lib/data';
 import type { PourRecord } from '@/lib/atproto/records';
-import { chart, compass, drinks, explore, mapPage, pour, taste } from '@/lib/copy';
+import { chart, compare as compareCopy, compass, drinks, explore, mapPage, pour, quadrants, regionPage, taste } from '@/lib/copy';
 import { formatCoordinate } from '@/lib/coordinate';
-import { quadrantFor, regionPath } from '@/lib/quadrant';
+import { quadrantFor, regionPath, type QuadrantId } from '@/lib/quadrant';
 import { matchDrink } from '@/lib/drink-match';
 import { publicMapPath, QUIZ_PARAM, START_OVER_PARAM, startOverPath } from '@/lib/atproto/paths';
 import { takeParam } from '@/lib/url-params';
 import type { AxisBelief } from '@/lib/belief-state';
 import { buildTerrain, sampleTerrain } from '@/lib/terrain';
-import { drinksHref, questionsHref } from '@/lib/site-nav';
+import { questionsHref } from '@/lib/site-nav';
 import type { Register } from '@/lib/register';
 import { neutralProfile } from '@/lib/guest-palate';
 import { useExplore, type Explore as ExploreState } from '@/hooks/useExplore';
@@ -28,6 +28,15 @@ import { TrackFigure } from './TrackFigure';
 import { WaitingPick } from './WaitingPick';
 import { Empty, GuestPrompt, Readout, ScreenHeader, SectionTitle } from './ui';
 import { DrinkRow } from './DrinkRow';
+import { DrinkEntry } from './DrinkEntry';
+import { usePrerendered } from '@/hooks/usePrerendered';
+import { drinkEntryPath, type DrinkEntryData } from '@/lib/drink-entry';
+import { regionEntryPath, type RegionEntryData } from '@/lib/region-entry';
+import { RegionEntry } from './RegionEntry';
+import { Comparison } from './Comparison';
+import { compareWith } from '@/lib/compare';
+import { RegionFilter } from './RegionFilter';
+import { neighboursOf } from '@/lib/map-draw';
 
 /**
  * The app, on one screen: your map fixed in place as the background, the
@@ -45,14 +54,20 @@ function ExploreContent({
   register,
   member,
   initialQuery,
+  initialEntry,
+  initialDrink,
+  initialRegion,
   bar,
 }: {
   register: Register;
   member: { did: string; handle: string | null } | null;
   initialQuery: string;
+  initialEntry: DrinkEntryData | null;
+  initialDrink: string | null;
+  initialRegion: { id: QuadrantId; entry: RegionEntryData } | null;
   bar?: ReactNode;
 }) {
-  const e = useExplore(register, member, initialQuery);
+  const e = useExplore(register, member, initialQuery, initialEntry?.name ?? initialDrink, initialRegion?.id ?? null);
   const { isEnabled, openSignIn } = useAtprotoContext();
   const body = useRef<HTMLDivElement>(null);
   const card = useRef<HTMLElement>(null);
@@ -107,7 +122,7 @@ function ExploreContent({
   // the map (a drink, a bar, back to where to next) scrolls back to the top, so the map shows and pushes the card
   // down; rating scrolls the card up to the top of the screen, where it has the room (`e.up`). From `lg` the card
   // is a panel that scrolls on its own, and starts from its top.
-  const cardKey = quiz ? 'quiz' : e.rate.request ? (moved ? 'moved' : 'rate') : e.selectedDrink ? `drink:${e.selected}` : e.venue ? `bar:${e.venue.name ?? ''}` : 'home';
+  const cardKey = quiz ? 'quiz' : e.rate.request ? (moved ? 'moved' : 'rate') : e.selectedDrink ? `drink:${e.selected}` : e.venue ? `bar:${e.venue.name ?? ''}` : e.region ? `region:${e.region}` : 'home';
   // The reveal after a pour scrolls back down to the map, which draws the move.
   const cardUp = !moved && (e.up || !!e.rate.request);
   const arrived = useRef(false);
@@ -164,7 +179,7 @@ function ExploreContent({
       />
     );
   } else if (e.selectedDrink) {
-    content = <DrinkPanel e={e} drink={e.selectedDrink} onQuiz={() => setQuiz(true)} />;
+    content = <DrinkPanel e={e} drink={e.selectedDrink} initialEntry={initialEntry} onQuiz={() => setQuiz(true)} />;
   } else if (e.venue) {
     content = (
       <MenuView
@@ -185,6 +200,8 @@ function ExploreContent({
         onPick={e.pick}
       />
     );
+  } else if (e.region) {
+    content = <RegionPanel e={e} initialRegion={initialRegion} />;
   } else if (e.cold) {
     content = (
       <ColdState
@@ -224,6 +241,8 @@ function ExploreContent({
           pins={pins}
           emptyBar={!!e.venue && e.ranked.length === 0}
           selected={moved ? (matchDrink(moved.drinkName)?.name ?? null) : e.selected}
+          region={e.region}
+          named={e.region && !e.venue ? e.regionDrinks.map((d) => d.name) : undefined}
           hover={e.hover}
           onSelect={e.chooseDrink}
           name={e.name}
@@ -358,11 +377,49 @@ function Home({
 }
 
 /**
+ * A region, opened in the card (`?region=`): a filter on the map, which
+ * washes the region and names its drinks. The card lists them — each opens
+ * in the card and comes back here — then the region's write-up.
+ */
+function RegionPanel({ e, initialRegion }: { e: ExploreState; initialRegion: { id: QuadrantId; entry: RegionEntryData } | null }) {
+  const region = quadrants.find((q) => q.id === e.region)!;
+  const entry = usePrerendered(regionEntryPath(region.id), initialRegion && { path: regionEntryPath(initialRegion.id), data: initialRegion.entry });
+  return (
+    <div className="pt-1">
+      <button type="button" onClick={() => e.openRegion(null)} className="link-caps flex min-h-11 items-center text-muted-foreground hover:text-foreground">
+        &larr; {explore.backToStart}
+      </button>
+      <ScreenHeader title={region.name} gloss={region.gloss} />
+      <RegionFilter current={region.id} onSelect={e.openRegion} />
+      <section className="mt-6" data-testid="region-drinks">
+        <ul className="border-t border-foreground">
+          {e.regionDrinks.map((d) => (
+            <DrinkRow
+              key={d.name}
+              title={e.name(d.name)}
+              figure={formatCoordinate(d.x, d.y)}
+              note={e.register[d.name]?.build}
+              onSelect={() => e.chooseDrink(d.name)}
+            />
+          ))}
+        </ul>
+        <p className="mt-3 font-serif text-ui italic leading-relaxed text-muted-foreground">{regionPage.placedNote}</p>
+      </section>
+      {entry?.id === region.id && <RegionEntry entry={entry} />}
+    </div>
+  );
+}
+
+/**
  * A drink, opened in the card: where it sits, what put it where it stands for
  * you, your last pour of it, what shares its spot, and the two things to do —
  * rate it (in the card) or keep it as your pick.
  */
-function DrinkPanel({ e, drink, onQuiz }: { e: ExploreState; drink: Drink; onQuiz: () => void }) {
+function DrinkPanel({ e, drink, initialEntry, onQuiz }: { e: ExploreState; drink: Drink; initialEntry: DrinkEntryData | null; onQuiz: () => void }) {
+  const slug = e.register[drink.name]?.slug;
+  const entry = usePrerendered(slug ? drinkEntryPath(slug) : null, initialEntry && { path: drinkEntryPath(initialEntry.slug), data: initialEntry });
+  const regionOpen = e.region ? quadrants.find((q) => q.id === e.region) : null;
+  const neighbours = neighboursOf(drink, drinkDatabase, 5).map((n) => ({ ...n, title: e.name(n.name) }));
   const region = quadrantFor(drink.x, drink.y);
   const last: PourRecord | undefined = e.lastPour.get(drink.name);
   const lastLine = last
@@ -378,9 +435,9 @@ function DrinkPanel({ e, drink, onQuiz }: { e: ExploreState; drink: Drink; onQui
   return (
     <div className="pt-1">
       <button type="button" onClick={e.closeDrink} className="link-caps flex min-h-11 items-center text-muted-foreground hover:text-foreground">
-        &larr; {e.venue?.name ?? (e.venue ? compass.atMenu.homeTitle : explore.backToStart)}
+        &larr; {e.venue?.name ?? (e.venue ? compass.atMenu.homeTitle : (regionOpen?.name ?? explore.backToStart))}
       </button>
-      <ScreenHeader title={e.name(drink.name)} gloss={e.cold ? chart.coldDrinkPrompt : e.reasonFor(drink)}>
+      <ScreenHeader title={e.name(drink.name)} gloss={e.cold || !e.side ? chart.coldDrinkPrompt : undefined}>
         <Readout
           className="mt-4"
           cells={[
@@ -389,6 +446,15 @@ function DrinkPanel({ e, drink, onQuiz }: { e: ExploreState; drink: Drink; onQui
           ]}
         />
       </ScreenHeader>
+
+      {e.side && (
+        <Comparison
+          comparison={compareWith(e.side, { kind: 'drink', drink })}
+          whose={compareCopy.yours}
+          who={compareCopy.you}
+          reason={e.reasonFor(drink)}
+        />
+      )}
 
       {lastLine && (
         <dl className="mt-3 border-t border-border pt-1">
@@ -439,12 +505,9 @@ function DrinkPanel({ e, drink, onQuiz }: { e: ExploreState; drink: Drink; onQui
             </button>
           </>
         )}
-        {e.register[drink.name] && (
-          <a href={`${drinksHref}/${e.register[drink.name].slug}`} className="link-caps self-start text-secondary hover:underline">
-            {chart.readEntry} &rarr;
-          </a>
-        )}
       </div>
+
+      {entry?.name === drink.name && <DrinkEntry entry={entry} neighbours={neighbours} onSelect={e.chooseDrink} />}
     </div>
   );
 }
@@ -454,6 +517,9 @@ export default function Explore({
   signInEnabled,
   member,
   initialQuery = '',
+  initialEntry = null,
+  initialDrink = null,
+  initialRegion = null,
   bar,
 }: {
   register: Register;
@@ -462,12 +528,18 @@ export default function Explore({
   member: { did: string; handle: string | null } | null;
   /** `?q=` from the header's search, which works before the island does. */
   initialQuery?: string;
+  /** The write-up of the drink the address opens (`?drink=`), drawn with the page rather than fetched. */
+  initialEntry?: DrinkEntryData | null;
+  /** The drink the address opens (`?drink=`), so the server draws its card. */
+  initialDrink?: string | null;
+  /** The region the address narrows the map to (`?region=`), with its write-up, so the server draws its card. */
+  initialRegion?: { id: QuadrantId; entry: RegionEntryData } | null;
   /** The app bar (`AppBar`, with the search), passed by the page as a slot: the top of the card. */
   bar?: ReactNode;
 }) {
   return (
     <AtprotoProvider enabled={signInEnabled} member={member}>
-      <ExploreContent register={register} member={member} initialQuery={initialQuery} bar={bar} />
+      <ExploreContent register={register} member={member} initialQuery={initialQuery} initialEntry={initialEntry} initialDrink={initialDrink} initialRegion={initialRegion} bar={bar} />
     </AtprotoProvider>
   );
 }
