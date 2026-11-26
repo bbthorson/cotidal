@@ -147,3 +147,25 @@ describe('their taste', () => {
     expect(withTaste.status === 'ok' && withTaste.taste?.pours).toHaveLength(1);
   });
 });
+
+describe('made-up people (sample-people.ts)', () => {
+  test('read through the same reader as anyone, with no network, and marked as made up', async () => {
+    const noNetwork = (async () => {
+      throw new Error('no network for a made-up person');
+    }) as typeof fetch;
+    const r = await readPublicPalate('deep.test', { fetch: noNetwork, taste: true, tasteCache: null });
+    expect(r.status).toBe('ok');
+    if (r.status !== 'ok') return;
+    expect(r.actor.sample).toBe(true);
+    expect(r.actor.handle).toBe('deep.test');
+    expect(r.taste?.pours.map((p) => p.drink.name)).toContain('Manhattan');
+    // By DID too, and someone with no palate is no palate.
+    expect((await readPublicPalate(r.actor.did, { fetch: noNetwork })).status).toBe('ok');
+    expect((await readPublicPalate('quiet.test', { fetch: noNetwork })).status).toBe('no-palate');
+  });
+
+  test('only on .test, which no real person can hold', async () => {
+    const { SAMPLE_PEOPLE } = await import('../../src/lib/atproto/sample-people');
+    for (const handle of Object.keys(SAMPLE_PEOPLE)) expect(handle.endsWith('.test')).toBe(true);
+  });
+});

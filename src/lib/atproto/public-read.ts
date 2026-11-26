@@ -4,6 +4,7 @@ import { isValidHandle, normalizeHandle } from '@bbthorson/atproto-cf-auth/serve
 import { PALATE_COLLECTION, PALATE_RKEY, decodeCoordinates } from './records';
 import { lexInteger } from './lex-string';
 import { readPublicTaste, type PublicTaste, type TasteCache } from './public-taste';
+import { samplePerson, sampleRepository } from './sample-people';
 
 /**
  * Reading someone else's palate, with no session.
@@ -75,6 +76,8 @@ export interface PublicActor {
   did: string;
   /** Only a handle the DID document confirms; otherwise `null`. */
   handle: string | null;
+  /** A made-up person (`sample-people.ts`), whose page says so. */
+  sample?: true;
 }
 
 export type PublicPalateResult =
@@ -282,6 +285,23 @@ export async function resolvePublicRepo(
   const fetchImpl = options.fetch ?? fetch;
   const resolver =
     options.handleResolver ?? process.env.ATPROTO_HANDLE_RESOLVER ?? DEFAULT_HANDLE_RESOLVER;
+
+  // A made-up person on a `.test` handle, read from the records the app carries for them, with no network.
+  let decodedInput = input;
+  try {
+    decodedInput = decodeURIComponent(input);
+  } catch {
+    /* parsed below */
+  }
+  const sample = samplePerson(decodedInput);
+  if (sample) {
+    return {
+      status: 'ok',
+      actor: { did: sample.person.did, handle: sample.handle, sample: true },
+      pds: new URL('https://sample.cotidal.invalid'),
+      ...sampleRepository(sample.person),
+    };
+  }
 
   const actorId = parseActor(input);
   if (!actorId) return { status: 'invalid' };

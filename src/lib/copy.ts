@@ -895,6 +895,8 @@ export const publicMap = {
   drinkWay: (who: string, distance: number, words: string) => `${distance} from ${who}, ${words}`,
   drinkFromYou: 'you',
   drinkForYou: 'Where it sits for you',
+  /** On a made-up person's map (`sample-people.ts`): said before anything else. */
+  sampleNote: 'A made-up person, to show what someone’s map looks like. Their ratings are invented.',
   /** Their taste in the axes' words (`leanings`), as the map's card says yours. */
   leanLabel: (self: boolean) => (self ? 'You lean' : 'Leans'),
   /** Their menu: the drinks highest on their terrain, each with what put it there. */

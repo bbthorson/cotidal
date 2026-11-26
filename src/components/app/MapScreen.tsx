@@ -26,7 +26,6 @@ export function MapScreen({
   tone = 'card',
   cardRef,
   bodyRef,
-  overlay,
   rest = 'standard',
   bar,
   children,
@@ -55,14 +54,11 @@ export function MapScreen({
   cardRef?: Ref<HTMLElement>;
   /** The card's body, which scrolls on its own from `lg`. */
   bodyRef?: Ref<HTMLDivElement>;
-  /** Drawn over the map: the search's results. */
-  overlay?: ReactNode;
   children: ReactNode;
 }) {
   const ground = tone === 'reveal' ? 'bg-reveal text-reveal-foreground' : 'bg-card text-foreground';
   return (
     <div className="map-screen" data-rest={rest === 'tall' ? 'tall' : undefined}>
-      {overlay}
       <section
         ref={cardRef}
         aria-label={label}

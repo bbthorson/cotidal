@@ -38,9 +38,10 @@ landing page included. Astro was being used as a slower Next.js.
   account control (`accountControl` in `site-nav.ts`). `Drinks` (`/drinks`) is `memberOnly` in `site-nav.ts`, so unauthenticated
   visitors on `/` are not sent there from the header or footer; drink pages stay
   live for SEO/AEO and link back to `/map?drink=<slug>` and `/questions`. On `/map`
-  the app bar holds the search in the wordmark's place (`AppBar`'s `search`: a
-  plain GET form to `/map?q=` that `SearchBox.tsx` takes over once the island
-  is up; the page passes the bar to the island as a slot). The account control is server
+  the bar names the page like any other ("Map"); the search is content, the
+  first thing in the card (`SearchBox.tsx`: drawn by the island on the server
+  as a plain GET form to `/map?q=`, so it works before the island does). The
+  page passes the bar to the island as a slot. The account control is server
   truth: `@handle` (opening `/settings`) for a member, Sign in for a guest, a
   neutral Account on a prerendered page that cannot know. Signing
   out is on `/settings` alone, never in the header; `/map` carries no account
@@ -145,7 +146,7 @@ of a drink with no match is kept, and moves nothing but its deviations.
 **The app is one screen, the map** (`/map`, `Explore.tsx`,
 `docs/map-first.md`): the map fixed in place as the background
 (`PalateMap.tsx` — the plane, your terrain as shading and contour lines,
-every drink, your pours with your rating), the search in the header, and one
+every drink, your pours with your rating), the search at the top of its card, and one
 card for everything else. The map never pans, zooms or moves when something
 opens: what changes is what is drawn on it. Where a drink sits on it, its
 contours and shading and which drinks get a label are plain functions
@@ -405,7 +406,13 @@ the record down to the fields the page draws. The DID document is checked and
 read by `@atproto/did` (`didDocumentValidator`, `extractAtprotoData`), not a
 hand-written shape. Its unit tests use a fake
 `fetch`; the route tests use a reserved TLD (`nobody.invalid`), which is
-refused before any network call. `publicMapPath` lives in `paths.ts` because
+refused before any network call. **Made-up people** (`sample-people.ts`)
+are records the app carries for `.test` handles — a domain the handle spec
+keeps for testing, which no real person can hold — read through the same
+reader with no network, so someone's map, a drink on it and a comparison can
+be seen and tested here: `/map?palate=deep.test`, `both.test` (two hills),
+`deep.test&with=surf.test`, `quiet.test` (no palate). Their pages say they
+are made up and are kept out of search. `publicMapPath` lives in `paths.ts` because
 the island links to it and must not import the server package.
 
 `/mcp` (`src/pages/mcp.astro`, `src/lib/mcp/`) offers the same reads to chat

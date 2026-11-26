@@ -574,7 +574,7 @@ bsky-sign-in[data-state='error'] input[name='handle'] {
 
 /* The map's floating Rate a drink (Explore.tsx, a phone only): out of the way
    while the search has the keyboard, which would otherwise lift it over the
-   results. */
-body:has(#app-search input:focus) .rate-float {
+   results (`SEARCH_ID`). */
+body:has(#map-search input:focus) .rate-float {
   display: none;
 }

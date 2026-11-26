@@ -60,7 +60,7 @@ test('The map\'s address: ?palate= is someone\'s public map, at /map, with no sc
   // A palate that is not a handle or a DID is dropped: the map is yours, as without it.
   const plain = await request.get('/map?palate=not%20a%20handle');
   expect(plain.status()).toBe(200);
-  expect(await plain.text()).toContain('id="app-search"');
+  expect(await plain.text()).toContain('id="map-search"');
 });
 
 test('One address for a page: the parameters only change what the map draws, so the canonical link drops them', async ({ request }) => {
@@ -68,4 +68,53 @@ test('One address for a page: the parameters only change what the map draws, so 
   expect(html).toMatch(/<link rel="canonical" href="[^"]*\/map"/);
   const drink = await (await request.get('/drinks/negroni/')).text();
   expect(drink).toMatch(/<link rel="canonical" href="\/drinks\/negroni\/?"/);
+});
+
+/**
+ * Made-up people (`sample-people.ts`): records the app carries for `.test`
+ * handles, which never resolve on the network, so someone's map — their
+ * taste, a drink on it, a comparison — renders here exactly as a real
+ * person's would, through the same reader.
+ */
+test('A made-up person: their taste as ground, their menu with what put it there, and a note that they are made up', async ({ page }) => {
+  await page.goto('/map?palate=deep.test');
+  await expect(page.getByTestId('sample-note')).toHaveText(publicMap.sampleNote);
+  await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', 'noindex');
+  await expect(page.getByTestId('leanings')).toContainText('rich and savory');
+  const menu = page.getByTestId('their-menu');
+  await expect(menu).toContainText('Manhattan');
+  await expect(menu).toContainText(/near their/i);
+  // What they rated low is off their menu; their ratings are on their map.
+  await expect(menu).not.toContainText('Aperol Spritz');
+  const map = page.getByRole('group', { name: publicMap.plotLabel(publicMap.title('deep.test')) });
+  await expect(map.getByText('Manhattan · 9')).toBeVisible();
+});
+
+test('A made-up person: a drink on their map says what put it there and which way it lies, and two hills are two', async ({ page }) => {
+  await page.goto('/map?palate=deep.test&drink=negroni');
+  const drink = page.getByTestId('palate-drink');
+  await expect(drink).toContainText('Rated 8');
+  await expect(drink.getByRole('link', { name: publicMap.drinkForYou })).toHaveAttribute('href', '/map?drink=negroni');
+
+  await page.goto('/p/both.test');
+  await expect(page.getByTestId('leanings')).toContainText('rich and savory');
+  await expect(page.getByTestId('leanings')).toContainText('crisp and sweet');
+});
+
+test('Two made-up people compared: where they part, each way, from their own ground', async ({ page }) => {
+  await page.goto('/map?palate=deep.test&with=surf.test');
+  const overlap = page.getByTestId('overlap');
+  await expect(overlap).toContainText(publicMap.onlyLabel('@deep.test', '@surf.test'));
+  await expect(overlap).toContainText(publicMap.onlyLabel('@surf.test', '@deep.test'));
+  await expect(overlap).toContainText('Manhattan');
+  // The second taste is drawn over the first as lines of its own.
+  expect(await page.locator('g[data-against] path').count()).toBeGreaterThan(0);
+});
+
+test('A made-up person with no palate is the page for no palate, and still says they are made up', async ({ request }) => {
+  const res = await request.get('/p/quiet.test');
+  expect(res.status()).toBe(404);
+  const html = await res.text();
+  expect(html).toContain(publicMap.noPalateTitle);
+  expect(html).toContain('data-testid="sample-note"');
 });

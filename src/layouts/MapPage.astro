@@ -13,6 +13,8 @@ interface Props {
   image?: { path: string; alt: string };
   /** The page's own address for search engines (`Base`'s `canonical`). */
   canonical?: string;
+  /** Keep the page out of search: a made-up person's map. */
+  noindex?: boolean;
   currentPath: string;
   /** The card's accessible name. */
   label: string;
@@ -40,13 +42,13 @@ interface Props {
  * app bar (`AppBar`) is the card's top, carrying the page's name, and the
  * site footer its foot: the map has the top of the screen to itself.
  */
-const { title, description, image, canonical, currentPath, label, eyebrow, back, heading, rest } = Astro.props;
+const { title, description, image, canonical, noindex, currentPath, label, eyebrow, back, heading, rest } = Astro.props;
 const account = await accountFor(Astro.request, Astro.isPrerendered);
 const hasMap = Astro.slots.has('map');
 const hasHead = Astro.slots.has('head');
 ---
 
-<AppShell title={title} description={description} image={image} canonical={canonical}>
+<AppShell title={title} description={description} image={image} canonical={canonical} noindex={noindex}>
   <MapScreen label={label} rest={rest}>
     <AppBar slot="bar" currentPath={currentPath} account={account} title={eyebrow} back={back} heading={heading} />
     {hasMap ? <Fragment slot="map"><slot name="map" /></Fragment> : <PalateMap slot="map" label={explore.chartLabel} tide />}

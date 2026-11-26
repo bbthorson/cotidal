@@ -8,6 +8,8 @@ interface Props {
   image?: { path: string; alt: string };
   /** The page's own address for search engines (`Base`'s `canonical`). */
   canonical?: string;
+  /** Keep the page out of search (`Base`'s `noindex`). */
+  noindex?: boolean;
 }
 
 /**
@@ -18,10 +20,10 @@ interface Props {
  * card scrolls up over the map; from `lg` it fills the window and the card
  * scrolls on its own.
  */
-const { title, description, image, canonical } = Astro.props;
+const { title, description, image, canonical, noindex } = Astro.props;
 ---
 
-<Base title={title} description={description} image={image} canonical={canonical}>
+<Base title={title} description={description} image={image} canonical={canonical} noindex={noindex}>
   <div class="bar-texture flex min-h-dvh flex-col bg-background text-foreground lg:h-dvh lg:overflow-hidden">
     <div class="flex min-h-0 flex-1 flex-col">
       <slot />

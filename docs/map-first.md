@@ -414,7 +414,7 @@ New:
 ## Build order
 
 1. **One screen at `/map`.** *Built.* The fixed map with your terrain; the
-   card with its four contents and rating in it; the search in the header
+   card with its four contents and rating in it; the search in the header (since moved into the card)
    over drinks and bars, a bar as a filter with its menu's pins and a typed
    menu where there is none. `/compass`, the street map, the rating dialog
    and the app bar are gone.

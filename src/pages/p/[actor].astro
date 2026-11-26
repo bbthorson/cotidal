@@ -66,6 +66,8 @@ const otherGround = otherTerrain ? sampleTerrain(otherTerrain, 0.5) : null;
 /** A reader with no map of their own is asked to make one: a guest, or a member with no palate. */
 const readerHasNoMap = !isSelf && (!session || (!withParam && !other));
 /** How each side is named: "you" for the reader, a handle for anyone else. */
+/** A made-up person (`sample-people.ts`): their page says so first, and stays out of search. */
+const isSample = (result.status === 'ok' || result.status === 'no-palate') && result.actor.sample === true;
 const subjectWho = isSelf ? publicMap.drinkFromYou : publicMap.title(result.status === 'ok' ? (result.actor.handle ?? result.actor.did) : '');
 const otherWho = other ? (otherIsYou ? publicMap.drinkFromYou : publicMap.title(other.actor.handle ?? other.actor.did)) : '';
 
@@ -164,6 +166,7 @@ const ctaClass =
   title={pageTitle}
   description={description}
   canonical={canonical}
+  noindex={isSample}
   currentPath="/p"
   label={name ? publicMap.title(name) : site.name}
   eyebrow={isSelf ? publicMap.selfEyebrow : publicMap.eyebrow}
@@ -179,6 +182,13 @@ const ctaClass =
     tide={!subject}
   />
 
+  {
+    isSample && (
+      <p role="note" class="mb-6 border-b border-foreground pb-2.5 text-meta text-muted-foreground" data-testid="sample-note">
+        {publicMap.sampleNote}
+      </p>
+    )
+  }
   {result.status === 'ok' && subject && name ? (
     <article class="space-y-10" data-testid="public-map">
       <ScreenHeader title={publicMap.title(name)}>

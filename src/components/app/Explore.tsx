@@ -146,7 +146,6 @@ function ExploreContent({
       head={reveal ? undefined : <CardHead e={e} rateHere={home} />}
       cardRef={card}
       bodyRef={body}
-      overlay={<SearchBox e={e} />}
       map={
         <PalateMap
           ground={e.ground}
@@ -160,6 +159,12 @@ function ExploreContent({
         />
       }
     >
+      {/* The search is the card's first line, but not while rating or on the reveal, which have the card to themselves. */}
+      {!e.rate.request && !reveal && (
+        <div className="pt-3">
+          <SearchBox e={e} />
+        </div>
+      )}
       {content}
     </MapScreen>
   );

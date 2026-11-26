@@ -106,7 +106,7 @@ test('A bar typed in the header opens as a filter on the map, its name in the se
   await page.getByRole('button', { name: new RegExp(compass.pickAt('Attaboy')) }).click();
   await expect(page).toHaveURL(/\/map$/);
   await expect(card(page).getByRole('heading', { name: 'Attaboy' })).toBeVisible();
-  await expect(page.locator('header').getByText('Attaboy')).toBeVisible();
+  await expect(page.locator('#map-search').getByText('Attaboy')).toBeVisible();
   await expect(search(page)).toHaveAttribute('placeholder', explore.searchThisMenu);
   // Leaving the bar puts the whole map back.
   await page.getByRole('button', { name: explore.leave('Attaboy') }).click();

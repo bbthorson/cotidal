@@ -18,13 +18,15 @@ const theMap = (page: import('@playwright/test').Page) => page.locator(`[role="g
 const card = (page: import('@playwright/test').Page) => page.getByRole('region', { name: explore.cardLabel });
 const rating = (page: import('@playwright/test').Page) => page.getByRole('region', { name: ratePage.title });
 
-test('Map: one screen, the search in the header, and one action of its own', async ({ page }) => {
+test('Map: one screen, the search in its card, and one action of its own', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.addInitScript(seed, profile);
   await page.goto('/map');
-  // The header holds the search, between the mark and Menu; there is no bar along the foot.
+  // The search is content, not navigation: the first thing in the card, not in the app bar, which names the page.
   const header = page.locator('header');
-  await expect(header.getByRole('searchbox', { name: compass.searchLabel })).toBeVisible();
+  await expect(header.getByRole('searchbox')).toHaveCount(0);
+  await expect(header.getByTestId('page-name')).toHaveText(nav.map);
+  await expect(card(page).getByRole('searchbox', { name: compass.searchLabel })).toBeVisible();
   await expect(header.locator('summary')).toHaveText(nav.menu);
   await expect(page.locator('footer')).toHaveCount(0);
   await expect(theMap(page)).toBeVisible();
@@ -36,15 +38,14 @@ test('Map: one screen, the search in the header, and one action of its own', asy
   await expect(menuNav.getByRole('link', { name: nav.howItWorks })).toHaveAttribute('href', '/how-it-works');
 });
 
-test('Map: the header search works before the map does, as a plain form', async ({ request }) => {
+test('Map: the search works before the map does, as a plain form drawn by the server', async ({ request }) => {
   const html = await (await request.get('/map?q=negroni')).text();
-  const header = html.slice(html.indexOf('<header'), html.indexOf('</header>'));
-  expect(header).toContain('id="app-search"');
-  expect(header).toContain('action="/map"');
-  expect(header).toContain('value="negroni"');
+  const search = html.slice(html.indexOf('id="map-search"'));
+  expect(search).toContain('action="/map"');
+  expect(search.slice(0, 2000)).toContain('value="negroni"');
   // Only the map has it.
   const drinks = await (await request.get('/drinks')).text();
-  expect(drinks).not.toContain('id="app-search"');
+  expect(drinks).not.toContain('id="map-search"');
 });
 
 test('Map: the server draws the map whole, so it is there before any script runs', async ({ browser }) => {
