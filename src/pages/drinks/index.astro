@@ -2,9 +2,10 @@
 import { getCollection } from 'astro:content';
 import MapPage from '../../layouts/MapPage.astro';
 import { PalateMap } from '../../components/app/PalateMap';
-import { ScreenHeader } from '../../components/app/ui';
+import { ScreenHeader, SectionTitle } from '../../components/app/ui';
 import RegionFilter from '../../components/marketing/RegionFilter.astro';
-import DrinkRow from '../../components/marketing/DrinkRow.astro';
+import { DrinkRow } from '../../components/app/DrinkRow';
+import { formatCoordinate } from '../../lib/coordinate';
 import { site, drinks as copy, explore, quadrants } from '../../lib/copy';
 import { drinkDatabase } from '../../lib/data';
 import { quadrantIdFor, regionPath } from '../../lib/quadrant';
@@ -56,19 +57,16 @@ const grouped = quadrants.map((quadrant) => ({
     {
       grouped.map(({ quadrant, items }) => (
         <section id={quadrant.id}>
-          <div class="flex items-baseline justify-between border-b border-foreground pb-2">
-            <h2 class="font-serif text-heading font-bold text-foreground">
-              <a href={regionPath(quadrant.id)} class="hover:underline hover:underline-offset-4">{quadrant.name}</a>
-            </h2>
-            <span class="label-caps text-secondary">{quadrant.axis}</span>
-          </div>
+          <SectionTitle aside={quadrant.axis}>
+            <a href={regionPath(quadrant.id)} class="hover:underline hover:underline-offset-4">{quadrant.name}</a>
+          </SectionTitle>
           <p class="mt-2 font-serif text-ui italic leading-relaxed text-muted-foreground">{quadrant.gloss}</p>
 
           {items.length === 0 ? (
             <p class="mt-5 font-serif text-ui italic text-muted-foreground">{copy.emptyQuadrant}</p>
           ) : (
-            <ul class="mt-4 border-b border-border">
-              {items.map(({ entry, drink }) => <DrinkRow entry={entry} drink={drink} />)}
+            <ul class="mt-2">
+              {items.map(({ entry, drink }) => <DrinkRow href={`/drinks/${entry.id}`} title={entry.data.title} figure={formatCoordinate(drink.x, drink.y)} note={entry.data.summary} />)}
             </ul>
           )}
         </section>

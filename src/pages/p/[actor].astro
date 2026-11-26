@@ -2,6 +2,7 @@
 import MapPage from '../../layouts/MapPage.astro';
 import { PalateMap } from '../../components/app/PalateMap';
 import { ScreenHeader } from '../../components/app/ui';
+import { DrinkRow } from '../../components/app/DrinkRow';
 import { site, publicMap, coaster, assistants, explore, taste as taste_ } from '../../lib/copy';
 import { formatCoordinate } from '../../lib/coordinate';
 import { readPublicPalate } from '../../lib/atproto/public-read';
@@ -239,23 +240,10 @@ const ctaClass =
             <p class="mt-1 font-serif text-heading font-bold text-foreground">{publicMap.inCommon(comparison.inCommon, TOP)}</p>
             <p class="mt-1 text-meta text-muted-foreground">{publicMap.compareKey(otherWho, otherIsYou)}</p>
           </div>
-          <ul class="divide-y divide-border border-y border-foreground">
-            {pairs.map(({ label, drink }) => {
-              const href = entryHref(drink);
-              return (
-                <li class="dot-leader py-3">
-                  <span class="label-caps text-muted-foreground">{label}</span>
-                  <span class="leader" aria-hidden="true" />
-                  {href ? (
-                    <a href={href} class="font-serif text-plate font-bold text-foreground transition-colors hover:underline hover:underline-offset-4">
-                      {titleFor(drink)}
-                    </a>
-                  ) : (
-                    <span class="font-serif text-plate font-bold text-foreground">{titleFor(drink)}</span>
-                  )}
-                </li>
-              );
-            })}
+          <ul class="border-t border-foreground">
+            {pairs.map(({ label, drink }) => (
+              <DrinkRow href={entryHref(drink) ?? undefined} title={titleFor(drink)} note={label} />
+            ))}
           </ul>
         </section>
       )}
@@ -263,22 +251,10 @@ const ctaClass =
       {menu.length > 0 && (
         <section class="space-y-3" data-testid="their-menu">
           <h2 class="section-title">{publicMap.menuLabel(isSelf)}</h2>
-          <ol class="divide-y divide-border">
-            {menu.map((drink) => {
-              const href = entryHref(drink);
-              return (
-                <li class="py-3">
-                  {href ? (
-                    <a href={href} class="font-serif text-plate font-bold text-foreground transition-colors hover:underline hover:underline-offset-4">
-                      {titleFor(drink)}
-                    </a>
-                  ) : (
-                    <span class="font-serif text-plate font-bold text-foreground">{titleFor(drink)}</span>
-                  )}
-                  <p class="mt-0.5 text-meta text-muted-foreground">{reasonFor(drink)}</p>
-                </li>
-              );
-            })}
+          <ol>
+            {menu.map((drink) => (
+              <DrinkRow href={entryHref(drink) ?? undefined} title={titleFor(drink)} note={reasonFor(drink)} />
+            ))}
           </ol>
         </section>
       )}
@@ -309,23 +285,19 @@ const ctaClass =
           {follows.length > 0 && (
             <>
               <p class="text-meta text-muted-foreground">{publicMap.followsLede}</p>
-              <ul class="divide-y divide-border border-b border-border">
+              <ul class="border-t border-border">
                 {follows.map((f) => (
-                  <li class="py-3">
-                    <a href={f.path} class="group block">
-                      <div class="dot-leader">
-                        <span class="font-serif text-prose font-bold text-foreground group-hover:underline group-hover:underline-offset-4">
-                          @{f.handle}
-                        </span>
-                        <span aria-hidden="true" class="leader" />
-                        <span class="shrink-0 font-condensed text-meta text-secondary">{publicMap.inCommon(f.inCommon, TOP)}</span>
-                      </div>
-                      <p class="mt-0.5 text-meta text-muted-foreground">
+                  <DrinkRow
+                    href={f.path}
+                    title={`@${f.handle}`}
+                    figure={publicMap.inCommon(f.inCommon, TOP)}
+                    note={
+                      <>
                         {f.leans}
                         {f.theirs && <> · {publicMap.followsContrast(titleOf(register, f.theirs))}</>}
-                      </p>
-                    </a>
-                  </li>
+                      </>
+                    }
+                  />
                 ))}
               </ul>
             </>

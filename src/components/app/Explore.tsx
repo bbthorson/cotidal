@@ -26,7 +26,8 @@ import { SearchBox } from './SearchBox';
 import { StartOver } from './StartOver';
 import { TrackFigure } from './TrackFigure';
 import { WaitingPick } from './WaitingPick';
-import { Empty, GuestPrompt } from './ui';
+import { Empty, GuestPrompt, SectionTitle } from './ui';
+import { DrinkRow } from './DrinkRow';
 
 /**
  * The app, on one screen: your map fixed in place as the background, the
@@ -274,25 +275,22 @@ function Home({
       </div>
 
       <section className="mt-2">
-        <div className="flex items-baseline justify-between gap-4 border-b border-foreground pb-1">
-          <h2 className="font-serif text-heading font-bold">{compass.menuTitle}</h2>
-          <span className="text-meta text-muted-foreground">{compass.menuNote}</span>
-        </div>
+        <SectionTitle aside={compass.menuNote}>{compass.menuTitle}</SectionTitle>
         {e.menu.length === 0 ? (
           <Empty>{compass.noDrinks}</Empty>
         ) : (
           <ol>
             {e.menu.map((d, i) => (
-              <li key={d.name} className="border-b border-border">
-                <MenuRow
-                  rank={i + 1}
-                  title={e.name(d.name)}
-                  reason={d.reason}
-                  selected={e.selected === d.name}
-                  onSelect={() => e.chooseDrink(d.name)}
-                  onHover={(on) => e.setHover(on ? d.name : null)}
-                />
-              </li>
+              <DrinkRow
+                key={d.name}
+                rank={i + 1}
+                title={e.name(d.name)}
+                note={d.reason}
+                selected={e.selected === d.name}
+                lead={i === 0}
+                onSelect={() => e.chooseDrink(d.name)}
+                onHover={(on) => e.setHover(on ? d.name : null)}
+              />
             ))}
           </ol>
         )}
@@ -307,16 +305,10 @@ function Home({
 
       {e.barHits.length > 0 && !e.searching && (
         <section className="mt-6">
-          <h2 className="section-title">{compass.yourBars}</h2>
+          <SectionTitle>{compass.yourBars}</SectionTitle>
           <ol>
             {e.barHits.map((b) => (
-              <li key={b.name} className="border-b border-border">
-                <button type="button" onClick={() => e.openBar({ name: b.name })} className="dot-leader min-h-11 w-full py-3 text-left focus-ring-inset">
-                  <span className="font-serif text-prose font-bold text-foreground hover:underline hover:underline-offset-4">{b.name}</span>
-                  <span aria-hidden="true" className="leader" />
-                  <span className="shrink-0 text-meta text-muted-foreground">{compass.barPours(b.pours)}</span>
-                </button>
-              </li>
+              <DrinkRow key={b.name} title={b.name} figure={compass.barPours(b.pours)} onSelect={() => e.openBar({ name: b.name })} />
             ))}
           </ol>
         </section>
@@ -325,7 +317,7 @@ function Home({
       <NearList nearby={e.nearby} onOpen={(b) => e.openBar({ name: b.name, at: { lat: b.lat, lon: b.lon } })} />
 
       <section id="yours" className="mt-8">
-        <h2 className="section-title">{explore.yoursTitle}</h2>
+        <SectionTitle>{explore.yoursTitle}</SectionTitle>
         {e.stats.length > 0 && (
           <dl className={cn('grid border-b border-border', statCols === 3 ? 'grid-cols-3' : 'grid-cols-2')}>
             {e.stats.map((st, i) => (
@@ -345,7 +337,7 @@ function Home({
             <TrackFigure track={e.track} />
           </div>
         )}
-        {e.history.length > 0 && <h3 className="mt-6 font-serif text-heading font-bold">{mapPage.ledgerTitle}</h3>}
+        {e.history.length > 0 && <SectionTitle as="h3" className="mt-6">{mapPage.ledgerTitle}</SectionTitle>}
         <PourLedger
           pours={e.history}
           register={e.register}
@@ -365,47 +357,6 @@ function Home({
         {!e.isMember && <StartOver onConfirm={() => window.location.assign(startOverPath)} flush={signInEnabled && e.history.length > 0} />}
       </section>
     </div>
-  );
-}
-
-/** A drink on your menu: its rank, its name, and what put it there. The first is yours above all, in terracotta. */
-function MenuRow({
-  rank,
-  title,
-  reason,
-  selected,
-  onSelect,
-  onHover,
-}: {
-  rank: number;
-  title: string;
-  reason: string;
-  selected: boolean;
-  onSelect: () => void;
-  onHover: (on: boolean) => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onSelect}
-      onMouseEnter={() => onHover(true)}
-      onMouseLeave={() => onHover(false)}
-      aria-pressed={selected}
-      className="flex min-h-11 w-full items-center gap-3 py-2.5 text-left focus-ring-inset"
-    >
-      <span className="w-4 shrink-0 font-condensed text-meta tabular-nums text-muted-foreground">{rank}</span>
-      <span className="flex min-w-0 flex-1 flex-col">
-        <span
-          className={cn(
-            'font-serif text-prose font-bold transition-colors hover:underline hover:underline-offset-4',
-            selected || rank === 1 ? 'text-primary' : 'text-foreground'
-          )}
-        >
-          {title}
-        </span>
-        <span className="text-meta text-muted-foreground">{reason}</span>
-      </span>
-    </button>
   );
 }
 

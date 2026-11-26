@@ -59,6 +59,42 @@ export function ScreenHeader({
 }
 
 /**
+ * How a section of a card opens, and the only section heading
+ * (docs/design-system.md, One row): serif, ruled in ink under it, with an
+ * optional `aside` at the right (a note, the axis it runs on). A list of
+ * `DrinkRow`s follows it directly.
+ */
+export function SectionTitle({
+  as: Tag = 'h2',
+  id,
+  aside,
+  className,
+  children,
+}: {
+  as?: 'h2' | 'h3';
+  id?: string;
+  aside?: ReactNode;
+  className?: string;
+  children: ReactNode;
+}) {
+  if (aside === undefined) {
+    return (
+      <Tag id={id} className={cn('section-title', className)}>
+        {children}
+      </Tag>
+    );
+  }
+  return (
+    <div className={cn('flex items-baseline justify-between gap-4 border-b border-foreground pb-1.5', className)}>
+      <Tag id={id} className="font-serif text-heading font-bold text-foreground">
+        {children}
+      </Tag>
+      <span className="shrink-0 text-meta text-muted-foreground">{aside}</span>
+    </div>
+  );
+}
+
+/**
  * What a guest is told signing in buys, once, in the place it would keep:
  * a title, a line, and the one sign-in button. Ruled above and below rather
  * than boxed: a screen's one sheet is what is yours, and this is not.

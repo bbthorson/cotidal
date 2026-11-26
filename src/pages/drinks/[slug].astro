@@ -3,7 +3,8 @@ import { getCollection, render } from 'astro:content';
 import type { GetStaticPaths } from 'astro';
 import MapPage from '../../layouts/MapPage.astro';
 import { PalateMap } from '../../components/app/PalateMap';
-import { ScreenHeader } from '../../components/app/ui';
+import { ScreenHeader, SectionTitle } from '../../components/app/ui';
+import { DrinkRow } from '../../components/app/DrinkRow';
 import OnTheRecord from '../../components/marketing/OnTheRecord.astro';
 import Readout from '../../components/marketing/Readout.astro';
 import { formatCoordinate } from '../../lib/coordinate';
@@ -117,7 +118,7 @@ const recipeJsonLd = {
 
     <!-- The build -->
     <section class="pb-8">
-      <h2 class="section-title">{copy.buildLabel}</h2>
+      <SectionTitle>{copy.buildLabel}</SectionTitle>
       {
         d.ingredients.length > 0 && (
           <ul class="border-b border-border">
@@ -158,23 +159,11 @@ const recipeJsonLd = {
     {
       neighbours.length > 0 && (
         <section class="pb-8">
-          <h2 class="section-title">{copy.nearLabel}</h2>
-          <ul class="border-b border-border">
+          <SectionTitle>{copy.nearLabel}</SectionTitle>
+          <ul>
             {neighbours.map((n) => {
               const slug = slugOf.get(n.name);
-              return (
-                <li class="menu-row dot-leader py-2.5 first:border-t-0">
-                  {slug ? (
-                    <a href={`${drinksHref}/${slug}`} class="font-serif text-ui text-foreground hover:underline hover:underline-offset-4">
-                      {n.name}
-                    </a>
-                  ) : (
-                    <span class="font-serif text-ui text-foreground">{n.name}</span>
-                  )}
-                  <span class="leader" aria-hidden="true" />
-                  <span class="shrink-0 font-condensed text-ui tabular-nums text-muted-foreground">{formatCoordinate(n.x, n.y)}</span>
-                </li>
-              );
+              return <DrinkRow href={slug ? `${drinksHref}/${slug}` : undefined} title={n.name} figure={formatCoordinate(n.x, n.y)} />;
             })}
           </ul>
         </section>

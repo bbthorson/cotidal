@@ -7,6 +7,7 @@ import { formatCoordinate } from '@/lib/coordinate';
 import { mapPage, pour } from '@/lib/copy';
 import { cn } from '@/lib/utils';
 import { Empty, Loading } from './ui';
+import { DrinkRow } from './DrinkRow';
 
 interface PourLedgerProps {
   pours: PourRecord[];
@@ -46,13 +47,7 @@ export function PourLedger({ pours, register = {}, empty, loading = false, track
   const firstOff = pours.findIndex((p) => !moves.has(p));
   const startAt = start ? (firstOff < 0 ? pours.length : firstOff) : -1;
   const startRow = start && (
-    <li key="start" className="flex flex-col gap-1.5 border-b border-border py-3.5">
-      <div className="dot-leader">
-        <span aria-hidden="true" className="w-5.5 shrink-0 font-condensed text-meta font-bold text-primary">·</span>
-        <span className="font-serif text-prose font-bold text-foreground">{startLabel}</span>
-      </div>
-      <p className="text-meta text-muted-foreground">{mapPage.startedAt(formatCoordinate(start.x, start.y))}</p>
-    </li>
+    <DrinkRow key="start" rank="·" title={startLabel} note={mapPage.startedAt(formatCoordinate(start.x, start.y))} />
   );
 
   return (
@@ -67,63 +62,47 @@ export function PourLedger({ pours, register = {}, empty, loading = false, track
         return (
           <Fragment key={`${p.createdAt}-${i}`}>
           {i === startAt && startRow}
-          <li className="flex flex-col gap-1.5 border-b border-border py-3.5">
-            <div className="dot-leader">
-              <span className="w-5.5 shrink-0 font-condensed text-meta font-bold tabular-nums text-primary">{pours.length - i}</span>
-              {entry ? (
-                <a
-                  href={`/drinks/${entry.slug}`}
-                  className="font-serif text-prose font-bold text-foreground transition-colors hover:underline hover:underline-offset-4"
-                >
-                  {name}
-                </a>
-              ) : (
-                <span className="font-serif text-prose font-bold text-foreground">{name}</span>
-              )}
-              <span aria-hidden="true" className="leader" />
-              <span className="shrink-0 font-condensed text-ui font-semibold tabular-nums">
-                {pour.scoreOf(p.rating.hedonic)}
-              </span>
-            </div>
-            <p className="flex items-baseline justify-between gap-3 text-meta text-muted-foreground">
-              <span>
-                {where ? `${where} · ` : ''}
-                {when}
-                {' · '}
-                {pour.hedonic[p.rating.hedonic - 1]}
-              </span>
-              {moved !== undefined && (
-                <span className={cn('shrink-0 font-condensed font-bold tabular-nums', moved > 0 ? 'text-foreground' : 'text-muted-foreground')}>
-                  {moved > 0 ? mapPage.movedOf(moved) : mapPage.held}
+          <DrinkRow
+            rank={pours.length - i}
+            title={name}
+            href={entry ? `/drinks/${entry.slug}` : undefined}
+            figure={pour.scoreOf(p.rating.hedonic)}
+            note={
+              <span className="flex items-baseline justify-between gap-3">
+                <span>
+                  {where ? `${where} · ` : ''}
+                  {when}
+                  {' · '}
+                  {pour.hedonic[p.rating.hedonic - 1]}
                 </span>
-              )}
-            </p>
+                {moved !== undefined && (
+                  <span className={cn('shrink-0 font-condensed font-bold tabular-nums', moved > 0 ? 'text-foreground' : 'text-muted-foreground')}>
+                    {moved > 0 ? mapPage.movedOf(moved) : mapPage.held}
+                  </span>
+                )}
+              </span>
+            }
+          >
             {p.deviations && p.deviations.length > 0 && (
-              <ul className="flex flex-wrap gap-1.5">
+              <span className="mt-1 flex flex-wrap gap-1.5">
                 {p.deviations.map((dev) => (
-                  <li
-                    key={dev}
-                    className="tag"
-                  >
+                  <span key={dev} className="tag">
                     {pour.deviations[dev as Deviation] ?? dev}
-                  </li>
+                  </span>
                 ))}
-              </ul>
+              </span>
             )}
             {p.cata && p.cata.length > 0 && (
-              <ul className="flex flex-wrap gap-1.5">
+              <span className="mt-1 flex flex-wrap gap-1.5">
                 {p.cata.map((desc) => (
-                  <li
-                    key={desc}
-                    className="tag"
-                  >
+                  <span key={desc} className="tag">
                     {pour.cata[desc as CataNote] ?? desc}
-                  </li>
+                  </span>
                 ))}
-              </ul>
+              </span>
             )}
-            {p.note && <p className="font-serif text-ui italic text-foreground">“{p.note}”</p>}
-          </li>
+            {p.note && <span className="mt-1 font-serif text-ui italic text-foreground">“{p.note}”</span>}
+          </DrinkRow>
           </Fragment>
         );
       })}

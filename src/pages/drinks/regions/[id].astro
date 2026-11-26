@@ -3,9 +3,10 @@ import { getCollection, getEntry, render } from 'astro:content';
 import type { GetStaticPaths } from 'astro';
 import MapPage from '../../../layouts/MapPage.astro';
 import { PalateMap } from '../../../components/app/PalateMap';
-import { ScreenHeader } from '../../../components/app/ui';
+import { ScreenHeader, SectionTitle } from '../../../components/app/ui';
 import RegionFilter from '../../../components/marketing/RegionFilter.astro';
-import DrinkRow from '../../../components/marketing/DrinkRow.astro';
+import { DrinkRow } from '../../../components/app/DrinkRow';
+import { formatCoordinate } from '../../../lib/coordinate';
 import OnTheRecord from '../../../components/marketing/OnTheRecord.astro';
 import { site, quadrants, regionPage as copy, share, explore, drinks } from '../../../lib/copy';
 import { drinksHref } from '../../../lib/site-nav';
@@ -69,15 +70,15 @@ const shared = sharedIngredients(placed.map(({ entry }) => entry.data));
 
   <!-- The drinks: what the filter is for -->
   <section class="mt-8">
-    <ul class="border-b border-border">
-      {placed.map(({ entry: drinkEntry, drink }) => <DrinkRow entry={drinkEntry} drink={drink} />)}
+    <ul class="border-t border-foreground">
+      {placed.map(({ entry: drinkEntry, drink }) => <DrinkRow href={`/drinks/${drinkEntry.id}`} title={drinkEntry.data.title} figure={formatCoordinate(drink.x, drink.y)} note={drinkEntry.data.summary} />)}
     </ul>
     <p class="mt-3 font-serif text-ui italic leading-relaxed text-muted-foreground">{copy.placedNote}</p>
   </section>
 
   <!-- Then the region itself -->
-  <article class="mt-12 border-t border-foreground pt-8">
-    <h2 class="font-serif text-heading font-bold text-foreground">{copy.aboutLabel(region.name)}</h2>
+  <article class="mt-12">
+    <SectionTitle>{copy.aboutLabel(region.name)}</SectionTitle>
 
     {
       Content && (
@@ -95,7 +96,7 @@ const shared = sharedIngredients(placed.map(({ entry }) => entry.data));
     {
       shared.length > 0 && (
         <section class="pb-10">
-          <h3 class="section-title">{copy.sharedLabel}</h3>
+          <SectionTitle as="h3">{copy.sharedLabel}</SectionTitle>
           <ul class="border-b border-border">
             {shared.map((ingredient) => (
               <li class="menu-row dot-leader py-2.5 first:border-t-0">

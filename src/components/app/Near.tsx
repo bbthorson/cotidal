@@ -1,7 +1,8 @@
 import { formatDistance, type OsmBar } from '@/lib/osm';
 import type { Nearby } from '@/hooks/useNearby';
 import { compass, explore } from '@/lib/copy';
-import { Empty } from './ui';
+import { Empty, SectionTitle } from './ui';
+import { DrinkRow } from './DrinkRow';
 
 /**
  * Bars near you, in the map's card: a list, not a street map — a bar is found
@@ -14,22 +15,14 @@ export function NearList({ nearby, onOpen }: { nearby: Nearby; onOpen: (bar: Osm
   const { status, bars, locate } = nearby;
   return (
     <section aria-label={explore.barsNear} className="mt-6">
-      <h2 className="section-title">{explore.barsNear}</h2>
+      <SectionTitle>{explore.barsNear}</SectionTitle>
       {status === 'ready' ? (
         bars.length === 0 ? (
           <Empty>{compass.noneNear}</Empty>
         ) : (
           <ol>
             {bars.slice(0, 8).map((b) => (
-              <li key={b.id} className="border-b border-border">
-                <button type="button" onClick={() => onOpen(b)} className="dot-leader min-h-11 w-full py-3 text-left focus-ring-inset">
-                  <span className="font-serif text-prose font-bold text-foreground transition-colors hover:underline hover:underline-offset-4">
-                    {b.name}
-                  </span>
-                  <span aria-hidden="true" className="leader" />
-                  <span className="shrink-0 text-meta tabular-nums text-muted-foreground">{formatDistance(b.distance)}</span>
-                </button>
-              </li>
+              <DrinkRow key={b.id} title={b.name} figure={formatDistance(b.distance)} onSelect={() => onOpen(b)} />
             ))}
           </ol>
         )
