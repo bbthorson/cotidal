@@ -70,8 +70,10 @@ test('Map: with no coordinate the card asks one thing, and the search still find
   await page.getByRole('searchbox', { name: compass.searchLabel }).fill('negroni');
   await expect(page.locator('[data-result]').first()).toContainText('Negroni');
   await page.keyboard.press('Escape');
+  // The questions open in the card, in place: no page of their own.
   await card(page).getByRole('link', { name: coldState.quizCta }).click();
-  await expect(page).toHaveURL(/\/questions$/);
+  await expect(page).toHaveURL(/\/map$/);
+  await expect(card(page).getByRole('group', { name: a11y.answerOptions })).toBeVisible();
 });
 
 test('Map: your menu says what put each drink there, and a drink opens in the card', async ({ page }) => {

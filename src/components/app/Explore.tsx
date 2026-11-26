@@ -4,7 +4,9 @@ import type { PourRecord } from '@/lib/atproto/records';
 import { chart, compass, explore, mapPage, pour, taste } from '@/lib/copy';
 import { formatCoordinate } from '@/lib/coordinate';
 import { quadrantFor } from '@/lib/quadrant';
-import { publicMapPath, startOverPath } from '@/lib/atproto/paths';
+import { publicMapPath, QUIZ_PARAM, START_OVER_PARAM, startOverPath } from '@/lib/atproto/paths';
+import { takeParam } from '@/lib/url-params';
+import type { AxisBelief } from '@/lib/belief-state';
 import { drinksHref, questionsHref } from '@/lib/site-nav';
 import type { Register } from '@/lib/register';
 import { neutralProfile } from '@/lib/guest-palate';
@@ -12,6 +14,7 @@ import { useExplore, type Explore as ExploreState } from '@/hooks/useExplore';
 import { cn } from '@/lib/utils';
 import { AtprotoProvider, useAtprotoContext } from './AtprotoProvider';
 import { ColdState } from './ColdState';
+import { QuizCard } from './QuizCard';
 import { MenuView } from './MenuView';
 import { NearList } from './Near';
 import { MapScreen } from './MapScreen';
@@ -53,11 +56,41 @@ function ExploreContent({
   const card = useRef<HTMLElement>(null);
   const [reveal, setReveal] = useState(false);
 
+  // The questions, as a state of the card (`?quiz=1`): asked for on arrival, or by Find your coordinate here.
+  // Someone who already has a coordinate goes straight on — to the drink they came from, if any — unless they
+  // came to start over (`?startover=1`), which forgets this device's copy first.
+  const [quiz, setQuiz] = useState(false);
+  const [quizShoal, setQuizShoal] = useState<Record<'x' | 'y', AxisBelief> | null>(null);
+  const [quizPoint, setQuizPoint] = useState<{ x: number; y: number } | null>(null);
+  const startOver = useRef(false);
+  const [quizAnswered, setQuizAnswered] = useState(false);
+  const markAnswered = useCallback(() => setQuizAnswered(true), []);
+  useEffect(() => {
+    const over = takeParam(START_OVER_PARAM);
+    if (!takeParam(QUIZ_PARAM) && !over) return;
+    startOver.current = over;
+    if (over) e.forgetProfile();
+    setQuiz(true);
+    // Arrival only.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  // A coordinate that arrives while the questions wait (this device's, or a member's account's) answers them.
+  useEffect(() => {
+    if (quiz && e.profile && !startOver.current && !quizAnswered) setQuiz(false);
+  }, [quiz, e.profile, quizAnswered]);
+  const closeQuiz = useCallback(() => {
+    setQuiz(false);
+    setQuizShoal(null);
+    setQuizPoint(null);
+    setQuizAnswered(false);
+    startOver.current = false;
+  }, []);
+
   // A different card starts from its top. On a phone the card is the page's scroll: something about a place on
   // the map (a drink, a bar, back to where to next) scrolls back to the top, so the map shows and pushes the card
   // down; rating scrolls the card up to the top of the screen, where it has the room (`e.up`). From `lg` the card
   // is a panel that scrolls on its own, and starts from its top.
-  const cardKey = e.rate.request ? 'rate' : e.selectedDrink ? `drink:${e.selected}` : e.venue ? `bar:${e.venue.name ?? ''}` : 'home';
+  const cardKey = quiz ? 'quiz' : e.rate.request ? 'rate' : e.selectedDrink ? `drink:${e.selected}` : e.venue ? `bar:${e.venue.name ?? ''}` : 'home';
   const cardUp = e.up || !!e.rate.request;
   const arrived = useRef(false);
   useEffect(() => {
@@ -85,7 +118,20 @@ function ExploreContent({
   const pins = e.venue ? e.ranked.map((r, i) => ({ drink: r.drink, rank: i + 1 })) : null;
 
   let content;
-  if (e.rate.request) {
+  if (quiz) {
+    content = (
+      <QuizCard
+        onShoal={setQuizShoal}
+        onPoint={setQuizPoint}
+        onAnswered={markAnswered}
+        onDone={(finished) => {
+          e.setProfile(finished);
+          closeQuiz();
+        }}
+        onSkip={closeQuiz}
+      />
+    );
+  } else if (e.rate.request) {
     content = (
       <RatePanel
         request={e.rate.request}
@@ -100,7 +146,7 @@ function ExploreContent({
       />
     );
   } else if (e.selectedDrink) {
-    content = <DrinkPanel e={e} drink={e.selectedDrink} />;
+    content = <DrinkPanel e={e} drink={e.selectedDrink} onQuiz={() => setQuiz(true)} />;
   } else if (e.venue) {
     content = (
       <MenuView
@@ -124,6 +170,7 @@ function ExploreContent({
   } else if (e.cold) {
     content = (
       <ColdState
+        onQuiz={() => setQuiz(true)}
         onSignIn={openSignIn}
         onGuest={() => {
           e.setProfile(neutralProfile);
@@ -139,12 +186,15 @@ function ExploreContent({
     <MapScreen
       bar={bar}
       label={explore.cardLabel}
-      tone={reveal ? 'reveal' : 'card'}
+      tone={reveal || quizPoint ? 'reveal' : 'card'}
+      rest={quiz ? 'tall' : 'standard'}
       cardRef={card}
       bodyRef={body}
       map={
         <PalateMap
-          ground={e.ground}
+          ground={quiz ? null : e.ground}
+          shoal={quizShoal ? { x: quizShoal.x.mean, y: quizShoal.y.mean, rx: Math.sqrt(quizShoal.x.variance), ry: Math.sqrt(quizShoal.y.variance) } : null}
+          points={quizPoint ? [{ ...quizPoint, label: chart.youIn(quadrantFor(quizPoint.x, quizPoint.y).name), tone: 'yours' }] : undefined}
           ratings={ratings}
           pins={pins}
           emptyBar={!!e.venue && e.ranked.length === 0}
@@ -153,7 +203,7 @@ function ExploreContent({
           onSelect={e.chooseDrink}
           name={e.name}
           caption={
-            e.leanings.length > 0 ? (
+            quiz ? undefined : e.leanings.length > 0 ? (
               <>
                 <span className="label-caps">{taste.label} </span>
                 <span className="font-serif text-ui italic text-primary">{taste.phrases(e.leanings)}</span>
@@ -165,8 +215,8 @@ function ExploreContent({
         />
       }
     >
-      {/* The search is the card's first line, but not while rating or on the reveal, which have the card to themselves. */}
-      {!e.rate.request && !reveal && (
+      {/* The search is the card's first line, but not during the questions, rating or a reveal, which have the card to themselves. */}
+      {!quiz && !e.rate.request && !reveal && (
         <div className="pt-3">
           <SearchBox e={e} />
         </div>
@@ -350,7 +400,7 @@ function MenuRow({
  * you, your last pour of it, what shares its spot, and the two things to do —
  * rate it (in the card) or keep it as your pick.
  */
-function DrinkPanel({ e, drink }: { e: ExploreState; drink: Drink }) {
+function DrinkPanel({ e, drink, onQuiz }: { e: ExploreState; drink: Drink; onQuiz: () => void }) {
   const region = quadrantFor(drink.x, drink.y);
   const last: PourRecord | undefined = e.lastPour.get(drink.name);
   const lastLine = last
@@ -400,7 +450,15 @@ function DrinkPanel({ e, drink }: { e: ExploreState; drink: Drink }) {
       <div className="mt-4 flex flex-col gap-3">
         {e.cold ? (
           <>
-            <a href={questionsHref} className="btn btn-primary w-full">
+            <a
+              href={questionsHref}
+              onClick={(ev) => {
+                // In place: the drink stays open, and is where the questions finish.
+                ev.preventDefault();
+                onQuiz();
+              }}
+              className="btn btn-primary w-full"
+            >
               {chart.findYours}
             </a>
             <button type="button" onClick={() => e.rate.open({ drink: drink.name })} className="btn btn-outline w-full">

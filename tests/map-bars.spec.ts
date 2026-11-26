@@ -31,7 +31,7 @@ const search = (page: Page) => page.getByRole('searchbox', { name: compass.searc
 test('A menu: with no coordinate, it says what it needs', async ({ page }) => {
   await page.goto('/map?menu=1');
   await expect(page.getByText(menu.coldBody)).toBeVisible();
-  await expect(page.getByRole('link', { name: compass.findYours })).toHaveAttribute('href', '/questions');
+  await expect(page.getByRole('link', { name: compass.findYours })).toHaveAttribute('href', '/map?quiz=1');
 });
 
 test('A menu with a bar: pinned on the map, ranked in the card, picked — then the pick waits and rating opens a draft', async ({ page }) => {

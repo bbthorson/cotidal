@@ -11,11 +11,14 @@ import { ScreenHeader } from './ui';
  */
 export function ColdState({
   eyebrow,
+  onQuiz,
   onSignIn,
   onGuest,
 }: {
   /** What the sheet is, where no tab already says it (the rating sheet). */
   eyebrow?: string;
+  /** Open the questions in place, on the map (`?quiz=1` is the same, as a link). */
+  onQuiz?: () => void;
   onSignIn: () => void;
   onGuest: () => void;
 }) {
@@ -24,7 +27,15 @@ export function ColdState({
   return (
     <div className="pb-10 pt-4">
       <ScreenHeader eyebrow={eyebrow} title={coldState.title} lede={coldState.body} />
-      <a href={questionsHref} className="btn btn-primary w-full">
+      <a
+        href={questionsHref}
+        onClick={(ev) => {
+          if (!onQuiz) return;
+          ev.preventDefault();
+          onQuiz();
+        }}
+        className="btn btn-primary w-full"
+      >
         {coldState.quizCta}
       </a>
       <p className="mt-3 flex flex-wrap items-center justify-center gap-x-2 text-muted-foreground">

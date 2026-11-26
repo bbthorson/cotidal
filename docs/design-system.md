@@ -141,7 +141,7 @@ Navigation is unified across the site through two bars and a footer, all rendere
    - a guest sees **Sign in** (on a phone, inside Menu);
    - a prerendered page (`/drinks`, `/drinks/regions/*`) was built before anyone visited, so it says **Account** (also `/settings`, which sends a guest to `/sign-in`) rather than guess.
    - on an app page, **Sign in** opens the one sign-in sheet in place (`?signin=1`, handled by `AtprotoProvider`) rather than leaving for a page. On every other page it goes to `/sign-in`, which renders a plain form post and progressively enhances it with `<bsky-sign-in>`.
-4. **Footer**: the visible reading pages only — How it works and For Bars for guests, plus Drinks for signed-in members (`footer: true` and `isVisibleDestination` in `site-nav.ts`). The map and the account are always in the bar. The app screens (`/map`, `/questions`) have no footer (`AppShell`'s `app`): they fill the window, and the app bar carries the visible reading pages instead.
+4. **Footer**: the visible reading pages only — How it works and For Bars for guests, plus Drinks for signed-in members (`footer: true` and `isVisibleDestination` in `site-nav.ts`). The map and the account are always in the bar. The app screen (`/map`) has no footer: the app bar carries the visible reading pages instead.
 5. **Active State Indicators**: Routes are identified via `currentPath` and styled as a tab: bold ink over a 3px `foreground` rule from `lg`, bold alone in the phone's folded menu.
 6. **Sub-Route Navigation**: In `/drinks/[slug]`, the header supports a semantic `backLink` while retaining global site navigation.
 7. **Phones**: on every page the bar is wordmark · Menu — one control, so it reads the same wherever you are; on `/map` the search takes the wordmark's place. Menu opens three groups: the map, the visible reading pages a drinker reads (`menu` in `destinations`: How it works, plus Drinks for members), and the account last, under an ink rule (Sign in, `@handle · Settings →`, or Account). "Menu" is a `<details>` that opens the same `<nav>` through `peer-open`, so `/` still ships no JavaScript.
@@ -158,8 +158,8 @@ Navigation is unified across the site through two bars and a footer, all rendere
 ## One kind of page
 
 Every page a person visits is the map and its card (`MapScreen.tsx`):
-`MapPage.astro` for a page with no script, and the two app screens, `/map`
-and `/questions`, as islands. A new page does not lay itself out; it says
+`MapPage.astro` for a page with no script, and the app screen, `/map`, an
+island whose card also runs the questions (`/map?quiz=1`). A new page does not lay itself out; it says
 what the map draws and what the card holds:
 
 - **The map** is a `PalateMap`: a drink marked, a region washed, someone's
@@ -186,7 +186,7 @@ what the map draws and what the card holds:
 - **Every page behaves the same.** On a phone the map stays at the top as
   the page scrolls the card up over it, and the app bar sticks to the top of
   the screen once it gets there; from `lg` the card is a panel that scrolls
-  on its own. `/map` and `/questions` too: there is no dragged card. On
+  on its own. `/map` too: there is no dragged card. On
   `/map` a tap on something that is a place on the map (a drink, a bar, back
   to where to next) scrolls back to the top, so the map shows and pushes the
   card down; rating scrolls the card up to the top of the screen.
@@ -204,15 +204,15 @@ the page's reading order, and CSS draws the map above it.
 
 ## The app as a chart
 
-The screens show what the model already knows instead of describing it: your terrain on the map (where your answers and ratings are high and low, and how sure), what put each drink where it stands, your track in the card, how far a pour moved you after it, and the shoal narrowing on the map while the questions run in the card over it (`PalateMap`'s `shoal`, drawn by `Questions.tsx`: the quiz's best guess, one standard deviation across on each axis). The question's stage is its eyebrow; there is no row of stages at the foot, because after the four fixed openers the questions do not come in stage order.
+The screens show what the model already knows instead of describing it: your terrain on the map (where your answers and ratings are high and low, and how sure), what put each drink where it stands, your track in the card, how far a pour moved you after it, and the shoal narrowing on the map while the questions run in the card over it (`PalateMap`'s `shoal`, reported by `QuizCard.tsx`: the quiz's best guess, one standard deviation across on each axis). The question's stage is its eyebrow; there is no row of stages at the foot, because after the four fixed openers the questions do not come in stage order.
 
 **Signed out is one thing per screen.** A stranger is asked to do one thing: find their coordinate. A guest with a coordinate sees what a member sees; what signing in keeps is said once, at the foot of Your map, after the first pour — the first moment it would keep something.
 
 **Which way and how far, never a predicted score.** The filter's hedonic prediction sits near 9 for any drink close to you (see `applyPour`), so the interface does not show it as a forecast. Direction words are the axes' own: richer or crisper, sweeter or more savory.
 
-## The first-visit flow (`/questions`)
+## The first-visit flow (`/map?quiz=1`)
 
-Questions → reveal → the map. The questions run in the card over the map (`Questions.tsx` on `MapScreen`): the shoal narrows on the map as they are answered, and when they finish the point settles there while the card turns to the reveal on its ink ground. On a phone the header steps aside (`data-focus-mode`) and the map gives the card room (`rest="tall"`). From a drink's page (`/questions?drink=<slug>`) they finish on that drink on the map. Someone who already has a coordinate is sent on to the map — the landing page's "Find your coordinate" is the same link for everyone — unless they came to start over (`/questions?startover=1`, from `/settings` for members or the foot of the map's card for guests), which clears the device's copy first. Skipping goes to the map, whose card says there is no position yet and offers the questions first, rather than ranking drinks around a point nobody chose; the search works all the same.
+Questions → reveal → the map. The questions are a state of the map's card, never a page (`QuizCard.tsx` in `Explore.tsx`; `?quiz=1` asks for them on arrival, and Find your coordinate on the map opens them in place): the shoal narrows on the map as they are answered, and when they finish the point settles there while the card turns to the reveal on its ink ground. On a phone the header steps aside (`data-focus-mode`) and the map gives the card room (`rest="tall"`). From a drink's page (`/map?drink=<slug>&quiz=1`) they finish on that drink, which is already open behind them. Someone who already has a coordinate goes straight on — the landing page's "Find your coordinate" is the same link for everyone — unless they came to start over (`/map?quiz=1&startover=1`, from `/settings` for members or the foot of the map's card for guests), which clears the device's copy first. Skipping goes to the map, whose card says there is no position yet and offers the questions first, rather than ranking drinks around a point nobody chose; the search works all the same.
 
 Sign-in is offered where it would keep something, as one sheet (`SignInSheet.tsx`, mounted once by `AtprotoProvider`, backed by `createSignInController` with remembered accounts, handle typeahead and in-flow account creation); the sign-in page (`ConnectForm.astro`, `/sign-in`) mirrors it via `<bsky-sign-in>` progressive enhancement over a plain form post, followed by `connect.buys` and `Principles`. The radar chart, the archetypes and the Oracle tab are retired from the interface; the region is the only identity.
 

@@ -98,7 +98,7 @@ test('Drinks: a drink entry has Recipe structured data and one way to compare it
   const html = await (await page.request.get('/drinks/absinthe-drip')).text();
   expect(html).toContain('"@type":"Recipe"');
   // One link for a member and a stranger alike: the questions go straight on to the drink on your map if you have a coordinate.
-  expect(html).toContain('href="/questions?drink=absinthe-drip"');
+  expect(html).toContain('href="/map?drink=absinthe-drip&amp;quiz=1"');
   expect(html).toContain(drinks.compareCta);
 });
 
@@ -155,7 +155,7 @@ test('Sign in: works without JavaScript, from its own page', async ({ browser })
   await page.goto('/');
   await expect(page.getByRole('link', { name: /find your coordinate/i })).toHaveAttribute(
     'href',
-    '/questions'
+    '/map?quiz=1'
   );
   await context.close();
 });

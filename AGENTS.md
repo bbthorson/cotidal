@@ -17,8 +17,8 @@ follow: a server-read follows list and a plain GET form). `/sign-in` renders a p
 with JavaScript off and progressively enhances it via `<bsky-sign-in>` (zero
 React). `/` asks one thing — find your coordinate — and keeps nothing else:
 pulled up, its card says how it works and links to sign-in, which is its own
-page. The app is one screen, `/map`; it and `/questions`
-mount React islands.
+page. The app is one screen, `/map`, the one React island; the questions are
+a state of its card (`/map?quiz=1`, `QuizCard.tsx`), never a page.
 
 The whole app was previously one `client:only` island, so nothing painted
 until ~860 KB of JavaScript had downloaded and hydrated — on every route,
@@ -37,7 +37,7 @@ landing page included. Astro was being used as a slower Next.js.
   reading pages, then the account), and from `lg` a row of tabs under the
   account control (`accountControl` in `site-nav.ts`). `Drinks` (`/drinks`) is `memberOnly` in `site-nav.ts`, so unauthenticated
   visitors on `/` are not sent there from the header or footer; drink pages stay
-  live for SEO/AEO and link back to `/map?drink=<slug>` and `/questions`. On `/map`
+  live for SEO/AEO and link back to `/map?drink=<slug>` and the questions (`/map?quiz=1`). On `/map`
   the bar names the page like any other ("Map"); the search is content, the
   first thing in the card (`SearchBox.tsx`: drawn by the island on the server
   as a plain GET form to `/map?q=`, so it works before the island does). The
@@ -293,7 +293,7 @@ An Astro content collection behind `/drinks`, prerendered and script-free.
 Drink pages are built for SEO/AEO rather than homepage discovery by
 unauthenticated visitors (`memberOnly: true` in `site-nav.ts`): each
 `/drinks/<slug>` page emits Schema.org `Recipe` JSON-LD and a compare-to-palate
-section whose one link, `/questions?drink=<slug>` (`questionsForDrink`), places
+section whose one link, `/map?drink=<slug>&quiz=1` (`questionsForDrink`), places
 a stranger and then opens the drink on their map — or, for anyone with a
 coordinate already, goes straight to `/map?drink=<slug>`.
 Every drinks page is a map page (`MapPage.astro`): the map with the drink

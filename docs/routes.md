@@ -82,7 +82,7 @@ The reading path is primarily an SEO/AEO entry point (not linked from the
 homepage chrome for unauthenticated visitors; `memberOnly: true` on `/drinks`
 in `site-nav.ts`). Each `/drinks/<slug>` page carries Schema.org `Recipe`
 structured data alongside the prose and a **Your palate** section linking to
-`/map?drink=<slug>` and `/questions` so readers arriving from search or chat
+`/map?drink=<slug>` and the questions (`/map?quiz=1`) so readers arriving from search or chat
 assistants can compare the drink directly against their palate.
 
 ## The return visit

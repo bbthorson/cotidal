@@ -46,7 +46,7 @@ export function useExplore(
   initialQuery = ''
 ) {
   const isMember = !!member;
-  const [profile, setProfile] = useProfile(isMember);
+  const [profile, setProfile, forgetProfile] = useProfile(isMember);
   const { pours, reload } = usePours(isMember);
   const history = useMemo(() => pours ?? [], [pours]);
   const rate = useRateSheet();
@@ -213,6 +213,7 @@ export function useExplore(
     isMember,
     profile,
     setProfile,
+    forgetProfile,
     pours,
     history,
     reload,

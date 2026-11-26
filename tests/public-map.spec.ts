@@ -14,7 +14,7 @@ test('Public map route: an unknown actor is a 404 page, not an error', async ({ 
   expect(res.status()).toBe(404);
   const html = await res.text();
   expect(html).toContain(publicMap.notFoundTitle);
-  expect(html).toContain('href="/questions"');
+  expect(html).toContain('href="/map?quiz=1"');
   expect(html).toContain('aria-label="Main navigation"');
 });
 

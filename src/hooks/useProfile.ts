@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useState } from 'react';
 import type { UserProfile } from '@/hooks/useDiscoveryQuiz';
 import { flushPendingElicitation, getConnectedPalate, publishPalate } from '@/lib/api-client';
-import { loadProfile, saveProfile } from '@/lib/device-store';
+import { clearProfile, loadProfile, saveProfile } from '@/lib/device-store';
 
 /**
  * Your coordinate, from wherever it lives: the device for a guest, the
@@ -53,5 +53,11 @@ export function useProfile(member: boolean) {
     saveProfile(next);
   }, []);
 
-  return [profile, update] as const;
+  /** Forget this device's coordinate, to start over (`?startover=1`). An account's is replaced only when a new one is published. */
+  const forget = useCallback(() => {
+    clearProfile();
+    setProfile(null);
+  }, []);
+
+  return [profile, update, forget] as const;
 }

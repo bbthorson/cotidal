@@ -70,10 +70,12 @@ are the layout of the whole site, not only of `/map`.
 6. **Settings stays a page of its own**: forms that post to the server and
    the account's destructive actions, nothing that is a place on the map.
 
+The questions are a state of `/map`'s card (`?quiz=1`), not a page: `/questions` is gone.
+
 Built so far: the server-drawn map and `MapScreen`, on `/map`; the drink
 pages, `/drinks` and the region filters, on `MapPage.astro`, each drawing the
 map with no script. A drink's page has one action, See where it sits for you
-(`/questions?drink=<slug>`), which goes on to the drink on your map. The
+(`/map?drink=<slug>&quiz=1`), which goes on to the drink on your map. The
 front door: the sample palate (`sample-palate.ts`: the start, then a 9, a 3,
 a 9 and two 8s, ending on two hills), six frames of the real terrain worked
 out on the server and cycled by CSS (`.tide-frame`), the last one held for
