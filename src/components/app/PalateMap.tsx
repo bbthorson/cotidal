@@ -76,6 +76,7 @@ export function PalateMap({
   name = (n) => n,
   label = explore.mapLabel,
   shoal = null,
+  trail = null,
   points,
   against = null,
   caption,
@@ -114,6 +115,11 @@ export function PalateMap({
    * answers agree and stays wide when they do not.
    */
   shoal?: { x: number; y: number; rx: number; ry: number } | null;
+  /**
+   * How far a pour just moved you: a line from where you were (a ring) to
+   * where you are, drawn under the point (`points`) that marks the end.
+   */
+  trail?: { from: { x: number; y: number }; to: { x: number; y: number } } | null;
   /**
    * People as points: the one the questions placed, settling when they
    * finish; someone's public map, and yours beside it. Terracotta is yours,
@@ -229,6 +235,21 @@ export function PalateMap({
             strokeDasharray="4 3"
             vectorEffect="non-scaling-stroke"
           />
+        )}
+
+        {trail && (
+          <g data-trail="" className="stroke-primary" fill="none">
+            <line
+              x1={trail.from.x}
+              y1={-trail.from.y}
+              x2={trail.to.x}
+              y2={-trail.to.y}
+              strokeWidth={2}
+              strokeDasharray="5 4"
+              vectorEffect="non-scaling-stroke"
+            />
+            <circle cx={trail.from.x} cy={-trail.from.y} r={0.32} strokeWidth={2} className="fill-card" vectorEffect="non-scaling-stroke" />
+          </g>
         )}
 
         {children}

@@ -203,8 +203,9 @@ tools answering with these links.
 the search box; the card rests in the space below it, so at rest nothing
 covers the map. From `lg` the card is a panel down the left and the plane
 fills the rest. The ground beyond the plane carries the same graticule to
-the screen's edges. It is drawn as `CoordinateMap` draws it now: the four
-regions named in italic, the axis words, the shoal and your track. Labels
+the screen's edges. It carries the four regions named in italic, the axis
+words, the shoal while the questions run, and a pour's move after it is
+rated (a trail from where you were to your point). Labels
 are placed by priority (the selected drink, a bar's pins, your pours, the
 drinks nearest you) and dropped where they would overlap.
 
@@ -366,8 +367,8 @@ screen is a hook and a drawing" (AGENTS.md):
 New:
 
 - **The map** (`PalateMap`) for the app page: fixed, sized to the space the
-  search and the resting card leave, tappable. `CoordinateMap` stays for the
-  static pictures (`/p/<handle>`, the reveal, the questions' shoal).
+  search and the resting card leave, tappable, and the only map: `/p/<handle>`, both reveals and the
+  questions' shoal are drawn on it (`CoordinateMap` is gone).
 - **Label placement** as a pure module with unit tests: priority, collision,
   and fanning out a bar's pins that share a coordinate (the Daiquiri and the
   Southside are both at +7, +5).

@@ -4,6 +4,7 @@ import type { PourRecord } from '@/lib/atproto/records';
 import { chart, compass, drinks, explore, mapPage, pour, taste } from '@/lib/copy';
 import { formatCoordinate } from '@/lib/coordinate';
 import { quadrantFor, regionPath } from '@/lib/quadrant';
+import { matchDrink } from '@/lib/drink-match';
 import { publicMapPath, QUIZ_PARAM, START_OVER_PARAM, startOverPath } from '@/lib/atproto/paths';
 import { takeParam } from '@/lib/url-params';
 import type { AxisBelief } from '@/lib/belief-state';
@@ -20,7 +21,7 @@ import { NearList } from './Near';
 import { MapScreen } from './MapScreen';
 import { PalateMap } from './PalateMap';
 import { PourLedger } from './PourLedger';
-import { RatePanel } from './RatePanel';
+import { RatePanel, type PourMove } from './RatePanel';
 import { SearchBox } from './SearchBox';
 import { StartOver } from './StartOver';
 import { TrackFigure } from './TrackFigure';
@@ -55,7 +56,9 @@ function ExploreContent({
   const { isEnabled, openSignIn } = useAtprotoContext();
   const body = useRef<HTMLDivElement>(null);
   const card = useRef<HTMLElement>(null);
-  const [reveal, setReveal] = useState(false);
+  // How a pour just moved you, while the reveal has the card: the map draws it (`RatePanel`).
+  const [moved, setMoved] = useState<PourMove | null>(null);
+  const reveal = !!moved;
 
   // The questions, as a state of the card (`?quiz=1`): asked for on arrival, or by Find your coordinate here.
   // Someone who already has a coordinate goes straight on — to the drink they came from, if any — unless they
@@ -104,8 +107,9 @@ function ExploreContent({
   // the map (a drink, a bar, back to where to next) scrolls back to the top, so the map shows and pushes the card
   // down; rating scrolls the card up to the top of the screen, where it has the room (`e.up`). From `lg` the card
   // is a panel that scrolls on its own, and starts from its top.
-  const cardKey = quiz ? 'quiz' : e.rate.request ? 'rate' : e.selectedDrink ? `drink:${e.selected}` : e.venue ? `bar:${e.venue.name ?? ''}` : 'home';
-  const cardUp = e.up || !!e.rate.request;
+  const cardKey = quiz ? 'quiz' : e.rate.request ? (moved ? 'moved' : 'rate') : e.selectedDrink ? `drink:${e.selected}` : e.venue ? `bar:${e.venue.name ?? ''}` : 'home';
+  // The reveal after a pour scrolls back down to the map, which draws the move.
+  const cardUp = !moved && (e.up || !!e.rate.request);
   const arrived = useRef(false);
   useEffect(() => {
     // The first card is where the page already is: nothing to scroll to.
@@ -122,7 +126,7 @@ function ExploreContent({
     else window.scrollTo({ top: 0, behavior });
   }, [cardKey, cardUp]);
 
-  const onReveal = useCallback((r: boolean) => setReveal(r), []);
+  const onReveal = useCallback((m: PourMove | null) => setMoved(m), []);
   const closeRate = () => {
     e.rate.close();
     e.setUp(false);
@@ -208,11 +212,18 @@ function ExploreContent({
         <PalateMap
           ground={quiz ? quizGround : e.ground}
           shoal={quizShoal && !quizPoint ? { x: quizShoal.x.mean, y: quizShoal.y.mean, rx: Math.sqrt(quizShoal.x.variance), ry: Math.sqrt(quizShoal.y.variance) } : null}
-          points={quizPoint ? [{ ...quizPoint, label: chart.youIn(quadrantFor(quizPoint.x, quizPoint.y).name), tone: 'yours' }] : undefined}
+          points={
+            quizPoint
+              ? [{ ...quizPoint, label: chart.youIn(quadrantFor(quizPoint.x, quizPoint.y).name), tone: 'yours' }]
+              : moved
+                ? [{ ...moved.to, label: chart.youNowIn(quadrantFor(moved.to.x, moved.to.y).name), tone: 'yours' }]
+                : undefined
+          }
+          trail={moved}
           ratings={ratings}
           pins={pins}
           emptyBar={!!e.venue && e.ranked.length === 0}
-          selected={e.selected}
+          selected={moved ? (matchDrink(moved.drinkName)?.name ?? null) : e.selected}
           hover={e.hover}
           onSelect={e.chooseDrink}
           name={e.name}

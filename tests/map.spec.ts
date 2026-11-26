@@ -110,7 +110,11 @@ test('Map: rating happens in the card, and a guest’s pour is kept on the devic
   await rating(page).getByRole('group', { name: pour.whereLabel }).getByRole('button', { name: pour.atHome }).click();
   await page.getByRole('radio', { name: /^7:/ }).click();
   await page.getByRole('button', { name: pour.submit }).click();
+  // The move is drawn on the map itself, not a second chart: a trail to your point, the drink marked.
+  await expect(theMap(page).locator('[data-trail]')).toHaveCount(1);
+  await expect(theMap(page).getByRole('img', { name: /^Your coordinate, now in / })).toBeVisible();
   await page.getByRole('button', { name: moved.back }).click();
+  await expect(theMap(page).locator('[data-trail]')).toHaveCount(0);
 
   await expect(page).toHaveURL(/\/map$/);
   await expect(rating(page)).toHaveCount(0);

@@ -183,7 +183,7 @@ pin on the map while every other drink fades to a speck. "Pick this" saves a
 rating clears. There is no separate harbour page.
 
 Your point is no longer drawn on the map, which draws your terrain; it is
-what the reveal after a pour shows moving (`Moved.tsx`) and what your track
+what the reveal after a pour shows moving (`Moved.tsx` in the card, the trail on the map: `trail` on `PalateMap`) and what your track
 replays (the card's Your pours). It is not the filter's estimate: `applyPour`
 moves crisp/sweet by a capped, simpler rule and leaves the other three axes
 to the EKF.
