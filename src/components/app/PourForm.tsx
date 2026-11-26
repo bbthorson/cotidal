@@ -372,7 +372,7 @@ export function PourForm({
         <button
           type="submit"
           disabled={submitting}
-          className="btn btn-primary btn-lg w-full disabled:cursor-wait"
+          className="btn btn-primary w-full disabled:cursor-wait"
         >
           {submitting ? pour.submitting : pour.submit}
         </button>

@@ -231,7 +231,7 @@ export function SignInSheet({ open, onOpenChange }: SignInSheetProps) {
                 <button
                   type="submit"
                   disabled={loading || !state.query.trim()}
-                  className="btn btn-primary btn-lg disabled:cursor-not-allowed"
+                  className="btn btn-primary w-full disabled:cursor-not-allowed"
                 >
                   {loading && state.action === 'sign-in' ? connect.connecting : connect.submit}
                 </button>

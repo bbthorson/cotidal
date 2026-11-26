@@ -135,7 +135,7 @@ Navigation is unified across the site through two bars and a footer, all rendere
 - **`AppBar.astro`** is the top of every page's card (`MapScreen`'s `bar`): the map has the top of the screen to itself. The card is a phone's width at every size, so the bar is laid out for it: the mark, then the wordmark (or on `/map` the search), then Menu on a phone or the account control from `lg`; from `lg` a row of tabs under it (the map and the reading pages a drinker reads), so nothing is folded away on a wide screen. Islands receive it as a slot rendered on the server.
 - **`SiteFooter.astro`** is the foot of a static page's card (the app screens have none).
 1. **Zero Client JavaScript**: Rendered as semantic HTML `<header>` and `<nav aria-label="Main Navigation">`.
-2. **Destinations** (header): the map (`/map`), the one app screen. How it works (`/how-it-works`) and For Bars (`/bars`) are public reading pages in the footer; Drinks (`/drinks`) is `memberOnly: true` in `site-nav.ts` (shown in header/footer chrome to signed-in members, and otherwise reached via SEO/AEO search or drink cards on `/map`). For Bars is also the supply side, a different product from the drinker's app, on the same one kind of page.
+2. **Destinations** (header): the map (`/map`), the one app screen. How it works (`/#how-it-works`, the front door's card pulled up: not a page of its own) and For Bars (`/bars`) are public reading pages in the footer; Drinks (`/drinks`) is `memberOnly: true` in `site-nav.ts` (shown in header/footer chrome to signed-in members, and otherwise reached via SEO/AEO search or drink cards on `/map`). For Bars is also the supply side, a different product from the drinker's app, on the same one kind of page.
 3. **The account control** (header) says what the server knows (`accountFor` in `session.ts`, read once in `AppShell`):
    - a member sees `@handle`, which opens `/settings` (on a phone, the last row of Menu, marked **Settings →**). **Sign out** is on `/settings` alone — a plain form post that answers with a redirect, like sign-in, so it needs no script; the header never repeats it;
    - a guest sees **Sign in** (on a phone, inside Menu);
@@ -173,8 +173,16 @@ what the map draws and what the card holds:
   said once and takes no line of its own. Where the name is the page's only
   title (Settings), it is the page's `h1` (`heading`) and the card opens with
   no other. Then `ScreenHeader`, then ruled sections; its foot is the site
-  footer. `CardHead` is a line about the card's content, not its name: what
-  your map says about you on `/map`, the sample on the front door.
+  footer. A line about what the map shows — what your map says about you on
+  `/map`, "A sample palate" on the front door — is drawn on the map, in its
+  lower-left corner (`PalateMap`'s `caption`), not as a line of the card.
+- **One size of main action.** A card's main action is one full-width
+  `btn btn-primary`; a second action is a full-width outline under it, or a
+  quiet line of links (the cold state: Find your coordinate, then Sign in ·
+  Rate one as a guest). `btn-lg` is for the front door and the two reveals
+  (after the questions, after a pour). Actions on a row — Settings' rows,
+  Show bars near me — keep their own size, and `/map`'s Rate a drink floats
+  on a phone.
 - **Every page behaves the same.** On a phone the map stays at the top as
   the page scrolls the card up over it, and the app bar sticks to the top of
   the screen once it gets there; from `lg` the card is a panel that scrolls
@@ -237,7 +245,7 @@ On a phone the map is the full width under the header and the card rests in the 
 
 **One layout for every map page** (`MapScreen.tsx`, with `CardHead`): the map and one card. `live` is `/map`, where the card is pulled up by its head; `static` is a page with no script, where on a phone the map stays at the top as the page scrolls the card up over it — the pull is a scroll. A static page renders the same React components on the server with no directive, so the map and the card are one copy, not an Astro twin of each.
 
-**The card.** Its head is the same line whatever it holds — what your map says about you in the axes' words ("You lean *crisp and sweet · rich and savory*", `leanings`), or "No position yet" — with, from `lg`, the screen's one action beside it. Pulling the card up is scrolling the page, as on every page; from `lg` its body scrolls on its own. It holds one of:
+**The card.** What your map says about you in the axes' words ("You lean *crisp and sweet · rich and savory*", `leanings`), or "No position yet", is the map's caption, in its lower-left corner; the card opens with the search, and from `lg` the screen's one action under it. Pulling the card up is scrolling the page, as on every page; from `lg` its body scrolls on its own. It holds one of:
 
 - **Where to next** (titled for a screen reader alone: the head says where you are and each section names itself): **Rate a drink** (the screen's one action, rule 10), a waiting pick, **Your menu** (`useMenu`: eight drinks, each with what put it there — "Near your Manhattan (9) and Penicillin (8)", "You gave it 8", "Near where your answers put you" — the first in terracotta), **Have a menu?**, **Your bars** (from your pours), **Bars near you** (`Near.tsx`, a list), and **Your pours**: the figures, your track up close (`TrackFigure`), the ledger (`PourLedger`), and for a member Compare with someone, for a guest what signing in keeps and Start over. Before a position it holds the cold state instead.
 - **A drink**: its region and coordinate, what put it where it stands for you, your last pour of it, Also here, **Rate this**, **Pick this** (at the open bar, if any), and its entry. It is ringed on the map.

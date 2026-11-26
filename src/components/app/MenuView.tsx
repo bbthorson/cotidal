@@ -248,7 +248,7 @@ export function MenuView({
                   </li>
                 ))}
               </ol>
-              <button type="button" onClick={pick} className="btn btn-primary btn-lg mt-6 w-full px-6">
+              <button type="button" onClick={pick} className="btn btn-primary mt-6 w-full">
                 {chart.pickThis}
               </button>
             </section>

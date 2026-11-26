@@ -7,7 +7,7 @@ import { test, expect } from '@playwright/test';
  * every route, and footers were pasted per page and missing from three; then
  * there were two templates with the bar in two places. These hold it to one.
  */
-const routes = ['/', '/drinks', '/drinks/20th-century', '/drinks/regions/deep', '/bars', '/mcp', '/how-it-works', '/sign-in', '/map', '/questions'];
+const routes = ['/', '/drinks', '/drinks/20th-century', '/drinks/regions/deep', '/bars', '/mcp', '/sign-in', '/map', '/questions'];
 
 test('Layout: every page is the map and its card, with the app bar in the same place', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 900 });

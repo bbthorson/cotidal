@@ -14,7 +14,7 @@ import { AtprotoProvider, useAtprotoContext } from './AtprotoProvider';
 import { ColdState } from './ColdState';
 import { MenuView } from './MenuView';
 import { NearList } from './Near';
-import { CardHead as CardHeadFrame, MapScreen } from './MapScreen';
+import { MapScreen } from './MapScreen';
 import { PalateMap } from './PalateMap';
 import { PourLedger } from './PourLedger';
 import { RatePanel } from './RatePanel';
@@ -85,8 +85,6 @@ function ExploreContent({
   const pins = e.venue ? e.ranked.map((r, i) => ({ drink: r.drink, rank: i + 1 })) : null;
 
   let content;
-  // Where to next is the one card whose action is the screen's: Rate a drink.
-  let home = false;
   if (e.rate.request) {
     content = (
       <RatePanel
@@ -135,7 +133,6 @@ function ExploreContent({
     );
   } else {
     content = <Home e={e} member={member} signInEnabled={isEnabled} onSignIn={openSignIn} />;
-    home = true;
   }
 
   return (
@@ -143,7 +140,6 @@ function ExploreContent({
       bar={bar}
       label={explore.cardLabel}
       tone={reveal ? 'reveal' : 'card'}
-      head={reveal ? undefined : <CardHead e={e} rateHere={home} />}
       cardRef={card}
       bodyRef={body}
       map={
@@ -156,6 +152,16 @@ function ExploreContent({
           hover={e.hover}
           onSelect={e.chooseDrink}
           name={e.name}
+          caption={
+            e.leanings.length > 0 ? (
+              <>
+                <span className="label-caps">{taste.label} </span>
+                <span className="font-serif text-ui italic text-primary">{taste.phrases(e.leanings)}</span>
+              </>
+            ) : (
+              <span className="label-caps">{explore.noPosition}</span>
+            )
+          }
         />
       }
     >
@@ -167,35 +173,6 @@ function ExploreContent({
       )}
       {content}
     </MapScreen>
-  );
-}
-
-/**
- * The card's head: what your map says about you, in the axes' words, and from
- * `lg` the screen's one action. Pulling the card up on a phone is scrolling
- * the page, as on every page.
- */
-function CardHead({ e, rateHere }: { e: ExploreState; rateHere: boolean }) {
-  return (
-    <CardHeadFrame
-      action={
-        /* From `lg` the screen's one action sits here, above the list; on a phone it floats (`Home`). */
-        rateHere && (
-          <button type="button" onClick={() => e.rate.open()} className="btn btn-primary hidden shrink-0 px-4 lg:inline-flex">
-            {mapPage.rateDrink}
-          </button>
-        )
-      }
-    >
-      {e.leanings.length > 0 ? (
-        <>
-          <span className="label-caps">{taste.label} </span>
-          <span className="font-serif text-ui italic text-primary">{taste.phrases(e.leanings)}</span>
-        </>
-      ) : (
-        <span className="label-caps">{explore.noPosition}</span>
-      )}
-    </CardHeadFrame>
   );
 }
 
@@ -222,6 +199,10 @@ function Home({
         From `lg` it is in the card's head instead.
       */}
       <button type="button" onClick={() => e.rate.open()} className="rate-float btn btn-primary fixed bottom-safe-b right-4 z-30 px-5 shadow-mcm lg:hidden">
+        {mapPage.rateDrink}
+      </button>
+      {/* From `lg` it is the card's first action, full width, like every card's (docs/design-system.md, rule 10). */}
+      <button type="button" onClick={() => e.rate.open()} className="btn btn-primary mt-4 hidden w-full lg:flex">
         {mapPage.rateDrink}
       </button>
       <div>
@@ -300,7 +281,7 @@ function Home({
             <TrackFigure track={e.track} />
           </div>
         )}
-        <h3 className="mt-6 font-serif text-heading font-bold">{mapPage.ledgerTitle}</h3>
+        {e.history.length > 0 && <h3 className="mt-6 font-serif text-heading font-bold">{mapPage.ledgerTitle}</h3>}
         <PourLedger
           pours={e.history}
           register={e.register}
@@ -416,28 +397,28 @@ function DrinkPanel({ e, drink }: { e: ExploreState; drink: Drink }) {
         </div>
       )}
 
-      <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2">
+      <div className="mt-4 flex flex-col gap-3">
         {e.cold ? (
           <>
-            <a href={questionsHref} className="btn btn-primary px-5">
+            <a href={questionsHref} className="btn btn-primary w-full">
               {chart.findYours}
             </a>
-            <button type="button" onClick={() => e.rate.open({ drink: drink.name })} className="btn btn-outline px-5">
+            <button type="button" onClick={() => e.rate.open({ drink: drink.name })} className="btn btn-outline w-full">
               {chart.logThis}
             </button>
           </>
         ) : (
           <>
-            <button type="button" onClick={() => e.rate.open({ drink: drink.name })} className="btn btn-primary px-5">
+            <button type="button" onClick={() => e.rate.open({ drink: drink.name })} className="btn btn-primary w-full">
               {chart.logThis}
             </button>
-            <button type="button" onClick={() => e.pick(drink.name)} className="btn btn-outline px-5">
+            <button type="button" onClick={() => e.pick(drink.name)} className="btn btn-outline w-full">
               {atBar ? compass.pickAt(e.venue?.name ?? '') : chart.pickThis}
             </button>
           </>
         )}
         {e.register[drink.name] && (
-          <a href={`${drinksHref}/${e.register[drink.name].slug}`} className="link-caps text-secondary hover:underline">
+          <a href={`${drinksHref}/${e.register[drink.name].slug}`} className="link-caps self-start text-secondary hover:underline">
             {chart.readEntry} &rarr;
           </a>
         )}

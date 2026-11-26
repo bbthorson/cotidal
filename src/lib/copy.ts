@@ -274,10 +274,9 @@ export const hero = {
   /** A member at the front door already has a map: the one action opens it. */
   memberCta: 'Open your map',
   /** The card's head: what the map behind it is (`sample-palate.ts`), so nobody takes it for theirs. */
-  sampleLabel: 'A sample palate, rated as it goes',
+  sampleLabel: 'A sample palate',
   /** Under the fold of the card, pulled up: how it works, briefly, then the whole account. */
   howTitle: 'How it works',
-  howMore: 'How it works, in full',
   /** Then signing in, for someone who has a map on another device. */
   signInTitle: 'Already have a map?',
   signInBody: 'Sign in with Bluesky and it comes with you: your coordinate and your pours are kept in your own account.',
@@ -691,15 +690,13 @@ export const pour = {
 } as const;
 
 /**
- * /how-it-works: how answers and ratings place and move a coordinate, said
+ * How it works, the front door's card pulled up (`/#how-it-works`): how answers and ratings place and move a coordinate, said
  * as the code does it today (docs/brand.md, Claims). Every number here is a
  * constant in belief-state.ts or palate-state.ts, and
  * tests/unit/how-it-works.test.ts holds the two equal. Never the code's words:
  * no calibration, no latent, no triangulation.
  */
 export const howItWorks = {
-  eyebrow: 'How it works',
-  title: 'How your answers and ratings move your point',
   lede:
     'Your coordinate comes from two things only: the answers you give and the drinks you rate. This is how each one counts, and where it is kept.',
   sections: [
@@ -770,7 +767,6 @@ export const howItWorks = {
     'Today, how much each answer counts was set by testing the questions against simulated answers, not real ones.',
     'Later: checking saved answers against how people later rated drinks, to refine which questions work and how much each should count.',
   ],
-  start: 'Find your coordinate',
 } as const;
 
 export const venuesCopy = {

@@ -35,7 +35,7 @@ test('Map: one screen, the search in its card, and one action of its own', async
   // On a phone the visible reading pages are in Menu.
   await header.locator('summary').click();
   const menuNav = page.getByRole('navigation', { name: a11y.mainNav });
-  await expect(menuNav.getByRole('link', { name: nav.howItWorks })).toHaveAttribute('href', '/how-it-works');
+  await expect(menuNav.getByRole('link', { name: nav.howItWorks })).toHaveAttribute('href', '/#how-it-works');
 });
 
 test('Map: the search works before the map does, as a plain form drawn by the server', async ({ request }) => {
@@ -158,7 +158,7 @@ test('Map: the card sits beside the map on a wide screen, under it on a phone', 
   const [c, m] = [(await card(page).boundingBox())!, (await theMap(page).boundingBox())!];
   expect(c.x + c.width).toBeLessThan(m.x);
   // The visible reading pages are in the header beside the search, since the map has no footer.
-  await expect(page.locator('header a[href="/how-it-works"]')).toBeVisible();
+  await expect(page.locator('header a[href="/#how-it-works"]')).toBeVisible();
 
   await page.setViewportSize({ width: 390, height: 844 });
   await expect.poll(async () => {

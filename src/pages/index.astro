@@ -1,7 +1,6 @@
 ---
 import MapPage from '../layouts/MapPage.astro';
 import { PalateMap } from '../components/app/PalateMap';
-import { CardHead } from '../components/app/MapScreen';
 import { accountFor } from '../lib/atproto/session';
 import { explore, hero, howItWorks, nav, site } from '../lib/copy';
 import { sampleFrames } from '../lib/sample-palate';
@@ -26,11 +25,9 @@ const frames = sampleFrames();
 ---
 
 <MapPage title={`${site.name} — ${hero.headline} ${hero.headlineAccent}`} currentPath="/" label={site.name} rest="tall">
-  <PalateMap slot="map" label={explore.chartLabel} frames={frames} />
-
-  <CardHead slot="head">
-    <span class="label-caps">{hero.sampleLabel}</span>
-  </CardHead>
+  <PalateMap slot="map" label={explore.chartLabel} frames={frames}>
+    <span slot="caption" class="label-caps">{hero.sampleLabel}</span>
+  </PalateMap>
 
   <section class="pt-4">
     <h1 class="font-serif text-title font-bold text-foreground lg:text-display">
@@ -44,19 +41,28 @@ const frames = sampleFrames();
     {!member && <p class="mt-2 text-center text-meta text-muted-foreground">{hero.cost}</p>}
   </section>
 
-  <section class="mt-12">
+  <!-- How it works, in full: the public account of the questions and the ratings (`howItWorks`), here and nowhere else. -->
+  <section id="how-it-works" class="mt-12 scroll-mt-20" data-testid="how-it-works">
     <h2 class="section-title">{hero.howTitle}</h2>
-    <div class="space-y-5">
+    <p class="font-serif text-ui italic leading-relaxed text-muted-foreground">{howItWorks.lede}</p>
+    <div class="mt-6 space-y-6">
       {
         howItWorks.sections.map((s) => (
-          <div>
+          <div id={s.id} class="scroll-mt-20 space-y-2">
             <h3 class="font-serif text-ui font-bold text-foreground">{s.title}</h3>
-            <p class="mt-1 text-meta leading-relaxed text-muted-foreground">{s.paragraphs[0]}</p>
+            {s.paragraphs.map((p) => (
+              <p class="text-meta leading-relaxed text-muted-foreground">{p}</p>
+            ))}
           </div>
         ))
       }
+      <div class="space-y-2">
+        <h3 class="font-serif text-ui font-bold text-foreground">{howItWorks.laterTitle}</h3>
+        {howItWorks.later.map((line) => (
+          <p class="text-meta leading-relaxed text-muted-foreground">{line}</p>
+        ))}
+      </div>
     </div>
-    <a href="/how-it-works" class="link-caps mt-5 inline-block text-secondary">{hero.howMore} &rarr;</a>
   </section>
 
   {

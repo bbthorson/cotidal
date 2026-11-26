@@ -30,7 +30,8 @@ export const drinkMapHref = (slug: string) => viewHref(mapHref, { drink: slug })
 export const destinations = [
   { href: mapHref, label: nav.map, match: mapHref, app: true, header: true, menu: false, footer: false, memberOnly: false },
   { href: drinksHref, label: nav.register, match: drinksHref, app: false, header: false, menu: true, footer: true, memberOnly: true },
-  { href: '/how-it-works', label: nav.howItWorks, match: '/how-it-works', app: false, header: false, menu: true, footer: true, memberOnly: false },
+  // How it works is the front door's card, pulled up: an anchor there, never a page of its own, and never "current".
+  { href: '/#how-it-works', label: nav.howItWorks, match: '#how-it-works', app: false, header: false, menu: true, footer: true, memberOnly: false },
   { href: barsHref, label: nav.bars, match: barsHref, app: false, header: false, menu: false, footer: true, memberOnly: false },
 ] as const;
 

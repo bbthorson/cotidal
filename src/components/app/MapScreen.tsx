@@ -1,4 +1,4 @@
-import type { HTMLAttributes, ReactNode, Ref } from 'react';
+import type { ReactNode, Ref } from 'react';
 import { cn } from '@/lib/utils';
 
 /**
@@ -22,7 +22,6 @@ import { cn } from '@/lib/utils';
 export function MapScreen({
   map,
   label,
-  head,
   tone = 'card',
   cardRef,
   bodyRef,
@@ -46,8 +45,6 @@ export function MapScreen({
   map?: ReactNode;
   /** The card's accessible name. */
   label: string;
-  /** The card's head (`CardHead`), or nothing. */
-  head?: ReactNode;
   /** The reveal after a pour lays the card on the reveal's ground. */
   tone?: 'card' | 'reveal';
   /** The card itself, for scrolling it to the top of a phone's screen. */
@@ -70,34 +67,11 @@ export function MapScreen({
             {bar}
           </div>
         )}
-        {head}
         <div ref={bodyRef} className="min-h-0 flex-1 px-4 pb-8 lg:overflow-y-auto lg:overscroll-contain lg:px-5">
           {children}
         </div>
       </section>
       <div className="map-region">{map}</div>
-    </div>
-  );
-}
-
-/**
- * The card's head: a line saying what the card is about, and on the right
- * at most one control (on `/map`, Rate a drink from `lg`). The grip that says
- * the card can be pulled up is the card's own, above the app bar; pulling is
- * scrolling the page.
- */
-export function CardHead({
-  children,
-  action,
-  className,
-  ...rest
-}: { children: ReactNode; action?: ReactNode } & HTMLAttributes<HTMLDivElement>) {
-  return (
-    <div className={cn('shrink-0 select-none px-4 pt-2 lg:px-5 lg:pt-3', className)} {...rest}>
-      <div className="flex items-baseline justify-between gap-3 border-b border-border pb-2">
-        <p className="min-w-0 truncate">{children}</p>
-        {action}
-      </div>
     </div>
   );
 }
