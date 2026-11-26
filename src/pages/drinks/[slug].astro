@@ -1,11 +1,13 @@
 ---
-import { getCollection, render } from 'astro:content';
+import { getCollection } from 'astro:content';
 import type { GetStaticPaths } from 'astro';
 import MapPage from '../../layouts/MapPage.astro';
 import { PalateMap } from '../../components/app/PalateMap';
-import { Readout, ScreenHeader, SectionTitle } from '../../components/app/ui';
-import { DrinkRow } from '../../components/app/DrinkRow';
-import OnTheRecord from '../../components/site/OnTheRecord.astro';
+import { Readout, ScreenHeader } from '../../components/app/ui';
+import { DrinkEntry } from '../../components/app/DrinkEntry';
+import { drinkEntryData } from '../../lib/drink-entry.server';
+import { loadRegister } from '../../lib/register.server';
+import { titleOf } from '../../lib/register';
 import { formatCoordinate } from '../../lib/coordinate';
 import { site, drinks as copy, explore } from '../../lib/copy';
 import { drinkDatabase } from '../../lib/data';
@@ -31,7 +33,6 @@ export const getStaticPaths = (async () => {
 }) satisfies GetStaticPaths;
 
 const { entry } = Astro.props;
-const { Content } = await render(entry);
 const d = entry.data;
 
 /**
@@ -42,8 +43,7 @@ const drink = drinkDatabase.find((item) => item.name === d.name);
 const quadrant = drink ? quadrantFor(drink.x, drink.y) : null;
 
 /** The drinks nearest it, named on the map and listed under the entry, linked where they have entries of their own. */
-const entries = await getCollection('drinks');
-const slugOf = new Map(entries.map((e) => [e.data.name, e.id]));
+const register = await loadRegister();
 const neighbours = drink ? neighboursOf(drink, drinkDatabase, 5) : [];
 
 /** Structured data for search and answer engines (SEO / AEO). */
@@ -112,64 +112,9 @@ const recipeJsonLd = {
       )
     }
 
-    <div class="prose-entry py-8">
-      <Content />
-    </div>
-
-    <!-- The build -->
-    <section class="pb-8">
-      <SectionTitle>{copy.buildLabel}</SectionTitle>
-      {
-        d.ingredients.length > 0 && (
-          <ul class="border-b border-border">
-            {d.ingredients.map((i) => (
-              <li class="menu-row dot-leader py-2.5 first:border-t-0">
-                <span class="font-serif text-ui text-foreground">
-                  {i.name}
-                  {i.optional && <em class="ml-2 text-meta not-italic text-muted-foreground">{copy.optionalLabel}</em>}
-                </span>
-                <span class="leader" aria-hidden="true" />
-                <span class="shrink-0 font-condensed text-ui tabular-nums text-secondary">{i.amount}</span>
-              </li>
-            ))}
-          </ul>
-        )
-      }
-      <dl class="mt-5 space-y-2.5">
-        <div class="flex gap-4">
-          <dt class="label-caps w-16 shrink-0 pt-0.5">{copy.glassLabel}</dt>
-          <dd class="text-meta leading-relaxed text-foreground">{d.build.glass}</dd>
-        </div>
-        <div class="flex gap-4">
-          <dt class="label-caps w-16 shrink-0 pt-0.5">{copy.methodLabel}</dt>
-          <dd class="text-meta leading-relaxed text-foreground">{d.build.method}</dd>
-        </div>
-        {
-          d.build.garnish && (
-            <div class="flex gap-4">
-              <dt class="label-caps w-16 shrink-0 pt-0.5">{copy.garnishLabel}</dt>
-              <dd class="text-meta leading-relaxed text-foreground">{d.build.garnish}</dd>
-            </div>
-          )
-        }
-      </dl>
-    </section>
-
-    <!-- Near it on the map: the drinks named on the map, linked where they have entries -->
-    {
-      neighbours.length > 0 && (
-        <section class="pb-8">
-          <SectionTitle>{copy.nearLabel}</SectionTitle>
-          <ul>
-            {neighbours.map((n) => {
-              const slug = slugOf.get(n.name);
-              return <DrinkRow href={slug ? `${drinksHref}/${slug}` : undefined} title={n.name} figure={formatCoordinate(n.x, n.y)} />;
-            })}
-          </ul>
-        </section>
-      )
-    }
-
-    <OnTheRecord documented={d.documented} claimed={d.claimed} sources={d.sources} />
+    <DrinkEntry
+      entry={drinkEntryData(entry)}
+      neighbours={neighbours.map((n) => ({ ...n, title: titleOf(register, n.name), href: register[n.name] ? `${drinksHref}/${register[n.name].slug}` : undefined }))}
+    />
   </article>
 </MapPage>

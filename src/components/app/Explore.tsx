@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import type { Drink } from '@/lib/data';
+import { drinkDatabase, type Drink } from '@/lib/data';
 import type { PourRecord } from '@/lib/atproto/records';
 import { chart, compass, drinks, explore, mapPage, pour, taste } from '@/lib/copy';
 import { formatCoordinate } from '@/lib/coordinate';
@@ -9,7 +9,7 @@ import { publicMapPath, QUIZ_PARAM, START_OVER_PARAM, startOverPath } from '@/li
 import { takeParam } from '@/lib/url-params';
 import type { AxisBelief } from '@/lib/belief-state';
 import { buildTerrain, sampleTerrain } from '@/lib/terrain';
-import { drinksHref, questionsHref } from '@/lib/site-nav';
+import { questionsHref } from '@/lib/site-nav';
 import type { Register } from '@/lib/register';
 import { neutralProfile } from '@/lib/guest-palate';
 import { useExplore, type Explore as ExploreState } from '@/hooks/useExplore';
@@ -28,6 +28,10 @@ import { TrackFigure } from './TrackFigure';
 import { WaitingPick } from './WaitingPick';
 import { Empty, GuestPrompt, Readout, ScreenHeader, SectionTitle } from './ui';
 import { DrinkRow } from './DrinkRow';
+import { DrinkEntry } from './DrinkEntry';
+import { useDrinkEntry } from '@/hooks/useDrinkEntry';
+import type { DrinkEntryData } from '@/lib/drink-entry';
+import { neighboursOf } from '@/lib/map-draw';
 
 /**
  * The app, on one screen: your map fixed in place as the background, the
@@ -45,14 +49,18 @@ function ExploreContent({
   register,
   member,
   initialQuery,
+  initialEntry,
+  initialDrink,
   bar,
 }: {
   register: Register;
   member: { did: string; handle: string | null } | null;
   initialQuery: string;
+  initialEntry: DrinkEntryData | null;
+  initialDrink: string | null;
   bar?: ReactNode;
 }) {
-  const e = useExplore(register, member, initialQuery);
+  const e = useExplore(register, member, initialQuery, initialEntry?.name ?? initialDrink);
   const { isEnabled, openSignIn } = useAtprotoContext();
   const body = useRef<HTMLDivElement>(null);
   const card = useRef<HTMLElement>(null);
@@ -164,7 +172,7 @@ function ExploreContent({
       />
     );
   } else if (e.selectedDrink) {
-    content = <DrinkPanel e={e} drink={e.selectedDrink} onQuiz={() => setQuiz(true)} />;
+    content = <DrinkPanel e={e} drink={e.selectedDrink} initialEntry={initialEntry} onQuiz={() => setQuiz(true)} />;
   } else if (e.venue) {
     content = (
       <MenuView
@@ -362,7 +370,9 @@ function Home({
  * you, your last pour of it, what shares its spot, and the two things to do —
  * rate it (in the card) or keep it as your pick.
  */
-function DrinkPanel({ e, drink, onQuiz }: { e: ExploreState; drink: Drink; onQuiz: () => void }) {
+function DrinkPanel({ e, drink, initialEntry, onQuiz }: { e: ExploreState; drink: Drink; initialEntry: DrinkEntryData | null; onQuiz: () => void }) {
+  const entry = useDrinkEntry(e.register[drink.name]?.slug ?? null, initialEntry);
+  const neighbours = neighboursOf(drink, drinkDatabase, 5).map((n) => ({ ...n, title: e.name(n.name) }));
   const region = quadrantFor(drink.x, drink.y);
   const last: PourRecord | undefined = e.lastPour.get(drink.name);
   const lastLine = last
@@ -439,12 +449,9 @@ function DrinkPanel({ e, drink, onQuiz }: { e: ExploreState; drink: Drink; onQui
             </button>
           </>
         )}
-        {e.register[drink.name] && (
-          <a href={`${drinksHref}/${e.register[drink.name].slug}`} className="link-caps self-start text-secondary hover:underline">
-            {chart.readEntry} &rarr;
-          </a>
-        )}
       </div>
+
+      {entry?.name === drink.name && <DrinkEntry entry={entry} neighbours={neighbours} onSelect={e.chooseDrink} />}
     </div>
   );
 }
@@ -454,6 +461,8 @@ export default function Explore({
   signInEnabled,
   member,
   initialQuery = '',
+  initialEntry = null,
+  initialDrink = null,
   bar,
 }: {
   register: Register;
@@ -462,12 +471,16 @@ export default function Explore({
   member: { did: string; handle: string | null } | null;
   /** `?q=` from the header's search, which works before the island does. */
   initialQuery?: string;
+  /** The write-up of the drink the address opens (`?drink=`), drawn with the page rather than fetched. */
+  initialEntry?: DrinkEntryData | null;
+  /** The drink the address opens (`?drink=`), so the server draws its card. */
+  initialDrink?: string | null;
   /** The app bar (`AppBar`, with the search), passed by the page as a slot: the top of the card. */
   bar?: ReactNode;
 }) {
   return (
     <AtprotoProvider enabled={signInEnabled} member={member}>
-      <ExploreContent register={register} member={member} initialQuery={initialQuery} bar={bar} />
+      <ExploreContent register={register} member={member} initialQuery={initialQuery} initialEntry={initialEntry} initialDrink={initialDrink} bar={bar} />
     </AtprotoProvider>
   );
 }

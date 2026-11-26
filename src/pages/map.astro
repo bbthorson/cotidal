@@ -9,6 +9,7 @@ import { accountFor } from '../lib/atproto/session';
 import { mapHref } from '../lib/site-nav';
 import { readMapView, viewHref } from '../lib/map-url';
 import { publicMapPath } from '../lib/atproto/paths';
+import { loadDrinkEntry } from '../lib/drink-entry.server';
 
 /**
  * The app, on one screen: your map fixed in place, the search in the header,
@@ -32,11 +33,13 @@ const authEnabled = await signInEnabled();
 const account = await accountFor(Astro.request, false);
 const member = account.kind === 'member' ? { did: account.did, handle: account.handle } : null;
 const initialQuery = Astro.url.searchParams.get('q') ?? '';
+// The drink the address opens, written up: drawn with the page, so its card is whole before the script arrives.
+const initialEntry = view.drink && register[view.drink.name] ? await loadDrinkEntry(register[view.drink.name].slug) : null;
 
 ---
 
 <AppShell title={`${site.name} — ${explore.title}`}>
-  <Explore client:load register={register} signInEnabled={authEnabled} member={member} initialQuery={initialQuery}>
+  <Explore client:load register={register} signInEnabled={authEnabled} member={member} initialQuery={initialQuery} initialEntry={initialEntry} initialDrink={view.drink?.name ?? null}>
     <AppBar slot="bar" currentPath={mapHref} account={account} title={nav.map} />
   </Explore>
 </AppShell>

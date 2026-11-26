@@ -43,7 +43,9 @@ export interface Venue {
 export function useExplore(
   register: Register,
   member: { did: string; handle: string | null } | null,
-  initialQuery = ''
+  initialQuery = '',
+  /** The drink the address opens (`?drink=`), as the server read it, so the page is drawn with its card open. */
+  initialDrink: string | null = null
 ) {
   const isMember = !!member;
   const [profile, setProfile, forgetProfile] = useProfile(isMember);
@@ -91,7 +93,7 @@ export function useExplore(
   const offerBar = unlistedBar(query, drinkHits.length > 0, barHits, nearHits);
 
   // ---- What the card is about ------------------------------------------------------------
-  const [selected, setSelected] = useState<string | null>(null);
+  const [selected, setSelected] = useState<string | null>(initialDrink);
   const [hover, setHover] = useState<string | null>(null);
   const [venue, setVenue] = useState<Venue | null>(null);
   const [items, setItems] = useState<MenuItem[]>([]);
