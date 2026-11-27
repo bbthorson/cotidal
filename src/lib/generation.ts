@@ -152,8 +152,8 @@ export async function runClef(request: ClefRequest): Promise<ClefResponse | null
 }
 
 /**
- * Transcribe a bar menu photo into raw drink lines (`Name — ingredients` or `Name`)
- * using Gemma 4 Vision (`VISION_MODEL`). Returns `null` when unavailable.
+ * Transcribe a bar menu photo into raw drink lines (`## Section`, `Name — ingredients · $18`,
+ * or `Name · $18`) using Gemma 4 Vision (`VISION_MODEL`). Returns `null` when unavailable.
  */
 export async function runVisionTranscribe(
   imageBase64: string,
@@ -167,17 +167,20 @@ export async function runVisionTranscribe(
         {
           role: 'system',
           content:
-            'You transcribe drink menus from photos. Output ONLY the drinks, one per line. If a drink lists ingredients, format it as "Drink Name — ingredient, ingredient, ingredient". Otherwise output just "Drink Name". Omit prices, food items, section headers, and commentary.',
+            'You transcribe drink menus from photos. Output ONLY the drink section headers and drinks, one per line. Prefix each drink section header with "## " (for example "## Cocktails", "## Non-Alcoholic", "## Sunset Hour"). For each drink, if it lists ingredients, format it as "Drink Name — ingredient, ingredient, ingredient"; append the price if shown (for example " · $18"). Otherwise output "Drink Name" (with price if shown). Omit food items and commentary.',
         },
         {
           role: 'user',
           content: [
-            { type: 'text', text: 'List every drink on this menu, one per line.' },
+            {
+              type: 'text',
+              text: 'Transcribe every drink section header ("## Section") and every drink on this menu, one per line, keeping prices when shown.',
+            },
             { type: 'image_url', image_url: { url: dataUrl } },
           ],
         },
       ],
-      max_tokens: 1024,
+      max_tokens: 2048,
       temperature: 0.1,
     },
     true

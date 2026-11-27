@@ -36,6 +36,9 @@ const InputSchema = z
 export interface SerializedCaptureItem {
   label: string;
   description?: string;
+  section?: string;
+  price?: string;
+  nonAlcoholic?: boolean;
   drinkName: string | null;
   directional?: {
     x: number;
@@ -44,6 +47,7 @@ export interface SerializedCaptureItem {
     confidence: 'low' | 'medium';
     aversions: { smoke: boolean; bitter: boolean; anise: boolean };
     closestClassicName: string | null;
+    nonAlcoholic?: boolean;
   } | null;
 }
 
@@ -51,6 +55,9 @@ function serializeItems(items: MenuItem[]): SerializedCaptureItem[] {
   return items.map((i) => ({
     label: i.label,
     ...(i.description ? { description: i.description } : {}),
+    ...(i.section ? { section: i.section } : {}),
+    ...(i.price ? { price: i.price } : {}),
+    ...(i.nonAlcoholic ? { nonAlcoholic: true } : {}),
     drinkName: i.drink?.name ?? null,
     ...(i.directional
       ? {
@@ -61,6 +68,7 @@ function serializeItems(items: MenuItem[]): SerializedCaptureItem[] {
             confidence: i.directional.confidence,
             aversions: i.directional.aversions,
             closestClassicName: i.directional.closestClassic?.name ?? null,
+            ...(i.directional.nonAlcoholic ? { nonAlcoholic: true } : {}),
           },
         }
       : {}),

@@ -35,12 +35,35 @@ export interface AversionFlags {
 /** Residual sensory words not tied to one single bottle/ingredient primitive. */
 const EXTRA_SMOKE_RE = /\b(smoke|smoky|smoked|charred|lapsang)\b/i;
 const EXTRA_BITTER_RE = /\b(bitter|bitters)\b/i;
-const EXTRA_ANISE_RE = /\b(anise|licorice|liquorice|fennel|star anise)\b/i;
+const EXTRA_ANISE_RE = /\b(anise|licorice|liquorice|fennel|star anise|hoja santa)\b/i;
+
+/** Non-alcoholic terms and common zero-proof spirit/aperitif brands. */
+const NA_TEXT_RE =
+  /\b(non[- ]?alcoholic|zero[- ]?proof|spirit[- ]?free|alcohol[- ]?free|mocktail|de-?alcoholized|everleaf|pentire|aplos|roots divino|seedlip|ghia|lyre'?s|ritual zero|pathfinder|wilderton|three spirit|free spirits|st\.?\s*agrestis|phoney negroni)\b|(?:\bn\/a\b|\(n\/?a\))/i;
+const NA_SECTION_RE =
+  /\b(non[- ]?alcoholic|zero[- ]?proof|spirit[- ]?free|alcohol[- ]?free|mocktails?|temperance|no[- ]?proof|na)\b|\bn\/a\b/i;
+
+const SPECIFIC_WHISKEY_IDS = new Set(['rye', 'bourbon', 'scotch', 'irish-whiskey', 'peated-whisky']);
+const SPECIFIC_VERMOUTH_IDS = new Set(['sweet-vermouth', 'dry-vermouth', 'lillet-cocchi']);
+
+/** Whether a drink line or its menu section signals a non-alcoholic / zero-proof drink. */
+export function isNonAlcoholic(text: string, section?: string): boolean {
+  if (section && NA_SECTION_RE.test(section)) return true;
+  return NA_TEXT_RE.test(text);
+}
 
 /** Match all canonical cocktail primitives present in a free-text description. */
 export function extractPrimitives(text: string): IngredientPrimitive[] {
   if (!text.trim()) return [];
-  return INGREDIENT_INDEX.filter((p) => p.match.test(text));
+  const matched = INGREDIENT_INDEX.filter((p) => p.match.test(text));
+  const hasSpecificWhiskey = matched.some((p) => SPECIFIC_WHISKEY_IDS.has(p.id));
+  const hasSpecificVermouth = matched.some((p) => SPECIFIC_VERMOUTH_IDS.has(p.id));
+  if (!hasSpecificWhiskey && !hasSpecificVermouth) return matched;
+  return matched.filter(
+    (p) =>
+      !(hasSpecificWhiskey && p.id === 'whiskey') &&
+      !(hasSpecificVermouth && p.id === 'vermouth')
+  );
 }
 
 /** Detect smoke, bitterness, and anise signals in a drink name or ingredient description. */
@@ -63,6 +86,33 @@ export function clashingAversions(text: string, aversions: AversionFlags): Avers
   return out;
 }
 
+const TRAILING_PRICE_RE = /\s*(?:[·|•–—-]\s*)?((?:\$|€|£)\s*\d+(?:\.\d{1,2})?)\s*$/;
+
+/** Extract a trailing menu price (`$18`, `€15.50`, `£14`) if present on a raw line. */
+export function extractMenuPrice(raw: string): string | undefined {
+  const m = raw.trim().match(TRAILING_PRICE_RE);
+  return m ? m[1].replace(/\s+/g, '') : undefined;
+}
+
+/**
+ * Parse a section header line (`## Non-Alcoholic`, `[Les Martinis]`, or
+ * `Non-Alcoholic:`). Returns the clean section name, or `null` for drink lines.
+ */
+export function parseSectionHeader(raw: string): string | null {
+  const trimmed = raw.trim();
+  if (!trimmed) return null;
+  const heading = trimmed.match(/^#{1,3}\s+(.+?)\s*#*$/);
+  if (heading) return heading[1].trim() || null;
+  const bracketed = trimmed.match(/^\[([^\]]+)\]$/);
+  if (bracketed) return bracketed[1].trim() || null;
+  const colonOnly = trimmed.match(/^([^:—–|]+):\s*$/);
+  if (colonOnly) {
+    const label = colonOnly[1].trim();
+    if (label && !matchDrink(label)) return label;
+  }
+  return null;
+}
+
 /**
  * Split a pasted menu line into its drink name and optional ingredient
  * description, stripping trailing prices (`$18`, `· 16`, `— $15`) and leading
@@ -73,7 +123,7 @@ export function splitMenuLine(raw: string): { name: string; description?: string
     .trim()
     .replace(/^[•·\-*–—]\s*/, '')
     // Strip trailing price like "$18", "$18.50", "· $18", "| 16"
-    .replace(/\s*(?:[·|•–—-]\s*)?(?:\$|€|£)\s*\d+(?:\.\d{1,2})?\s*$/, '')
+    .replace(TRAILING_PRICE_RE, '')
     .trim();
 
   if (!cleaned) return { name: '' };
@@ -137,8 +187,13 @@ const RELATIVE_RULES: readonly CueRule[] = [
  * classic if its description clearly names the defining ingredients, or `null`
  * if there isn't enough signal.
  */
-export function suggestClosestDrink(text: string, drinks: readonly Drink[] = drinkDatabase): Drink | null {
+export function suggestClosestDrink(
+  text: string,
+  drinks: readonly Drink[] = drinkDatabase,
+  options?: { section?: string; nonAlcoholic?: boolean }
+): Drink | null {
   if (!text.trim()) return null;
+  if (options?.nonAlcoholic || isNonAlcoholic(text, options?.section)) return null;
   for (const rule of RELATIVE_RULES) {
     if (rule.requires.every((re) => re.test(text))) {
       return drinks.find((d) => d.name === rule.drinkName) ?? null;
@@ -163,8 +218,10 @@ export interface DirectionalPlacement {
   primitives: IngredientPrimitive[];
   /** Sensory aversion flags inferred from the ingredients. */
   aversions: AversionFlags;
-  /** Closest structural classic on the map, when clear. */
+  /** Closest structural classic on the map, when clear (suppressed on N/A drinks). */
   closestClassic: Drink | null;
+  /** True when the drink or its menu section signals a non-alcoholic / zero-proof drink. */
+  nonAlcoholic?: boolean;
 }
 
 const clampAxis = (v: number) => Math.max(-10, Math.min(10, roundTenth(v))) || 0;
@@ -177,7 +234,8 @@ const clampAxis = (v: number) => Math.max(-10, Math.min(10, roundTenth(v))) || 0
  */
 export function placeDirectional(
   text: string,
-  drinks: readonly Drink[] = drinkDatabase
+  drinks: readonly Drink[] = drinkDatabase,
+  options?: { section?: string }
 ): DirectionalPlacement | null {
   const primitives = extractPrimitives(text);
   if (primitives.length < 2) return null;
@@ -197,6 +255,7 @@ export function placeDirectional(
   const y = clampAxis(wy / wSum);
   const quadrant = quadrantIdFor(x, y);
   const aversions = detectAversions(text);
+  const nonAlcoholic = isNonAlcoholic(text, options?.section);
 
   const hasBase = primitives.some((p) => p.role === 'base');
   const hasModifierOrAcid = primitives.some(
@@ -205,19 +264,22 @@ export function placeDirectional(
   const confidence: DirectionalConfidence =
     primitives.length >= 3 || (hasBase && hasModifierOrAcid) ? 'medium' : 'low';
 
-  let closestClassic = suggestClosestDrink(text, drinks);
-  if (!closestClassic) {
-    // Fall back to the nearest verified cocktail within 4.5 points if it sits in the same region.
-    let best: { drink: Drink; dist: number } | null = null;
-    for (const d of drinks) {
-      if (d.type !== 'Cocktail') continue;
-      if (quadrantIdFor(d.x, d.y) !== quadrant) continue;
-      const dist = distanceBetween({ x, y }, d);
-      if (dist <= 4.5 && (!best || dist < best.dist)) {
-        best = { drink: d, dist };
+  let closestClassic: Drink | null = null;
+  if (!nonAlcoholic) {
+    closestClassic = suggestClosestDrink(text, drinks, { nonAlcoholic: false });
+    if (!closestClassic) {
+      // Fall back to the nearest verified cocktail within 4.5 points if it sits in the same region.
+      let best: { drink: Drink; dist: number } | null = null;
+      for (const d of drinks) {
+        if (d.type !== 'Cocktail') continue;
+        if (quadrantIdFor(d.x, d.y) !== quadrant) continue;
+        const dist = distanceBetween({ x, y }, d);
+        if (dist <= 4.5 && (!best || dist < best.dist)) {
+          best = { drink: d, dist };
+        }
       }
+      closestClassic = best?.drink ?? null;
     }
-    closestClassic = best?.drink ?? null;
   }
 
   return {
@@ -228,5 +290,6 @@ export function placeDirectional(
     primitives,
     aversions,
     closestClassic,
+    ...(nonAlcoholic ? { nonAlcoholic: true } : {}),
   };
 }

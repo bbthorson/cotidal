@@ -53,6 +53,43 @@ describe('Menu capture & Clef enrichment', () => {
     expect(resErr.enriched).toBe(0);
     expect(resErr.items).toEqual(items);
   });
+
+  test('captureMenuLines preserves section headers and prices and suppresses alcoholic classics on N/A drinks', async () => {
+    const items = captureMenuLines(
+      [
+        '## Non-Alcoholic',
+        'Zero Mystery — house-made verjus cordial · $13',
+        'My Fair Lady — Everleaf, grapefruit, lime, soda · $13',
+      ],
+      {}
+    );
+
+    expect(items).toHaveLength(2);
+    expect(items[0].section).toBe('Non-Alcoholic');
+    expect(items[0].price).toBe('$13');
+    expect(items[0].nonAlcoholic).toBe(true);
+    expect(items[1].directional?.closestClassic).toBeNull();
+    expect(items[1].relative).toBeUndefined();
+
+    const { items: enriched, enriched: count } = await enrichWithClef(items, async (req) => {
+      expect(Object.keys(req.questions)).toContain('i0_x');
+      expect(Object.keys(req.questions)).not.toContain('i0_classic');
+      return {
+        answers: {
+          i0_smoke: { probability: 0.05 },
+          i0_bitter: { probability: 0.2 },
+          i0_anise: { probability: 0.05 },
+          i0_x: { score: 7.5 },
+          i0_y: { score: 6.0 },
+        },
+      };
+    });
+
+    expect(count).toBe(1);
+    expect(enriched[0].directional?.nonAlcoholic).toBe(true);
+    expect(enriched[0].directional?.closestClassic).toBeNull();
+    expect(enriched[0].relative).toBeUndefined();
+  });
 });
 
 describe('Menu handoff URLs & MCP rankMenu synergy', () => {

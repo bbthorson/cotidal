@@ -79,11 +79,13 @@ export async function enrichWithClef(
       levels: 9,
       instructions: `Rate item ${key} ("${item.label}") from 1 (very savory, dry, bitter, or herbal) to 9 (very sweet, fruity, or dessert-like).`,
     };
-    questions[`${key}_classic`] = {
-      type: 'choice',
-      options: CLASSIC_OPTIONS,
-      instructions: `Which classic cocktail slug is closest in structure to item ${key} ("${item.label}"), or "none" if no close match?`,
-    };
+    if (!item.nonAlcoholic) {
+      questions[`${key}_classic`] = {
+        type: 'choice',
+        options: CLASSIC_OPTIONS,
+        instructions: `Which classic cocktail slug is closest in structure to item ${key} ("${item.label}"), or "none" if no close match?`,
+      };
+    }
   }
 
   let response: ClefResponse | null;
@@ -116,14 +118,16 @@ export async function enrichWithClef(
     const bitter = (response.answers[`${key}_bitter`]?.probability ?? 0) >= AVERSION_THRESHOLD;
     const anise = (response.answers[`${key}_anise`]?.probability ?? 0) >= AVERSION_THRESHOLD;
 
-    const classicAns = response.answers[`${key}_classic`];
-    let closestClassic: Drink | null = item.relative ?? null;
-    if (
-      classicAns?.choice &&
-      classicAns.choice !== 'none' &&
-      (classicAns.confidence ?? 0) >= CLASSIC_THRESHOLD
-    ) {
-      closestClassic = drinkDatabase.find((d) => d.slug === classicAns.choice) ?? closestClassic;
+    let closestClassic: Drink | null = item.nonAlcoholic ? null : (item.relative ?? null);
+    if (!item.nonAlcoholic) {
+      const classicAns = response.answers[`${key}_classic`];
+      if (
+        classicAns?.choice &&
+        classicAns.choice !== 'none' &&
+        (classicAns.confidence ?? 0) >= CLASSIC_THRESHOLD
+      ) {
+        closestClassic = drinkDatabase.find((d) => d.slug === classicAns.choice) ?? closestClassic;
+      }
     }
 
     const directional: DirectionalPlacement = {
@@ -134,6 +138,7 @@ export async function enrichWithClef(
       primitives: [],
       aversions: { smoke, bitter, anise },
       closestClassic,
+      ...(item.nonAlcoholic ? { nonAlcoholic: true } : {}),
     };
 
     next[idx] = {
