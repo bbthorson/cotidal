@@ -44,7 +44,9 @@ Contemporary Classics, New Era Drinks).
 Each spec is a page at `iba-world.com/iba-cocktail/<slug>/` (amounts in ml,
 method, garnish, and notes on variants), read with a plain GET once
 `iba-world.com` is an allowed host; it is the source most drink entries cite.
-Not on its list, so without an entry until another primary source is found:
+Every drink on its list is on the map (matched by `matchDrink`, some by
+alias: Lemon Drop Martini, Fernandito), most placed by hand without an
+entry. Not on its list, so without an entry until another primary source is found:
 Batanga, Tequila Sour, Cantarito, Vampiro, Mexican Martini, Tequila & Tonic,
 Michelada and Ranch Water.
 
