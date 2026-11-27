@@ -159,7 +159,7 @@ export function scoreDrinks(
 export function pourLogs(pours: PourRecord[]): MinimalDrinkLog[] {
   return pours.map((p) => ({
     // The catalog's name for the drink the pour means, by slug then name: the scorer
-    // compares names, and a pour saved as typed ("margarita") is the Tommy's.
+    // compares names, and a pour saved as typed ("margarita") is the Margarita.
     drinkName: drinkOf(p.drink)?.name ?? p.drink.name,
     location: p.isHomePour ? 'Home Pour' : p.venue?.entity?.name,
     hedonicScale: p.rating.hedonic,

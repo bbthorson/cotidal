@@ -138,9 +138,12 @@ describe('Menu handoff URLs & MCP rankMenu synergy', () => {
     expect(res.ok).toBe(true);
     if (!res.ok) return;
     expect(res.data.ranked[0].name).toBe('Daiquiri (Classic)');
-    expect(res.data.unplaced[0].directional).toBeDefined();
-    expect(res.data.unplaced[0].directional?.matchedIngredients.length).toBeGreaterThanOrEqual(3);
-    expect(res.data.unplaced[0].caution).toContain('smoke');
+    const tiger = res.data.ranked.find((r) => r.item === 'Paper Tiger');
+    expect(tiger?.placement).toBe('ingredients');
+    expect(tiger?.matchedIngredients?.length).toBeGreaterThanOrEqual(3);
+    // Smoke is avoided: listed last, not dropped.
+    expect(tiger?.caution).toContain('smoke');
+    expect(res.data.ranked.at(-1)?.item).toBe('Paper Tiger');
     expect(res.data.mapUrl).toContain('/map?menu=1&bar=Attaboy');
     expect(res.data.mapUrl).toContain('Paper+Tiger');
   });

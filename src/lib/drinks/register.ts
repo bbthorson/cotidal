@@ -18,7 +18,7 @@ export type Register = Record<string, RegisterEntry>;
 
 /**
  * The catalog key a pour stores as `drink.slug`: the slug of the drink the
- * name means ("margarita" is the Tommy's), as every lookup is. Every drink on
+ * name means ("tommy's margarita" is `tommys-margarita`), as every lookup is. Every drink on
  * the map has one, whether or not the register has written it up;
  * `undefined` only for a drink the map does not know.
  */

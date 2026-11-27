@@ -92,7 +92,7 @@ describe('your menu', () => {
   });
 
   it('reads a pour as the drink it means, not the name as typed', () => {
-    // Saved as typed ("margarita") or under a house name with the slug: both are the Tommy's,
+    // Saved as typed ("margarita") or under a house name with the slug: both are the Margarita,
     // so a 2 takes it off the menu either way. Comparing raw names missed both.
     const user = { x: 6, y: 4, filters: [] };
     const typed = scoreDrinks(user, undefined, [pour('margarita', 2, '2026-11-02T00:00:00.000Z')]);

@@ -62,7 +62,8 @@ export const drinkDatabase: Drink[] = [
     // --- Crisp · Sweet, x > 0, y > 0: region `surf` (its name is `quadrants` in copy.ts) ---
     { name: "Aperol Spritz", slug: "aperol-spritz", type: "Cocktail", x: 6, y: 7, hasSmoke: false, hasAnise: false, isBitter: true, tags: ['visual', 'social', 'crushable'] },
     { name: "Daiquiri (Classic)", slug: "daiquiri", type: "Cocktail", x: 7, y: 5, hasSmoke: false, hasAnise: false, isBitter: false, tags: ['classic', 'social', 'crushable'] },
-    { name: "Margarita (Tommy's Style)", slug: "margarita", type: "Cocktail", x: 6, y: 4, hasSmoke: false, hasAnise: false, isBitter: false, tags: ['social', 'classic', 'crushable'] },
+    { name: "Margarita", slug: "margarita", type: "Cocktail", x: 5, y: 4, hasSmoke: false, hasAnise: false, isBitter: false, tags: ['social', 'classic', 'crushable'] },
+    { name: "Tommy's Margarita", slug: "tommys-margarita", type: "Cocktail", x: 6, y: 4, hasSmoke: false, hasAnise: false, isBitter: false, tags: ['social', 'classic', 'crushable'] },
     { name: "French 75", slug: "french-75", type: "Cocktail", x: 8, y: 6, hasSmoke: false, hasAnise: true, isBitter: false, tags: ['classic', 'social', 'visual', 'prestige'] },
     { name: "Moscow Mule", slug: "moscow-mule", type: "Cocktail", x: 5, y: 5, hasSmoke: false, hasAnise: false, isBitter: false, tags: ['social', 'comfort', 'crushable'] },
     { name: "Mojito", slug: "mojito", type: "Cocktail", x: 7, y: 6, hasSmoke: false, hasAnise: false, isBitter: false, tags: ['social', 'visual', 'messy'] },
@@ -84,6 +85,9 @@ export const drinkDatabase: Drink[] = [
     { name: "Naked & Famous", slug: "naked-and-famous", type: "Cocktail", x: 3, y: 1, hasSmoke: true, hasAnise: false, isBitter: true, tags: ['complex', 'bold', 'visual'] },
     { name: "Division Bell", slug: "division-bell", type: "Cocktail", x: 3, y: 2, hasSmoke: true, hasAnise: false, isBitter: true, tags: ['complex', 'visual', 'bold'] },
     { name: "Mezcal Paloma", slug: "mezcal-paloma", type: "Cocktail", x: 6, y: 2, hasSmoke: true, hasAnise: false, isBitter: true, tags: ['social', 'crushable', 'complex'] },
+    { name: "Cuba Libre", slug: "cuba-libre", type: "Cocktail", x: 3, y: 7, hasSmoke: false, hasAnise: false, isBitter: false, tags: ['social', 'crushable', 'comfort'], aliases: ["Rum and Coke", "Rum & Coke"] },
+    { name: "Ranch Water", slug: "ranch-water", type: "Cocktail", x: 9, y: 1, hasSmoke: false, hasAnise: false, isBitter: false, tags: ['crushable', 'social'] },
+    { name: "Sangria", slug: "sangria", type: "Cocktail", x: 2, y: 7, hasSmoke: false, hasAnise: false, isBitter: false, tags: ['social', 'sweet', 'crushable'] },
     { name: "Bee's Knees", slug: "bees-knees", type: "Cocktail", x: 6, y: 5, hasSmoke: false, hasAnise: false, isBitter: false, tags: ['classic', 'social', 'sweet'] },
     { name: "El Diablo", slug: "el-diablo", type: "Cocktail", x: 5, y: 6, hasSmoke: false, hasAnise: false, isBitter: false, tags: ['social', 'crushable', 'visual'] },
 
@@ -125,6 +129,8 @@ export const drinkDatabase: Drink[] = [
     { name: "Pilsner Urquell", slug: "pilsner-urquell", type: "Beer", x: 7, y: -6, hasSmoke: false, hasAnise: false, isBitter: true, tags: ['classic', 'social', 'crushable'] },
     { name: "Gose", slug: "gose", type: "Beer", x: 8, y: -3, hasSmoke: false, hasAnise: false, isBitter: false, tags: ['complex', 'visual', 'polarizing'] },
     { name: "Dirty Martini", slug: "dirty-martini", type: "Cocktail", x: 8, y: -9, hasSmoke: false, hasAnise: false, isBitter: false, tags: ['classic', 'polarizing', 'bold'] },
+    { name: "Bloody Mary", slug: "bloody-mary", type: "Cocktail", x: 3, y: -8, hasSmoke: false, hasAnise: false, isBitter: false, tags: ['classic', 'spice', 'bold'] },
+    { name: "Michelada", slug: "michelada", type: "Cocktail", x: 6, y: -5, hasSmoke: false, hasAnise: false, isBitter: false, tags: ['social', 'spice', 'crushable'] },
     { name: "Greyhound (Gin)", slug: "greyhound", type: "Cocktail", x: 7, y: -4, hasSmoke: false, hasAnise: false, isBitter: true, tags: ['social', 'crushable'] },
     { name: "Rickey", slug: "rickey", type: "Cocktail", x: 9, y: -2, hasSmoke: false, hasAnise: false, isBitter: false, tags: ['classic', 'crushable'] },
     { name: "Americano (Cocktail)", slug: "americano", type: "Cocktail", x: 6, y: -7, hasSmoke: false, hasAnise: false, isBitter: true, tags: ['classic', 'social', 'complex'] },

@@ -54,7 +54,7 @@ test('gLMS: a position reads as the anchor at or below it', () => {
 test('Catalog slug: the drink the name means, page or no page', () => {
   expect(catalogSlug('daiquiri (classic)')).toBe('daiquiri');
   expect(catalogSlug(' Naked & Famous ')).toBe('naked-and-famous');
-  expect(catalogSlug('margarita')).toBe('margarita'); // the Tommy's, as every lookup reads it
+  expect(catalogSlug("tommy's margarita")).toBe('tommys-margarita');
   // A drink with no register entry still has a slug: a pour of it can be found without its name.
   expect(catalogSlug('Prosecco DOC')).toBe('prosecco');
   // A drink the map does not know has none; nothing is made up from the name.

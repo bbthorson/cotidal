@@ -121,7 +121,8 @@ describe('ingredient-match', () => {
   it('reads a house drink’s name for the classic it builds on', () => {
     expect(classicInName('Adventure Negroni')?.name).toBe('Negroni');
     expect(classicInName('Epazote Mojito')?.name).toBe('Mojito');
-    expect(classicInName('Margarita Tomás')?.name).toBe("Margarita (Tommy's Style)");
+    expect(classicInName('Margarita Tomás')?.name).toBe('Margarita');
+    expect(classicInName("Spicy Tommy's Margarita")?.name).toBe("Tommy's Margarita");
     // The longest classic named wins.
     expect(classicInName('Smoky Mezcal Negroni')?.name).toBe('Mezcal Negroni');
     // Whole words only, and never a wine or beer named as an ingredient.
@@ -161,21 +162,27 @@ describe('ingredient-match', () => {
       );
       expect(names('Chelada', 'fresh lime, chile-lime salt, Tecate or Electrolime N/A')).toContain('beer');
       expect(names('El Diablo', 'reposado tequila, cassis, lime, spicy ginger beer')).not.toContain('beer');
-      // Built on beer, so never likened to a cocktail.
-      for (const [name, description] of [
-        ['Michelada', 'tomato, spices, chamoy, fresh lime, chile-lime salt, Tecate'],
-        ['Chelada', 'fresh lime, chile-lime salt, Tecate'],
-      ]) {
-        const like = relative(name, description);
-        if (like) expect(like.type).toBe('Beer');
-      }
+      expect(relative('House Michelada', 'tomato, spices, chamoy, fresh lime, Tecate')?.name).toBe('Michelada');
+      // Beer and lime alone is not a Michelada, and is never likened to a cocktail.
+      const chelada = relative('Chelada', 'fresh lime, chile-lime salt, Tecate or Electrolime N/A');
+      if (chelada) expect(chelada.type).toBe('Beer');
     });
 
     it('points house drinks at the classic they build on', () => {
       expect(relative('Adventure Negroni', 'spirit of choice (red or white), Vermouth, citrus')?.name).toBe('Negroni');
       expect(relative('Epazote Mojito', 'cucumber vodka, epazote, lime, mint, soda')?.name).toBe('Mojito');
       expect(relative('Margarita Tomás', 'choice of tequila or mezcal, fresh lime, agave, chile-lime salt')?.name).toBe(
-        "Margarita (Tommy's Style)"
+        'Margarita'
+      );
+      expect(relative('Bloody Maria', 'choice of tequila or mezcal, bloody mix, fresh lime, chile-lime salt')?.name).toBe(
+        'Bloody Mary'
+      );
+      expect(relative('La Flaca', 'tequila, salted lime, cordial, soda')?.name).toBe('Ranch Water');
+      expect(relative('Soccerita', 'blanco tequila, passionfruit, lime, agave, chile lime salt')?.name).toBe(
+        "Tommy's Margarita"
+      );
+      expect(relative('Sangria Señorial', 'Woodinville Bourbon, fresh green apple, jamaica, lime, sour apple brandy, soda')?.name).toBe(
+        'Sangria'
       );
       expect(relative('Spritz de la Casa', 'Primo Mexican Aperitivo, lemon, sparkling wine, soda')?.name).toBe(
         'Aperol Spritz'

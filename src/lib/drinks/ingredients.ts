@@ -118,7 +118,7 @@ export const INGREDIENT_INDEX: readonly IngredientPrimitive[] = [
 
   // Herbs & lengtheners
   { id: 'mint', name: 'Mint', role: 'aromatic', match: /\bmint\b|spearmint/i, pull: { x: 7.5, y: 6.0 } },
-  { id: 'soda', name: 'Soda water', role: 'lengthener', match: /club soda|sparkling water|sparkling mineral water|soda water|\bsoda\b/i, pull: { x: 7.5, y: 1.0 } },
+  { id: 'soda', name: 'Soda water', role: 'lengthener', match: /club soda|sparkling water|sparkling mineral water|mineral water|topo chico|soda water|\bsoda\b/i, pull: { x: 7.5, y: 1.0 } },
   { id: 'tonic', name: 'Tonic water', role: 'lengthener', match: /\btonic\b/i, flags: { bitter: true }, pull: { x: 8.0, y: -5.0 } },
 
   // Menu-only primitives (broaden directional coverage for house cocktails without altering region counts)
@@ -145,6 +145,7 @@ export const INGREDIENT_INDEX: readonly IngredientPrimitive[] = [
   { id: 'beer', name: 'Beer', role: 'base', match: /(?<!ginger[- ])(?<!root )\bbeer\b|\blager\b|\bcerveza\b|\bpilsner\b|\btecate\b|\bmodelo\b|\bcorona\b|\bpacifico\b|\bdos equis\b/i, pull: { x: 7.0, y: 0.5 }, regionGroup: false },
   { id: 'tomato', name: 'Tomato', role: 'lengthener', match: /\btomato\b|clamato|\bbloody (mary |maria )?mix\b/i, pull: { x: 2.0, y: -7.5 }, regionGroup: false },
   { id: 'chamoy', name: 'Chamoy', role: 'aromatic', match: /\bchamoy\b/i, pull: { x: 2.0, y: -1.0 }, regionGroup: false },
+  { id: 'cola', name: 'Cola', role: 'lengthener', match: /\b(cola|coke)\b/i, pull: { x: 0.0, y: 7.5 }, regionGroup: false },
   { id: 'olive-brine', name: 'Olive brine', role: 'aromatic', match: /olive brine|brine|\bdirty\b|saline/i, pull: { x: 6.5, y: -8.0 }, regionGroup: false },
 ];
 

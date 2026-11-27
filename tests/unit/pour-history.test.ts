@@ -35,8 +35,8 @@ const pours = [
 test('Last pour of each drink: the latest, by its name on the map', () => {
   const last = lastPourByDrink(pours);
   expect(last.get('Negroni')?.createdAt).toBe('2026-11-02T21:00:00.000Z');
-  // "margarita" is the map's Tommy's.
-  expect(last.get("Margarita (Tommy's Style)")?.drink.name).toBe('margarita');
+  // "margarita" is the map's Margarita.
+  expect(last.get('Margarita')?.drink.name).toBe('margarita');
   // A drink the map has no point for is left out.
   expect(last.has('House Sour')).toBe(false);
 });

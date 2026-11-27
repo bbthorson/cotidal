@@ -157,7 +157,11 @@ interface CueRule {
   requires: readonly RegExp[];
 }
 
+const BEER_RE = /(?<!ginger[- ])(?<!root )\bbeer\b|\b(lager|cerveza|tecate|modelo|corona|pacifico)\b/i;
+
 const RELATIVE_RULES: readonly CueRule[] = [
+  { drinkName: 'Michelada', requires: [BEER_RE, /\b(tomato|clamato|chamoy|hot sauce|worcestershire|maggi|valentina)\b/i] },
+  { drinkName: 'Bloody Mary', requires: [/\b(tomato|clamato)\b|\bbloody (mary |maria )?mix\b/i] },
   { drinkName: 'Naked & Famous', requires: [/\bmezcal\b/i, /\b(aperol|campari|chartreuse|bitter)\b/i, /\b(lime|lemon|citrus)\b/i] },
   { drinkName: 'Mezcal Paloma', requires: [/\bmezcal\b/i, /\bgrapefruit\b/i] },
   { drinkName: 'Last Word', requires: [/\bgin\b/i, /\bchartreuse\b/i, /\blime\b/i] },
@@ -175,9 +179,13 @@ const RELATIVE_RULES: readonly CueRule[] = [
   { drinkName: 'Espresso Martini', requires: [/\b(espresso|coffee|cold brew)\b/i, /\b(vodka|rum|tequila|liqueur)\b/i] },
   { drinkName: 'Jungle Bird', requires: [/\brum\b/i, /\b(campari|bitter)\b/i, /\bpineapple\b/i] },
   { drinkName: 'Mai Tai', requires: [/\brum\b/i, /\b(orgeat|almond)\b/i, /\blime\b/i] },
+  { drinkName: 'Cuba Libre', requires: [/\brum\b/i, /\b(cola|coke)\b/i] },
   { drinkName: 'Daiquiri (Classic)', requires: [/\brum\b/i, /\blime\b/i] },
-  { drinkName: "Margarita (Tommy's Style)", requires: [/\b(tequila|mezcal)\b/i, /\blime\b/i] },
   { drinkName: 'Paloma', requires: [/\btequila\b/i, /\bgrapefruit\b/i] },
+  { drinkName: 'Margarita', requires: [/\b(tequila|mezcal)\b/i, /\b(cointreau|triple sec|orange liqueur|cura[cç]ao|grand marnier)\b/i, /\blime\b/i] },
+  { drinkName: "Tommy's Margarita", requires: [/\b(tequila|mezcal)\b/i, /\bagave (nectar|syrup)\b|\bagave\b(?!\s+(tequila|spirit))/i, /\blime\b/i] },
+  { drinkName: 'Ranch Water', requires: [/\btequila\b/i, /\b(topo chico|mineral water|sparkling water|soda)\b/i, /\blime\b/i] },
+  { drinkName: 'Margarita', requires: [/\b(tequila|mezcal)\b/i, /\blime\b/i] },
   { drinkName: 'Whiskey Sour', requires: [/\b(bourbon|rye|whiskey)\b/i, /\blemon\b/i] },
   { drinkName: 'Sidecar', requires: [/\b(cognac|brandy)\b/i, /\blemon\b/i] },
   { drinkName: 'Moscow Mule', requires: [/\bvodka\b/i, /\bginger\b/i] },

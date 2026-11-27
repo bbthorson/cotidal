@@ -3,7 +3,9 @@ import { drinkDatabase } from '../../src/lib/drinks/data';
 import { baseName, drinkOf, matchDrink, normalizeName } from '../../src/lib/drinks/search';
 
 test('Drink match: a name finds its drink without the parenthetical, its case or its accents', () => {
-  expect(matchDrink('margarita')?.name).toBe("Margarita (Tommy's Style)");
+  expect(matchDrink('margarita')?.name).toBe('Margarita');
+  expect(matchDrink("Tommy's Margarita")?.slug).toBe('tommys-margarita');
+  expect(matchDrink('rum & coke')?.name).toBe('Cuba Libre');
   expect(matchDrink('  DAIQUIRI (classic) ')?.name).toBe('Daiquiri (Classic)');
   expect(matchDrink('Syrah')?.name).toBe('Syrah (Northern Rhône)');
   expect(matchDrink('Naked and Famous')?.name).toBe('Naked & Famous');
@@ -37,7 +39,7 @@ test('drinkOf: a stored reference finds its drink by slug first, then by name', 
   // So does a house name: what the pour was called, and which drink it was, are separate.
   expect(drinkOf({ name: 'House Negroni', slug: 'negroni' })?.name).toBe('Negroni');
   // No slug, or one the catalog no longer has: by name, as matchDrink reads it.
-  expect(drinkOf({ name: 'margarita' })?.name).toBe("Margarita (Tommy's Style)");
-  expect(drinkOf({ name: 'margarita', slug: 'retired-drink' })?.name).toBe("Margarita (Tommy's Style)");
+  expect(drinkOf({ name: 'margarita' })?.name).toBe('Margarita');
+  expect(drinkOf({ name: 'margarita', slug: 'retired-drink' })?.name).toBe('Margarita');
   expect(drinkOf({ name: 'House Sour' })).toBeNull();
 });

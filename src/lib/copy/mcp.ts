@@ -119,8 +119,8 @@ export const mcp = {
     rankMenu: {
       title: 'Rank a menu',
       description:
-        'Order the drinks on a menu by where each stands on someone’s taste, highest first, each with what put it there. Pass each item as a drink name or an object with name and ingredients/description as written on the menu. Items Cotidal cannot place are returned as unplaced with any avoided-flavour cautions and closest known classic when the ingredients make it clear; placed drinks with an avoided flavour are flagged, not dropped.',
-      items: 'Menu items: each a drink name, or { name, description?, ingredients? } as printed on the menu.',
+        'Order the drinks on a menu by where each stands on someone’s taste, highest first, as one list; each says what put it there. Pass every item with its ingredients/description as printed. Where a house drink offers a choice of spirit (“tequila or mezcal”), pass one item per choice, named for it (“Palomazo (mezcal)”), and the list ranks them. Each ranked item’s placement says how sure its place is: catalog (a drink on the map), ingredients (estimated from what the menu lists; say it is an estimate, and confidence says how much the menu gave), or classic (stands where closestClassic does). Follow the list’s order; do not reorder it. Unplaced items had nothing to place them by. A drink with a flavour they avoid is flagged and listed last, not dropped.',
+      items: 'Menu items: each a drink name, or { name, description?, ingredients? } as printed on the menu. One item per spirit choice.',
     },
     compare: {
       title: 'Compare two palates',
@@ -195,6 +195,8 @@ export const mcp = {
     orderFromMenu: {
       title: 'Order from a menu',
       description: 'Read a pasted or photographed bar menu, rank it against a Cotidal palate, and recommend the top picks.',
+      text: (handle?: string) =>
+        `Read the menu I share (pasted text or photo). Extract every drink with its ingredients/description as printed, one item per spirit choice, and call rank_menu${handle ? ` for ${handle}` : ''}. Recommend the top 3 in the order it returns, each with what put it there and which way it lies from my taste; say which are estimates from ingredients, and pass on any cautions.`,
     },
     pickForTable: {
       title: 'Pick for the table',
@@ -227,7 +229,7 @@ export const mcp = {
   needRating: 'A pour needs the rating they gave, a whole number from 1 to 9. Ask them; do not estimate it.',
   logged: 'Logged to their own account. Their coordinate has moved; tell them where it is now.',
   draftReady: 'Drafted. Nothing is logged yet: they open the link, tap how much they liked it, and log it.',
-  unplaced: 'Not on the Cotidal map, so it cannot be placed.',
+  unplaced: 'Not on the Cotidal map, and the menu lists too little to place it.',
   avoids: (flavours: string[]) => `Has ${flavours.join(' and ')}, which they avoid.`,
   flavours: { smoke: 'smoke', bitter: 'bitterness', anise: 'anise' },
 } as const;
