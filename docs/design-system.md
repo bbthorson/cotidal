@@ -167,7 +167,7 @@ phone Menu is a `<details>` opening the same `<nav>` via `peer-open`).
    phone; from `lg`, the account control and a row of tabs. Islands receive
    it as a slot rendered on the server.
 2. **Destinations:** the map (`/map`) in the bar; How it works
-   (`/#how-it-works`) and For Bars (`/bars`) in the footer (`footer: true`).
+   (`/?about=1#how-it-works`) and For Bars (`/bars`) in the footer (`footer: true`).
    No Drinks or Regions items. `/map` has no footer.
 3. **The account control** says what the server knows (`accountFor`, read
    once in `AppShell`): `@handle` → `/settings` for a member (on a phone,

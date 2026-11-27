@@ -1,5 +1,6 @@
 import type { UserProfile } from '@/lib/palate/profile';
 import type { DynamicState, ElicitationRecord, PourRecord } from '@/lib/atproto/records';
+import { coordinateCookie } from '@/lib/device-presence';
 
 /**
  * Everything the app keeps on this device, and the one place that names it.
@@ -8,6 +9,10 @@ import type { DynamicState, ElicitationRecord, PourRecord } from '@/lib/atproto/
  * Storage can be missing (server render) or refuse (private browsing, a full
  * quota), so every read answers null and every write is best effort: losing
  * the device copy must never break the page.
+ *
+ * Whether a coordinate is here is also said to the server, in one cookie
+ * (`device-presence.ts`), so `/` can open the app for someone who has one.
+ * It follows the profile: written with it, cleared with it.
  */
 const KEYS = {
   profile: 'user_profile',
@@ -49,9 +54,26 @@ function remove(key: string): void {
   }
 }
 
+function markCoordinate(present: boolean): void {
+  if (typeof document === 'undefined') return;
+  try {
+    document.cookie = coordinateCookie(present);
+  } catch {
+    // The server will show the front door; nothing else depends on it.
+  }
+}
+
 export const loadProfile = () => read<UserProfile>(KEYS.profile);
-export const saveProfile = (profile: UserProfile) => write(KEYS.profile, profile);
-export const clearProfile = () => remove(KEYS.profile);
+export function saveProfile(profile: UserProfile): void {
+  write(KEYS.profile, profile);
+  markCoordinate(true);
+}
+export function clearProfile(): void {
+  remove(KEYS.profile);
+  markCoordinate(false);
+}
+/** Make the cookie agree with what the device holds (a coordinate kept before the cookie existed, or storage cleared). */
+export const syncCoordinateMark = () => markCoordinate(loadProfile() !== null);
 
 export const loadPendingAnswers = () => read<ElicitationRecord>(KEYS.pendingAnswers);
 export const savePendingAnswers = (record: ElicitationRecord) => write(KEYS.pendingAnswers, record);
@@ -90,4 +112,5 @@ export const saveGuestState = (state: DynamicState) => write(KEYS.guestState, st
  */
 export function forgetDevice(): void {
   Object.values(KEYS).forEach(remove);
+  markCoordinate(false);
 }

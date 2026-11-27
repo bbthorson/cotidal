@@ -24,6 +24,14 @@ import { viewHref } from './map/map-url';
  * and for a link sent to someone, not for browsing.
  */
 export const mapHref = '/map';
+/**
+ * `/` is the app for anyone with a taste (a member, or a device that holds a
+ * coordinate) and the front door for everyone else. Any parameter keeps the
+ * front door, so How it works reaches it from inside the app too.
+ */
+export const FRONT_DOOR_PARAM = 'about';
+export const frontDoorHref = `/?${FRONT_DOOR_PARAM}=1`;
+export const howItWorksHref = `${frontDoorHref}#how-it-works`;
 export const barsHref = '/bars';
 /** A drink on your map: the map's address (`map-url.ts`). */
 export const drinkMapHref = (slug: string) => viewHref(mapHref, { drink: slug });
@@ -33,7 +41,7 @@ export const drinkPagePath = (slug: string) => `/drinks/${slug}`;
 export const destinations = [
   { href: mapHref, label: nav.map, match: mapHref, app: true, header: true, menu: false, footer: false, memberOnly: false },
   // How it works is the front door's card, pulled up: an anchor there, never a page of its own, and never "current".
-  { href: '/#how-it-works', label: nav.howItWorks, match: '#how-it-works', app: false, header: false, menu: true, footer: true, memberOnly: false },
+  { href: howItWorksHref, label: nav.howItWorks, match: '#how-it-works', app: false, header: false, menu: true, footer: true, memberOnly: false },
   { href: barsHref, label: nav.bars, match: barsHref, app: false, header: false, menu: false, footer: true, memberOnly: false },
 ] as const;
 

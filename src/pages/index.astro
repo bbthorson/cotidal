@@ -5,6 +5,7 @@ import { accountFor } from '../lib/atproto/session';
 import { explore, hero, howItWorks, nav, site } from '../lib/copy';
 import { sampleFrames } from '../lib/palate/sample-palate';
 import { mapHref, questionsHref, signIn } from '../lib/site-nav';
+import { hasDeviceCoordinate } from '../lib/device-presence';
 
 /**
  * The front door is the map, as every page that is a place on it is
@@ -17,9 +18,17 @@ import { mapHref, questionsHref, signIn } from '../lib/site-nav';
  * The sample's frames are the real terrain code's, worked out here; the
  * animation is CSS. Ships zero JavaScript: `tests/landing-static.spec.ts`
  * fails if it does.
+ *
+ * It is the front door only for someone with nothing on the map yet. A member,
+ * or a device that says it holds a coordinate (`device-presence.ts`), gets the
+ * app here, decided on the server so nothing flashes. Any parameter
+ * (`frontDoorHref`, How it works) keeps the front door.
  */
 const account = await accountFor(Astro.request, false);
 const member = account.kind === 'member';
+if (!Astro.url.search && (member || hasDeviceCoordinate(Astro.request.headers.get('cookie')))) {
+  return Astro.rewrite(mapHref);
+}
 const canSignIn = account.kind === 'guest' && account.canSignIn;
 const frames = sampleFrames();
 ---

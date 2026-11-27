@@ -12,7 +12,15 @@ and why.
 
 `/` is the map with a sample palate gaining ratings, and a card that asks one
 thing: find your coordinate. Pulled up, it says how it works
-(`/#how-it-works`) and links to sign-in. The map is its one large move.
+(`/?about=1#how-it-works`) and links to sign-in. The map is its one large move.
+
+**It is the front door only for a stranger.** The difference between `/` and
+`/map` is whether there is a taste to draw, so `/` is the app for anyone who
+has one: a member (the session says so) or a guest whose device holds a
+coordinate (a presence-only cookie, `src/lib/device-presence.ts`, since the
+coordinate itself never leaves the device). The server decides, so nothing
+flashes and a stranger's page stays script-free. Any parameter keeps the
+front door (`frontDoorHref`), which is how How it works reaches it.
 
 Signing in buys the account (any phone), the public map and chat assistants,
 not logging or the menu: everything works signed out, on the device, so it

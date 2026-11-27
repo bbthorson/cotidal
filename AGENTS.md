@@ -14,7 +14,11 @@ island is `/map` (`client:load`, never `client:only`, so it server-renders).
 
 - **No client JavaScript** on `/`, `/drinks/<slug>`, `/p/<handle>` and the
   other static pages. Never add an island to `/`:
-  `tests/landing-static.spec.ts` fails.
+  `tests/landing-static.spec.ts` fails. `/` is the front door only for
+  someone with nothing on the map: a member, or a device whose presence
+  cookie says it holds a coordinate (`src/lib/device-presence.ts`), gets
+  `/map` there by `Astro.rewrite`, decided on the server. Any parameter keeps
+  the front door (`frontDoorHref`; `tests/front-door.spec.ts`).
 - `/sign-in` is a plain form post that works with JavaScript off, enhanced by
   `<bsky-sign-in>` (no React). Sign-in (`@bbthorson/atproto-cf-auth`) is
   content-negotiated at `/api/auth/atproto/login`: JSON in, JSON out for the
@@ -55,7 +59,7 @@ first, silently.
 | Interface copy | `src/lib/copy/` | `npm run lint`: words in JSX text or a literal `placeholder` / `aria-label` / `title` / `alt` are errors. Exceptions: quiz questions (`palate/discovery-questions.ts`, beside their scoring) and the drink and region prose |
 | Drink prose | `src/content/drinks/*.md` | `tests/unit/drink-content.test.ts` |
 | Region prose | `src/content/regions/*.md` | `tests/unit/region-content.test.ts` |
-| What the device keeps | `src/lib/device-store.ts` | convention: nothing else touches `localStorage` |
+| What the device keeps | `src/lib/device-store.ts` | convention: nothing else touches `localStorage` or the presence cookie (`device-presence.ts`: `1` or absent, never the coordinate) |
 | Icons and share cards | `src/lib/mark.ts`, `src/pages/share/[card].astro`; `npm run images` writes `public/` | `tests/unit/mark.test.ts`, `tests/unit/share.test.ts` |
 
 Add a field to a lexicon before using it, a token before styling with it,
@@ -158,7 +162,7 @@ speeds the hot loop; a test holds it equal to `choiceProbs`.
   the scoring model: change it when the model changes.
 - The quiz's x/y variance becomes the starting covariance, and nothing in it
   calls a model.
-- How it works (`/#how-it-works`, `howItWorks` in `copy/`) is the public
+- How it works (`/?about=1#how-it-works`, `howItWorks` in `copy/`) is the public
   account of this; `tests/unit/how-it-works.test.ts` holds it to
   `MIN_QUESTIONS`, `MAX_QUESTIONS`, `MAX_POUR_STEP` and the 7/3 rating
   thresholds. Change one, update the copy in the same commit.
