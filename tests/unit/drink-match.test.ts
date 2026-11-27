@@ -28,6 +28,18 @@ test('Drink match: a name finds its drink without the parenthetical, its case or
   expect(matchDrink('Lambrusco di Sorbara')?.name).toBe('Lambrusco');
   expect(matchDrink('Prosecco DOC')?.name).toBe('Prosecco');
   expect(matchDrink('ipa')?.name).toBe('IPA (West Coast)');
+  // The IBA's and menus' spellings of drinks added since.
+  expect(matchDrink('Lemon Drop Martini')?.name).toBe('Lemon Drop');
+  expect(matchDrink('Fernandito')?.name).toBe('Fernet con Coca');
+  expect(matchDrink('Planters Punch')?.name).toBe("Planter's Punch");
+  expect(matchDrink('Horses Neck')?.name).toBe("Horse's Neck");
+  expect(matchDrink('Blood & Sand')?.name).toBe('Blood and Sand');
+  expect(matchDrink('Calimocho')?.name).toBe('Kalimotxo');
+  expect(matchDrink('Gluhwein')?.name).toBe('Mulled Wine');
+  expect(matchDrink('Vodka Cranberry')?.name).toBe('Cape Codder');
+  // A Kir is not a Kir Royal, nor a Vodka Martini a Martini.
+  expect(matchDrink('Kir')?.name).toBe('Kir');
+  expect(matchDrink('Vodka Martini')?.name).toBe('Vodka Martini');
   expect(matchDrink('House daiquiri with mezcal')).toBeNull();
   expect(matchDrink('')).toBeNull();
 });
