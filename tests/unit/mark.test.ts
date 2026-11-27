@@ -37,3 +37,24 @@ test('Mark: four lines from the amphidrome, like the figure', () => {
   expect(m.lines).toHaveLength(COTIDAL_LINES.length);
   for (const d of m.lines) expect(d.startsWith(`M${CENTRE.x} ${CENTRE.y} Q`)).toBe(true);
 });
+
+test('Mark: raster icons and manifest are committed at expected sizes', () => {
+  const ico = readFileSync('public/favicon.ico');
+  expect(ico.readUInt16LE(2)).toBe(1);
+  expect(ico.readUInt16LE(4)).toBe(3);
+
+  for (const [file, size] of [
+    ['public/apple-touch-icon.png', 180],
+    ['public/icon-192.png', 192],
+    ['public/icon-512.png', 512],
+  ] as const) {
+    const png = readFileSync(file);
+    expect(png.subarray(1, 4).toString(), file).toBe('PNG');
+    expect([png.readUInt32BE(16), png.readUInt32BE(20)], file).toEqual([size, size]);
+  }
+
+  const manifest = JSON.parse(readFileSync('public/site.webmanifest', 'utf8'));
+  expect(manifest.theme_color).toBe(MARK_COLOURS.paper);
+  expect(manifest.background_color).toBe(MARK_COLOURS.paper);
+  expect(manifest.icons.map((i: { src: string }) => i.src)).toEqual(['/icon-192.png', '/icon-512.png']);
+});

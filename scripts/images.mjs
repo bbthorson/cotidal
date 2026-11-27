@@ -22,10 +22,12 @@ if (!existsSync('dist')) {
   process.exit(1);
 }
 
-const { iconSvg, touchIconSvg } = await import('../src/lib/mark.ts');
+const { iconSvg, icoSvg, touchIconSvg } = await import('../src/lib/mark.ts');
 const { SHARE_CARDS, SHARE_SIZE, sharePagePath, shareImagePath } = await import('../src/lib/share.ts');
 
 const icon = iconSvg();
+const ico = icoSvg();
+const touch = touchIconSvg();
 writeFileSync('public/icon.svg', icon);
 
 // The suite's override (playwright.config.ts), for a machine whose browser
@@ -45,8 +47,10 @@ async function png(svg, size) {
 
 const sizes = [16, 32, 48];
 const images = [];
-for (const size of sizes) images.push(await png(icon, size));
-writeFileSync('public/apple-touch-icon.png', await png(touchIconSvg(), 180));
+for (const size of sizes) images.push(await png(ico, size));
+writeFileSync('public/apple-touch-icon.png', await png(touch, 180));
+writeFileSync('public/icon-192.png', await png(touch, 192));
+writeFileSync('public/icon-512.png', await png(touch, 512));
 
 // The share cards, from the preview server.
 const PORT = 9013;

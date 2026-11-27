@@ -178,20 +178,22 @@ at the same phase.
   large. Don't add ornament back to the chart: a new element has to be part
   of the map.
 - **The mark** (`Monogram.astro`, `public/icon.svg`, `favicon.ico`,
-  `apple-touch-icon.png`): the same chart reduced to a disc, the way the
-  coaster draws it — the outer ring, the four index lines only (the hourly
-  hairlines turn to mush at 16px), and the same band filled.
-  Ink lines, terracotta band, so the header and the hero read as one drawing.
-  The filled band is what keeps it legible at 16px.
+  `apple-touch-icon.png`, `icon-192.png`, `icon-512.png`): the same chart
+  reduced to a true circular dial — the outer ring, the four index lines with
+  a gentler sweep, the amphidrome centre node, the Surf band filled, and (at
+  header and app-icon sizes) a dashed inner co-range ring.
+  Ink lines, terracotta band, so the header and the share cards read as one
+  drawing. The filled band and heavier tab stroke keep it legible at 16px.
 
-The mark is drawn once, in `src/lib/mark.ts`, from the figure's geometry
+The mark is drawn once, in `src/lib/mark.ts`, from the chart geometry
 (`markGeometry` in `chart-geometry.ts`). The header renders it with token
-classes; `npm run images` writes the three icon files from it. Icon files
+classes; `npm run images` writes the icon files from it. Icon files
 cannot read CSS, so they carry the tokens as hex, and
 `tests/unit/mark.test.ts` fails when those leave `globals.css` or when
-`icon.svg` is not what the module draws. On a browser's dark tab strip the
-icon draws in paper with a lighter terracotta: that is the browser's chrome,
-not a dark theme for the site.
+`icon.svg` is not what the module draws. On a browser's dark tab strip
+`icon.svg` draws in paper with a lighter terracotta; `favicon.ico` fills the
+disc in paper (with transparent corners) so dark forest ink stays legible on
+dark browser chrome where SVG media queries do not apply.
 
 **Share cards** are what a link unfurls into: the chart beside the
 headline for the site, and beside a region's name for that region. A link to
