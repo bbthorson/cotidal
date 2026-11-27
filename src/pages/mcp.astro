@@ -42,7 +42,7 @@ const account = await accountFor(request, false);
 const handle = account.kind === 'member' ? account.handle : null;
 ---
 
-<MapPage title={`${site.name} — ${copy.eyebrow}`} currentPath="/mcp" label={copy.eyebrow} eyebrow={copy.eyebrow}>
+<MapPage title={`${site.name} — ${copy.eyebrow}`} currentPath="/mcp" label={copy.eyebrow} eyebrow={copy.eyebrow} account={account}>
   <ScreenHeader title={copy.title} gloss={copy.lede} />
   <div class="pt-8">
     <AssistantSteps address={address} memberAddress={memberAddress} handle={handle} />

@@ -24,7 +24,7 @@ const canSignIn = account.kind === 'guest' && account.canSignIn;
 const frames = sampleFrames();
 ---
 
-<MapPage title={`${site.name} — ${hero.headline} ${hero.headlineAccent}`} currentPath="/" label={site.name} rest="tall">
+<MapPage title={`${site.name} — ${hero.headline} ${hero.headlineAccent}`} currentPath="/" label={site.name} rest="tall" account={account}>
   <PalateMap slot="map" label={explore.chartLabel} frames={frames}>
     <span slot="caption" class="label-caps">{hero.sampleLabel}</span>
   </PalateMap>

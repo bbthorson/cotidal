@@ -230,22 +230,13 @@
     @apply font-condensed text-label font-semibold uppercase tracking-label text-muted-foreground;
   }
 
-  /* A <summary> that reads as a plain control, not a disclosure triangle. */
-  /* Text on the map, laid on a halo of the chart's own paper so a line or a
-     mark under it cannot cut it (PalateMap). */
-  .paint-card {
-    paint-order: stroke;
-    stroke: hsl(var(--card));
-    stroke-width: 4px;
-    stroke-linejoin: round;
-  }
-
   /* A search field that brings its own clear button: the browser's is hidden. */
   .search-plain::-webkit-search-cancel-button {
     appearance: none;
     display: none;
   }
 
+  /* A <summary> that reads as a plain control, not a disclosure triangle. */
   .summary-plain {
     list-style: none;
   }
@@ -459,7 +450,7 @@ bsky-sign-in[data-state='error'] input[name='handle'] {
   }
 
   /* Text on the map, laid on a halo of the chart's own paper so a line or a
-     mark under it cannot cut it: the HTML counterpart of `.paint-card`. */
+     mark under it cannot cut it. */
   .halo-card {
     text-shadow:
       1.5px 0 hsl(var(--card)),
