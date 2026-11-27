@@ -16,7 +16,7 @@ import {
 } from '@/lib/palate/overlays';
 import { ratingsOf, terrainOf } from '@/lib/palate/taste-reading';
 import { peaks, rankByTerrain, sampleTerrain, type Terrain } from '@/lib/palate/terrain';
-import { capMarks } from '@/lib/map/drawn';
+import { capMarks, comparedDrinks } from '@/lib/map/drawn';
 
 export interface Companion {
   actor: string;
@@ -296,9 +296,17 @@ export function useOverlays({
     }));
   }, [lens, companions]);
 
-  // What `PalateMap` draws in place of the staples when a type filter or the explore lens is on.
+  // Comparing with someone or picking for a table draws what the comparison names: where you part,
+  // the one for both, and the table's picks (`comparedDrinks`). Null when not comparing.
+  const comparedNames = useMemo<string[] | null>(
+    () => (lens === 'with' || lens === 'table' ? comparedDrinks(comparison, tablePicks).map((d) => d.name) : null),
+    [lens, comparison, tablePicks]
+  );
+
+  // What `PalateMap` draws in place of the staples when comparing, a type filter or the explore lens is on.
   // A type can hold more drinks than the map shows: capped, highest on your ground kept.
   const focusDrinks = useMemo<ReadonlySet<string> | null>(() => {
+    if (comparedNames) return new Set(comparedNames);
     if (lens === 'explore' && frontier) {
       return new Set([...frontier.nearUntried, ...frontier.pastEdge].map((d) => d.name));
     }
@@ -307,7 +315,7 @@ export function useOverlays({
       return new Set(capMarks(ordered).map((d) => d.name));
     }
     return null;
-  }, [lens, frontier, drinkType, filteredPool, mySide]);
+  }, [comparedNames, lens, frontier, drinkType, filteredPool, mySide]);
 
   return {
     lens,
@@ -332,6 +340,7 @@ export function useOverlays({
     againstGround,
     companionPoints,
     focusDrinks,
+    comparedNames,
   };
 }
 

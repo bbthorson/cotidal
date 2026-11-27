@@ -11,6 +11,8 @@ import { evidenceFor, menuOf, ratingsOf, terrainOf } from '../palate/taste-readi
 import { loadRegister } from '../drinks/register.server';
 import { titleOf } from '../drinks/register';
 import { readMapView } from '../map/map-url';
+import { comparedDrinks } from '../map/drawn';
+import { rankForTable } from '../palate/overlays';
 
 /**
  * Server-side loader for `/p/[actor]` (and `/map?palate=...` rewrites).
@@ -78,6 +80,21 @@ export async function loadPublicMapPage(actorParam: string, url: URL, request: R
         })
       : null;
   const menu = terrain && subject && !comparison ? menuOf(terrain, subject.aversions, rated) : [];
+  // Compared, the map draws the comparison's drinks in place of the staples, as `/map` does with `with=`.
+  const compared =
+    comparison && subject && terrain && other && otherTerrain
+      ? comparedDrinks(
+          comparison,
+          rankForTable(
+            [
+              { id: 'subject', label: subjectWho, terrain, aversions: subject.aversions, rated },
+              { id: 'other', label: otherWho, terrain: otherTerrain, aversions: other.palate.aversions, rated: ratingsOf(other.taste?.pours ?? []) },
+            ],
+            undefined,
+            8
+          )
+        )
+      : null;
 
   const entryHref = (drink: Drink) => {
     const entry = register[drink.name];
@@ -133,6 +150,7 @@ export async function loadPublicMapPage(actorParam: string, url: URL, request: R
     subjectSide,
     comparison,
     menu,
+    compared,
     entryHref,
     titleFor,
     titleOfName: (n: string) => titleOf(register, n),

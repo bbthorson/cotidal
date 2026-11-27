@@ -111,6 +111,20 @@ test('Two made-up people compared: where they part, each way, from their own gro
   expect(await page.locator('g[data-against] path').count()).toBeGreaterThan(0);
 });
 
+test('Two made-up people compared: the map draws the comparison\'s drinks, not the staples', async ({ page }) => {
+  const drawn = (slug: string) => page.locator(`[data-drink="${slug}"]`);
+  // One person alone: the staples, so a Mojito is on the map.
+  await page.goto('/map?palate=deep.test');
+  await expect(drawn('mojito')).toHaveCount(1);
+  // Compared: where the two part, each way (Manhattan, Daiquiri), and the picks for both, in place of the staples.
+  await page.goto('/map?palate=deep.test&with=surf.test');
+  await expect(drawn('manhattan')).toHaveCount(1);
+  await expect(drawn('daiquiri')).toHaveCount(1);
+  await expect(drawn('mojito')).toHaveCount(0);
+  await expect(drawn('gin-and-tonic')).toHaveCount(0);
+  expect(await page.locator('[data-drink]').count()).toBeLessThan(20);
+});
+
 test('A drink and a person are compared the same way: from the nearest hill, which way, and what is behind it', async ({ page }) => {
   // A drink is a point on their map.
   await page.goto('/map?palate=deep.test&drink=negroni');

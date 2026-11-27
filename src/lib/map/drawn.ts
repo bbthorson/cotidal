@@ -1,4 +1,5 @@
 import { drinkDatabase, type Drink } from '../drinks/data';
+import type { Comparison } from '../palate/compare';
 
 /**
  * Which drinks the map draws. The library holds more drinks than the map can
@@ -51,6 +52,18 @@ export function isStaple(drink: { name: string }): boolean {
 export function capMarks(drinks: readonly Drink[]): Drink[] {
   if (drinks.length <= MAX_MARKS) return [...drinks];
   return [...drinks.filter(isStaple), ...drinks.filter((d) => !isStaple(d))].slice(0, MAX_MARKS);
+}
+
+/**
+ * A comparison's drinks, drawn in place of the staples, as a region's or a
+ * search's are: where two tastes part, each way, and the one for both
+ * (`compareTerrains`, through `compareWith`), then the picks for the table
+ * (`rankForTable`), once each, in that order.
+ */
+export function comparedDrinks(comparison: Pick<Comparison, 'overlap'> | null, picks: readonly Drink[] = []): Drink[] {
+  const o = comparison?.overlap;
+  const named = [o?.shared, o?.firstOnly, o?.secondOnly, ...picks].filter((d): d is Drink => !!d);
+  return capMarks([...new Map(named.map((d) => [d.name, d])).values()]);
 }
 
 export interface DrawnView {

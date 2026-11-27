@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { overlays as copy } from '../src/lib/copy';
+import { explore, overlays as copy } from '../src/lib/copy';
 
 const profile = {
   x: -5,
@@ -40,6 +40,29 @@ test('Overlays: With someone draws comparison & against contours, and adding a s
   await expect(page.getByTestId('companion-chip-deep.test')).toBeVisible();
   await expect(page).toHaveURL(/table=surf\.test(%2C|,)deep\.test/);
   await expect(page.getByTestId('overlay-table-picks')).toContainText(copy.tableTitle(3));
+});
+
+test('Overlays: comparing with someone draws the comparison\'s drinks and the table\'s picks, not the staples', async ({ page }) => {
+  await page.addInitScript(seedOnce, profile);
+  await page.goto('/map');
+  const drawn = (name: string) => page.getByRole('group', { name: explore.mapLabel }).getByRole('button', { name, exact: true });
+  await expect(drawn('Mojito')).toHaveCount(1);
+
+  await page.goto('/map?with=surf.test');
+  const picks = page.getByTestId('overlay-table-picks');
+  await expect(picks).toBeVisible();
+  // Where the two part, each way.
+  await expect(drawn('Manhattan')).toHaveCount(1);
+  await expect(drawn('Daiquiri')).toHaveCount(1);
+  // The staples give way: what is drawn is the two, the eight picks and nothing else.
+  await expect(drawn('Mojito')).toHaveCount(0);
+  const marks = await page.locator('[data-drink]').count();
+  expect(marks).toBeGreaterThan(2);
+  expect(marks).toBeLessThanOrEqual(10);
+
+  // Leaving the comparison brings them back.
+  await page.getByTestId('companion-chip-surf.test').click();
+  await expect(drawn('Mojito')).toHaveCount(1);
 });
 
 test('Overlays: Uncharted lens and Wine type filter compose cleanly', async ({ page }) => {

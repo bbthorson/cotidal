@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest';
 import { drinkDatabase } from '../../src/lib/drinks/data';
 import { quadrantIdFor } from '../../src/lib/map/coordinates';
-import { capMarks, drawnDrinks, isStaple, MAX_MARKS, STAPLE_SLUGS, staples } from '../../src/lib/map/drawn';
+import { capMarks, comparedDrinks, drawnDrinks, isStaple, MAX_MARKS, STAPLE_SLUGS, staples } from '../../src/lib/map/drawn';
 
 describe('What the map draws', () => {
   test('the library holds more drinks than any one view draws', () => {
@@ -55,5 +55,16 @@ describe('What the map draws', () => {
     // One that fits is drawn whole, in its order.
     const wines = drinkDatabase.filter((d) => d.type === 'Wine');
     expect(capMarks(wines)).toEqual(wines);
+  });
+
+  test('a comparison draws where the two part, the one for both, then the picks, each once', () => {
+    const by = (name: string) => drinkDatabase.find((d) => d.name === name)!;
+    const [neg, dai, man, moj] = ['Negroni', 'Daiquiri (Classic)', 'Manhattan', 'Mojito'].map(by);
+    const overlap = { shared: man, firstOnly: neg, secondOnly: dai, inCommon: 2 };
+    expect(comparedDrinks({ overlap }, [moj, neg]).map((d) => d.name)).toEqual(['Manhattan', 'Negroni', 'Daiquiri (Classic)', 'Mojito']);
+    // Two who agree get no invented contrast: only what there is.
+    expect(comparedDrinks({ overlap: { shared: man, firstOnly: null, secondOnly: null, inCommon: 10 } }).map((d) => d.name)).toEqual(['Manhattan']);
+    // No comparison yet (a guest with no taste): the table's picks alone.
+    expect(comparedDrinks(null, [moj]).map((d) => d.name)).toEqual(['Mojito']);
   });
 });

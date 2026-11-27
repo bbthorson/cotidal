@@ -42,7 +42,9 @@ by one function (`drawnDrinks`, `src/lib/map/drawn.ts`;
 - **A filter** draws its drinks instead of the staples: a search while it
   finds drinks (by name, alias or what is in them, so "mezcal" draws every
   mezcal drink), a region, a drink type, the edge of what you know
-  (`lens=explore`). One that holds more than
+  (`lens=explore`), a comparison (`with=`, a table): where the two part,
+  the one for both, and the table's picks (`comparedDrinks`; on `/map` and
+  on `/map?palate=…&with=…` alike). One that holds more than
   `MAX_MARKS` keeps its staples first, then its highest on your ground
   (`capMarks`).
 - **A bar's menu** draws its pins and nothing else.
