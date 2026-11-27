@@ -23,12 +23,12 @@ export const MAX_MARKS = 60;
 export const STAPLE_SLUGS = [
   // Crisp · Sweet
   'aperol-spritz', 'daiquiri', 'margarita', 'mojito', 'paloma', 'moscow-mule', 'tom-collins',
-  'french-75', 'whiskey-sour', 'mai-tai', 'cuba-libre', 'prosecco', 'moscato-d-asti',
+  'french-75', 'whiskey-sour', 'mai-tai', 'cuba-libre', 'screwdriver', 'prosecco', 'moscato-d-asti',
   // Rich · Sweet
   'espresso-martini', 'white-russian', 'cosmopolitan', 'pina-colada', 'irish-coffee', 'amaretto-sour',
-  'sidecar', 'clover-club', 'mint-julep', 'port-tawny', 'milk-stout',
+  'sidecar', 'clover-club', 'mint-julep', 'whiskey-and-coke', 'port-tawny', 'milk-stout',
   // Crisp · Savory
-  'gin-and-tonic', 'dry-martini', 'dirty-martini', 'vodka-soda', 'gimlet', 'bloody-mary', 'michelada',
+  'gin-and-tonic', 'vodka-tonic', 'dry-martini', 'vodka-martini', 'dirty-martini', 'vodka-soda', 'gimlet', 'bloody-mary', 'michelada',
   'last-word', 'sancerre', 'pinot-grigio', 'provence-rose', 'champagne-brut', 'pinot-noir-burgundy',
   'pilsner-german', 'ipa-west-coast', 'hefeweizen',
   // Rich · Savory
