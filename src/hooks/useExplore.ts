@@ -10,6 +10,7 @@ import { addMenuLines, rankMenu, type MenuItem } from '@/lib/drinks/menu-rank';
 import { readMapView, readMenuHandoff, VIEW_PARAMS } from '@/lib/map/map-url';
 import type { Side } from '@/lib/palate/compare';
 import { quadrantIdFor, type QuadrantId } from '@/lib/map/coordinates';
+import { capMarks } from '@/lib/map/drawn';
 import { buildTerrain, evidenceAt, kindOf, leanings, sampleTerrain, type TerrainStart } from '@/lib/palate/terrain';
 import { distanceRun } from '@/lib/palate/track';
 import { useMemberData } from '@/hooks/useMemberData';
@@ -266,6 +267,14 @@ export function useExplore(
             : []),
         ];
 
+  // A region is a filter: the card lists all its drinks; the map draws as many as it can show (`capMarks`).
+  const regionDrinks = useMemo(
+    () => (region ? drinkDatabase.filter((d) => quadrantIdFor(d.x, d.y) === region).sort((a, b) => name(a.name).localeCompare(name(b.name))) : []),
+    [region, name]
+  );
+  const regionShown = useMemo(() => capMarks(regionDrinks), [regionDrinks]);
+  const regionFocus = useMemo<ReadonlySet<string> | null>(() => (region ? new Set(regionShown.map((d) => d.name)) : null), [region, regionShown]);
+
   return {
     isMember,
     profile,
@@ -312,7 +321,9 @@ export function useExplore(
     chooseDrink,
     closeDrink,
     region,
-    regionDrinks: region ? drinkDatabase.filter((d) => quadrantIdFor(d.x, d.y) === region).sort((a, b) => name(a.name).localeCompare(name(b.name))) : [],
+    regionDrinks,
+    regionShown,
+    regionFocus,
     openRegion,
     venue,
     barName,

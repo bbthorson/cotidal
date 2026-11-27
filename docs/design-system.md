@@ -286,7 +286,9 @@ accounts (`atproto-cf-auth:recent-accounts`).
 ground running to the window's edges; the four regions in italic, as names
 for parts of the map, never for you; the axis words; **your terrain** as a
 wash (sage to forest where high, terracotta where you rated low, paler where
-nothing supports it) with dashed contours; every drink as a ring; your pours
+nothing supports it) with dashed contours; the drinks the view draws as rings
+(the staples, or a filter's own; `docs/map-first.md`, What the map draws);
+your menu named; your pours
 in terracotta, filled at 7+, named with your rating ("Negroni · 9"). Labels
 go by priority (the open drink, a bar's pins, your pours) and drop where they
 would overlap. A tap takes the nearest mark within reach. Your point is not

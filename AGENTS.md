@@ -71,7 +71,9 @@ the app's one screen: the map fixed as the background, never panning or
 zooming (what changes is what is drawn), and one card for everything else.
 Geometry, contours and label placement are plain functions (`map-draw.ts`);
 the map is an SVG in map units with HTML marks over it in percentages, so the
-server draws it whole. Screen and card behaviour: `docs/design-system.md`.
+server draws it whole. The library is always larger than the map: a view
+draws the staples or a filter's own drinks, never all of them
+(`drawnDrinks`, `src/lib/map/drawn.ts`). Screen and card behaviour: `docs/design-system.md`.
 
 **The address** (`src/lib/map/map-url.ts`): the path picks the card, the
 parameters pick what the map draws (`drink=`, `palate=`, `with=`, `region=`).
