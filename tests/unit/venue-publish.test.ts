@@ -46,8 +46,7 @@ describe('venue-publish', () => {
       .map((f) => JSON.parse(readFileSync(`tests/fixtures/community-lexicon/${f}`, 'utf8')));
     const reference = new Lexicons([...ours, ...theirs]);
 
-    const record = VenueRecordSchema.parse({
-      $type: VENUE_COLLECTION,
+    const record = buildVenueRecord({
       name: 'Fresh Kills Bar',
       description: 'Bespoke cocktails in Williamsburg.',
       website: 'https://freshkillsbar.com',
@@ -58,9 +57,14 @@ describe('venue-publish', () => {
         osm: 'node/4123456789',
         fsq: '54321abcdef0987654321abc',
       },
-      createdAt: new Date().toISOString(),
     });
 
+    expect(VenueRecordSchema.parse(record)).toEqual(record);
+    expect(record.menuStyle).toBe('bespoke');
+    expect(record.externalIds).toEqual({
+      osm: 'node/4123456789',
+      fsq: '54321abcdef0987654321abc',
+    });
     expect(() => reference.assertValidRecord(VENUE_COLLECTION, record)).not.toThrow();
   });
 });

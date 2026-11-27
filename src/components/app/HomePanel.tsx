@@ -233,7 +233,7 @@ export function HomePanel({
         </section>
       )}
 
-      <NearList nearby={nearby} onOpen={(b) => onOpenBar({ name: b.name, at: { lat: b.lat, lon: b.lon } })} />
+      <NearList nearby={nearby} onOpen={(b) => onOpenBar({ name: b.name, at: { lat: b.lat, lon: b.lon }, osmId: b.id })} />
 
       <section id="yours" className="mt-8">
         <SectionTitle>{explore.yoursTitle}</SectionTitle>

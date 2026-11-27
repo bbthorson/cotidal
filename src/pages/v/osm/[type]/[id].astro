@@ -29,6 +29,15 @@ const bar = result.status === 'ok' ? result.bar : null;
 const title = bar ? `${bar.name} — ${site.name}` : `${site.name} — ${copy.unclaimedEyebrow}`;
 const currentPath = parsed ? `/v/osm/${parsed.type}/${parsed.id}` : '/v/osm';
 const mapBarHref = bar ? `${mapHref}?menu=1&bar=${encodeURIComponent(bar.name)}` : mapHref;
+const claimParams = new URLSearchParams();
+if (bar) {
+  claimParams.set('osm', bar.id);
+  claimParams.set('name', bar.name);
+  if (bar.fsqId) claimParams.set('fsq', bar.fsqId);
+  if (bar.website) claimParams.set('website', bar.website);
+  if (bar.openingHours) claimParams.set('hours', bar.openingHours);
+}
+const claimHref = bar ? `${barsHref}?${claimParams.toString()}#claim` : `${barsHref}#claim`;
 const placeIdSummary = bar ? (bar.fsqId ? `osm:${bar.id} · fsq:${bar.fsqId}` : `osm:${bar.id}`) : '';
 const hasDetails = Boolean(bar && (bar.address || bar.openingHours || bar.outdoorSeating !== undefined || placeIdSummary));
 
@@ -129,7 +138,7 @@ Astro.response.headers.set(
         <section class="space-y-3 border-t border-border pt-6">
           <SectionTitle>{copy.claimBar}</SectionTitle>
           <p class="text-meta leading-relaxed text-muted-foreground">{copy.claimBody}</p>
-          <a href={barsHref} class="btn btn-outline inline-flex">
+          <a href={claimHref} class="btn btn-outline inline-flex">
             {copy.claimBar}
           </a>
         </section>
