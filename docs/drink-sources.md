@@ -1,5 +1,5 @@
 ---
-summary: Outside sources that could supply drink profiles, names and recipes (TheCocktailDB, API Ninjas, BJCP), what each gives and on what terms, checked November 2026.
+summary: Outside sources that could supply drink profiles, names and recipes (TheCocktailDB, API Ninjas, Wikipedia, Wikidata, BJCP), what each gives and on what terms, checked November 2026.
 read_when: Adding drinks in bulk, importing recipes or style figures, or considering any third-party drink data.
 ---
 
@@ -30,8 +30,31 @@ the IBA directly.
 
 Neither gives a position. Their use: candidate cocktails and ingredients, to
 check against bar manuals, and input for placing cocktails by ingredient
-once that model exists (calibrated against the 75 hand-placed cocktails,
+once that model exists (calibrated against the hand-placed cocktails,
 with `src/lib/drinks/ingredients.ts` as the vocabulary).
+
+**Wikipedia** (`List_of_cocktails`, `List_of_IBA_official_cocktails`): an
+index, never a source. Its text is CC BY-SA, so close paraphrase would make
+an entry share-alike; its recipes are often uncited and change between
+edits. Use it for which drinks exist and what else they are called (names
+are facts), and follow its citations to the primary sources an entry cites.
+The IBA list is the trade's own canon, in three tiers (The Unforgettables,
+Contemporary Classics, New Era Drinks).
+
+**Wikidata**: structured data under CC0 (no attribution, no share-alike;
+`Wikidata:Copyright`), and the better bulk source. A cocktail item carries
+`P31` `Q2536409` (IBA official cocktail), `P279` `Q134768` (cocktail),
+ingredients as `P186` (made from material) with amounts in parts as `P1114`
+(quantity) qualifiers, and `P9056`, its TheCocktailDB id. The Negroni
+(`Q1401202`) is 3 : 3 : 3; the Margarita (`Q657621`) is 3.5 : 2 : 1.5. Those
+parts are the input a placement by amounts needs, and cross-check what a
+spec in an entry says. Coverage beyond the well-known drinks is unchecked.
+
+Reading them: the MediaWiki APIs (`api.php`) rate-limit the cloud sessions'
+shared address. A page's raw text (`index.php?title=…&action=raw`) and an
+item's JSON (`Special:EntityData/<Q>.json`) were served; a bulk pull would
+go through `query.wikidata.org` (SPARQL), untried. Hosts must be allowed in
+the environment's network settings.
 
 RapidAPI's "Alcohol and Brewery APIs" is a marketplace, not a source; none of
 it carries sensory figures.
