@@ -8,7 +8,9 @@ read_when: Adding drinks in bulk, importing recipes or style figures, or conside
 A drink is placed from its style (`src/lib/drinks/placement.ts`): body,
 residual sugar and structure (tannin or hop bitterness), or for a cocktail
 its ingredients and amounts. Names and aliases help on their own
-(`matchDrink`). Prose is never taken from a source (AGENTS.md, Drink and
+(`matchDrink`); a generic name is an alias of the one drink menus most often
+mean by it (a plain "Spritz" is the Aperol Spritz), until the family has
+drinks of its own to tell apart (Campari, Select, Cynar and other spritzes). Prose is never taken from a source (AGENTS.md, Drink and
 region prose). **Nothing is called at runtime:** a source is read once, by
 hand or script, and what is kept is checked and committed. Re-read terms
 before relying on any of these.
@@ -40,6 +42,12 @@ edits. Use it for which drinks exist and what else they are called (names
 are facts), and follow its citations to the primary sources an entry cites.
 The IBA list is the trade's own canon, in three tiers (The Unforgettables,
 Contemporary Classics, New Era Drinks).
+Each spec is a page at `iba-world.com/iba-cocktail/<slug>/` (amounts in ml,
+method, garnish, and notes on variants), read with a plain GET once
+`iba-world.com` is an allowed host; it is the source most drink entries cite.
+Not on its list, so without an entry until another primary source is found:
+Batanga, Tequila Sour, Cantarito, Vampiro, Mexican Martini, Tequila & Tonic,
+Michelada and Ranch Water.
 
 **Wikidata**: structured data under CC0 (no attribution, no share-alike;
 `Wikidata:Copyright`), and the better bulk source. A cocktail item carries

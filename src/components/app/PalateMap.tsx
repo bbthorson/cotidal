@@ -501,6 +501,7 @@ function Mark({
   return (
     <span
       style={at}
+      data-drink={m.drink.slug}
       role={listening ? 'button' : undefined}
       aria-label={listening ? label : undefined}
       aria-pressed={listening ? isSel : undefined}

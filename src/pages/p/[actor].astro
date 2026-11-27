@@ -40,6 +40,7 @@ const {
   subjectSide,
   comparison,
   menu,
+  compared,
   entryHref,
   titleFor,
   titleOfName,
@@ -78,7 +79,8 @@ const ctaClass = 'btn btn-primary w-full';
     ratings={rated}
     against={otherGround}
     selected={viewDrink?.name ?? null}
-    named={menu.map((d) => d.name)}
+    focus={compared ? new Set(compared.map((d) => d.name)) : null}
+    named={(compared ?? menu).map((d) => d.name)}
     tide={!subject}
   />
 
