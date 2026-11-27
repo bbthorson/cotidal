@@ -61,10 +61,10 @@ export function addMenuLine(
   const drink = nonAlcoholic ? null : placeDrink(name, register);
   const shown = drink ? titleOf(register, drink.name) : name;
   if (items.some((i) => baseName(i.label) === baseName(shown))) return items;
-  const directional = !drink && description ? placeDirectional(text, undefined, { section }) : null;
+  const directional = !drink && description ? placeDirectional(text, undefined, { section, name }) : null;
   const relative =
-    !drink && description && !nonAlcoholic
-      ? (directional?.closestClassic ?? suggestClosestDrink(text, undefined, { section, nonAlcoholic }))
+    !drink && !nonAlcoholic
+      ? (directional?.closestClassic ?? suggestClosestDrink(text, undefined, { section, nonAlcoholic, name }))
       : null;
   return [
     ...items,

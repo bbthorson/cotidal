@@ -4,7 +4,7 @@ import {
   ROLE_WEIGHT,
   type IngredientPrimitive,
 } from './ingredients';
-import { matchDrink } from './search';
+import { baseName, matchDrink, normalizeName } from './search';
 import {
   distanceBetween,
   quadrantIdFor,
@@ -169,7 +169,8 @@ const RELATIVE_RULES: readonly CueRule[] = [
   { drinkName: 'Sazerac', requires: [/\b(rye|cognac|whiskey)\b/i, /\b(absinthe|pastis|herbsaint)\b/i] },
   { drinkName: 'Dry Martini', requires: [/\b(gin|vodka)\b/i, /\bdry vermouth\b/i] },
   { drinkName: 'Gin & Tonic', requires: [/\bgin\b/i, /\btonic\b/i] },
-  { drinkName: 'Aperol Spritz', requires: [/\b(aperol|campari|bitter)\b/i, /\b(prosecco|champagne|sparkling|cava)\b/i] },
+  { drinkName: 'Americano (Cocktail)', requires: [/\b(campari|aperitivo|amaro|bitter)\b/i, /\bvermouth\b/i, /\bsoda\b/i] },
+  { drinkName: 'Aperol Spritz', requires: [/\b(aperol|campari|aperitivo|bitter)\b/i, /\b(prosecco|champagne|sparkling|cava)\b/i] },
   { drinkName: 'French 75', requires: [/\bgin\b/i, /\b(champagne|prosecco|sparkling)\b/i, /\blemon\b/i] },
   { drinkName: 'Espresso Martini', requires: [/\b(espresso|coffee|cold brew)\b/i, /\b(vodka|rum|tequila|liqueur)\b/i] },
   { drinkName: 'Jungle Bird', requires: [/\brum\b/i, /\b(campari|bitter)\b/i, /\bpineapple\b/i] },
@@ -183,17 +184,56 @@ const RELATIVE_RULES: readonly CueRule[] = [
 ];
 
 /**
+ * How far a house drink's ingredients may land from the classic its name
+ * names before the name is not believed ("Toronto Sunrise" with gin and
+ * grapefruit is not a Toronto).
+ */
+const NAMED_CLASSIC_REACH = 7;
+
+/**
+ * The classic cocktail a house drink's name builds on: "Adventure Negroni",
+ * "Epazote Mojito", "Margarita Tomás". The classic's name, without its
+ * parenthetical, must appear as whole words in the menu name; the longest
+ * wins, and two different classics of the same length mean neither. Never a
+ * wine, beer or spirit, whose names are ingredients in cocktails.
+ */
+export function classicInName(name: string, drinks: readonly Drink[] = drinkDatabase): Drink | null {
+  const words = ` ${normalizeName(name)} `;
+  if (!words.trim()) return null;
+  let best: Drink[] = [];
+  let bestLength = 0;
+  for (const d of drinks) {
+    if (d.type !== 'Cocktail') continue;
+    const classic = baseName(d.name);
+    if (!classic || !words.includes(` ${classic} `)) continue;
+    if (classic.length > bestLength) {
+      best = [d];
+      bestLength = classic.length;
+    } else if (classic.length === bestLength) {
+      best.push(d);
+    }
+  }
+  return best.length === 1 ? best[0] : null;
+}
+
+/**
  * When a house cocktail isn't on the map, return the closest structural
- * classic if its description clearly names the defining ingredients, or `null`
- * if there isn't enough signal.
+ * classic: the one its name builds on (`classicInName`) unless its listed
+ * ingredients land far from it, else the one its description's defining
+ * ingredients name, or `null` if there isn't enough signal.
  */
 export function suggestClosestDrink(
   text: string,
   drinks: readonly Drink[] = drinkDatabase,
-  options?: { section?: string; nonAlcoholic?: boolean }
+  options?: { section?: string; nonAlcoholic?: boolean; name?: string }
 ): Drink | null {
-  if (!text.trim()) return null;
-  if (options?.nonAlcoholic || isNonAlcoholic(text, options?.section)) return null;
+  if (!text.trim() && !options?.name?.trim()) return null;
+  if (options?.nonAlcoholic || isNonAlcoholic(`${options?.name ?? ''} ${text}`, options?.section)) return null;
+  const named = options?.name ? classicInName(options.name, drinks) : null;
+  if (named) {
+    const point = directionalPoint(text);
+    if (!point || distanceBetween(point, named) <= NAMED_CLASSIC_REACH) return named;
+  }
   for (const rule of RELATIVE_RULES) {
     if (rule.requires.every((re) => re.test(text))) {
       return drinks.find((d) => d.name === rule.drinkName) ?? null;
@@ -226,20 +266,10 @@ export interface DirectionalPlacement {
 
 const clampAxis = (v: number) => Math.max(-10, Math.min(10, roundTenth(v))) || 0;
 
-/**
- * Infer a directional coordinate on the palate map from a house cocktail's
- * ingredient list. Requires at least 2 matched primitives from
- * `INGREDIENT_INDEX` so creative names without ingredients never fabricate a
- * position.
- */
-export function placeDirectional(
-  text: string,
-  drinks: readonly Drink[] = drinkDatabase,
-  options?: { section?: string }
-): DirectionalPlacement | null {
+/** The weighted pull of a description's primitives, or `null` under two of them. */
+function directionalPoint(text: string): { x: number; y: number; primitives: IngredientPrimitive[] } | null {
   const primitives = extractPrimitives(text);
   if (primitives.length < 2) return null;
-
   let wx = 0;
   let wy = 0;
   let wSum = 0;
@@ -250,9 +280,23 @@ export function placeDirectional(
     wSum += w;
   }
   if (wSum === 0) return null;
+  return { x: clampAxis(wx / wSum), y: clampAxis(wy / wSum), primitives };
+}
 
-  const x = clampAxis(wx / wSum);
-  const y = clampAxis(wy / wSum);
+/**
+ * Infer a directional coordinate on the palate map from a house cocktail's
+ * ingredient list. Requires at least 2 matched primitives from
+ * `INGREDIENT_INDEX` so creative names without ingredients never fabricate a
+ * position.
+ */
+export function placeDirectional(
+  text: string,
+  drinks: readonly Drink[] = drinkDatabase,
+  options?: { section?: string; name?: string }
+): DirectionalPlacement | null {
+  const point = directionalPoint(text);
+  if (!point) return null;
+  const { x, y, primitives } = point;
   const quadrant = quadrantIdFor(x, y);
   const aversions = detectAversions(text);
   const nonAlcoholic = isNonAlcoholic(text, options?.section);
@@ -266,12 +310,14 @@ export function placeDirectional(
 
   let closestClassic: Drink | null = null;
   if (!nonAlcoholic) {
-    closestClassic = suggestClosestDrink(text, drinks, { nonAlcoholic: false });
+    closestClassic = suggestClosestDrink(text, drinks, { nonAlcoholic: false, name: options?.name });
     if (!closestClassic) {
-      // Fall back to the nearest verified cocktail within 4.5 points if it sits in the same region.
+      // Fall back to the nearest drink of its kind (a beer for a drink built on beer, else a
+      // cocktail) within 4.5 points, if it sits in the same region.
+      const kind = primitives.some((p) => p.id === 'beer') ? 'Beer' : 'Cocktail';
       let best: { drink: Drink; dist: number } | null = null;
       for (const d of drinks) {
-        if (d.type !== 'Cocktail') continue;
+        if (d.type !== kind) continue;
         if (quadrantIdFor(d.x, d.y) !== quadrant) continue;
         const dist = distanceBetween({ x, y }, d);
         if (dist <= 4.5 && (!best || dist < best.dist)) {

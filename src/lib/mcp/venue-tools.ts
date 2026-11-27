@@ -90,8 +90,9 @@ export async function rankMenu(
     if (!drink) {
       const text = [parsed.name, parsed.description].filter(Boolean).join(' ');
       const avoided = clashingAversions(text, point.aversions).map((k) => mcp.flavours[k]);
-      const directional = parsed.description ? placeDirectional(text) : null;
-      const relative = parsed.description ? (directional?.closestClassic ?? suggestClosestDrink(text)) : null;
+      const name = parsed.name || label;
+      const directional = parsed.description ? placeDirectional(text, undefined, { name }) : null;
+      const relative = directional?.closestClassic ?? suggestClosestDrink(text, undefined, { name });
       const dirWay = directional
         ? compareWith(side, {
             kind: 'drink',

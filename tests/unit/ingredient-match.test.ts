@@ -9,6 +9,7 @@ import {
   placeDirectional,
   splitMenuLine,
   suggestClosestDrink,
+  classicInName,
 } from '@/lib/drinks/ingredient-match';
 
 describe('ingredient-match', () => {
@@ -115,5 +116,76 @@ describe('ingredient-match', () => {
     expect(bySection).not.toBeNull();
     expect(bySection!.nonAlcoholic).toBe(true);
     expect(bySection!.closestClassic).toBeNull();
+  });
+
+  it('reads a house drink’s name for the classic it builds on', () => {
+    expect(classicInName('Adventure Negroni')?.name).toBe('Negroni');
+    expect(classicInName('Epazote Mojito')?.name).toBe('Mojito');
+    expect(classicInName('Margarita Tomás')?.name).toBe("Margarita (Tommy's Style)");
+    // The longest classic named wins.
+    expect(classicInName('Smoky Mezcal Negroni')?.name).toBe('Mezcal Negroni');
+    // Whole words only, and never a wine or beer named as an ingredient.
+    expect(classicInName('Negronish')).toBeNull();
+    expect(classicInName('Prosecco Punch')).toBeNull();
+    // A name with no classic in it says nothing.
+    expect(classicInName('Carajo')).toBeNull();
+  });
+
+  it('does not believe a name its ingredients contradict', () => {
+    // A Negroni by name, but crisp and sweet by everything in it.
+    expect(
+      suggestClosestDrink('Beach Negroni rum, pineapple, passion fruit, mint, soda', undefined, { name: 'Beach Negroni' })?.name
+    ).not.toBe('Negroni');
+  });
+
+  // A real menu (Soccería, November 2026) that rank_menu read badly.
+  describe('an agave bar’s menu', () => {
+    const place = (name: string, description: string) =>
+      placeDirectional(`${name} ${description}`, undefined, { name });
+    const relative = (name: string, description: string) =>
+      place(name, description)?.closestClassic ?? suggestClosestDrink(`${name} ${description}`, undefined, { name });
+    const names = (name: string, description: string) =>
+      extractPrimitives(`${name} ${description}`).map((p) => p.id);
+
+    it('reads a blanco vermouth as vermouth, not tequila', () => {
+      const ids = names('Roma with a View', 'aperitivo, Lustau Blanco Vermouth, lime, soda');
+      expect(ids).not.toContain('tequila');
+      expect(ids).toEqual(expect.arrayContaining(['aperitivo', 'lillet-cocchi', 'lime', 'soda']));
+      expect(names('Soccerita', 'Volcán de Mi Tierra Blanco tequila, passionfruit, lime')).toContain('tequila');
+      expect(names('Blanco Sour', 'blanco, lime, agave')).toContain('tequila');
+    });
+
+    it('reads beer, tomato and chamoy, and not ginger beer as beer', () => {
+      expect(names('Michelada', 'tomato, spices, chamoy, fresh lime, chile-lime salt, Tecate')).toEqual(
+        expect.arrayContaining(['beer', 'tomato', 'chamoy', 'lime'])
+      );
+      expect(names('Chelada', 'fresh lime, chile-lime salt, Tecate or Electrolime N/A')).toContain('beer');
+      expect(names('El Diablo', 'reposado tequila, cassis, lime, spicy ginger beer')).not.toContain('beer');
+      // Built on beer, so never likened to a cocktail.
+      for (const [name, description] of [
+        ['Michelada', 'tomato, spices, chamoy, fresh lime, chile-lime salt, Tecate'],
+        ['Chelada', 'fresh lime, chile-lime salt, Tecate'],
+      ]) {
+        const like = relative(name, description);
+        if (like) expect(like.type).toBe('Beer');
+      }
+    });
+
+    it('points house drinks at the classic they build on', () => {
+      expect(relative('Adventure Negroni', 'spirit of choice (red or white), Vermouth, citrus')?.name).toBe('Negroni');
+      expect(relative('Epazote Mojito', 'cucumber vodka, epazote, lime, mint, soda')?.name).toBe('Mojito');
+      expect(relative('Margarita Tomás', 'choice of tequila or mezcal, fresh lime, agave, chile-lime salt')?.name).toBe(
+        "Margarita (Tommy's Style)"
+      );
+      expect(relative('Spritz de la Casa', 'Primo Mexican Aperitivo, lemon, sparkling wine, soda')?.name).toBe(
+        'Aperol Spritz'
+      );
+      expect(relative('Roma with a View', 'aperitivo, Lustau Blanco Vermouth, lime, soda')?.name).toBe(
+        'Americano (Cocktail)'
+      );
+      expect(relative('Palomazo', 'choice of tequila or mezcal, grapefruit cordial, fresh lime, soda')?.name).toBe(
+        'Mezcal Paloma'
+      );
+    });
   });
 });
