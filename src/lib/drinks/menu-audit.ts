@@ -1,5 +1,9 @@
 import { addMenuLines, type MenuItem } from './menu-rank';
-import { detectAversions, type AversionFlags } from './ingredient-match';
+import {
+  detectAversions,
+  type AversionFlags,
+  type DirectionalPlacement,
+} from './ingredient-match';
 import { quadrantFor, type Quadrant } from '../map/coordinates';
 import { quadrants } from '../copy';
 import type { Drink } from './data';
@@ -15,8 +19,10 @@ import type { Register } from './register';
 
 export interface AuditedDrink {
   label: string;
-  drink: Drink;
+  drink: Drink | null;
+  directional?: DirectionalPlacement;
   region: Quadrant;
+  source: 'catalog' | 'directional';
 }
 
 export interface AuditedUnplaced {
@@ -54,11 +60,24 @@ export function auditMenu(block: string, register: Register = {}): MenuAuditResu
   for (const item of items) {
     if (item.drink) {
       const region = quadrantFor(item.drink.x, item.drink.y);
-      placed.push({ label: item.label, drink: item.drink, region });
+      placed.push({ label: item.label, drink: item.drink, region, source: 'catalog' });
       counts.set(region.id, (counts.get(region.id) ?? 0) + 1);
       if (item.drink.hasSmoke) aversionCounts.smoke += 1;
       if (item.drink.isBitter) aversionCounts.bitter += 1;
       if (item.drink.hasAnise) aversionCounts.anise += 1;
+    } else if (item.directional) {
+      const region = quadrantFor(item.directional.x, item.directional.y);
+      placed.push({
+        label: item.label,
+        drink: null,
+        directional: item.directional,
+        region,
+        source: 'directional',
+      });
+      counts.set(region.id, (counts.get(region.id) ?? 0) + 1);
+      if (item.directional.aversions.smoke) aversionCounts.smoke += 1;
+      if (item.directional.aversions.bitter) aversionCounts.bitter += 1;
+      if (item.directional.aversions.anise) aversionCounts.anise += 1;
     } else {
       const flags = detectAversions(`${item.label} ${item.description ?? ''}`);
       unplaced.push({
@@ -92,7 +111,8 @@ export function auditMenu(block: string, register: Register = {}): MenuAuditResu
 
 /**
  * Compact region footprint for an already-parsed `MenuItem[]` list (`MenuView`):
- * which regions the bar's placed drinks cover and which are blind spots.
+ * which regions the bar's placed drinks (catalog or directional) cover and
+ * which are blind spots.
  */
 export function summarizeCoverage(items: readonly MenuItem[]): {
   placedCount: number;
@@ -102,8 +122,9 @@ export function summarizeCoverage(items: readonly MenuItem[]): {
   const counts = new Map<Quadrant['id'], number>(quadrants.map((q) => [q.id, 0]));
   let placedCount = 0;
   for (const item of items) {
-    if (!item.drink) continue;
-    const region = quadrantFor(item.drink.x, item.drink.y);
+    const point = item.drink ?? item.directional;
+    if (!point) continue;
+    const region = quadrantFor(point.x, point.y);
     counts.set(region.id, (counts.get(region.id) ?? 0) + 1);
     placedCount += 1;
   }

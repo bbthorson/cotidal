@@ -1,6 +1,9 @@
 import { drinkDatabase, type Drink, type Tolerances, type User } from '@/lib/drinks/data';
 import { baseName, drinkOf, matchDrink } from '@/lib/drinks/search';
 import {
+  extractMenuPrice,
+  isNonAlcoholic,
+  parseSectionHeader,
   placeDirectional,
   splitMenuLine,
   suggestClosestDrink,
@@ -23,6 +26,12 @@ export interface MenuItem {
   label: string;
   /** Optional ingredient description parsed from a pasted menu line. */
   description?: string;
+  /** Optional menu section header (`Les Martinis`, `Non-Alcoholic`, etc.). */
+  section?: string;
+  /** Optional menu price (`$18`) when present on the source line. */
+  price?: string;
+  /** True when the line or its section indicates a non-alcoholic / zero-proof drink. */
+  nonAlcoholic?: boolean;
   drink: Drink | null;
   /** Directional placement from listed ingredients when `drink` is null. */
   directional?: DirectionalPlacement | null;
@@ -38,20 +47,33 @@ export function placeDrink(label: string, register: Register): Drink | null {
 }
 
 /** The list with one more line on it: a repeat of a line already there changes nothing. */
-export function addMenuLine(items: MenuItem[], entry: string, register: Register): MenuItem[] {
+export function addMenuLine(
+  items: MenuItem[],
+  entry: string,
+  register: Register,
+  section?: string
+): MenuItem[] {
+  const price = extractMenuPrice(entry);
   const { name, description } = splitMenuLine(entry);
   if (!name) return items;
-  const drink = placeDrink(name, register);
+  const text = description ? `${name} ${description}` : name;
+  const nonAlcoholic = isNonAlcoholic(text, section);
+  const drink = nonAlcoholic ? null : placeDrink(name, register);
   const shown = drink ? titleOf(register, drink.name) : name;
   if (items.some((i) => baseName(i.label) === baseName(shown))) return items;
-  const text = description ? `${name} ${description}` : name;
-  const directional = !drink && description ? placeDirectional(text) : null;
-  const relative = !drink && description ? (directional?.closestClassic ?? suggestClosestDrink(text)) : null;
+  const directional = !drink && description ? placeDirectional(text, undefined, { section }) : null;
+  const relative =
+    !drink && description && !nonAlcoholic
+      ? (directional?.closestClassic ?? suggestClosestDrink(text, undefined, { section, nonAlcoholic }))
+      : null;
   return [
     ...items,
     {
       label: shown,
       ...(description ? { description } : {}),
+      ...(section ? { section } : {}),
+      ...(price ? { price } : {}),
+      ...(nonAlcoholic ? { nonAlcoholic: true } : {}),
       drink,
       ...(directional ? { directional } : {}),
       ...(relative ? { relative } : {}),
@@ -59,11 +81,17 @@ export function addMenuLine(items: MenuItem[], entry: string, register: Register
   ];
 }
 
-/** Add a multi-line pasted menu block, one drink per line. */
+/** Add a multi-line pasted menu block, one drink per line (tracking section headers). */
 export function addMenuLines(items: MenuItem[], block: string, register: Register): MenuItem[] {
   let next = items;
+  let currentSection: string | undefined;
   for (const raw of block.split(/\r?\n/)) {
-    next = addMenuLine(next, raw, register);
+    const header = parseSectionHeader(raw);
+    if (header) {
+      currentSection = header;
+      continue;
+    }
+    next = addMenuLine(next, raw, register, currentSection);
   }
   return next;
 }

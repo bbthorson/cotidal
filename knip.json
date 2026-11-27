@@ -12,8 +12,7 @@
   "ignoreDependencies": [
     "astro-eslint-parser",
     "playwright",
-    "postcss-load-config",
-    "tsx"
+    "postcss-load-config"
   ],
   "rules": {
     "exports": "off",

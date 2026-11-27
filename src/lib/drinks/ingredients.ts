@@ -109,7 +109,7 @@ export const INGREDIENT_INDEX: readonly IngredientPrimitive[] = [
   { id: 'grapefruit', name: 'Grapefruit', role: 'acid', match: /grapefruit/i, pull: { x: 7.0, y: 2.5 } },
 
   // Sweeteners & texture
-  { id: 'sugar-syrup', name: 'Sugar or syrup', role: 'sweetener', match: /simple syrup|sugar cube|\bsugar\b|cane sugar|demerara|gomme/i, pull: { x: 1.5, y: 3.0 } },
+  { id: 'sugar-syrup', name: 'Sugar or syrup', role: 'sweetener', match: /simple syrup|sugar cube|\bsugar\b(?!\s+snap\b)|cane sugar|demerara|gomme/i, pull: { x: 1.5, y: 3.0 } },
   { id: 'honey', name: 'Honey', role: 'sweetener', match: /\bhoney\b/i, pull: { x: -4.0, y: 1.5 } },
   { id: 'agave', name: 'Agave nectar', role: 'sweetener', match: /agave/i, pull: { x: 1.0, y: 2.0 } },
   { id: 'grenadine', name: 'Grenadine', role: 'sweetener', match: /grenadine/i, pull: { x: -1.0, y: 7.0 } },
@@ -122,7 +122,12 @@ export const INGREDIENT_INDEX: readonly IngredientPrimitive[] = [
   { id: 'tonic', name: 'Tonic water', role: 'lengthener', match: /\btonic\b/i, flags: { bitter: true }, pull: { x: 8.0, y: -5.0 } },
 
   // Menu-only primitives (broaden directional coverage for house cocktails without altering region counts)
-  { id: 'amaro', name: 'Amaro', role: 'bitter', match: /\bamaro\b|averna|montenegro|nonino|cynar|suze|gentian|cinchona|mal[oö]rt|bruto americano|amer picon/i, flags: { bitter: true }, pull: { x: -3.5, y: -5.5 }, regionGroup: false },
+  { id: 'amaro', name: 'Amaro', role: 'bitter', match: /\bamaro\b|averna|montenegro|nonino|cynar|suze|gentian|cinchona|mal[oö]rt|bruto americano|amer picon|ramazz?otti/i, flags: { bitter: true }, pull: { x: -3.5, y: -5.5 }, regionGroup: false },
+  { id: 'herbal-liqueur', name: 'Herbal liqueur', role: 'modifier', match: /centerbe|genepy|g[eé]n[eé]pi|strega|galliano/i, pull: { x: -1.5, y: -4.0 }, regionGroup: false },
+  { id: 'anise-herb', name: 'Anise & herbal leaf', role: 'aromatic', match: /hoja santa|\bfennel\b|star anise|aniseed/i, flags: { anise: true }, pull: { x: 1.5, y: -2.5 }, regionGroup: false },
+  { id: 'whiskey', name: 'Whiskey', role: 'base', match: /\bwhiske?y\b/i, pull: { x: -5.5, y: -2.0 }, regionGroup: false },
+  { id: 'vermouth', name: 'Vermouth', role: 'modifier', match: /\bvermouth\b/i, pull: { x: 1.0, y: -5.0 }, regionGroup: false },
+  { id: 'na-botanical', name: 'Zero-proof botanical', role: 'base', match: /\b(everleaf|pentire|aplos|roots divino|seedlip|ghia|lyre'?s|pathfinder|wilderton|st\.?\s*agrestis|phoney negroni)\b/i, pull: { x: 4.0, y: -1.5 }, regionGroup: false },
   { id: 'peated-whisky', name: 'Peated whisky', role: 'base', match: /peated|\bpeat\b|\bislay\b|laphroaig|ardbeg|lagavulin/i, flags: { smoke: true }, pull: { x: -7.5, y: -5.5 }, regionGroup: false },
   { id: 'pineapple', name: 'Pineapple', role: 'sweetener', match: /pineapple/i, pull: { x: 3.5, y: 6.5 }, regionGroup: false },
   { id: 'passionfruit', name: 'Passion fruit', role: 'sweetener', match: /passion ?fruit|chinola/i, pull: { x: 4.5, y: 6.0 }, regionGroup: false },

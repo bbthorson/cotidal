@@ -1,0 +1,110 @@
+{
+  "description": "Williamsburg & Greenpoint, Brooklyn benchmark bar menus for evaluating Cotidal's menu capture pipeline (deterministic INGREDIENT_INDEX + Gemma 4 Vision + Clef-flash).",
+  "bars": [
+    {
+      "id": "diamond-lil",
+      "name": "Diamond Lil",
+      "neighborhood": "Greenpoint",
+      "address": "179 Nassau Ave, Brooklyn, NY 11222",
+      "menuUrl": "https://diamondlilbar.com/DiamondLil-Menu.pdf",
+      "menuStyle": "written",
+      "lines": [
+        "## House Cocktails",
+        "Chaplin — bourbon, sherry, Ramazotti, Cointreau · $17",
+        "Hazel's Tot — whiskey, vermouth, Montenegro, orange bitters · $17",
+        "Greenpoint Alpine — gin, Faccia Bruto Centerbe, lime, cucumber · $17",
+        "Oaxacan Leaf — mezcal, Hoja Santa, lime, agave · $18",
+        "Snap Pea Gimlet — gin, sugar snap pea, lime, saline · $17",
+        "Velvet Bitter — rye, Campari, sweet vermouth, Angostura · $17",
+        "Tropical Smoke — mezcal, pineapple, Aperol, lime · $17",
+        "Espresso Nightcap — vodka, espresso, coffee liqueur, cream · $18",
+        "Sparkling Orchard — gin, elderflower, lemon, prosecco · $17",
+        "## Happy Hour",
+        "Daiquiri (Classic) · $12",
+        "Negroni · $12",
+        "## Non-Alcoholic",
+        "My Fair Lady — Everleaf, grapefruit, lime, soda · $13",
+        "January Spritz — Roots Divino, grapefruit, sparkling water · $13",
+        "Early Check In — Pentire, lime, jalapeño, agave · $13",
+        "Aplos Cooler — Aplos, cucumber, mint, tonic · $13"
+      ],
+      "assertions": [
+        { "label": "Chaplin", "quadrant": "deep", "aversions": { "bitter": true } },
+        { "label": "Hazel's Tot", "quadrant": "deep" },
+        { "label": "Greenpoint Alpine", "placed": true },
+        { "label": "Oaxacan Leaf", "aversions": { "smoke": true, "anise": true } },
+        { "label": "Snap Pea Gimlet", "excludePrimitives": ["sugar-syrup"] },
+        { "label": "My Fair Lady", "nonAlcoholic": true, "closestClassic": null },
+        { "label": "January Spritz", "nonAlcoholic": true, "closestClassic": null },
+        { "label": "Early Check In", "nonAlcoholic": true, "closestClassic": null },
+        { "label": "Aplos Cooler", "nonAlcoholic": true, "closestClassic": null }
+      ]
+    },
+    {
+      "id": "bar-blondeau",
+      "name": "Bar Blondeau",
+      "neighborhood": "Williamsburg",
+      "address": "80 Wythe Ave 6th Fl, Brooklyn, NY 11249",
+      "menuUrl": "https://www.barblondeau.com/menus",
+      "menuStyle": "written",
+      "lines": [
+        "## Les Martinis",
+        "Blondeau Martini — gin, dry vermouth, olive brine · $20",
+        "Gibson Reserve — vodka, dry vermouth, saline, thyme · $20",
+        "## Les Cocktails",
+        "Wythe Spritz — Aperol, elderflower, grapefruit, prosecco · $19",
+        "Sunset Mezcal — mezcal, passion fruit, lime, chile · $19",
+        "Parisian Negroni — gin, Campari, Lillet, orange bitters · $19",
+        "Midnight Bourbon — bourbon, Averna, honey, Angostura · $20",
+        "Velvet Cacao — cognac, crème de cacao, espresso, cream · $20",
+        "Coastal Gin — gin, cucumber, mint, lime, tonic · $18",
+        "Amber Rum — rum, pineapple, orgeat, lime · $19",
+        "Green Chartreuse Flip — rye, Chartreuse, sweet vermouth, Peychaud's bitters · $21",
+        "## Non Alcoholic",
+        "Zero-Proof Spritz — Everleaf, grapefruit, sparkling water · $15",
+        "Botanical Highball — Pentire, ginger, lime, soda · $15",
+        "## Sunset Hour",
+        "Golden Spritz — Aperol, prosecco, soda · $14"
+      ],
+      "assertions": [
+        { "label": "Blondeau Martini", "quadrant": "salt-line" },
+        { "label": "Midnight Bourbon", "quadrant": "deep", "aversions": { "bitter": true } },
+        { "label": "Velvet Cacao", "quadrant": "eddy" },
+        { "label": "Zero-Proof Spritz", "nonAlcoholic": true, "closestClassic": null },
+        { "label": "Botanical Highball", "nonAlcoholic": true, "closestClassic": null }
+      ]
+    },
+    {
+      "id": "bar-madonna",
+      "name": "Bar Madonna",
+      "neighborhood": "Williamsburg",
+      "address": "367 Metropolitan Ave, Brooklyn, NY 11211",
+      "menuUrl": "https://barmadonna.com/menu",
+      "imageUrl": "https://framerusercontent.com/images/s6Bg9ju8G0Lq43rCe6nJkDddUbc.png?width=800&height=5600",
+      "menuStyle": "written",
+      "lines": [
+        "## Cocktails",
+        "Metropolitan Spritz — Aperol, blood orange, prosecco, soda · $17",
+        "House Dirty — vodka, dry vermouth, olive brine · $18",
+        "Smoke & Honey — mezcal, honey, lemon, ginger · $18",
+        "Dark & Bitter — rye, Cynar, sweet vermouth, Angostura · $18",
+        "## N/A",
+        "Zero Spritz — Roots Divino, blood orange, soda · $13"
+      ],
+      "assertions": [
+        { "label": "House Dirty", "quadrant": "salt-line" },
+        { "label": "Dark & Bitter", "quadrant": "deep", "aversions": { "bitter": true } },
+        { "label": "Zero Spritz", "nonAlcoholic": true, "closestClassic": null }
+      ]
+    },
+    {
+      "id": "fresh-kills",
+      "name": "Fresh Kills Bar",
+      "neighborhood": "Williamsburg",
+      "address": "161 Grand St, Brooklyn, NY 11249",
+      "menuStyle": "bespoke",
+      "lines": [],
+      "assertions": []
+    }
+  ]
+}
