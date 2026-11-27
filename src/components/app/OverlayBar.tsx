@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useState, type SubmitEvent } from 'react';
 import { overlays as copy } from '@/lib/copy';
 import { DRINK_TYPES } from '@/lib/palate/overlays';
 import type { OverlaysState } from '@/hooks/useOverlays';
@@ -15,7 +15,7 @@ export function OverlayBar({ overlays }: { overlays: OverlaysState }) {
   const [adding, setAdding] = useState(false);
   const [handle, setHandle] = useState('');
 
-  const submit = async (ev: FormEvent) => {
+  const submit = async (ev: SubmitEvent<HTMLFormElement>) => {
     ev.preventDefault();
     const raw = handle.trim();
     if (!raw) return;

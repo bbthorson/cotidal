@@ -14,7 +14,7 @@ something that drifts from the first, and every instance so far has failed
 
 - [ ] **Records** — lexicon JSON is the truth, and `npm run lexicons` passes
 - [ ] **Styling** — tokens added to `globals.css` / `tailwind.config.ts` *before* being used
-- [ ] **Copy** — user-facing strings live in `src/lib/copy.ts`, not in components
+- [ ] **Copy** — user-facing strings live in `src/lib/copy/`, not in components
 - [ ] **Drinks** — content entries join to `drinkDatabase` by name; no coordinates in frontmatter
 
 ## Rendering

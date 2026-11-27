@@ -70,14 +70,14 @@ of drinks, so there is no `/drinks`. The four parts come from four places:
 - **What it is** is prose in `src/content/regions/<id>.md`, a content
   collection held to the drinks' format — what is on the record, what is
   only told, and the sources.
-- **What it says about you** is one template in `copy.ts`, the same for all
+- **What it says about you** is one template in `copy/`, the same for all
   four: your answers leaned this way, the menu ranks by distance, a pour can
   move the point. That is what the product does. Anything more — bitter
   drinkers' character, sweet as a beginner's palate — is listed as claimed,
   with the reason it is not on the record.
 - **The drinks** come from the map: every drink it places there.
 - **What they share** is counted from those drinks' own ingredient lists
-  (`src/lib/ingredients.ts`), so it cannot disagree with them.
+  (`src/lib/drinks/ingredients.ts`), so it cannot disagree with them.
 
 A drink opened on the map shows its whole entry in the card. Its own page,
 `/drinks/<slug>`, is an SEO/AEO entry point and a link to send, not linked

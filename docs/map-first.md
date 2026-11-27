@@ -37,7 +37,7 @@ sample bars and pours: https://claude.ai/artifact/HJNpUB2kta14LW3aCZkLj1
    drinks appear on the map.
 6. **Your taste is terrain, not a point.** A single point assumes liking
    falls off evenly in every direction and lives in one place; pours
-   contradict both. The terrain (`src/lib/terrain.ts`) is the expected
+   contradict both. The terrain (`src/lib/palate/terrain.ts`) is the expected
    rating everywhere on the map: the questions lay a first hill, each rated
    pour raises or lowers the ground around its drink, and two liked parts of
    the map become two hills. See Your taste as terrain, below.
@@ -105,7 +105,7 @@ read the point too).
 Decided with the owner: **the path picks the card, the parameters pick what
 the map draws.** A path names the thing the card is about — a drink, a
 person, a bar — and is what a search engine indexes. The parameters are one
-small vocabulary, read and written by `src/lib/map-url.ts` and nowhere else
+small vocabulary, read and written by `src/lib/map/map-url.ts` and nowhere else
 (`tests/unit/map-url.test.ts`):
 
 | Parameter | The map draws | Built |
@@ -297,7 +297,7 @@ of drink, so a Manhattan no longer brings up a Rioja.
 
 Comparing your map with a drink and with a person is one comparison: a drink
 is a point on the map, a person is a set of points — their ground
-(`compareWith`, `src/lib/compare.ts`; `Comparison.tsx`). Either way the card
+(`compareWith`, `src/lib/palate/compare.ts`; `Comparison.tsx`). Either way the card
 says the same three things, on the map of whoever it is about:
 
 - **From the nearest hill, which way**: from the nearest of the taste's

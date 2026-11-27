@@ -1,6 +1,6 @@
 # Where new drinks come from
 
-The map grows by style (`src/lib/placement.ts`): a drink is placed from its
+The map grows by style (`src/lib/drinks/placement.ts`): a drink is placed from its
 body, residual sugar and structure, not by eye. This page records which
 outside sources can feed that, and on what terms. Checked November 2026;
 re-read the terms before relying on any of them.
@@ -44,7 +44,7 @@ which would make the IBA the better source to go to directly.
 Use: a list of candidate cocktails and their ingredients, to be checked
 against bar manuals, and — the reason to want them — the input for placing
 cocktails by ingredient once that model exists (calibrated, as wine and beer
-were, against the 75 hand-placed cocktails, with `src/lib/ingredients.ts` as
+were, against the 75 hand-placed cocktails, with `src/lib/drinks/ingredients.ts` as
 the vocabulary). Neither gives a cocktail's position.
 
 ## RapidAPI "Alcohol and Brewery APIs"

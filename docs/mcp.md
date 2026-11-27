@@ -56,7 +56,7 @@ JSON answers — because nothing streams and nothing is kept.
 `draft_pour` writes nothing. It returns `/map?draft=1&…` with what the person
 said (drink, where, what was off, tasting notes, a note), and the rating sheet
 opens over Your map on it; they check it, tap the rating and log it as any other pour, through
-the same `logPour`. The draft lives only in the link (`src/lib/pour-draft.ts`),
+the same `logPour`. The draft lives only in the link (`src/lib/pours/pour-draft.ts`),
 so there is nothing to store, sign in for or protect.
 
 - **No rating.** The rating moves the coordinate, and a model mapping "it was
@@ -184,7 +184,7 @@ The rules the write path keeps:
 - **A record holds what its author said.** The rating is required and asked
   for, never estimated by the assistant; every other field is absent unless
   the member said it, and "would order again" is written only when asked.
-- **One pipeline.** Logging a pour is `logPour` in `src/lib/pours.server.ts`,
+- **One pipeline.** Logging a pour is `logPour` in `src/lib/pours/pours.server.ts`,
   which the page's route already calls; the assistant's tool calls it too,
   through the same `PourStore`, so the two cannot drift.
 - **`PourContext` stays on the device.** Volume drunk and hours since eating

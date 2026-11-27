@@ -122,7 +122,7 @@ here talks to a server yet, on purpose.
 3. **Writes.** `logPour` gains a destination: public repo, or a bar space via
    `com.atproto.space.createRecord`, after checking `pourBelongsInBarSpace`
    and that the venue's host says the space exists (`getSpace`). The order of
-   writes in `tests/unit/map-pour.test.ts` stays the same; the palate still updates
+   writes in `tests/unit/log-pour.test.ts` stays the same; the palate still updates
    either way.
 4. **The venue opens its space** with `createSpace` and `BAR_SPACE_POLICY` as
    part of claiming itself, and adds staff with `putMembers`.
@@ -137,7 +137,7 @@ here talks to a server yet, on purpose.
    The MACs use the author's `#atproto_kem` key from their DID document;
    `@atproto/did` (already a dependency, behind `public-read.ts`) is where
    that lookup belongs.
-6. **Interface copy** for "Shared with <bar> only" lives in `copy.ts`, and must
+6. **Interface copy** for "Shared with <bar> only" lives in `copy/`, and must
    not say private or encrypted.
 
 Later, not planned: a patron-readable space for "two people in the same bar"

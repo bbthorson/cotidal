@@ -16,7 +16,7 @@ It is the design.
 | Surface | Written by | Why |
 |---|---|---|
 | Quiz questions | `discovery-questions.ts` + `question-selector.ts` | The selector picks by expected information about your position. A model would pick by vibe. |
-| Quadrant names, interface and marketing copy | `copy.ts`, `docs/brand.md` | Voice is brand, and one file to revise it in — not a system prompt. |
+| Quadrant names, interface and marketing copy | `copy/`, `docs/brand.md` | Voice is brand, and one file to revise it in — not a system prompt. |
 | Coordinate, scoring, ranking | `belief-state.ts`, `scoring.ts` | Reproducible. A taste map that moves when nothing changed is not a map. |
 | **Why this drink suits you** | **Model** | The one place per-user prose beats a template. |
 
@@ -106,7 +106,7 @@ first and bill regardless.
 
 **Gate on a restorable OAuth session.** `restoredDid()` and `oauthSession()` in
 `src/lib/atproto/session.ts` resolve the session and its tokens; every model
-route calls `restoredDid()` before spending anything, and `atproto-publish.ts`
+route calls `restoredDid()` before spending anything, and the `/api/me/*` write routes
 passes the same session to the PDS writes in `publish.ts`.
 
 Sessions and authorization state live in KV (`ATPROTO_SESSIONS`, the
@@ -174,19 +174,15 @@ before they reach the limiter.
 
 ## Parked work
 
-`src/lib/ai-question-generator.ts` builds the prompt for model-generated
-adaptive questions and validates the response — including a check that the
-options actually spread along the target axis, which is the hard part. It has
-**no call sites in `src/` or `tests/`**.
-
-It is parked, not abandoned: model-driven elicitation is the Elicitation item
-of the roadmap in `AGENTS.md`. It stays in the tree so that work does not
-start from nothing. Until then it is dead code by definition, and this section
-is what stops it reading as live.
+Model-generated adaptive questions were built and removed. The prompt builder
+and its validator (`ai-question-generator.ts`, `validateAIQuestion`) had no
+call sites, and they are in git history (removed in 21528b1). Model-driven
+elicitation is still the Elicitation item of the roadmap in `AGENTS.md`.
 
 **If it is revived, the validator is the point.** A generated question that
 does not separate the axes teaches the belief state nothing while costing a
-call, and the parser already refuses those (`spread < 2`). Restoring the
+call, and the parser refused those (`spread < 2`): it checked that the options
+actually spread along the target axis, which is the hard part. Restoring the
 feature without restoring `validateAIQuestion` would be strictly worse than the
 fixed question bank.
 

@@ -93,7 +93,7 @@ something that drifts from the first. Three had already happened:
 |---|---|---|
 | Records | `src/lib/atproto/lexicons/*.json` | `npm run lexicons` |
 | Styling | `globals.css` tokens + `tailwind.config.ts` | `npm run lint` — arbitrary values, raw colours, and Tailwind's own type sizes are an error in `pages/`, `layouts/` and `components/` |
-| Interface copy | `src/lib/copy.ts` | `npm run lint` — words typed into JSX text or a `placeholder` / `aria-label` / `title` / `alt` are an error. Quiz questions (`palate/discovery-questions.ts`, beside their scoring) and the drink and region prose are the exceptions |
+| Interface copy | `src/lib/copy/` | `npm run lint` — words typed into JSX text or a `placeholder` / `aria-label` / `title` / `alt` are an error. Quiz questions (`palate/discovery-questions.ts`, beside their scoring) and the drink and region prose are the exceptions |
 | Drink prose | `src/content/drinks/*.md` | `tests/unit/drink-content.test.ts` |
 | Region prose | `src/content/regions/*.md` | `tests/unit/region-content.test.ts` |
 | What the device keeps | `src/lib/device-store.ts` | *(convention)* — nothing else touches `localStorage` |
@@ -114,7 +114,7 @@ Found in the wild, each silent:
   could neither map nor score.
 
 Add a field to a lexicon before using it, a token before styling with it, and
-a string to `copy.ts` before rendering it.
+a string to `copy/` before rendering it.
 
 ## Key modules
 
@@ -122,14 +122,14 @@ a string to `copy.ts` before rendering it.
 2D plane. Users and drinks both carry `x` (Rich −10 → Crisp +10) and `y`
 (Savory −10 → Sweet +10). A drink's place on your menu is its height on your
 terrain (Terrain, below); `VibeTag`s sort within it — only among drinks in the
-same `HEIGHT_BAND` (`relevanceOf`, `src/lib/scoring.ts`), so a tag can never
+same `HEIGHT_BAND` (`relevanceOf`, `src/lib/palate/scoring.ts`), so a tag can never
 carry a drink past a higher one. The menu is one list ranked by that relevance
 alone. A menu row says what put a drink there — your ratings near it, or your
 answers (`chart.reason`) — never a predicted score; the drink card still says
 how far it sits from your point. A weighted sum let tags outweigh several
 points of distance; `tests/unit/relevance-score.test.ts` holds the bands apart.
 
-### Psychophysical State & EKF — `src/lib/palate-state.ts`
+### Psychophysical State & EKF — `src/lib/palate/palate-state.ts`
 Models longitudinal taste preference drift via an Extended Kalman Filter (EKF).
 The 5D latent state vector ($\mathbf{x}_k \in \mathbb{R}^5$) is `StateVector`:
 Rich-Crisp, Savory-Sweet, Bitter Tolerance, Tannin Tolerance and Complexity,
@@ -145,7 +145,7 @@ An axis learns only if `predictHedonic` reads it — otherwise its Jacobian
 entry is zero and so is its gain. Every drink-side input to that function is
 derived from `Drink` (see `complexityDemand`), never stored alongside it.
 
-A name becomes a drink through `matchDrink` (`src/lib/drink-match.ts`) and
+A name becomes a drink through `matchDrink` (`src/lib/drinks/search.ts`) and
 nothing else — a pour, the form, a bar's menu, the map's search and the chat
 tools: folded case and accents, the name without its parenthetical
 ("margarita" is the Tommy's), or one of the drink's `aliases`. No name, bare
@@ -159,7 +159,7 @@ every drink, your pours with your rating), the search at the top of its card, an
 card for everything else. The map never pans, zooms or moves when something
 opens: what changes is what is drawn on it. Where a drink sits on it, its
 contours and shading and which drinks get a label are plain functions
-(`map-draw.ts`, `ground-masks.ts`). It is drawn to scale (an SVG in map
+(`map-draw.ts`). It is drawn to scale (an SVG in map
 units, with the marks and labels laid over it in percentages), so the server
 draws it whole and `/map` paints before its script arrives; the screen's
 geometry is CSS. Every page that shows the map uses one layout,
@@ -173,7 +173,7 @@ left. A drink is reached by tapping it on the map (the nearest mark within
 reach) or from the card's lists and the search, which is how a keyboard
 reaches every one.
 
-**The map's address** (`src/lib/map-url.ts`, `docs/map-first.md`): the path
+**The map's address** (`src/lib/map/map-url.ts`, `docs/map-first.md`): the path
 picks the card, the parameters pick what the map draws — `drink=<slug>`, and
 `palate=<handle or DID>` for someone else's taste, read-only. Read and write
 them through `readMapView` and `viewHref`, never by hand: a drink is checked
@@ -186,7 +186,7 @@ A bar is a filter on the map, not a place on a street map: from the search,
 your bars, bars near you (a list from OpenStreetMap, `useNearby`), or any
 name typed. It opens `MenuView` in the card: type what they pour,
 `addMenuLine` matches each line through `matchDrink`, `rankMenu`
-(`src/lib/menu-rank.ts`) orders the placed ones, and each becomes a numbered
+(`src/lib/drinks/menu-rank.ts`) orders the placed ones, and each becomes a numbered
 pin on the map while every other drink fades to a speck. "Pick this" saves a
 `DrinkPick` on the device, the waiting pick that `WaitingPick` shows and
 rating clears. There is no separate harbour page.
@@ -197,7 +197,7 @@ replays (the card's Your pours). It is not the filter's estimate: `applyPour`
 moves crisp/sweet by a capped, simpler rule and leaves the other three axes
 to the EKF.
 
-**Your track is replayed, never stored** (`src/lib/track.ts`): from the latest
+**Your track is replayed, never stored** (`src/lib/palate/track.ts`): from the latest
 quiz's answers (`quizStart`, refitted by `axesFromResponses`) through every
 pour since, by `applyPour`, keeping the state between pours as a member's
 record or a guest's device keeps it. `tests/unit/track.test.ts` holds the
@@ -205,7 +205,7 @@ replay to both paths step by step. A replay that does not land where you are
 answers `null` and nothing is drawn; change `applyPour` and old tracks stop
 adding up, which is the honest outcome.
 
-### Terrain — `src/lib/terrain.ts`
+### Terrain — `src/lib/palate/terrain.ts`
 Your taste as ground over the map rather than a point on it: the expected
 rating at every coordinate, by Gaussian-process regression, with the quiz's
 point as a first hill (longer along an axis the quiz was unsure of) and every
@@ -223,7 +223,7 @@ stored; pour order does not matter. Every height carries an `sd`, and
 
 It ranks your menu and a bar's (`scoreDrinks`, `rankMenu`), the map draws
 it, and `leanings` says your taste in the axes' words in the card's head
-("crisp and sweet · rich and savory", `taste` in `copy.ts`) — never one
+("crisp and sweet · rich and savory", `taste` in `copy/`) — never one
 region's name. Not yet on
 it: the reveal after the questions, and the region share cards (a region's
 own, which name a region, not a person), which still read the point and its
@@ -250,7 +250,7 @@ A drink needs no prose entry to be on the map; without one it has no page and
 nothing links to one. It has a `slug` all the same: every drink in
 `drinkDatabase` carries one, typed beside its coordinate, and that is what a
 pour or a recipe stores (`app.cotidal.defs#drinkSlug`). A stored reference is
-read back through `drinkOf` (`drink-match.ts`): by slug, then by name, so a
+read back through `drinkOf` (`drinks/search.ts`): by slug, then by name, so a
 renamed drink keeps its pours. **A slug never changes once a record points at
 it** — while there are no members it may; after, it is as fixed as a printed
 URL.
@@ -294,7 +294,7 @@ confident quiz makes early pours move the dot less.
 Nothing in the quiz calls a model, so the flow runs offline.
 How it works — the front door's card pulled up (`/#how-it-works`), never a
 page of its own — is the public account of this section and of how a pour
-moves the dot, in plain words (`howItWorks` in `copy.ts`).
+moves the dot, in plain words (`howItWorks` in `copy/`).
 `tests/unit/how-it-works.test.ts` holds its numbers to `MIN_QUESTIONS`,
 `MAX_QUESTIONS`, `MAX_POUR_STEP` and the 7/3 rating thresholds: change one
 and update the page in the same commit.
@@ -352,10 +352,10 @@ and the filename is the id — which is in a URL: the drink card, `/p/<handle>`
 and the chat tools link to it.
 
 The entry holds only prose. Name, axis and gloss come from `quadrants` in
-`copy.ts`; the drinks come from the map; what they share is counted from the
+`copy/`; the drinks come from the map; what they share is counted from the
 drink entries' ingredient lists through the vocabulary in
-`src/lib/ingredients.ts`; "what it says about you" is one template in
-`copy.ts` that describes what the product does with a coordinate, not what
+`src/lib/drinks/ingredients.ts`; "what it says about you" is one template in
+`copy/` that describes what the product does with a coordinate, not what
 the region means. A region is Cotidal's construct, so nothing documented can
 be about the region itself — the record is about its drinks and their
 ingredients, and the claims about *you* go under `claimed`, with why.
@@ -434,9 +434,9 @@ the island links to it and must not import the server package.
 assistants as MCP tools: read a palate, recommend, rank a menu, compare two,
 search drinks. Stateless and read-only; the tools are plain functions over
 `readPublicPalate` and `overlap.ts`, so they give the answers `/p/<handle>`
-gives. Their descriptions are interface copy and live in `copy.ts`.
+gives. Their descriptions are interface copy and live in `copy/`.
 A pour is logged from a chat by drafting, not writing: `draft_pour` returns a
-`/map?draft=1` link (`src/lib/pour-draft.ts`) that opens rating in the map's
+`/map?draft=1` link (`src/lib/pours/pour-draft.ts`) that opens rating in the map's
 card filled in, with no rating, and the member taps one and logs it (`docs/mcp.md`).
 How to connect an assistant is one component, `AssistantSteps` (React,
 server-rendered with no script at `/mcp`): at `/mcp` for a browser (the same page answers an MCP client with the tools).
@@ -453,7 +453,7 @@ numbers) and converted only at the edge: `encodePalate` on every write,
 `venue.address` and a venue's `location` are unions of the Lexicon Community's
 types. Cotidal writes `community.lexicon.location.geo` (`location.ts`) for a
 bar picked from the bars near you — which come from OpenStreetMap
-(`src/lib/osm.ts`), which has no type of its own there. Its shape is checked
+(`src/lib/drinks/osm.ts`), which has no type of its own there. Its shape is checked
 against the community's published file, vendored in
 `tests/fixtures/community-lexicon/` for the reference validator; copy it
 again to update it, never edit it.
@@ -489,11 +489,11 @@ The browser loads `vocab.ts` (names and vocabularies) and
 `elicitation-record.ts`, never `records.ts`: the validators that only the
 server needs (`@atproto/lex-data`, for CIDs) are registered there. Writes go through the schema: a pour is
 validated (`PourWriteSchema`) before the palate or the pour is written —
-by `logPour` in `src/lib/pours.server.ts`, the one pipeline every caller
-uses (`tests/unit/map-pour.test.ts` holds the order of writes) — and
+by `logPour` in `src/lib/pours/pours.server.ts`, the one pipeline every caller
+uses (`tests/unit/log-pour.test.ts` holds the order of writes) — and
 reads are parsed (`readPour`) rather than cast. Vocabularies the app writes
 (`DEVIATIONS`, `CATA`) are stable ids declared as `knownValues`; the words
-shown for them live in `copy.ts`.
+shown for them live in `copy/`.
 
 Records are signed by their authors and **never rewritten**. Reconciling an
 unclaimed reference to a later account is the app view's job.
@@ -576,7 +576,7 @@ Open work only; what is built is described above.
    pours. Never swipe on drink *names* — that measures familiarity, not taste.
 5. **The Overlap.** `/p/<handle>` draws a taste and, for a signed-in visitor
    or anyone named by `with=`, a second over it (`compareTerrains` in
-   `src/lib/overlap.ts`). Next: two people in the
+   `src/lib/palate/overlap.ts`). Next: two people in the
    same bar, conversation starters from what their maps share. Discovery
    comes from the user's existing follow graph, not a second one built here.
    Surface only the intersection; lead with disagreement about drinks.

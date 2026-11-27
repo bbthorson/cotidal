@@ -52,7 +52,7 @@ is the drift this codebase keeps producing.
 
 The names are one vocabulary — water and motion, as on a chart — never a
 mix of registers (fire, a room and a field read as three products). They are still a little astrological: a coordinate you *have*, a place
-you belong, glossed but never justified. They live in `src/lib/copy.ts` and
+you belong, glossed but never justified. They live in `src/lib/copy/` and
 can be replaced in one file. The ids are URLs (`/map?region=<id>`); with
 no members yet, a rename needs no redirect, but once codes are printed on
 coasters it will.
@@ -213,7 +213,7 @@ state — none of which may be authored inside a component.
    Tailwind tokens. Undefined utilities fail silently: `text-2xs` and
    `text-3xs` were used 41 times while defined nowhere, and every one of those
    elements rendered at inherited size.
-2. **No hard-coded copy in components.** Strings live in `src/lib/copy.ts`
+2. **No hard-coded copy in components.** Strings live in `src/lib/copy/`
    so the voice can be revised in one place. The quiz's questions are the one
    exception, because each sits beside the numbers that score it
    (`discovery-questions.ts`); the drink and region prose are content

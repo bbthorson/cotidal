@@ -19,10 +19,10 @@ reads the sectors as categories will expect six regions. The monogram
 
 **Decision: four.** The map has two axes, so four quadrants come from the
 model; six regions would be arbitrary angular slices, and would cost new
-region prose, `quadrants` in `copy.ts` and tests.
+region prose, `quadrants` in `copy/` and tests.
 
 *Done.* The landing chart has four index lines three hours apart (0h /
-3h / 6h / 9h), with unlabelled hairlines for the hours between (`HOUR_LINES`), drawn from `src/lib/chart-geometry.ts`. Each line leaves the
+3h / 6h / 9h), with unlabelled hairlines for the hours between (`HOUR_LINES`), drawn from `src/lib/map/chart-geometry.ts`. Each line leaves the
 centre along an axis and sweeps toward the ring, so a band is exactly a
 region near the centre and leans a little past the axis at the rim — the
 cost of curved lines over straight axes. `SECTORS` names each band by its
@@ -36,7 +36,7 @@ stretched to a disc as the coaster is.
 
 *Built* in Settings (`#code`), drawn by `MapCode.tsx` — the code on a quiet
 square over the member's map — with the URL and the code in
-`src/lib/coaster.ts`. Printing the page prints the figure alone, the size of
+`src/lib/map/coaster.ts`. Printing the page prints the figure alone, the size of
 a coaster (`[data-print]` in `globals.css`). It needs
 no bar, and it is the Overlap's way into the world.
 
@@ -47,7 +47,7 @@ no bar, and it is the Overlap's way into the world.
   so one code is both the thing you print and the way someone sees who you
   are. Scanned by a stranger, it shows the map, as `/p/<handle>`
   does today. Scanned by a signed-in member, it shows both coordinates, the
-  distance and three drinks (`src/lib/overlap.ts`) — two people at the same bar
+  distance and three drinks (`src/lib/palate/overlap.ts`) — two people at the same bar
   comparing coasters.
 - It is on screen, not only in print: it is a section of the member's
   Settings, linked from their own public map, so the coaster and the phone

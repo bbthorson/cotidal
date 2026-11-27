@@ -73,11 +73,11 @@ const FORMS_MESSAGE =
 /**
  * Words typed straight into markup: JSX text with letters in it, or a
  * `placeholder`, `aria-label`, `title` or `alt` given as a literal. Interface
- * text lives in `src/lib/copy.ts` so the voice can be revised in one place.
+ * text lives in `src/lib/copy/` so the voice can be revised in one place.
  * Symbols and entities (`·`, `&rarr;`, `&times;`) carry no words and are fine.
  */
 const COPY_MESSAGE =
-  'Interface words belong in `src/lib/copy.ts`, not in the markup: add the string there ' +
+  'Interface words belong in `src/lib/copy/`, not in the markup: add the string there ' +
   'and render it from the import (docs/brand.md, Rules).';
 const WORDS = '(?!&[a-z]+;)[A-Za-z]{2}';
 const COPY_ATTRIBUTES = '^(placeholder|aria-label|title|alt)$';

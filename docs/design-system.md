@@ -158,7 +158,7 @@ Navigation is unified across the site through two bars and a footer, all rendere
 13. **Two kinds of empty.** A list with nothing in it yet is `Empty`: your pours' ledger, a search with no match, no bars near. A screen that cannot start without a coordinate is a `ScreenHeader` and its ways in: `ColdState` in the map's card and in rating; a bar's menu says what it needs in an `Empty`. Nothing else says "empty".
 14. **One section heading.** A section inside any card opens with `SectionTitle` (or `.section-title`): a bold Playfair line over an ink rule. A heading with a link beside it ("Its drinks →") draws the same rule under the row. Small caps label a field or a column, never a section.
 15. **Nothing smaller than 13px is prose.** `text-label` (12px) is for condensed caps only. A note or citation under an item is `text-meta` in PT Sans; an italic gloss is Playfair at `text-ui`.
-16. **The eyebrow is the name of the way in.** The small caps line over a title is the label of the nav item, tab or button that opens the page — Drinks, Regions, For bars, Chat assistants, Public map, Rate a drink — and a page about one item adds what kind of item after a middle dot (`Drinks · Aperitivo`, `Regions · Rich and savory`). The landing page has none, and nor does an app tab's screen, whose tab is already marked current on the same screen (rule 11). Write it in sentence case in `copy.ts`; the caps are CSS.
+16. **The eyebrow is the name of the way in.** The small caps line over a title is the label of the nav item, tab or button that opens the page — Drinks, Regions, For bars, Chat assistants, Public map, Rate a drink — and a page about one item adds what kind of item after a middle dot (`Drinks · Aperitivo`, `Regions · Rich and savory`). The landing page has none, and nor does an app tab's screen, whose tab is already marked current on the same screen (rule 11). Write it in sentence case in `copy/`; the caps are CSS.
 
 ## One kind of page
 
@@ -246,7 +246,7 @@ The app on one screen (`docs/map-first.md`): **the map**, fixed in place as the 
 
 On a phone the map is the full width under the header and the card rests in the space below it; from `lg` the card is a panel down the left and the map fills the rest.
 
-**Drawn by the server, to scale.** The plane is one SVG whose viewBox is the map itself, so it is drawn at any size without measuring; the terrain's shading is three alpha masks (`ground-masks.ts`, PNGs written in `png.ts`) filled with token colours, so the server needs no canvas and no theme. What must keep its size on any screen — the marks, the labels, the region names and axis words — is HTML laid over the plane in percentages (`planePercent`), on a halo of the card's paper (`.halo-card`). Only which labels fit depends on the plane's size in pixels: the server places them for `NOMINAL_SIDE` (a phone), and `/map` places them again once measured. The screen's geometry — where the plane sits, where the card rests — is CSS (`.map-screen-*` in `globals.css`), so the page arrives laid out and nothing moves when the script does.
+**Drawn by the server, to scale.** The plane is one SVG whose viewBox is the map itself, so it is drawn at any size without measuring; the terrain's shading is three alpha masks (`groundMasks` in `map-draw.ts`, PNGs written in `png.ts`) filled with token colours, so the server needs no canvas and no theme. What must keep its size on any screen — the marks, the labels, the region names and axis words — is HTML laid over the plane in percentages (`planePercent`), on a halo of the card's paper (`.halo-card`). Only which labels fit depends on the plane's size in pixels: the server places them for `NOMINAL_SIDE` (a phone), and `/map` places them again once measured. The screen's geometry — where the plane sits, where the card rests — is CSS (`.map-screen-*` in `globals.css`), so the page arrives laid out and nothing moves when the script does.
 
 **One layout for every map page** (`MapScreen.tsx`, with `CardHead`): the map and one card. `live` is `/map`, where the card is pulled up by its head; `static` is a page with no script, where on a phone the map stays at the top as the page scrolls the card up over it — the pull is a scroll. A static page renders the same React components on the server with no directive, so the map and the card are one copy, not an Astro twin of each.
 
@@ -261,7 +261,7 @@ The menu is ranked by your terrain (`scoreDrinks`, `relevanceOf` in `scoring.ts`
 
 **The search** (`SearchBox.tsx`) is over drinks (by name, alias or what is in them: "mezcal") and bars (yours, near you, and any name typed, offered as Pick a drink at …). A drink opens in the card; a bar opens as a filter on the map; a name the map does not know can still be rated. With a bar open its name sits in the box as a chip (× leaves it) and the box searches its menu.
 
-**Bars come from OpenStreetMap** through the Overpass API (`src/lib/osm.ts`): named places tagged bar, pub, beer garden or club within about 1.2 km, as a list — a bar is found by name and opened on your map, not panned to on a street map. Nothing is asked for until the reader taps **Show bars near me** — unless the browser already holds their yes for this site. The point leaves the device rounded to three decimal places (about 100 m), only to OpenStreetMap, and Cotidal keeps none of it; the list says so.
+**Bars come from OpenStreetMap** through the Overpass API (`src/lib/drinks/osm.ts`): named places tagged bar, pub, beer garden or club within about 1.2 km, as a list — a bar is found by name and opened on your map, not panned to on a street map. Nothing is asked for until the reader taps **Show bars near me** — unless the browser already holds their yes for this site. The point leaves the device rounded to three decimal places (about 100 m), only to OpenStreetMap, and Cotidal keeps none of it; the list says so.
 
 **Nothing moves under the reader.** The map never moves; the card opens over it rather than pushing it; a tap opens something in the card where the thumb is.
 
@@ -300,8 +300,8 @@ To guarantee the design system never drifts, automated enforcement is active at 
 - **Banned Opacity Modifiers**: Rejects a colour faded where it is used (`text-foreground/80`, `border-border/60`). De-emphasise text with size and weight; give a translucent colour a token.
 - **Error Level**: Enforced as an error on `src/pages/`, `src/layouts/` and all of `src/components/`.
 
-### 2. Copy Single Source of Truth (`src/lib/copy.ts`)
-- All user-facing strings live in `src/lib/copy.ts`.
+### 2. Copy Single Source of Truth (`src/lib/copy/`)
+- All user-facing strings live in `src/lib/copy/`.
 - No page, layout or component may hard-code interface text. This is a lint error: words in JSX text, and a literal `placeholder`, `aria-label`, `title` or `alt`, are rejected. Symbols and entities (`·`, `&rarr;`) are fine.
 - Not covered: a sentence built in a variable, and the two places that keep words beside data on purpose (the quiz's questions, the drink and region prose).
 
