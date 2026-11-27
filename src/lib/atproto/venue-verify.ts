@@ -6,7 +6,7 @@ import { resolveHandleToDid, type ReadOptions } from './public-read';
  * verified handle or by resolving that domain (via DNS `_atproto.<domain>` TXT
  * or `https://<domain>/.well-known/atproto-did`) to its DID.
  *
- * Level 2 (later, see docs/venues.md) will verify physical presence by mailing
+ * Level 2 (later, see docs/data-model.md, Venues) will verify physical presence by mailing
  * a postcard with a one-time code to the bar's address.
  */
 

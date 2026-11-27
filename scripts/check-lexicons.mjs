@@ -269,7 +269,7 @@ for (const [id, doc] of docs) {
 }
 
 /**
- * 9. Space types (docs/spaces.md). The released parser does not know
+ * 9. Space types (docs/data-model.md, Bars as spaces). The released parser does not know
  * `"type": "space"` yet, so a space lexicon is parsed by the Spaces alpha of
  * the same package, pinned as `atproto-lexicon-spaces`. The day the released
  * parser accepts it, this fails: drop the alias and let check 8 take over.

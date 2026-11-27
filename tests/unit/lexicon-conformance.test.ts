@@ -63,7 +63,7 @@ test('Datetimes: what this app reads is what the reference reader accepts', () =
 
 test('Lexicons: every file parses in the reference implementation', () => {
   // A space type parses in the Spaces build of the parser until the released
-  // one learns `"type": "space"` (docs/spaces.md); `npm run lexicons` says when.
+  // one learns `"type": "space"` (docs/data-model.md, Bars as spaces); `npm run lexicons` says when.
   for (const doc of docs) {
     const parse = doc.defs.main?.type === 'space' ? parseSpaceLexiconDoc : parseLexiconDoc;
     expect(() => parse(doc), doc.id).not.toThrow();

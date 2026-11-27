@@ -6,5 +6,5 @@ https://github.com/lexicon-community/lexicon/tree/b4a2b19613105ede6b43e1330d3831
 
 Cotidal does not own these lexicons: its records *use* them (a pour's
 `venue.address`, a venue's `location`). They are here so
-`tests/lexicon-conformance.spec.ts` can run the reference validator over a
+`tests/unit/lexicon-conformance.test.ts` can run the reference validator over a
 record that carries one. Update by copying the files again, not by editing.

@@ -4,7 +4,7 @@ import { quadrantFor, type Quadrant } from '../map/coordinates';
 import { quadrants } from '../copy';
 
 /**
- * Palate Intelligence for bars (`docs/venues.md` & `docs/spaces.md`):
+ * Palate Intelligence for bars (`docs/data-model.md`, Venues and Bars as spaces):
  * aggregates anonymous patron pours (from public pours naming the bar or from
  * the bar's `app.cotidal.bar` Space once the Spaces beta launches) into
  * quadrant density, per-drink re-order rates (`wouldOrderAgain`), and top

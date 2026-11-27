@@ -1,263 +1,109 @@
+---
+summary: Which routes exist, what each promises, who it works for cold, and why the roadmap runs in its order.
+read_when: Adding or promoting a route, deciding what a stranger sees, or reordering the roadmap.
+---
+
 # Routes
 
-What each surface promises, who it works for, and the order to build them in.
-`docs/brand.md` governs how a route looks and sounds; this file is about which
-routes exist and why.
+How a route looks and sounds is `docs/brand.md`; this is which routes exist
+and why.
 
-## The home page sells one thing
+## The front door asks one thing
 
-`/` makes a single argument: *every palate has a coordinate → here is how it
-goes (the questions, Pick a drink, Your map) → here are the four regions → sign in
-to keep it with you.* It works because it promises one thing, and the chart is
-allowed to be the one large move on it (`docs/brand.md`, "Bold is one move per
-screen").
+`/` is the map with a sample palate gaining ratings, and a card that asks one
+thing: find your coordinate. Pulled up, it says how it works
+(`/#how-it-works`) and links to sign-in. The map is its one large move.
 
-"How it goes" names each step by where it happens in the app, in the app's own
-words, so the front door and the app describe the same product. The sign-in
-section promises only what a guest does not already have: everything works
-signed out, on the device, so signing in buys the account (any phone), the
-public map, and chat assistants, not logging or the menu.
+Signing in buys the account (any phone), the public map and chat assistants,
+not logging or the menu: everything works signed out, on the device, so it
+is offered only where it would keep something.
 
-**Candidate features are routes, not home page sections.** Every idea below is
-worth building and none of them belongs on `/` as a tile. A front door that
-offers six equal choices has stopped making an argument and become a portal.
-The footer is where routes live until one earns promotion.
+**Candidate features are routes, not front-door tiles.** A front door with six
+equal choices is a portal, not an argument. Routes live in the footer until
+one earns promotion.
 
 ## The screens
 
-The drinker's app is one screen, the map, and a page behind your name;
-everything else happens in the map's card or is a reading page
-(`docs/map-first.md`). The map draws your taste as terrain; the card holds
-your menu, a bar's menu, a drink, rating a pour and your pours. Settings
-holds the account, not the palate.
-
-| Screen | What it is for | Reached from |
+| Screen | For | Reached from |
 |---|---|---|
-| **The map** (`/map`) | Everything: your terrain, every drink, the search (drinks and bars) in the header, and the card — your menu, a bar's menu pinned on the map, a drink, your pours | The header, Menu, the front door |
-| **Rating** (in the card) | One pour, rated | Rate a drink, Rate this on a drink, a waiting pick, a chat's draft link |
-| **Settings** | The account: sign out, your link, share, assistants, start over | Your handle (header, Menu) |
-| **Your link** (`/p/<handle>`) | What a friend sees; comparing with people you follow, or any handle | Settings, the map's card, a link someone sent |
-| **The questions** | Placing the coordinate | The front door, Start over |
-
-Each app screen has one action of its own. Sign out lives on Settings only.
+| **The map** (`/map`) | Everything: your terrain, every drink, and the card (search, your menu, a bar's menu, a drink, your pours) | Header, Menu, the front door |
+| **Rating** (in the card) | One pour, rated | Rate this, a waiting pick, a chat's draft link |
+| **The questions** (in the card, `/map?quiz=1`) | Placing the coordinate | The front door, a drink's page, Start over |
+| **Your link** (`/p/<handle>`) | What a friend sees; comparing | Settings, the card, a link someone sent |
+| **Settings** | The account: sign out, your link, assistants, start over | Your handle |
+| **A drink's page** (`/drinks/<slug>`) | SEO/AEO and a link to send; not in the navigation | Search, links |
+| **For bars** (`/bars`, `/v/<handle>`) | Claiming a bar and publishing its menu; a claimed bar's menu as pins | Footer |
 
 ## Destinations and gated actions
 
-The distinction that decides what a stranger can be shown:
-
 | | Works cold? | Routes |
 |---|---|---|
-| **Destination** | Yes — no account, no location, no camera | `/`, the map (a drink, a region), a drink's page, the quiz |
-| **Gated action** | No — needs an account, a place, or people | Capture a menu, claim a venue, log a pour, compare with friends |
+| **Destination** | Yes: no account, location or camera | `/`, the map (a drink, a region), a drink's page, the questions, `/p/<handle>` |
+| **Gated action** | No: needs an account, a place or people | Photograph a menu, claim a venue, compare with people you follow |
 
-**A gated action must never be the front door.** It fails for exactly the
-person who just arrived, and a route that greets a stranger with a permission
-prompt or an empty state has spent its only first impression. Gated actions are
-reached from inside, or from a link someone was sent.
+**A gated action is never the front door.** It fails for exactly the person
+who just arrived. Reach it from inside, or from a link someone was sent.
 
 ## The reading path
 
-> "Read about tastes first, then explore drinks that match."
-
-The map names the four regions, and each is a filter on it:
-`/map?region=<id>` washes the region and names its drinks, and the card holds
-the region's drinks first, then what the region is, what ordering from it
-says about you and the ingredients its drinks share. A reader treats a
-region as a way to narrow the drinks, not a destination, so the regions are
-a filter on the map rather than pages of their own — and the map is the list
-of drinks, so there is no `/drinks`. The four parts come from four places:
-
-- **What it is** is prose in `src/content/regions/<id>.md`, a content
-  collection held to the drinks' format — what is on the record, what is
-  only told, and the sources.
-- **What it says about you** is one template in `copy.ts`, the same for all
-  four: your answers leaned this way, the menu ranks by distance, a pour can
-  move the point. That is what the product does. Anything more — bitter
-  drinkers' character, sweet as a beginner's palate — is listed as claimed,
-  with the reason it is not on the record.
-- **The drinks** come from the map: every drink it places there.
-- **What they share** is counted from those drinks' own ingredient lists
-  (`src/lib/ingredients.ts`), so it cannot disagree with them.
-
-A drink opened on the map shows its whole entry in the card. Its own page,
-`/drinks/<slug>`, is an SEO/AEO entry point and a link to send, not linked
-from the navigation. Each carries Schema.org `Recipe`
-structured data alongside the prose and a **Your palate** section linking to
-`/map?drink=<slug>` and the questions (`/map?quiz=1`) so readers arriving from search or chat
-assistants can compare the drink directly against their palate.
+A region is a way to narrow the drinks, so it is a filter on the map
+(`/map?region=<id>`), not a page, and the map is the list of drinks, so there
+is no `/drinks`. A region's card has four parts from four places: what it is
+(`src/content/regions/<id>.md`), what it says about you (one template in
+`copy/`, describing what the product does and nothing more), its drinks (from
+the map) and what they share (counted from their ingredient lists).
 
 ## The return visit
 
-Every route above is a first-visit route. Nothing yet answers *why open this
-again on Thursday* — and the thing that would is already built and has no front
-door: logging a pour and watching the point move.
-
-**The loop is: drink → log → the map changes.** That is the entire premise of a
-taste profile that lives in a repository and accumulates, so it is a route
-of its own: `/map`, in the site navigation, where a guest can log on this
-device and a member to their repository.
+**Drink → log → the map changes.** That loop is why `/map` is the one screen
+and rating lives in its card.
 
 ## The supply side
 
-Nobody in the obvious feature list is a bartender or a bar, but the data model
-already anticipates both: venues claim themselves by proving a domain, makers
-publish professional profiles, recipes are authored works with adoption counts
-(`docs/data-model.md`).
+**A bar publishing its own menu to the protocol is the most valuable thing
+this product offers a non-drinker**, and the cheapest, because the protocol
+does the hard part: claiming is proving a domain, menus are signed posts, and
+authority comes from the signing repo, so a patron's copy is a sighting and
+the bar's is the menu. **A bar that claims itself in two years lights up
+every old log at once**, because reconciliation happens in the app view
+(`docs/data-model.md`). The business case: `docs/data-model.md`, Venues.
 
-**A bar publishing its own menu to the protocol is the highest-value thing this
-product can offer someone who is not a drinker.** It is also the cheapest to
-build, because the protocol does the hard part:
-
-- **Claiming matches the URL to the DID.** On `/bars`, claiming checks
-  that the bar's website domain (`attaboy.nyc`) resolves to the signed-in
-  account's DID (`src/lib/atproto/venue-verify.ts`), then writes
-  `app.cotidal.venue` at rkey `self` and renders it live at `/v/<handle>`. No
-  approval queue, no registry, nothing for us to administer. A second level of
-  verification — mailing a postcard with a unique code to prove physical
-  presence at the street address — is planned for later (`docs/venues.md`).
-- **Menus are posts, never rows.** Re-published rather than edited, so version
-  history is free and a menu from March stays true about March.
-- **Authority comes from the signing repo.** A menu in the venue's repo is the
-  venue's menu; the same record in a patron's repo is a sighting. There is no
-  `official` flag to forge.
-
-So the venue path is: prove the domain, publish the menu, and every patron
-sighting of that menu reconciles to it — including sightings recorded before
-the bar ever joined. **A bar that claims itself in two years lights up every
-old log at once.** That is the argument to a venue, and it is true because
-reconciliation happens in the app view and never by rewriting anyone's records.
-
-`/bars` introduces the supply side and, in the same card, handles
-self-serve domain verification and menu publishing (Claim your bar), and
-`/v/<handle>` renders a claimed bar's
-live venue and menu, its drinks as numbered pins on the map. (A menu audit
-page was cut: a bar's pins show its spread at a glance.) Detailed product and commercial reasoning for the B2B suite lives in
-`docs/venues.md`.
-
-**Menu capture is the same corpus from the other end.** A patron photographing
-a menu gets a recommendation with no account required — value before signup —
-and the sighting builds the corpus as a byproduct. Both halves feed one
-dataset, which is why they should be designed together even if capture ships
-first.
+Menu capture is the same corpus from the other end: a patron photographing
+a menu gets a recommendation and leaves a sighting. Design the two together.
 
 ## Friends
 
-The strategic bet, and deliberately not next.
+The first feature that genuinely needs identity, and the one that makes the
+AT Protocol load-bearing: *your palate is comparable to your friends'* is a
+reason to sign in; *your palate is portable* is not.
 
-Sign-in buys little beyond keeping your record in your own repository: guests
-and members get nearly the same product, which is a poor trade to ask for. Friends is the first feature that genuinely
-requires identity, and the one that makes AT Protocol load-bearing rather than
-a principled footnote. *Your palate is portable* is abstract. *Your palate is
-comparable to your friends'* is a reason.
+- **Discovery comes from the follow graph,** not a second graph built here:
+  no invites, no address book.
+- **A social surface with nobody on it is worse than none.** The first
+  version is worth opening alone, with overlap as enrichment.
+- **Compare maps, never rank palates** (`docs/data-model.md`).
 
-**Discovery comes from the graph, not from us.** The follows and followers a
-user already has are the friend list — check them for Cotidal records and
-surface the ones that have a palate. No invites, no separate social graph, no
-address book upload. The protocol means the graph is already there and already
-theirs; building a second one inside the app would be both redundant and a
-worse version of the thing it copies.
+**Built:** `/p/<handle>` (or `/p/<did>`) works cold: a stranger sees the
+person's terrain and menu, then a way to find their own. A signed-in visitor
+is compared with it (`compareTerrains`): shared top ten, where they part,
+one for both. On your own link, people you follow who have a map are listed
+to compare with. "Share to your feed" links by DID, since handles change and
+posts are never rewritten.
 
-Two constraints:
+## The name
 
-1. **A social surface with nobody on it is worse than none.** An empty "your
-   friends' maps" page actively signals a dead product. The first version must
-   be worth opening alone, with overlap appearing as enrichment when it exists
-   — the same discipline as an unclaimed venue reference: write the weak half
-   now, let the strong half light up later.
-2. **Compare maps, never rank palates.** `docs/data-model.md` has no
-   person-score field and the app view ships no endpoint that ranks humans.
-   A social layer is exactly where that commitment gets tested.
-
-The smallest honest first move is a shared coordinate: a signed-in user's map
-at a public URL, openable by a friend against their own. Two dots and the
-distance between them. No graph traversal, no feed, no follows — and it tests
-whether the instinct is right before any of that is built.
-
-**Built:** `/p/<handle>` (or `/p/<did>`). It works cold — a stranger sees the
-dot, the region and the nearest drinks, then a way to find their own — so it
-is a destination, not a gated action. A signed-in visitor with a palate gets
-their dot beside it, the distance in words, and three drinks that lead with
-disagreement: one they'd order and you wouldn't, one the reverse, then one
-you'd both order. "Share to your feed" links here by DID, because a handle
-can change and a post is never rewritten.
-
-### Next: the region badge
-
-The first step into the graph, before any page that lists friends. A member
-taps "Show my region on Bluesky", and anyone who subscribes to Cotidal's
-labeler sees "The Salt Line" as a badge on that member's profile and posts —
-inside Bluesky, where their follows already are. Nobody else sees anything.
-
-A labeler is how Bluesky lets any account publish signed tags about
-accounts or posts; clients show the tags of the labelers a user has chosen.
-Most are for moderation, but opt-in badge labelers (pronouns and the like)
-are common. Cotidal would declare four values, one per region id (`deep`,
-`salt-line`, `eddy`, `surf`), shown as badges, never as warnings, each with a
-description that points to `/map?region=<id>`. Members are signed in with their
-Bluesky identity already, so the opt-in is a button, not the like-a-post
-ritual those labelers use.
-
-Why it fits:
-
-- **It is the graph, not a copy of it.** A mutual's badge is seen where the
-  follow already exists. Nothing is built inside the app to hold it.
-- **It works alone** (constraint 1): one badge is a complete thing, with no
-  empty friends page behind it.
-- **It compares, never ranks** (constraint 2): a region is a place on the map,
-  not a score.
-- **It publishes nothing new**: the region is already public in the palate
-  record. The badge shows it where people are.
-
-Constraints on building it:
-
-1. **Opt-in, with an off switch that works as well as the on switch.** A
-   label is Cotidal's signed statement about someone, and they cannot delete
-   it themselves. Turning it off publishes a retraction (a negation label).
-   Signing out does not leave a badge behind.
-2. **Relabel only when the region changes.** Pours move the dot. Crossing
-   into another region retracts the old badge and issues the new one; moving
-   within a region changes nothing.
-3. **The service is the work.** A labeler needs its own account, a signing
-   key and a `#atproto_labeler` service in its DID document, an
-   `app.bsky.labeler.service` record declaring the four values, and the
-   `com.atproto.label.queryLabels` and `subscribeLabels` endpoints. The
-   latter is a long-lived stream — on Workers, a Durable Object. Ozone,
-   Bluesky's open-source labeling service, does all of it but is a full app to
-   run.
-4. **Reach is earned.** Only subscribers see badges, and most people
-   subscribe to few labelers, so each badge is also an invitation to
-   subscribe. That is the bet.
-
-It waits on three things, in order: sign-in working in production, region
-pages worth landing on, and enough members that a badge has someone to show
-it to.
-
-## Not a route
-
-**"Understand the social value."** A page whose job is to argue that the
-product is worth using is a symptom rather than a feature, and the Principles
-section already does that work in three blocks. Build the thing that
-demonstrates instead.
-
-## The name: Cotidal
-
-If friends are discovered by scanning a user's follows for accounts that use
-this app, then the app's name becomes the thing people recognise in a handle,
-a record type, and a share link — so the name, the domain and the NSID
-namespace had to be one answer, decided before records signed under the
-namespace spread. **Cotidal**: cotidal lines join the points on a chart that
-share a phase, which is what the product finds between two palates. The
-namespace is `app.cotidal.*`, real once `cotidal.app` is registered
-(`docs/data-model.md`).
+Cotidal lines join the points on a chart that share a phase, which is what
+the product finds between two palates. The name, domain and NSID namespace
+are one answer (`app.cotidal.*`, real once `cotidal.app` is registered).
 
 ## Build order
 
-What is left, in order:
+The roadmap is in `AGENTS.md`. Why its order:
 
-1. **Close the generative surface** (`docs/generation.md`) — before any route
-   is promoted, because promotion means traffic.
-2. **Venue claim and menu publishing.** The supply side, and the first thing
-   this product offers a non-drinker.
-3. **Menu capture.** The patron half of the same corpus.
-4. **Friends**, discovered through the existing follow graph — starting with
-   the region badge (above), the first step that needs no friends page.
+- **Namespace first:** records signed under it spread and can't be renamed.
+- **Menu capture and venue claim together:** two halves of one corpus.
+- **Elicitation** once there are logged answers and pours to fit against.
+- **Friends last:** an empty social surface is worse than none.
+
+Every model route is already gated, metered and has a fallback
+(`docs/generation.md`), which had to be true before any route was promoted.

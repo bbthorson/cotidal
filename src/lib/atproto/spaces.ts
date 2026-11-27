@@ -1,7 +1,7 @@
 /**
  * Bars as atproto Spaces: the addressing, policy and scopes for
  * `app.cotidal.bar`, and nothing that talks to a server yet. Why a bar is a
- * space, and what waits on the Spaces public beta, is docs/spaces.md.
+ * space, and what waits on the Spaces public beta, is docs/data-model.md (Bars as spaces).
  *
  * Everything here is derived, never stored: a venue's space is its DID plus
  * the space type plus `self`, so no record carries a space reference that

@@ -1,67 +1,23 @@
-# Adopting the Cotidal Lexicon
-
-Why and how third-party apps, venues, point-of-sale systems, and beverage
-creators adopt `app.cotidal.*`.
-
-Schemas live in `src/lib/atproto/lexicons/`; TypeScript/Zod definitions live in
-`src/lib/atproto/records.ts`. Product reasoning lives in `docs/data-model.md`
-and `docs/venues.md`.
-
+---
+summary: Worked examples for another app, venue or creator — publishing a venue and menu, writing a pour, the palate's shape, a recipe, and reading or indexing records without Cotidal.
+read_when: Writing example records, documenting the lexicons for outsiders, or checking how an outside client would read them.
 ---
 
-## Why adopt?
+# Adopting the Cotidal lexicon
 
-Hospitality data today is trapped in proprietary silos (Google Maps, Yelp,
-Untappd, bloated QR ordering portals) or unindexed PDF menus. The results are
-bad for everyone:
+Worked examples. The records and the reasoning are
+[data-model.md](data-model.md); the case for a bar is [data-model.md § Venues](data-model.md#venues).
+Records carry no floats (integer hundredths or tenths, named for it), an
+untouched field is absent, and nothing inferred is written in the author's
+name. The plane runs Rich −10 → Crisp +10, Savory −10 → Sweet +10. No
+permission or key from Cotidal is needed to read or write these.
 
-1. **A common sensory plane replaces subjective stars.** Craft cocktails
-   cannot be meaningfully evaluated by 1-to-5 star averages from angry patrons.
-   The 2D palate plane (Rich −10 → Crisp +10, Savory −10 → Sweet +10) gives
-   any drink, drinker, and menu an intuitive flavor coordinate. Any client can
-   calculate match distance without proprietary recommendation algorithms.
-2. **Menus are posts, not database rows.** A menu in `app.cotidal.menu` is
-   an immutable, signed, dated snapshot. Version history is free, menus never
-   rot, and syndication to websites, mobile apps, and discovery feeds happens
-   automatically.
-3. **Attribution without rank.** Bartenders who invent modern classics poured in
-   thousands of bars globally currently receive zero structured attribution.
-   `app.cotidal.recipe` and `maker` build a verifiable ledger of adoption
-   (*"poured at 34 bars across 8 cities, with 1,100 verified pours"*). Ratings
-   attach to recipes, never to people.
-4. **Sovereign ownership via handle-as-domain.** Venues claim themselves by
-   proving their domain name (`attaboy.nyc`). There is no centralized registry,
-   no gatekeeper charging rent, and no lock-in.
-5. **Atmosphere and Standard.site interoperability.** Venues can pair
-   `app.cotidal.venue` and `menu` with `site.standard.publication` and
-   `document`, enabling native Bluesky rich unfurls, reader syndication, and
-   fast static websites on their own domain.
-
----
-
-## The Lexicons at a glance
-
-| NSID | Key | Role |
-|---|---|---|
-| `app.cotidal.palate` | `self` | Drinker's 2D coordinate, dynamic psychophysical state (EKF), aversions and vibe tags |
-| `app.cotidal.pour` | `tid` | Drink check-in with hedonic and gLMS ratings, CATA notes, perceived intensities, and what was served (spirit, glass, garnish) |
-| `app.cotidal.elicitation` | `tid` | The answers behind one completed quiz: what each question offered and which option was taken |
-| `app.cotidal.menu` | `tid` | Signed menu snapshot with sections, items, and coordinates |
-| `app.cotidal.recipe` | `tid` | Authored formulation, specs, technique, physical stimulus, and creator credits |
-| `app.cotidal.venue` | `self` | Venue profile, location, current menu pointer, and publication link |
-| `app.cotidal.maker` | `self` | Professional portfolio linking authored recipes |
-| `app.cotidal.defs` | — | Shared types: `stimulus`, `entityRef`, `venueRef`, `drinkRef`, `credit`, `price` |
-
----
-
-## How to adopt: by use case
-
-### 1. For Venues, POS systems & Menu Management tools
+## For Venues, POS systems & Menu Management tools
 
 **Goal:** Publish canonical, versioned menus that render on the bar's website
 and syndicate across the open network.
 
-#### Step A: Claim the venue record
+### Step A: Claim the venue record
 Held at `rkey: self` in the venue's repository. Possession of this record
 under a verified domain handle (`attaboy.nyc`) *is* the claim:
 
@@ -92,7 +48,7 @@ under a verified domain handle (`attaboy.nyc`) *is* the claim:
 }
 ```
 
-#### Step B: Publish a menu snapshot
+### Step B: Publish a menu snapshot
 Menus are published at a `tid` key whenever the cocktail list changes:
 
 ```ts
@@ -142,14 +98,13 @@ await agent.com.atproto.repo.createRecord({
 });
 ```
 
----
 
-### 2. For Consumer Apps & Drink Logging Tools
+## For Consumer Apps & Drink Logging Tools
 
 **Goal:** Allow drinkers to log drinks, track their palate coordinate, and
 maintain ownership of their taste history.
 
-#### Writing a Pour (Check-In)
+### Writing a Pour (Check-In)
 When a user orders a drink, write `app.cotidal.pour` to **their** repository:
 
 ```ts
@@ -201,7 +156,7 @@ await agent.com.atproto.repo.createRecord({
 });
 ```
 
-#### Reading & Updating the Palate
+### Reading & Updating the Palate
 Drinker coordinates and dynamic psychophysical state live at `app.cotidal.palate` at `rkey: self`.
 The preference state is modeled as an Extended Kalman Filter (EKF) tracking 5 latent sensory dimensions:
 
@@ -229,9 +184,8 @@ The preference state is modeled as an Extended Kalman Filter (EKF) tracking 5 la
 }
 ```
 
----
 
-### 3. For Beverage Creators & Bartenders
+## For Beverage Creators & Bartenders
 
 **Goal:** Publish authored specs, establish provenance, and build a portable
 portfolio.
@@ -271,50 +225,10 @@ Publish `app.cotidal.recipe` to establish the canonical spec:
 }
 ```
 
----
 
-### 4. For Other Applications: Building on the Open Sensory Graph
+## Reading and indexing
 
-The greatest advantage of AT Protocol lexicons is that **you do not need
-permission or an API key from Cotidal to build an application on this data**.
-
-All records exist in users' and venues' public repositories. Any third-party
-developer can read, index, or write to these collections.
-
-#### What other applications can build:
-
-1. **Alternative & Specialized Clients:**
-   - Build a native iOS or watchOS fast-logger, an e-ink bar companion, or a
-     deep-dive cocktail tasting journal.
-   - When a user logs in with their ATProto handle, their palate coordinate and
-     entire historic pour log load immediately — **zero cold-start problem**.
-   - Pours logged in your client syndicate back into Cotidal and any
-     other compatible app.
-2. **Nightlife Guides & "The Overlap" (Social Discovery):**
-   - An app that reads the `app.cotidal.palate` records of two or three
-     friends and finds the mathematical intersection of their tastes.
-   - Cross-reference with `app.cotidal.menu` records across neighborhood
-     venues to answer: *"Where within a 10-minute walk has drinks that satisfy
-     both our palates?"*
-3. **Cocktail Recipe Engines & Home Bar Apps:**
-   - An inventory app (e.g. "What can I make with the bottles on my bar cart?")
-     can index public `app.cotidal.recipe` records to discover new specs
-     authored by top bartenders worldwide, matching them to the user's home
-     ingredients.
-4. **Firehose Feeds & Curated Bots:**
-   - Tap into the global ATProto firehose (`com.atproto.sync.subscribeRepos`)
-     to create specialized discovery feeds on Bluesky:
-     - *"Recent pours at Tokyo cocktail bars"*
-     - *"Trending modern classics this week"*
-     - *"Seasonal spring menu drops"*
-5. **AI Sommelier & Concierge Agents:**
-   - An AI agent can read a diner's public `app.cotidal.palate` record
-     to know their psychophysical latent state (bitter and tannin tolerance,
-     appetite for complexity), their aversions, and their flavor stance before
-     making a dinner pairing recommendation. It carries no genetic claims: a
-     taste phenotype is not something one quiz answer can establish.
-
-#### Reading records permissionlessly (XRPC)
+### Reading records (XRPC)
 
 Records live on the author's PDS, and any PDS serves its public records
 without an account. Bluesky's AppView indexes only `app.bsky.*`, so resolve the
@@ -339,7 +253,7 @@ const currentMenuUri = venueRecord.data.value.currentMenu?.uri;
 // at://did:plc:.../app.cotidal.menu/<tid>
 ```
 
-#### Indexing via the ATProto Firehose
+### Indexing via the ATProto Firehose
 
 To index new pours, menus, and recipes in real time across the entire network:
 
@@ -358,28 +272,3 @@ for await (const evt of firehose) {
   }
 }
 ```
-
----
-
-## Architectural Commitments
-
-Anyone building with or consuming these records can rely on five design invariants:
-
-1. **Unclaimed entities use `defs#entityRef`.** Write the entity's human name
-   and domain now; do not wait for them to register an account. When the venue
-   or maker registers, reconciliation happens in the app view, never by
-   rewriting signed records.
-2. **Records are signed by their authors and never mutated.** Menus, pours, and
-   recipes are immutable snapshots. History is captured through successive
-   records, not row updates.
-3. **No person-ranking endpoints.** `app.cotidal.*` deliberately contains
-   no field to score or rank a human being. Drink reviews describe the *drink*
-   and the *recipe*, never the server or bartender.
-4. **Zero lock-in.** Records live in the author's Personal Data Server (PDS).
-   If Cotidal disappears tomorrow, all drink history, menus, and specs
-   remain fully readable and portable across any AT Protocol app.
-5. **Path to `community.lexicon.*`.** The long-term goal of this project is to
-   prove utility under `app.cotidal.*` and then propose these schemas
-   upstream to the Lexicon Community working group, establishing an open,
-   universal sensory standard for the entire decentralized web.
-
