@@ -1,6 +1,6 @@
 ---
-summary: The entities and every app.cotidal.* record, how unclaimed bars and makers are referenced and reconciled, menus as signed posts, why ratings never attach to people, and the namespace.
-read_when: Adding or changing a lexicon or record, referencing a venue, maker or recipe, or deciding what a record may contain.
+summary: The entities and every app.cotidal.* record, unclaimed references and reconciliation, menus as signed posts, why ratings never attach to people, the namespace; venues (what bars get, claiming at two levels, the commercial model); and bars as atproto Spaces (app.cotidal.bar, what is built, what waits on the beta).
+read_when: Adding or changing a lexicon or record; referencing a venue, maker or recipe; working on /bars, /v/<handle> or venue verification; touching spaces.ts, the Spaces dev aliases or sharing a pour with a bar.
 ---
 
 # Data model
@@ -106,7 +106,147 @@ Every record Cotidal defines. Other docs link here rather than repeat it.
 | `app.cotidal.recipe` | tid | Author | An authored spec: technique, credits, stimulus |
 | `app.cotidal.venue` | `self` | Venue | A bar claiming itself by domain |
 | `app.cotidal.maker` | `self` | Maker | A professional profile linking recipes |
-| `app.cotidal.bar` | space, `self` | Venue (authority) | A claimed bar's permissioned space (`docs/spaces.md`) |
+| `app.cotidal.bar` | space, `self` | Venue (authority) | A claimed bar's permissioned space (Bars as spaces, below) |
 | `app.cotidal.defs` | — | — | `entityRef`, `venueRef`, `drinkSlug`, `drinkRef`, `stimulus`, `credit`, `price` |
 
+## Venues
+
+The supply side: why a bar publishes to an open sensory protocol rather than
+renting from Yelp, Google Maps, Untappd or a QR portal. Examples:
+`docs/lexicon-adoption.md`; a bar's private space: Bars as spaces, below.
+
+### The problem
+
+Gatekeepers charge bars to defend their own brand searches and reduce craft
+drinks to star ratings about the coat check. Menus rot in PDFs, photo uploads
+and proprietary QR systems. Bars that invent modern classics get no
+attribution for the thousands of bars that pour them. Reaching followers
+means paying to boost posts.
+
+### What a bar gets
+
+1. **The menu as a canonical publication.** Publishing writes a signed,
+   immutable `app.cotidal.menu` to the venue's repo; it can render on the
+   bar's own domain and syndicates across the network. The app view places
+   each drink on the map through `matchDrink`: the bar asserts no
+   coordinates. Patron sightings (`capture: patron`) cover a bar until it
+   signs its own (`capture: venue`).
+2. **Palate intelligence.** Aggregated, anonymous patron tastes: who the
+   audience is ("52% of your logged patrons sit in The Deep; 15% of your list
+   does"), unmet demand, and reorder rates (`wouldOrderAgain`) instead of
+   stars. Patrons share pours with the bar alone through its space.
+3. **Proof of influence.** With `recipe`, `maker` and `venue` records, a
+   bar sees where its specs are poured ("34 bars, 8 cities, 1,100 pours"),
+   verifiable reach for sponsorships and allocations.
+4. **Direct reach.** A bar is its own AT Protocol account; menu drops and
+   guest shifts reach patrons who follow it, with no ad tax.
+
+Standard.site pairs with this: `site.standard.publication` (served at
+`/.well-known/site.standard.publication`) for the bar's site, and
+`site.standard.document` for a menu release or announcement.
+
+### Verification
+
+**Level 1, built: the domain matches the DID** (`venue-verify.ts`). The
+bar's website domain resolves to its DID, as its handle (DNS
+`_atproto.<domain>` or `/.well-known/atproto-did`) or via CNAME to
+Cotidal's edge. `/bars` (Claim your bar) checks it against the signed-in DID,
+then writes `app.cotidal.venue` at `self` and its menu; `/v/<handle>` renders
+them. Every sighting and pour that named the domain reconciles to it. Later:
+the edge serves the bar's Standard.site publication and a static site from
+its records.
+
+**Level 2, later: a postcard.** A domain proves the website, not the street
+address. A postcard with a one-time code proves the claimant is at it.
+
+### Commercial model
+
+- **Free:** the claim, a hosted static menu, syndication, the sighting view.
+- **Pro ($49–99/mo):** palate analytics, menu engineering, POS sync, 86'd
+  toggles.
+- **Groups:** multi-venue reporting, recipe syndication tracking, sponsorship
+  analytics.
+
+## Bars as spaces
+
+Code: `src/lib/atproto/spaces.ts`; the space type:
+`src/lib/atproto/lexicons/app.cotidal.bar.json`.
+
+### Why
+
+Everything Cotidal writes is public, which is wrong for what a bar most wants:
+*what did you think of the drink you just had here?* atproto Spaces
+([proposal 0016][proposal]) give an authorization and sync boundary with an
+authority DID and a member policy, while records stay in each author's repo.
+The patron keeps their record, the bar reads it, nobody else does.
+
+Spaces are **access control, not confidentiality**: the patron's PDS and the
+bar's host can read it. Never say "private" or "encrypted"; say "shared with
+<bar> only" (in `copy/`).
+
+### The shape
+
+| | |
+|---|---|
+| Space type | `app.cotidal.bar` (`"type": "space"`, `collections: [app.cotidal.pour]`) |
+| Authority | The venue's DID (holder of `app.cotidal.venue` at `self`) |
+| Key | `self`: one claimed venue, one space |
+| Ref | `at://{venueDid}/space/app.cotidal.bar/self` (`barSpace()`) |
+| A shared pour | `…/self/{patronDid}/app.cotidal.pour/{rkey}` (`barPourUri()`) |
+| Policy | `com.atproto.memberspace.policy`: `publicWrite`, not `publicRead` (`BAR_SPACE_POLICY`) |
+
+- **Only a claimed venue has a space.** A space is named by its authority's
+  DID, so one Cotidal held for a bar could never become the bar's. Before a
+  claim, a pour is public or stays on the device.
+- **The ref is derived** (`candidateBarSpace`), never stored.
+- **A shared pour is an ordinary pour, written once,** to the space instead
+  of the public repo, through the same `logPour`, and only if its `venue`
+  names that bar (`pourBelongsInBarSpace`).
+- **Patrons write, staff read.** `publicWrite` lets any patron share; without
+  `publicRead` patrons can't read each other. Staff are members with read and
+  write (`BAR_STAFF_MEMBER`). No `allowedApps`, so a POS can read it too.
+- **A baseline `memberspace`**, which every PDS supports, so no Cotidal
+  service sits in the access path.
+- **Menus and specs stay public:** publishing them is the point. Staff-only
+  specs would be a second space type.
+- **References run from the space to the public, never back.**
+- **One collection to start;** add another to the lexicon first.
+
+### Built
+
+- `app.cotidal.bar.json`, parsed by the Spaces alpha of `@atproto/lexicon`
+  in `npm run lexicons`, which also checks each collection is a record here.
+- `spaces.ts`: refs and URIs from parts checked by the released
+  `@atproto/syntax`; the policy; the staff entry; OAuth scopes for patron,
+  venue and staff.
+- `tests/unit/spaces.test.ts` holds URIs to the alpha's `@atproto/syntax`
+  and scopes to the alpha's `@atproto/oauth-scopes` (a patron may share and
+  read their own pours, never the whole space; a venue manages only its own).
+
+The dev aliases `atproto-lexicon-spaces`, `atproto-syntax-spaces` and
+`atproto-oauth-scopes-spaces` are pinned exactly, for checking only.
+`npm run lexicons` fails once the released parser accepts a space lexicon,
+so they get removed.
+
+### Waits on the beta (December 1, 2026)
+
+1. **Repoint or drop the aliases;** rerun the lexicon check and spaces tests.
+   Check `key: "literal:self"` is still accepted.
+2. **Space scopes at sign-in.** `auth.ts` asks for
+   `atproto transition:generic`. Add `PATRON_BAR_SCOPE` under
+   `conditionalScopes` with
+   `when: pdsServesMethod('com.atproto.space.createSpace')`, so only PDSes
+   that serve spaces see it. `VENUE_BAR_SCOPE` belongs to a venue sign-in
+   that doesn't exist yet.
+3. **Writes:** `logPour` gains a destination (public repo or
+   `com.atproto.space.createRecord`), after `pourBelongsInBarSpace` and
+   `getSpace`. The order of writes in `tests/unit/log-pour.test.ts` holds.
+4. **The venue opens its space** (`createSpace`, `BAR_SPACE_POLICY`) when it
+   claims itself, and adds staff (`putMembers`).
+5. **Reads for the venue** (delegation tokens, signed requests, sync) are
+   `@atproto/space`'s job; don't hand-roll them. Add it with the first
+   caller, and check it bundles for workerd. Key lookups belong with
+   `@atproto/did`.
+
 [refs]: https://blog.smokesignal.events/posts/3lvbownlrme2a-atprotocol-record-references-authoritative-vs-unauthoritative-patterns
+[proposal]: https://github.com/bluesky-social/proposals/blob/main/0016-permissioned-data/README.md

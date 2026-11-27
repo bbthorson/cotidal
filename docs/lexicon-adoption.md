@@ -6,7 +6,7 @@ read_when: Writing example records, documenting the lexicons for outsiders, or c
 # Adopting the Cotidal lexicon
 
 Worked examples. The records and the reasoning are
-[data-model.md](data-model.md); the case for a bar is [venues.md](venues.md).
+[data-model.md](data-model.md); the case for a bar is [data-model.md § Venues](data-model.md#venues).
 Records carry no floats (integer hundredths or tenths, named for it), an
 untouched field is absent, and nothing inferred is written in the author's
 name. The plane runs Rich −10 → Crisp +10, Savory −10 → Sweet +10. No

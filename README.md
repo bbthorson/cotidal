@@ -92,8 +92,7 @@ changing code.
 - Product: [brand](docs/brand.md), [routes](docs/routes.md),
   [map-first](docs/map-first.md), [coasters](docs/coasters.md)
 - Records and network: [data-model](docs/data-model.md),
-  [lexicon-adoption](docs/lexicon-adoption.md), [venues](docs/venues.md),
-  [spaces](docs/spaces.md), [mcp](docs/mcp.md),
+  [lexicon-adoption](docs/lexicon-adoption.md), [mcp](docs/mcp.md),
   [drink-sources](docs/drink-sources.md)
 
 ## License

@@ -15,7 +15,7 @@ export const MAKER_COLLECTION = 'app.cotidal.maker';
 export const ELICITATION_COLLECTION = 'app.cotidal.elicitation';
 
 /**
- * A bar's permissioned space (`app.cotidal.bar.json`, docs/spaces.md). Its
+ * A bar's permissioned space (`app.cotidal.bar.json`, docs/data-model.md, Bars as spaces). Its
  * authority is the venue's DID, and a venue has one, so the key is `self`.
  */
 export const BAR_SPACE_TYPE = 'app.cotidal.bar';

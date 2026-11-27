@@ -247,7 +247,7 @@ its DID).
   Spaces beta. Checked against the alpha via the dev aliases
   `atproto-lexicon-spaces`, `atproto-syntax-spaces`,
   `atproto-oauth-scopes-spaces`; `npm run lexicons` fails once the released
-  parser knows spaces, so the aliases get removed. `docs/spaces.md`.
+  parser knows spaces, so the aliases get removed. `docs/data-model.md`, Bars as spaces.
 
 ## Conventions
 
@@ -283,8 +283,8 @@ Open work only; the reasoning for the order is `docs/routes.md`.
    bar, and decide a guest allowance (`docs/map-first.md`, Where a bar's
    menu comes from).
 3. **Venue claim.** Level 1 is built (`/bars`, `/v/<handle>`). Next: the
-   postcard check (`docs/venues.md`), the bar confirming sightings, and its
-   space (`docs/spaces.md`, waits on the Spaces beta).
+   postcard check, the bar confirming sightings, and its space (waits on the
+   Spaces beta; `docs/data-model.md`, Venues and Bars as spaces).
 4. **Elicitation.** Swipes for breadth; fit `NOISE_LEVELS`,
    `EVIDENCE_SCALE` and `PAIR_NOISE_SCALE` from logged answers against
    pours. Never swipe on drink names: that measures familiarity.

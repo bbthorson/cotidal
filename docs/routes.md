@@ -66,7 +66,7 @@ does the hard part: claiming is proving a domain, menus are signed posts, and
 authority comes from the signing repo, so a patron's copy is a sighting and
 the bar's is the menu. **A bar that claims itself in two years lights up
 every old log at once**, because reconciliation happens in the app view
-(`docs/data-model.md`). The business case: `docs/venues.md`.
+(`docs/data-model.md`). The business case: `docs/data-model.md`, Venues.
 
 Menu capture is the same corpus from the other end: a patron photographing
 a menu gets a recommendation and leaves a sighting. Design the two together.
