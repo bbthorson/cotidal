@@ -13,7 +13,8 @@ Decisions made with the owner. How the map and card look and behave today is
 1. **The map is the background and never moves.** What changes is what is
    drawn on it. No panning, no camera flights; zoom can wait.
 2. **One map, no views to switch:** your terrain, your pours (filled at 7+,
-   rating beside the name), every other drink as a ring.
+   rating beside the name), and a chosen set of other drinks as rings
+   (below, What the map draws).
 3. **One card for everything else**, including rating. No dialogs.
 4. **A menu is the bar's only once the bar publishes it** (below).
 5. **A bar is a filter on the map, found by name**, never a street map.
@@ -24,8 +25,32 @@ Decisions made with the owner. How the map and card look and behave today is
 9. **The questions are a state of the card** (`/map?quiz=1`).
 
 Why: the product's answer is a place ("which way and how far"), a bar's menu
-reads best as pins, and 122 drinks can only be named with the whole width of
-a phone.
+reads best as pins, and even a chosen set of drinks can only be named with
+the whole width of a phone.
+
+## What the map draws
+
+**The library always holds more drinks than the map shows.** Density is
+never solved by holding the library back: a view draws its own drinks, chosen
+by one function (`drawnDrinks`, `src/lib/map/drawn.ts`;
+`tests/unit/map-drawn.test.ts`).
+
+- **Nothing to filter by:** the staples (`STAPLE_SLUGS`), the drinks most
+  people know or would be asked about, spread over all four regions and
+  every kind of drink, no two at one point. A drink is a staple for being
+  ordered, not for being good.
+- **A filter** draws its drinks instead of the staples: a search while it
+  finds drinks (by name, alias or what is in them, so "mezcal" draws every
+  mezcal drink), a region, a drink type, the edge of what you know
+  (`lens=explore`). One that holds more than
+  `MAX_MARKS` keeps its staples first, then its highest on your ground
+  (`capMarks`).
+- **A bar's menu** draws its pins and nothing else.
+- **Always, whatever the filter:** the open drink, your pours, and the drinks
+  a view names (a drink's neighbours, your menu).
+
+A drink not drawn is not drawn at all, not faded: a speck still crowds. It
+is one search away, and opening it draws it.
 
 Still open: search on every map page (only `/map` has it); a drink tapped on
 a static page's map going to its page; `?palate=` on a drink's page (needs

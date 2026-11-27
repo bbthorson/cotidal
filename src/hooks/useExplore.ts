@@ -5,11 +5,12 @@ import { chart, compass, mapPage } from '@/lib/copy';
 import { titleOf, type Register } from '@/lib/drinks/register';
 import { userFromProfile } from '@/lib/palate/profile';
 import { barsFromPours, foldName, lastPourByDrink, logTotals } from '@/lib/pours/pour-history';
-import { drinksAtSameSpot, namesMatching, searchDrinks, unlistedBar } from '@/lib/drinks/search';
+import { drinksAtSameSpot, namesMatching, searchLibrary, unlistedBar } from '@/lib/drinks/search';
 import { addMenuLines, rankMenu, type MenuItem } from '@/lib/drinks/menu-rank';
 import { readMapView, readMenuHandoff, VIEW_PARAMS } from '@/lib/map/map-url';
 import type { Side } from '@/lib/palate/compare';
 import { quadrantIdFor, type QuadrantId } from '@/lib/map/coordinates';
+import { capMarks } from '@/lib/map/drawn';
 import { buildTerrain, evidenceAt, kindOf, leanings, sampleTerrain, type TerrainStart } from '@/lib/palate/terrain';
 import { distanceRun } from '@/lib/palate/track';
 import { useMemberData } from '@/hooks/useMemberData';
@@ -97,7 +98,7 @@ export function useExplore(
   const [query, setQueryState] = useState(initialQuery);
   const searching = !!foldName(query);
   const bars = useMemo(() => barsFromPours(history), [history]);
-  const drinkHits = useMemo(() => searchDrinks(query, scored, register), [query, scored, register]);
+  const drinkHits = useMemo(() => searchLibrary(query, scored, register), [query, scored, register]);
   const barHits = searching ? namesMatching(query, bars) : bars;
   const nearHits = searching ? namesMatching(query, nearby.bars) : nearby.bars.slice(0, 5);
   const offerBar = unlistedBar(query, drinkHits.length > 0, barHits, nearHits);
@@ -266,6 +267,21 @@ export function useExplore(
             : []),
         ];
 
+  // A region is a filter: the card lists all its drinks; the map draws as many as it can show (`capMarks`).
+  const regionDrinks = useMemo(
+    () => (region ? drinkDatabase.filter((d) => quadrantIdFor(d.x, d.y) === region).sort((a, b) => name(a.name).localeCompare(name(b.name))) : []),
+    [region, name]
+  );
+  const regionShown = useMemo(() => capMarks(regionDrinks), [regionDrinks]);
+  // A search is a filter too: while it finds drinks, the map draws them (by name, alias or what is in
+  // them, so "mezcal" draws every mezcal drink), as many as it can show. Finding none leaves the map be.
+  const searchShown = useMemo(() => (searching && drinkHits.length > 0 ? capMarks(drinkHits) : []), [searching, drinkHits]);
+  const searchFocus = useMemo<ReadonlySet<string> | null>(
+    () => (searchShown.length > 0 ? new Set(searchShown.map((d) => d.name)) : null),
+    [searchShown]
+  );
+  const regionFocus = useMemo<ReadonlySet<string> | null>(() => (region ? new Set(regionShown.map((d) => d.name)) : null), [region, regionShown]);
+
   return {
     isMember,
     profile,
@@ -312,7 +328,11 @@ export function useExplore(
     chooseDrink,
     closeDrink,
     region,
-    regionDrinks: region ? drinkDatabase.filter((d) => quadrantIdFor(d.x, d.y) === region).sort((a, b) => name(a.name).localeCompare(name(b.name))) : [],
+    regionDrinks,
+    regionShown,
+    regionFocus,
+    searchShown,
+    searchFocus,
     openRegion,
     venue,
     barName,

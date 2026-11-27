@@ -1,7 +1,7 @@
 import { mcp } from '../copy';
+import type { Drink } from '../drinks/data';
 import { drinkHeight } from '../palate/terrain';
-import { compareWith } from '../palate/compare';
-import { quadrantFor } from '../map/coordinates';
+import { HEIGHT_BAND } from '../palate/scoring';
 import { menuHandoffHref } from '../map/map-url';
 import { matchDrink } from '../drinks/search';
 import {
@@ -9,6 +9,7 @@ import {
   placeDirectional,
   splitMenuLine,
   suggestClosestDrink,
+  type AversionFlags,
   type DirectionalConfidence,
 } from '../drinks/ingredient-match';
 import {
@@ -23,28 +24,50 @@ import {
   type ToolResult,
 } from './tool-helpers';
 
+/**
+ * How a menu item came to stand where it does: it is a drink on the map
+ * (`catalog`), its listed ingredients place it (`ingredients`, an estimate
+ * with no ratios behind it), or it stands where the classic it builds on does
+ * (`classic`: named for it, or built on its defining ingredients).
+ */
+export type Placement = 'catalog' | 'ingredients' | 'classic';
+
 export interface RankedItem extends DrinkSummary, Bearing {
   /** The name as it was on the menu. */
   item: string;
+  placement: Placement;
+  /** For `ingredients`: how much the listed ingredients say. */
+  confidence?: DirectionalConfidence;
+  /** For `ingredients`: what was read from the menu's words. */
+  matchedIngredients?: string[];
+  /** For `ingredients` and `classic`: the closest drink on the map, when one is clear. */
+  closestClassic?: DrinkSummary | null;
   /** Why they might pass on it, when a flavour they avoid is in it. */
   caution: string | null;
 }
 
 export type MenuEntry = string | { name: string; description?: string; ingredients?: string[] };
 
+/** An item nothing places: no drink on the map by its name, and too few ingredients listed. */
 export interface UnplacedItem {
   item: string;
   reason: string;
-  /** Avoided-flavour warning inferred from the item's description/ingredients, when any. */
+  /** Avoided-flavour warning inferred from the item's name or description, when any. */
   caution?: string | null;
-  /** Closest structural classic on the map when ingredients make it clear. */
-  closestClassic?: DrinkSummary | null;
-  /** Directional placement from listed ingredients (honest estimate, no ratios). */
-  directional?: {
-    region: string;
-    confidence: DirectionalConfidence;
-    matchedIngredients: string[];
-    way: string;
+}
+
+/** A house drink as a point on the map, so it is measured as any drink is. */
+function houseDrink(name: string, x: number, y: number, aversions: AversionFlags): Drink {
+  return {
+    name,
+    slug: '',
+    type: 'Cocktail',
+    x,
+    y,
+    hasSmoke: aversions.smoke,
+    isBitter: aversions.bitter,
+    hasAnise: aversions.anise,
+    tags: [],
   };
 }
 
@@ -65,15 +88,21 @@ export async function rankMenu(
   if (!found.ok) return found;
   const p = found.data;
   const { point, summary } = p;
-  const side = {
-    terrain: p.terrain,
-    point: { x: point.x, y: point.y },
-    aversions: point.aversions,
-  };
 
   const ranked: (RankedItem & { height: number })[] = [];
   const unplaced: UnplacedItem[] = [];
   const handoffLines: string[] = [];
+
+  const place = (label: string, drink: Drink, extra: Pick<RankedItem, 'placement' | 'confidence' | 'matchedIngredients' | 'closestClassic'>, avoided: string[]) => {
+    ranked.push({
+      item: label,
+      ...summarize(drink, ctx),
+      ...bearing(p, drink, ctx),
+      ...extra,
+      caution: avoided.length > 0 ? mcp.avoids(avoided) : null,
+      height: drinkHeight(p.terrain, drink).rating,
+    });
+  };
 
   for (const raw of items) {
     const parsed =
@@ -84,62 +113,53 @@ export async function rankMenu(
             description: [raw.description, ...(raw.ingredients ?? [])].filter(Boolean).join(', ') || undefined,
           };
     const label = typeof raw === 'string' ? raw : raw.name;
-    handoffLines.push(parsed.description ? `${parsed.name || label} — ${parsed.description}` : parsed.name || label);
+    const name = parsed.name || label;
+    handoffLines.push(parsed.description ? `${name} — ${parsed.description}` : name);
 
-    const drink = matchDrink(parsed.name || label);
-    if (!drink) {
-      const text = [parsed.name, parsed.description].filter(Boolean).join(' ');
-      const avoided = clashingAversions(text, point.aversions).map((k) => mcp.flavours[k]);
-      const directional = parsed.description ? placeDirectional(text) : null;
-      const relative = parsed.description ? (directional?.closestClassic ?? suggestClosestDrink(text)) : null;
-      const dirWay = directional
-        ? compareWith(side, {
-            kind: 'drink',
-            drink: {
-              name: label,
-              slug: '',
-              type: 'Cocktail',
-              x: directional.x,
-              y: directional.y,
-              hasSmoke: directional.aversions.smoke,
-              isBitter: directional.aversions.bitter,
-              hasAnise: directional.aversions.anise,
-              tags: [],
-            },
-          }).words
-        : null;
+    const text = [parsed.name, parsed.description].filter(Boolean).join(' ');
+    const avoided = clashingAversions(text, point.aversions).map((k) => mcp.flavours[k]);
+    const drink = matchDrink(name);
+    if (drink) {
+      // What the drink carries, and anything this bar's version adds ("Mexican Fernet" in a Cuba Libre).
+      place(label, drink, { placement: 'catalog' }, [...new Set([...clashes(drink, point.aversions), ...avoided])]);
+      continue;
+    }
+
+    const directional = parsed.description ? placeDirectional(text, undefined, { name }) : null;
+    const classic = directional?.closestClassic ?? suggestClosestDrink(text, undefined, { name });
+    if (directional) {
+      place(
+        label,
+        houseDrink(label, directional.x, directional.y, directional.aversions),
+        {
+          placement: 'ingredients',
+          confidence: directional.confidence,
+          matchedIngredients: directional.primitives.map((pr) => pr.name),
+          closestClassic: classic ? summarize(classic, ctx) : null,
+        },
+        avoided
+      );
+    } else if (classic) {
+      // What the classic carries, and anything the menu's own words add.
+      const cautions = [...new Set([...clashes(classic, point.aversions), ...avoided])];
+      place(label, classic, { placement: 'classic', closestClassic: summarize(classic, ctx) }, cautions);
+    } else {
       unplaced.push({
         item: label,
         reason: mcp.unplaced,
         ...(avoided.length > 0 ? { caution: mcp.avoids(avoided) } : {}),
-        ...(relative ? { closestClassic: summarize(relative, ctx) } : {}),
-        ...(directional && dirWay
-          ? {
-              directional: {
-                region: quadrantFor(directional.x, directional.y).name,
-                confidence: directional.confidence,
-                matchedIngredients: directional.primitives.map((pr) => pr.name),
-                way: dirWay,
-              },
-            }
-          : {}),
       });
-      continue;
     }
-    const avoided = clashes(drink, point.aversions);
-    ranked.push({
-      item: label,
-      ...summarize(drink, ctx),
-      ...bearing(p, drink, ctx),
-      caution: avoided.length > 0 ? mcp.avoids(avoided) : null,
-      height: drinkHeight(p.terrain, drink).rating,
-    });
   }
-  // Highest on their ground first, as their menu orders it; a drink they avoid still stands where it
-  // stands, and goes below the ones they don't. The height orders the list and is never shown.
+  // Highest on their ground first, in bands as their menu orders it (`HEIGHT_BAND`); inside a band a
+  // drink on the map goes before an estimate. A drink they avoid still stands where it stands, and
+  // goes below the ones they don't. The height orders the list and is never shown.
+  const band = (h: number) => Math.floor(Math.max(0, 9 - h) / HEIGHT_BAND);
   ranked.sort(
     (a, b) =>
       Number(!!a.caution) - Number(!!b.caution) ||
+      band(a.height) - band(b.height) ||
+      Number(a.placement !== 'catalog') - Number(b.placement !== 'catalog') ||
       b.height - a.height ||
       a.name.localeCompare(b.name)
   );

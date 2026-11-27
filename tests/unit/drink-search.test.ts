@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import { drinkDatabase } from '@/lib/drinks/data';
 import { calculateDistance } from '@/lib/palate/scoring';
-import { closestDrinks, drinksAtSameSpot, namesMatching, searchDrinks, unlistedBar, wayTo } from '@/lib/drinks/search';
+import { closestDrinks, drinksAtSameSpot, namesMatching, searchDrinks, searchLibrary, unlistedBar, wayTo } from '@/lib/drinks/search';
 import type { Register } from '@/lib/drinks/register';
 
 /** Compass's search and the rating sheet's quick picks: what was typed in, what is found. */
@@ -69,4 +69,16 @@ test('Which way: the axes’ own words, and how far to a tenth', () => {
   expect(wayTo({ x: 0, y: 0 }, { x: 3, y: 0.2 })).toEqual({ words: 'crisper', distance: 3 });
   expect(wayTo({ x: 0, y: 0 }, { x: 0.3, y: 2 }).words).toBe('sweeter');
   expect(wayTo({ x: 1, y: 1 }, { x: 1.2, y: 0.9 }).words).toBe('right here');
+});
+
+test('Search: the whole library, what is ranked for you first', () => {
+  const byName = (n: string) => drinkDatabase.find((d) => d.name === n)!;
+  // Your ranked list leaves out a smoky drink you avoid; the search still finds it, after.
+  const hits = searchLibrary('mezcal', [byName('Mezcal Paloma')], {}).map((d) => d.name);
+  expect(hits[0]).toBe('Mezcal Paloma');
+  expect(hits).toContain('Mezcal Negroni');
+  expect(new Set(hits).size).toBe(hits.length);
+  // A name finds its drink with nothing ranked at all.
+  expect(searchLibrary('negroni', [], {}).map((d) => d.name)).toContain('Negroni');
+  expect(searchLibrary('', [], {})).toEqual([]);
 });

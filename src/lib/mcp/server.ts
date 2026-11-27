@@ -270,7 +270,7 @@ export function createMcpServer(ctx: ToolContext): McpServer {
           role: 'user',
           content: {
             type: 'text',
-            text: `Read the menu I share (pasted text or photo). Extract every drink with its ingredients/description, call rank_menu${handle ? ` for ${handle}` : ''}, and recommend my top 3 picks with why each fits my coordinate and any avoided-flavour cautions on house cocktails.`,
+            text: mcp.prompts.orderFromMenu.text(handle),
           },
         },
       ],

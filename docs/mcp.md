@@ -36,11 +36,18 @@ instructions say so. (An assistant once said "Cotidal says you'll like dry
 wines" and guessed about a drink no list included; `get_drink` with a handle
 now answers for any drink.)
 
-`rank_menu` matches items through `matchDrink` and nothing looser: a wrong
-match would be ranked with unearned confidence. An unplaced house cocktail
-with listed ingredients gets a deterministic `directional` placement (region,
-confidence, bearing, cautions, closest classic) and a `mapUrl`
-(`/map?menu=1&bar=…&item=…`) that opens it as pins.
+`rank_menu` returns the menu as one list in the order of the person's ground,
+so an assistant never has to merge two. Each item says how it was placed
+(`placement`): `catalog` is `matchDrink` and nothing looser, because a wrong
+match would be ranked with unearned confidence; `ingredients` is an estimate
+from what the menu lists (`placeDirectional`, with `confidence` and
+`matchedIngredients`); `classic` stands where its closest classic does (named
+for it, as "Adventure Negroni", or built on its defining ingredients). Inside
+a band of `HEIGHT_BAND` a drink on the map goes before an estimate. Only an
+item with nothing to place it by is `unplaced`. A `mapUrl`
+(`/map?menu=1&bar=…&item=…`) opens the menu as pins. The description asks
+for one item per spirit choice ("tequila or mezcal"), so the tool ranks the
+variants instead of the assistant guessing.
 
 ## Drafting a pour
 

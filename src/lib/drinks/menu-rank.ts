@@ -61,10 +61,10 @@ export function addMenuLine(
   const drink = nonAlcoholic ? null : placeDrink(name, register);
   const shown = drink ? titleOf(register, drink.name) : name;
   if (items.some((i) => baseName(i.label) === baseName(shown))) return items;
-  const directional = !drink && description ? placeDirectional(text, undefined, { section }) : null;
+  const directional = !drink && description ? placeDirectional(text, undefined, { section, name }) : null;
   const relative =
-    !drink && description && !nonAlcoholic
-      ? (directional?.closestClassic ?? suggestClosestDrink(text, undefined, { section, nonAlcoholic }))
+    !drink && !nonAlcoholic
+      ? (directional?.closestClassic ?? suggestClosestDrink(text, undefined, { section, nonAlcoholic, name }))
       : null;
   return [
     ...items,
@@ -159,7 +159,7 @@ export function scoreDrinks(
 export function pourLogs(pours: PourRecord[]): MinimalDrinkLog[] {
   return pours.map((p) => ({
     // The catalog's name for the drink the pour means, by slug then name: the scorer
-    // compares names, and a pour saved as typed ("margarita") is the Tommy's.
+    // compares names, and a pour saved as typed ("margarita") is the Margarita.
     drinkName: drinkOf(p.drink)?.name ?? p.drink.name,
     location: p.isHomePour ? 'Home Pour' : p.venue?.entity?.name,
     hedonicScale: p.rating.hedonic,

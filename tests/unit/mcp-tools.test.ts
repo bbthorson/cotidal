@@ -179,7 +179,7 @@ test('MCP: search puts the exact match first, then names containing the query', 
   expect(searchDrinks('zzzz', ctx).ok).toBe(false);
 });
 
-test('MCP: rankMenu flags avoided flavours and suggests close classics on unplaced house cocktails', async () => {
+test('MCP: rankMenu ranks house cocktails with the rest, as estimates, and flags what they avoid', async () => {
   const result = await rankMenu(
     'alice.bsky.social',
     [
@@ -191,13 +191,54 @@ test('MCP: rankMenu flags avoided flavours and suggests close classics on unplac
   );
   expect(result.ok).toBe(true);
   if (!result.ok) return;
-  expect(result.data.ranked).toHaveLength(1);
-  expect(result.data.unplaced).toHaveLength(2);
-  // Alice avoids bitterness: both Campari and Aperol trigger a caution.
-  expect(result.data.unplaced[0].caution).toContain('bitterness');
-  expect(result.data.unplaced[0].closestClassic?.name).toBe('Boulevardier');
-  expect(result.data.unplaced[1].caution).toContain('bitterness');
-  expect(result.data.unplaced[1].closestClassic?.name).toBe('Naked & Famous');
+  const { ranked, unplaced } = result.data;
+  expect(unplaced).toHaveLength(0);
+  expect(ranked.map((r) => r.placement)).toEqual(['catalog', 'ingredients', 'ingredients']);
+  const bitter = ranked.find((r) => r.item === 'House Bitter')!;
+  // Alice avoids bitterness: both Campari and Aperol trigger a caution, and sink below the Daiquiri.
+  expect(bitter.caution).toContain('bitterness');
+  expect(bitter.closestClassic?.name).toBe('Boulevardier');
+  expect(bitter.matchedIngredients).toEqual(expect.arrayContaining(['Bourbon', 'Campari']));
+  // A house drink is named as the menu names it, and has no entry of its own.
+  expect(bitter.name).toBe('House Bitter');
+  expect(bitter.url).toBeNull();
+  const smoke = ranked.find((r) => r.item === 'Velvet Smoke — mezcal, Aperol, lime')!;
+  expect(smoke.caution).toContain('bitterness');
+  expect(smoke.closestClassic?.name).toBe('Naked & Famous');
+});
+
+test('MCP: rankMenu orders the whole menu as one list, and leaves out only what nothing places', async () => {
+  const result = await rankMenu(
+    'alice.bsky.social',
+    [
+      { name: 'Cuba Libre!', description: 'aged rum, Mexican Coke reduction, Mexican Fernet, lime oil' },
+      { name: 'Palomazo', description: 'choice of tequila or mezcal, grapefruit cordial, fresh lime, soda' },
+      { name: 'Adventure Negroni', description: 'spirit of choice (red or white), Vermouth, citrus' },
+      'The Velvet Fox',
+    ],
+    ctx
+  );
+  expect(result.ok).toBe(true);
+  if (!result.ok) return;
+  const { ranked, unplaced } = result.data;
+  const by = (item: string) => ranked.find((r) => r.item === item)!;
+  // On the map by name, the punctuation aside.
+  expect(by('Cuba Libre!').placement).toBe('catalog');
+  expect(by('Cuba Libre!').name).toBe('Cuba Libre');
+  // This bar's has Fernet, which a Cuba Libre does not: Alice avoids bitterness, so it is flagged.
+  expect(by('Cuba Libre!').caution).toContain('bitterness');
+  // Placed by what is in it.
+  expect(by('Palomazo').placement).toBe('ingredients');
+  expect(by('Palomazo').confidence).toBe('medium');
+  // Too little listed to place, but named for a classic: it stands where the classic does.
+  expect(by('Adventure Negroni').placement).toBe('classic');
+  expect(by('Adventure Negroni').name).toBe('Negroni');
+  // Nothing to go on.
+  expect(unplaced.map((u) => u.item)).toEqual(['The Velvet Fox']);
+  // One order for all of them: avoided flavours last, every item once.
+  expect(ranked).toHaveLength(3);
+  const cautioned = ranked.findIndex((r) => r.caution);
+  if (cautioned >= 0) expect(ranked.slice(cautioned).every((r) => r.caution)).toBe(true);
 });
 
 test('MCP: getDrink returns coordinate, flags, tags, and register build', async () => {
@@ -342,6 +383,7 @@ test('MCP: getBarMenu reads a claimed bar’s menu and ranks it when a drinker h
   if (!result.ok) return;
   expect(result.data.venue.name).toBe('Attaboy');
   expect(result.data.venue.url).toContain('/v/attaboy.nyc');
-  expect(result.data.ranking?.ranked).toHaveLength(1);
-  expect(result.data.ranking?.unplaced[0].caution).toContain('bitterness');
+  expect(result.data.ranking?.ranked).toHaveLength(2);
+  expect(result.data.ranking?.unplaced).toHaveLength(0);
+  expect(result.data.ranking?.ranked.find((r) => r.item === 'House Smoke')?.caution).toContain('bitterness');
 });

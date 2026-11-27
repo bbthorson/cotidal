@@ -1,5 +1,6 @@
 import { useId, useMemo, useRef, type ReactNode } from 'react';
 import { drinkDatabase, type Drink } from '@/lib/drinks/data';
+import { drawnDrinks } from '@/lib/map/drawn';
 import { axes, explore, quadrants } from '@/lib/copy';
 import { PLANE_EDGE, PLANE_VIEWBOX, placeLabels, planePercent, type LabelWant } from '@/lib/map/map-draw';
 import type { QuadrantId } from '@/lib/map/coordinates';
@@ -87,13 +88,16 @@ export function PalateMap({
   frames?: readonly { ground: Ground; ratings: ReadonlyMap<string, number> }[];
   /** A bar's menu, placed: null when no bar is open. */
   pins?: Pin[] | null;
-  /** Drink names in the active scope/frontier (`type=` or `lens=explore`): others fade to specks. */
+  /**
+   * A filter's drinks (a region, `type=`, `lens=explore`), capped by `capMarks`: drawn in place of
+   * the staples. Null draws the staples. Your pours, the open drink and `named` are drawn either way.
+   */
   focus?: ReadonlySet<string> | null;
   /** A bar is open and nothing on its menu is placed yet. */
   emptyBar?: boolean;
   selected?: string | null;
   hover?: string | null;
-  /** More drinks to label, after the selected one: a drink page's neighbours. */
+  /** More drinks to draw and label, after the selected one: a drink page's neighbours, your menu. */
   named?: readonly string[];
   /** A region washed, as a drink page shows where its drink sits. */
   region?: QuadrantId | null;
@@ -141,7 +145,15 @@ export function PalateMap({
   const measure = useTextMeasure();
   const maskId = `ground${useId().replace(/[^a-zA-Z0-9]/g, '')}`;
 
-  const marks = useMemo(() => placeMarks(pins, ratings, side), [pins, ratings, side]);
+  // The library is larger than the map can show: a view draws its own drinks (`drawnDrinks`).
+  const marks = useMemo(() => {
+    const drawn = drawnDrinks({
+      pins: pins?.map((p) => p.drink.name) ?? null,
+      focus,
+      also: pins ? [selected, hover] : [selected, hover, ...(named ?? []), ...(ratings?.keys() ?? [])],
+    });
+    return placeMarks(pins, ratings, side).filter((m) => drawn.has(m.drink.name));
+  }, [pins, focus, named, selected, hover, ratings, side]);
   const captioned = !!caption;
   const view: LabelView = { pins, selected, hover, named, name, measure, side, captioned };
   const labels = useMemo(
@@ -169,7 +181,6 @@ export function PalateMap({
         let bestD = Infinity;
         for (const m of marks) {
           if (pins && m.rank === undefined) continue;
-          if (!pins && focus && !focus.has(m.drink.name)) continue;
           const d = Math.hypot((m.x + PLANE_EDGE) * toPx - px, (PLANE_EDGE - m.y) * toPx - py);
           if (d < (m.rank !== undefined ? 20 : 16) && d < bestD) {
             best = m;
@@ -292,7 +303,7 @@ export function PalateMap({
       {/* The drinks. */}
       <div className={cn(!onSelect && 'pointer-events-none')} aria-hidden={onSelect ? undefined : true}>
         {marks.map((m) => (
-          <Mark key={m.drink.name} m={m} pins={pins} focus={focus} selected={selected} hover={hover} name={name} listening={!!onSelect} />
+          <Mark key={m.drink.name} m={m} pins={pins} selected={selected} hover={hover} name={name} listening={!!onSelect} />
         ))}
       </div>
 
@@ -468,7 +479,6 @@ function placeMapLabels(marks: readonly MapMark[], { pins, selected, hover, name
 function Mark({
   m,
   pins,
-  focus = null,
   selected,
   hover,
   name,
@@ -476,7 +486,6 @@ function Mark({
 }: {
   m: MapMark;
   pins: Pin[] | null;
-  focus?: ReadonlySet<string> | null;
   selected: string | null;
   hover: string | null;
   name: (drinkName: string) => string;
@@ -485,7 +494,7 @@ function Mark({
   const isSel = m.drink.name === selected;
   const isHover = m.drink.name === hover;
   const at = pct(m.x, m.y);
-  if ((pins && m.rank === undefined && !isSel) || (!pins && focus && !focus.has(m.drink.name) && !isSel)) {
+  if (pins && m.rank === undefined && !isSel) {
     return <span style={at} className="absolute h-1 w-1 -translate-x-1/2 -translate-y-1/2 rounded-full bg-border" />;
   }
   const label = m.hedonic !== undefined ? explore.ratedMark(name(m.drink.name), m.hedonic) : name(m.drink.name);

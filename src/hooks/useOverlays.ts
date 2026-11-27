@@ -15,7 +15,8 @@ import {
   type TableMember,
 } from '@/lib/palate/overlays';
 import { ratingsOf, terrainOf } from '@/lib/palate/taste-reading';
-import { peaks, sampleTerrain, type Terrain } from '@/lib/palate/terrain';
+import { peaks, rankByTerrain, sampleTerrain, type Terrain } from '@/lib/palate/terrain';
+import { capMarks } from '@/lib/map/drawn';
 
 export interface Companion {
   actor: string;
@@ -295,16 +296,18 @@ export function useOverlays({
     }));
   }, [lens, companions]);
 
-  // Drink highlight focus set on `PalateMap` when a type filter or explore lens is active
+  // What `PalateMap` draws in place of the staples when a type filter or the explore lens is on.
+  // A type can hold more drinks than the map shows: capped, highest on your ground kept.
   const focusDrinks = useMemo<ReadonlySet<string> | null>(() => {
     if (lens === 'explore' && frontier) {
       return new Set([...frontier.nearUntried, ...frontier.pastEdge].map((d) => d.name));
     }
     if (drinkType) {
-      return new Set(filteredPool.map((d) => d.name));
+      const ordered = mySide ? rankByTerrain(mySide.terrain, filteredPool).map((r) => r.drink) : filteredPool;
+      return new Set(capMarks(ordered).map((d) => d.name));
     }
     return null;
-  }, [lens, frontier, drinkType, filteredPool]);
+  }, [lens, frontier, drinkType, filteredPool, mySide]);
 
   return {
     lens,

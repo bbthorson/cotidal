@@ -74,6 +74,16 @@ export function searchDrinks<T extends { name: string }>(query: string, drinks: 
   );
 }
 
+/**
+ * A search of the whole library: what is ranked for you first, in its order,
+ * then every other drink it finds (one you avoid, or rated low), in the
+ * library's. A search finds a drink; it is the menu that leaves some out.
+ */
+export function searchLibrary<T extends Drink>(query: string, ranked: readonly T[], register: Register, drinks: readonly Drink[] = drinkDatabase): (T | Drink)[] {
+  const inRanked = new Set(ranked.map((d) => d.name));
+  return [...searchDrinks(query, [...ranked], register), ...searchDrinks(query, drinks.filter((d) => !inRanked.has(d.name)), register)];
+}
+
 /** The places whose name holds what was typed, case and accents aside. */
 export function namesMatching<T extends { name: string }>(query: string, places: T[]): T[] {
   const q = foldName(query);

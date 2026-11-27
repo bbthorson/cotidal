@@ -72,7 +72,7 @@ export const INGREDIENT_INDEX: readonly IngredientPrimitive[] = [
   // Fortified wines & aperitifs
   { id: 'sweet-vermouth', name: 'Sweet vermouth', role: 'modifier', match: /sweet vermouth|rosso vermouth|carpano|cocchi di torino|punt e mes/i, pull: { x: -4.5, y: -6.5 } },
   { id: 'dry-vermouth', name: 'Dry vermouth', role: 'modifier', match: /dry (french )?vermouth|french dry vermouth|extra dry vermouth/i, pull: { x: 6.5, y: -5.5 } },
-  { id: 'lillet-cocchi', name: 'Lillet or Cocchi Americano', role: 'modifier', match: /lillet|cocchi americano|blanc vermouth/i, pull: { x: 3.5, y: -2.0 } },
+  { id: 'lillet-cocchi', name: 'Lillet or Cocchi Americano', role: 'modifier', match: /lillet|cocchi americano|\bblanco? vermouth|vermouth blanc|\bbianco vermouth|vermouth bianco/i, pull: { x: 3.5, y: -2.0 } },
   { id: 'sherry', name: 'Sherry', role: 'modifier', match: /sherry|fino|oloroso|amontillado|manzanilla/i, pull: { x: 6.5, y: -6.5 } },
   { id: 'sparkling-wine', name: 'Sparkling wine', role: 'lengthener', match: /prosecco|champagne|sparkling wine|cava|cr[eé]mant/i, pull: { x: 7.5, y: 4.0 } },
 
@@ -100,7 +100,7 @@ export const INGREDIENT_INDEX: readonly IngredientPrimitive[] = [
   { id: 'irish-whiskey', name: 'Irish whiskey', role: 'base', match: /irish whiskey/i, pull: { x: -6.5, y: -0.5 } },
   { id: 'cognac-brandy', name: 'Cognac or brandy', role: 'base', match: /\bcognac\b|aged brandy|\barmagnac\b|\bbrandy\b/i, pull: { x: -6.5, y: 2.0 } },
   { id: 'rum', name: 'Rum', role: 'base', match: /\brum\b|cacha[cç]a/i, pull: { x: 4.5, y: 5.5 } },
-  { id: 'tequila', name: 'Tequila', role: 'base', match: /tequila|reposado|blanco|a[nñ]ejo/i, pull: { x: 3.0, y: 3.5 } },
+  { id: 'tequila', name: 'Tequila', role: 'base', match: /tequila|reposado|\bblanco\b(?!\s+vermouth)|a[nñ]ejo/i, pull: { x: 3.0, y: 3.5 } },
   { id: 'mezcal', name: 'Mezcal', role: 'base', match: /mezcal|espad[ií]n|bacanora|raicilla/i, flags: { smoke: true }, pull: { x: -0.5, y: -1.5 } },
 
   // Citrus & fruit
@@ -118,7 +118,7 @@ export const INGREDIENT_INDEX: readonly IngredientPrimitive[] = [
 
   // Herbs & lengtheners
   { id: 'mint', name: 'Mint', role: 'aromatic', match: /\bmint\b|spearmint/i, pull: { x: 7.5, y: 6.0 } },
-  { id: 'soda', name: 'Soda water', role: 'lengthener', match: /club soda|sparkling water|sparkling mineral water|soda water|\bsoda\b/i, pull: { x: 7.5, y: 1.0 } },
+  { id: 'soda', name: 'Soda water', role: 'lengthener', match: /club soda|sparkling water|sparkling mineral water|mineral water|topo chico|soda water|\bsoda\b/i, pull: { x: 7.5, y: 1.0 } },
   { id: 'tonic', name: 'Tonic water', role: 'lengthener', match: /\btonic\b/i, flags: { bitter: true }, pull: { x: 8.0, y: -5.0 } },
 
   // Menu-only primitives (broaden directional coverage for house cocktails without altering region counts)
@@ -141,6 +141,11 @@ export const INGREDIENT_INDEX: readonly IngredientPrimitive[] = [
   { id: 'cucumber', name: 'Cucumber', role: 'aromatic', match: /cucumber/i, pull: { x: 7.5, y: 0.5 }, regionGroup: false },
   { id: 'savory-herb', name: 'Savory herbs', role: 'aromatic', match: /\b(basil|rosemary|thyme|sage|cilantro|tarragon)\b/i, pull: { x: 4.5, y: -2.5 }, regionGroup: false },
   { id: 'chile', name: 'Chile', role: 'aromatic', match: /\b(jalape[nñ]o|habanero|ancho|chile|chili|serrano|cayenne)\b/i, pull: { x: 2.5, y: -2.0 }, regionGroup: false },
+  { id: 'aperitivo', name: 'Bitter aperitivo', role: 'bitter', match: /\baperitivo\b/i, flags: { bitter: true }, pull: { x: 2.0, y: -0.5 }, regionGroup: false },
+  { id: 'beer', name: 'Beer', role: 'base', match: /(?<!ginger[- ])(?<!root )\bbeer\b|\blager\b|\bcerveza\b|\bpilsner\b|\btecate\b|\bmodelo\b|\bcorona\b|\bpacifico\b|\bdos equis\b/i, pull: { x: 7.0, y: 0.5 }, regionGroup: false },
+  { id: 'tomato', name: 'Tomato', role: 'lengthener', match: /\btomato\b|clamato|\bbloody (mary |maria )?mix\b/i, pull: { x: 2.0, y: -7.5 }, regionGroup: false },
+  { id: 'chamoy', name: 'Chamoy', role: 'aromatic', match: /\bchamoy\b/i, pull: { x: 2.0, y: -1.0 }, regionGroup: false },
+  { id: 'cola', name: 'Cola', role: 'lengthener', match: /\b(cola|coke)\b/i, pull: { x: 0.0, y: 7.5 }, regionGroup: false },
   { id: 'olive-brine', name: 'Olive brine', role: 'aromatic', match: /olive brine|brine|\bdirty\b|saline/i, pull: { x: 6.5, y: -8.0 }, regionGroup: false },
 ];
 
