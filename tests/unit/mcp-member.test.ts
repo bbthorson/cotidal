@@ -7,7 +7,7 @@ import { callsTool } from '@/lib/mcp/member-auth';
 import { answerMember } from '@/lib/mcp/member-endpoint';
 import { movingStore } from '@/lib/atproto/moving-store';
 import { readPrivateKeys } from '@/lib/atproto/auth';
-import { hedonicToRating } from '@/lib/pour-entry';
+import { hedonicToRating } from '@/lib/pours/pour-entry';
 import type { LogDrinkOptions } from '@/lib/api-client';
 import type { PourRecord } from '@/lib/atproto/records';
 import { pour as pourCopy } from '@/lib/copy';

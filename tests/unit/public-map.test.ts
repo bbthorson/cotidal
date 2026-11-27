@@ -1,9 +1,9 @@
 import { describe, test, expect } from 'vitest';
 import { parseActor, readPublicPalate } from '../../src/lib/atproto/public-read';
 import { publicMapPath } from '../../src/lib/atproto/paths';
-import { compareTerrains, REACH_FOR, TOP } from '../../src/lib/overlap';
-import { buildTerrain, drinkHeight } from '../../src/lib/terrain';
-import { drinkDatabase } from '../../src/lib/data';
+import { compareTerrains, REACH_FOR, TOP } from '../../src/lib/palate/overlap';
+import { buildTerrain, drinkHeight } from '../../src/lib/palate/terrain';
+import { drinkDatabase } from '../../src/lib/drinks/data';
 
 /**
  * `/p/<handle>`: someone's coordinate at a public URL.

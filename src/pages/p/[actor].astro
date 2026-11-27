@@ -3,163 +3,63 @@ import MapPage from '../../layouts/MapPage.astro';
 import { PalateMap } from '../../components/app/PalateMap';
 import { Readout, ScreenHeader } from '../../components/app/ui';
 import { DrinkRow } from '../../components/app/DrinkRow';
-import { site, publicMap, coaster, assistants, explore, compare as compareCopy, taste as taste_ } from '../../lib/copy';
-import { formatCoordinate } from '../../lib/coordinate';
-import { readPublicPalate } from '../../lib/atproto/public-read';
-import { publicMapPath } from '../../lib/atproto/paths';
-import { accountHref, questionsHref } from '../../lib/site-nav';
-import { oauthSession } from '../../lib/atproto/session';
-import { TOP, type MapPoint } from '../../lib/overlap';
-import { compareWith } from '../../lib/compare';
+import { site, publicMap, coaster, assistants, explore, taste as taste_ } from '../../lib/copy';
+import { formatCoordinate } from '../../lib/map/coordinates';
+import { accountHref, mapHref, questionsHref } from '../../lib/site-nav';
+import { TOP } from '../../lib/palate/overlap';
+import { compareWith } from '../../lib/palate/compare';
 import { Comparison } from '../../components/app/Comparison';
-import { leanings, sampleTerrain } from '../../lib/terrain';
-import { evidenceFor, menuOf, ratingsOf, terrainOf } from '../../lib/taste-reading';
-import { readFollowedPalates, type FollowedOverlap } from '../../lib/atproto/follows-overlap';
-import { loadRegister } from '../../lib/register.server';
-import { titleOf } from '../../lib/register';
-import type { Drink } from '../../lib/data';
-import { readMapView, viewHref } from '../../lib/map-url';
-import { mapHref } from '../../lib/site-nav';
+import { viewHref } from '../../lib/map/map-url';
+import { loadPublicMapPage } from '../../lib/pages/public-map.server';
 
 /**
  * Someone's coordinate at a public URL: `/p/<handle>` or `/p/<did>`.
- *
- * The record is public in its author's repository, so the page needs no
- * permission to draw it — only the lookups in `public-read.ts`. A signed-in
- * visitor with a palate of their own gets their dot beside it and the
- * distance between: two dots, no feed, no follows (docs/routes.md, Friends).
- *
- * `/map?palate=<handle>` is this page at the map's address (`map-url.ts`),
- * and `?drink=` marks a drink on it and says how far and which way it lies
- * from them: `/map?palate=alice.bsky.social&drink=negroni`.
- *
  * Server-rendered with no island, like `/`: a link sent to a stranger paints
- * before anything could hydrate.
+ * before anything could hydrate. Data loading lives in `public-map.server.ts`.
  */
-
 export const prerender = false;
 
-const result = await readPublicPalate(Astro.params.actor ?? '', { taste: true });
-const { drink: viewDrink, with: withParam } = readMapView(Astro.url.searchParams);
+const {
+  result,
+  viewDrink,
+  session,
+  isSelf,
+  subject,
+  otherIsYou,
+  otherGround,
+  readerHasNoMap,
+  isSample,
+  subjectWho,
+  otherWho,
+  subjectWhose,
+  follows,
+  ground,
+  lean,
+  rated,
+  reasonFor,
+  subjectSide,
+  comparison,
+  menu,
+  entryHref,
+  titleFor,
+  titleOfName,
+  name,
+  selfLink,
+  httpStatus,
+  cacheControl,
+  pageTitle,
+  description,
+  canonical,
+  subjectHandle,
+} = await loadPublicMapPage(Astro.params.actor ?? '', Astro.url, Astro.request);
 
-const session = result.status === 'ok' ? await oauthSession(Astro.request) : null;
-const isSelf = !!session && result.status === 'ok' && session.did === result.actor.did;
-
-const subject: MapPoint | null =
-  result.status === 'ok'
-    ? { x: result.palate.x, y: result.palate.y, aversions: result.palate.aversions }
-    : null;
-
-/** A palate's ground, read as `/map` reads yours (`terrainOf`). */
-const groundOf = (r: Awaited<ReturnType<typeof readPublicPalate>>) =>
-  r.status === 'ok' ? terrainOf(r.taste?.start ?? null, r.palate, r.taste?.pours ?? []) : null;
-
-// Whom to compare with (`with=`, map-url.ts): anyone named, or else a signed-in reader on someone else's map.
-// Both are read the same way, from public records, so a comparison of two other people is a link too.
-const otherActor = withParam ?? (session && !isSelf ? session.did : null);
-const otherResult =
-  subject && otherActor && result.status === 'ok' && otherActor !== result.actor.did && otherActor !== result.actor.handle
-    ? await readPublicPalate(otherActor, { taste: true })
-    : null;
-const other = otherResult?.status === 'ok' ? otherResult : null;
-const otherIsYou = !!session && !!other && other.actor.did === session.did;
-const otherTerrain = other ? groundOf(other) : null;
-const otherGround = otherTerrain ? sampleTerrain(otherTerrain, 0.5) : null;
-/** A reader with no map of their own is asked to make one: a guest, or a member with no palate. */
-const readerHasNoMap = !isSelf && (!session || (!withParam && !other));
-/** How each side is named: "you" for the reader, a handle for anyone else. */
-/** A made-up person (`sample-people.ts`): their page says so first, and stays out of search. */
-const isSample = (result.status === 'ok' || result.status === 'no-palate') && result.actor.sample === true;
-const subjectWho = isSelf ? publicMap.drinkFromYou : publicMap.title(result.status === 'ok' ? (result.actor.handle ?? result.actor.did) : '');
-const otherWho = other ? (otherIsYou ? publicMap.drinkFromYou : publicMap.title(other.actor.handle ?? other.actor.did)) : '';
-/** Whose map the comparison is said on: yours, or theirs by handle. */
-const subjectWhose = isSelf ? compareCopy.yours : compareCopy.theirs(subjectWho);
-
-// On your own map: the people you follow who have one, to compare with.
-// Read on the server inside a budget, so a slow follow graph shows fewer
-// people rather than holding the page back.
-const follows: FollowedOverlap[] =
-  isSelf && session && subject && result.status === 'ok'
-    ? await readFollowedPalates(session.did, { terrain: groundOf(result)!, aversions: subject.aversions }, { budgetMs: 2500 })
-    : [];
-const register = subject ? await loadRegister() : {};
-
-// Their taste as ground, from their questions and pours (`public-taste.ts`); with
-// neither on record, from their point, as `/map` does for a palate with no quiz.
-const taste = result.status === 'ok' ? (result.taste ?? null) : null;
-const terrain = groundOf(result);
-const ground = terrain ? sampleTerrain(terrain, 0.5) : null;
-const lean = terrain ? leanings(terrain, 2) : [];
-const rated = ratingsOf(taste?.pours ?? []);
-/** What put a drink where it stands on their ground: their ratings near it, or their answers. */
-const reasonFor = (d: Drink) =>
-  terrain
-    ? publicMap.reason(
-        evidenceFor(terrain, d).map((e) => ({ ...e, name: titleOf(register, e.name) })),
-        rated.get(d.name)
-      )
-    : '';
-/** Their taste as one side of a comparison (`compare.ts`): a drink or a person is measured against it. */
-const subjectSide = terrain && subject ? { terrain, aversions: subject.aversions, point: { x: subject.x, y: subject.y } } : null;
-const comparison =
-  subjectSide && otherTerrain && other
-    ? compareWith(subjectSide, {
-        kind: 'person',
-        side: { terrain: otherTerrain, aversions: other.palate.aversions, point: { x: other.palate.x, y: other.palate.y } },
-      })
-    : null;
-const menu = terrain && subject && !comparison ? menuOf(terrain, subject.aversions, rated) : [];
-/** Which way a drink lies, measured from the nearest of their hilltops (docs/map-first.md). */
-const entryHref = (drink: Drink) => {
-  const entry = register[drink.name];
-  return entry ? `/drinks/${entry.slug}` : null;
-};
-const titleFor = (drink: Drink) => titleOf(register, drink.name);
-
-const name =
-  result.status === 'ok' || result.status === 'no-palate'
-    ? (result.actor.handle ?? result.actor.did)
-    : result.status === 'unavailable' && result.actor
-      ? (result.actor.handle ?? result.actor.did)
-      : null;
-
-
-// Canonical by handle when it is verified; a DID link still works and
-// is what the feed share uses, because a handle can change and a post cannot.
-const selfLink =
-  isSelf && result.status === 'ok'
-    ? new URL(publicMapPath(result.actor.handle ?? result.actor.did), Astro.url).toString()
-    : null;
-
-if (result.status === 'invalid' || result.status === 'not-found') {
-  Astro.response.status = 404;
-} else if (result.status === 'no-palate') {
-  Astro.response.status = 404;
-} else if (result.status === 'unavailable') {
-  Astro.response.status = 503;
-  Astro.response.headers.set('Retry-After', '30');
+if (httpStatus !== 200) {
+  Astro.response.status = httpStatus;
+  if (httpStatus === 503) Astro.response.headers.set('Retry-After', '30');
 }
+Astro.response.headers.set('Cache-Control', cacheControl);
 
-// A page with the visitor's own dot on it is theirs alone; the bare map is
-// the same for everyone and may be cached briefly at the edge.
-Astro.response.headers.set(
-  'Cache-Control',
-  session ? 'private, no-store' : 'public, max-age=60, s-maxage=300'
-);
-
-const pageTitle = name ? `${publicMap.title(name)} · ${site.name}` : site.name;
-// A person is described by their taste, not a region (docs/map-first.md), and unfurls into the site's card.
-const description = name && lean.length > 0 ? publicMap.description(name, taste_.phrases(lean)) : site.description;
-// One address for someone's map: by their verified handle, else their DID; `/map?palate=` and `/p/<did>` point here.
-const canonical = result.status === 'ok' ? publicMapPath(result.actor.handle ?? result.actor.did) : undefined;
-
-
-// What a chat assistant reads is this map: on someone else's, what to ask
-// yours about them. Setting one up is the member's own business, at /map.
-const subjectHandle = result.status === 'ok' ? result.actor.handle : null;
-
-const ctaClass =
-  'btn btn-primary w-full';
+const ctaClass = 'btn btn-primary w-full';
 ---
 
 <MapPage
@@ -242,7 +142,7 @@ const ctaClass =
             who={subjectWho}
             other={otherWho}
             pair={(drink) => ({ title: titleFor(drink), href: entryHref(drink) ?? undefined })}
-            name={(n) => titleOf(register, n)}
+            name={titleOfName}
           />
         </section>
       )}
@@ -293,7 +193,7 @@ const ctaClass =
                     note={
                       <>
                         {f.leans}
-                        {f.theirs && <> · {publicMap.followsContrast(titleOf(register, f.theirs))}</>}
+                        {f.theirs && <> · {publicMap.followsContrast(titleOfName(f.theirs))}</>}
                       </>
                     }
                   />

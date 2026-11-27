@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { waitingPick } from '@/lib/copy';
 import { clearPick, loadPick, type DrinkPick } from '@/lib/device-store';
-import { cleanDraft, type PourDraft } from '@/lib/pour-draft';
+import { cleanDraft, type PourDraft } from '@/lib/pours/pour-draft';
 
 /**
  * A drink picked on Compass, waiting to be rated: on Compass and Your map

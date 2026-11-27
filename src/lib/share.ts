@@ -1,7 +1,7 @@
-import type { QuadrantId } from './quadrant';
+import type { QuadrantId } from './map/coordinates';
 // copy.ts, not quadrant.ts: `npm run images` loads this under plain Node,
 // which needs the extension and has no `./copy` to resolve.
-import { quadrants } from './copy.ts';
+import { quadrants } from './copy/map.ts';
 
 /**
  * The share cards. Each is a prerendered page (`/share/<card>`) captured to

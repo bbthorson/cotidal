@@ -2,8 +2,8 @@ import { ElicitationRecordSchema } from './elicitation-record';
 import { readPour } from './records';
 import { ELICITATION_COLLECTION, POUR_COLLECTION } from './vocab';
 import type { PublicRepoResult } from './public-read';
-import { quizStart } from '../track';
-import type { TerrainPour, TerrainStart } from '../terrain';
+import { quizStart } from '../palate/track';
+import type { TerrainPour, TerrainStart } from '../palate/terrain';
 
 /**
  * Someone's taste, as the map draws it, from what they said: their latest

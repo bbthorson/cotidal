@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { auditMenu } from '@/lib/menu-audit';
+import { auditMenu } from '@/lib/drinks/menu-audit';
 
 describe('auditMenu', () => {
   it('computes quadrant coverage, blind spots, and aversion exposure', () => {

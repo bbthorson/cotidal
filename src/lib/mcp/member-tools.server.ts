@@ -1,8 +1,7 @@
 import type { OAuthSession } from '@bbthorson/atproto-cf-auth/server';
 import { getAuth } from '../atproto/auth';
 import { getPours } from '../atproto/publish';
-import { logPour, sessionStore } from '../pours.server';
-import type { Register } from '../register';
+import { logPour, sessionStore } from '../pours/pours.server';
 import type { MemberTools } from './tools';
 
 /**
@@ -12,7 +11,7 @@ import type { MemberTools } from './tools';
  * a page cannot both spend one refresh token. It happens at most once per
  * request, and only when a tool needs it.
  */
-export function memberTools(did: string, origin: string, register: Register): MemberTools {
+export function memberTools(did: string, origin: string): MemberTools {
   let restoring: Promise<OAuthSession | null> | undefined;
   const session = () =>
     (restoring ??= (async () => {
@@ -34,7 +33,7 @@ export function memberTools(did: string, origin: string, register: Register): Me
     },
     async logPour(options) {
       const s = await session();
-      return s ? logPour(sessionStore(s), options, { register, appUrl: origin }) : null;
+      return s ? logPour(sessionStore(s), options, { appUrl: origin }) : null;
     },
   };
 }

@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { formatAxis, formatCoordinate } from '../../src/lib/coordinate';
+import { formatAxis, formatCoordinate } from '../../src/lib/map/coordinates';
 import { axes } from '../../src/lib/copy';
 
 test('formatAxis names the pole a value leans toward', () => {

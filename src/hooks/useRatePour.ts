@@ -1,18 +1,17 @@
 import { useMemo, useState } from 'react';
 import type { PourRecord } from '@/lib/atproto/records';
-import type { UserProfile } from '@/hooks/useDiscoveryQuiz';
 import { logDrinkFeedback } from '@/lib/api-client';
 import { addGuestPour, clearPick, loadPick } from '@/lib/device-store';
 import { pour } from '@/lib/copy';
-import { catalogSlug } from '@/lib/register';
-import { recentBarNames } from '@/lib/pour-history';
-import { userFromProfile } from '@/lib/profile';
-import { guestShift } from '@/lib/guest-palate';
-import { closestDrinks } from '@/lib/drink-search';
-import { barPointFor, guestPourRecord, menuChange, toLogOptions, type PourEntry } from '@/lib/pour-entry';
-import type { RateRequest } from '@/lib/pour-draft';
+import { catalogSlug } from '@/lib/drinks/register';
+import { recentBarNames } from '@/lib/pours/pour-history';
+import { userFromProfile, type UserProfile } from '@/lib/palate/profile';
+import { guestShift } from '@/lib/palate/guest-palate';
+import { closestDrinks } from '@/lib/drinks/search';
+import { barPointFor, guestPourRecord, menuChange, toLogOptions, type PourEntry } from '@/lib/pours/pour-entry';
+import type { RateRequest } from '@/lib/pours/pour-draft';
+import type { TrackStart } from '@/lib/palate/track';
 import { useMenu } from '@/hooks/useMenu';
-import { useQuizStart } from '@/hooks/useQuizStart';
 import { clearRateRequestFromUrl } from '@/hooks/useRateSheet';
 
 /** The pour just logged, and your menu as it stood before it, to show what it changed. */
@@ -26,7 +25,7 @@ export interface LastPour {
 /**
  * Rating one pour: the quick picks, the bar, and logging it — to the
  * member's repository, or on the device for a guest — then what it moved.
- * `RateSheet.tsx` draws the dialog around it. The record a guest keeps,
+ * `RatePanel.tsx` draws the panel around it. The record a guest keeps,
  * the bar's point and the menu change are `src/lib/pour-entry.ts`.
  */
 export function useRatePour({
@@ -35,6 +34,7 @@ export function useRatePour({
   profile,
   setProfile,
   pours,
+  start,
   reload,
 }: {
   request: RateRequest;
@@ -42,6 +42,7 @@ export function useRatePour({
   profile: UserProfile | null;
   setProfile: (profile: UserProfile) => void;
   pours: PourRecord[] | null;
+  start: TrackStart | null;
   reload: () => Promise<void>;
 }) {
   const history = useMemo(() => pours ?? [], [pours]);
@@ -56,7 +57,6 @@ export function useRatePour({
   const x = profile?.x ?? 0;
   const y = profile?.y ?? 0;
   const user = useMemo(() => userFromProfile(profile), [profile]);
-  const start = useQuizStart(isMember);
   const { menu } = useMenu(user, profile?.vibeTags, history, start);
 
   // Quick picks: the drinks closest to where you are now.

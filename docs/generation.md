@@ -30,6 +30,7 @@ the suite must pass with no key.
 | Path | Route | Status |
 |---|---|---|
 | Drink explanation | `POST /api/explain-drink` | **Live.** Hero card on mount, drink card on expand. |
+| Menu capture (photo & Clef enrichment) | `POST /api/menu/capture` | **Live.** Gemma 4 Vision transcribes photos; Clef-flash classifies low-signal house items; deterministic `placeDirectional` fallback for guests/offline. |
 | Adaptive questions | — | **Parked.** See [Parked work](#parked-work). |
 | Palate refinement | — | **Removed for launch.** See [Parked work](#parked-work). |
 
@@ -56,7 +57,12 @@ A `400` carries no header: nothing was decided about it.
 
 Cloudflare Workers AI natively, routed through Cloudflare AI Gateway. Inference runs on Cloudflare's serverless edge GPUs via the `AI` binding (`env.AI.run`) with no third-party API keys or egress latency.
 
-**The model is `@cf/meta/llama-3.3-70b-instruct-fp8-fast`**, pinned in `GENERATION_MODEL` in `src/lib/generation.ts`. Requests route through AI Gateway (`AI_GATEWAY_ID = 'crystal-coupe-gateway'`), providing automatic edge response caching, request logs, and routing metrics.
+**Models are pinned once in `src/lib/generation.ts`:**
+- `GENERATION_MODEL = '@cf/meta/llama-3.3-70b-instruct-fp8-fast'` (drink explanations)
+- `CLEF_MODEL = '@cf/cloudflare/clef-flash'` (bounded multimodal decision model for house-cocktail classification)
+- `VISION_MODEL = '@cf/google/gemma-4-26b-a4b-it'` (fast 4B-active MoE vision model for menu photo transcription, Zero data retention)
+
+Requests route through AI Gateway (`AI_GATEWAY_ID = 'crystal-coupe-gateway'`), providing automatic edge response caching, request logs, and routing metrics.
 
 For local development without bindings, credentials (`CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN`) can be passed via `.dev.vars` or environment variables. Without bindings or credentials (e.g. during offline test execution), every route catches gracefully and return their deterministic fallback.
 
@@ -64,8 +70,7 @@ For local development without bindings, credentials (`CLOUDFLARE_ACCOUNT_ID` and
 > request and serve the fallback. This is silent and looks like working
 > software.
 
-**One model, named once.** `GENERATION_MODEL` in `src/lib/generation.ts` is the
-only place a model id appears.
+**Every model, named once.** `src/lib/generation.ts` is the only place a model id appears.
 
 ## The membership line
 

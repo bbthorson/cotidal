@@ -1,9 +1,9 @@
 import { test, expect } from 'vitest';
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { drinkDatabase } from '../../src/lib/data';
-import { INGREDIENT_GROUPS } from '../../src/lib/ingredients';
-import { quadrantIdFor, QUADRANT_ORDER } from '../../src/lib/quadrant';
+import { drinkDatabase } from '../../src/lib/drinks/data';
+import { INGREDIENT_GROUPS } from '../../src/lib/drinks/ingredients';
+import { quadrantIdFor, QUADRANT_ORDER } from '../../src/lib/map/coordinates';
 
 /**
  * Region prose is held to the drinks' discipline, and checked the same way:

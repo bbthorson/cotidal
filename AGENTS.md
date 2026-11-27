@@ -56,20 +56,28 @@ landing page included. Astro was being used as a slower Next.js.
   § Rating a pour): `?rate=<drink>` or `?draft=1&…` opens it, handled once,
   and the screen gives it its own coordinate and pours so it is current the
   moment it closes. A new trigger calls `open()`; it does not navigate.
-- **An app screen is a hook and a drawing.** `useExplore`, `useRatePour`,
-  `usePourForm` and `useSignIn` (`src/hooks/`) hold a screen's state and
-  what a tap does; `Explore.tsx` (with `PalateMap.tsx`, `SearchBox.tsx`,
-  `MenuView.tsx`), `RatePanel.tsx`, `PourForm.tsx` and `SignInSheet.tsx`
-  only draw it, so a redesign changes the component and leaves the hook
-  alone. The rules a screen applies are plain functions in `src/lib/` —
-  `drink-search.ts`, `pour-entry.ts`, `pour-history.ts`, `scoreDrinks` in
-  `menu-rank.ts`, `map-draw.ts` — tested in `tests/unit/`. Nothing in
-  `src/lib/` or `src/hooks/` imports from `src/components/`.
-- There is no separate API layer for the screens, on purpose: a guest's
-  palate and the quiz run on the device, so the rules run in the browser,
-  and server pages import the same functions rather than calling
-  themselves over HTTP. What an outside client reads goes through `/mcp`,
-  built on those functions.
+- **An app screen is a hook and a drawing.** `useExplore`, `useMemberData`,
+  `useQuizOverlay`, `useRatePour`, `usePourForm` and `useSignIn` (`src/hooks/`)
+  hold a screen's state and what a tap does; `Explore.tsx` (composing
+  `HomePanel.tsx`, `DrinkPanel.tsx`, `RegionPanel.tsx`, `PalateMap.tsx`,
+  `SearchBox.tsx`, `MenuView.tsx`), `RatePanel.tsx`, `PourForm.tsx` and
+  `SignInSheet.tsx` only draw it. The rules a screen applies are plain
+  functions in `src/lib/`, grouped by domain (`drinks/`, `palate/`, `pours/`,
+  `map/`, `pages/`, `atproto/`, `mcp/`, `settings/`) and tested in
+  `tests/unit/`. Nothing in `src/lib/` imports from `src/hooks/` or
+  `src/components/`, and nothing in `src/hooks/` imports from `src/components/`.
+- **Member API surface (`/api/me/*`):** A signed-in member's `/map` state
+  loads in one `GET /api/me` bootstrap call (`useMemberData`, cutting three
+  parallel OAuth restores down to one). Writes live at `POST /api/me/palate`,
+  `POST /api/me/elicitation`, and `POST /api/me/pours` (`GET /api/me/pours`
+  refreshes pours after logging). A guest's palate and quiz run on the device,
+  and server pages import `src/lib/` functions directly (via `src/lib/pages/*.server.ts`
+  for `/p/[actor]` and `/settings`). What an outside client reads goes through `/mcp`.
+- **Staged, unwired capabilities:** `src/pages/api/explain-drink.ts` (with
+  `generation.ts` and `rate-limit.ts`), `src/lib/drinks/menu-audit.ts`,
+  `src/lib/drinks/venue-analytics.ts`, and `src/lib/atproto/spaces.ts` are
+  tested and intentionally kept staged for upcoming roadmap work, though no UI
+  surface calls them yet.
 - Never add an island to `/`. `tests/landing-static.spec.ts` fails if you do.
 - Sign-in is `@bbthorson/atproto-cf-auth`, content-negotiated at
   `/api/auth/atproto/login`: JSON in, JSON out for the island and `<bsky-sign-in>`;
@@ -85,7 +93,7 @@ something that drifts from the first. Three had already happened:
 |---|---|---|
 | Records | `src/lib/atproto/lexicons/*.json` | `npm run lexicons` |
 | Styling | `globals.css` tokens + `tailwind.config.ts` | `npm run lint` — arbitrary values, raw colours, and Tailwind's own type sizes are an error in `pages/`, `layouts/` and `components/` |
-| Interface copy | `src/lib/copy.ts` | `npm run lint` — words typed into JSX text or a `placeholder` / `aria-label` / `title` / `alt` are an error. Quiz questions (`discovery-questions.ts`, beside their scoring) and the drink and region prose are the exceptions |
+| Interface copy | `src/lib/copy.ts` | `npm run lint` — words typed into JSX text or a `placeholder` / `aria-label` / `title` / `alt` are an error. Quiz questions (`palate/discovery-questions.ts`, beside their scoring) and the drink and region prose are the exceptions |
 | Drink prose | `src/content/drinks/*.md` | `tests/unit/drink-content.test.ts` |
 | Region prose | `src/content/regions/*.md` | `tests/unit/region-content.test.ts` |
 | What the device keeps | `src/lib/device-store.ts` | *(convention)* — nothing else touches `localStorage` |
@@ -110,7 +118,7 @@ a string to `copy.ts` before rendering it.
 
 ## Key modules
 
-### Palate map — `src/lib/data.ts`, `Explore.tsx`, `PalateMap.tsx`
+### Palate map — `src/lib/drinks/data.ts`, `Explore.tsx`, `PalateMap.tsx`
 2D plane. Users and drinks both carry `x` (Rich −10 → Crisp +10) and `y`
 (Savory −10 → Sweet +10). A drink's place on your menu is its height on your
 terrain (Terrain, below); `VibeTag`s sort within it — only among drinks in the

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { readFollowedPalates } from '@/lib/atproto/follows-overlap';
 import type { PublicPalateResult } from '@/lib/atproto/public-read';
-import { buildTerrain } from '@/lib/terrain';
+import { buildTerrain } from '@/lib/palate/terrain';
 
 const none = { smoke: false, bitter: false, anise: false };
 /** A reader's taste: a hill where their answers put them. */

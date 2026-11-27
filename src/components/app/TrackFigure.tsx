@@ -1,4 +1,4 @@
-import type { TrackPoint } from '@/lib/track';
+import type { TrackPoint } from '@/lib/palate/track';
 import { axes, mapPage } from '@/lib/copy';
 
 /** The figure is 16:9 (`aspect-video`); its window onto the map keeps that shape. */

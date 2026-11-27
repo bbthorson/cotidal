@@ -1,6 +1,6 @@
 import { account as accountCopy, nav } from './copy';
 import { QUIZ_PARAM } from './atproto/paths';
-import { viewHref } from './map-url';
+import { viewHref } from './map/map-url';
 
 /**
  * The one list of destinations. The app bar renders the ones marked `header`

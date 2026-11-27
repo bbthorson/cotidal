@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef, type ReactNode } from 'react';
-import { drinkDatabase } from '@/lib/data';
+import { drinkDatabase } from '@/lib/drinks/data';
 import {
   ASKED_INTENSITIES,
   BASE_SPIRITS,
@@ -11,8 +11,8 @@ import {
   type Glassware,
 } from '@/lib/atproto/vocab';
 import { pour } from '@/lib/copy';
-import { glmsWord, type PourEntry } from '@/lib/pour-entry';
-import type { PourDraft } from '@/lib/pour-draft';
+import { glmsWord, type PourEntry } from '@/lib/pours/pour-entry';
+import type { PourDraft } from '@/lib/pours/pour-draft';
 import { usePourForm } from '@/hooks/usePourForm';
 import { cn } from '@/lib/utils';
 import { Chip } from './ui';

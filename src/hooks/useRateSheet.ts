@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { parseRateRequest, withoutRateRequest, type RateRequest } from '@/lib/pour-draft';
+import { parseRateRequest, withoutRateRequest, type RateRequest } from '@/lib/pours/pour-draft';
 
 /**
  * Whether the rating sheet is open, and on what. One hook for every screen

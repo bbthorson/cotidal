@@ -1,10 +1,10 @@
 import { test, expect } from 'vitest';
 import { howItWorks } from '../../src/lib/copy';
-import { MAX_QUESTIONS, MIN_QUESTIONS } from '../../src/lib/belief-state';
-import { MAX_POUR_STEP, applyPour, createInitialPalateState, projectTo2D } from '../../src/lib/palate-state';
-import { drinkDatabase } from '../../src/lib/data';
-import { DISLIKED_AT } from '../../src/lib/scoring';
-import { buildTerrain, drinkHeight, KIN_ACROSS } from '../../src/lib/terrain';
+import { MAX_QUESTIONS, MIN_QUESTIONS } from '../../src/lib/palate/belief-state';
+import { MAX_POUR_STEP, applyPour, createInitialPalateState, projectTo2D } from '../../src/lib/palate/palate-state';
+import { drinkDatabase } from '../../src/lib/drinks/data';
+import { DISLIKED_AT } from '../../src/lib/palate/scoring';
+import { buildTerrain, drinkHeight, KIN_ACROSS } from '../../src/lib/palate/terrain';
 
 /**
  * How it works (the front door's card, `/#how-it-works`) explains, in public, how answers and ratings move a

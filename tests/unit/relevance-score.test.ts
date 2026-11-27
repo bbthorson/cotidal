@@ -1,7 +1,7 @@
 import { test, expect } from 'vitest';
-import { byRelevance, DISLIKED_AT, HEIGHT_BAND, relevanceOf, type MinimalDrinkLog } from '../../src/lib/scoring';
-import { buildTerrain, drinkHeight, type TerrainPour } from '../../src/lib/terrain';
-import type { Drink } from '../../src/lib/data';
+import { byRelevance, DISLIKED_AT, HEIGHT_BAND, relevanceOf, type MinimalDrinkLog } from '../../src/lib/palate/scoring';
+import { buildTerrain, drinkHeight, type TerrainPour } from '../../src/lib/palate/terrain';
+import type { Drink } from '../../src/lib/drinks/data';
 
 /**
  * The terrain decides; taste only sorts drinks that stand about level

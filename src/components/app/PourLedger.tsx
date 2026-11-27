@@ -1,9 +1,9 @@
 import { Fragment } from 'react';
 import type { PourRecord, Deviation, CataNote } from '@/lib/atproto/records';
-import type { Register } from '@/lib/register';
-import { drinkOf } from '@/lib/drink-match';
-import type { TrackPoint } from '@/lib/track';
-import { formatCoordinate } from '@/lib/coordinate';
+import type { Register } from '@/lib/drinks/register';
+import { drinkOf } from '@/lib/drinks/search';
+import type { TrackPoint } from '@/lib/palate/track';
+import { formatCoordinate } from '@/lib/map/coordinates';
 import { mapPage, pour } from '@/lib/copy';
 import { cn } from '@/lib/utils';
 import { Empty, Loading } from './ui';

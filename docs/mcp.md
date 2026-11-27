@@ -41,7 +41,12 @@ and `get_drink` with a handle answers for any drink on the map.
 `rank_menu` matches a menu item to a drink by its full name or its name
 without the parenthetical (`Daiquiri` → `Daiquiri (Classic)`), and nothing
 looser. A wrong match would be ranked with confidence it has not earned; an
-unplaced item is honest. The assistant can call `search_drinks` first.
+unplaced item is honest. When an unplaced house cocktail lists its ingredients,
+`rank_menu` attaches a deterministic `directional` placement (region,
+confidence, matched primitives, and bearing) from the Ingredients Index plus
+aversion cautions and closest structural classic, and returns a `mapUrl`
+(`/map?menu=1&bar=…&item=…`) so a menu photographed in chat opens directly as
+numbered pins on `/map`. The assistant can call `search_drinks` first.
 
 The endpoint is stateless — no MCP session, a new server per request, plain
 JSON answers — because nothing streams and nothing is kept.

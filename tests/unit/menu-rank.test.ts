@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { addMenuLine, addMenuLines, rankMenu, scoreDrinks, type MenuItem } from '@/lib/menu-rank';
-import { calculateDistance, HEIGHT_BAND } from '@/lib/scoring';
-import { buildTerrain, drinkHeight } from '@/lib/terrain';
+import { addMenuLine, addMenuLines, rankMenu, scoreDrinks, type MenuItem } from '@/lib/drinks/menu-rank';
+import { calculateDistance, HEIGHT_BAND } from '@/lib/palate/scoring';
+import { buildTerrain, drinkHeight } from '@/lib/palate/terrain';
 
 const you = { x: 4, y: -2, vibeTags: {} };
 

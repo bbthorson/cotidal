@@ -1,4 +1,4 @@
-import { formatDistance, type OsmBar } from '@/lib/osm';
+import { formatDistance, type OsmBar } from '@/lib/drinks/osm';
 import type { Nearby } from '@/hooks/useNearby';
 import { compass, explore } from '@/lib/copy';
 import { Empty, SectionTitle } from './ui';

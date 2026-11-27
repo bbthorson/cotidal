@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import { SIGNED_OUT_PARAM, START_OVER_PARAM, signedOutPath, startOverPath } from '../src/lib/atproto/paths';
 import { a11y, account, coldState, nav, taste } from '../src/lib/copy';
 import { destinations } from '../src/lib/site-nav';
-import { questions } from '../src/lib/discovery-questions';
+import { questions } from '../src/lib/palate/discovery-questions';
 
 /**
  * Who is signed in, how to stop being, and how to start over. The suite runs

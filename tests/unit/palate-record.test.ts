@@ -8,7 +8,7 @@ import {
   encodePalate,
   type Palate,
 } from '../../src/lib/atproto/records';
-import { derivePalateRecord } from '../../src/lib/sensory';
+import { derivePalateRecord } from '../../src/lib/palate/sensory';
 
 /**
  * `app.cotidal.palate` on the wire. The AT Protocol data model has no

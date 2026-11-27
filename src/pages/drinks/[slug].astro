@@ -5,14 +5,14 @@ import MapPage from '../../layouts/MapPage.astro';
 import { PalateMap } from '../../components/app/PalateMap';
 import { Readout, ScreenHeader } from '../../components/app/ui';
 import { DrinkEntry } from '../../components/app/DrinkEntry';
-import { drinkEntryData } from '../../lib/drink-entry.server';
-import { loadRegister } from '../../lib/register.server';
-import { titleOf } from '../../lib/register';
-import { formatCoordinate } from '../../lib/coordinate';
+import { drinkEntryData } from '../../lib/drinks/drink-entry.server';
+import { loadRegister } from '../../lib/drinks/register.server';
+import { titleOf } from '../../lib/drinks/register';
+import { formatCoordinate } from '../../lib/map/coordinates';
 import { site, drinks as copy, explore } from '../../lib/copy';
-import { drinkDatabase } from '../../lib/data';
-import { quadrantFor, regionPath } from '../../lib/quadrant';
-import { neighboursOf } from '../../lib/map-draw';
+import { drinkDatabase } from '../../lib/drinks/data';
+import { quadrantFor, regionPath } from '../../lib/map/coordinates';
+import { neighboursOf } from '../../lib/map/map-draw';
 import { drinkMapHref, drinkPagePath, questionsForDrink } from '../../lib/site-nav';
 
 /**

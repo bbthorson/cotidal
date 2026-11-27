@@ -130,7 +130,7 @@ test('A drink searched by what is in it opens in the card, and Rate this rates i
   await first.click();
   await expect(card(page).getByRole('heading', { name: drink, level: 1 })).toBeVisible();
   await card(page).getByRole('button', { name: chart.logThis }).click();
-  await expect(page).toHaveURL(/\/map$/);
+  await expect(page).toHaveURL(/\/map(\?|$)/);
   // A guest with no coordinate starts from the cold state; the drink waits.
   const asGuest = rating(page).getByRole('button', { name: coldState.guestCta });
   const form = rating(page).getByRole('heading', { name: ratePage.heading });

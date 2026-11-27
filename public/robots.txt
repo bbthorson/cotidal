@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /oauth/
+Disallow: /settings
+Disallow: /share/
+
+Sitemap: https://cotidal.app/sitemap.xml

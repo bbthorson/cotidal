@@ -1,7 +1,7 @@
 import { test, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { iconSvg, mark, MARK_COLOURS } from '../../src/lib/mark';
-import { COTIDAL_LINES, CENTRE } from '../../src/lib/chart-geometry';
+import { COTIDAL_LINES, CENTRE } from '../../src/lib/map/chart-geometry';
 
 /**
  * The mark is generated from the chart, and the icon files from the mark.

@@ -1,8 +1,8 @@
 import { describe, expect, test } from 'vitest';
-import { compareWith, highestHill, type Side } from '@/lib/compare';
-import { drinkDatabase } from '@/lib/data';
-import { TOP } from '@/lib/overlap';
-import { buildTerrain } from '@/lib/terrain';
+import { compareWith, highestHill, type Side } from '@/lib/palate/compare';
+import { drinkDatabase } from '@/lib/drinks/data';
+import { TOP } from '@/lib/palate/overlap';
+import { buildTerrain } from '@/lib/palate/terrain';
 
 const none = { smoke: false, bitter: false, anise: false };
 const pours = (list: [string, number][]) => list.map(([name, hedonic]) => ({ drink: { name }, rating: { hedonic } }));

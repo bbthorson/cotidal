@@ -1,37 +1,84 @@
-import { isRateLimited, defaultRateLimitConfig, type RateLimitConfig } from './rate-limit-logic';
 import { rateLimiterBinding } from './runtime';
 
-export { isRateLimited };
+export interface RateLimitConfig {
+  windowMs: number;
+  max: number;
+}
+
+export const defaultRateLimitConfig: RateLimitConfig = {
+  windowMs: 60 * 1000, // 1 minute
+  max: 10,
+};
+
+// Security: Prevent unbounded memory growth (DoS)
+const MAX_LIMIT = 50000;
+const CLEANUP_WINDOW_MS = 60 * 1000; // 1 minute
+
+const ipRateLimits = new Map<string, { count: number; resetTime: number }>();
+let lastCleanupTime = Date.now();
+
+export function _getMapSize() {
+  return ipRateLimits.size;
+}
+
+function pruneExpiredEntries() {
+  const now = Date.now();
+  // Only prune if enough time has passed to avoid iterating too often (CPU DoS prevention)
+  if (now - lastCleanupTime < CLEANUP_WINDOW_MS) {
+    return;
+  }
+
+  lastCleanupTime = now;
+
+  for (const [ip, record] of ipRateLimits.entries()) {
+    if (now > record.resetTime) {
+      ipRateLimits.delete(ip);
+    }
+  }
+}
+
+export function isRateLimited(ip: string, config = defaultRateLimitConfig): boolean {
+  // Opportunistic cleanup based on time
+  pruneExpiredEntries();
+
+  // If map is full, immediately evict the oldest entry to make space (O(1))
+  // We do NOT scan the whole map here to avoid CPU exhaustion under load.
+  if (ipRateLimits.size >= MAX_LIMIT) {
+    const firstKey = ipRateLimits.keys().next().value;
+    if (firstKey !== undefined) {
+      ipRateLimits.delete(firstKey);
+    }
+  }
+
+  const now = Date.now();
+  const record = ipRateLimits.get(ip);
+
+  if (!record || now > record.resetTime) {
+    ipRateLimits.set(ip, { count: 1, resetTime: now + config.windowMs });
+    return false;
+  }
+
+  if (record.count >= config.max) {
+    return true;
+  }
+
+  record.count += 1;
+  return false;
+}
 
 /**
  * The limiter the model routes call.
  *
- * This was a stub that unconditionally returned `true` while the working
- * implementation in `rate-limit-logic.ts` had no call sites, so both routes
- * believed they were metered and neither was.
- *
  * Two mechanisms, deliberately:
- *
- * - **Cloudflare's rate limiting binding**, in production. A module-scope
- *   `Map` is per-isolate on Workers — Cloudflare runs many and recycles them
- *   freely, so an attacker spreads across them for free. The in-memory logic
- *   is correct as logic and weak as a limiter; only durable state holds.
- * - **The in-memory limiter**, everywhere else. `npm run dev`, `astro preview`
- *   and the test suite have no bindings, and a limiter that only exists in
- *   production is one nobody can test.
- *
- * A binding that throws falls back to the in-memory limiter rather than
- * failing open. Some metering beats none.
+ * - **Cloudflare's rate limiting binding**, in production (durable across isolates).
+ * - **The in-memory limiter**, everywhere else (`dev`, `preview`, tests), and as a
+ *   fallback if the binding throws so we never fail open.
  */
-
 export const GENERATION_LIMITER = 'GENERATION_RATE_LIMITER';
 
 /**
- * `true` when the caller may proceed.
- *
- * `key` identifies who is being metered. For the model routes that is the
- * restored DID, so the quota belongs to an account that had to be proven
- * rather than to an IP that can be changed.
+ * `true` when the caller may proceed. `key` identifies who is being metered
+ * (the restored DID on model routes).
  */
 export async function checkRateLimit(
   key: string,

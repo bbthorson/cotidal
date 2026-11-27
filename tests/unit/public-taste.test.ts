@@ -1,12 +1,12 @@
 import { describe, expect, test } from 'vitest';
 import { resolvePublicRepo, readPublicPalate } from '../../src/lib/atproto/public-read';
 import { MAX_POURS, readPublicTaste, type TasteCache } from '../../src/lib/atproto/public-taste';
-import { createInitialBelief, answerQuestion } from '../../src/lib/belief-state';
-import { selectNextQuestion } from '../../src/lib/question-selector';
-import { toElicitationRecord } from '../../src/lib/elicitation';
-import { quizStart } from '../../src/lib/track';
-import { buildTerrain, drinkHeight } from '../../src/lib/terrain';
-import { drinkDatabase } from '../../src/lib/data';
+import { createInitialBelief, answerQuestion } from '../../src/lib/palate/belief-state';
+import { selectNextQuestion } from '../../src/lib/palate/question-selector';
+import { toElicitationRecord } from '../../src/lib/palate/elicitation';
+import { quizStart } from '../../src/lib/palate/track';
+import { buildTerrain, drinkHeight } from '../../src/lib/palate/terrain';
+import { drinkDatabase } from '../../src/lib/drinks/data';
 
 /**
  * Someone's taste from their public records (`public-taste.ts`): their

@@ -1,6 +1,6 @@
 import { getCollection } from 'astro:content';
 import type { APIRoute, GetStaticPaths } from 'astro';
-import { drinkEntryData } from '../../lib/drink-entry.server';
+import { drinkEntryData } from '../../lib/drinks/drink-entry.server';
 
 /**
  * A drink's entry as data (`drinkEntryPath`), prerendered beside its page:

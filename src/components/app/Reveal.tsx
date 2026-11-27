@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
-import { quadrantFor } from '@/lib/quadrant';
-import { formatAxis } from '@/lib/coordinate';
+import { quadrantFor } from '@/lib/map/coordinates';
+import { formatAxis } from '@/lib/map/coordinates';
 import { reveal } from '@/lib/copy';
 
 interface RevealProps {

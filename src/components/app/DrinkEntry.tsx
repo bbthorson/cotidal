@@ -1,5 +1,5 @@
-import type { DrinkEntryData } from '@/lib/drink-entry';
-import { formatCoordinate } from '@/lib/coordinate';
+import type { DrinkEntryData } from '@/lib/drinks/drink-entry';
+import { formatCoordinate } from '@/lib/map/coordinates';
 import { drinks as copy } from '@/lib/copy';
 import { DrinkRow } from './DrinkRow';
 import { OnTheRecord } from './OnTheRecord';

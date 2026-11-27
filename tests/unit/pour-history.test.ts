@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import type { PourRecord } from '@/lib/atproto/records';
 import { geoLocation } from '@/lib/atproto/location';
-import { lastPourByDrink, logTotals, poursAtBars } from '@/lib/pour-history';
+import { lastPourByDrink, logTotals, poursAtBars } from '@/lib/pours/pour-history';
 
 /** What Compass and Log read off your pours. */
 

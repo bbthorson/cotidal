@@ -1,8 +1,8 @@
 import { readPublicPalate, type PublicPalateResult, type ReadOptions } from './public-read';
 import { publicMapPath } from './paths';
-import { compareTerrains, type TerrainSide } from '../overlap';
-import { leanings } from '../terrain';
-import { terrainOf } from '../taste-reading';
+import { compareTerrains, type TerrainSide } from '../palate/overlap';
+import { leanings } from '../palate/terrain';
+import { terrainOf } from '../palate/taste-reading';
 import { taste as tasteCopy } from '../copy';
 
 /**

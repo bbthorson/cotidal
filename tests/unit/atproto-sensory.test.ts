@@ -1,7 +1,7 @@
 import { test, expect } from 'vitest';
-import { derivePalateRecord, getDrinkSensoryVector } from '../../src/lib/sensory';
-import type { UserProfile } from '../../src/hooks/useDiscoveryQuiz';
-import type { Drink } from '../../src/lib/data';
+import { derivePalateRecord, getDrinkSensoryVector } from '../../src/lib/palate/sensory';
+import type { UserProfile } from '../../src/lib/palate/profile';
+import type { Drink } from '../../src/lib/drinks/data';
 
 test('AT Protocol: derivePalateRecord should correctly build structured dynamic state', async () => {
   const profile: UserProfile = {

@@ -1,8 +1,8 @@
 import { expect, test } from 'vitest';
-import { drinkDatabase } from '@/lib/data';
-import { calculateDistance } from '@/lib/scoring';
-import { closestDrinks, drinksAtSameSpot, namesMatching, searchDrinks, unlistedBar, wayTo } from '@/lib/drink-search';
-import type { Register } from '@/lib/register';
+import { drinkDatabase } from '@/lib/drinks/data';
+import { calculateDistance } from '@/lib/palate/scoring';
+import { closestDrinks, drinksAtSameSpot, namesMatching, searchDrinks, unlistedBar, wayTo } from '@/lib/drinks/search';
+import type { Register } from '@/lib/drinks/register';
 
 /** Compass's search and the rating sheet's quick picks: what was typed in, what is found. */
 

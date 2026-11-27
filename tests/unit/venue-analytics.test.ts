@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { analyzeVenuePours } from '@/lib/venue-analytics';
+import { analyzeVenuePours } from '@/lib/drinks/venue-analytics';
 import type { PourRecord } from '@/lib/atproto/records';
 
 const pour = (

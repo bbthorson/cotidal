@@ -1,6 +1,6 @@
 import { test, expect } from 'vitest';
-import { drinkDatabase } from '../../src/lib/data';
-import { CALIBRATION, X_COEFFICIENTS, Y_COEFFICIENTS, placeStyle, rawPlacement, type StyleProfile } from '../../src/lib/placement';
+import { drinkDatabase } from '../../src/lib/drinks/data';
+import { CALIBRATION, X_COEFFICIENTS, Y_COEFFICIENTS, placeStyle, rawPlacement, type StyleProfile } from '../../src/lib/drinks/placement';
 
 /** Ordinary least squares by the normal equations; small enough to solve directly. */
 function fit(rows: number[][], target: number[]): number[] {

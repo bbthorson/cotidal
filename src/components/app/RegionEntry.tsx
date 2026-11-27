@@ -1,5 +1,5 @@
 import { quadrants, regionPage as copy } from '@/lib/copy';
-import type { RegionEntryData } from '@/lib/region-entry';
+import type { RegionEntryData } from '@/lib/map/region-entry';
 import { OnTheRecord } from './OnTheRecord';
 import { SectionTitle } from './ui';
 

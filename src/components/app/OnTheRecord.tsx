@@ -1,4 +1,4 @@
-import type { Sourced } from '@/lib/drink-entry';
+import type { Sourced } from '@/lib/drinks/drink-entry';
 import { drinks as copy } from '@/lib/copy';
 import { SectionTitle } from './ui';
 

@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { questions } from '../src/lib/discovery-questions';
+import { questions } from '../src/lib/palate/discovery-questions';
 import { a11y, quadrants, chart, compass, explore, reveal as revealCopy } from '../src/lib/copy';
 
 /**

@@ -11,7 +11,9 @@
     "images": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/images.mjs",
     "lexicons": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/check-lexicons.mjs",
     "lint": "eslint .",
-    "check": "npm run lint && npm run typecheck",
+    "knip": "knip",
+    "knip:strict": "knip --include exports,types",
+    "check": "npm run lint && npm run typecheck && npm run knip",
     "test": "npm run test:unit && npm run test:e2e",
     "test:unit": "vitest run",
     "test:e2e": "npm run build && CI=1 playwright test"
@@ -58,6 +60,7 @@
     "eslint-plugin-astro": "^3.2.1",
     "eslint-plugin-react-hooks": "^7.1.1",
     "globals": "^17.14.0",
+    "knip": "^6.48.0",
     "postcss": "^8",
     "tsx": "^4.21.0",
     "typescript": "^6.0.3",

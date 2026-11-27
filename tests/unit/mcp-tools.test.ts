@@ -1,4 +1,4 @@
-import { compareWith } from '../../src/lib/compare';
+import { compareWith } from '../../src/lib/palate/compare';
 import { test, expect } from 'vitest';
 import {
   comparePalates,
@@ -13,12 +13,12 @@ import {
   searchDrinks,
   type ToolContext,
 } from '../../src/lib/mcp/tools';
-import { drinkDatabase } from '../../src/lib/data';
-import { compareTerrains } from '../../src/lib/overlap';
-import { menuOf, nearestHilltop, terrainOf } from '../../src/lib/taste-reading';
-import { leanings } from '../../src/lib/terrain';
+import { drinkDatabase } from '../../src/lib/drinks/data';
+import { compareTerrains } from '../../src/lib/palate/overlap';
+import { menuOf, nearestHilltop, terrainOf } from '../../src/lib/palate/taste-reading';
+import { leanings } from '../../src/lib/palate/terrain';
 import { taste } from '../../src/lib/copy';
-import { wayTo } from '../../src/lib/drink-search';
+import { wayTo } from '../../src/lib/drinks/search';
 import type { PublicPalateResult } from '../../src/lib/atproto/public-read';
 import { mcp } from '../../src/lib/copy';
 
@@ -230,7 +230,7 @@ test('MCP: getDrink with a handle says what put it there for them, which way it 
   const from = wayTo(nearestHilltop(terrain, drink, alice.palate), drink);
   expect(found.data.fromThem?.distance).toBe(from.distance);
   expect(found.data.fromThem?.way).toBe('richer, more savory');
-  expect(found.data.fromThem?.reason).toBe('Near where their answers put them');
+  expect(found.data.fromThem?.reason).toBe('From their answers');
   // Alice avoids bitter; a bitter drink says so rather than being left out.
   const negroni = await getDrink('negroni', ctx, 'alice.bsky.social');
   expect(negroni.ok && negroni.data.fromThem?.avoided).toEqual([mcp.flavours.bitter]);

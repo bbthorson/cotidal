@@ -11,9 +11,9 @@ import {
   beliefToProfile,
   isComplete,
   getConfidenceProgress,
-} from '../../src/lib/belief-state';
-import { questions, type Question } from '../../src/lib/discovery-questions';
-import { drinkDatabase } from '../../src/lib/data';
+} from '../../src/lib/palate/belief-state';
+import { questions, type Question } from '../../src/lib/palate/discovery-questions';
+import { drinkDatabase } from '../../src/lib/drinks/data';
 
 /**
  * Coordinate and vibe-tag accumulation used to be checked by walking the UI,

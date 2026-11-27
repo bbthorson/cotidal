@@ -1,8 +1,8 @@
 import type { ReactNode } from 'react';
-import type { Comparison as ComparisonData } from '@/lib/compare';
+import type { Comparison as ComparisonData } from '@/lib/palate/compare';
 import { compare as copy, publicMap } from '@/lib/copy';
-import type { Drink } from '@/lib/data';
-import { TOP } from '@/lib/overlap';
+import type { Drink } from '@/lib/drinks/data';
+import { TOP } from '@/lib/palate/overlap';
 import { DrinkRow } from './DrinkRow';
 import { Readout, SectionTitle } from './ui';
 

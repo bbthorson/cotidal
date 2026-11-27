@@ -1,11 +1,11 @@
 import { test, expect } from 'vitest';
-import { buildPour, logPour, palateAfterPour, pourPostText, type PourStore } from '../../src/lib/pours.server';
+import { buildPour, logPour, palateAfterPour, pourPostText, type PourStore } from '../../src/lib/pours/pours.server';
 import { feedPostRecord } from '../../src/lib/atproto/publish';
 import { graphemeLength } from '../../src/lib/atproto/lex-string';
 import type { Palate, PourRecord } from '../../src/lib/atproto/records';
 import type { LogDrinkOptions } from '../../src/lib/api-client';
-import { calculateDistance } from '../../src/lib/scoring';
-import { drinkDatabase } from '../../src/lib/data';
+import { calculateDistance } from '../../src/lib/palate/scoring';
+import { drinkDatabase } from '../../src/lib/drinks/data';
 import { apiErrors, pour as pourCopy } from '../../src/lib/copy';
 
 /**
@@ -14,8 +14,7 @@ import { apiErrors, pour as pourCopy } from '../../src/lib/copy';
  * refused without a PDS.
  */
 
-const register = { 'Daiquiri (Classic)': { slug: 'daiquiri', title: 'Daiquiri', build: 'Rum · Lime · Sugar' } };
-const context = { register, appUrl: 'https://cotidal.example' };
+const context = { appUrl: 'https://cotidal.example' };
 
 const palate = (x: number, y: number): Palate => ({
   $type: 'app.cotidal.palate',
@@ -59,15 +58,15 @@ function fakeStore(prior: Palate | null, fail: Partial<Record<keyof PourStore, b
 }
 
 test('Log pour: a request without a drink, or one that does not fit its lexicon, is refused', () => {
-  expect(buildPour(undefined, register)).toEqual({ ok: false, error: apiErrors.invalidRequest });
-  expect(buildPour({ rating: 8 }, register)).toEqual({ ok: false, error: pourCopy.needDrink });
-  expect(buildPour({ drinkName: '   ' }, register)).toEqual({ ok: false, error: pourCopy.needDrink });
+  expect(buildPour(undefined)).toEqual({ ok: false, error: apiErrors.invalidRequest });
+  expect(buildPour({ rating: 8 })).toEqual({ ok: false, error: pourCopy.needDrink });
+  expect(buildPour({ drinkName: '   ' })).toEqual({ ok: false, error: pourCopy.needDrink });
   const badSpirit = { drinkName: 'Negroni', baseSpirit: 'kerosene' } as unknown as Partial<LogDrinkOptions>;
-  expect(buildPour(badSpirit, register)).toEqual({ ok: false, error: apiErrors.invalidPour });
+  expect(buildPour(badSpirit)).toEqual({ ok: false, error: apiErrors.invalidPour });
 });
 
 test('Log pour: what was not said is absent from the record', () => {
-  const built = buildPour({ drinkName: 'Negroni', rating: 8, isHomePour: true }, register);
+  const built = buildPour({ drinkName: 'Negroni', rating: 8, isHomePour: true });
   expect(built.ok).toBe(true);
   if (!built.ok) return;
   const { record } = built.pour;
@@ -81,7 +80,7 @@ test('Log pour: what was not said is absent from the record', () => {
 
 test('Log pour: the rating maps onto the 9-point hedonic, and the drink onto its entry', () => {
   const at = (rating: number) => {
-    const built = buildPour({ drinkName: 'daiquiri (classic)', rating }, register);
+    const built = buildPour({ drinkName: 'daiquiri (classic)', rating });
     if (!built.ok) throw new Error(built.error);
     return built.pour;
   };
@@ -143,7 +142,7 @@ test('Log pour: a repository that fails is a 500, and a failed palate write logs
 });
 
 test('Log pour: a drink not on the map is logged, but cannot move the coordinate', () => {
-  const built = buildPour({ drinkName: 'Grandma’s Punch', rating: 9 }, register);
+  const built = buildPour({ drinkName: 'Grandma’s Punch', rating: 9 });
   expect(built.ok).toBe(true);
   if (!built.ok) return;
   expect(built.pour.drink).toBeUndefined();
@@ -155,26 +154,26 @@ test('Log pour: a drink not on the map is logged, but cannot move the coordinate
 });
 
 const postFor = (options: Partial<LogDrinkOptions>) => {
-  const built = buildPour({ drinkName: 'Negroni', ...options }, register);
+  const built = buildPour({ drinkName: 'Negroni', ...options });
   if (!built.ok) throw new Error(built.error);
   return pourPostText(built.pour);
 };
 
 test('Feed post: a pour is posted in the form’s own words, not as a palate share', async () => {
   const { store, writes, state } = fakeStore(palate(0, 0));
-  // 8.75 is what the form sends for "Like very much", 8 of 9.
+  // 8.75 is what the form sends for "Really liked it", 8 of 9.
   await logPour(store, { drinkName: 'Negroni', rating: 8.75, venue: { name: 'Attaboy' }, crosspostToFeed: true }, context);
   expect(writes).toEqual(['palate', 'pour', 'share']);
-  expect(state.shared?.text).toBe('Negroni at Attaboy: Like very much (8 of 9). Logged on Cotidal:');
+  expect(state.shared?.text).toBe('Negroni at Attaboy: Really liked it (8 of 9). Logged on Cotidal:');
   // The post that went out before this read "My palate lands in Logged a 8.8/10 Negroni…".
   expect(state.shared?.text).not.toContain('My palate lands in');
   expect(state.shared?.url).toBe('https://cotidal.example/p/did:plc:x');
 });
 
 test('Feed post: at home, at a bar, and at a bar with no name', () => {
-  expect(postFor({ rating: 10, isHomePour: true })).toBe('Negroni, poured at home: Like extremely (9 of 9). Logged on Cotidal:');
-  expect(postFor({ rating: 0, location: 'Dante' })).toBe('Negroni at Dante: Dislike extremely (1 of 9). Logged on Cotidal:');
-  expect(postFor({ rating: 5 })).toBe('Negroni: Neither (5 of 9). Logged on Cotidal:');
+  expect(postFor({ rating: 10, isHomePour: true })).toBe('Negroni, poured at home: A favorite (9 of 9). Logged on Cotidal:');
+  expect(postFor({ rating: 0, location: 'Dante' })).toBe('Negroni at Dante: Never again (1 of 9). Logged on Cotidal:');
+  expect(postFor({ rating: 5 })).toBe('Negroni: Fine (5 of 9). Logged on Cotidal:');
 });
 
 test('Feed post: long names are cut to fit, and the link survives whole', () => {

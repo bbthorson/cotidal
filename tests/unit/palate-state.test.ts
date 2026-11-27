@@ -10,8 +10,8 @@ import {
   getDiagonal,
   vibeTagsAfterPour,
   aversionsAfterPour,
-} from '../../src/lib/palate-state';
-import type { Drink } from '../../src/lib/data';
+} from '../../src/lib/palate/palate-state';
+import type { Drink } from '../../src/lib/drinks/data';
 
 const testDrink: Drink = {
   name: 'Test Daiquiri',

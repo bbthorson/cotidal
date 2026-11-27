@@ -1,4 +1,4 @@
-import type { UserProfile } from '@/hooks/useDiscoveryQuiz';
+import type { UserProfile } from '@/lib/palate/profile';
 import type { DynamicState, ElicitationRecord, PourRecord } from '@/lib/atproto/records';
 
 /**
@@ -78,6 +78,7 @@ const GUEST_POUR_LIMIT = 50;
 
 export const loadGuestPours = () => read<PourRecord[]>(KEYS.guestPours) ?? [];
 export const addGuestPour = (p: PourRecord) => write(KEYS.guestPours, [p, ...loadGuestPours()].slice(0, GUEST_POUR_LIMIT));
+export const clearGuestPours = () => remove(KEYS.guestPours);
 
 export const loadGuestState = () => read<DynamicState>(KEYS.guestState);
 export const saveGuestState = (state: DynamicState) => write(KEYS.guestState, state);
