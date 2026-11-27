@@ -6,6 +6,18 @@ test('Drink match: a name finds its drink without the parenthetical, its case or
   expect(matchDrink('margarita')?.name).toBe('Margarita');
   expect(matchDrink("Tommy's Margarita")?.slug).toBe('tommys-margarita');
   expect(matchDrink('rum & coke')?.name).toBe('Cuba Libre');
+  // How menus and the IBA spell drinks the map has.
+  expect(matchDrink('Martini')?.name).toBe('Dry Martini');
+  expect(matchDrink('Espresso Martini')?.name).toBe('Espresso Martini');
+  expect(matchDrink('South Side')?.name).toBe('Southside');
+  expect(matchDrink('Corpse Reviver #2')?.name).toBe('Corpse Reviver No. 2');
+  expect(matchDrink('Hugo')?.name).toBe('Hugo Spritz');
+  expect(matchDrink('Pina Colada')?.name).toBe('Piña Colada');
+  expect(matchDrink('Dark and Stormy')?.name).toBe("Dark 'n' Stormy");
+  expect(matchDrink("Dark n' Stormy")?.name).toBe("Dark 'n' Stormy");
+  expect(matchDrink('Pornstar Martini')?.name).toBe('Porn Star Martini');
+  expect(matchDrink('Kir Royale')?.name).toBe('Kir Royal');
+  expect(matchDrink('Tequila Tonic')?.name).toBe('Tequila & Tonic');
   expect(matchDrink('  DAIQUIRI (classic) ')?.name).toBe('Daiquiri (Classic)');
   expect(matchDrink('Syrah')?.name).toBe('Syrah (Northern Rhône)');
   expect(matchDrink('Naked and Famous')?.name).toBe('Naked & Famous');
