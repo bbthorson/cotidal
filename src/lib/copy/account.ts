@@ -170,21 +170,45 @@ export const barPublish = {
     'Later: a second step will mail a postcard with a one-time code to confirm you are at that address.',
 } as const;
 
-/** `/v/<handle>` — live AT Protocol venue & menu page. */
+/** `/v/<handle>` & `/v/osm/<type>/<id>` — live AT Protocol and unclaimed OSM venue pages. */
 export const venuePage = {
   eyebrow: 'Venue',
+  unclaimedEyebrow: 'Unclaimed venue',
+  unclaimedTag: 'Unclaimed · OpenStreetMap',
+  fsqTag: 'Foursquare linked',
   menuTitle: 'Current menu',
   noMenu: 'This venue has claimed its handle, but has not published a menu yet.',
   noVenueTitle: 'No bar claimed here yet.',
   noVenueBody: 'This account exists, but it has not claimed a bar yet.',
   notFoundTitle: 'No bar by that handle.',
   notFoundBody: 'That handle does not resolve to an account.',
+  osmNotFoundTitle: 'No place at that OpenStreetMap ID.',
+  osmNotFoundBody: 'Check the link or search for the bar on the map.',
   unavailableTitle: 'The venue’s server did not answer.',
   unavailableBody: 'Try again in a moment.',
+  osmUnavailableTitle: 'OpenStreetMap did not answer.',
   publishedOn: (date: string) => `Published ${date}`,
   websiteLabel: 'Website',
+  menuLinkLabel: 'Menu',
+  phoneLabel: 'Phone',
+  reservationsLabel: 'Reservations',
   domainVerified: 'Domain matched',
   rankForMe: 'Rank this menu for you',
+  captureOnMap: 'Open on the map & paste menu',
+  claimBar: 'Claim this bar',
+  claimBody:
+    'Own or run this bar? Claim it with your domain handle to publish your live menu and link your OpenStreetMap and Foursquare IDs.',
+  detailsTitle: 'Place details',
+  addressLabel: 'Address',
+  hoursLabel: 'Hours',
+  outdoorSeatingLabel: 'Outdoor seating',
+  placeIdsLabel: 'Open place IDs',
+  yes: 'Yes',
+  no: 'No',
+  sightingsTitle: 'Menu & palate footprint',
+  noSightings:
+    'No patron menu sighting is linked to this place yet. If this bar has a written menu, paste or photograph it on the map to rank it for your palate; if it pours bespoke drinks to order, tell the bartender your coordinate.',
+  openMapLink: 'Open on the map',
   onMap: 'On the map',
   unplaced: 'House pour',
 } as const;

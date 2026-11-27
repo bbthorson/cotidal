@@ -22,6 +22,28 @@
             ]
           },
           "website": { "type": "string", "format": "uri" },
+          "hours": {
+            "type": "string",
+            "maxLength": 500,
+            "maxGraphemes": 250,
+            "description": "Opening hours, either OpenStreetMap opening_hours syntax or plain readable hours."
+          },
+          "reservationsUrl": {
+            "type": "string",
+            "format": "uri",
+            "description": "Link to reserve a table or bar seat."
+          },
+          "menuStyle": {
+            "type": "string",
+            "knownValues": ["written", "bespoke"],
+            "maxLength": 32,
+            "description": "Whether the bar publishes a written menu (`written`) or pours bespoke / bartender's choice drinks (`bespoke`)."
+          },
+          "externalIds": {
+            "type": "ref",
+            "ref": "#externalIds",
+            "description": "Open place identifiers (OSM, Foursquare Open Places) so unclaimed place pages reconcile cleanly to this claimed venue."
+          },
           "currentMenu": {
             "type": "ref",
             "ref": "app.cotidal.defs#entityRef",
@@ -33,6 +55,22 @@
             "description": "Pointer to the venue's site.standard.publication record (rkey `self`), connecting the venue to its Standard.site web presence."
           },
           "createdAt": { "type": "string", "format": "datetime" }
+        }
+      }
+    },
+    "externalIds": {
+      "type": "object",
+      "description": "Open place identifiers linking a venue to OpenStreetMap and Foursquare Open Places.",
+      "properties": {
+        "osm": {
+          "type": "string",
+          "maxLength": 64,
+          "description": "OpenStreetMap element id, e.g. `node/123456` or `way/789012`."
+        },
+        "fsq": {
+          "type": "string",
+          "maxLength": 64,
+          "description": "Foursquare Open Places id (`fsq_place_id`), matching `community.lexicon.location.fsq`."
         }
       }
     }

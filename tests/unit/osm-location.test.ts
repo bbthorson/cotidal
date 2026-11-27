@@ -1,7 +1,18 @@
 import { test, expect } from 'vitest';
 import { readFileSync, readdirSync } from 'node:fs';
 import { Lexicons } from '@atproto/lexicon';
-import { formatDistance, overpassFailure, overpassQuery, parseOverpass, roundPoint } from '../../src/lib/drinks/osm';
+import {
+  fetchOsmBar,
+  formatDistance,
+  osmPlaceHref,
+  overpassElementQuery,
+  overpassFailure,
+  overpassQuery,
+  parseOsmParams,
+  parseOverpass,
+  parseOverpassElement,
+  roundPoint,
+} from '../../src/lib/drinks/osm';
 import { GEO_TYPE, geoLocation, readGeo } from '../../src/lib/atproto/location';
 import { draftPath, parseDraft } from '../../src/lib/pours/pour-draft';
 import { buildPour } from '../../src/lib/pours/pours.server';
@@ -29,6 +40,118 @@ test('OSM: only named places to drink, with a point, nearest first', () => {
   expect(bars[1].id).toBe('way/3');
   expect(bars[0].distance).toBeLessThan(bars[2].distance);
   expect(parseOverpass('not json', here)).toEqual([]);
+});
+
+test('OSM: retains address, hours, website, menu, phone, outdoor seating, and fsq id while dropping unsafe URLs', () => {
+  const bars = parseOverpass(
+    {
+      elements: [
+        {
+          type: 'node',
+          id: 991,
+          lat: 40.7245,
+          lon: -73.9472,
+          tags: {
+            amenity: 'bar',
+            name: 'Diamond Lil',
+            'addr:housenumber': '179',
+            'addr:street': 'Nassau Ave',
+            'addr:city': 'Brooklyn',
+            'addr:state': 'NY',
+            'addr:postcode': '11222',
+            opening_hours: 'Mo-Su 17:00-02:00',
+            'contact:website': 'https://diamondlilbar.com',
+            'website:menu': 'https://diamondlilbar.com/DiamondLil-Menu.pdf',
+            'contact:phone': '+1 718-555-0199',
+            outdoor_seating: 'patio',
+            'ref:foursquare': '5a1b2c3d4e5f6a7b8c9d0e1f',
+          },
+        },
+        {
+          type: 'node',
+          id: 992,
+          lat: 40.7246,
+          lon: -73.9473,
+          tags: {
+            amenity: 'bar',
+            name: 'Unsafe Link Bar',
+            website: 'javascript:alert(1)',
+            outdoor_seating: 'no',
+          },
+        },
+      ],
+    },
+    here
+  );
+
+  const diamondLil = bars.find((b) => b.id === 'node/991');
+  const unsafe = bars.find((b) => b.id === 'node/992');
+
+  expect(diamondLil).toMatchObject({
+    id: 'node/991',
+    name: 'Diamond Lil',
+    address: {
+      street: '179 Nassau Ave',
+      city: 'Brooklyn',
+      state: 'NY',
+      postcode: '11222',
+      formatted: '179 Nassau Ave, Brooklyn, NY 11222',
+    },
+    openingHours: 'Mo-Su 17:00-02:00',
+    website: 'https://diamondlilbar.com/',
+    menuUrl: 'https://diamondlilbar.com/DiamondLil-Menu.pdf',
+    phone: '+1 718-555-0199',
+    outdoorSeating: true,
+    fsqId: '5a1b2c3d4e5f6a7b8c9d0e1f',
+  });
+  expect(unsafe?.website).toBeUndefined();
+  expect(unsafe?.outdoorSeating).toBe(false);
+});
+
+test('OSM: validates route params, builds element queries, and parses single-place responses', async () => {
+  expect(parseOsmParams('node', '12345')).toEqual({ type: 'node', id: 12345 });
+  expect(parseOsmParams('way', '98765')).toEqual({ type: 'way', id: 98765 });
+  expect(parseOsmParams('relation', '123')).toBeNull();
+  expect(parseOsmParams('node', 'abc')).toBeNull();
+  expect(osmPlaceHref('node/12345')).toBe('/v/osm/node/12345');
+  expect(osmPlaceHref('relation/123')).toBeNull();
+  expect(overpassElementQuery('node', 12345)).toContain('node(12345)');
+
+  const single = parseOverpassElement({
+    elements: [
+      {
+        type: 'way',
+        id: 555,
+        center: { lat: 40.721, lon: -73.957 },
+        tags: { amenity: 'bar', name: 'Bar Blondeau', 'addr:full': '80 Wythe Ave 6th Fl, Brooklyn, NY' },
+      },
+    ],
+  });
+  expect(single).toMatchObject({
+    id: 'way/555',
+    name: 'Bar Blondeau',
+    distance: 0,
+    address: { formatted: '80 Wythe Ave 6th Fl, Brooklyn, NY' },
+  });
+
+  const okRes = await fetchOsmBar('way', 555, {
+    fetch: async () =>
+      new Response(
+        JSON.stringify({
+          elements: [
+            { type: 'way', id: 555, center: { lat: 40.721, lon: -73.957 }, tags: { amenity: 'bar', name: 'Bar Blondeau' } },
+          ],
+        }),
+        { status: 200 }
+      ),
+  });
+  expect(okRes.status).toBe('ok');
+  if (okRes.status === 'ok') expect(okRes.bar.name).toBe('Bar Blondeau');
+
+  const missing = await fetchOsmBar('node', 1, {
+    fetch: async () => new Response(JSON.stringify({ elements: [] }), { status: 200 }),
+  });
+  expect(missing.status).toBe('not-found');
 });
 
 test('OSM: a query Overpass gave up on is a failure, not an empty street', () => {

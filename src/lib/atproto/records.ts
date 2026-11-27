@@ -457,12 +457,21 @@ export const RecipeRecordSchema = z.object({
 });
 export type RecipeRecord = z.infer<typeof RecipeRecordSchema>;
 
+export const VenueExternalIdsSchema = z.object({
+  osm: lexString({ maxLength: 64 }).optional(),
+  fsq: lexString({ maxLength: 64 }).optional(),
+});
+
 export const VenueRecordSchema = z.object({
   $type: z.literal(VENUE_COLLECTION),
   name: lexString({ maxLength: 200, maxGraphemes: 100 }),
   description: lexString({ maxLength: 2000, maxGraphemes: 1000 }).optional(),
   location: LocationSchema.optional(),
   website: lexString({ format: 'uri' }).optional(),
+  hours: lexString({ maxLength: 500, maxGraphemes: 250 }).optional(),
+  reservationsUrl: lexString({ format: 'uri' }).optional(),
+  menuStyle: z.enum(['written', 'bespoke']).optional(),
+  externalIds: VenueExternalIdsSchema.optional(),
   /** Menus are immutable, so a venue points at the one that is live. */
   currentMenu: EntityRefSchema.optional(),
   /** Standard.site publication pointer (site.standard.publication at rkey self). */
