@@ -273,6 +273,13 @@ export function useExplore(
     [region, name]
   );
   const regionShown = useMemo(() => capMarks(regionDrinks), [regionDrinks]);
+  // A search is a filter too: while it finds drinks, the map draws them (by name, alias or what is in
+  // them, so "mezcal" draws every mezcal drink), as many as it can show. Finding none leaves the map be.
+  const searchShown = useMemo(() => (searching && drinkHits.length > 0 ? capMarks(drinkHits) : []), [searching, drinkHits]);
+  const searchFocus = useMemo<ReadonlySet<string> | null>(
+    () => (searchShown.length > 0 ? new Set(searchShown.map((d) => d.name)) : null),
+    [searchShown]
+  );
   const regionFocus = useMemo<ReadonlySet<string> | null>(() => (region ? new Set(regionShown.map((d) => d.name)) : null), [region, regionShown]);
 
   return {
@@ -324,6 +331,8 @@ export function useExplore(
     regionDrinks,
     regionShown,
     regionFocus,
+    searchShown,
+    searchFocus,
     openRegion,
     venue,
     barName,

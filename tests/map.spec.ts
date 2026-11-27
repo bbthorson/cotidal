@@ -247,3 +247,24 @@ test('Rating in the card: what is missing is said under its field, and the field
   await bar.fill('Attaboy');
   await expect(sheet.getByText(pour.needBar)).toHaveCount(0);
 });
+
+test('Map: a search is a filter — the map draws what it finds, and the staples come back when it is cleared', async ({ page }) => {
+  await page.addInitScript(seed, profile);
+  await page.goto('/map');
+  const map = theMap(page);
+  // Unfiltered, the staples: a Mojito, and no Mezcal Negroni (in the library, not a staple).
+  await expect(map.getByRole('button', { name: 'Mojito', exact: true })).toHaveCount(1);
+  await expect(map.getByRole('button', { name: 'Mezcal Negroni', exact: true })).toHaveCount(0);
+  // By what is in them: every mezcal drink, and nothing else.
+  const search = page.getByRole('searchbox', { name: compass.searchLabel });
+  await search.fill('mezcal');
+  await expect(map.getByRole('button', { name: 'Mezcal Negroni', exact: true })).toHaveCount(1);
+  await expect(map.getByRole('button', { name: 'Mezcal Paloma', exact: true })).toHaveCount(1);
+  await expect(map.getByRole('button', { name: 'Mojito', exact: true })).toHaveCount(0);
+  // Found nothing: the map is left as it was.
+  await search.fill('zzzz');
+  await expect(map.getByRole('button', { name: 'Mojito', exact: true })).toHaveCount(1);
+  await search.fill('');
+  await expect(map.getByRole('button', { name: 'Mojito', exact: true })).toHaveCount(1);
+  await expect(map.getByRole('button', { name: 'Mezcal Negroni', exact: true })).toHaveCount(0);
+});

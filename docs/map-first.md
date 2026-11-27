@@ -39,8 +39,10 @@ by one function (`drawnDrinks`, `src/lib/map/drawn.ts`;
   people know or would be asked about, spread over all four regions and
   every kind of drink, no two at one point. A drink is a staple for being
   ordered, not for being good.
-- **A filter** draws its drinks instead of the staples: a region, a drink
-  type, the edge of what you know (`lens=explore`). One that holds more than
+- **A filter** draws its drinks instead of the staples: a search while it
+  finds drinks (by name, alias or what is in them, so "mezcal" draws every
+  mezcal drink), a region, a drink type, the edge of what you know
+  (`lens=explore`). One that holds more than
   `MAX_MARKS` keeps its staples first, then its highest on your ground
   (`capMarks`).
 - **A bar's menu** draws its pins and nothing else.

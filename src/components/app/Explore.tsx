@@ -274,11 +274,11 @@ function ExploreContent({
           trail={moved}
           ratings={ratings}
           pins={pins}
-          focus={!quiz.open && !reveal && !e.venue ? (overlays.focusDrinks ?? e.regionFocus) : null}
+          focus={!quiz.open && !reveal && !e.venue ? (e.searchFocus ?? overlays.focusDrinks ?? e.regionFocus) : null}
           emptyBar={!!e.venue && e.ranked.length === 0}
           selected={moved ? (matchDrink(moved.drinkName)?.name ?? null) : e.selected}
           region={e.region}
-          named={quiz.open || reveal || e.venue ? undefined : e.region ? e.regionShown.map((d) => d.name) : e.cold ? undefined : displayMenu.map((d) => d.name)}
+          named={quiz.open || reveal || e.venue ? undefined : e.searchFocus ? e.searchShown.map((d) => d.name) : e.region ? e.regionShown.map((d) => d.name) : e.cold ? undefined : displayMenu.map((d) => d.name)}
           hover={e.hover}
           onSelect={e.chooseDrink}
           name={e.name}

@@ -322,7 +322,8 @@ pour at this bar and trained tolerances order. One rated 3 or less comes off.
 No 0–100 score, no distance in a row.
 
 **Search** covers drinks (name, alias, ingredient) and bars (yours, near you,
-any name typed). With a bar open its name is a chip in the box (× leaves it)
+any name typed). While it finds drinks the map draws them, named, in place of
+the staples; finding none leaves the map as it was. With a bar open its name is a chip in the box (× leaves it)
 and the box searches its menu.
 
 **Bars near you** come from OpenStreetMap's Overpass API
