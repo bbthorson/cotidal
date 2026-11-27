@@ -129,78 +129,60 @@ export const HOUR_LINES: readonly { hour: number; param: number; index: boolean 
 );
 
 /**
- * The mark: this chart reduced to a disc, the way the coaster draws it —
- * stretched along the map's axes until the outer ring is nearly round, every
- * label and inner ring dropped, the four lines and one band kept. The header,
- * the favicon and the touch icon all draw it (`src/lib/mark.ts`), and the
- * band is the landing figure's, so the logo and the hero are one drawing.
- *
- * Quadratics are stretched exactly by moving their points. The ring is
- * stretched by working out the ellipse it becomes, so no stroke has to be
- * kept from scaling with `vector-effect`, which an icon cannot rely on.
+ * The mark: this chart reduced to a true circular disc (a precision dial),
+ * keeping the four region-boundary phase lines with a gentler sweep so they
+ * read as radiating lines from an amphidrome rather than seams on a sphere.
+ * The header, the favicon, the touch icon and the PWA icons all draw it
+ * (`src/lib/mark.ts`).
  */
-export const DISC_STRETCH = { x: 1.12, y: 1.5 } as const;
+export const MARK_RADIUS = 104;
+const MARK_SWEEP = 9;
+const MARK_REACH = 0.56;
 
 /** The band the landing figure and the mark both fill: crisp and sweet, The Surf. */
 export const FILLED_REGION: QuadrantId = 'surf';
 
-const stretch = (p: Point): Point => ({
-  x: CENTRE.x + (p.x - CENTRE.x) * DISC_STRETCH.x,
-  y: CENTRE.y + (p.y - CENTRE.y) * DISC_STRETCH.y,
-});
-
-/** The outer ring after the stretch: semi-axes and tilt (degrees). */
-export function discRing(): { rx: number; ry: number; tilt: number } {
-  // The ring is M·(unit circle) with M = S·R(tilt)·diag(rx, ry); its axes are
-  // the square roots of the eigenvalues of M·Mᵀ.
-  const t = rad(TILT);
-  const [c, s] = [Math.cos(t), Math.sin(t)];
-  const m = [
-    [DISC_STRETCH.x * c * OUTER.rx, -DISC_STRETCH.x * s * OUTER.ry],
-    [DISC_STRETCH.y * s * OUTER.rx, DISC_STRETCH.y * c * OUTER.ry],
-  ];
-  const a = m[0][0] ** 2 + m[0][1] ** 2;
-  const b = m[0][0] * m[1][0] + m[0][1] * m[1][1];
-  const d = m[1][0] ** 2 + m[1][1] ** 2;
-  const mean = (a + d) / 2;
-  const spread = Math.hypot((a - d) / 2, b);
-  const tilt = (Math.atan2(2 * b, a - d) / 2) * (180 / Math.PI);
-  return { rx: round(Math.sqrt(mean + spread)), ry: round(Math.sqrt(mean - spread)), tilt: round(tilt) };
-}
-
 export interface MarkGeometry {
   /** Square, centred on the amphidrome, with room for a stroke of `pad`. */
   viewBox: string;
+  cx: number;
+  cy: number;
+  radius: number;
+  innerRadius: number;
   ring: string;
   lines: string[];
   band: string;
 }
 
 export function markGeometry(pad: number): MarkGeometry {
-  const ring = discRing();
-  const half = Math.ceil(Math.max(ring.rx, ring.ry) + pad);
-  const arc = `A${ring.rx} ${ring.ry} ${ring.tilt}`;
-  const lineOf = (param: number) => {
-    const { control, end } = cotidalLine(param);
-    return { control: stretch(control), end: stretch(end) };
-  };
-  const top = stretch(ringPoint(-90 - TILT));
-  const bottom = stretch(ringPoint(90 - TILT));
-  const { from, to } = SECTORS[FILLED_REGION];
-  const a = lineOf(from);
-  const b = lineOf(to);
+  const r = MARK_RADIUS;
+  const half = Math.ceil(r + pad);
+  const pt = (deg: number, scale = 1): Point => ({
+    x: CENTRE.x + r * scale * Math.cos(rad(deg)),
+    y: CENTRE.y + r * scale * Math.sin(rad(deg)),
+  });
+  const axes = [-90, 0, 90, 180];
+  const segments = axes.map((axis) => {
+    const control = pt(axis, MARK_REACH);
+    const end = pt(axis - MARK_SWEEP, 1);
+    return { control, end, d: `M${fmt(CENTRE)} Q${fmt(control)} ${fmt(end)}` };
+  });
+  // The Surf is between 0h (-90°) and 3h (0°).
+  const a = segments[0];
+  const b = segments[1];
+  const top = { x: CENTRE.x, y: CENTRE.y - r };
+  const bottom = { x: CENTRE.x, y: CENTRE.y + r };
   return {
     viewBox: `${CENTRE.x - half} ${CENTRE.y - half} ${2 * half} ${2 * half}`,
-    ring: `M${fmt(top)} ${arc} 0 1 ${fmt(bottom)} ${arc} 0 1 ${fmt(top)} Z`,
-    lines: COTIDAL_LINES.map(({ param }) => {
-      const { control, end } = lineOf(param);
-      return `M${fmt(CENTRE)} Q${fmt(control)} ${fmt(end)}`;
-    }),
-    // Affine maps keep which side of the centre an arc passes, so the
-    // large-arc flag carries over from `band`.
+    cx: CENTRE.x,
+    cy: CENTRE.y,
+    radius: r,
+    innerRadius: round(r * 0.54),
+    ring: `M${fmt(top)} A${r} ${r} 0 1 1 ${fmt(bottom)} A${r} ${r} 0 1 1 ${fmt(top)} Z`,
+    lines: segments.map((s) => s.d),
     band:
       `M${fmt(CENTRE)} Q${fmt(a.control)} ${fmt(a.end)} ` +
-      `${arc} ${to - from > 180 ? 1 : 0} 1 ${fmt(b.end)} ` +
+      `A${r} ${r} 0 0 1 ${fmt(b.end)} ` +
       `Q${fmt(b.control)} ${fmt(CENTRE)} Z`,
   };
 }

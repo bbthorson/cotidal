@@ -3,6 +3,7 @@ Allow: /
 Disallow: /api/
 Disallow: /oauth/
 Disallow: /settings
+Allow: /share/*.png
 Disallow: /share/
 
 Sitemap: https://cotidal.app/sitemap.xml

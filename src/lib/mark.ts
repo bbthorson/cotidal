@@ -33,25 +33,55 @@ export const MARK_ON_DARK = {
  * twice the weight to keep the lines a pixel wide.
  */
 export const MARK_WEIGHTS = {
-  header: { ring: 10, line: 8 },
-  tab: { ring: 18, line: 14 },
+  header: { ring: 10, line: 8, node: 12, nodeStroke: 7, innerRing: 5 },
+  tab: { ring: 18, line: 14, node: 13, nodeStroke: 11, innerRing: 0 },
 } as const;
 
 export type MarkWeight = keyof typeof MARK_WEIGHTS;
 
-export function mark(weight: MarkWeight): MarkGeometry & { ring: string; ringWidth: number; lineWidth: number } {
+export function mark(weight: MarkWeight): MarkGeometry & {
+  ringWidth: number;
+  lineWidth: number;
+  nodeRadius: number;
+  nodeStroke: number;
+  innerRingWidth: number;
+} {
   const w = MARK_WEIGHTS[weight];
-  return { ...markGeometry(w.ring / 2 + 2), ringWidth: w.ring, lineWidth: w.line };
+  return {
+    ...markGeometry(w.ring / 2 + 4),
+    ringWidth: w.ring,
+    lineWidth: w.line,
+    nodeRadius: w.node,
+    nodeStroke: w.nodeStroke,
+    innerRingWidth: w.innerRing,
+  };
 }
 
-function paths(m: ReturnType<typeof mark>, ink: string, terracotta: string): string {
-  return [
-    `<path d="${m.band}" class="band" fill="${terracotta}"/>`,
-    ...m.lines.map(
-      (d) => `<path d="${d}" class="ink" stroke="${ink}" stroke-width="${m.lineWidth}" stroke-linecap="round"/>`
-    ),
-    `<path d="${m.ring}" class="ink" stroke="${ink}" stroke-width="${m.ringWidth}"/>`,
-  ].join('\n  ');
+function paths(
+  m: ReturnType<typeof mark>,
+  ink: string,
+  terracotta: string,
+  nodeFill: string,
+  { paperDisc = false }: { paperDisc?: boolean } = {}
+): string {
+  const parts: string[] = [];
+  if (paperDisc) {
+    parts.push(`<circle cx="${m.cx}" cy="${m.cy}" r="${m.radius}" fill="${MARK_COLOURS.paper}"/>`);
+  }
+  parts.push(`<path d="${m.band}" class="band" fill="${terracotta}"/>`);
+  if (m.innerRingWidth > 0) {
+    parts.push(
+      `<circle cx="${m.cx}" cy="${m.cy}" r="${m.innerRadius}" class="ink-ring" stroke="${ink}" stroke-opacity="0.38" stroke-width="${m.innerRingWidth}" stroke-dasharray="11 9"/>`
+    );
+  }
+  for (const d of m.lines) {
+    parts.push(`<path d="${d}" class="ink" stroke="${ink}" stroke-width="${m.lineWidth}" stroke-linecap="round"/>`);
+  }
+  parts.push(`<circle cx="${m.cx}" cy="${m.cy}" r="${m.radius}" class="ink" stroke="${ink}" stroke-width="${m.ringWidth}"/>`);
+  parts.push(
+    `<circle cx="${m.cx}" cy="${m.cy}" r="${m.nodeRadius}" class="node" fill="${nodeFill}" stroke="${ink}" stroke-width="${m.nodeStroke}"/>`
+  );
+  return parts.join('\n  ');
 }
 
 /** `public/icon.svg`: the tab icon, transparent, with a dark-strip variant. */
@@ -63,16 +93,31 @@ export function iconSvg(): string {
     @media (prefers-color-scheme: dark) {
       .ink { stroke: ${MARK_ON_DARK.ink}; }
       .band { fill: ${MARK_ON_DARK.terracotta}; }
+      .node { fill: ${MARK_COLOURS.ink}; stroke: ${MARK_ON_DARK.ink}; }
     }
   </style>
-  ${paths(m, MARK_COLOURS.ink, MARK_COLOURS.terracotta)}
+  ${paths(m, MARK_COLOURS.ink, MARK_COLOURS.terracotta, MARK_COLOURS.paper)}
 </svg>
 `;
 }
 
 /**
- * The home-screen icon: the mark on paper, inset so the platform's rounded
- * mask never touches the ring. Rendered to `public/apple-touch-icon.png`.
+ * `public/favicon.ico` source: the tab mark with a solid paper disc inside the
+ * outer ring (corners transparent), so dark forest ink stays legible on dark
+ * browser chrome and SERPs where SVG media queries do not apply.
+ */
+export function icoSvg(): string {
+  const m = mark('tab');
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${m.viewBox}" fill="none">
+  ${paths(m, MARK_COLOURS.ink, MARK_COLOURS.terracotta, MARK_COLOURS.paper, { paperDisc: true })}
+</svg>
+`;
+}
+
+/**
+ * The home-screen / manifest icon: the mark on paper, inset so the platform's
+ * rounded or maskable crop never touches the ring. Rendered to
+ * `public/apple-touch-icon.png`, `public/icon-192.png`, and `public/icon-512.png`.
  */
 export function touchIconSvg(): string {
   const m = mark('header');
@@ -81,7 +126,7 @@ export function touchIconSvg(): string {
   const box = `${x - inset} ${y - inset} ${size + 2 * inset} ${size + 2 * inset}`;
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${box}" fill="none">
   <rect x="${x - inset}" y="${y - inset}" width="${size + 2 * inset}" height="${size + 2 * inset}" fill="${MARK_COLOURS.paper}"/>
-  ${paths(m, MARK_COLOURS.ink, MARK_COLOURS.terracotta)}
+  ${paths(m, MARK_COLOURS.ink, MARK_COLOURS.terracotta, MARK_COLOURS.paper)}
 </svg>
 `;
 }

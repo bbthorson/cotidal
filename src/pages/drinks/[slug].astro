@@ -9,11 +9,13 @@ import { drinkEntryData } from '../../lib/drinks/drink-entry.server';
 import { loadRegister } from '../../lib/drinks/register.server';
 import { titleOf } from '../../lib/drinks/register';
 import { formatCoordinate } from '../../lib/map/coordinates';
-import { site, drinks as copy, explore } from '../../lib/copy';
+import { site, drinks as copy, explore, share } from '../../lib/copy';
 import { drinkDatabase } from '../../lib/drinks/data';
 import { quadrantFor, regionPath } from '../../lib/map/coordinates';
 import { neighboursOf } from '../../lib/map/map-draw';
 import { drinkMapHref, drinkPagePath, questionsForDrink } from '../../lib/site-nav';
+import { SHARE_IMAGES, shareImagePath } from '../../lib/share';
+import { DEFAULT_SITE_ORIGIN } from '../../lib/pages/sitemap';
 
 /**
  * A drink is a place on the map: the page is the map with the drink marked,
@@ -41,6 +43,9 @@ const d = entry.data;
  */
 const drink = drinkDatabase.find((item) => item.name === d.name);
 const quadrant = drink ? quadrantFor(drink.x, drink.y) : null;
+const cardImage = quadrant
+  ? { path: shareImagePath(quadrant.id), alt: share.regionAlt(quadrant.name) }
+  : undefined;
 
 /** The drinks nearest it, named on the map and listed under the entry, linked where they have entries of their own. */
 const register = await loadRegister();
@@ -52,6 +57,7 @@ const recipeJsonLd = {
   '@type': 'Recipe',
   name: d.title,
   description: d.summary,
+  image: new URL(cardImage?.path ?? SHARE_IMAGES.site, DEFAULT_SITE_ORIGIN).toString(),
   recipeCategory: d.family,
   recipeIngredient: d.ingredients.map((i) =>
     `${i.amount} ${i.name}${i.optional ? ` (${copy.optionalLabel})` : ''}`
@@ -67,6 +73,7 @@ const recipeJsonLd = {
 <MapPage
   title={`${d.title} · ${site.name}`}
   description={d.summary}
+  image={cardImage}
   currentPath={drinkPagePath(entry.id)}
   label={d.title}
   eyebrow={`${copy.eyebrow} · ${d.family}`}

@@ -3,6 +3,7 @@ import '../styles/globals.css';
 import { site, nav, share } from '../lib/copy';
 import { SHARE_IMAGES, SHARE_SIZE } from '../lib/share';
 import { MARK_COLOURS } from '../lib/mark';
+import { DEFAULT_SITE_ORIGIN } from '../lib/pages/sitemap';
 
 interface Props {
   title?: string;
@@ -32,11 +33,10 @@ const {
 
 /**
  * A scraper wants an absolute image URL. A server-rendered page knows the
- * origin it was asked on (the app answers on more than one, and sets no
- * `site`). A prerendered page was built with no request, so it gives the
- * path, which the scrapers that matter here resolve against the page.
+ * origin it was asked on; a prerendered page has no request, so it resolves
+ * against the canonical production origin.
  */
-const imageUrl = Astro.isPrerendered ? image.path : new URL(image.path, Astro.url).toString();
+const imageUrl = new URL(image.path, Astro.isPrerendered ? DEFAULT_SITE_ORIGIN : Astro.url).toString();
 const canonicalPath = canonical ?? Astro.url.pathname;
 const pageUrl = Astro.isPrerendered ? null : new URL(canonicalPath, Astro.url).toString();
 ---
@@ -64,6 +64,7 @@ const pageUrl = Astro.isPrerendered ? null : new URL(canonicalPath, Astro.url).t
     <link rel="icon" href="/favicon.ico" sizes="48x48" />
     <link rel="icon" type="image/svg+xml" href="/icon.svg" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
     <meta name="theme-color" content={MARK_COLOURS.paper} />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />

@@ -1,5 +1,4 @@
 ---
-import { site } from '../../lib/copy';
 import { mark } from '../../lib/mark';
 
 interface Props {
@@ -9,11 +8,11 @@ interface Props {
 const { class: className = '' } = Astro.props;
 
 /**
- * The mark: the landing page's cotidal chart reduced to a disc, as the
- * coaster draws it — the outer ring, the four cotidal lines, and the same
- * band filled. Geometry and weights come from `src/lib/mark.ts`, which also
- * generates `public/icon.svg` and the favicons, so the header, the tab and
- * the hero are one drawing.
+ * The mark: the cotidal chart reduced to a true circular dial — the outer
+ * ring, the four cotidal lines, the dashed inner co-range ring, the amphidrome
+ * centre node, and the Surf band filled. Geometry and weights come from
+ * `src/lib/mark.ts`, which also generates `public/icon.svg` and the favicons,
+ * so the header, the tab and the touch icon are one drawing.
  *
  * Inline SVG rather than an icon library: this renders on `/`, which ships
  * no client JavaScript, so nothing here may pull an island.
@@ -28,8 +27,9 @@ const m = mark('header');
 <span class={`inline-flex items-center justify-center ${className}`} aria-hidden="true">
   <svg viewBox={m.viewBox} class="h-full w-full" fill="none">
     <path d={m.band} class="fill-primary" />
+    <circle cx={m.cx} cy={m.cy} r={m.innerRadius} class="stroke-chart-ring" stroke-width={m.innerRingWidth} stroke-dasharray="11 9" />
     {m.lines.map((d) => <path d={d} class="stroke-foreground" stroke-width={m.lineWidth} stroke-linecap="round" />)}
-    <path d={m.ring} class="stroke-foreground" stroke-width={m.ringWidth} />
+    <circle cx={m.cx} cy={m.cy} r={m.radius} class="stroke-foreground" stroke-width={m.ringWidth} />
+    <circle cx={m.cx} cy={m.cy} r={m.nodeRadius} class="fill-background stroke-foreground" stroke-width={m.nodeStroke} />
   </svg>
-  <span class="sr-only">{site.name}</span>
 </span>
