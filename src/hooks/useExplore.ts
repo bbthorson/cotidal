@@ -5,7 +5,7 @@ import { chart, compass, mapPage } from '@/lib/copy';
 import { titleOf, type Register } from '@/lib/drinks/register';
 import { userFromProfile } from '@/lib/palate/profile';
 import { barsFromPours, foldName, lastPourByDrink, logTotals } from '@/lib/pours/pour-history';
-import { drinksAtSameSpot, namesMatching, searchDrinks, unlistedBar } from '@/lib/drinks/search';
+import { drinksAtSameSpot, namesMatching, searchLibrary, unlistedBar } from '@/lib/drinks/search';
 import { addMenuLines, rankMenu, type MenuItem } from '@/lib/drinks/menu-rank';
 import { readMapView, readMenuHandoff, VIEW_PARAMS } from '@/lib/map/map-url';
 import type { Side } from '@/lib/palate/compare';
@@ -98,7 +98,7 @@ export function useExplore(
   const [query, setQueryState] = useState(initialQuery);
   const searching = !!foldName(query);
   const bars = useMemo(() => barsFromPours(history), [history]);
-  const drinkHits = useMemo(() => searchDrinks(query, scored, register), [query, scored, register]);
+  const drinkHits = useMemo(() => searchLibrary(query, scored, register), [query, scored, register]);
   const barHits = searching ? namesMatching(query, bars) : bars;
   const nearHits = searching ? namesMatching(query, nearby.bars) : nearby.bars.slice(0, 5);
   const offerBar = unlistedBar(query, drinkHits.length > 0, barHits, nearHits);
