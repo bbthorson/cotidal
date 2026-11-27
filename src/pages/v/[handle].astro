@@ -75,6 +75,15 @@ const formatDate = (iso: string) => {
                 {copy.websiteLabel}
               </a>
             )}
+            {result.venue.reservationsUrl && (
+              <a
+                href={result.venue.reservationsUrl}
+                rel="noopener noreferrer"
+                class="link-caps text-secondary hover:underline hover:underline-offset-4"
+              >
+                {copy.reservationsLabel}
+              </a>
+            )}
             {result.venue.domainVerified && (
               <span class="tag">{copy.domainVerified}</span>
             )}

@@ -1,0 +1,143 @@
+---
+import MapPage from '../../../../layouts/MapPage.astro';
+import { ScreenHeader, SectionTitle } from '../../../../components/app/ui';
+import { PalateMap } from '../../../../components/app/PalateMap';
+import { accountFor } from '../../../../lib/atproto/session';
+import { fetchOsmBar, parseOsmParams } from '../../../../lib/drinks/osm';
+import { explore, site, venuePage as copy } from '../../../../lib/copy';
+import { barsHref, mapHref } from '../../../../lib/site-nav';
+
+/**
+ * `/v/osm/<type>/<id>` — an unclaimed bar's place page backed by OpenStreetMap
+ * (with optional Foursquare Open Places id linkage). Server-rendered on
+ * `MapPage.astro` with zero client JavaScript, alongside `/v/<handle>` for
+ * claimed AT Protocol venues.
+ */
+export const prerender = false;
+
+const parsed = parseOsmParams(Astro.params.type, Astro.params.id);
+const account = await accountFor(Astro.request, false);
+const result = parsed ? await fetchOsmBar(parsed.type, parsed.id) : { status: 'not-found' as const };
+
+if (result.status === 'not-found') {
+  Astro.response.status = 404;
+} else if (result.status === 'unavailable') {
+  Astro.response.status = 502;
+}
+
+const bar = result.status === 'ok' ? result.bar : null;
+const title = bar ? `${bar.name} — ${site.name}` : `${site.name} — ${copy.unclaimedEyebrow}`;
+const currentPath = parsed ? `/v/osm/${parsed.type}/${parsed.id}` : '/v/osm';
+const mapBarHref = bar ? `${mapHref}?menu=1&bar=${encodeURIComponent(bar.name)}` : mapHref;
+const placeIdSummary = bar ? (bar.fsqId ? `osm:${bar.id} · fsq:${bar.fsqId}` : `osm:${bar.id}`) : '';
+const hasDetails = Boolean(bar && (bar.address || bar.openingHours || bar.outdoorSeating !== undefined || placeIdSummary));
+
+Astro.response.headers.set(
+  'Cache-Control',
+  account.kind === 'member' ? 'no-store' : 'public, max-age=300, s-maxage=900'
+);
+---
+
+<MapPage
+  title={title}
+  currentPath={currentPath}
+  label={bar ? bar.name : copy.unclaimedEyebrow}
+  eyebrow={copy.unclaimedEyebrow}
+  account={account}
+>
+  <PalateMap slot="map" label={explore.chartLabel} tide />
+
+  <div class="space-y-10">
+    {bar ? (
+      <>
+        <div class="space-y-4">
+          <ScreenHeader title={bar.name} gloss={bar.address?.formatted} />
+
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="tag">{copy.unclaimedTag}</span>
+            {bar.fsqId && <span class="tag">{copy.fsqTag}</span>}
+          </div>
+
+          <div class="flex flex-wrap items-center gap-x-5 gap-y-2">
+            <a href={mapBarHref} class="btn btn-primary w-full">
+              {copy.captureOnMap}
+            </a>
+            {bar.website && (
+              <a
+                href={bar.website}
+                rel="noopener noreferrer"
+                class="link-caps text-secondary hover:underline hover:underline-offset-4"
+              >
+                {copy.websiteLabel}
+              </a>
+            )}
+            {bar.menuUrl && (
+              <a
+                href={bar.menuUrl}
+                rel="noopener noreferrer"
+                class="link-caps text-secondary hover:underline hover:underline-offset-4"
+              >
+                {copy.menuLinkLabel}
+              </a>
+            )}
+            {bar.phone && (
+              <a
+                href={`tel:${bar.phone.replace(/[^+\d]/g, '')}`}
+                class="link-caps text-secondary hover:underline hover:underline-offset-4"
+              >
+                {copy.phoneLabel}
+              </a>
+            )}
+          </div>
+        </div>
+
+        {hasDetails && (
+          <section class="space-y-3">
+            <SectionTitle>{copy.detailsTitle}</SectionTitle>
+            <dl class="divide-y divide-border border-y border-border">
+              {bar.address && (
+                <div class="flex flex-col gap-1 py-3">
+                  <dt class="label-caps">{copy.addressLabel}</dt>
+                  <dd class="text-ui text-foreground">{bar.address.formatted}</dd>
+                </div>
+              )}
+              {bar.openingHours && (
+                <div class="flex flex-col gap-1 py-3">
+                  <dt class="label-caps">{copy.hoursLabel}</dt>
+                  <dd class="text-meta text-foreground">{bar.openingHours}</dd>
+                </div>
+              )}
+              {bar.outdoorSeating !== undefined && (
+                <div class="flex items-center justify-between gap-4 py-3">
+                  <dt class="label-caps">{copy.outdoorSeatingLabel}</dt>
+                  <dd class="text-meta text-foreground">{bar.outdoorSeating ? copy.yes : copy.no}</dd>
+                </div>
+              )}
+              <div class="flex flex-col gap-1 py-3">
+                <dt class="label-caps">{copy.placeIdsLabel}</dt>
+                <dd class="font-mono text-meta text-muted-foreground">{placeIdSummary}</dd>
+              </div>
+            </dl>
+          </section>
+        )}
+
+        <section class="space-y-3">
+          <SectionTitle>{copy.sightingsTitle}</SectionTitle>
+          <p class="text-meta leading-relaxed text-muted-foreground">{copy.noSightings}</p>
+        </section>
+
+        <section class="space-y-3 border-t border-border pt-6">
+          <SectionTitle>{copy.claimBar}</SectionTitle>
+          <p class="text-meta leading-relaxed text-muted-foreground">{copy.claimBody}</p>
+          <a href={barsHref} class="btn btn-outline inline-flex">
+            {copy.claimBar}
+          </a>
+        </section>
+      </>
+    ) : result.status === 'unavailable' ? (
+      <ScreenHeader title={copy.osmUnavailableTitle} gloss={copy.unavailableBody} />
+    ) : (
+      <ScreenHeader title={copy.osmNotFoundTitle} gloss={copy.osmNotFoundBody} />
+    )}
+  </div>
+</MapPage>

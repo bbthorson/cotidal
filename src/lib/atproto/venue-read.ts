@@ -18,6 +18,15 @@ const PublicVenueSchema = z.object({
   name: z.string().min(1).max(200),
   description: z.string().max(2000).optional(),
   website: z.string().max(500).optional(),
+  hours: z.string().max(500).optional(),
+  reservationsUrl: z.string().max(500).optional(),
+  menuStyle: z.enum(['written', 'bespoke']).optional(),
+  externalIds: z
+    .object({
+      osm: z.string().max(64).optional(),
+      fsq: z.string().max(64).optional(),
+    })
+    .optional(),
   currentMenu: z.object({ uri: z.string() }).optional(),
   createdAt: z.string().optional(),
 });
@@ -69,6 +78,10 @@ export interface PublicVenue {
   name: string;
   description: string | null;
   website: string | null;
+  hours?: string | null;
+  reservationsUrl?: string | null;
+  menuStyle?: 'written' | 'bespoke' | null;
+  externalIds?: { osm?: string; fsq?: string } | null;
   /** True when the venue's website domain matches its bidirectionally verified AT Protocol handle. */
   domainVerified: boolean;
   menu: PublicMenu | null;
@@ -141,6 +154,7 @@ export async function readPublicVenue(
     }
 
     const website = safeWebsite(parsedVenue.data.website);
+    const reservationsUrl = safeWebsite(parsedVenue.data.reservationsUrl);
     return {
       status: 'ok',
       actor: repo.actor,
@@ -148,6 +162,10 @@ export async function readPublicVenue(
         name: parsedVenue.data.name,
         description: parsedVenue.data.description ?? null,
         website,
+        ...(parsedVenue.data.hours ? { hours: parsedVenue.data.hours } : {}),
+        ...(reservationsUrl ? { reservationsUrl } : {}),
+        ...(parsedVenue.data.menuStyle ? { menuStyle: parsedVenue.data.menuStyle } : {}),
+        ...(parsedVenue.data.externalIds ? { externalIds: parsedVenue.data.externalIds } : {}),
         domainVerified: domainMatchesHandle(website, repo.actor.handle),
         menu,
       },
