@@ -1,10 +1,11 @@
 import { useEffect } from 'react';
 import type { PourRecord } from '@/lib/atproto/records';
-import type { UserProfile } from '@/hooks/useDiscoveryQuiz';
+import type { UserProfile } from '@/lib/palate/profile';
+import type { TrackStart } from '@/lib/palate/track';
 import { coldState, moved, pour, ratePage } from '@/lib/copy';
-import { titleOf, type Register } from '@/lib/register';
-import { neutralProfile } from '@/lib/guest-palate';
-import type { RateRequest } from '@/lib/pour-draft';
+import { titleOf, type Register } from '@/lib/drinks/register';
+import { neutralProfile } from '@/lib/palate/guest-palate';
+import type { RateRequest } from '@/lib/pours/pour-draft';
 import { useRatePour } from '@/hooks/useRatePour';
 import { useAtprotoContext } from './AtprotoProvider';
 import { ColdState } from './ColdState';
@@ -37,6 +38,7 @@ export function RatePanel({
   profile,
   setProfile,
   pours,
+  start,
   reload,
   onReveal,
 }: {
@@ -48,6 +50,7 @@ export function RatePanel({
   profile: UserProfile | null;
   setProfile: (profile: UserProfile) => void;
   pours: PourRecord[] | null;
+  start: TrackStart | null;
   reload: () => Promise<void>;
   /**
    * Told when the form gives way to the reveal, and how the pour moved you,
@@ -57,7 +60,7 @@ export function RatePanel({
 }) {
   const { openSignIn } = useAtprotoContext();
   const isMember = !!member;
-  const r = useRatePour({ request, isMember, profile, setProfile, pours, reload });
+  const r = useRatePour({ request, isMember, profile, setProfile, pours, start, reload });
 
   // The screen scrolls to the map when the reveal takes the card (`Explore`), so the move shows.
   const move = r.reveal && r.lastPour ? { from: r.lastPour.from, to: r.to, drinkName: r.lastPour.drinkName } : null;
@@ -83,6 +86,7 @@ export function RatePanel({
           from={r.lastPour.from}
           to={r.to}
           drinkName={r.lastPour.drinkName}
+          hedonic={r.lastPour.hedonic}
           scoreLabel={pour.scoreOf(r.lastPour.hedonic)}
           menuChange={r.menuChange}
           displayName={(name) => titleOf(register, name)}

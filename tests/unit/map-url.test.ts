@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
-import { drinkDatabase } from '@/lib/data';
-import { actorParam, readMapView, viewHref } from '@/lib/map-url';
+import { drinkDatabase } from '@/lib/drinks/data';
+import { actorParam, readMapView, viewHref } from '@/lib/map/map-url';
 
 /**
  * The map's address (`map-url.ts`): one vocabulary, `drink=` and `palate=`,

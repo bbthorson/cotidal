@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { clashingAversions, detectAversions, splitMenuLine, suggestClosestDrink } from '@/lib/ingredient-match';
+import { clashingAversions, detectAversions, splitMenuLine, suggestClosestDrink } from '@/lib/drinks/ingredient-match';
 
 describe('ingredient-match', () => {
   it('detects smoke, bitterness, and anise signals from descriptions', () => {

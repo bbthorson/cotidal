@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
-import type { User } from '@/lib/data';
-import { MENU_LENGTH, scoreDrinks, type ScoredDrink, type TerrainStart } from '@/lib/menu-rank';
+import type { User } from '@/lib/drinks/data';
+import { MENU_LENGTH, scoreDrinks, type ScoredDrink, type TerrainStart } from '@/lib/drinks/menu-rank';
 import type { PourRecord } from '@/lib/atproto/records';
 
 /**

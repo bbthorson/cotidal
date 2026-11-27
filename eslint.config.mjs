@@ -203,6 +203,52 @@ export default [
     rules: { '@typescript-eslint/triple-slash-reference': 'off' },
   },
 
+  // Layer boundaries: lib -> hooks -> components, and server-only modules stay off the client.
+  {
+    files: ['src/lib/**/*.{ts,tsx}'],
+    rules: {
+      '@typescript-eslint/no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['@/hooks/*', '../hooks/*', '../../hooks/*'],
+              message: 'src/lib/ must not import from src/hooks/ — keep domain modules independent of React hooks.',
+            },
+            {
+              group: ['@/components/*', '../components/*', '../../components/*'],
+              message: 'src/lib/ must not import from src/components/.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    files: ['src/hooks/**/*.{ts,tsx}', 'src/components/**/*.{ts,tsx}'],
+    rules: {
+      '@typescript-eslint/no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            {
+              name: '@/lib/atproto/records',
+              message: 'Browser code may only import types from @/lib/atproto/records (use vocab.ts or elicitation-record.ts at runtime).',
+              allowTypeImports: true,
+            },
+          ],
+          patterns: [
+            {
+              group: ['**/*.server', '**/*.server.ts'],
+              message: 'Client hooks and components must not import *.server.ts modules.',
+              allowTypeImports: true,
+            },
+          ],
+        },
+      ],
+    },
+  },
+
   {
     files: ['tests/**/*.ts', 'scripts/**/*.mjs', '*.config.{ts,mjs}'],
     rules: {

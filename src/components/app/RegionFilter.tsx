@@ -1,5 +1,5 @@
 import { drinks as copy, quadrants } from '@/lib/copy';
-import { regionPath, type QuadrantId } from '@/lib/quadrant';
+import { regionPath, type QuadrantId } from '@/lib/map/coordinates';
 import { mapHref } from '@/lib/site-nav';
 import { cn } from '@/lib/utils';
 

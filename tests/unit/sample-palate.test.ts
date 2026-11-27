@@ -1,9 +1,9 @@
 import { describe, expect, test } from 'vitest';
 import { readFileSync } from 'node:fs';
-import { drinkDatabase } from '@/lib/data';
-import { SAMPLE_FRAMES, SAMPLE_POURS, sampleFrames } from '@/lib/sample-palate';
-import { peaks, buildTerrain } from '@/lib/terrain';
-import { SAMPLE_START } from '@/lib/sample-palate';
+import { drinkDatabase } from '@/lib/drinks/data';
+import { SAMPLE_FRAMES, SAMPLE_POURS, sampleFrames } from '@/lib/palate/sample-palate';
+import { peaks, buildTerrain } from '@/lib/palate/terrain';
+import { SAMPLE_START } from '@/lib/palate/sample-palate';
 
 /**
  * The front door's sample palate is the terrain code's own answer, never a

@@ -1,8 +1,8 @@
 import { describe, expect, test } from 'vitest';
 import { inflateSync } from 'node:zlib';
-import { contour, contourPath, groundShade, PLANE_EDGE, placeLabels, planePercent, type LabelWant } from '@/lib/map-draw';
-import { groundMasks } from '@/lib/ground-masks';
-import { buildTerrain, sampleTerrain } from '@/lib/terrain';
+import { contour, contourPath, groundShade, PLANE_EDGE, placeLabels, planePercent, type LabelWant } from '@/lib/map/map-draw';
+import { groundMasks } from '@/lib/map/map-draw';
+import { buildTerrain, sampleTerrain } from '@/lib/palate/terrain';
 
 describe('contours', () => {
   test('a single hill gives a ring: every point on the line sits about as far from its top', () => {

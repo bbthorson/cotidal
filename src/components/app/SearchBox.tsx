@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { compass, explore } from '@/lib/copy';
 import { mapHref } from '@/lib/site-nav';
-import { formatDistance } from '@/lib/osm';
+import { formatDistance } from '@/lib/drinks/osm';
 import type { Explore } from '@/hooks/useExplore';
 import { cn } from '@/lib/utils';
 

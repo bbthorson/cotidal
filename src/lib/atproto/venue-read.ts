@@ -2,8 +2,8 @@ import { z } from 'zod';
 import { MENU_COLLECTION, VENUE_COLLECTION } from './records';
 import { resolvePublicRepo, type PublicActor, type ReadOptions } from './public-read';
 import { domainMatchesHandle } from './venue-verify';
-import { drinkOf } from '../drink-match';
-import type { Drink } from '../data';
+import { drinkOf } from '../drinks/search';
+import type { Drink } from '../drinks/data';
 
 /** `app.cotidal.venue` is always held at literal rkey `self` in the venue's repo. */
 const VENUE_RKEY = 'self';

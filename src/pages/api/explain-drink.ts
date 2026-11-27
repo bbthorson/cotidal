@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { drinkDatabase } from '@/lib/data';
+import { drinkDatabase } from '@/lib/drinks/data';
 import { z } from 'zod';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { restoredDid } from '@/lib/atproto/session';

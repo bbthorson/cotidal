@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
-import type { AxisBelief } from '@/lib/belief-state';
-import { useDiscoveryQuiz, type UserProfile } from '@/hooks/useDiscoveryQuiz';
+import type { AxisBelief } from '@/lib/palate/belief-state';
+import { useDiscoveryQuiz } from '@/hooks/useDiscoveryQuiz';
+import type { UserProfile } from '@/lib/palate/profile';
 import { Questionnaire } from './Questionnaire';
 import { Reveal } from './Reveal';
 

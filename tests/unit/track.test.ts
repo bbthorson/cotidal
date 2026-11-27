@@ -1,14 +1,14 @@
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
-import { answerQuestion, beliefToProfile, createInitialBelief } from '@/lib/belief-state';
-import { questions } from '@/lib/discovery-questions';
-import { toElicitationRecord } from '@/lib/elicitation';
-import { CENTRE_START, distanceRun, quizStart, replayTrack, TRACK_TOLERANCE, type TrackStart } from '@/lib/track';
-import { buildPour, palateAfterPour } from '@/lib/pours.server';
-import { derivePalateRecord } from '@/lib/sensory';
+import { answerQuestion, beliefToProfile, createInitialBelief } from '@/lib/palate/belief-state';
+import { questions } from '@/lib/palate/discovery-questions';
+import { toElicitationRecord } from '@/lib/palate/elicitation';
+import { CENTRE_START, distanceRun, quizStart, replayTrack, TRACK_TOLERANCE, type TrackStart } from '@/lib/palate/track';
+import { buildPour, palateAfterPour } from '@/lib/pours/pours.server';
+import { derivePalateRecord } from '@/lib/palate/sensory';
 import { decodePalate, encodePalate, type PourRecord } from '@/lib/atproto/records';
-import { guestShift } from '@/lib/guest-palate';
-import { guestPourRecord, toLogOptions, type PourEntry } from '@/lib/pour-entry';
-import type { UserProfile } from '@/hooks/useDiscoveryQuiz';
+import { guestShift } from '@/lib/palate/guest-palate';
+import { guestPourRecord, toLogOptions, type PourEntry } from '@/lib/pours/pour-entry';
+import type { UserProfile } from '@/lib/palate/profile';
 
 /**
  * The track is replayed, never stored, so it is only as good as its replay:
@@ -62,7 +62,7 @@ describe('a member: the server path', () => {
   const records: PourRecord[] = [];
   const positions = [{ x: palate.mapCoordinates.x, y: palate.mapCoordinates.y }];
   pours.forEach((e, i) => {
-    const built = buildPour(toLogOptions(e), {}, timeOf(i));
+    const built = buildPour(toLogOptions(e), timeOf(i));
     if (!built.ok) throw new Error(built.error);
     palate = decodePalate(encodePalate(palateAfterPour(palate, built.pour, timeOf(i))))!;
     records.push(built.pour.record);

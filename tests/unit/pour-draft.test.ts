@@ -1,5 +1,5 @@
 import { test, expect } from 'vitest';
-import { cleanDraft, draftPath, parseDraft, parseRateRequest, withoutRateRequest } from '../../src/lib/pour-draft';
+import { cleanDraft, draftPath, parseDraft, parseRateRequest, withoutRateRequest } from '../../src/lib/pours/pour-draft';
 import { draftPour, type ToolContext } from '../../src/lib/mcp/tools';
 
 /**

@@ -4,111 +4,40 @@ import { PalateMap } from '../components/app/PalateMap';
 import { MapCode } from '../components/app/MapCode';
 import { Notice } from '../components/app/ui';
 import { account as accountCopy, coaster, explore, publicMap, settings as copy, site } from '../lib/copy';
-import { readPublicPalate } from '../lib/atproto/public-read';
-import { memberCodeUrl, qrPath } from '../lib/coaster';
-import { sampleTerrain } from '../lib/terrain';
-import { ratingsOf, terrainOf } from '../lib/taste-reading';
-import { accountFor, oauthSession } from '../lib/atproto/session';
-import { AUTH_BASE_PATH, publicMapPath, startOverPath } from '../lib/atproto/paths';
-import { getPalateProfile, shareToFeed } from '../lib/atproto/publish';
-import { authorizeContext } from '../lib/mcp/authorize-context.server';
-import { disconnectAssistant, listAssistants, type ConnectedAssistant } from '../lib/settings/assistants.server';
-import { quadrantFor } from '../lib/quadrant';
-import { closestDrinks } from '../lib/drink-search';
-import { loadRegister } from '../lib/register.server';
-import { titleOf } from '../lib/register';
+import { accountFor } from '../lib/atproto/session';
+import { AUTH_BASE_PATH, startOverPath } from '../lib/atproto/paths';
 import { accountHref, signIn } from '../lib/site-nav';
+import { handleSettingsPost, loadSettingsPage } from '../lib/pages/settings.server';
 
 /**
- * A member's account, on their map, as rows in the card: who they are
- * signed in as and signing out (the only place it is offered), their link
- * (`/p/<handle>`) and sharing it, their code (drawn over their map; it prints
- * as a coaster), the chat assistants they have let act as them
- * (src/lib/settings/assistants.server.ts), and starting over.
- * Server-rendered with plain form posts, so it ships no JavaScript.
- *
- * Who is asking comes from the session cookie and nothing else: a Disconnect
- * names only a grant id, and grants are stored under the member, so another
- * member's id revokes nothing. Astro refuses cross-site form posts
- * (`security.checkOrigin`), and the session cookie is `SameSite=Lax`.
+ * A member's account, on their map, as rows in the card. Server-rendered with
+ * plain form posts, so it ships no JavaScript. Form handling and data loading
+ * live in `src/lib/pages/settings.server.ts`.
  */
 export const prerender = false;
 
 const account = await accountFor(Astro.request, false);
 if (account.kind !== 'member') return Astro.redirect(signIn.href, 303);
 
-const context = await authorizeContext(Astro.url);
-
 if (Astro.request.method === 'POST') {
-  const form = await Astro.request.formData().catch(() => null);
-  if (form?.get('intent') === 'share') {
-    // The post links to the map by DID: a handle can change and a post is never rewritten.
-    let outcome = 'shared';
-    try {
-      const session = await oauthSession(Astro.request);
-      const palate = session ? await getPalateProfile(session) : null;
-      const at = palate?.mapCoordinates;
-      if (!session || !at) {
-        outcome = 'nomap';
-      } else {
-        const nearest = closestDrinks(at, 1)[0];
-        const register = await loadRegister();
-        const mapUrl = new URL(publicMapPath(session.did), Astro.url.origin).toString();
-        await shareToFeed(session, nearest ? titleOf(register, nearest.name) : '', quadrantFor(at.x, at.y).name, mapUrl);
-      }
-    } catch (e) {
-      console.error('Could not share to the feed:', e);
-      outcome = 'sharefailed';
-    }
-    return Astro.redirect(`/settings?${outcome}=1#map`, 303);
-  }
-
-  let outcome = 'disconnected';
-  try {
-    if (!context) throw new Error('Assistants are off here');
-    await disconnectAssistant(context.oauth, account.did, String(form?.get('grant') ?? ''));
-  } catch (e) {
-    console.error('Could not disconnect an assistant:', e);
-    outcome = 'failed';
-  }
-  // Post, then redirect: a reload must not post again.
-  return Astro.redirect(`/settings?${outcome}=1#assistants`, 303);
+  return Astro.redirect(await handleSettingsPost(Astro.request, Astro.url, account), 303);
 }
 
-let assistants: ConnectedAssistant[] | null = null;
-let listFailed = false;
-if (context) {
-  try {
-    assistants = await listAssistants(context.oauth, account.did);
-  } catch (e) {
-    console.error('Could not list connected assistants:', e);
-    listFailed = true;
-  }
-}
-
-const has = (key: string) => Astro.url.searchParams.has(key);
-const assistantNotice = has('disconnected') ? copy.disconnected : has('failed') ? copy.disconnectFailed : null;
-const mapNotice = has('shared')
-  ? { text: copy.shared, error: false }
-  : has('sharefailed')
-    ? { text: copy.shareFailed, error: true }
-    : has('nomap')
-      ? { text: copy.shareNoMap, error: true }
-      : null;
-// Your taste, read as anyone reading your map would read it (`taste-reading.ts`): the ground
-// behind the card, and under your code.
-const palate = await readPublicPalate(account.did, { taste: true });
-const ground =
-  palate.status === 'ok'
-    ? sampleTerrain(terrainOf(palate.taste?.start ?? null, palate.palate, palate.taste?.pours ?? []), 0.5)
-    : null;
-const rated = palate.status === 'ok' ? ratingsOf(palate.taste?.pours ?? []) : new Map<string, number>();
-const codeHref = memberCodeUrl(Astro.url.origin, account.did);
-const qr = qrPath(codeHref);
+const {
+  assistantsEnabled,
+  assistants,
+  listFailed,
+  assistantNotice,
+  mapNotice,
+  ground,
+  rated,
+  codeHref,
+  qr,
+  name,
+  mapHref,
+} = await loadSettingsPage(Astro.url, account);
 
 const date = (d: Date) => d.toLocaleDateString('en', { year: 'numeric', month: 'long', day: 'numeric' });
-const name = account.handle ? `@${account.handle}` : account.did;
-const mapHref = publicMapPath(account.handle ?? account.did);
 const link = 'link-inline';
 // One row: what it is, a line about it, and its action on the right.
 const row = 'flex items-center justify-between gap-4 border-b border-border py-4';
@@ -185,7 +114,7 @@ Astro.response.headers.set('Cache-Control', 'no-store');
       }
 
       {
-        !context ? (
+        !assistantsEnabled ? (
           <p class="border-b border-border py-4 text-ui text-muted-foreground">
             {copy.assistantsOff} <a href="/mcp" class={link}>{copy.howToSetUp}</a>
           </p>

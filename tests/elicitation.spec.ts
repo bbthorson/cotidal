@@ -1,8 +1,8 @@
 import { test, expect } from '@playwright/test';
-import { createInitialBelief, answerQuestion } from '../src/lib/belief-state';
-import { selectNextQuestion } from '../src/lib/question-selector';
-import { type Question } from '../src/lib/discovery-questions';
-import { toElicitationRecord } from '../src/lib/elicitation';
+import { createInitialBelief, answerQuestion } from '../src/lib/palate/belief-state';
+import { selectNextQuestion } from '../src/lib/palate/question-selector';
+import { type Question } from '../src/lib/palate/discovery-questions';
+import { toElicitationRecord } from '../src/lib/palate/elicitation';
 import { ElicitationRecordSchema } from '../src/lib/atproto/records';
 
 /**
@@ -27,11 +27,8 @@ function answerQuiz(n: number, pick: (i: number, q: Question) => number) {
 }
 
 test('Answers route: a guest cannot write answers', async ({ request }) => {
-  const res = await request.post('/api/atproto-publish', {
-    data: {
-      action: 'publishElicitation',
-      record: toElicitationRecord(answerQuiz(4, () => 0).belief.responses),
-    },
+  const res = await request.post('/api/me/elicitation', {
+    data: toElicitationRecord(answerQuiz(4, () => 0).belief.responses),
   });
   expect(res.status()).toBe(401);
   expect((await res.json()).success).toBe(false);

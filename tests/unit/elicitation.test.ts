@@ -1,9 +1,9 @@
 import { test, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
-import { createInitialBelief, answerQuestion, RESPONSE_MODEL } from '../../src/lib/belief-state';
-import { selectNextQuestion } from '../../src/lib/question-selector';
-import { questions, type Question } from '../../src/lib/discovery-questions';
-import { toElicitationRecord } from '../../src/lib/elicitation';
+import { createInitialBelief, answerQuestion, RESPONSE_MODEL } from '../../src/lib/palate/belief-state';
+import { selectNextQuestion } from '../../src/lib/palate/question-selector';
+import { questions, type Question } from '../../src/lib/palate/discovery-questions';
+import { toElicitationRecord } from '../../src/lib/palate/elicitation';
 import { ELICITATION_COLLECTION, ElicitationRecordSchema } from '../../src/lib/atproto/records';
 
 /**

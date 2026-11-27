@@ -14,8 +14,8 @@ import {
   type PourRecord,
 } from './records';
 import type { OAuthSession } from '@bbthorson/atproto-cf-auth/server';
-import type { UserProfile } from '@/hooks/useDiscoveryQuiz';
-import { derivePalateRecord } from '../sensory';
+import type { UserProfile } from '@/lib/palate/profile';
+import { derivePalateRecord } from '../palate/sensory';
 import { feedPost } from '../copy';
 import { fitString, graphemeLength, utf8Length } from './lex-string';
 

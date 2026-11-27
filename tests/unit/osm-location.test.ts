@@ -1,10 +1,10 @@
 import { test, expect } from 'vitest';
 import { readFileSync, readdirSync } from 'node:fs';
 import { Lexicons } from '@atproto/lexicon';
-import { formatDistance, overpassFailure, overpassQuery, parseOverpass, roundPoint } from '../../src/lib/osm';
+import { formatDistance, overpassFailure, overpassQuery, parseOverpass, roundPoint } from '../../src/lib/drinks/osm';
 import { GEO_TYPE, geoLocation, readGeo } from '../../src/lib/atproto/location';
-import { draftPath, parseDraft } from '../../src/lib/pour-draft';
-import { buildPour } from '../../src/lib/pours.server';
+import { draftPath, parseDraft } from '../../src/lib/pours/pour-draft';
+import { buildPour } from '../../src/lib/pours/pours.server';
 import { POUR_COLLECTION } from '../../src/lib/atproto/records';
 
 const here = { lat: 40.7223, lon: -73.9883 };
@@ -75,7 +75,7 @@ test('Draft: a barâ€™s point travels in the link, and only with a bar', () => {
 });
 
 test('Pour: a bar from the map is written with where it is; a point that does not parse is left out', () => {
-  const written = buildPour({ drinkName: 'Negroni', rating: 8, venue: { name: 'Attaboy', lat: 40.7223, lng: -73.9883 } }, {});
+  const written = buildPour({ drinkName: 'Negroni', rating: 8, venue: { name: 'Attaboy', lat: 40.7223, lng: -73.9883 } });
   expect(written.ok).toBe(true);
   if (!written.ok) return;
   expect(written.pour.record.venue).toEqual({
@@ -83,7 +83,7 @@ test('Pour: a bar from the map is written with where it is; a point that does no
     address: { $type: GEO_TYPE, latitude: '40.722300', longitude: '-73.988300', name: 'Attaboy' },
   });
 
-  const unplaced = buildPour({ drinkName: 'Negroni', rating: 8, venue: { name: 'Attaboy', lat: 400, lng: 0 } }, {});
+  const unplaced = buildPour({ drinkName: 'Negroni', rating: 8, venue: { name: 'Attaboy', lat: 400, lng: 0 } });
   expect(unplaced.ok && unplaced.pour.record.venue).toEqual({ entity: { name: 'Attaboy' } });
 });
 
@@ -94,7 +94,7 @@ test('Pour: the reference validator accepts the location against the communityâ€
     .map((f) => JSON.parse(readFileSync(`tests/fixtures/community-lexicon/${f}`, 'utf8')));
   const reference = new Lexicons([...ours, ...theirs]);
 
-  const written = buildPour({ drinkName: 'Negroni', rating: 8, venue: { name: 'Attaboy', lat: 40.7223, lng: -73.9883 } }, {});
+  const written = buildPour({ drinkName: 'Negroni', rating: 8, venue: { name: 'Attaboy', lat: 40.7223, lng: -73.9883 } });
   expect(written.ok).toBe(true);
   if (!written.ok) return;
   expect(() => reference.assertValidRecord(POUR_COLLECTION, written.pour.record)).not.toThrow();

@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
-import { drinkDatabase } from '@/lib/data';
-import { evidenceFor, menuOf, nearestHilltop, ratingsOf, terrainOf } from '@/lib/taste-reading';
+import { drinkDatabase } from '@/lib/drinks/data';
+import { evidenceFor, menuOf, nearestHilltop, ratingsOf, terrainOf } from '@/lib/palate/taste-reading';
 
 /**
  * Reading someone's taste (`taste-reading.ts`): the rules their map and the

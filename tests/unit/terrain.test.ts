@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest';
-import { drinkDatabase } from '@/lib/data';
-import { quadrantIdFor } from '@/lib/quadrant';
-import { createInitialPalateState, applyPour } from '@/lib/palate-state';
+import { drinkDatabase } from '@/lib/drinks/data';
+import { quadrantIdFor } from '@/lib/map/coordinates';
+import { createInitialPalateState, applyPour } from '@/lib/palate/palate-state';
 import {
   buildTerrain,
   drinkHeight,
@@ -17,7 +17,7 @@ import {
   SIGNAL_SD,
   type TerrainPour,
   type TerrainStart,
-} from '@/lib/terrain';
+} from '@/lib/palate/terrain';
 
 /**
  * The terrain replaces a point with ground: these hold it to what a point

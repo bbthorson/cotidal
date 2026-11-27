@@ -1,22 +1,20 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { drinkDatabase, type Drink } from '@/lib/data';
+import { drinkDatabase, type Drink } from '@/lib/drinks/data';
 import { savePick } from '@/lib/device-store';
 import { chart, compass, mapPage } from '@/lib/copy';
-import { titleOf, type Register } from '@/lib/register';
-import { userFromProfile } from '@/lib/profile';
-import { barsFromPours, foldName, lastPourByDrink, logTotals } from '@/lib/pour-history';
-import { drinksAtSameSpot, namesMatching, searchDrinks, unlistedBar } from '@/lib/drink-search';
-import { addMenuLines, rankMenu, type MenuItem } from '@/lib/menu-rank';
-import { readMapView } from '@/lib/map-url';
-import type { Side } from '@/lib/compare';
-import { quadrantIdFor, type QuadrantId } from '@/lib/quadrant';
-import { buildTerrain, evidenceAt, kindOf, leanings, sampleTerrain, type TerrainStart } from '@/lib/terrain';
-import { distanceRun } from '@/lib/track';
+import { titleOf, type Register } from '@/lib/drinks/register';
+import { userFromProfile } from '@/lib/palate/profile';
+import { barsFromPours, foldName, lastPourByDrink, logTotals } from '@/lib/pours/pour-history';
+import { drinksAtSameSpot, namesMatching, searchDrinks, unlistedBar } from '@/lib/drinks/search';
+import { addMenuLines, rankMenu, type MenuItem } from '@/lib/drinks/menu-rank';
+import { readMapView, readMenuHandoff, VIEW_PARAMS } from '@/lib/map/map-url';
+import type { Side } from '@/lib/palate/compare';
+import { quadrantIdFor, type QuadrantId } from '@/lib/map/coordinates';
+import { buildTerrain, evidenceAt, kindOf, leanings, sampleTerrain, type TerrainStart } from '@/lib/palate/terrain';
+import { distanceRun } from '@/lib/palate/track';
+import { useMemberData } from '@/hooks/useMemberData';
 import { useMenu } from '@/hooks/useMenu';
 import { useNearby } from '@/hooks/useNearby';
-import { usePours } from '@/hooks/usePours';
-import { useProfile } from '@/hooks/useProfile';
-import { useQuizStart } from '@/hooks/useQuizStart';
 import { useRateSheet } from '@/hooks/useRateSheet';
 import { useTrack } from '@/hooks/useTrack';
 
@@ -52,14 +50,12 @@ export function useExplore(
   initialRegion: QuadrantId | null = null
 ) {
   const isMember = !!member;
-  const [profile, setProfile, forgetProfile] = useProfile(isMember);
-  const { pours, reload } = usePours(isMember);
+  const { profile, setProfile, forgetProfile, pours, start, reload } = useMemberData(isMember);
   const history = useMemo(() => pours ?? [], [pours]);
   const rate = useRateSheet();
-  const start = useQuizStart(isMember);
   const user = useMemo(() => userFromProfile(profile), [profile]);
   const { scored, menu } = useMenu(user, profile?.vibeTags, history, start);
-  const { track, fromQuiz } = useTrack(isMember, profile, pours);
+  const { track, fromQuiz } = useTrack(isMember, profile, pours, start);
   const nearby = useNearby();
   const name = useCallback((n: string) => titleOf(register, n), [register]);
 
@@ -135,16 +131,54 @@ export function useExplore(
     },
     [register]
   );
+  const syncMapUrl = useCallback((drinkName: string | null, regionId: QuadrantId | null) => {
+    if (typeof window === 'undefined') return;
+    const url = new URL(window.location.href);
+    // Rating links own `drink=` for the pour, not the view.
+    if (url.searchParams.has('rate') || url.searchParams.get('draft') === '1') return;
+    const slug = drinkName ? drinkDatabase.find((d) => d.name === drinkName)?.slug : undefined;
+    if (slug) url.searchParams.set(VIEW_PARAMS.drink, slug);
+    else url.searchParams.delete(VIEW_PARAMS.drink);
+    if (regionId) url.searchParams.set(VIEW_PARAMS.region, regionId);
+    else url.searchParams.delete(VIEW_PARAMS.region);
+    const next = url.pathname + url.search + url.hash;
+    const current = window.location.pathname + window.location.search + window.location.hash;
+    if (next !== current) window.history.pushState({}, '', next);
+  }, []);
+
   const leaveBar = () => {
     setVenue(null);
     setItems([]);
     setSelected(null);
   };
   const chooseDrink = (drinkName: string) => {
-    setSelected((s) => (s === drinkName ? null : drinkName));
+    const next = selected === drinkName ? null : drinkName;
+    setSelected(next);
     setQueryState('');
     setUp(false);
+    syncMapUrl(next, region);
   };
+  const closeDrink = () => {
+    setSelected(null);
+    syncMapUrl(null, region);
+  };
+  const openRegion = (id: QuadrantId | null) => {
+    setRegion(id);
+    setSelected(null);
+    setQueryState('');
+    syncMapUrl(null, id);
+  };
+
+  useEffect(() => {
+    const onPopState = () => {
+      const { drink, region: regionId } = readMapView(new URLSearchParams(window.location.search));
+      setSelected(drink?.name ?? null);
+      setRegion(regionId);
+      setUp(false);
+    };
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+  }, []);
 
   // Arrivals: ?drink=<slug> (not on ?draft= or ?rate= links), ?menu=1, ?venue=<handle>.
   useEffect(() => {
@@ -156,8 +190,12 @@ export function useExplore(
       setSelected(drink.name);
       return;
     }
-    if (params.get('menu') === '1') {
-      openBar({ name: null });
+    const handoff = readMenuHandoff(params);
+    if (handoff) {
+      openBar({
+        name: handoff.bar,
+        ...(handoff.items.length > 0 ? { initialLines: handoff.items } : {}),
+      });
       return;
     }
     const handle = params.get('venue')?.trim();
@@ -233,6 +271,7 @@ export function useExplore(
     forgetProfile,
     pours,
     history,
+    start,
     reload,
     register,
     name,
@@ -248,6 +287,7 @@ export function useExplore(
     setHover,
 
     // Your menu, each drink with what put it there
+    scored,
     menu: menu.map((d) => ({ ...d, reason: reasonFor(d) })),
     reasonFor,
 
@@ -268,14 +308,10 @@ export function useExplore(
     selectedDrink,
     sameSpot: selectedDrink ? drinksAtSameSpot(selectedDrink) : [],
     chooseDrink,
-    closeDrink: () => setSelected(null),
+    closeDrink,
     region,
     regionDrinks: region ? drinkDatabase.filter((d) => quadrantIdFor(d.x, d.y) === region).sort((a, b) => name(a.name).localeCompare(name(b.name))) : [],
-    openRegion: (id: QuadrantId | null) => {
-      setRegion(id);
-      setSelected(null);
-      setQueryState('');
-    },
+    openRegion,
     venue,
     barName,
     typedBar,

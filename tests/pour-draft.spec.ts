@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { draftPath } from '../src/lib/pour-draft';
+import { draftPath } from '../src/lib/pours/pour-draft';
 import { coldState, compass, explore, moved, pour, ratePage } from '../src/lib/copy';
 
 /**

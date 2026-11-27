@@ -2,7 +2,7 @@ import { useMemo, useState, useEffect } from 'react';
 import { useAtproto, type MemberIdentity } from '@/hooks/use-atproto';
 import { forgetDevice } from '@/lib/device-store';
 import { SIGNED_OUT_PARAM } from '@/lib/atproto/paths';
-import { takeParam } from '@/lib/url-params';
+import { takeParam } from '@/lib/utils';
 import { AtprotoContext } from './AtprotoContext';
 import { SignInSheet } from './SignInSheet';
 

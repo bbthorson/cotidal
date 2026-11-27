@@ -1,6 +1,6 @@
 import { describe, test, expect } from 'vitest';
 import { checkRateLimit } from '../../src/lib/rate-limit';
-import { defaultRateLimitConfig } from '../../src/lib/rate-limit-logic';
+import { defaultRateLimitConfig } from '../../src/lib/rate-limit';
 
 /**
  * The model routes previously called a `checkRateLimit` that unconditionally

@@ -1,42 +1,105 @@
-import { useMemo, useState, type Dispatch, type SetStateAction } from 'react';
-import { drinkDatabase } from '@/lib/data';
-import { addMenuLine, addMenuLines, type MenuItem, type RankedDrink } from '@/lib/menu-rank';
-import { clashingAversions } from '@/lib/ingredient-match';
-import { chart, compass, explore, mcp, menu } from '@/lib/copy';
-import { titleOf, type Register } from '@/lib/register';
-import type { UserProfile } from '@/hooks/useDiscoveryQuiz';
+import { useMemo, useRef, useState, type ChangeEvent, type Dispatch, type SetStateAction } from 'react';
+import { drinkDatabase } from '@/lib/drinks/data';
+import { addMenuLine, addMenuLines, type MenuItem, type RankedDrink } from '@/lib/drinks/menu-rank';
+import { summarizeCoverage } from '@/lib/drinks/menu-audit';
+import { clashingAversions } from '@/lib/drinks/ingredient-match';
+import { captureMenu, type CaptureMenuResponse } from '@/lib/api-client';
+import { chart, compass, explore, mcp, menu, overlays as overlayCopy } from '@/lib/copy';
+import { titleOf, type Register } from '@/lib/drinks/register';
+import type { UserProfile } from '@/lib/palate/profile';
+import { rankForTable, type TableMember } from '@/lib/palate/overlays';
+import { quadrantFor, type QuadrantId } from '@/lib/map/coordinates';
 import type { Venue } from '@/hooks/useExplore';
 import { questionsHref } from '@/lib/site-nav';
 import { cn } from '@/lib/utils';
 import { DrinkRow } from './DrinkRow';
-import { Empty, ScreenHeader, SectionTitle } from './ui';
+import { Empty, Readout, ScreenHeader, SectionTitle } from './ui';
 
 /**
  * A bar open on the map, in the card: a bar's menu, or one with no bar. Type
  * or paste what they pour (each line is matched to the map, `addMenuLine` /
  * `addMenuLines`) and each placed drink becomes a numbered pin on your map,
- * ranked for you (`rankMenu`, done by `useExplore` so the map and this list
- * agree); pick one. Unplaced house cocktails still warn on avoided flavours
- * and hint at close classics when ingredients are present. The pick is kept
- * on the device as a waiting pick. It orders nothing: Cotidal is not
- * connected to the bar.
+ * ranked for you (`rankMenu`, or `rankForTable` when a friend/table overlay is
+ * active); pick one. Unplaced house cocktails still warn on avoided flavours
+ * and hint at close classics when ingredients are present.
  */
+/** Compress a selected menu image to <= 1600px JPEG base64 for fast upload. */
+async function compressImageFile(file: File): Promise<{ base64: string; mimeType: 'image/jpeg' } | null> {
+  try {
+    const bitmap = await createImageBitmap(file);
+    const maxDim = 1600;
+    const scale = Math.min(1, maxDim / Math.max(bitmap.width, bitmap.height));
+    const width = Math.max(1, Math.round(bitmap.width * scale));
+    const height = Math.max(1, Math.round(bitmap.height * scale));
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return null;
+    ctx.drawImage(bitmap, 0, 0, width, height);
+    bitmap.close?.();
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+    const base64 = dataUrl.split(',')[1];
+    return base64 ? { base64, mimeType: 'image/jpeg' } : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Merge any Clef directional enrichments from `/api/menu/capture` onto parsed `MenuItem`s. */
+function mergeCapturedItems(
+  prev: MenuItem[],
+  res: CaptureMenuResponse,
+  register: Register
+): MenuItem[] {
+  const base = addMenuLines(prev, res.lines.join('\n'), register);
+  const byLabel = new Map(res.items.map((i) => [i.label.toLowerCase(), i]));
+  return base.map((item) => {
+    if (item.drink || item.directional) return item;
+    const captured = byLabel.get(item.label.toLowerCase());
+    if (!captured?.directional) return item;
+    const closest = captured.directional.closestClassicName
+      ? drinkDatabase.find((d) => d.name === captured.directional!.closestClassicName) ?? null
+      : null;
+    return {
+      ...item,
+      directional: {
+        x: captured.directional.x,
+        y: captured.directional.y,
+        quadrant: captured.directional.quadrant as QuadrantId,
+        confidence: captured.directional.confidence,
+        primitives: [],
+        aversions: captured.directional.aversions,
+        closestClassic: closest,
+      },
+      ...(closest ? { relative: closest } : {}),
+    };
+  });
+}
+
 export function MenuView({
   venue,
   register,
   profile,
+  isMember = false,
+  signInEnabled = false,
+  onSignIn,
   items,
   setItems,
   typedBar,
   setTypedBar,
   ranked,
   reasonFor,
+  tableMembers,
   onBack,
   onPick,
 }: {
   venue: Venue;
   register: Register;
   profile: UserProfile | null;
+  isMember?: boolean;
+  signInEnabled?: boolean;
+  onSignIn?: () => void;
   items: MenuItem[];
   setItems: Dispatch<SetStateAction<MenuItem[]>>;
   /** A menu with no bar to start from can still say which bar it is. */
@@ -45,6 +108,8 @@ export function MenuView({
   /** The menu's placed drinks, ranked: the pins on the map, numbered the same. */
   ranked: RankedDrink[];
   reasonFor: (drink: RankedDrink['drink']) => string;
+  /** When a friend/table overlay is active, rank this bar's placed drinks for the group. */
+  tableMembers?: TableMember[];
   onBack: () => void;
   onPick: (drinkName: string) => void;
 }) {
@@ -52,9 +117,22 @@ export function MenuView({
   const [pasting, setPasting] = useState(false);
   const [pasteText, setPasteText] = useState('');
   const [choice, setChoice] = useState<string | null>(null);
+  const [scanning, setScanning] = useState(false);
+  const [photoMessage, setPhotoMessage] = useState<string | null>(null);
+  const [showSignInNudge, setShowSignInNudge] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const bar = (venue.name ?? typedBar).trim() || null;
-  const chosen = choice ?? ranked[0]?.drink.name;
+  const isGroup = !!tableMembers && tableMembers.length >= 2;
+  const displayRanked = useMemo(() => {
+    if (!isGroup || !tableMembers) return ranked.map((r) => r.drink);
+    return rankForTable(
+      tableMembers,
+      ranked.map((r) => r.drink)
+    );
+  }, [isGroup, tableMembers, ranked]);
+  const footprint = useMemo(() => summarizeCoverage(items), [items]);
+  const chosen = choice ?? displayRanked[0]?.name;
   const aversions = useMemo(
     () => ({
       smoke: profile?.dislikesSmoke ?? false,
@@ -73,6 +151,48 @@ export function MenuView({
     setItems((prev) => addMenuLines(prev, pasteText, register));
     setPasteText('');
     setPasting(false);
+  };
+
+  const onPhotoButtonClick = () => {
+    setPhotoMessage(null);
+    if (!isMember) {
+      setShowSignInNudge(true);
+      return;
+    }
+    fileInputRef.current?.click();
+  };
+
+  const onPhotoSelected = async (ev: ChangeEvent<HTMLInputElement>) => {
+    const file = ev.target.files?.[0];
+    ev.target.value = '';
+    if (!file) return;
+    setScanning(true);
+    setPhotoMessage(null);
+    const compressed = await compressImageFile(file);
+    if (!compressed) {
+      setScanning(false);
+      setPhotoMessage(compass.atMenu.photoEmpty);
+      return;
+    }
+    const res = await captureMenu({ image: compressed.base64, mimeType: compressed.mimeType });
+    setScanning(false);
+    if (!res) {
+      setPhotoMessage(compass.atMenu.photoEmpty);
+      return;
+    }
+    if (res.requiresSignIn) {
+      setShowSignInNudge(true);
+      return;
+    }
+    if (res.outcome === 'rate-limited') {
+      setPhotoMessage(compass.atMenu.photoRateLimited);
+      return;
+    }
+    if (res.lines.length === 0) {
+      setPhotoMessage(compass.atMenu.photoEmpty);
+      return;
+    }
+    setItems((prev) => mergeCapturedItems(prev, res, register));
   };
 
   const pick = () => {
@@ -145,15 +265,34 @@ export function MenuView({
           </form>
 
           {!pasting ? (
-            <button
-              type="button"
-              onClick={() => setPasting(true)}
-              aria-expanded={false}
-              className="link-caps mt-2 text-secondary hover:underline hover:underline-offset-4"
-            >
-              {/* "+": it opens here. "→" is for what goes somewhere ("Have a menu? →"). */}
-              {compass.atMenu.pasteToggle} +
-            </button>
+            <div className="mt-2 flex flex-wrap items-center gap-x-5 gap-y-2">
+              <button
+                type="button"
+                onClick={() => setPasting(true)}
+                aria-expanded={false}
+                className="link-caps text-secondary hover:underline hover:underline-offset-4"
+              >
+                {/* "+": it opens here. "→" is for what goes somewhere ("Have a menu? →"). */}
+                {compass.atMenu.pasteToggle} +
+              </button>
+              <button
+                type="button"
+                disabled={scanning}
+                onClick={onPhotoButtonClick}
+                data-testid="menu-scan-photo"
+                className="link-caps text-secondary hover:underline hover:underline-offset-4 disabled:opacity-50"
+              >
+                {scanning ? compass.atMenu.scanningPhoto : compass.atMenu.scanPhoto}
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                onChange={onPhotoSelected}
+                className="sr-only"
+                aria-label={compass.atMenu.scanPhoto}
+              />
+            </div>
           ) : (
             <form
               onSubmit={(e) => {
@@ -187,6 +326,23 @@ export function MenuView({
             </form>
           )}
 
+          {showSignInNudge && !isMember && (
+            <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-border pt-3" data-testid="photo-signin-nudge">
+              <p className="text-meta text-muted-foreground">{compass.atMenu.photoSignInNudge}</p>
+              {signInEnabled && onSignIn && (
+                <button type="button" onClick={onSignIn} className="btn btn-outline px-3">
+                  {compass.atMenu.photoSignInAction}
+                </button>
+              )}
+            </div>
+          )}
+
+          {photoMessage && (
+            <p className="mt-3 text-meta text-primary" role="status">
+              {photoMessage}
+            </p>
+          )}
+
           {items.length > 0 && (
             <ul className="mt-4 border-t border-foreground">
               {items.map((item) => {
@@ -199,7 +355,11 @@ export function MenuView({
                       <div className="flex flex-wrap items-baseline gap-x-2.5">
                         <span className="font-serif text-prose font-bold text-foreground">{item.label}</span>
                         <span className={cn('text-meta', item.drink ? 'text-secondary' : 'text-muted-foreground')}>
-                          {item.drink ? compass.atMenu.placed : compass.atMenu.unplaced}
+                          {item.drink
+                            ? compass.atMenu.placed
+                            : item.directional
+                              ? compass.atMenu.directional(quadrantFor(item.directional.x, item.directional.y).name)
+                              : compass.atMenu.unplaced}
                         </span>
                         {item.relative && (
                           <span className="text-meta text-muted-foreground">
@@ -229,14 +389,35 @@ export function MenuView({
               })}
             </ul>
           )}
-          <p className="mt-3 text-meta text-muted-foreground">{compass.atMenu.photoLater}</p>
 
-          {ranked.length > 0 && (
+          {footprint.placedCount >= 2 && (
+            <section className="mt-6" data-testid="bar-footprint">
+              <SectionTitle
+                aside={
+                  footprint.blindSpots.length > 0
+                    ? overlayCopy.footprintBlindSpots(footprint.blindSpots.map((b) => b.name))
+                    : overlayCopy.footprintBalanced
+                }
+              >
+                {overlayCopy.footprintTitle}
+              </SectionTitle>
+              <Readout
+                className="border-t-0"
+                cells={footprint.coverage
+                  .filter((c) => c.count > 0)
+                  .map((c) => ({ label: c.name, value: `${c.count} (${c.percent}%)`, figure: true }))}
+              />
+            </section>
+          )}
+
+          {displayRanked.length > 0 && (
             <section className="mt-6">
-              <SectionTitle>{bar ? compass.atMenu.rankedAt(bar) : compass.atMenu.rankedHome}</SectionTitle>
+              <SectionTitle aside={isGroup && tableMembers ? overlayCopy.groupMenuNote(tableMembers.length) : undefined}>
+                {bar ? compass.atMenu.rankedAt(bar) : compass.atMenu.rankedHome}
+              </SectionTitle>
               <p className="mt-2 text-meta text-muted-foreground">{compass.atMenu.rankedBody}</p>
               <ol>
-                {ranked.map(({ drink }, i) => (
+                {displayRanked.map((drink, i) => (
                   <DrinkRow
                     key={drink.name}
                     rank={i + 1}

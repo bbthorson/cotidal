@@ -1,5 +1,5 @@
 import { test, expect } from 'vitest';
-import { memberCodeUrl, qrPath } from '../../src/lib/coaster';
+import { memberCodeUrl, qrPath } from '../../src/lib/map/coaster';
 
 /**
  * A member's code (docs/coasters.md): their map by DID with nothing appended,

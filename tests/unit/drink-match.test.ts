@@ -1,6 +1,6 @@
 import { test, expect } from 'vitest';
-import { drinkDatabase } from '../../src/lib/data';
-import { baseName, drinkOf, matchDrink, normalizeName } from '../../src/lib/drink-match';
+import { drinkDatabase } from '../../src/lib/drinks/data';
+import { baseName, drinkOf, matchDrink, normalizeName } from '../../src/lib/drinks/search';
 
 test('Drink match: a name finds its drink without the parenthetical, its case or its accents', () => {
   expect(matchDrink('margarita')?.name).toBe("Margarita (Tommy's Style)");

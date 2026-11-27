@@ -1,4 +1,4 @@
-import type { UserProfile } from '@/hooks/useDiscoveryQuiz';
+import type { UserProfile } from '@/lib/palate/profile';
 import type { PourRecord, PerceivedIntensities, ElicitationRecord } from '@/lib/atproto/records';
 import type { BaseSpirit, Glassware } from '@/lib/atproto/vocab';
 import { apiErrors } from '@/lib/copy';
@@ -23,6 +23,12 @@ export interface LogDrinkOptions {
   crosspostToFeed?: boolean;
 }
 
+export interface MemberSnapshot {
+  profile: UserProfile | null;
+  pours: PourRecord[];
+  quiz: ElicitationRecord | null;
+}
+
 /** Why a drink suits you; `null` when the request failed, so the page shows nothing rather than a stand-in. */
 export async function explainDrinkMatch(drinkName: string, userProfile: unknown): Promise<string | null> {
   try {
@@ -40,12 +46,37 @@ export async function explainDrinkMatch(drinkName: string, userProfile: unknown)
   }
 }
 
+/** A signed-in member's palate, recent pours, and latest quiz in one request. */
+export async function getMemberSnapshot(limit = 50): Promise<MemberSnapshot> {
+  try {
+    const res = await fetch(`/api/me?limit=${limit}`);
+    const data = await res.json();
+    return {
+      profile: data.profile ?? null,
+      pours: Array.isArray(data.pours) ? data.pours : [],
+      quiz: data.quiz ?? null,
+    };
+  } catch {
+    return { profile: null, pours: [], quiz: null };
+  }
+}
+
+export async function getConnectedPours(limit = 50): Promise<PourRecord[]> {
+  try {
+    const res = await fetch(`/api/me/pours?limit=${limit}`);
+    const data = await res.json();
+    return Array.isArray(data.pours) ? data.pours : [];
+  } catch {
+    return [];
+  }
+}
+
 export async function publishPalate(profile: UserProfile): Promise<{ success: boolean; uri?: string; error?: string }> {
   try {
-    const res = await fetch('/api/atproto-publish', {
+    const res = await fetch('/api/me/palate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'publishPalate', profile }),
+      body: JSON.stringify(profile),
     });
     return await res.json();
   } catch {
@@ -55,10 +86,10 @@ export async function publishPalate(profile: UserProfile): Promise<{ success: bo
 
 async function postElicitation(record: ElicitationRecord): Promise<boolean> {
   try {
-    const res = await fetch('/api/atproto-publish', {
+    const res = await fetch('/api/me/elicitation', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'publishElicitation', record }),
+      body: JSON.stringify(record),
     });
     return !!(await res.json())?.success;
   } catch {
@@ -87,28 +118,14 @@ export async function flushPendingElicitation(record?: ElicitationRecord): Promi
   return ok;
 }
 
-export async function getConnectedPalate(): Promise<UserProfile | null> {
-  try {
-    const res = await fetch('/api/atproto-publish', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'getConnectedPalate' }),
-    });
-    const data = await res.json();
-    return data.profile ?? null;
-  } catch {
-    return null;
-  }
-}
-
 export async function logDrinkFeedback(
   options: LogDrinkOptions
 ): Promise<{ success: boolean; profile?: UserProfile; uri?: string; error?: string }> {
   try {
-    const res = await fetch('/api/atproto-publish', {
+    const res = await fetch('/api/me/pours', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'logDrinkFeedback', options }),
+      body: JSON.stringify(options),
     });
     return await res.json();
   } catch {
@@ -116,31 +133,60 @@ export async function logDrinkFeedback(
   }
 }
 
-/** A member's latest quiz, as logged: where their track starts. `null` signed out, or with none. */
-export async function getConnectedQuiz(): Promise<ElicitationRecord | null> {
+/** Fetch someone's public palate + tasting history for `/map` overlays (`with=` / `table=`). */
+export async function fetchPublicPalate(
+  actor: string
+): Promise<import('@/lib/atproto/public-read').PublicPalateResult> {
   try {
-    const res = await fetch('/api/atproto-publish', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'getConnectedQuiz' }),
-    });
-    const data = await res.json();
-    return data.quiz ?? null;
+    const res = await fetch(`/api/palate?actor=${encodeURIComponent(actor)}`);
+    return (await res.json()) as import('@/lib/atproto/public-read').PublicPalateResult;
   } catch {
-    return null;
+    return { status: 'unavailable', actor: null };
   }
 }
 
-export async function getConnectedPours(limit?: number): Promise<PourRecord[]> {
+export interface CaptureMenuResponse {
+  lines: string[];
+  items: {
+    label: string;
+    description?: string;
+    drinkName: string | null;
+    directional?: {
+      x: number;
+      y: number;
+      quadrant: string;
+      confidence: 'low' | 'medium';
+      aversions: { smoke: boolean; bitter: boolean; anise: boolean };
+      closestClassicName: string | null;
+    } | null;
+  }[];
+  method: 'photo' | 'manual';
+  requiresSignIn?: boolean;
+  outcome: string | null;
+}
+
+/** Capture a bar menu from a photo or pasted text via `/api/menu/capture`. */
+export async function captureMenu(payload: {
+  text?: string;
+  image?: string;
+  mimeType?: 'image/jpeg' | 'image/png' | 'image/webp';
+}): Promise<CaptureMenuResponse | null> {
   try {
-    const res = await fetch('/api/atproto-publish', {
+    const res = await fetch('/api/menu/capture', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'getConnectedPours', limit }),
+      body: JSON.stringify(payload),
     });
+    if (!res.ok) return null;
     const data = await res.json();
-    return data.pours ?? [];
+    return {
+      lines: Array.isArray(data.lines) ? data.lines : [],
+      items: Array.isArray(data.items) ? data.items : [],
+      method: data.method === 'photo' ? 'photo' : 'manual',
+      requiresSignIn: !!data.requiresSignIn,
+      outcome: res.headers.get('x-generation'),
+    };
   } catch {
-    return [];
+    return null;
   }
 }

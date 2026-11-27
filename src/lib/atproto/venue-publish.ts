@@ -8,7 +8,7 @@ import {
   type MenuRecord,
   type VenueRecord,
 } from './records';
-import { splitMenuLine } from '../ingredient-match';
+import { splitMenuLine } from '../drinks/ingredient-match';
 
 const VENUE_RKEY = 'self';
 

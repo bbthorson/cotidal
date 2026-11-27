@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { barsNear, type OsmBar } from '@/lib/osm';
+import { barsNear, type OsmBar } from '@/lib/drinks/osm';
 
 /**
  * `denied` is the reader's no, and only that; `unlocated` is the device not

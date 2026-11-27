@@ -1,7 +1,7 @@
 import { test, expect } from 'vitest';
 import { isFormSignOut, toSignedOut } from '../../src/lib/atproto/sign-out';
 import { signedOutPath } from '../../src/lib/atproto/paths';
-import { derivePalateRecord } from '../../src/lib/sensory';
+import { derivePalateRecord } from '../../src/lib/palate/sensory';
 import type { Palate } from '../../src/lib/atproto/records';
 
 /**

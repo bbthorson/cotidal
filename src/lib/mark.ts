@@ -1,4 +1,4 @@
-import { markGeometry, type MarkGeometry } from './chart-geometry.ts';
+import { markGeometry, type MarkGeometry } from './map/chart-geometry.ts';
 
 /**
  * The Cotidal mark, drawn once. `Monogram.astro` renders it in the header with

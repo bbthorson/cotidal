@@ -3,8 +3,8 @@ import {
   QUESTION_CATEGORIES,
   type Question,
   type QuestionOption,
-} from '@/lib/discovery-questions';
-import { MAX_QUESTIONS } from '@/lib/belief-state';
+} from '@/lib/palate/discovery-questions';
+import { MAX_QUESTIONS } from '@/lib/palate/belief-state';
 import { a11y, quiz } from '@/lib/copy';
 import { cn } from '@/lib/utils';
 

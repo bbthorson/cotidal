@@ -1,7 +1,7 @@
 import { test, expect } from 'vitest';
-import { createInitialBelief, answerQuestion } from '../../src/lib/belief-state';
-import { selectNextQuestion, expectedGain } from '../../src/lib/question-selector';
-import { questions, type Question } from '../../src/lib/discovery-questions';
+import { createInitialBelief, answerQuestion } from '../../src/lib/palate/belief-state';
+import { selectNextQuestion, expectedGain } from '../../src/lib/palate/question-selector';
+import { questions, type Question } from '../../src/lib/palate/discovery-questions';
 
 /**
  * The selector's contract, not its path: what makes a question worth asking.

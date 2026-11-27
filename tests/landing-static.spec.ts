@@ -1,8 +1,8 @@
 import { test, expect } from '@playwright/test';
-import { QUADRANT_ORDER, quadrantIdFor, regionPath } from '../src/lib/quadrant';
-import { drinkDatabase } from '../src/lib/data';
+import { QUADRANT_ORDER, quadrantIdFor, regionPath } from '../src/lib/map/coordinates';
+import { drinkDatabase } from '../src/lib/drinks/data';
 import { quadrants, drinks, explore, hero, nav as nav_, notFound, site } from '../src/lib/copy';
-import { SAMPLE_FRAMES, SAMPLE_POURS } from '../src/lib/sample-palate';
+import { SAMPLE_FRAMES, SAMPLE_POURS } from '../src/lib/palate/sample-palate';
 import { AUTH_ERROR_MESSAGES } from '@bbthorson/atproto-cf-auth/client';
 
 /**

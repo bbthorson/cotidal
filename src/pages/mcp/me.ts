@@ -3,7 +3,7 @@ import { answerMember, type ProviderContext } from '@/lib/mcp/member-endpoint';
 import { memberTools } from '@/lib/mcp/member-tools.server';
 import { readPublicPalate } from '@/lib/atproto/public-read';
 import { readPublicVenue } from '@/lib/atproto/venue-read';
-import { loadRegister } from '@/lib/register.server';
+import { loadRegister } from '@/lib/drinks/register.server';
 
 /**
  * One member's MCP endpoint (src/lib/mcp/member-endpoint.ts). Requests reach
@@ -29,6 +29,6 @@ export const ALL: APIRoute = async ({ request, locals, url }) => {
       register,
       origin: url.origin,
     },
-    (did) => memberTools(did, url.origin, register)
+    (did) => memberTools(did, url.origin)
   );
 };

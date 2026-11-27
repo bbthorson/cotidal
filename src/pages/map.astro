@@ -3,17 +3,17 @@ import AppShell from '../layouts/AppShell.astro';
 import AppBar from '../components/site/AppBar.astro';
 import Explore from '../components/app/Explore';
 import { site, explore, nav } from '../lib/copy';
-import { loadRegister } from '../lib/register.server';
+import { loadRegister } from '../lib/drinks/register.server';
 import { signInEnabled } from '../lib/atproto/auth';
 import { accountFor } from '../lib/atproto/session';
 import { mapHref } from '../lib/site-nav';
-import { readMapView, viewHref } from '../lib/map-url';
+import { readMapView, viewHref } from '../lib/map/map-url';
 import { publicMapPath } from '../lib/atproto/paths';
-import { loadDrinkEntry } from '../lib/drink-entry.server';
-import { loadRegionEntry } from '../lib/region-entry.server';
+import { loadDrinkEntry } from '../lib/drinks/drink-entry.server';
+import { loadRegionEntry } from '../lib/map/region-entry.server';
 import { quadrants, share } from '../lib/copy';
 import { shareImagePath } from '../lib/share';
-import { regionPath } from '../lib/quadrant';
+import { regionPath } from '../lib/map/coordinates';
 
 /**
  * The app, on one screen: your map fixed in place, the search in the header,

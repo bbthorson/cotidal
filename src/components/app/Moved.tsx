@@ -1,13 +1,15 @@
 import { useEffect, useRef } from 'react';
-import { matchDrink } from '@/lib/drink-match';
-import { quadrantFor } from '@/lib/quadrant';
-import { describeMove } from '@/lib/coordinate';
+import { matchDrink } from '@/lib/drinks/search';
+import { describeMove, distanceBetween, quadrantFor } from '@/lib/map/coordinates';
+import { DISLIKED_AT, LIKED_AT } from '@/lib/palate/scoring';
 import { moved } from '@/lib/copy';
 
 interface MovedProps {
   from: { x: number; y: number };
   to: { x: number; y: number };
   drinkName: string;
+  /** The 1–9 hedonic point tapped, used to report how the pour shaped the terrain. */
+  hedonic?: number;
   /** "7 of 9" */
   scoreLabel: string;
   /**
@@ -23,10 +25,7 @@ interface MovedProps {
 /**
  * After a pour, in the rating sheet. The payoff of logging, shown every time:
  * how far it moved you ("Moved 0.7", or "Held." for a rating in the middle),
- * which way, and what changed on the menu, on the card's ink ground. Where
- * you were and where you are, with the drink that pulled you, are drawn on
- * the map above it (`Explore` draws `trail` and your point from `onReveal`),
- * not on a second chart. No shoal: one pour narrows it too little to see.
+ * which way, how it reshaped your ground, and what changed on the menu.
  */
 const same = (name: string) => name;
 
@@ -34,6 +33,7 @@ export function Moved({
   from,
   to,
   drinkName,
+  hedonic,
   scoreLabel,
   menuChange,
   displayName = same,
@@ -51,8 +51,17 @@ export function Moved({
   // A drink the map has no point for moves nothing (unless a deviation did): say why, not "barely a step".
   const stayed = !drink && from.x === to.x && from.y === to.y;
   // How far, as the log says it. A drink on the map that moved you nowhere was rated in the middle.
-  const distance = Math.round(Math.hypot(to.x - from.x, to.y - from.y) * 10) / 10;
+  const distance = distanceBetween(from, to);
   const held = !stayed && distance === 0;
+  const drinkRegion = drink ? quadrantFor(drink.x, drink.y) : null;
+  const groundNote =
+    drinkRegion && hedonic !== undefined
+      ? hedonic >= LIKED_AT
+        ? moved.groundRaised(drinkRegion.name)
+        : hedonic <= DISLIKED_AT
+          ? moved.groundLowered(drinkRegion.name)
+          : null
+      : null;
 
   const rows: { name: string; note: string }[] = [];
   // A drink with no point has no place on the menu to report.
@@ -88,6 +97,7 @@ export function Moved({
             </>
           )}
         </p>
+        {groundNote && <p className="text-meta text-reveal-muted">{groundNote}</p>}
       </div>
 
       {rows.length > 0 && (

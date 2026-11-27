@@ -1,0 +1,71 @@
+import { test, expect } from '@playwright/test';
+import { overlays as copy } from '../src/lib/copy';
+
+const profile = {
+  x: -5,
+  y: -5,
+  dislikesSmoke: false,
+  dislikesBitter: false,
+  dislikesAnise: false,
+  vibeTags: {},
+};
+
+const seedOnce = (p: typeof profile) => {
+  if (!localStorage.getItem('user_profile')) {
+    localStorage.setItem('user_profile', JSON.stringify(p));
+  }
+};
+
+test('Overlays: With someone draws comparison & against contours, and adding a second switches to Table mode', async ({ page }) => {
+  await page.addInitScript(seedOnce, profile);
+  await page.goto('/map');
+
+  const bar = page.getByTestId('overlay-bar');
+  await expect(bar).toBeVisible();
+
+  // Add 1 companion (surf.test) → With mode
+  await page.getByTestId('overlay-with-btn').click();
+  await page.getByRole('button', { name: copy.sampleSurf }).click();
+
+  await expect(page.getByTestId('companion-chip-surf.test')).toBeVisible();
+  await expect(page).toHaveURL(/with=surf\.test/);
+  await expect(page.getByTestId('overlay-with-comparison')).toBeVisible();
+  await expect(page.getByTestId('overlay-table-picks')).toBeVisible();
+  await expect(page.locator('[data-against]')).toHaveCount(1);
+
+  // Add a second companion (deep.test) → Table mode
+  await page.getByTestId('overlay-with-btn').click();
+  await page.getByRole('button', { name: copy.sampleDeep }).click();
+
+  await expect(page.getByTestId('companion-chip-deep.test')).toBeVisible();
+  await expect(page).toHaveURL(/table=surf\.test(%2C|,)deep\.test/);
+  await expect(page.getByTestId('overlay-table-picks')).toContainText(copy.tableTitle(3));
+});
+
+test('Overlays: Uncharted lens and Wine type filter compose cleanly', async ({ page }) => {
+  await page.addInitScript(seedOnce, profile);
+  await page.goto('/map');
+
+  await page.getByTestId('overlay-explore-btn').click();
+  await expect(page).toHaveURL(/lens=explore/);
+  await expect(page.getByTestId('overlay-explore-lists')).toBeVisible();
+
+  await page.getByTestId('overlay-type-wine').click();
+  await expect(page).toHaveURL(/type=wine/);
+  await expect(page.getByTestId('overlay-explore-lists')).toBeVisible();
+});
+
+test('Overlays: Opening a bar menu shows its region footprint summary', async ({ page }) => {
+  await page.addInitScript(seedOnce, profile);
+  await page.goto('/map?menu=1');
+
+  const input = page.getByLabel('A drink on their menu');
+  await input.fill('Negroni');
+  await page.getByRole('button', { name: 'Add', exact: true }).click();
+  await input.fill('Daiquiri');
+  await page.getByRole('button', { name: 'Add', exact: true }).click();
+
+  await expect(page.getByTestId('bar-footprint')).toBeVisible();
+  await expect(page.getByTestId('bar-footprint')).toContainText('The Deep');
+  await expect(page.getByTestId('bar-footprint')).toContainText('The Surf');
+});

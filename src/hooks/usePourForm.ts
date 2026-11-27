@@ -1,8 +1,8 @@
 import { useEffect, useState, type SubmitEvent } from 'react';
-import { matchDrink } from '@/lib/drink-match';
+import { matchDrink } from '@/lib/drinks/search';
 import type { AskedIntensity, BaseSpirit, CataNote, Deviation, Glassware } from '@/lib/atproto/vocab';
-import { entryFromFields, type PourEntry, type PourField } from '@/lib/pour-entry';
-import type { PourDraft } from '@/lib/pour-draft';
+import { entryFromFields, type PourEntry, type PourField } from '@/lib/pours/pour-entry';
+import type { PourDraft } from '@/lib/pours/pour-draft';
 
 /** Add it if absent, take it out if present. */
 function toggled<T>(list: T[], item: T): T[] {

@@ -3,8 +3,8 @@ import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import { z } from 'zod';
 import { mcp, quadrants } from '../copy';
 import { CATA, DEVIATIONS } from '../atproto/vocab';
-import { DRAFT_LIMITS } from '../pour-draft';
-import { regionPath } from '../quadrant';
+import { DRAFT_LIMITS } from '../pours/pour-draft';
+import { regionPath } from '../map/coordinates';
 import {
   comparePalates,
   draftPour,
@@ -104,10 +104,11 @@ export function createMcpServer(ctx: ToolContext): McpServer {
       inputSchema: {
         handle: who,
         items: z.array(menuEntrySchema).min(1).max(100).describe(t.rankMenu.items),
+        bar: z.string().trim().max(100).optional().describe(t.draftPour.bar),
       },
       annotations: readOnly,
     },
-    async ({ handle, items }) => answer(await rankMenu(actor(handle), items, ctx))
+    async ({ handle, items, bar }) => answer(await rankMenu(actor(handle), items, ctx, bar))
   );
 
   server.registerTool(

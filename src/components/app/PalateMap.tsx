@@ -1,27 +1,19 @@
-import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from 'react';
-import { drinkDatabase, type Drink } from '@/lib/data';
+import { useId, useMemo, useRef, type ReactNode } from 'react';
+import { drinkDatabase, type Drink } from '@/lib/drinks/data';
 import { axes, explore, quadrants } from '@/lib/copy';
-import { contourPath, NOMINAL_SIDE, PLANE_EDGE, PLANE_VIEWBOX, placeLabels, planePercent, type LabelWant } from '@/lib/map-draw';
-import { groundMasks } from '@/lib/ground-masks';
-import type { QuadrantId } from '@/lib/quadrant';
-import { LIKED_AT } from '@/lib/scoring';
-import type { Height } from '@/lib/terrain';
+import { PLANE_EDGE, PLANE_VIEWBOX, placeLabels, planePercent, type LabelWant } from '@/lib/map/map-draw';
+import type { QuadrantId } from '@/lib/map/coordinates';
+import { LIKED_AT } from '@/lib/palate/scoring';
 import { cn } from '@/lib/utils';
+import { useSide, useTextMeasure } from '@/hooks/useMapLayout';
+import { Contours, GroundLayer, type Ground } from './PalateMapLayers';
 
-/** The contour lines drawn, in rating points: high ground, and the hollow where you rated low. */
-const HIGH = [6.5, 7.5, 8.5] as const;
-const HOLLOW = 4;
+export type { Ground };
 
 /** A drink pinned on the map by a bar's menu, numbered as the card's list numbers it. */
 export interface Pin {
   drink: Drink;
   rank: number;
-}
-
-/** The terrain sampled every `step` points (`sampleTerrain`). */
-export interface Ground {
-  step: number;
-  rows: Height[][];
 }
 
 /** The graticule's spacing, and how far past the plane it runs (the screen clips it). */
@@ -66,6 +58,7 @@ export function PalateMap({
   ratings,
   frames,
   pins = null,
+  focus = null,
   emptyBar = false,
   selected = null,
   hover = null,
@@ -94,6 +87,8 @@ export function PalateMap({
   frames?: readonly { ground: Ground; ratings: ReadonlyMap<string, number> }[];
   /** A bar's menu, placed: null when no bar is open. */
   pins?: Pin[] | null;
+  /** Drink names in the active scope/frontier (`type=` or `lens=explore`): others fade to specks. */
+  focus?: ReadonlySet<string> | null;
   /** A bar is open and nothing on its menu is placed yet. */
   emptyBar?: boolean;
   selected?: string | null;
@@ -174,6 +169,7 @@ export function PalateMap({
         let bestD = Infinity;
         for (const m of marks) {
           if (pins && m.rank === undefined) continue;
+          if (!pins && focus && !focus.has(m.drink.name)) continue;
           const d = Math.hypot((m.x + PLANE_EDGE) * toPx - px, (PLANE_EDGE - m.y) * toPx - py);
           if (d < (m.rank !== undefined ? 20 : 16) && d < bestD) {
             best = m;
@@ -296,7 +292,7 @@ export function PalateMap({
       {/* The drinks. */}
       <div className={cn(!onSelect && 'pointer-events-none')} aria-hidden={onSelect ? undefined : true}>
         {marks.map((m) => (
-          <Mark key={m.drink.name} m={m} pins={pins} selected={selected} hover={hover} name={name} listening={!!onSelect} />
+          <Mark key={m.drink.name} m={m} pins={pins} focus={focus} selected={selected} hover={hover} name={name} listening={!!onSelect} />
         ))}
       </div>
 
@@ -472,6 +468,7 @@ function placeMapLabels(marks: readonly MapMark[], { pins, selected, hover, name
 function Mark({
   m,
   pins,
+  focus = null,
   selected,
   hover,
   name,
@@ -479,6 +476,7 @@ function Mark({
 }: {
   m: MapMark;
   pins: Pin[] | null;
+  focus?: ReadonlySet<string> | null;
   selected: string | null;
   hover: string | null;
   name: (drinkName: string) => string;
@@ -487,7 +485,7 @@ function Mark({
   const isSel = m.drink.name === selected;
   const isHover = m.drink.name === hover;
   const at = pct(m.x, m.y);
-  if (pins && m.rank === undefined && !isSel) {
+  if ((pins && m.rank === undefined && !isSel) || (!pins && focus && !focus.has(m.drink.name) && !isSel)) {
     return <span style={at} className="absolute h-1 w-1 -translate-x-1/2 -translate-y-1/2 rounded-full bg-border" />;
   }
   const label = m.hedonic !== undefined ? explore.ratedMark(name(m.drink.name), m.hedonic) : name(m.drink.name);
@@ -551,105 +549,5 @@ function Labels({ labels }: { labels: readonly MapLabel[] }) {
         </span>
       ))}
     </div>
-  );
-}
-
-/** Your terrain: the three washes through their masks, and the contour lines. */
-function GroundLayer({ ground, id, faded }: { ground: Ground; id: string; faded: boolean }) {
-  const masks = useMemo(() => groundMasks(ground.rows), [ground]);
-  const at = -10 - ground.step / 2;
-  const size = 20 + ground.step;
-  return (
-    <g opacity={faded ? 0.4 : 1}>
-      <defs>
-        {(['rise', 'top', 'low'] as const).map((k) => (
-          <mask key={k} id={`${id}-${k}`} maskUnits="userSpaceOnUse" style={{ maskType: 'alpha' }} x={at} y={at} width={size} height={size}>
-            <image href={masks[k]} x={at} y={at} width={size} height={size} preserveAspectRatio="none" />
-          </mask>
-        ))}
-      </defs>
-      <rect x={at} y={at} width={size} height={size} mask={`url(#${id}-rise)`} className="fill-accent" />
-      <rect x={at} y={at} width={size} height={size} mask={`url(#${id}-top)`} className="fill-secondary" />
-      <rect x={at} y={at} width={size} height={size} mask={`url(#${id}-low)`} className="fill-primary" />
-      <Contours ground={ground} />
-    </g>
-  );
-}
-
-function Contours({ ground, tone = 'own' }: { ground: Ground; tone?: 'own' | 'against' }) {
-  const lines = useMemo(() => {
-    const rows = ground.rows.map((r) => r.map((h) => h.rating));
-    return {
-      hollow: contourPath(rows, ground.step, HOLLOW),
-      high: HIGH.map((level) => contourPath(rows, ground.step, level)),
-    };
-  }, [ground]);
-  if (tone === 'against') {
-    return (
-      <g fill="none" data-against="">
-        {lines.high.map((d, i) => (
-          <path key={HIGH[i]} d={d} className="stroke-primary" strokeWidth={1 + i * 0.4} vectorEffect="non-scaling-stroke" />
-        ))}
-      </g>
-    );
-  }
-  return (
-    <g fill="none">
-      <path d={lines.hollow} className="stroke-primary" strokeDasharray="2 3" vectorEffect="non-scaling-stroke" />
-      {lines.high.map((d, i) => (
-        <path
-          key={HIGH[i]}
-          d={d}
-          className="stroke-secondary"
-          strokeWidth={0.8 + i * 0.3}
-          strokeDasharray={i === HIGH.length - 1 ? undefined : '4 3'}
-          vectorEffect="non-scaling-stroke"
-        />
-      ))}
-    </g>
-  );
-}
-
-/** The plane's side in pixels, once the page runs; `NOMINAL_SIDE` until then. */
-function useSide(box: React.RefObject<HTMLDivElement | null>): number {
-  const [side, setSide] = useState(NOMINAL_SIDE);
-  useEffect(() => {
-    const el = box.current;
-    if (!el) return;
-    const measure = () => {
-      if (el.clientWidth > 0) setSide(el.clientWidth);
-    };
-    measure();
-    const ro = new ResizeObserver(measure);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, [box]);
-  return side;
-}
-
-/**
- * The width of a label as the map sets it (PT Sans at the meta size): an
- * estimate on the server and until fonts are in, so the first page the
- * browser draws is the one the server sent, then measured.
- */
-function useTextMeasure() {
-  const ctx = useRef<CanvasRenderingContext2D | null>(null);
-  const [ready, setReady] = useState(false);
-  useEffect(() => {
-    let live = true;
-    void document.fonts?.ready.then(() => live && setReady(true));
-    return () => {
-      live = false;
-    };
-  }, []);
-  return useMemo(
-    () => (text: string) => {
-      if (!ready || typeof document === 'undefined') return text.length * 7;
-      ctx.current ??= document.createElement('canvas').getContext('2d');
-      if (!ctx.current) return text.length * 7;
-      ctx.current.font = `700 13px ${getComputedStyle(document.body).getPropertyValue('--font-pt-sans') || 'PT Sans'}, sans-serif`;
-      return ctx.current.measureText(text).width;
-    },
-    [ready]
   );
 }

@@ -8,8 +8,8 @@ import {
   toLogOptions,
   type PourEntry,
   type PourFields,
-} from '../../src/lib/pour-entry';
-import { catalogSlug } from '../../src/lib/register';
+} from '../../src/lib/pours/pour-entry';
+import { catalogSlug } from '../../src/lib/drinks/register';
 import { GLMS_ANCHORS } from '../../src/lib/atproto/vocab';
 import { pour } from '../../src/lib/copy';
 

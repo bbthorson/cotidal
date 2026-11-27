@@ -1,0 +1,22 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "entry": [
+    "src/worker.ts",
+    "src/pages/**/*.{ts,tsx,astro}",
+    "scripts/*.{mjs,ts}"
+  ],
+  "project": [
+    "src/**/*.{ts,tsx,astro,css}",
+    "tests/**/*.{ts,tsx}"
+  ],
+  "ignoreDependencies": [
+    "astro-eslint-parser",
+    "playwright",
+    "postcss-load-config",
+    "tsx"
+  ],
+  "rules": {
+    "exports": "off",
+    "types": "off"
+  }
+}

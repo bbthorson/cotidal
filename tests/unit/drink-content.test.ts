@@ -1,8 +1,8 @@
 import { test, expect } from 'vitest';
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { drinkDatabase } from '../../src/lib/data';
-import { quadrantIdFor, QUADRANT_ORDER } from '../../src/lib/quadrant';
+import { drinkDatabase } from '../../src/lib/drinks/data';
+import { quadrantIdFor, QUADRANT_ORDER } from '../../src/lib/map/coordinates';
 
 /**
  * The recurring failure in this codebase is a second, hand-maintained copy of
