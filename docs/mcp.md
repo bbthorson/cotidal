@@ -3,8 +3,8 @@
 The palate map as tools a chat assistant can call, at `/mcp`: a Streamable
 HTTP MCP server, so any assistant that takes a remote connector can use it.
 In Claude: *Settings → Connectors → Add custom connector*, URL
-`https://cotidal.app/mcp`. Once a member has a coordinate, `/map` links to
-`/mcp` from under their account. A browser opening `/mcp` is shown the
+`https://cotidal.app/mcp`. A member's Settings links to it (Chat
+assistants). A browser opening `/mcp` is shown the
 instructions at that URL (an MCP client never asks for HTML), personalized
 with their handle when signed in, so the address bar holds the address to paste.
 
@@ -19,6 +19,7 @@ with their handle when signed in, so the address bar holds the address to paste.
 | `recommend_for_group` | Drinks for a table, best for whoever they suit least; and the two whose tastes part most |
 | `get_drink` | One drink: where it sits, its flags and build; given a handle, what put it where it stands for them, which way it lies, and what in it they avoid |
 | `search_drinks` | A drink someone names → the name the map knows it by |
+| `get_bar_menu` | A claimed bar's live venue and menu, by its handle or DID; given a drinker's handle (or at `/mcp/me`), ranked for them (`venue-tools.ts`) |
 | `draft_pour` | A link to `/map` with the pour filled in, for the person to confirm |
 
 Every tool but `draft_pour` reads public records the way `/p/<handle>` does
@@ -38,9 +39,10 @@ guessed that an oaked Chardonnay was far away because no list it had included
 one. The tools now give it Cotidal's own words for which way a drink lies,
 and `get_drink` with a handle answers for any drink on the map.
 
-`rank_menu` matches a menu item to a drink by its full name or its name
-without the parenthetical (`Daiquiri` → `Daiquiri (Classic)`), and nothing
-looser. A wrong match would be ranked with confidence it has not earned; an
+`rank_menu` matches a menu item to a drink through `matchDrink`, as every
+name in the app is matched: folded case and accents, the name without its
+parenthetical (`Daiquiri` → `Daiquiri (Classic)`), or one of the drink's
+aliases, and nothing looser. A wrong match would be ranked with confidence it has not earned; an
 unplaced item is honest. When an unplaced house cocktail lists its ingredients,
 `rank_menu` attaches a deterministic `directional` placement (region,
 confidence, matched primitives, and bearing) from the Ingredients Index plus
@@ -54,8 +56,8 @@ JSON answers — because nothing streams and nothing is kept.
 ## Drafting a pour: the person confirms in the app
 
 `draft_pour` writes nothing. It returns `/map?draft=1&…` with what the person
-said (drink, where, what was off, tasting notes, a note), and the rating sheet
-opens over Your map on it; they check it, tap the rating and log it as any other pour, through
+said (drink, where, what was off, tasting notes, a note), and rating opens
+in the map's card on it; they check it, tap the rating and log it as any other pour, through
 the same `logPour`. The draft lives only in the link (`src/lib/pours/pour-draft.ts`),
 so there is nothing to store, sign in for or protect.
 

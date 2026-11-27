@@ -4,8 +4,8 @@ Product reasoning for the supply side: how bars publish, how they understand
 their patrons, and why an open sensory protocol replaces centralized platforms
 (Yelp, Google Maps, Untappd, QR ordering portals).
 
-Schemas live in `src/lib/atproto/lexicons/`; architectural routing notes live in
-`docs/routes.md`.
+How a bar's claim and page fit the routes is `docs/routes.md`, The supply
+side; worked examples of the records are `docs/lexicon-adoption.md`.
 
 ## The problem with bar marketing
 
@@ -34,9 +34,10 @@ AT Protocol repository.
 
 - **Living, portable standard:** The menu renders statically on the bar's own
   domain (`bar.com/menu`) and syndicates instantly across the open network.
-- **Sensory coordinates included:** Every drink carries its coordinate on the
-  2D palate plane (Rich/Crisp, Savory/Sweet), giving guests instant flavor
-  intuition without requiring an interrogation of the bartender.
+- **Placed on the map, not stamped with a coordinate:** the menu record names
+  each drink; the app view places it on the 2D palate plane (Rich/Crisp,
+  Savory/Sweet) through `matchDrink`, so guests get a flavour picture of the
+  list without the bar asserting coordinates it cannot back up.
 - **Sightings vs. canonical menus:** Patron sightings (`capture: patron`) provide
   consensus coverage until the venue signs its own canonical record
   (`capture: venue`).
@@ -73,15 +74,14 @@ domain name), patrons who save or follow the venue are direct subscribers:
 
 ## Lexicon mapping
 
-| NSID | Role in B2B |
+The Cotidal records a bar uses (`venue`, `menu`, `recipe`, `maker`, `pour`
+and the `bar` space) are listed in
+[data-model.md § Records](data-model.md#records). Two more come from
+Standard.site:
+
+| NSID | Role |
 |---|---|
-| `app.cotidal.venue` | Domain verification (`attaboy.nyc`), location, current menu pointer, publication link |
-| `app.cotidal.menu` | Signed, versioned menu snapshot with section headers, item specs, and document pointer |
-| `app.cotidal.recipe` | Authored spec, technique, creator attribution |
-| `app.cotidal.maker` | Bartender professional profile and portable portfolio |
-| `app.cotidal.pour` | Patron check-in and re-order signal (`wouldOrderAgain`) |
-| `app.cotidal.bar` | The venue's space: pours patrons share with the bar alone, the source of palate intelligence without publishing anyone's log (`docs/spaces.md`) |
-| `site.standard.publication` | Canonical web publication (Standard.site), served at `/.well-known/site.standard.publication` |
+| `site.standard.publication` | Canonical web publication, served at `/.well-known/site.standard.publication` |
 | `site.standard.document` | Individual syndicated menu release, announcement, or editorial post |
 
 ## Verification & Hosting model

@@ -69,7 +69,6 @@ export const compass = {
     photoSignInAction: 'Sign in with Bluesky',
     photoEmpty: 'Could not read any drinks from that photo. Try pasting the text instead.',
     photoRateLimited: 'You have reached the photo scan limit for now. Paste the menu text instead.',
-    photoLater: 'Later: photograph a menu here. Today, you can share a menu photo with your chat assistant.',
     rankedAt: (bar: string) => `What to have at ${bar}`,
     rankedHome: 'What to have',
     rankedBody: 'Ranked by your ratings of the drinks around each one, and where your answers put you.',

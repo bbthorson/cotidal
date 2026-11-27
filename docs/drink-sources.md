@@ -53,7 +53,7 @@ A marketplace collection, not a source. It lists TheCocktailDB, Direct Wines
 (a retailer's catalogue and ordering), Global Wine Score (aggregated critics'
 scores) and Open Brewery DB (a community-built list of breweries). None
 carries sensory figures; breweries are places, which OpenStreetMap already
-covers for Compass.
+covers for bars near you.
 
 ## Better sources for styles
 

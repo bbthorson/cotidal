@@ -58,7 +58,7 @@ no members yet, a rename needs no redirect, but once codes are printed on
 coasters it will.
 
 Chart words carry the brand — *the chart*, *drift*, *reckoned* — but links,
-buttons and navigation use plain words ("Drinks", "Sign in"): a
+buttons and navigation use plain words ("Map", "Sign in"): a
 reader should never have to decode where a link goes. A chart word has to be
 one a reader already knows: not *rutter* (a mariner's book of sailing
 directions), and nothing nautical in navigation — signing in is "Sign in",
@@ -111,28 +111,19 @@ never to crypto.
 
 ## Palette
 
-Defined once, in `src/styles/globals.css`, as HSL custom properties consumed
-through Tailwind tokens.
+Defined once, in `src/styles/globals.css`; every token and its value is in
+`docs/design-system.md` (Token Dictionary). What they are for:
 
-The ground is **warm paper**, not obsidian. Everything is ink on stock.
+The ground is **warm paper**, not obsidian. Everything is ink on stock:
+forest ink (near-black, but green) on paper, a brighter sheet laid on it,
+**terracotta** as the accent that carries, **deep forest** for acting, **sage**
+used flat and large, a tan hairline, and pale water (`--shoal`) for where you
+probably are and nothing else.
 
-| Token | Value | |
-|---|---|---|
-| `--background` | `47 39% 93%` | Warm paper |
-| `--card` | `45 50% 97%` | A brighter sheet laid on it |
-| `--foreground` | `148 20% 17%` | Forest ink — near-black, but green |
-| `--primary` | `8 55% 40%` | Terracotta — the accent that carries |
-| `--secondary` | `140 22% 24%` | Deep forest |
-| `--accent` | `80 24% 76%` | Sage |
-| `--border` | `41 29% 81%` | Tan hairline |
-| `--muted-foreground` | `125 6% 39%` | Warm grey-green |
-| `--shoal` | `156 17% 88%` | Pale water: where you probably are, and nothing else |
-
-**The open question is closed.** The previous palette paired amber with
-burnished copper and noted that the two sat too close to create any tension.
-Terracotta against deep forest is that tension: warm against cool, both muted,
-neither of them decoration. Sage is the third, used flat and large rather than
-as a tint.
+**Why terracotta and forest.** The previous palette paired amber with
+burnished copper, which sat too close to create any tension. Terracotta
+against deep forest is that tension: warm against cool, both muted, neither
+of them decoration. Sage is the third.
 
 The ink is green, not black. It is the difference between a printed menu and a
 laser-printed handout, and it is nearly subliminal at body size — which is the
@@ -140,9 +131,7 @@ right amount of strange for a colour you look at all day.
 
 The obsidian palette is gone; there is no dark theme.
 
-### Shadows
-
-On paper, light does not glow — it presses. `shadow-bar` lifts a sheet a
+On paper, light does not glow — it presses: `shadow-bar` lifts a sheet a
 millimetre off the stock, and `shadow-mcm` is a hard letterpress offset in
 terracotta.
 
@@ -222,11 +211,8 @@ state — none of which may be authored inside a component.
    resolve through `--font-*` variables in `globals.css`. Those variables were
    missing entirely, so all three Google Fonts downloaded and none applied.
 
-Items 1 and 2 are enforced: `eslint.config.mjs` bans arbitrary Tailwind values, raw
-colours, and words typed into markup (JSX text, or a literal `placeholder`,
-`aria-label`, `title` or `alt`), as an error in `src/pages/`, `src/layouts/` and every component.
-
-Item 3 is still a convention.
+Items 1 and 2 are lint errors (`docs/design-system.md`, Strict Enforcement
+Architecture). Item 3 is still a convention.
 
 ## Writing the words
 

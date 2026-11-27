@@ -19,7 +19,12 @@ something that drifts from the first, and every instance so far has failed
 
 ## Rendering
 
-- [ ] No island added to `/` or `/drinks` — both ship zero client JavaScript
+- [ ] No island added to `/`, `/drinks/<slug>` or `/p/<handle>` — they ship zero client JavaScript
+- [ ] `/sign-in` still works with JavaScript off
+
+## Docs
+
+- [ ] Docs describing what changed are updated in this PR, in the one place each topic lives (`README.md`, Docs)
 
 ## Checks
 

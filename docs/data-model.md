@@ -137,33 +137,20 @@ Publishing new NSIDs in that namespace goes through the Lexicon Community
 working group, because the namespace maps to `lexicon.community`, a domain we
 do not control.
 
-## Psychophysical Preference Modeling
+## What stays on the device
 
-Taste preferences are non-stationary, high-dimensional biological systems.
-Rather than treating a palate as a static coordinate, Cotidal models
-a user's taste trajectory using an **Extended Kalman Filter (EKF)** over a
-five-dimensional latent preference space:
-
-$$\mathbf{x}_k = [x_{\text{crisp}}, y_{\text{sweet}}, \theta_{\text{bitter}}, \theta_{\text{tannin}}, \theta_{\text{complexity}}]^T$$
-
-The user-facing 2D map ($x$: Rich-Crisp, $y$: Savory-Sweet) is the primary
-orthogonal projection of this latent vector. The system tracks algorithmic
-confidence via the diagonal trace of the error covariance matrix $\mathbf{P}_k$.
-
-To prevent transient noise from corrupting longitudinal state estimates, pours
-pass through biological normalizers before updating the filter:
-1. **Sensory-Specific Satiety (SSS)**: Exponential pleasantness decay as volume increases ($V_{\text{consumed}}$).
-2. **Prandial & Circadian Ghrelin Weighting**: Normalization for fasting vs. postprandial sweet reward amplification.
-3. **Decoupling CATA from Hedonics**: Uncoupling objective detection (Check-All-That-Apply arrays) from subjective liking to eliminate aspirational reporting bias.
-
-The inputs to the first two — volume drunk and hours since eating — stay on
-the device. They are not part of `app.cotidal.pour`: a record is public and
-permanent, and how much someone drank and when they ate is not the app's to
-publish.
-
-For full physiological and mathematical derivations, see **[docs/sensory-science.md](sensory-science.md)**.
+The palate record carries a five-dimensional preference state (the two map
+axes plus bitter, tannin and complexity tolerances) and its uncertainty,
+updated by a Kalman filter after each pour; the mathematics is in
+**[docs/sensory-science.md](sensory-science.md)**. Two of the filter's inputs
+are not in any record: how much someone drank and how long since they ate.
+They normalise a rating on the device and are never part of
+`app.cotidal.pour`: a record is public and permanent, and how much someone
+drank and when they ate is not the app's to publish.
 
 ## Records
+
+Every record Cotidal defines. Other docs link here rather than repeat it.
 
 | NSID | Key | Holder | Purpose |
 |---|---|---|---|
@@ -175,9 +162,7 @@ For full physiological and mathematical derivations, see **[docs/sensory-science
 | `app.cotidal.venue` | `self` | Venue | A bar claiming itself via domain handle |
 | `app.cotidal.maker` | `self` | Maker | A professional profile linking authored recipes |
 | `app.cotidal.bar` | space, `self` | Venue (authority) | A claimed bar's permissioned space: patrons' pours the venue reads and the public does not (`docs/spaces.md`) |
-| `app.cotidal.defs` | — | — | Shared types: `entityRef`, `venueRef`, `drinkRef`, `stimulus`, `credit`, `price` |
-
-`app.cotidal.pour` provides the clean sensory observation record, fully superseding legacy drift heuristics.
+| `app.cotidal.defs` | — | — | Shared types: `entityRef`, `venueRef`, `drinkSlug`, `drinkRef`, `stimulus`, `credit`, `price` |
 
 A guide for external apps, venues, and developers adopting these records
 is in **[docs/lexicon-adoption.md](lexicon-adoption.md)**.

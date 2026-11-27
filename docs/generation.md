@@ -29,9 +29,9 @@ the suite must pass with no key.
 
 | Path | Route | Status |
 |---|---|---|
-| Drink explanation | `POST /api/explain-drink` | **Live.** Hero card on mount, drink card on expand. |
-| Menu capture (photo & Clef enrichment) | `POST /api/menu/capture` | **Live.** Gemma 4 Vision transcribes photos; Clef-flash classifies low-signal house items; deterministic `placeDirectional` fallback for guests/offline. |
-| Adaptive questions | — | **Parked.** See [Parked work](#parked-work). |
+| Drink explanation | `POST /api/explain-drink` | **Built, not wired.** The route and `explainDrink` (`api-client.ts`) are tested; no screen calls them yet (AGENTS.md, Staged). |
+| Menu capture (photo & Clef enrichment) | `POST /api/menu/capture` | **Live** in a bar's menu on the map (Scan a menu photo). Gemma 4 Vision transcribes photos; Clef-flash classifies low-signal house items; guests and offline get deterministic parsing of pasted text. |
+| Adaptive questions | — | **Removed.** See [Parked work](#parked-work). |
 | Palate refinement | — | **Removed for launch.** See [Parked work](#parked-work). |
 
 Every call site has a deterministic fallback and none of them can fail the
@@ -64,10 +64,10 @@ Cloudflare Workers AI natively, routed through Cloudflare AI Gateway. Inference 
 
 Requests route through AI Gateway (`AI_GATEWAY_ID = 'crystal-coupe-gateway'`), providing automatic edge response caching, request logs, and routing metrics.
 
-For local development without bindings, credentials (`CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN`) can be passed via `.dev.vars` or environment variables. Without bindings or credentials (e.g. during offline test execution), every route catches gracefully and return their deterministic fallback.
+For local development without bindings, credentials (`CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN`) can be passed via `.dev.vars` or environment variables. Without bindings or credentials (e.g. during offline test execution), every route catches and returns its deterministic fallback.
 
 > Until a binding or key is configured, every route runs its catch branch on every
-> request and serve the fallback. This is silent and looks like working
+> request and serves the fallback. This is silent and looks like working
 > software.
 
 **Every model, named once.** `src/lib/generation.ts` is the only place a model id appears.
@@ -84,8 +84,9 @@ it is. The guest experience stays complete: the quiz runs, the map renders, the
 recommendation is real. What signing in adds is prose written for them.
 
 Beyond keeping the coordinate and pours in the member's own repository — the
-product's whole thesis — this is most of what signing in buys on Compass
-today. That is the argument for it.
+product's whole thesis — generation is most of what signing in adds on the
+map: reading a menu photo today, and prose written for them once drink
+explanations are wired.
 
 ### The gate must be proof, not a claim
 
@@ -107,7 +108,7 @@ first and bill regardless.
 **Gate on a restorable OAuth session.** `restoredDid()` and `oauthSession()` in
 `src/lib/atproto/session.ts` resolve the session and its tokens; every model
 route calls `restoredDid()` before spending anything, and the `/api/me/*` write routes
-passes the same session to the PDS writes in `publish.ts`.
+pass the same session to the PDS writes in `publish.ts`.
 
 Sessions and authorization state live in KV (`ATPROTO_SESSIONS`, the
 `crystal-coupe-kv` namespace), sealed with AES-GCM under the `SESSION_SECRET`
@@ -192,7 +193,7 @@ fixed question bank.
 ("no peat, less sweet") sent to `POST /api/refine-palate`, where the model
 returned a nudge on each axis, aversions and a two-sentence reply, and the
 coordinate moved to match. It was removed for launch; it is in git history
-(the route, `refinePalateWithAI`, and the section on the Compass page, then `ResultsScreen`).
+(the route, `refinePalateWithAI`, and its section on the screen that preceded the map).
 
 It had two problems to solve before it returns. **It broke the rule above:**
 the model's answer moved the coordinate — it produced a result rather than
@@ -206,8 +207,8 @@ construction.
 ## Rules
 
 1. **No generated text on `/` or a drink's page.** Both are static and script-free,
-   and `tests/landing-static.spec.ts` guards the first. Generation lives on
-   Compass only.
+   and `tests/landing-static.spec.ts` guards them. Generation lives on `/map`
+   only.
 2. **Every model call has a deterministic fallback**, and the fallback is
    written to be read, not to be a placeholder.
 3. **Model IDs live in one constant**, never inline per route.

@@ -1,16 +1,15 @@
-# Design System Specification & Enforcement
+# Design system
 
-This document specifies the design system of **Cotidal** and details the technical enforcement mechanisms that prevent drift.
+The tokens, components and screens of **Cotidal**, and the checks that keep them from drifting.
 
 ---
 
-## 1. Brand Philosophy: "Cold Instrument, Warm Secret"
+## 1. Where the brand is
 
-The visual voice is an empirical, printed specimen catalog rather than a dim speakeasy:
-- **Paper Ground**: Everything is ink on warm stock, not a glowing obsidian screen.
-- **Restraint Over Ornamentation**: 1px hairline rules, generous whitespace, square edges, and dot leaders.
-- **One Large Move Per Screen**: On `/`, it is the cotidal chart, `ChartFigure`. On a drink's page, it is the title plate.
-- **Zero Client JavaScript on Reading Routes**: The homepage (`/`) and a drink's own page (`/drinks/[slug]`) ship no script.
+Why it looks this way — cold instrument, warm secret, ink on paper, one large
+move per screen — and how it speaks are `docs/brand.md`. This file is the
+specification: every token, component and screen, and how the rules are
+enforced. A token is defined here and in `globals.css`, nowhere else.
 
 ---
 
@@ -137,7 +136,7 @@ Width and padding stay with the layout (`w-full`, `px-8`).
 
 Navigation is unified across the site through two bars and a footer, all rendered from one list (`destinations` in `src/lib/site-nav.ts`) and one account control (`accountControl`):
 
-- **`AppBar.astro`** is the top of every page's card (`MapScreen`'s `bar`): the map has the top of the screen to itself. The card is a phone's width at every size, so the bar is laid out for it: the mark, then the wordmark (or on `/map` the search), then Menu on a phone or the account control from `lg`; from `lg` a row of tabs under it (the map and the reading pages a drinker reads), so nothing is folded away on a wide screen. Islands receive it as a slot rendered on the server.
+- **`AppBar.astro`** is the top of every page's card (`MapScreen`'s `bar`): the map has the top of the screen to itself. The card is a phone's width at every size, so the bar is laid out for it: the mark, then the page's name in the wordmark's place, then Menu on a phone or the account control from `lg`; from `lg` a row of tabs under it (the map and the reading pages a drinker reads), so nothing is folded away on a wide screen. Islands receive it as a slot rendered on the server.
 - **`SiteFooter.astro`** is the foot of a static page's card (the app screens have none).
 1. **Zero Client JavaScript**: Rendered as semantic HTML `<header>` and `<nav aria-label="Main Navigation">`.
 2. **Destinations** (header): the map (`/map`), the one app screen. How it works (`/#how-it-works`, the front door's card pulled up: not a page of its own) and For Bars (`/bars`) are public reading pages in the footer; there is no Drinks item — every drink is on the map and opens in its card, and a drink's own page (`/drinks/<slug>`) is reached from search and links. For Bars is also the supply side, a different product from the drinker's app, on the same one kind of page.
@@ -146,10 +145,10 @@ Navigation is unified across the site through two bars and a footer, all rendere
    - a guest sees **Sign in** (on a phone, inside Menu);
    - a prerendered page (`/drinks/<slug>`) was built before anyone visited, so it says **Account** (also `/settings`, which sends a guest to `/sign-in`) rather than guess.
    - on an app page, **Sign in** opens the one sign-in sheet in place (`?signin=1`, handled by `AtprotoProvider`) rather than leaving for a page. On every other page it goes to `/sign-in`, which renders a plain form post and progressively enhances it with `<bsky-sign-in>`.
-4. **Footer**: the visible reading pages only — How it works and For Bars for guests, plus Drinks for signed-in members (`footer: true` and `isVisibleDestination` in `site-nav.ts`). The map and the account are always in the bar. The app screen (`/map`) has no footer: the app bar carries the visible reading pages instead.
+4. **Footer**: the reading pages only — How it works and For Bars (`footer: true` in `site-nav.ts`). The map and the account are always in the bar. The app screen (`/map`) has no footer: the app bar carries the visible reading pages instead.
 5. **Active State Indicators**: Routes are identified via `currentPath` and styled as a tab: bold ink over a 3px `foreground` rule from `lg`, bold alone in the phone's folded menu.
-6. **Sub-Route Navigation**: In `/drinks/[slug]`, the header supports a semantic `backLink` while retaining global site navigation.
-7. **Phones**: on every page the bar is wordmark · Menu — one control, so it reads the same wherever you are; on `/map` the search takes the wordmark's place. Menu opens three groups: the map, the visible reading pages a drinker reads (`menu` in `destinations`: How it works, plus Drinks for members), and the account last, under an ink rule (Sign in, `@handle · Settings →`, or Account). "Menu" is a `<details>` that opens the same `<nav>` through `peer-open`, so `/` still ships no JavaScript.
+6. **A way back**: a page under another (a drink's page) passes `back` to `MapPage`, drawn as an arrow before the page's name in the app bar.
+7. **Phones**: on every page the bar is mark · the page's name · Menu — one control, so it reads the same wherever you are. Menu opens three groups: the map, the reading pages a drinker reads (`menu` in `destinations`: How it works), and the account last, under an ink rule (Sign in, `@handle · Settings →`, or Account). "Menu" is a `<details>` that opens the same `<nav>` through `peer-open`, so `/` still ships no JavaScript.
 8. **Focus mode**: any element marked `data-focus-mode` (the questions, the reveal) hides the site header and footer below `lg` (`globals.css`, pure CSS so nothing flashes before hydration).
 9. **The search is the first thing in the map's card**, not in the app bar: it searches drinks and bars, which is content, not navigation, so the bar names the page ("Map") as every bar does. `SearchBox.tsx` is drawn by the island on the server as a plain GET form to `/map?q=`, so it works before the island does and with script off; once the island is up, a submit opens the first result in place. It steps aside while rating or on the reveal, which have the card to themselves. There is no bar along the foot: the app is one screen.
 10. **One action per app screen.** The map's is **Rate a drink**: on a phone it floats at the foot of the screen, over the card, where a thumb is (hidden while the search has the keyboard), and the card's list keeps room under its last row for it; from `lg` it sits in the card's head line, beside what your map says about you. It shows only on where to next — a drink, a bar, rating and the reveal each carry their own action. Choosing what to have is the search, the card's lists and the map itself; Pick this and Rate this belong to a drink, opened in the card.
@@ -158,7 +157,7 @@ Navigation is unified across the site through two bars and a footer, all rendere
 13. **Two kinds of empty.** A list with nothing in it yet is `Empty`: your pours' ledger, a search with no match, no bars near. A screen that cannot start without a coordinate is a `ScreenHeader` and its ways in: `ColdState` in the map's card and in rating; a bar's menu says what it needs in an `Empty`. Nothing else says "empty".
 14. **One section heading.** A section inside any card opens with `SectionTitle` (or `.section-title`): a bold Playfair line over an ink rule. A heading with a link beside it ("Its drinks →") draws the same rule under the row. Small caps label a field or a column, never a section.
 15. **Nothing smaller than 13px is prose.** `text-label` (12px) is for condensed caps only. A note or citation under an item is `text-meta` in PT Sans; an italic gloss is Playfair at `text-ui`.
-16. **The eyebrow is the name of the way in.** The small caps line over a title is the label of the nav item, tab or button that opens the page — Drinks, Regions, For bars, Chat assistants, Public map, Rate a drink — and a page about one item adds what kind of item after a middle dot (`Drinks · Aperitivo`, `Regions · Rich and savory`). The landing page has none, and nor does an app tab's screen, whose tab is already marked current on the same screen (rule 11). Write it in sentence case in `copy/`; the caps are CSS.
+16. **The eyebrow is the name of the way in.** The small caps line over a title is the label of the nav item, tab or button that opens the page — For bars, Chat assistants, Public map, Rate a drink — and a page about one item adds what kind of item after a middle dot (`Drinks · Aperitivo`). The landing page has none, and nor does an app tab's screen, whose tab is already marked current on the same screen (rule 11). Write it in sentence case in `copy/`; the caps are CSS.
 
 ## One kind of page
 
@@ -240,11 +239,11 @@ Signing out forgets the device's copy (`forgetDevice`), on whichever app page it
 
 ## The map (`/map`, `Explore.tsx`)
 
-The app on one screen (`docs/map-first.md`): **the map**, fixed in place as the background; **the search**, in the header; and **one card** for everything else. Nothing moves the map: opening a bar, a drink or a pour changes what is drawn on it, never where it is.
+The app on one screen (decisions: `docs/map-first.md`): **the map**, fixed in place as the background, and **one card** for everything else, with the search first in it. Nothing moves the map: opening a bar, a drink or a pour changes what is drawn on it, never where it is.
 
 **The map** (`PalateMap.tsx`, `map-draw.ts`): the plane in a frame on a ruled ground that runs to the window's edges; the four regions named in italic like seas, as names for parts of the map, never for you; the axis words; **your terrain** (`terrain.ts`) as a wash — sage rising to forest where your answers and ratings are high, a terracotta wash where you rated low, paler where nothing you rated supports it — with its contour lines dashed like a chart's co-range lines; every drink as a small ring; and your pours, terracotta, filled at 7 or more, named with your rating ("Negroni · 9"). Labels are placed by what matters (the open drink, a bar's pins, your pours) and left out where they would overlap; every drink is still in the card's lists and the search. A tap takes the nearest mark within reach. Your point is not drawn: the terrain is your taste on the map.
 
-On a phone the map is the full width under the header and the card rests in the space below it; from `lg` the card is a panel down the left and the map fills the rest.
+On a phone the map is the full width of the screen and the card rests in the space below it; from `lg` the card is a panel down the left and the map fills the rest.
 
 **Drawn by the server, to scale.** The plane is one SVG whose viewBox is the map itself, so it is drawn at any size without measuring; the terrain's shading is three alpha masks (`groundMasks` in `map-draw.ts`, PNGs written in `png.ts`) filled with token colours, so the server needs no canvas and no theme. What must keep its size on any screen — the marks, the labels, the region names and axis words — is HTML laid over the plane in percentages (`planePercent`), on a halo of the card's paper (`.halo-card`). Only which labels fit depends on the plane's size in pixels: the server places them for `NOMINAL_SIDE` (a phone), and `/map` places them again once measured. The screen's geometry — where the plane sits, where the card rests — is CSS (`.map-screen-*` in `globals.css`), so the page arrives laid out and nothing moves when the script does.
 
@@ -271,7 +270,7 @@ A member's account as one page: a left-aligned title like an app screen's, and r
 
 ## A bar's menu (`MenuView.tsx`, `menu-rank.ts`)
 
-A bar is a filter on the map, not a screen of its own. A bar opened from the search, your bars or bars near you, or **Have a menu?** (or `/map?menu=1`), fills the card with its menu: a back link, the bar's name as the title (or "Have a menu?" with an optional bar-name field when there is no bar), and the menu input. Type what they pour: a line that names a drink on the map (`matchDrink`) is placed, anything else is kept and marked unplaced. Each placed drink becomes a **numbered pin on the map**, 1 in terracotta, and every other drink fades to a speck; the card lists them in the same order (`rankMenu`, with the bar in the relevance score), each saying what put it there. With nothing placed yet, the map says **No known menu**. **Pick this** keeps the pick on the device (`pick` in `device-store.ts`) and returns to where to next, where the waiting strip offers **Rate it** — rating opened on the pick as a draft (the same hand-off a chat assistant's link makes), with no rating in it — or **Set it aside**. A menu with no bar is a pick at home. A drink opened in the card can be picked the same way. Photographing the menu is **Later:**.
+A bar is a filter on the map, not a screen of its own. A bar opened from the search, your bars or bars near you, or **Have a menu?** (or `/map?menu=1`), fills the card with its menu: a back link, the bar's name as the title (or "Have a menu?" with an optional bar-name field when there is no bar), and the menu input. Type what they pour: a line that names a drink on the map (`matchDrink`) is placed, anything else is kept and marked unplaced. Each placed drink becomes a **numbered pin on the map**, 1 in terracotta, and every other drink fades to a speck; the card lists them in the same order (`rankMenu`, with the bar in the relevance score), each saying what put it there. With nothing placed yet, the map says **No known menu**. **Pick this** keeps the pick on the device (`pick` in `device-store.ts`) and returns to where to next, where the waiting strip offers **Rate it** — rating opened on the pick as a draft (the same hand-off a chat assistant's link makes), with no rating in it — or **Set it aside**. A menu with no bar is a pick at home. A drink opened in the card can be picked the same way. A member can also **Scan a menu photo**: a model reads it into lines (`/api/menu/capture`, `docs/generation.md`), which are placed like typed ones; a guest is offered sign-in for it, and pasting the text works for anyone.
 
 **Where the bar is.** A bar picked from the bars near you carries its point through the pick, the draft link (`lat`, `lon` in `pour-draft.ts`) and the form, and the pour records it as `venue.address`: a `community.lexicon.location.geo` (`src/lib/atproto/location.ts`), the Lexicon Community's shape, strings not floats. It is written only while the pour is still at the bar the map named: a menu opened with no bar, or with another bar typed, drops it. The tests validate it against the community's published lexicon (`tests/fixtures/community-lexicon/`).
 
@@ -311,6 +310,6 @@ To guarantee the design system never drifts, automated enforcement is active at 
 - `tsc --noEmit`: Validates TypeScript types across the entire project.
 
 ### 4. Tests (`npm test`: Vitest in `tests/unit/`, Playwright in `tests/`)
-- `tests/landing-static.spec.ts`: Asserts zero client scripts or hydration islands on `/` and `/sign-in`, a front door that asks one thing and fills the first screen exactly (header and content are `100dvh`, AppShell's `fill`, with the action at its foot), and the non-JS sign-in form.
+- `tests/landing-static.spec.ts`: Asserts zero client scripts or hydration islands on `/`, a drink's page and `/sign-in`; a front door that asks one thing, with the map and its one action on a phone's first screen; regions as filters on the map; and the sign-in form working with JavaScript off.
 - `tests/visual-identity.spec.ts`: Asserts computed CSS colors match the exact token values for paper ground (`rgb(244, 241, 230)`) and forest ink (`rgb(35, 52, 43)`).
 - `tests/unit/drink-content.test.ts`: Asserts all drink entries join cleanly to the coordinate database and contain primary sources.

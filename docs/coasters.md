@@ -8,29 +8,17 @@ The logo is a cotidal circle, the landing chart is a circle, and a bar coaster
 is a circle. A coaster carrying the chart is the product's mark in the place
 the product is used, and eventually something Cotidal can offer bars.
 
-## First: four sectors, not six
+## Four sectors, not six
 
-The landing chart (`src/components/site/ChartFigure.astro`) drew a
-12-hour tide with six cotidal lines two hours apart, over the map's two axes.
-So it showed six sectors and four quadrants at once, and they did not line up:
-the filled band (0h–2h) covers only part of the top-right quadrant. Anyone who
-reads the sectors as categories will expect six regions. The monogram
-(`Monogram.astro`) has three lines, so there is no single count yet.
-
-**Decision: four.** The map has two axes, so four quadrants come from the
-model; six regions would be arbitrary angular slices, and would cost new
-region prose, `quadrants` in `copy/` and tests.
-
-*Done.* The landing chart has four index lines three hours apart (0h /
-3h / 6h / 9h), with unlabelled hairlines for the hours between (`HOUR_LINES`), drawn from `src/lib/map/chart-geometry.ts`. Each line leaves the
-centre along an axis and sweeps toward the ring, so a band is exactly a
-region near the centre and leans a little past the axis at the rim — the
-cost of curved lines over straight axes. `SECTORS` names each band by its
-region, which is what the coaster fills. `tests/unit/chart-geometry.test.ts`
-holds the generator to the six-line figure it replaced and fails if the
-sector count stops matching the regions. The monogram now draws the same four
-lines and the same band from that generator (`markGeometry`, `src/lib/mark.ts`),
-stretched to a disc as the coaster is.
+The chart once drew six cotidal lines over four quadrants, so its sectors and
+the regions did not line up. **Decided: four**, because the map's two axes
+give four quadrants and six would be arbitrary slices. The landing chart, the
+mark and the coaster all draw four index lines three hours apart (0h / 3h /
+6h / 9h), with hairlines between, from one generator
+(`src/lib/map/chart-geometry.ts`; `markGeometry` in `src/lib/mark.ts`).
+`SECTORS` names each band by its region, and
+`tests/unit/chart-geometry.test.ts` fails if the sector count stops matching
+the regions.
 
 ## The personal coaster is the user's QR code
 
@@ -46,9 +34,10 @@ no bar, and it is the Overlap's way into the world.
 - **The QR code is their profile.** It encodes the public URL of their map,
   so one code is both the thing you print and the way someone sees who you
   are. Scanned by a stranger, it shows the map, as `/p/<handle>`
-  does today. Scanned by a signed-in member, it shows both coordinates, the
-  distance and three drinks (`src/lib/palate/overlap.ts`) — two people at the same bar
-  comparing coasters.
+  does today. Scanned by a signed-in member, it compares the two tastes: how many
+  of the top ten they share, where they part, and one for both
+  (`compareTerrains`, `src/lib/palate/overlap.ts`) — two people at the same
+  bar comparing coasters.
 - It is on screen, not only in print: it is a section of the member's
   Settings, linked from their own public map, so the coaster and the phone
   are the same object. Settings is the member's alone.
@@ -83,9 +72,8 @@ the move.
 
 ## Region coasters
 
-Retired with the regions as an identity: a person is described by their
-terrain, not a region, so a coaster that names one says less than it seems
-to. Its page and its link from each region's page are gone.
+Retired: a person is described by their terrain, not a region, so a coaster
+that names one says less than it seems to.
 
 ## The code's look
 

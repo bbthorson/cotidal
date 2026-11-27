@@ -14,7 +14,7 @@ import type { Register } from './register';
  * covered, which are blind spots, and how many drinks carry smoke, bitterness,
  * or anise. Its page was retired for the map itself (a bar's pins show the
  * spread); kept as the rule a bar's card will summarise its menu by
- * (docs/map-first.md).
+ * (AGENTS.md, Staged, unwired capabilities).
  */
 
 export interface AuditedDrink {

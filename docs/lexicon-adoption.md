@@ -3,54 +3,26 @@
 Why and how third-party apps, venues, point-of-sale systems, and beverage
 creators adopt `app.cotidal.*`.
 
-Schemas live in `src/lib/atproto/lexicons/`; TypeScript/Zod definitions live in
-`src/lib/atproto/records.ts`. Product reasoning lives in `docs/data-model.md`
-and `docs/venues.md`.
+Worked examples for writing and reading the records. Schemas live in
+`src/lib/atproto/lexicons/`; the Zod definitions in
+`src/lib/atproto/records.ts`.
 
 ---
 
-## Why adopt?
+## Before you start
 
-Hospitality data today is trapped in proprietary silos (Google Maps, Yelp,
-Untappd, bloated QR ordering portals) or unindexed PDF menus. The results are
-bad for everyone:
+- **The records** — every `app.cotidal.*` NSID, its key and who holds it —
+  are listed once, in [data-model.md § Records](data-model.md#records).
+- **The reasoning** — menus as posts, unclaimed references, ratings that
+  attach to works rather than people — is
+  [data-model.md](data-model.md). The case for a bar is
+  [venues.md](venues.md).
+- **The rules a record keeps**: no floats (fractional values are integer
+  hundredths or tenths, named for it), an untouched field is absent rather
+  than a default, and nothing inferred is written in the author's name
+  (AGENTS.md, AT Protocol).
 
-1. **A common sensory plane replaces subjective stars.** Craft cocktails
-   cannot be meaningfully evaluated by 1-to-5 star averages from angry patrons.
-   The 2D palate plane (Rich −10 → Crisp +10, Savory −10 → Sweet +10) gives
-   any drink, drinker, and menu an intuitive flavor coordinate. Any client can
-   calculate match distance without proprietary recommendation algorithms.
-2. **Menus are posts, not database rows.** A menu in `app.cotidal.menu` is
-   an immutable, signed, dated snapshot. Version history is free, menus never
-   rot, and syndication to websites, mobile apps, and discovery feeds happens
-   automatically.
-3. **Attribution without rank.** Bartenders who invent modern classics poured in
-   thousands of bars globally currently receive zero structured attribution.
-   `app.cotidal.recipe` and `maker` build a verifiable ledger of adoption
-   (*"poured at 34 bars across 8 cities, with 1,100 verified pours"*). Ratings
-   attach to recipes, never to people.
-4. **Sovereign ownership via handle-as-domain.** Venues claim themselves by
-   proving their domain name (`attaboy.nyc`). There is no centralized registry,
-   no gatekeeper charging rent, and no lock-in.
-5. **Atmosphere and Standard.site interoperability.** Venues can pair
-   `app.cotidal.venue` and `menu` with `site.standard.publication` and
-   `document`, enabling native Bluesky rich unfurls, reader syndication, and
-   fast static websites on their own domain.
-
----
-
-## The Lexicons at a glance
-
-| NSID | Key | Role |
-|---|---|---|
-| `app.cotidal.palate` | `self` | Drinker's 2D coordinate, dynamic psychophysical state (EKF), aversions and vibe tags |
-| `app.cotidal.pour` | `tid` | Drink check-in with hedonic and gLMS ratings, CATA notes, perceived intensities, and what was served (spirit, glass, garnish) |
-| `app.cotidal.elicitation` | `tid` | The answers behind one completed quiz: what each question offered and which option was taken |
-| `app.cotidal.menu` | `tid` | Signed menu snapshot with sections, items, and coordinates |
-| `app.cotidal.recipe` | `tid` | Authored formulation, specs, technique, physical stimulus, and creator credits |
-| `app.cotidal.venue` | `self` | Venue profile, location, current menu pointer, and publication link |
-| `app.cotidal.maker` | `self` | Professional portfolio linking authored recipes |
-| `app.cotidal.defs` | — | Shared types: `stimulus`, `entityRef`, `venueRef`, `drinkRef`, `credit`, `price` |
+The 2D plane runs Rich −10 → Crisp +10 and Savory −10 → Sweet +10.
 
 ---
 
@@ -361,25 +333,11 @@ for await (const evt of firehose) {
 
 ---
 
-## Architectural Commitments
+## What you can rely on
 
-Anyone building with or consuming these records can rely on five design invariants:
-
-1. **Unclaimed entities use `defs#entityRef`.** Write the entity's human name
-   and domain now; do not wait for them to register an account. When the venue
-   or maker registers, reconciliation happens in the app view, never by
-   rewriting signed records.
-2. **Records are signed by their authors and never mutated.** Menus, pours, and
-   recipes are immutable snapshots. History is captured through successive
-   records, not row updates.
-3. **No person-ranking endpoints.** `app.cotidal.*` deliberately contains
-   no field to score or rank a human being. Drink reviews describe the *drink*
-   and the *recipe*, never the server or bartender.
-4. **Zero lock-in.** Records live in the author's Personal Data Server (PDS).
-   If Cotidal disappears tomorrow, all drink history, menus, and specs
-   remain fully readable and portable across any AT Protocol app.
-5. **Path to `community.lexicon.*`.** The long-term goal of this project is to
-   prove utility under `app.cotidal.*` and then propose these schemas
-   upstream to the Lexicon Community working group, establishing an open,
-   universal sensory standard for the entire decentralized web.
-
+The commitments behind these records — references written before anyone
+claims them, records never rewritten, no field that scores a person, and
+everything readable without Cotidal — are set out in
+[data-model.md](data-model.md). The long-term aim is to prove the schemas
+under `app.cotidal.*` and then propose them upstream to the Lexicon Community
+working group ([data-model.md § Namespace](data-model.md#namespace)).

@@ -4,40 +4,39 @@ What each surface promises, who it works for, and the order to build them in.
 `docs/brand.md` governs how a route looks and sounds; this file is about which
 routes exist and why.
 
-## The home page sells one thing
+## The front door asks one thing
 
-`/` makes a single argument: *every palate has a coordinate → here is how it
-goes (the questions, Pick a drink, Your map) → here are the four regions → sign in
-to keep it with you.* It works because it promises one thing, and the chart is
-allowed to be the one large move on it (`docs/brand.md`, "Bold is one move per
-screen").
+`/` is the map with a sample palate gaining ratings on it, and a card that
+asks one thing: find your coordinate. Pulled up, the card says how it works
+(`/#how-it-works`, never a page of its own) and links to sign-in, which is
+its own page. It works because it promises one thing, and the map is
+allowed to be the one large move on it (`docs/brand.md`, "Bold is one move
+per screen"). It ships no JavaScript (AGENTS.md, Rendering).
 
-"How it goes" names each step by where it happens in the app, in the app's own
-words, so the front door and the app describe the same product. The sign-in
-section promises only what a guest does not already have: everything works
-signed out, on the device, so signing in buys the account (any phone), the
-public map, and chat assistants, not logging or the menu.
+What signing in buys is said only where it would keep something:
+everything works signed out, on the device, so signing in buys the account
+(any phone), the public map and chat assistants, not logging or the menu.
 
-**Candidate features are routes, not home page sections.** Every idea below is
-worth building and none of them belongs on `/` as a tile. A front door that
-offers six equal choices has stopped making an argument and become a portal.
-The footer is where routes live until one earns promotion.
+**Candidate features are routes, not front-door sections.** Every idea below
+is worth building and none of them belongs on `/` as a tile. A front door
+that offers six equal choices has stopped making an argument and become a
+portal. The footer is where routes live until one earns promotion.
 
 ## The screens
 
 The drinker's app is one screen, the map, and a page behind your name;
 everything else happens in the map's card or is a reading page
-(`docs/map-first.md`). The map draws your taste as terrain; the card holds
+(`docs/design-system.md`, The map). The map draws your taste as terrain; the card holds
 your menu, a bar's menu, a drink, rating a pour and your pours. Settings
 holds the account, not the palate.
 
 | Screen | What it is for | Reached from |
 |---|---|---|
-| **The map** (`/map`) | Everything: your terrain, every drink, the search (drinks and bars) in the header, and the card — your menu, a bar's menu pinned on the map, a drink, your pours | The header, Menu, the front door |
+| **The map** (`/map`) | Everything: your terrain, every drink, and the card: the search (drinks and bars) first, then your menu, a bar's menu pinned on the map, a drink, your pours | The header, Menu, the front door |
 | **Rating** (in the card) | One pour, rated | Rate a drink, Rate this on a drink, a waiting pick, a chat's draft link |
 | **Settings** | The account: sign out, your link, share, assistants, start over | Your handle (header, Menu) |
 | **Your link** (`/p/<handle>`) | What a friend sees; comparing with people you follow, or any handle | Settings, the map's card, a link someone sent |
-| **The questions** | Placing the coordinate | The front door, Start over |
+| **The questions** (in the card, `/map?quiz=1`) | Placing the coordinate | The front door, a drink's page, Start over |
 
 Each app screen has one action of its own. Sign out lives on Settings only.
 
@@ -88,14 +87,11 @@ assistants can compare the drink directly against their palate.
 
 ## The return visit
 
-Every route above is a first-visit route. Nothing yet answers *why open this
-again on Thursday* — and the thing that would is already built and has no front
-door: logging a pour and watching the point move.
-
-**The loop is: drink → log → the map changes.** That is the entire premise of a
-taste profile that lives in a repository and accumulates, so it is a route
-of its own: `/map`, in the site navigation, where a guest can log on this
-device and a member to their repository.
+**The loop is: drink → log → the map changes.** That is the premise of a
+taste that lives in a repository and accumulates, so the map (`/map`) is the
+app's one screen and rating happens in its card: a guest logs on this
+device, a member to their repository, and the reveal after a pour shows what
+it moved.
 
 ## The supply side
 
@@ -173,15 +169,21 @@ at a public URL, openable by a friend against their own. Two dots and the
 distance between them. No graph traversal, no feed, no follows — and it tests
 whether the instinct is right before any of that is built.
 
-**Built:** `/p/<handle>` (or `/p/<did>`). It works cold — a stranger sees the
-dot, the region and the nearest drinks, then a way to find their own — so it
-is a destination, not a gated action. A signed-in visitor with a palate gets
-their dot beside it, the distance in words, and three drinks that lead with
-disagreement: one they'd order and you wouldn't, one the reverse, then one
-you'd both order. "Share to your feed" links here by DID, because a handle
-can change and a post is never rewritten.
+**Built:** `/p/<handle>` (or `/p/<did>`). It works cold — a stranger sees
+the person's taste as terrain on the map and the top of their menu, then a
+way to find their own — so it is a destination, not a gated action. A
+signed-in visitor is compared with it (`compareTerrains`): how many of the
+top ten they share, leading with where they part — a drink each would reach
+for that the other would not — then one for both. On your own link, the people you follow who have a
+map are listed to compare with. "Share to your feed" links here
+by DID, because a handle can change and a post is never rewritten.
 
 ### Next: the region badge
+
+> **Open:** a person is no longer given a region — they are described by
+> which ways their hills lean (`docs/map-first.md`, Your taste as terrain). A badge
+> that names one region per member needs that decision revisited, or a badge
+> that says something else.
 
 The first step into the graph, before any page that lists friends. A member
 taps "Show my region on Bluesky", and anyone who subscribes to Cotidal's
@@ -252,12 +254,20 @@ namespace is `app.cotidal.*`, real once `cotidal.app` is registered
 
 ## Build order
 
-What is left, in order:
+The roadmap is one list, in `AGENTS.md` (Roadmap). Why it runs in that order:
 
-1. **Close the generative surface** (`docs/generation.md`) — before any route
-   is promoted, because promotion means traffic.
-2. **Venue claim and menu publishing.** The supply side, and the first thing
-   this product offers a non-drinker.
-3. **Menu capture.** The patron half of the same corpus.
-4. **Friends**, discovered through the existing follow graph — starting with
-   the region badge (above), the first step that needs no friends page.
+- **The namespace first**, because records signed under `app.cotidal.*`
+  spread and cannot be renamed (The name, above).
+- **Menu capture and venue claim together**, as two halves of one corpus
+  (The supply side, above): capture gives a drinker value before signup and
+  builds the corpus; a claim is the first thing this product offers a
+  non-drinker, and it reconciles every sighting already recorded.
+- **Elicitation** once there are logged answers and pours to fit its noise
+  levels against.
+- **Friends last**, because a social surface with nobody on it is worse than
+  none (Friends, above), and starting from the follow graph rather than a
+  friends page.
+
+The generative surface was closed before any of this: every model route is
+gated, metered and has a fallback (`docs/generation.md`), and a new one
+inherits all of it.

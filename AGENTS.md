@@ -1,8 +1,8 @@
 # Agent Context: Cotidal
 
 Architecture notes for anyone — human or agent — working in this codebase.
-Product reasoning lives in `docs/data-model.md` and `docs/brand.md`; this file
-is about the code.
+This file is about the code; product reasoning lives in `docs/`, indexed in
+`README.md` (Docs). Each topic has one home: link to it rather than repeat it.
 
 ## Rendering: keep the front door static
 
@@ -562,15 +562,19 @@ Open work only; what is built is described above.
 
 1. **Namespace.** `app.cotidal.*`. NSID authority comes from the reversed
    domain, so it holds once `cotidal.app` is registered.
-2. **Menu capture.** A bar's menu on the map (`MenuView`) takes a typed menu. Next:
-   photograph the menu instead. Photograph a menu, get a recommendation, no
-   account required — value before signup, and it builds the venue/menu
-   corpus as a byproduct.
-3. **Venue claim and menu publishing.** Handle-as-domain makes claiming and
-   publishing the same act; the lexicons exist and nothing renders them.
-   Claiming also opens the bar's space, where patrons share pours with the
-   bar alone (`docs/spaces.md`; addressing and policy prepared, waiting on the
-   Spaces beta).
+2. **Menu capture.** A bar's menu on the map (`MenuView`) takes a typed or
+   pasted menu, and a member can photograph one (`/api/menu/capture`,
+   `docs/generation.md`). Next: keep the photo as a sighting
+   (`app.cotidal.menu`), index sightings by bar so others see them, and decide
+   on a guest allowance — photograph a menu, get a recommendation, no account
+   required (`docs/map-first.md`, Where a bar's menu comes from).
+3. **Venue claim and menu publishing.** Level 1 is built: `/bars` checks the
+   bar's domain against the signed-in DID and publishes its venue and menu
+   (`publishVenueAndMenu`), and `/v/<handle>` renders them. Next: the
+   physical-address check by postcard (`docs/venues.md`, Level 2), the bar
+   confirming patrons' sightings, and opening the bar's space, where patrons
+   share pours with the bar alone (`docs/spaces.md`; addressing and policy
+   prepared, waiting on the Spaces beta).
 4. **Elicitation.** Swipes for breadth, and fitting `NOISE_LEVELS`,
    `EVIDENCE_SCALE` and `PAIR_NOISE_SCALE` from the logged answers against
    pours. Never swipe on drink *names* — that measures familiarity, not taste.
@@ -583,9 +587,11 @@ Open work only; what is built is described above.
    **Region badge**: an opt-in Bluesky label showing a member's region to
    anyone who subscribes to Cotidal's labeler — the first step into the follow
    graph. Waits on working sign-in and enough members to show it to
-   (`docs/routes.md` § Friends).
+   (`docs/routes.md` § Friends). Open: a person is no longer given a region,
+   so what the badge says needs deciding first.
    **Coasters**: a member's code over their map, in Settings (`MapCode`),
    printed as a coaster; print sizing and the code's look are open
    (`docs/coasters.md`).
 
-Sequencing and the reasoning behind it: `docs/routes.md`.
+This is the one roadmap; the reasoning for its order is `docs/routes.md`
+(Build order).
