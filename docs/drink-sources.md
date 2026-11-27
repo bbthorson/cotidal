@@ -8,7 +8,9 @@ read_when: Adding drinks in bulk, importing recipes or style figures, or conside
 A drink is placed from its style (`src/lib/drinks/placement.ts`): body,
 residual sugar and structure (tannin or hop bitterness), or for a cocktail
 its ingredients and amounts. Names and aliases help on their own
-(`matchDrink`). Prose is never taken from a source (AGENTS.md, Drink and
+(`matchDrink`); a generic name is an alias of the one drink menus most often
+mean by it (a plain "Spritz" is the Aperol Spritz), until the family has
+drinks of its own to tell apart (Campari, Select, Cynar and other spritzes). Prose is never taken from a source (AGENTS.md, Drink and
 region prose). **Nothing is called at runtime:** a source is read once, by
 hand or script, and what is kept is checked and committed. Re-read terms
 before relying on any of these.

@@ -12,6 +12,9 @@ test('Drink match: a name finds its drink without the parenthetical, its case or
   expect(matchDrink('South Side')?.name).toBe('Southside');
   expect(matchDrink('Corpse Reviver #2')?.name).toBe('Corpse Reviver No. 2');
   expect(matchDrink('Hugo')?.name).toBe('Hugo Spritz');
+  // A plain "Spritz" on a menu is, outside the Veneto, almost always Aperol.
+  expect(matchDrink('Spritz')?.name).toBe('Aperol Spritz');
+  expect(matchDrink('spritz')?.slug).toBe('aperol-spritz');
   expect(matchDrink('Pina Colada')?.name).toBe('Piña Colada');
   expect(matchDrink('Dark and Stormy')?.name).toBe("Dark 'n' Stormy");
   expect(matchDrink("Dark n' Stormy")?.name).toBe("Dark 'n' Stormy");

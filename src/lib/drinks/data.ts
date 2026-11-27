@@ -60,7 +60,7 @@ const gripping: Flags = { hasSmoke: false, hasAnise: false, isBitter: true };
 
 export const drinkDatabase: Drink[] = [
     // --- Crisp · Sweet, x > 0, y > 0: region `surf` (its name is `quadrants` in copy.ts) ---
-    { name: "Aperol Spritz", slug: "aperol-spritz", type: "Cocktail", x: 6, y: 7, hasSmoke: false, hasAnise: false, isBitter: true, tags: ['visual', 'social', 'crushable'] },
+    { name: "Aperol Spritz", slug: "aperol-spritz", type: "Cocktail", x: 6, y: 7, hasSmoke: false, hasAnise: false, isBitter: true, tags: ['visual', 'social', 'crushable'], aliases: ["Spritz"] },
     { name: "Daiquiri (Classic)", slug: "daiquiri", type: "Cocktail", x: 7, y: 5, hasSmoke: false, hasAnise: false, isBitter: false, tags: ['classic', 'social', 'crushable'] },
     { name: "Margarita", slug: "margarita", type: "Cocktail", x: 5, y: 4, hasSmoke: false, hasAnise: false, isBitter: false, tags: ['social', 'classic', 'crushable'] },
     { name: "Tommy's Margarita", slug: "tommys-margarita", type: "Cocktail", x: 6, y: 4, hasSmoke: false, hasAnise: false, isBitter: false, tags: ['social', 'classic', 'crushable'] },
