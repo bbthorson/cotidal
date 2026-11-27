@@ -31,9 +31,8 @@ commercial use on the free tier. It reads like IBA specifications, so go to
 the IBA directly.
 
 Neither gives a position. Their use: candidate cocktails and ingredients, to
-check against bar manuals, and input for placing cocktails by ingredient
-once that model exists (calibrated against the hand-placed cocktails,
-with `src/lib/drinks/ingredients.ts` as the vocabulary).
+check against bar manuals, and amounts for any later attempt at placing
+a cocktail from its recipe (Placing a cocktail, below).
 
 **Wikipedia** (`List_of_cocktails`, `List_of_IBA_official_cocktails`): an
 index, never a source. Its text is CC BY-SA, so close paraphrase would make
@@ -66,6 +65,30 @@ the environment's network settings.
 
 RapidAPI's "Alcohol and Brewery APIs" is a marketplace, not a source; none of
 it carries sensory figures.
+
+## Placing a cocktail
+
+A house cocktail is placed from the ingredients a menu lists
+(`placeDirectional`), and a wine or beer from its style (`placeStyle`,
+2.9 points RMS). Placing a cocktail from its amounts, the way a style
+places a wine, was tried and does not beat the first
+(`scripts/placement-spike.ts`, November 2026):
+
+- **What was tried.** A table of what each ingredient holds per ml (alcohol,
+  sugar, acid, bitterness, savouriness, fat, aged character, sparkle); each
+  drink's makeup after dilution by method; a ridge fit of x and y to the 94
+  hand-placed cocktails with amounts in their entries, each scored held out
+  of the fit. Balance terms (log sugar, sugar against acid) and a
+  nearest-neighbour fit were tried too.
+- **What it found.** 4.9 points RMS at best (5.0 linear, 5.4 neighbours;
+  8.5 for every drink at the mean), against 4.9 for `placeDirectional` on the
+  same drinks it was set from. About 3.5 points on each axis.
+- **Why.** The largest misses are hand placements that carry something the
+  makeup does not: the Penicillin's smoke, the Americano's crispness, the
+  Cosmopolitan, Aviation and 20th Century placed rich though shaken and
+  sour. Under 3 would need the hand placements revisited, not a better
+  model. A menu drink named as a variation of a classic (its spec supplying
+  the amounts) waits on this.
 
 ## Styles
 
