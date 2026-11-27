@@ -16,7 +16,7 @@ export const SEARCH_ID = 'map-search';
  * menu.
  *
  * It is content, not navigation, so it lives in the card rather than the app
- * bar. Rendered on the server as a plain GET form to `/map?q=`, so it works
+ * bar. Rendered on the server as a plain GET form to `/?q=`, so it works
  * before the island does and with script off; once the island is up, a
  * submit opens the first result in place.
  */

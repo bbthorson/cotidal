@@ -13,7 +13,7 @@ import { cn } from '@/lib/utils';
  *
  * The whole row is the target: a link with `href`, a button with `onSelect`,
  * or plain text with neither. Rendered on the server with no directive as
- * well as in the island, so `/drinks` and `/map` draw the same row.
+ * well as in the island, so `/drinks` and `/` draw the same row.
  */
 export function DrinkRow({
   rank,

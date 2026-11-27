@@ -34,7 +34,7 @@ named rather than explained (`quadrants` in `src/lib/copy/`):
 
 A gloss names only drinks the map places in that region. The names are one
 register (water and motion, as on a chart). They name parts of the map, never
-a person. The ids are URLs (`/map?region=<id>`).
+a person. The ids are URLs (`/?region=<id>`).
 
 Chart words carry the brand (*the chart*, *drift*, *reckoned*), but links,
 buttons and navigation use plain words ("Map", "Sign in"), and a chart word
@@ -102,7 +102,7 @@ literally and the product's geometry: a zero point at the map's centre.
   browser chrome, `icon.svg` draws in paper and `favicon.ico` fills its disc
   in paper.
 - **Share cards** are what a link unfurls into: the site's card by default,
-  and a region's card for `/map?region=<id>`. A person's link uses the site's
+  and a region's card for `/?region=<id>`. A person's link uses the site's
   card: a coordinate moves with every pour and a scraper's cached image does
   not. Each card is a page (`/share/<card>`) captured to `public/share/` by
   `npm run images` after a build; re-run it when the chart, a token or a

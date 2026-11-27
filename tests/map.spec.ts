@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { appPath } from './app-path';
 import { a11y, chart, quadrants, coldState, compass, explore, mapPage, moved, nav, pour, ratePage, taste } from '../src/lib/copy';
 
 /**
@@ -21,7 +22,7 @@ const rating = (page: import('@playwright/test').Page) => page.getByRole('region
 test('Map: one screen, the search in its card, and one action of its own', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.addInitScript(seed, profile);
-  await page.goto('/map');
+  await page.goto(appPath);
   // The search is content, not navigation: the first thing in the card, not in the app bar, which names the page.
   const header = page.locator('header');
   await expect(header.getByRole('searchbox')).toHaveCount(0);
@@ -39,9 +40,9 @@ test('Map: one screen, the search in its card, and one action of its own', async
 });
 
 test('Map: the search works before the map does, as a plain form drawn by the server', async ({ request }) => {
-  const html = await (await request.get('/map?q=negroni')).text();
+  const html = await (await request.get('/?q=negroni')).text();
   const search = html.slice(html.indexOf('id="map-search"'));
-  expect(search).toContain('action="/map"');
+  expect(search).toContain('action="/"');
   expect(search.slice(0, 2000)).toContain('value="negroni"');
   // Only the map has it.
   const drinks = await (await request.get('/drinks/negroni')).text();
@@ -52,7 +53,7 @@ test('Map: the server draws the map whole, so it is there before any script runs
   // Before, the map measured its box after mount and the server sent an empty space.
   const context = await browser.newContext({ javaScriptEnabled: false });
   const page = await context.newPage();
-  await page.goto('/map');
+  await page.goto(appPath);
   const map = theMap(page);
   await expect(map).toBeVisible();
   const box = (await map.boundingBox())!;
@@ -64,7 +65,7 @@ test('Map: the server draws the map whole, so it is there before any script runs
 });
 
 test('Map: with no coordinate the card asks one thing, and the search still finds drinks', async ({ page }) => {
-  await page.goto('/map');
+  await page.goto(appPath);
   await expect(card(page).getByText(coldState.title)).toBeVisible();
   await expect(card(page).getByRole('heading', { name: compass.menuTitle })).toHaveCount(0);
   await page.getByRole('searchbox', { name: compass.searchLabel }).fill('negroni');
@@ -72,13 +73,13 @@ test('Map: with no coordinate the card asks one thing, and the search still find
   await page.keyboard.press('Escape');
   // The questions open in the card, in place: no page of their own.
   await card(page).getByRole('link', { name: coldState.quizCta }).click();
-  await expect(page).toHaveURL(/\/map$/);
+  await expect(page).toHaveURL(/\/(\?q=)?$/);
   await expect(card(page).getByRole('group', { name: a11y.answerOptions })).toBeVisible();
 });
 
 test('Map: your menu says what put each drink there, and a drink opens in the card', async ({ page }) => {
   await page.addInitScript(seed, profile);
-  await page.goto('/map');
+  await page.goto(appPath);
   await expect(card(page).getByRole('heading', { name: compass.menuTitle })).toBeVisible();
   // With nothing rated, it is where your answers put you; never a score, never a distance.
   expect(await card(page).getByText(chart.reason([]), { exact: true }).count()).toBeGreaterThan(1);
@@ -96,7 +97,7 @@ test('Map: your menu says what put each drink there, and a drink opens in the ca
 
 test('Map: rating happens in the card, and a guest’s pour is kept on the device', async ({ page }) => {
   await page.addInitScript(seed, profile);
-  await page.goto('/map');
+  await page.goto(appPath);
   await card(page).getByRole('button', { name: mapPage.rateDrink }).click();
   await expect(rating(page).getByRole('heading', { name: ratePage.heading })).toBeVisible();
   // No dialog: the card holds it, and Close takes it away.
@@ -105,7 +106,7 @@ test('Map: rating happens in the card, and a guest’s pour is kept on the devic
   await expect(rating(page)).toHaveCount(0);
 
   // A drink handed over in the address opens the form on it; the address is cleaned once rated.
-  await page.goto('/map?rate=Negroni');
+  await page.goto('/?rate=Negroni');
   await expect(rating(page).getByLabel(pour.drinkLabel)).toHaveValue('Negroni');
   await rating(page).getByRole('group', { name: pour.whereLabel }).getByRole('button', { name: pour.atHome }).click();
   await page.getByRole('radio', { name: /^7:/ }).click();
@@ -116,7 +117,7 @@ test('Map: rating happens in the card, and a guest’s pour is kept on the devic
   await page.getByRole('button', { name: moved.back }).click();
   await expect(theMap(page).locator('[data-trail]')).toHaveCount(0);
 
-  await expect(page).toHaveURL(/\/map$/);
+  await expect(page).toHaveURL(/\/(\?q=)?$/);
   await expect(rating(page)).toHaveCount(0);
   await expect(page.locator('ol').filter({ hasText: '7 of 9' })).toContainText('Negroni');
   // On the map, with your rating beside it.
@@ -126,7 +127,7 @@ test('Map: rating happens in the card, and a guest’s pour is kept on the devic
 });
 
 test('Map: your pours, your track, and what each pour did to it', async ({ page }) => {
-  await page.goto('/map');
+  await page.goto(appPath);
   await card(page).getByRole('button', { name: coldState.guestCta }).click();
 
   // Two pours as a guest, from the centre: one liked, which moves you, and one in the middle, which holds you.
@@ -159,7 +160,7 @@ test('Map: your pours, your track, and what each pour did to it', async ({ page 
 test('Map: the card sits beside the map on a wide screen, under it on a phone', async ({ page }) => {
   await page.addInitScript((p) => localStorage.setItem('user_profile', JSON.stringify(p)), profile);
   await page.setViewportSize({ width: 1280, height: 900 });
-  await page.goto('/map');
+  await page.goto(appPath);
   await expect(card(page).getByRole('heading', { name: compass.menuTitle })).toBeVisible();
   const [c, m] = [(await card(page).boundingBox())!, (await theMap(page).boundingBox())!];
   expect(c.x + c.width).toBeLessThan(m.x);
@@ -198,7 +199,7 @@ test('Map: the card sits beside the map on a wide screen, under it on a phone', 
 test('Map: Rate a drink floats at a phone\'s thumb on where to next, sits in the card\'s head from lg, and gives way to a drink\'s own', async ({ page }) => {
   await page.addInitScript((p) => localStorage.setItem('user_profile', JSON.stringify(p)), profile);
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto('/map');
+  await page.goto(appPath);
   const rate = page.getByRole('button', { name: mapPage.rateDrink });
   await expect(rate).toHaveCount(1);
   const box = (await rate.boundingBox())!;
@@ -214,7 +215,7 @@ test('Map: Rate a drink floats at a phone\'s thumb on where to next, sits in the
   await expect(rate).toHaveCount(0);
 
   await page.setViewportSize({ width: 1280, height: 900 });
-  await page.goto('/map');
+  await page.goto(appPath);
   await expect(rate).toHaveCount(1);
   const [b, c] = [(await rate.boundingBox())!, (await card(page).boundingBox())!];
   expect(b.x + b.width).toBeLessThanOrEqual(c.x + c.width);
@@ -223,7 +224,7 @@ test('Map: Rate a drink floats at a phone\'s thumb on where to next, sits in the
 
 test('Map: the map stays where it is when a bar or a drink is opened', async ({ page }) => {
   await page.addInitScript((p) => localStorage.setItem('user_profile', JSON.stringify(p)), profile);
-  await page.goto('/map');
+  await page.goto(appPath);
   const frame = theMap(page);
   await expect(frame).toBeVisible();
   const before = await frame.boundingBox();
@@ -235,7 +236,7 @@ test('Map: the map stays where it is when a bar or a drink is opened', async ({ 
 
 test('Rating in the card: what is missing is said under its field, and the field takes focus', async ({ page }) => {
   await page.addInitScript((p) => localStorage.setItem('user_profile', JSON.stringify(p)), profile);
-  await page.goto('/map?rate=Negroni');
+  await page.goto('/?rate=Negroni');
   const sheet = rating(page);
   await sheet.getByRole('radio', { name: /^8:/ }).click();
   // "At a bar" with no bar named.
@@ -251,7 +252,7 @@ test('Rating in the card: what is missing is said under its field, and the field
 test('Map: a search is a filter — the map draws what it finds, and the staples come back when it is cleared', async ({ page }) => {
   // Smoke is avoided, so the mezcal drinks are off this menu; a search still finds them.
   await page.addInitScript(seed, { ...profile, dislikesSmoke: true });
-  await page.goto('/map');
+  await page.goto(appPath);
   const map = theMap(page);
   // Unfiltered, the staples: a Mojito, and no Mezcal Negroni (in the library, not a staple).
   await expect(map.getByRole('button', { name: 'Mojito', exact: true })).toHaveCount(1);

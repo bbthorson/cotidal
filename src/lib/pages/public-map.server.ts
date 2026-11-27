@@ -15,7 +15,7 @@ import { comparedDrinks } from '../map/drawn';
 import { rankForTable } from '../palate/overlays';
 
 /**
- * Server-side loader for `/p/[actor]` (and `/map?palate=...` rewrites).
+ * Server-side loader for `/p/[actor]` (and `/?palate=...` rewrites).
  * Resolves the subject palate, optional comparison palate (`with=` or signed-in
  * visitor), follows overlap on self-view, HTTP status/cache headers, and all
  * derived view-model fields.
@@ -80,7 +80,7 @@ export async function loadPublicMapPage(actorParam: string, url: URL, request: R
         })
       : null;
   const menu = terrain && subject && !comparison ? menuOf(terrain, subject.aversions, rated) : [];
-  // Compared, the map draws the comparison's drinks in place of the staples, as `/map` does with `with=`.
+  // Compared, the map draws the comparison's drinks in place of the staples, as `/` does with `with=`.
   const compared =
     comparison && subject && terrain && other && otherTerrain
       ? comparedDrinks(

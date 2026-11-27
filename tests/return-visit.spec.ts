@@ -1,18 +1,19 @@
 import { test, expect } from '@playwright/test';
+import { appPath } from './app-path';
 import { coldState, mapPage, moved, pour, ratePage, taste } from '../src/lib/copy';
 
 test('Your map: server-renders the route shell', async ({ page }) => {
-  const response = await page.request.get('/map');
+  const response = await page.request.get(appPath);
   expect(response.status()).toBe(200);
 
   const html = await response.text();
   expect(html).toContain(coldState.title);
   expect(html).toContain('aria-label="Main navigation"');
-  expect(html).toContain('href="/map"');
+  expect(html).toContain('href="/"');
 });
 
 test('Rate: a guest logs a pour, sees the coordinate move, then the ledger', async ({ page }) => {
-  await page.goto('/map');
+  await page.goto(appPath);
 
   // The cold state says what the page is, and the ways in.
   await expect(page.getByText(coldState.title)).toBeVisible();
@@ -20,7 +21,7 @@ test('Rate: a guest logs a pour, sees the coordinate move, then the ledger', asy
   await page.getByRole('button', { name: coldState.guestCta }).click();
 
   // Trying a pour as a guest opens rating in the map's card: the one pour form.
-  await expect(page).toHaveURL(/\/map$/);
+  await expect(page).toHaveURL(/\/(\?q=)?$/);
   const sheet = page.getByRole('region', { name: ratePage.title });
   await expect(sheet.getByRole('heading', { name: ratePage.heading })).toBeVisible();
 
@@ -43,7 +44,7 @@ test('Rate: a guest logs a pour, sees the coordinate move, then the ledger', asy
   await expect(sheet).toHaveCount(0);
 
   // Back to where to next: your taste in words, and the pour in the ledger.
-  await expect(page).toHaveURL(/\/map$/);
+  await expect(page).toHaveURL(/\/(\?q=)?$/);
   await expect(page.getByText(taste.label)).toBeVisible();
   await expect(page.getByRole('heading', { name: mapPage.ledgerTitle, exact: true })).toBeVisible();
   const ledger = page.locator('ol').filter({ hasText: 'Too sweet' });

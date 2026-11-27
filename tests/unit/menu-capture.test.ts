@@ -100,7 +100,7 @@ describe('Menu handoff URLs & MCP rankMenu synergy', () => {
       'Attaboy'
     );
     const url = new URL(href);
-    expect(url.pathname).toBe('/map');
+    expect(url.pathname).toBe('/');
     const parsed = readMenuHandoff(url.searchParams);
     expect(parsed).toEqual({
       bar: 'Attaboy',
@@ -108,7 +108,7 @@ describe('Menu handoff URLs & MCP rankMenu synergy', () => {
     });
   });
 
-  test('rankMenu attaches directional placement and returns a /map handoff URL', async () => {
+  test('rankMenu attaches directional placement and returns a / handoff URL', async () => {
     const ctx: ToolContext = {
       origin: 'https://cotidal.app',
       register: {},
@@ -144,7 +144,7 @@ describe('Menu handoff URLs & MCP rankMenu synergy', () => {
     // Smoke is avoided: listed last, not dropped.
     expect(tiger?.caution).toContain('smoke');
     expect(res.data.ranked.at(-1)?.item).toBe('Paper Tiger');
-    expect(res.data.mapUrl).toContain('/map?menu=1&bar=Attaboy');
+    expect(res.data.mapUrl).toContain('/?menu=1&bar=Attaboy');
     expect(res.data.mapUrl).toContain('Paper+Tiger');
   });
 });

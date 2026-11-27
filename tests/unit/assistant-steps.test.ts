@@ -5,7 +5,7 @@ import { AssistantSteps } from '@/components/app/AssistantSteps';
 import { assistants } from '@/lib/copy';
 
 /**
- * What `/mcp` and `/map#assistant` tell someone about chat assistants: one
+ * What `/mcp` and `/#assistant` tell someone about chat assistants: one
  * read-only address until members can sign an assistant in, then both, with
  * theirs first and the limits that come with writing.
  */

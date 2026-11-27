@@ -48,7 +48,7 @@ const pct = (x: number, y: number) => {
  * depends on the box's size in pixels: measured once the page runs, and
  * `NOMINAL_SIDE` until then (or for good, on a page with no script).
  *
- * The same component draws `/map`, where a tap selects the nearest mark
+ * The same component draws `/`, where a tap selects the nearest mark
  * within reach (a fingertip covers several drinks, so the nearest wins), and
  * the reading pages, where it draws a drink and its neighbours and nothing
  * listens. Every drink is also in a list or the search, which is how a
@@ -106,7 +106,7 @@ export function PalateMap({
   /** Listen for taps. Without it the map is a picture. */
   onSelect?: (drinkName: string) => void;
   name?: (drinkName: string) => string;
-  /** Its accessible name: "your map" on `/map`, the map itself on a page that draws nobody's. */
+  /** Its accessible name: "your map" on `/`, the map itself on a page that draws nobody's. */
   label?: string;
   /**
    * Where the questions' answers point so far: the shoal at their best guess,
@@ -133,7 +133,7 @@ export function PalateMap({
   against?: Ground | null;
   /**
    * A line about what the map shows, in its lower-left corner: what your
-   * map says about you on `/map`, the sample on the front door. It is about
+   * map says about you on `/`, the sample on the front door. It is about
    * the map, so it is drawn on it rather than taking a line of the card.
    */
   caption?: ReactNode;

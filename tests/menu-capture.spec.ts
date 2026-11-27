@@ -20,7 +20,7 @@ test.describe('Menu capture & MCP handoff', () => {
     page,
   }) => {
     const url =
-      '/map?menu=1&bar=Attaboy&item=Negroni&item=' +
+      '/?menu=1&bar=Attaboy&item=Negroni&item=' +
       encodeURIComponent('Paper Tiger — mezcal, aperol, lime, agave');
     await page.goto(url);
 
@@ -35,7 +35,7 @@ test.describe('Menu capture & MCP handoff', () => {
   test('Scan a menu photo shows a light sign-in nudge for guests without blocking paste', async ({
     page,
   }) => {
-    await page.goto('/map?menu=1');
+    await page.goto('/?menu=1');
     await page.getByTestId('menu-scan-photo').click();
     await expect(page.getByTestId('photo-signin-nudge')).toBeVisible();
   });

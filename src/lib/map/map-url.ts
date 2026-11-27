@@ -18,7 +18,7 @@ import { QUADRANT_ORDER, type QuadrantId } from './coordinates';
  *   On someone's map a signed-in reader is compared with by default; `with=`
  *   names anyone, so a comparison of two other people is a link too.
  *
- * They combine: `/map?palate=alice.bsky.social&drink=negroni` is where a
+ * They combine: `/?palate=alice.bsky.social&drink=negroni` is where a
  * Negroni sits for Alice. Rating links (`?rate=`, `?draft=1&…`,
  * `pour-draft.ts`) carry their own `drink=` for the pour; on those, `drink=`
  * belongs to the pour, not the view.
@@ -166,16 +166,16 @@ export interface MenuHandoff {
 }
 
 /**
- * Build a stateless `/map` URL that opens `MenuView` pre-populated with a
+ * Build a stateless `/` URL that opens `MenuView` pre-populated with a
  * captured bar menu (used by MCP's `rank_menu` so a chat-captured menu opens
- * directly as numbered pins on `/map`).
+ * directly as numbered pins on `/`).
  */
 export function menuHandoffHref(
   origin: string,
   items: readonly string[],
   bar?: string | null
 ): string {
-  const url = new URL('/map', origin);
+  const url = new URL('/', origin);
   url.searchParams.set('menu', '1');
   const cleanBar = bar?.trim().slice(0, MAX_HANDOFF_BAR_LEN);
   if (cleanBar) url.searchParams.set('bar', cleanBar);

@@ -9,8 +9,8 @@ import { cn } from '@/lib/utils';
  * On a phone the map stays at the top while the page scrolls the card up
  * over it, and the card's app bar sticks to the top of the screen once it
  * gets there; from `lg` the card is a panel down the left that scrolls on its
- * own. The same on every page, the app screen (`/map`, the questions too)
- * included: what a tap moves on `/map` is the page's scroll, not the card.
+ * own. The same on every page, the app screen (`/`, the questions too)
+ * included: what a tap moves on `/` is the page's scroll, not the card.
  *
  * The card comes before the map in the page, so a screen reader or a
  * keyboard meets the app bar and the card's contents first and the map, a

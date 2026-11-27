@@ -133,7 +133,7 @@ export async function logDrinkFeedback(
   }
 }
 
-/** Fetch someone's public palate + tasting history for `/map` overlays (`with=` / `table=`). */
+/** Fetch someone's public palate + tasting history for `/` overlays (`with=` / `table=`). */
 export async function fetchPublicPalate(
   actor: string
 ): Promise<import('@/lib/atproto/public-read').PublicPalateResult> {

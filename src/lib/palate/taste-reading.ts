@@ -6,7 +6,7 @@ import { buildTerrain, evidenceAt, kindOf, peaks, rankByTerrain, type Terrain, t
  * Reading someone's taste from their ground, as the map's card reads yours:
  * their menu, what put a drink where it stands, and which way a drink lies.
  * One set of rules for every place that reads a person — their map
- * (`/p/<handle>`, `/map?palate=`) and the chat tools (`src/lib/mcp/`) — so
+ * (`/p/<handle>`, `/?palate=`) and the chat tools (`src/lib/mcp/`) — so
  * the page and an assistant give the same answer twice.
  *
  * Never a predicted score: a drink is placed by its height, and said by what
@@ -17,7 +17,7 @@ export type Aversions = { smoke: boolean; bitter: boolean; anise: boolean };
 
 /**
  * Someone's ground: from where their questions put them and every pour they
- * rated, or, with no quiz on record, from their point — as `/map` builds yours.
+ * rated, or, with no quiz on record, from their point — as `/` builds yours.
  */
 export function terrainOf(start: TerrainStart | null, point: { x: number; y: number }, pours: readonly TerrainPour[]): Terrain {
   return buildTerrain(start ?? { x: point.x, y: point.y }, pours);

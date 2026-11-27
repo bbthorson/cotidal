@@ -4,7 +4,7 @@ import { mapHref } from '@/lib/site-nav';
 import { cn } from '@/lib/utils';
 
 /**
- * The regions as a filter on the map: links (`/map?region=<id>`), so each
+ * The regions as a filter on the map: links (`/?region=<id>`), so each
  * works before the script does; with `onSelect` the card changes in place.
  * "All" is the map with no region. Five items: on a phone each takes a third
  * of the row, so they set 3 + 2 rather than wrapping one onto a line alone.

@@ -22,7 +22,7 @@ Decisions made with the owner. How the map and card look and behave today is
 7. **The map is every page's layout**, drawn by the server with no script.
 8. **A page with nothing of yours to draw shows the tide turning**, never a
    terrain that isn't yours: hills behind a Negroni would read as a verdict.
-9. **The questions are a state of the card** (`/map?quiz=1`).
+9. **The questions are a state of the card** (`/?quiz=1`).
 
 Why: the product's answer is a place ("which way and how far"), a bar's menu
 reads best as pins, and even a chosen set of drinks can only be named with
@@ -43,8 +43,8 @@ by one function (`drawnDrinks`, `src/lib/map/drawn.ts`;
   finds drinks (by name, alias or what is in them, so "mezcal" draws every
   mezcal drink), a region, a drink type, the edge of what you know
   (`lens=explore`), a comparison (`with=`, a table): where the two part,
-  the one for both, and the table's picks (`comparedDrinks`; on `/map` and
-  on `/map?palate=…&with=…` alike). One that holds more than
+  the one for both, and the table's picks (`comparedDrinks`; on `/` and
+  on `/?palate=…&with=…` alike). One that holds more than
   `MAX_MARKS` keeps its staples first, then its highest on your ground
   (`capMarks`).
 - **A bar's menu** draws its pins and nothing else.
@@ -54,7 +54,7 @@ by one function (`drawnDrinks`, `src/lib/map/drawn.ts`;
 A drink not drawn is not drawn at all, not faded: a speck still crowds. It
 is one search away, and opening it draws it.
 
-Still open: search on every map page (only `/map` has it); a drink tapped on
+Still open: search on every map page (only the app has it); a drink tapped on
 a static page's map going to its page; `?palate=` on a drink's page (needs
 per-request rendering, cached at the edge).
 
@@ -73,7 +73,7 @@ change the drawing. Read and written only by `src/lib/map/map-url.ts`
 | `with=<handle or DID>` | A second taste as terracotta contours, to compare |
 | `region=<id>` | That region washed, its drinks in the card |
 
-They combine (`/map?palate=alice.bsky.social&drink=negroni`). A person's
+They combine (`/?palate=alice.bsky.social&drink=negroni`). A person's
 canonical path is `/p/<handle>` by verified handle, else `/p/<did>`; printed
 codes use the DID. Values are checked, never guessed; anything else is
 dropped. Someone else's palate never writes to your device, and you rate only
@@ -119,7 +119,7 @@ saying three things from the taste's nearest hill:
 A person adds where the two part (`compareTerrains`): what each would reach
 for that the other wouldn't (at least a point higher on their ground), and
 one for both. Two people who agree get no invented contrast. A height decides
-"reached for" and is never shown. `/p`, `/map?palate=` and the chat tools'
+"reached for" and is never shown. `/p`, `/?palate=` and the chat tools'
 `compare_palates` all say the same.
 
 ## Where a bar's menu comes from

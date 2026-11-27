@@ -4,7 +4,7 @@ import { pour } from './pours';
 
 
 /**
- * How to reach a palate from a chat assistant: linked from `/map` once a
+ * How to reach a palate from a chat assistant: linked from `/` once a
  * member has a coordinate, and what a browser sees at `/mcp`.
  */
 export const assistants = {

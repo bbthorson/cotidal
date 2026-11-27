@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { appPath } from './app-path';
 import { QUADRANT_ORDER, quadrantIdFor, regionPath } from '../src/lib/map/coordinates';
 import { drinkDatabase } from '../src/lib/drinks/data';
 import { quadrants, drinks, explore, hero, nav as nav_, notFound, site } from '../src/lib/copy';
@@ -57,14 +58,14 @@ test('Landing: the front door is server-rendered, and asks one thing', async ({ 
 });
 
 /**
- * A region is a filter on the map (`/map?region=<id>`), not a page:
+ * A region is a filter on the map (`/?region=<id>`), not a page:
  * asserted rather than assumed, because the ids are written into links in
  * more than one place (the drink card, `/p`, the chat tools, the share cards).
  */
 test('Regions: each is a filter on the map, drawn with the page: its name, every drink the map places there, and its write-up', async ({ page }) => {
   for (const id of QUADRANT_ORDER) {
     const path = regionPath(id);
-    expect(path).toBe(`/map?region=${id}`);
+    expect(path).toBe(`/?region=${id}`);
     await page.goto(path);
     const name = quadrants.find((q) => q.id === id)!.name;
     await expect(page.getByRole('heading', { level: 1, name })).toBeVisible();
@@ -74,7 +75,7 @@ test('Regions: each is a filter on the map, drawn with the page: its name, every
     // The filter moves between them in place, and All is the map.
     const filter = page.getByRole('navigation', { name: drinks.filterLabel });
     await expect(filter.locator('a[aria-current="page"]')).toHaveAttribute('href', path);
-    await expect(filter.getByRole('link', { name: drinks.filterAll })).toHaveAttribute('href', '/map');
+    await expect(filter.getByRole('link', { name: drinks.filterAll })).toHaveAttribute('href', '/');
   }
 });
 
@@ -92,7 +93,7 @@ test('Drinks: a drink entry has Recipe structured data and one way to compare it
   const html = await (await page.request.get('/drinks/absinthe-drip')).text();
   expect(html).toContain('"@type":"Recipe"');
   // One link for a member and a stranger alike: the questions go straight on to the drink on your map if you have a coordinate.
-  expect(html).toContain('href="/map?drink=absinthe-drip&amp;quiz=1"');
+  expect(html).toContain('href="/?drink=absinthe-drip&amp;quiz=1"');
   expect(html).toContain(drinks.compareCta);
 });
 
@@ -114,7 +115,7 @@ test('Drinks: a drink is the map with the drink marked and its entry in the card
   await expect(card.getByRole('heading', { name: drinks.nearLabel })).toBeAttached();
   // The page's name is said once, in the app bar, with its way back; no line of its own under the bar.
   await expect(card.getByTestId('page-name')).toHaveText(/^Drinks · /);
-  await expect(card.locator('header').getByRole('link', { name: drinks.backLabel })).toHaveAttribute('href', '/map?drink=negroni');
+  await expect(card.locator('header').getByRole('link', { name: drinks.backLabel })).toHaveAttribute('href', '/?drink=negroni');
   await expect(card.getByText(/^Drinks · /)).toHaveCount(1);
 
   // On a phone the card rests under the map and scrolling the page pulls it up over it.
@@ -149,7 +150,7 @@ test('Sign in: works without JavaScript, from its own page', async ({ browser })
   await page.goto('/');
   await expect(page.getByRole('link', { name: /find your coordinate/i })).toHaveAttribute(
     'href',
-    '/map?quiz=1'
+    '/?quiz=1'
   );
   await context.close();
 });
@@ -190,21 +191,21 @@ test('Sign in: surfaces sign-in errors', async ({ page }) => {
 test('Navigation: unified header navigation renders on landing, drinks and the map', async ({ page }) => {
   const landing = await (await page.request.get('/')).text();
   expect(landing).toContain('aria-label="Main navigation"');
-  expect(landing).toContain('href="/map"');
+  expect(landing).toContain('href="/"');
   expect(landing).toContain('href="/sign-in"');
   // Drinks pages are for SEO/AEO and members, not linked from the homepage for unauthenticated visitors.
   expect(landing).not.toContain('href="/drinks"');
 
   const drinkPage = await (await page.request.get('/drinks/negroni')).text();
   expect(drinkPage).toContain('aria-label="Main navigation"');
-  expect(drinkPage).toContain('href="/map"');
+  expect(drinkPage).toContain('href="/"');
 
-  const map = await (await page.request.get('/map')).text();
+  const map = await (await page.request.get(appPath)).text();
   expect(map).toContain('aria-label="Main navigation"');
-  expect(map).toContain('href="/map"');
+  expect(map).toContain('href="/"');
 
   await page.setViewportSize({ width: 1280, height: 900 });
-  for (const path of ['/', '/drinks/negroni', '/map']) {
+  for (const path of ['/', '/drinks/negroni', appPath]) {
     await page.goto(path);
     await expect(page.locator('header a[href="/drinks"]'), path).toHaveCount(0);
   }

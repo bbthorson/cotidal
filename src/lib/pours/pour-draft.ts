@@ -4,7 +4,7 @@ import { RATE_LANDING_PATH, RATE_PARAM } from '../atproto/paths';
 
 /**
  * A pour drafted somewhere else — a chat assistant, through `/mcp` — for the
- * member to confirm in the rating sheet (`/map?draft=1&…`). It travels in the link, so nothing
+ * member to confirm in the rating sheet (`/?draft=1&…`). It travels in the link, so nothing
  * is stored and nothing is written until they press the button.
  *
  * It carries no rating, on purpose: the rating is what moves the coordinate,
@@ -94,7 +94,7 @@ export function parseDraft(params: URLSearchParams): PourDraft | null {
   });
 }
 
-/** `/map?draft=1&…`, the link a draft is handed over in. */
+/** `/?draft=1&…`, the link a draft is handed over in. */
 export function draftPath(draft: PourDraft): string {
   const params = new URLSearchParams({ [MARKER]: '1', drink: draft.drink });
   if (draft.atHome) params.set('at', 'home');

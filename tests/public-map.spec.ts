@@ -14,7 +14,7 @@ test('Public map route: an unknown actor is a 404 page, not an error', async ({ 
   expect(res.status()).toBe(404);
   const html = await res.text();
   expect(html).toContain(publicMap.notFoundTitle);
-  expect(html).toContain('href="/map?quiz=1"');
+  expect(html).toContain('href="/?quiz=1"');
   expect(html).toContain('aria-label="Main navigation"');
 });
 
@@ -42,9 +42,9 @@ test('Public map route: ships no client JavaScript', async ({ page }) => {
   expect(await page.locator('astro-island').count()).toBe(0);
 });
 
-test('The map\'s address: ?palate= is someone\'s public map, at /map, with no script', async ({ page, request }) => {
+test('The map\'s address: ?palate= is someone\'s public map, at /, with no script', async ({ page, request }) => {
   // The same page /p/<handle> is, rendered at the map's address (map-url.ts).
-  const res = await request.get('/map?palate=nobody.invalid&drink=negroni');
+  const res = await request.get('/?palate=nobody.invalid&drink=negroni');
   expect(res.status()).toBe(404);
   expect(await res.text()).toContain(publicMap.notFoundTitle);
 
@@ -52,20 +52,20 @@ test('The map\'s address: ?palate= is someone\'s public map, at /map, with no sc
   page.on('response', (r) => {
     if (r.request().resourceType() === 'script' && r.url().includes('/_astro/')) scripts.push(r.url());
   });
-  await page.goto('/map?palate=@Nobody.invalid', { waitUntil: 'networkidle' });
+  await page.goto('/?palate=@Nobody.invalid', { waitUntil: 'networkidle' });
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(publicMap.notFoundTitle);
-  expect(page.url()).toContain('/map?palate=');
+  expect(page.url()).toContain('/?palate=');
   expect(scripts).toHaveLength(0);
 
   // A palate that is not a handle or a DID is dropped: the map is yours, as without it.
-  const plain = await request.get('/map?palate=not%20a%20handle');
+  const plain = await request.get('/?palate=not%20a%20handle');
   expect(plain.status()).toBe(200);
   expect(await plain.text()).toContain('id="map-search"');
 });
 
 test('One address for a page: the parameters only change what the map draws, so the canonical link drops them', async ({ request }) => {
-  const html = await (await request.get('/map?drink=negroni&palate=not%20a%20handle')).text();
-  expect(html).toMatch(/<link rel="canonical" href="[^"]*\/map"/);
+  const html = await (await request.get('/?drink=negroni&palate=not%20a%20handle')).text();
+  expect(html).toMatch(/<link rel="canonical" href="[^"]*\/"/);
   const drink = await (await request.get('/drinks/negroni/')).text();
   expect(drink).toMatch(/<link rel="canonical" href="\/drinks\/negroni\/?"/);
 });
@@ -77,7 +77,7 @@ test('One address for a page: the parameters only change what the map draws, so 
  * person's would, through the same reader.
  */
 test('A made-up person: their taste as ground, their menu with what put it there, and a note that they are made up', async ({ page }) => {
-  await page.goto('/map?palate=deep.test');
+  await page.goto('/?palate=deep.test');
   await expect(page.getByTestId('sample-note')).toHaveText(publicMap.sampleNote);
   await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', 'noindex');
   await expect(page.getByTestId('leanings')).toContainText('rich and savory');
@@ -91,10 +91,10 @@ test('A made-up person: their taste as ground, their menu with what put it there
 });
 
 test('A made-up person: a drink on their map says what put it there and which way it lies, and two hills are two', async ({ page }) => {
-  await page.goto('/map?palate=deep.test&drink=negroni');
+  await page.goto('/?palate=deep.test&drink=negroni');
   const drink = page.getByTestId('palate-drink');
   await expect(drink).toContainText('Rated 8');
-  await expect(drink.getByRole('link', { name: publicMap.drinkForYou })).toHaveAttribute('href', '/map?drink=negroni');
+  await expect(drink.getByRole('link', { name: publicMap.drinkForYou })).toHaveAttribute('href', '/?drink=negroni');
 
   await page.goto('/p/both.test');
   await expect(page.getByTestId('leanings')).toContainText('rich and savory');
@@ -102,7 +102,7 @@ test('A made-up person: a drink on their map says what put it there and which wa
 });
 
 test('Two made-up people compared: where they part, each way, from their own ground', async ({ page }) => {
-  await page.goto('/map?palate=deep.test&with=surf.test');
+  await page.goto('/?palate=deep.test&with=surf.test');
   const overlap = page.getByTestId('overlap');
   await expect(overlap).toContainText(publicMap.onlyLabel('@deep.test', '@surf.test'));
   await expect(overlap).toContainText(publicMap.onlyLabel('@surf.test', '@deep.test'));
@@ -114,10 +114,10 @@ test('Two made-up people compared: where they part, each way, from their own gro
 test('Two made-up people compared: the map draws the comparison\'s drinks, not the staples', async ({ page }) => {
   const drawn = (slug: string) => page.locator(`[data-drink="${slug}"]`);
   // One person alone: the staples, so a Mojito is on the map.
-  await page.goto('/map?palate=deep.test');
+  await page.goto('/?palate=deep.test');
   await expect(drawn('mojito')).toHaveCount(1);
   // Compared: where the two part, each way (Manhattan, Daiquiri), and the picks for both, in place of the staples.
-  await page.goto('/map?palate=deep.test&with=surf.test');
+  await page.goto('/?palate=deep.test&with=surf.test');
   await expect(drawn('manhattan')).toHaveCount(1);
   await expect(drawn('daiquiri')).toHaveCount(1);
   await expect(drawn('mojito')).toHaveCount(0);
@@ -127,7 +127,7 @@ test('Two made-up people compared: the map draws the comparison\'s drinks, not t
 
 test('A drink and a person are compared the same way: from the nearest hill, which way, and what is behind it', async ({ page }) => {
   // A drink is a point on their map.
-  await page.goto('/map?palate=deep.test&drink=negroni');
+  await page.goto('/?palate=deep.test&drink=negroni');
   const drink = page.locator('[data-testid="comparison"][data-kind="drink"]');
   await expect(drink.getByRole('heading', { name: compare.title(compare.theirs('@deep.test')) })).toBeVisible();
   await expect(drink).toContainText(compare.fromLabel);
@@ -135,7 +135,7 @@ test('A drink and a person are compared the same way: from the nearest hill, whi
   await expect(drink).toContainText(compare.drinkReach('@deep.test', true));
 
   // A person is a set of points: the same comparison, from the same hill, to the highest of theirs.
-  await page.goto('/map?palate=deep.test&with=surf.test');
+  await page.goto('/?palate=deep.test&with=surf.test');
   const person = page.locator('[data-testid="comparison"][data-kind="person"]');
   await expect(person.getByRole('heading', { name: compare.title(compare.theirs('@deep.test')) })).toBeVisible();
   await expect(person).toContainText(compare.fromLabel);

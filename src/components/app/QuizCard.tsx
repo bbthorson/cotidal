@@ -6,7 +6,7 @@ import { Questionnaire } from './Questionnaire';
 import { Reveal } from './Reveal';
 
 /**
- * The questions and the reveal, as a state of the map's card (`/map?quiz=1`,
+ * The questions and the reveal, as a state of the map's card (`/?quiz=1`,
  * `Explore.tsx`), never a page of their own: two beats over the map. While
  * the questions run, the map draws the ground the answers so far make and the
  * shoal narrowing where they point (`onShoal`); when they finish, the point settles there (`onPoint`)

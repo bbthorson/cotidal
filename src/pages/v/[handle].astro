@@ -9,7 +9,7 @@ import { explore, site, venuePage as copy } from '../../lib/copy';
 
 /**
  * `/v/<handle>` — a bar's live AT Protocol venue & menu page: the map with
- * the bar's menu on it as numbered pins, as `/map` draws a bar, and the menu
+ * the bar's menu on it as numbered pins, as `/` draws a bar, and the menu
  * in the card. Server-rendered directly from the venue's own PDS
  * (`app.cotidal.venue` + `app.cotidal.menu`), shipping zero client JavaScript.
  */
@@ -60,7 +60,7 @@ const formatDate = (iso: string) => {
           <div class="flex flex-wrap items-center gap-x-5 gap-y-2">
             {result.venue.menu && (
               <a
-                href={`/map?venue=${encodeURIComponent(result.actor.handle ?? result.actor.did)}`}
+                href={`/?venue=${encodeURIComponent(result.actor.handle ?? result.actor.did)}`}
                 class="btn btn-primary w-full"
               >
                 {copy.rankForMe}

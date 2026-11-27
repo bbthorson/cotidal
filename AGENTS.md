@@ -9,29 +9,32 @@ matches the task. Each topic has one home: link to it, don't repeat it.
 
 Every page is the map and its card (`MapScreen.tsx`; `docs/design-system.md`,
 One kind of page). A page with no script renders it from `MapPage.astro`, on
-the server with no directive, so there is one copy of the map. The one React
-island is `/map` (`client:load`, never `client:only`, so it server-renders).
+the server with no directive, so there is one copy of the map.
 
-- **No client JavaScript** on `/`, `/drinks/<slug>`, `/p/<handle>` and the
-  other static pages. Never add an island to `/`:
-  `tests/landing-static.spec.ts` fails. `/` is the front door only for
-  someone with nothing on the map: a member, or a device whose presence
-  cookie says it holds a coordinate (`src/lib/device-presence.ts`), gets
-  `/map` there by `Astro.rewrite`, decided on the server. Any parameter keeps
-  the front door (`frontDoorHref`; `tests/front-door.spec.ts`).
+- **`/` is the one address, in two renderings** (`src/pages/index.astro`).
+  The app (`AppScreen.astro`) is the one React island (`client:load`, never
+  `client:only`, so it server-renders). The front door (`FrontDoor.astro`)
+  is its state for someone with nothing on the map, and ships no script: no
+  session, no presence cookie (`src/lib/device-presence.ts`: the device says
+  it holds a coordinate, never what it is) and no parameter; `?about=1`
+  (`frontDoorHref`) asks for it outright. The server decides, so nothing
+  flashes (`tests/front-door.spec.ts`). There is no `/map`.
+- **No client JavaScript** on the front door, `/drinks/<slug>`,
+  `/p/<handle>` and the other static pages. Never add an island to the
+  front door: `tests/landing-static.spec.ts` fails.
 - `/sign-in` is a plain form post that works with JavaScript off, enhanced by
   `<bsky-sign-in>` (no React). Sign-in (`@bbthorson/atproto-cf-auth`) is
   content-negotiated at `/api/auth/atproto/login`: JSON in, JSON out for the
   island; form-encoded in, 303 out for the plain form (including `signUp=1`).
   Don't break the second path.
-- The questions are a state of the map's card (`/map?quiz=1`,
+- The questions are a state of the map's card (`/?quiz=1`,
   `QuizCard.tsx`), never a page. Rating a pour is in the card too
   (`RatePanel.tsx`, `useRateSheet`; `?rate=<drink>` or `?draft=1&…` opens it
   once; a new trigger calls `open()` and does not navigate). The URL contract
   is `docs/design-system.md`, Rating a pour.
 - The account control is server truth (`accountFor`): `@handle` for a
   member, Sign in for a guest, Account on a prerendered page. Sign out is on
-  `/settings` alone and lands on `/map?signed_out=1`, where
+  `/settings` alone and lands on `/?signed_out=1`, where
   `AtprotoProvider` clears the device's palate but keeps remembered accounts.
 - **An app screen is a hook and a drawing.** Hooks in `src/hooks/`
   (`useExplore`, `useMemberData`, `useQuizOverlay`, `useRatePour`,
@@ -70,7 +73,7 @@ and a string to `copy/` before rendering it. A new font size goes in
 
 ### The map — `src/lib/drinks/data.ts`, `Explore.tsx`, `PalateMap.tsx`
 
-A 2D plane: `x` Rich −10 → Crisp +10, `y` Savory −10 → Sweet +10. `/map` is
+A 2D plane: `x` Rich −10 → Crisp +10, `y` Savory −10 → Sweet +10. `/` is
 the app's one screen: the map fixed as the background, never panning or
 zooming (what changes is what is drawn), and one card for everything else.
 Geometry, contours and label placement are plain functions (`map-draw.ts`);
@@ -83,7 +86,7 @@ draws the staples or a filter's own drinks, never all of them
 parameters pick what the map draws (`drink=`, `palate=`, `with=`, `region=`).
 Read and write them only through `readMapView` and `viewHref`. A drink is
 checked by `drinkOf`, a person by the protocol's syntax; anything else is
-dropped. `/map?palate=` renders `/p/<handle>` (`Astro.rewrite`).
+dropped. `/?palate=` renders `/p/<handle>` (`Astro.rewrite`).
 
 **Names to drinks:** only `matchDrink` (`src/lib/drinks/search.ts`) turns a
 name into a drink, everywhere (pours, the form, menus, search, chat tools):
@@ -173,8 +176,8 @@ Content collections (`src/content.config.ts`), drawn by `DrinkEntry` and
 `RegionEntry`. A drink on the map opens its whole entry in the card
 (fetched prerendered as `/drinks/<slug>.json`); `/drinks/<slug>` is a
 script-free map page for SEO/AEO with `Recipe` JSON-LD and one link,
-`/map?drink=<slug>&quiz=1`. There is no `/drinks` list. A region is a filter
-on the map (`/map?region=<id>`, `RegionPanel`), not a page.
+`/?drink=<slug>&quiz=1`. There is no `/drinks` list. A region is a filter
+on the map (`/?region=<id>`, `RegionPanel`), not a page.
 
 - **Frontmatter carries no coordinates**: an entry joins `drinkDatabase` by
   `name`, exactly, including any parenthetical (`Daiquiri (Classic)`).
@@ -216,7 +219,7 @@ its DID).
   DID → document (`@atproto/did`) → PDS → records, with no session, `https:`
   only, time-boxed, cached by repo revision. Unit tests fake `fetch`; route
   tests use `nobody.invalid`. **Made-up people** (`sample-people.ts`) are
-  `.test` handles read with no network: `/map?palate=deep.test`, `both.test`,
+  `.test` handles read with no network: `/?palate=deep.test`, `both.test`,
   `deep.test&with=surf.test`, `quiet.test`. `publicMapPath` lives in
   `paths.ts` because the island links to it and must not import the server
   package.

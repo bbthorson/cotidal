@@ -3,7 +3,7 @@ import { readPublicPalate } from '@/lib/atproto/public-read';
 
 /**
  * Public read endpoint for someone's AT Protocol palate & tasting history,
- * used by `/map` overlays (`with=` and `table=`). Works offline for `.test`
+ * used by `/` overlays (`with=` and `table=`). Works offline for `.test`
  * sample people (`deep.test`, `surf.test`, `both.test`).
  */
 export const GET: APIRoute = async ({ url }) => {

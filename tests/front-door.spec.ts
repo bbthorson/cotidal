@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { appPath } from './app-path';
 import { COORDINATE_COOKIE } from '../src/lib/device-presence';
 import { coldState, hero } from '../src/lib/copy';
 import { frontDoorHref } from '../src/lib/site-nav';
@@ -30,7 +31,7 @@ test('Front door: a device with a coordinate gets the app at /, and How it works
 
 test('Front door: the cookie follows the coordinate kept on the device', async ({ page }) => {
   // A coordinate kept before the cookie existed is marked when the map loads.
-  await page.goto('/map');
+  await page.goto(appPath);
   await page.evaluate((p) => localStorage.setItem('user_profile', JSON.stringify(p)), profile);
   await page.reload();
   await expect.poll(() => hasMark(page)).toBe(true);
@@ -40,4 +41,12 @@ test('Front door: the cookie follows the coordinate kept on the device', async (
   await expect(page.getByRole('link', { name: coldState.quizCta })).toBeVisible();
   await expect.poll(() => hasMark(page)).toBe(false);
   expect(await (await page.request.get('/')).text()).toContain(hero.headline);
+});
+
+test('Front door: there is one address; /map is gone, and anything asked of the map is the app', async ({ request }) => {
+  expect((await request.get('/map')).status()).toBe(404);
+  for (const path of ['/?quiz=1', '/?drink=negroni', '/?q=negroni', '/?region=deep']) {
+    expect(await (await request.get(path)).text(), path).toContain('astro-island');
+  }
+  expect(await (await request.get('/')).text()).not.toContain('astro-island');
 });

@@ -13,7 +13,7 @@ const { currentPath = '/', compact = false, account = { kind: 'unknown' } } = As
 
 // The reading pages; the app and the account live in the header (site-nav.ts).
 const links = [
-  { href: '/', label: nav.home, active: currentPath === '/' },
+  { href: '/', label: nav.home, active: currentPath === '/' || currentPath.startsWith('/?') },
   ...destinations
     .filter((d) => d.footer && isVisibleDestination(d, account.kind))
     .map((d) => ({ href: d.href, label: d.label, active: isCurrent(currentPath, d.match) })),

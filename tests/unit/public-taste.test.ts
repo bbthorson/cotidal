@@ -94,7 +94,7 @@ describe('their taste', () => {
       ['Manhattan', 9],
       ['Daiquiri (Classic)', 3],
     ]);
-    // The same ground /map would draw from the same records.
+    // The same ground / would draw from the same records.
     const t = buildTerrain(taste!.start!, taste!.pours);
     const manhattan = drinkDatabase.find((d) => d.name === 'Manhattan')!;
     const daiquiri = drinkDatabase.find((d) => d.name === 'Daiquiri (Classic)')!;

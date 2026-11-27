@@ -1,86 +1,34 @@
 ---
-import MapPage from '../layouts/MapPage.astro';
-import { PalateMap } from '../components/app/PalateMap';
+import FrontDoor from '../components/site/FrontDoor.astro';
+import AppScreen from '../components/site/AppScreen.astro';
 import { accountFor } from '../lib/atproto/session';
-import { explore, hero, howItWorks, nav, site } from '../lib/copy';
-import { sampleFrames } from '../lib/palate/sample-palate';
-import { mapHref, questionsHref, signIn } from '../lib/site-nav';
 import { hasDeviceCoordinate } from '../lib/device-presence';
+import { readMapView, viewHref } from '../lib/map/map-url';
+import { publicMapPath } from '../lib/atproto/paths';
+import { FRONT_DOOR_PARAM } from '../lib/site-nav';
 
 /**
- * The front door is the map, as every page that is a place on it is
- * (docs/map-first.md, Decided): a sample palate gaining
- * ratings behind, labelled as one, and the card. At rest the card asks a
- * stranger one thing — find your coordinate — with what it costs; pulled up
- * (on a phone, scrolled), it says how it works and offers sign-in to someone
- * whose map is on another device.
+ * The one address. `/` is the app (`AppScreen`, the one island), and the
+ * front door (`FrontDoor`, no script) is its state for someone with nothing
+ * on the map: no session, no coordinate on this device (its presence cookie,
+ * `device-presence.ts`) and nothing asked of the map. Decided here, on the
+ * server, so nothing flashes and a stranger's first page ships no JavaScript
+ * (`tests/landing-static.spec.ts`, `tests/front-door.spec.ts`).
  *
- * The sample's frames are the real terrain code's, worked out here; the
- * animation is CSS. Ships zero JavaScript: `tests/landing-static.spec.ts`
- * fails if it does.
- *
- * It is the front door only for someone with nothing on the map yet. A member,
- * or a device that says it holds a coordinate (`device-presence.ts`), gets the
- * app here, decided on the server so nothing flashes. Any parameter
- * (`frontDoorHref`, How it works) keeps the front door.
+ * `?about=1` (`frontDoorHref`) asks for the front door outright: How it works
+ * is its card, pulled up.
  */
+export const prerender = false;
+
+const params = Astro.url.searchParams;
+// Someone else's palate (`?palate=`, map-url.ts) is their public map, read-only and drawn on the
+// server: the same page `/p/<handle>` is, at this address, with the drink it is about.
+const view = readMapView(params);
+if (view.palate) return Astro.rewrite(viewHref(publicMapPath(view.palate), { drink: view.drink, with: view.with }));
+
 const account = await accountFor(Astro.request, false);
-const member = account.kind === 'member';
-if (!Astro.url.search && (member || hasDeviceCoordinate(Astro.request.headers.get('cookie')))) {
-  return Astro.rewrite(mapHref);
-}
-const canSignIn = account.kind === 'guest' && account.canSignIn;
-const frames = sampleFrames();
+const hasTaste = account.kind === 'member' || hasDeviceCoordinate(Astro.request.headers.get('cookie'));
+const frontDoor = params.has(FRONT_DOOR_PARAM) || (!hasTaste && params.size === 0);
 ---
 
-<MapPage title={`${site.name} — ${hero.headline} ${hero.headlineAccent}`} currentPath="/" label={site.name} rest="tall" account={account}>
-  <PalateMap slot="map" label={explore.chartLabel} frames={frames}>
-    <span slot="caption" class="label-caps">{hero.sampleLabel}</span>
-  </PalateMap>
-
-  <section class="pt-4">
-    <h1 class="font-serif text-title font-bold text-foreground lg:text-display">
-      {hero.headline}{' '}
-      <em class="font-normal italic text-primary">{hero.headlineAccent}</em>
-    </h1>
-    <p class="mt-2 font-serif text-ui leading-relaxed text-muted-foreground">{hero.body}</p>
-    <a href={member ? mapHref : questionsHref} class="btn btn-primary btn-lg mt-4 w-full">
-      {member ? hero.memberCta : hero.primaryCta}
-    </a>
-    {!member && <p class="mt-2 text-center text-meta text-muted-foreground">{hero.cost}</p>}
-  </section>
-
-  <!-- How it works, in full: the public account of the questions and the ratings (`howItWorks`), here and nowhere else. -->
-  <section id="how-it-works" class="mt-12 scroll-mt-20" data-testid="how-it-works">
-    <h2 class="section-title">{hero.howTitle}</h2>
-    <p class="font-serif text-ui italic leading-relaxed text-muted-foreground">{howItWorks.lede}</p>
-    <div class="mt-6 space-y-6">
-      {
-        howItWorks.sections.map((s) => (
-          <div id={s.id} class="scroll-mt-20 space-y-2">
-            <h3 class="font-serif text-ui font-bold text-foreground">{s.title}</h3>
-            {s.paragraphs.map((p) => (
-              <p class="text-meta leading-relaxed text-muted-foreground">{p}</p>
-            ))}
-          </div>
-        ))
-      }
-      <div class="space-y-2">
-        <h3 class="font-serif text-ui font-bold text-foreground">{howItWorks.laterTitle}</h3>
-        {howItWorks.later.map((line) => (
-          <p class="text-meta leading-relaxed text-muted-foreground">{line}</p>
-        ))}
-      </div>
-    </div>
-  </section>
-
-  {
-    canSignIn && (
-      <section class="mt-12">
-        <h2 class="section-title">{hero.signInTitle}</h2>
-        <p class="text-meta leading-relaxed text-muted-foreground">{hero.signInBody}</p>
-        <a href={signIn.href} class="link-caps mt-4 inline-block text-secondary">{nav.signIn} &rarr;</a>
-      </section>
-    )
-  }
-</MapPage>
+{frontDoor ? <FrontDoor account={account} /> : <AppScreen account={account} />}

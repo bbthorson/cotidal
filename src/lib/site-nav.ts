@@ -20,14 +20,15 @@ import { viewHref } from './map/map-url';
  *
  * There is no Drinks or Regions item: every drink is on the map, and opens
  * in its card with its whole entry; a region is a filter on the map
- * (`/map?region=<id>`). A drink's own page (`drinkPagePath`) is for search
+ * (`/?region=<id>`). A drink's own page (`drinkPagePath`) is for search
  * and for a link sent to someone, not for browsing.
  */
-export const mapHref = '/map';
+/** The app: the map and its card, at the one address (`src/pages/index.astro`). */
+export const mapHref = '/';
 /**
- * `/` is the app for anyone with a taste (a member, or a device that holds a
- * coordinate) and the front door for everyone else. Any parameter keeps the
- * front door, so How it works reaches it from inside the app too.
+ * `/` is the front door for someone with nothing on the map, and the app for
+ * everyone else; `?about=1` asks for the front door outright, so How it works
+ * reaches it from inside the app too.
  */
 export const FRONT_DOOR_PARAM = 'about';
 export const frontDoorHref = `/?${FRONT_DOOR_PARAM}=1`;
@@ -58,10 +59,10 @@ export const signIn = { href: '/sign-in', label: nav.signIn } as const;
  * back to the landing page's form; the island reads `?signin=1`. Everywhere
  * else the static form is the target, so it keeps working without JavaScript.
  */
-const sheetPaths = [mapHref];
+const sheetPaths: string[] = [mapHref];
 
 export const signInHref = (currentPath: string) =>
-  sheetPaths.some((p) => currentPath.startsWith(p)) ? `${currentPath}?signin=1` : signIn.href;
+  sheetPaths.includes(currentPath) ? `${currentPath}?signin=1` : signIn.href;
 
 /** The questions that place a coordinate: a state of the map's card (`startOverPath` clears the old one first). */
 export const questionsHref = `${mapHref}?${QUIZ_PARAM}=1`;
@@ -71,7 +72,9 @@ export const questionsForDrink = (slug: string) => `${viewHref(mapHref, { drink:
 /** Where a member manages their account, and where a page that cannot know sends everyone. */
 export const accountHref = '/settings';
 
-export const isCurrent = (currentPath: string, match: string) => currentPath.startsWith(match);
+/** `/` is current only on itself: every path starts with it. */
+export const isCurrent = (currentPath: string, match: string) =>
+  match === mapHref ? currentPath === mapHref : currentPath.startsWith(match);
 
 /**
  * The account control says what the server knows (`accountFor`). A member

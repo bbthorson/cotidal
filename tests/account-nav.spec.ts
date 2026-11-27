@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { appPath } from './app-path';
 import { SIGNED_OUT_PARAM, START_OVER_PARAM, signedOutPath, startOverPath } from '../src/lib/atproto/paths';
 import { a11y, account, coldState, nav, taste } from '../src/lib/copy';
 import { destinations } from '../src/lib/site-nav';
@@ -22,7 +23,7 @@ test('Header: a server-rendered page says Sign in to a guest', async ({ request 
 
 test('Header: a phone gets wordmark · Menu on every page, app or reading', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  for (const path of ['/', '/map', '/drinks/negroni']) {
+  for (const path of ['/', appPath, '/drinks/negroni']) {
     await page.goto(path);
     await expect(page.locator('header summary'), path).toHaveText(nav.menu);
     await expect(page.locator('header summary'), path).toBeVisible();
@@ -34,11 +35,13 @@ test('Header: a phone gets wordmark · Menu on every page, app or reading', asyn
 });
 
 test('Header: on an app page, Sign in opens the sheet there instead of leaving', async ({ request }) => {
-  for (const path of ['/map']) {
-    const html = await (await request.get(path)).text();
-    const header = html.slice(html.indexOf('<header'), html.indexOf('</header>'));
-    expect(header, path).toContain(`href="${path}?signin=1"`);
-  }
+  // The app is `/`; the sheet opens there, wherever the app was reached from.
+  const html = await (await request.get(appPath)).text();
+  const header = html.slice(html.indexOf('<header'), html.indexOf('</header>'));
+  expect(header).toContain('href="/?signin=1"');
+  // The front door ships no script, so its Sign in is the plain form.
+  const front = await (await request.get('/')).text();
+  expect(front.slice(front.indexOf('<header'), front.indexOf('</header>'))).toContain('href="/sign-in"');
 });
 
 test('Header: a prerendered page cannot know who is reading, and says Account', async ({ request }) => {
@@ -50,7 +53,7 @@ test('Header: a prerendered page cannot know who is reading, and says Account', 
 });
 
 test('Sign out: the map it lands on forgets the coordinate on this device', async ({ page }) => {
-  await page.goto('/map');
+  await page.goto(appPath);
   await page.evaluate((p) => {
     localStorage.setItem('user_profile', JSON.stringify(p));
     localStorage.setItem('pending_elicitation', '{}');
@@ -71,9 +74,9 @@ test('Sign out: the map it lands on forgets the coordinate on this device', asyn
 });
 
 test('Start over: two steps at the foot of the map\'s card, and Keep it changes nothing', async ({ page }) => {
-  await page.goto('/map');
+  await page.goto(appPath);
   await page.evaluate((p) => localStorage.setItem('user_profile', JSON.stringify(p)), profile);
-  await page.goto('/map');
+  await page.goto(appPath);
 
   await page.getByRole('button', { name: account.startOver }).click();
   await expect(page.getByText(account.startOverBody)).toBeVisible();
@@ -89,7 +92,7 @@ test('Start over: two steps at the foot of the map\'s card, and Keep it changes 
 });
 
 test('Start over: the questions clear the old coordinate and take the marker off the address', async ({ page }) => {
-  await page.goto('/map');
+  await page.goto(appPath);
   await page.evaluate((p) => localStorage.setItem('user_profile', JSON.stringify(p)), profile);
   await page.goto(startOverPath);
   await expect(page.getByText(questions.find((q) => q.id === 'triad_sugar_texture')!.text)).toBeVisible();
@@ -109,8 +112,9 @@ test('Navigation: the header is the drinker\'s app; For Bars is read from the fo
 test('Navigation: the footer lists the public reading pages; the app and the account are in the header', async ({ request }) => {
   const html = await (await request.get('/')).text();
   const footer = html.slice(html.lastIndexOf('<footer'), html.lastIndexOf('</footer>'));
+  // The map is `/`, which the footer links as Home, so it is checked by label.
   for (const d of destinations) {
-    expect(footer.includes(`href="${d.href}"`), d.href).toBe(d.footer && !d.memberOnly);
+    expect(footer.includes(d.href === '/' ? `>${d.label}<` : `href="${d.href}"`), d.href).toBe(d.footer && !d.memberOnly);
     // Everything in the footer is a reading page.
     if (d.footer) expect(d.app, d.href).toBe(false);
   }

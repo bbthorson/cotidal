@@ -4,10 +4,10 @@ import { SectionTitle } from './ui';
 /**
  * How to reach a palate from a chat assistant: the address, where to paste
  * it, what to ask, and what it cannot do. Shown under the account at the foot
- * of `/map`, with the member's handle in the example, and at `/mcp` to anyone
+ * of `/`, with the member's handle in the example, and at `/mcp` to anyone
  * who opens the address in a browser. One component for both: `/mcp` renders
  * it with no `client:` directive, so it is static HTML with no script (the
- * address is text to select), and the island on `/map` renders the same markup.
+ * address is text to select), and the island on `/` renders the same markup.
  *
  * Where members can sign an assistant in (`/mcp/me`, on only once its OAuth
  * store is bound), there are two addresses, and yours comes first: it is the

@@ -5,7 +5,7 @@ import { profileFromPalate } from '@/lib/palate/profile';
 import { json } from './_shared';
 
 /**
- * A signed-in member's initial state for `/map`: palate, recent pours, and
+ * A signed-in member's initial state for `/`: palate, recent pours, and
  * latest quiz in one OAuth session restore rather than three parallel ones.
  */
 export const GET: APIRoute = async ({ request, url }) => {
