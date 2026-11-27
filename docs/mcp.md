@@ -1,196 +1,132 @@
+---
+summary: The MCP server for chat assistants — public read tools at /mcp, drafting pours, the signed-in member endpoint /mcp/me with its OAuth flow, consent, scopes, and how to turn it on.
+read_when: Changing an MCP tool, its description, the /mcp page, assistant sign-in or disconnecting assistants.
+---
+
 # MCP
 
-The palate map as tools a chat assistant can call, at `/mcp`: a Streamable
-HTTP MCP server, so any assistant that takes a remote connector can use it.
-In Claude: *Settings → Connectors → Add custom connector*, URL
-`https://cotidal.app/mcp`. A member's Settings links to it (Chat
-assistants). A browser opening `/mcp` is shown the
-instructions at that URL (an MCP client never asks for HTML), personalized
-with their handle when signed in, so the address bar holds the address to paste.
+`/mcp` is a stateless Streamable HTTP MCP server (a new server per request,
+plain JSON, nothing kept). In Claude: *Settings → Connectors → Add custom
+connector*, `https://cotidal.app/mcp`. A browser opening `/mcp` gets
+instructions instead (`AssistantSteps`); Settings links to it.
 
-## What it does today: read
+## Read tools
 
 | Tool | Answers |
 |---|---|
-| `get_palate` | Someone's taste: how they lean in the map's words, the flavours they avoid, pours rated, and the top of their menu, each drink with what put it there |
-| `recommend_drinks` | Their menu, optionally of one type, leaving out what they avoid or rated low; each with what put it there and which way it lies from the nearest of their hilltops (`wayTo`, the words the menu uses) |
-| `rank_menu` | A menu's items ordered by where each stands on their taste; avoided flavours flagged and sunk, unknown drinks returned as unplaced |
-| `compare_palates` | Two tastes: how many of the first's top ten are in the second's, a drink each would reach for that the other would not, one for both |
-| `recommend_for_group` | Drinks for a table, best for whoever they suit least; and the two whose tastes part most |
-| `get_drink` | One drink: where it sits, its flags and build; given a handle, what put it where it stands for them, which way it lies, and what in it they avoid |
-| `search_drinks` | A drink someone names → the name the map knows it by |
-| `get_bar_menu` | A claimed bar's live venue and menu, by its handle or DID; given a drinker's handle (or at `/mcp/me`), ranked for them (`venue-tools.ts`) |
-| `draft_pour` | A link to `/map` with the pour filled in, for the person to confirm |
+| `get_palate` | How someone leans, what they avoid, pours rated, the top of their menu with what put each drink there |
+| `recommend_drinks` | Their menu, optionally one type, minus avoided and low-rated; each with its reason and which way it lies (`wayTo`) |
+| `rank_menu` | A menu ordered by their taste; avoided flavours flagged and sunk; unknowns returned unplaced |
+| `compare_palates` | Shared top ten, a drink each would reach for that the other wouldn't, one for both |
+| `recommend_for_group` | Drinks best for whoever they suit least; the two who part most |
+| `get_drink` | One drink's place, flags and build; with a handle, what put it there for them and what in it they avoid |
+| `search_drinks` | A named drink → the name the map knows |
+| `get_bar_menu` | A claimed bar's venue and menu by handle or DID; with a drinker's handle (or at `/mcp/me`), ranked for them |
+| `draft_pour` | A `/map` link with a pour filled in, for the person to confirm |
 
-Every tool but `draft_pour` reads public records the way `/p/<handle>` does
-(`public-read.ts`, with their taste: `public-taste.ts`), so none needs
-sign-in, and every answer is computed by the same functions the page draws
-from (`src/lib/mcp/tools.ts` over `taste-reading.ts` and `overlap.ts`). A
-person is their taste — ground from their questions and pours — never a
-point or a region, and no tool hands over a height or a predicted score:
-the order of a list is the answer, and each drink says what put it there. The assistant on the other end is the only model involved,
-and it only reads results: **a generated sentence may describe a result, never
-produce one** (`docs/generation.md`) holds here too.
+Every tool but `draft_pour` reads public records as `/p/<handle>` does and
+answers with the same functions (`src/lib/mcp/tools.ts` over
+`taste-reading.ts`, `overlap.ts`). A person is their terrain, never a point
+or a region; no tool returns a height or a predicted score: the order of a
+list is the answer, and each drink says what put it there. Tool descriptions
+are copy (`src/lib/copy/mcp.ts`).
 
-A distance is where a drink sits, not a forecast that someone will like it,
-and the server's instructions say so: an assistant asked "what wines would I
-like?" once answered "Cotidal says you'll like dry, high-acid wines", and
-guessed that an oaked Chardonnay was far away because no list it had included
-one. The tools now give it Cotidal's own words for which way a drink lies,
-and `get_drink` with a handle answers for any drink on the map.
+A distance is where a drink sits, not a forecast, and the server's
+instructions say so. (An assistant once said "Cotidal says you'll like dry
+wines" and guessed about a drink no list included; `get_drink` with a handle
+now answers for any drink.)
 
-`rank_menu` matches a menu item to a drink through `matchDrink`, as every
-name in the app is matched: folded case and accents, the name without its
-parenthetical (`Daiquiri` → `Daiquiri (Classic)`), or one of the drink's
-aliases, and nothing looser. A wrong match would be ranked with confidence it has not earned; an
-unplaced item is honest. When an unplaced house cocktail lists its ingredients,
-`rank_menu` attaches a deterministic `directional` placement (region,
-confidence, matched primitives, and bearing) from the Ingredients Index plus
-aversion cautions and closest structural classic, and returns a `mapUrl`
-(`/map?menu=1&bar=…&item=…`) so a menu photographed in chat opens directly as
-numbered pins on `/map`. The assistant can call `search_drinks` first.
+`rank_menu` matches items through `matchDrink` and nothing looser: a wrong
+match would be ranked with unearned confidence. An unplaced house cocktail
+with listed ingredients gets a deterministic `directional` placement (region,
+confidence, bearing, cautions, closest classic) and a `mapUrl`
+(`/map?menu=1&bar=…&item=…`) that opens it as pins.
 
-The endpoint is stateless — no MCP session, a new server per request, plain
-JSON answers — because nothing streams and nothing is kept.
+## Drafting a pour
 
-## Drafting a pour: the person confirms in the app
+`draft_pour` writes nothing. It returns `/map?draft=1&…`
+(`src/lib/pours/pour-draft.ts`), which opens rating in the map's card filled
+in; the person taps a rating and logs it through `logPour`.
 
-`draft_pour` writes nothing. It returns `/map?draft=1&…` with what the person
-said (drink, where, what was off, tasting notes, a note), and rating opens
-in the map's card on it; they check it, tap the rating and log it as any other pour, through
-the same `logPour`. The draft lives only in the link (`src/lib/pours/pour-draft.ts`),
-so there is nothing to store, sign in for or protect.
-
-- **No rating.** The rating moves the coordinate, and a model mapping "it was
-  fine" onto the 9-point scale is guessing in their name. The tool has no
-  field for it, and a drafted form starts with none selected and will not
-  log until one is tapped. (An ordinary form still starts at 7.)
-- **Only what the form shows.** Unknown fault and note ids are dropped, a bar
-  is dropped for a pour at home, and text is cut to the form's limits. The
-  member-only detail fields and cross-posting stay their own choices.
-- **Once.** After it is logged the draft leaves the form's state and the URL,
-  so the form that comes back, or a reload, cannot offer it again.
+- **No rating.** It moves the coordinate, and a model mapping "it was fine"
+  onto nine points is guessing in their name. A drafted form starts with none
+  selected and won't log until one is tapped.
+- **Only what the form shows:** unknown ids dropped, a bar dropped for a pour
+  at home, text cut to the form's limits.
+- **Once:** after logging, the draft leaves the form and the URL.
 
 ## Signing a member in: `/mcp/me`
 
-`/mcp` stays public. Writing as a member, and answering "my palate" without a
-handle, happen at a second address, `/mcp/me`, which needs the assistant to
-sign the member in. Keeping two addresses keeps the public reads open to
-anyone: an endpoint that answers without a token is never offered a sign-in by
-an MCP client, and one that demands a token shuts out strangers.
+`/mcp` stays public; writing and "my palate" without a handle happen at
+`/mcp/me`, which needs sign-in. Two addresses because an MCP client offers
+sign-in only to an endpoint that demands a token, which would shut out
+strangers.
 
-Cotidal is the OAuth authorization server the assistant talks to, through
-`@cloudflare/workers-oauth-provider` wrapped around the Worker in
-`src/worker.ts` (`withMemberSignIn`, `src/lib/mcp/member-auth.ts`):
+Cotidal is the OAuth authorization server, via
+`@cloudflare/workers-oauth-provider` around the Worker (`withMemberSignIn`,
+`src/lib/mcp/member-auth.ts`):
 
-1. An unauthenticated request to `/mcp/me` gets a `401` naming
-   `/.well-known/oauth-protected-resource/mcp/me`, which names this origin as
-   its authorization server.
+1. An unauthenticated `/mcp/me` gets a `401` naming
+   `/.well-known/oauth-protected-resource/mcp/me`.
 2. The assistant registers at `/oauth/register` and sends the person to
    `/oauth/authorize`.
-3. That page asks for consent and signs them in through the existing Bluesky
-   flow, then completes the grant with `props: { did }` (below).
-4. The assistant exchanges the code at `/oauth/token` and calls `/mcp/me`
-   with the token. The provider checks it and hands the page the DID as
-   `ctx.props` (`Astro.locals.cfContext`); the page reads the member from
-   there and from nothing in the request.
-5. A tool that writes restores the member's AT-Proto session with
-   `auth.restore(did)` (`@bbthorson/atproto-cf-auth` 0.5) under the existing
-   `AUTH_LOCK`. The assistant never holds an AT-Proto token.
+3. Consent plus the ordinary Bluesky sign-in completes the grant with
+   `props: { did }`.
+4. The assistant trades the code at `/oauth/token`; the provider hands
+   `/mcp/me` the DID as `ctx.props`, and the page reads the member from there
+   only.
+5. A writing tool restores the member's AT Protocol session with
+   `auth.restore(did)` under `AUTH_LOCK`. The assistant never holds an AT
+   Protocol token.
 
-Scopes: `palate:read` is the baseline every client asks for first, and
-`pours:write` lets it log pours: granted on the consent page, or asked for by
-step-up (`insufficientScope`) when `log_pour` is called without it. A grant's `userId` is the DID percent-encoded
-(`grantUserId`), because the provider refuses `:`; it is how a member's
-assistants are listed and revoked.
+**Scopes:** `palate:read` always; `pours:write` to log, granted on consent or
+by step-up (`insufficientScope`). A grant's `userId` is the DID
+percent-encoded (`grantUserId`). The provider is built per origin, so a token
+works only where it was issued. Until `OAUTH_KV` is bound, `/mcp/me` answers
+`404`.
 
-The provider is built per origin, as the sign-in's `client_id` is, so one
-deploy serves workers.dev, the custom domain and loopback; a token is good
-only on the origin that issued it. It stays off, and `/mcp/me` answers `404`,
-until the `OAUTH_KV` namespace is bound (`wrangler.toml`).
+**Consent** (`/oauth/authorize`, `src/lib/mcp/authorize.server.ts`, no
+script): the assistant's name (marked unverified if self-registered), where
+access goes, a warning for a local app, and what Allow grants; logging pours
+is a box, ticked by default. **Allow as @handle** if already signed in;
+**Sign in with Bluesky and allow** holds the request server-side
+(`beginUpstream`) and grants on `/oauth/callback`; **Deny** returns
+`access_denied`. The consent handle and upstream `state` are bound to the
+browser by `__Host-` cookies and work once.
 
-### The consent page
+**`/mcp/me` adds:** handles optional (meaning the member); `my_pours` (their
+own log only); `log_pour` (through `logPour`, `hedonic` 1–9 required and
+described as their answer, never an estimate; the rest through `cleanDraft`;
+no cross-posting; needs `pours:write`).
 
-`/oauth/authorize` (src/lib/mcp/authorize.server.ts, drawn by
-`src/pages/oauth/authorize.astro`, no JavaScript) shows what the MCP spec
-asks for: the assistant's name (marked unverified for a self-registered
-client), the host access is sent to, a warning when that is an app on this
-computer, and what Allow grants. Reading the member's palate is always
-granted; logging pours is a box, ticked by default, so an assistant that asks
-only for the baseline can still be let write without a second round trip,
-and a member who unticks it is asked again by step-up the first time.
+**Sessions that last:** set `OAUTH_PRIVATE_KEY` (an ES256 private JWK) to
+make sign-in a `private_key_jwt` client, which gets longer sessions:
 
-- **Allow as @handle** (a member already signed in here): granted at once, if
-  their AT-Proto session still restores.
-- **Sign in with Bluesky and allow**: the approved request is held
-  server-side (`beginUpstream`), the ordinary sign-in runs with
-  `returnTo=/oauth/callback?state=…`, and the callback grants for whoever the
-  sign-in just signed in. A session older than the sign-in, or a sign-in that
-  came back with `auth_error`, answers `access_denied`.
-- **Deny**: back to the assistant with `access_denied`.
+```bash
+node -e "import('@atproto/jwk-jose').then(async ({JoseKey}) => console.log(JSON.stringify((await JoseKey.generate(['ES256'], 'k1')).privateJwk)))"
+```
 
-The consent handle and the upstream `state` are each bound to the browser by
-a `__Host-` cookie and work once.
+With `ATPROTO_DB` (D1) bound, sessions live in D1 and are copied from KV as
+they are seen (`movingStore`); remove the KV binding 30 days later.
 
-### What `/mcp/me` adds
+**Turning it on:** `wrangler secret put OAUTH_PRIVATE_KEY`; `wrangler d1
+create cotidal-auth` and uncomment `ATPROTO_DB`; `wrangler kv namespace
+create cotidal-oauth` and uncomment `OAUTH_KV`; deploy; add
+`https://cotidal.app/mcp/me` in Claude. `/mcp` then explains both addresses
+(`memberMcpAddress`).
 
-- Every handle is optional and means the member.
-- `my_pours`: the member's own log, newest first. Nobody else's log is read,
-  at either address.
-- `log_pour`: writes through `logPour` with the member's restored session.
-  `hedonic` (1–9, the form's own labels) is required and described as their
-  answer, never an estimate; the rest goes through `cleanDraft`, as a draft
-  does; nothing is cross-posted. Needs `pours:write`.
+**Disconnecting:** Settings lists connected assistants (their claimed name,
+where access goes, whether they may log, when). Disconnect revokes the grant
+and its tokens (`src/lib/settings/assistants.server.ts`, `revokeGrant` by
+`grantUserId`); the member comes from the session, never the form. Signing
+out doesn't disconnect assistants.
 
-### Sessions that last
+## Rules for writing from chat
 
-A grant is only as good as the AT-Proto session behind it, which has to
-outlive weeks between visits.
-
-- **Confidential client.** Set `OAUTH_PRIVATE_KEY` (a Worker secret) to an
-  ES256 private JWK and sign-in becomes a `private_key_jwt` client, which
-  authorization servers give much longer sessions. Make one with
-  `node -e "import('@atproto/jwk-jose').then(async ({JoseKey}) => console.log(JSON.stringify((await JoseKey.generate(['ES256'], 'k1')).privateJwk)))"`.
-  Sessions made before the key keep the method they were made with; if an
-  authorization server refuses one at its next refresh, that member signs in
-  once more.
-- **D1.** With `ATPROTO_DB` bound, sessions are kept in D1, where the refresh
-  lock is a guarantee; members already in KV are copied across as they are
-  seen (`movingStore`). Remove the KV binding 30 days later.
-
-### Turning it on
-
-1. `wrangler secret put OAUTH_PRIVATE_KEY` with a key made as above.
-2. `wrangler d1 create cotidal-auth`, and uncomment `ATPROTO_DB` with its id.
-3. `wrangler kv namespace create cotidal-oauth`, and uncomment `OAUTH_KV`.
-4. Deploy, then add `https://cotidal.app/mcp/me` as a connector in Claude.
-
-`/mcp` (to a browser) explains both addresses, yours
-first, once `/mcp/me` is on (`memberMcpAddress`, the same check the routes
-make); until then it shows the one read-only address, as before.
-
-### Disconnecting an assistant
-
-`/settings` (linked from the account on `/map`) lists the assistants a member
-has connected: the name each gave (marked as its own claim), where its access
-goes, whether it may log pours, and when. Disconnect revokes the grant and
-every token under it (`src/lib/settings/assistants.server.ts`, over
-`listUserGrants` / `revokeGrant` keyed by `grantUserId`), so the assistant's
-next call gets a `401`. The member is taken from their session, never the
-form, and a grant id that is not theirs revokes nothing. Signing out does not
-disconnect assistants: it ends this browser's session, not the AT-Proto
-session they use.
-
-The rules the write path keeps:
-
-- **A record holds what its author said.** The rating is required and asked
-  for, never estimated by the assistant; every other field is absent unless
-  the member said it, and "would order again" is written only when asked.
-- **One pipeline.** Logging a pour is `logPour` in `src/lib/pours/pours.server.ts`,
-  which the page's route already calls; the assistant's tool calls it too,
-  through the same `PourStore`, so the two cannot drift.
-- **`PourContext` stays on the device.** Volume drunk and hours since eating
-  are not accepted here either.
-- **No quiz over chat.** Elicitation records are scored under a named
-  `RESPONSE_MODEL`; free-text answers in a conversation are a different
-  instrument.
+- **A record holds what its author said:** the rating is asked, never
+  estimated; other fields are absent unless said.
+- **One pipeline:** `logPour` (`src/lib/pours/pours.server.ts`) with the same
+  `PourStore` as the page.
+- **`PourContext` stays on the device;** not accepted here.
+- **No quiz over chat:** free-text answers are a different instrument from
+  the one `RESPONSE_MODEL` scores.

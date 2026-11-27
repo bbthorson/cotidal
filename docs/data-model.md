@@ -1,152 +1,97 @@
+---
+summary: The entities and every app.cotidal.* record, how unclaimed bars and makers are referenced and reconciled, menus as signed posts, why ratings never attach to people, and the namespace.
+read_when: Adding or changing a lexicon or record, referencing a venue, maker or recipe, or deciding what a record may contain.
+---
+
 # Data model
 
-How Cotidal represents drinks, places, and people on the AT Protocol,
-and why. Schemas live in `src/lib/atproto/lexicons/`; `npm run lexicons`
-validates them.
+Schemas: `src/lib/atproto/lexicons/`, checked by `npm run lexicons`. Worked
+examples: `docs/lexicon-adoption.md`.
 
 ## The entities
 
-There are more parties to a drink than a rater and a thing rated, but they are
-not all the same kind of thing:
-
-| Entity | Has an account? | What it really is |
+| Entity | Has an account? | What it is |
 |---|---|---|
-| **Rater** | Yes | The person drinking. Already modelled (`palate`). |
-| **Drink** (a Negroni) | **Never** | Folklore. A slug in an open catalog. |
-| **Recipe** (a Penicillin spec) | Yes, eventually | The authored work — the ownable thing. |
-| **Venue** | Yes, eventually | A business, and businesses own domains. |
-| **Maker** | Yes, eventually | A person who poured it. |
-| **Pour** | No — it *is* the log | This drink, this bar, this night. |
+| **Rater** | Yes | The person drinking (`palate`) |
+| **Drink** (a Negroni) | **Never** | Folklore: a slug in an open catalog |
+| **Recipe** (a Penicillin spec) | Eventually | The authored, ownable work |
+| **Venue** | Eventually | A business, which owns a domain |
+| **Maker** | Eventually | A person who poured it |
+| **Pour** | No: it *is* the log | This drink, this bar, this night |
 
-The trap is letting an account own a *drink category*. If a DID can own
-"Negroni" you have built a land grab and a chokepoint. So the folk category
-stays an unowned slug, and what a creator claims is their **spec**.
+No account may own a drink category: that would be a land grab. What a
+creator claims is their **spec**. Two bars' Negronis are two
+`app.cotidal.recipe` records in two repos, never an NSID per bar; that both
+are Negronis is `slug: "negroni"` (`app.cotidal.defs#drinkSlug`, shared by
+recipe and pour). The family is derived, never stored. Where an author gave
+no slug, the app may recognise a spec by its build, but that inference stays
+in the app, never in their record.
 
-**Two Negronis, and how they are told apart.** Attaboy's Negroni and Death &
-Co's are two records of the same kind, `app.cotidal.recipe`, in two repos:
-the author's DID says whose it is, the record's fields say how it differs.
-Never an NSID per bar or per drink (`app.cotidal.bar1.negroni`): an NSID
-names a kind of record, `app.cotidal.*` is Cotidal's to publish so a bar
-could never own it, and every Negroni would need its own schema to be read.
-That both are Negronis is `slug: "negroni"`, the one key a recipe and a pour
-share (`app.cotidal.defs#drinkSlug`, referenced by both, so it cannot mean a
-register entry in one and a family like `sour` in the other). The family is
-derived from the register entry, never stored.
+## Referencing what has no account yet
 
-The slug is what the author said. Where they said nothing, the app view may
-recognise a spec by its build — the ingredients, through the same matching
-that places a pasted menu line (`suggestClosestDrink`) — and show it as a
-likely Negroni. That inference stays in the app; it is never written into
-the author's record as if they had said it. The name is the weakest signal
-of the three: "House Negroni" may be anything.
-
-## Referencing things that have no account yet
-
-Every non-rater entity uses one shape, `app.cotidal.defs#entityRef`:
+Every non-rater entity uses `app.cotidal.defs#entityRef`:
 
 ```jsonc
 {
-  "name": "Attaboy",              // always written — the record stands alone
-  "domain": "attaboy.nyc",        // reconciliation key
-  "did":  "did:plc:…",            // only once claimed
-  "uri":  "at://did:plc:…/…"      // only once claimed
+  "name": "Attaboy",            // always written
+  "domain": "attaboy.nyc",      // the reconciliation key
+  "did": "did:plc:…",           // only once claimed
+  "uri": "at://did:plc:…/…"     // only once claimed
 }
 ```
 
-**Never write a reference you cannot write today.** The weak half is always
-present; the strong half appears when it exists. This is the hybrid of the
-[authoritative and unauthoritative reference patterns][refs] — neither pure
-`strongRef` nor pure embedded content.
-
-Reconciliation happens **in the app view, never by rewriting records**. Those
-logs live in raters' repos, signed by them; we cannot and must not touch them.
-The app view holds the `domain → DID` mapping and resolves at read time, so a
-bar that joins two years from now lights up every old log at once.
-
-The protocol supplies the verification primitive for free: **handle-as-domain**.
-A bar that proves `attaboy.nyc` *is* that bar. Publishing
-`app.cotidal.venue` at rkey `self` is therefore the entire claim — no
-approval step, no registry.
+**Never write a reference you can't write today.** The weak half is always
+there; the strong half appears when it exists ([the hybrid of the
+authoritative and unauthoritative patterns][refs]). Reconciliation happens
+**in the app view, never by rewriting records**: they are signed by their
+authors. The app view maps `domain → DID` at read time, so a bar that joins
+in two years lights up every old log at once. Handle-as-domain is the proof:
+publishing `app.cotidal.venue` at rkey `self` under `attaboy.nyc` *is* the
+claim.
 
 ## Borrowed vocabulary
 
-Places use `community.lexicon.location.*` (`address`, `geo`, `fsq`, `hthree`)
-rather than anything invented here, so any app speaking that vocabulary agrees
-which place is meant. Foursquare Open Places ids (`fsq`) are the strongest
-cross-app key.
-
-We **reference** that namespace; we never **define** inside it — see
-[Namespace](#namespace).
-
-Nothing comparable exists yet for menus, drinks, or reviews: review apps on
-the network (Skylights, Bookhive, Popsky) each rolled their own and are
-explicitly non-interoperable. A general review primitive is worth proposing
-upstream rather than hoarding.
+Places are `community.lexicon.location.*` (`address`, `geo`, `fsq`,
+`hthree`), so other apps agree which place is meant. We reference that
+namespace; we can't define in it (it belongs to the Lexicon Community).
+Nothing comparable exists for menus, drinks or reviews yet; a general review
+primitive is worth proposing upstream.
 
 ## Menus are posts
 
-A menu is authored, dated, and immutable — a post, not a database row.
+- **Never edited, only re-published,** so history is free.
+- **Authority is the signing repo, not a field.** A menu in the venue's repo
+  is its menu; in a patron's, a sighting. There is no `official` flag to
+  forge. The app view prefers the venue's, else consensus across sightings.
+- **Sightings are evidence:** `capture` says how one was obtained, and
+  agreement across observers is the confidence signal.
 
-- **Menus are never edited, only re-published.** Version history is free.
-- **Authority comes from the signing repo, not a field.** A menu in a venue's
-  repo is that venue's menu; one in a patron's repo is a sighting. There is no
-  `official` flag to forge. The app view prefers the venue's own and otherwise
-  takes consensus across sightings.
-- **Sightings are evidence, not fact.** `capture` records how one was
-  obtained. Agreement across observers is the confidence signal — which is the
-  difference between a database that rots and one that self-heals. It also
-  keeps us an aggregator of users' own records rather than a republisher of
-  someone's menu.
+## Ratings attach to works, never people
 
-## Ratings attach to works, never to people
+A rating describes **the drink**. `#credit` has exactly two fields,
+`entity` and `role`: there is nowhere to score a person. A maker's portfolio
+is a pull, computed from their recipes' reception. **Count adoption, not
+average approval:** "poured at 12 bars, reordered by 61%" is a credential,
+"3.1 ★" a humiliation (`wouldOrderAgain` exists for this). Aggregate at the
+recipe, across every bar: one bad pour has a dozen causes that aren't the
+recipe or the person.
 
-A rating belongs to the drinker and describes **the drink**. `#credit`
-attributes the people involved and deliberately has exactly two fields —
-`entity` and `role`. There is nowhere to put a score on a person.
-
-A drink designer's portfolio is computed by following `recipes` from their
-`maker` profile out to the works and reading each one's reception: a **pull**
-they initiate, not a number anyone can rank them by.
-
-**Count adoption, not average approval.** "Poured at 12 bars, logged 340
-times, reordered by 61%" is a credential. "3.1 ★" is a humiliation, and
-structurally invites the harm. `wouldOrderAgain` exists for exactly this.
-
-Aggregate at the **recipe** level, across every bar that pours it — that is
-genuinely about the design. A single bad pour has a dozen causes that are not
-the recipe and are certainly not the person.
-
-> On an open protocol, ratings are public records, so a third party *could*
-> build the leaderboard we decline to. What we control is that our lexicons
-> have no person-score field and our app view ships no endpoint that ranks
-> humans. That is a commitment, not an oversight.
-
-## Namespace
-
-The namespace is `app.cotidal.*`. NSID authority derives from ownership of
-the reversed domain, so it is real only once `cotidal.app` is registered —
-until then anyone holding that domain could publish schemas under it. If the
-domain ends up elsewhere (`cotidal.xyz` → `xyz.cotidal.*`), changing it means
-renaming the files in `src/lib/atproto/lexicons/` and updating the constants
-in `src/lib/atproto/records.ts`; `npm run lexicons` enforces that every schema
-sits under one namespace, so the rename cannot go half-done.
-
-**We can use `community.lexicon.*` types; we cannot define new ones under it.**
-Referencing their schemas is the entire point and needs no permission.
-Publishing new NSIDs in that namespace goes through the Lexicon Community
-working group, because the namespace maps to `lexicon.community`, a domain we
-do not control.
+> Ratings are public, so a third party *could* build the leaderboard we
+> decline to. Our lexicons have no person-score field and our app view ranks
+> no humans. That is a commitment.
 
 ## What stays on the device
 
-The palate record carries a five-dimensional preference state (the two map
-axes plus bitter, tannin and complexity tolerances) and its uncertainty,
-updated by a Kalman filter after each pour; the mathematics is in
-**[docs/sensory-science.md](sensory-science.md)**. Two of the filter's inputs
-are not in any record: how much someone drank and how long since they ate.
-They normalise a rating on the device and are never part of
-`app.cotidal.pour`: a record is public and permanent, and how much someone
-drank and when they ate is not the app's to publish.
+The palate carries a 5D preference state and its uncertainty
+(`docs/sensory-science.md`). How much someone drank and how long since they
+ate normalise a rating on the device and are never in a record: a record is
+public and permanent.
+
+## Namespace
+
+`app.cotidal.*`, real once `cotidal.app` is registered. If the domain ends up
+elsewhere, rename the lexicon files and the constants in `records.ts`;
+`npm run lexicons` enforces one namespace, so a rename can't half-happen.
 
 ## Records
 
@@ -154,17 +99,14 @@ Every record Cotidal defines. Other docs link here rather than repeat it.
 
 | NSID | Key | Holder | Purpose |
 |---|---|---|---|
-| `app.cotidal.palate` | `self` | Rater | 2D coordinates, 5D dynamic state vector $\mathbf{x}_k$, covariance $\mathbf{P}_k$, aversions and vibe tags — every fractional value as integer hundredths |
-| `app.cotidal.pour` | tid | Rater | Drink check-in with 9-point hedonic / gLMS, objective CATA tags, and what was served |
-| `app.cotidal.elicitation` | tid | Rater | The answers behind one completed quiz — what each question offered, which option was taken — kept to calibrate the response model against later pours |
-| `app.cotidal.menu` | tid | Venue **or** patron | An immutable menu snapshot at a point in time |
-| `app.cotidal.recipe` | tid | Author | An authored spec with technique, credits, and chemometric stimulus specs |
-| `app.cotidal.venue` | `self` | Venue | A bar claiming itself via domain handle |
-| `app.cotidal.maker` | `self` | Maker | A professional profile linking authored recipes |
-| `app.cotidal.bar` | space, `self` | Venue (authority) | A claimed bar's permissioned space: patrons' pours the venue reads and the public does not (`docs/spaces.md`) |
-| `app.cotidal.defs` | — | — | Shared types: `entityRef`, `venueRef`, `drinkSlug`, `drinkRef`, `stimulus`, `credit`, `price` |
-
-A guide for external apps, venues, and developers adopting these records
-is in **[docs/lexicon-adoption.md](lexicon-adoption.md)**.
+| `app.cotidal.palate` | `self` | Rater | Coordinates, 5D state and covariance, aversions, vibe tags (hundredths) |
+| `app.cotidal.pour` | tid | Rater | A check-in: 9-point hedonic and gLMS ratings, CATA notes, what was served |
+| `app.cotidal.elicitation` | tid | Rater | One completed quiz's answers, kept to refit the response model later |
+| `app.cotidal.menu` | tid | Venue or patron | An immutable menu snapshot |
+| `app.cotidal.recipe` | tid | Author | An authored spec: technique, credits, stimulus |
+| `app.cotidal.venue` | `self` | Venue | A bar claiming itself by domain |
+| `app.cotidal.maker` | `self` | Maker | A professional profile linking recipes |
+| `app.cotidal.bar` | space, `self` | Venue (authority) | A claimed bar's permissioned space (`docs/spaces.md`) |
+| `app.cotidal.defs` | — | — | `entityRef`, `venueRef`, `drinkSlug`, `drinkRef`, `stimulus`, `credit`, `price` |
 
 [refs]: https://blog.smokesignal.events/posts/3lvbownlrme2a-atprotocol-record-references-authoritative-vs-unauthoritative-patterns

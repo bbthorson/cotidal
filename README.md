@@ -83,44 +83,18 @@ does not affect CI or a normal terminal, where no agent is detected.
 
 ## Docs
 
-Each topic has one home; the others link to it.
+Each doc opens with front matter saying what it covers and when to read it,
+and each topic lives in one of them. Start with [AGENTS.md](AGENTS.md) before
+changing code.
 
-**Building it**
-
-- **[AGENTS.md](AGENTS.md)**: architecture, the single sources of truth,
-  conventions and the roadmap. Start here before changing code.
-- **[docs/design-system.md](docs/design-system.md)**: tokens, components, the
-  one kind of page, every screen, and how the rules are enforced
-- **[docs/generation.md](docs/generation.md)**: what a model may write, who
-  sees it, and how it is gated and metered
-- **[docs/sensory-science.md](docs/sensory-science.md)**: the psychophysics and
-  the Kalman filter behind a pour
-
-**The product**
-
-- **[docs/brand.md](docs/brand.md)**: voice, vocabulary, claims, the mark and
-  how to write the words
-- **[docs/routes.md](docs/routes.md)**: what each route promises, who it works
-  for, and why the roadmap is in that order
-- **[docs/map-first.md](docs/map-first.md)**: the decisions behind the map
-  (its address, taste as terrain, comparing) and what is still open
-- **[docs/coasters.md](docs/coasters.md)**: a member's code over their map,
-  printed as a coaster
-
-**The records and the network**
-
-- **[docs/data-model.md](docs/data-model.md)**: the entities, every record,
-  unclaimed references, menus as posts, why nobody rates people
-- **[docs/lexicon-adoption.md](docs/lexicon-adoption.md)**: worked examples for
-  another app, venue or creator writing and reading `app.cotidal.*`
-- **[docs/venues.md](docs/venues.md)**: the supply side: bars claiming
-  themselves and publishing menus, and the business case
-- **[docs/spaces.md](docs/spaces.md)**: bars as atproto Spaces, for what
-  patrons share with a bar alone
-- **[docs/mcp.md](docs/mcp.md)**: the chat-assistant tools, and signing a
-  member in from an assistant
-- **[docs/drink-sources.md](docs/drink-sources.md)**: outside sources for new
-  drinks, and their terms
+- Building: [design-system](docs/design-system.md),
+  [generation](docs/generation.md), [sensory-science](docs/sensory-science.md)
+- Product: [brand](docs/brand.md), [routes](docs/routes.md),
+  [map-first](docs/map-first.md), [coasters](docs/coasters.md)
+- Records and network: [data-model](docs/data-model.md),
+  [lexicon-adoption](docs/lexicon-adoption.md), [venues](docs/venues.md),
+  [spaces](docs/spaces.md), [mcp](docs/mcp.md),
+  [drink-sources](docs/drink-sources.md)
 
 ## License
 

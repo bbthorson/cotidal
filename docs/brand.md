@@ -1,241 +1,143 @@
-# Brand
+---
+summary: Voice, the region names and app vocabulary, what copy may and may not claim, the palette's intent, the mark and share cards, and how to write interface words.
+read_when: Writing or changing any interface copy, naming something, or touching the mark, icons or share cards.
+---
 
-One definition of the palette, and it is the CSS (`src/styles/globals.css`).
+# Brand
 
 ## Voice
 
 **Cold instrument, warm secret.** The system is precise and restrained; the
-*reveals* — your coordinate appearing, an archetype naming itself — are where
-it gets strange and warm.
-
-The brief was elegant, bold, and a little mysterious. Applied to cocktails
-that triad lands on **speakeasy** by default, and speakeasy is saturated. The
-instrument reading is the ownable one, and it suits a product that is actually
-rigorous.
-
-Amber on obsidian *was* the speakeasy default this document warned about. The
-palette below is the correction: printed matter rather than mood lighting —
-a menu, a specimen card, a wine list. Elegant is easier to hold on paper,
-because paper has no glow to hide behind.
+reveals (your coordinate appearing, a pour moving it) are where it gets warm.
+Speakeasy is the cocktail default and saturated; an instrument is ownable and
+suits a product that is actually rigorous. Printed matter, not mood lighting:
+a menu, a specimen card, a wine list.
 
 - **Elegant is restraint.** Typography and space, not ornament.
-- **Bold is one move per screen.** Something is allowed to be big.
-- **Mysterious is withholding.** Show what the map does before saying how.
-  A magician who opens with "I will now use misdirection" has no act. The
-  map itself is not withheld: the front door is the map, with its regions
-  and axes named, and a sample palate gaining ratings on it. The regions
-  were once withheld until you had one, to keep the reveal; a person is no
-  longer given a region (they are described by their terrain), so there is
-  nothing left to withhold.
+- **Bold is one move per screen.** On a map page it is the map; on a reading
+  page, the title plate.
+- **Mysterious is withholding** how, never what: the front door is the map,
+  regions and axes named, a sample palate gaining ratings on it.
 
 ## Vocabulary
 
-**"Triangulation" is internal only.** It is an accurate name for the algorithm
-— independent bearings locating a point — and it stays in `AGENTS.md` and in
-the code. It must not appear in the interface: it describes our process rather
-than the reader's benefit, and it explains the trick before performing it.
+Internal words ("triangulation", "calibration", *latent*) never appear in the
+interface. User-facing, the idea is a **coordinate**: two axes, four regions,
+named rather than explained (`quadrants` in `src/lib/copy/`):
 
-User-facing, the same idea is a **coordinate**. Two axes, four quadrants,
-named rather than explained:
-
-| Quadrant | Axis | |
+| Region | Axis | Gloss |
 |---|---|---|
 | **The Deep** | Rich · Savory | Dark, bitter, unhurried. Negronis, Manhattans, amaro, peat. |
 | **The Salt Line** | Crisp · Savory | Dry, mineral, exact. Martinis, fino sherry, a gin and tonic. |
 | **The Eddy** | Rich · Sweet | Dense, warm, slow. Port, cream, coffee. |
 | **The Surf** | Crisp · Sweet | Bright, cold, quick. Spritzes, daiquiris, mojitos. |
 
-Each gloss names drinks, because a reader recognises a Negroni before they
-recognise "rich and savory". The drinks named must be ones the map puts in
-that region (`drinkDatabase`); a gloss that names a drink placed elsewhere
-is the drift this codebase keeps producing.
+A gloss names only drinks the map places in that region. The names are one
+register (water and motion, as on a chart). They name parts of the map, never
+a person. The ids are URLs (`/map?region=<id>`).
 
-The names are one vocabulary — water and motion, as on a chart — never a
-mix of registers (fire, a room and a field read as three products). They are still a little astrological: a coordinate you *have*, a place
-you belong, glossed but never justified. They live in `src/lib/copy/` and
-can be replaced in one file. The ids are URLs (`/map?region=<id>`); with
-no members yet, a rename needs no redirect, but once codes are printed on
-coasters it will.
-
-Chart words carry the brand — *the chart*, *drift*, *reckoned* — but links,
-buttons and navigation use plain words ("Map", "Sign in"): a
-reader should never have to decode where a link goes. A chart word has to be
-one a reader already knows: not *rutter* (a mariner's book of sailing
-directions), and nothing nautical in navigation — signing in is "Sign in",
-never *come aboard*.
-
-The register is solitary hydrography, not dress-up: never *ahoy*, pirates,
-treasure, setting sail or shanties.
-
-The app's own words follow the same rule: plain enough to need no decoding,
-nautical where a plain word allows it.
+Chart words carry the brand (*the chart*, *drift*, *reckoned*), but links,
+buttons and navigation use plain words ("Map", "Sign in"), and a chart word
+must be one a reader already knows (not *rutter*). Never *ahoy*, pirates,
+treasure, setting sail.
 
 | Word | Means | |
 |---|---|---|
-| **Map** | The app: your terrain, every drink, and the card | A chart you read, not a street map |
-| **You lean** | Your taste in the axes' words, one phrase per hill: "crisp and sweet · rich and savory" | Never a region's name for a person: the regions name parts of the map |
-| **Pick a drink** | A bar's menu on the map (`MenuView`), and the offer that opens it | Never *order*: Cotidal is not connected to the bar, and the bartender takes the order |
-| **Rate** | Open rating in the card for a drink you had | "Rate this", "Rate a drink", "Rate it". Its button says **Log it**, and **Done** closes it |
-| **Log** (the record) | Where a rated pour lands | Never *ledger* in the interface |
-| **Sign in / Sign out** | Bluesky sign-in | Plain words: they are navigation |
-| **Your track** | The way your coordinate came, from the questions through each pour | A chart word a reader knows. Not *wake*, not *course* |
-| **Moved** / **held** | What one pour did to your coordinate | "Moved 0.7", or "held" for a rating between 4 and 6, which moves nothing. Never *fix*, which is ours |
+| **Map** | The app: your terrain, every drink, the card | A chart you read, not a street map |
+| **You lean** | Your taste in the axes' words, a phrase per hill | Never a region's name for a person |
+| **Pick a drink** | A bar's menu on the map, and the offer to open it | Never *order*: the bartender takes the order |
+| **Rate** | Open rating for a drink you had | Its button is **Log it**; **Done** closes |
+| **Log** | Where a rated pour lands | Never *ledger* in the interface |
+| **Sign in / Sign out** | Bluesky sign-in | Plain words: navigation |
+| **Your track** | The way your coordinate came | Not *wake*, not *course* |
+| **Moved** / **held** | What one pour did | "Moved 0.7", or "held" for a 4–6. Never *fix* |
 
 ## Claims
 
-**The copy says only what the product does today.** A precise instrument that
-overstates itself has spent the one thing it sells. So: the register does not
-*verify* anything, it separates what is on the record from what is told;
-coordinates are placed, not computed from a recipe's proportions; a bartender
-cannot read "−4.2 · −3.1", but can read three drink names; and anything not
-built yet says **Later:** (comparing with the people you follow) rather than
-being described as if it were there. No other app reads these records yet, so
-"an open record" says *can*. It does not add "today, that is only this one":
-true, but it describes an empty room rather than an open door.
+**Copy says only what the product does today.** The register separates what
+is on the record from what is told; it verifies nothing. Anything not built
+says **Later:**. No other app reads these records yet, so "an open record"
+says *can*.
 
-**Drift is your ratings, nothing else.** A drink rated 7 or more pulls the
-point toward it, 3 or less pushes it away, "what was off" nudges it, and each
-step shrinks as the point grows surer. Nothing tracks the season, the hour or
-the weather, so the copy never implies it does ("what you want in July isn't
-what you want in November" was cut for that reason).
+**Drift is your ratings, nothing else.** A rating of 7+ pulls toward the
+drink, 3 or less pushes away, "what was off" nudges, and steps shrink as the
+point grows surer. Nothing tracks season, hour or weather; copy never implies
+it does.
 
-**Things the copy may not say**, each because it isn't true or can't be
-checked: *verified* (the register separates the attested from the told; it
-verifies nothing), *forever*, *no trackers* or *no algorithm*, and any word
-from the code (*latent*, *triangulation*, *calibration*).
+**Never say** *verified*, *forever*, *no trackers*, *no algorithm*, or any
+word from the code.
 
 **The AT Protocol is plumbing.** To a drinker it is "your own Bluesky
-account". Name the protocol only where the reader needs it (the For Bars
-page, chat assistants), and compare it to things people know (a blog's feed),
-never to crypto.
+account". Name the protocol only where the reader needs it (For bars, chat
+assistants), compared to things people know (a blog's feed), never crypto.
 
 ## Palette
 
-Defined once, in `src/styles/globals.css`; every token and its value is in
-`docs/design-system.md` (Token Dictionary). What they are for:
+Tokens and values: `docs/design-system.md`, Token Dictionary. The intent:
+**warm paper**, not obsidian; ink on stock. The ink is forest green, nearly
+subliminal at body size, the difference between a printed menu and a
+laser-printed handout. **Terracotta** against **deep forest** is the tension
+(warm against cool, both muted); sage is the third, used flat and large. Pale
+water (`--shoal`) is where you probably are, and nothing else. There is no
+dark theme. Light presses rather than glows: `shadow-bar` lifts a sheet,
+`shadow-mcm` is a hard letterpress offset.
 
-The ground is **warm paper**, not obsidian. Everything is ink on stock:
-forest ink (near-black, but green) on paper, a brighter sheet laid on it,
-**terracotta** as the accent that carries, **deep forest** for acting, **sage**
-used flat and large, a tan hairline, and pale water (`--shoal`) for where you
-probably are and nothing else.
-
-**Why terracotta and forest.** The previous palette paired amber with
-burnished copper, which sat too close to create any tension. Terracotta
-against deep forest is that tension: warm against cool, both muted, neither
-of them decoration. Sage is the third.
-
-The ink is green, not black. It is the difference between a printed menu and a
-laser-printed handout, and it is nearly subliminal at body size — which is the
-right amount of strange for a colour you look at all day.
-
-The obsidian palette is gone; there is no dark theme.
-
-On paper, light does not glow — it presses: `shadow-bar` lifts a sheet a
-millimetre off the stock, and `shadow-mcm` is a hard letterpress offset in
-terracotta.
-
-### Form
-
-- **Hairline rules over boxes.** Sections are separated by a 1px rule, and the
-  heavier rule is `--foreground`, not `--border`.
-- **Square corners.** Radius is used sparingly; a menu is not a card UI.
-- **Dot leaders** carry name → amount, the way a wine list does
-  (`.dot-leader` with a `.leader` spacer in `globals.css`).
-- **One large move per screen.** On `/` and every page that is a place on
-  the map, it is the map; on a reading page it is the title plate.
+Form: hairline rules over boxes (the heavier rule is `--foreground`), square
+corners, dot leaders for name → amount.
 
 ## The mark and the figure
 
-Both are a **cotidal chart**: lines radiating from an amphidrome, the one point
-where the tide does not rise, joining the places that reach high water at the
-same hour. It is the name drawn literally, and it is the product's own
-geometry — a zero point at the centre of the map, and lines joining everyone
-at the same phase.
+Both are a **cotidal chart**: lines from an amphidrome, the one point where
+the tide doesn't rise, joining places at the same phase. It is the name drawn
+literally and the product's geometry: a zero point at the map's centre.
 
-- **The figure** (`ChartFigure.astro`, the share cards' drawing, and the
-  landing page's one large move until the front door became the map):
-  a cotidal line for every hour of the tide, 0h to 11h, over the map's axes.
-  Every third is an index line, heavier and labelled, as on a contour map:
-  those four are the region boundaries, and the hairlines between them divide
-  a region without making new ones. The co-range rings are dashed, as tide
-  charts draw them, so they read as a different kind of line; the band between 0h and 3h (The Surf) filled
-  in terracotta, with the coordinate sitting in it. Nothing else is drawn.
-  There was a sage moon in the corner; it was removed because it was the one
-  element that said nothing about a palate, it appeared in no other drawing
-  of the chart, and it made the hero something other than the mark drawn
-  large. Don't add ornament back to the chart: a new element has to be part
-  of the map.
-- **The mark** (`Monogram.astro`, `public/icon.svg`, `favicon.ico`,
-  `apple-touch-icon.png`, `icon-192.png`, `icon-512.png`): the same chart
-  reduced to a true circular dial — the outer ring, the four index lines with
-  a gentler sweep, the amphidrome centre node, the Surf band filled, and (at
-  header and app-icon sizes) a dashed inner co-range ring.
-  Ink lines, terracotta band, so the header and the share cards read as one
-  drawing. The filled band and heavier tab stroke keep it legible at 16px.
-
-The mark is drawn once, in `src/lib/mark.ts`, from the chart geometry
-(`markGeometry` in `chart-geometry.ts`). The header renders it with token
-classes; `npm run images` writes the icon files from it. Icon files
-cannot read CSS, so they carry the tokens as hex, and
-`tests/unit/mark.test.ts` fails when those leave `globals.css` or when
-`icon.svg` is not what the module draws. On a browser's dark tab strip
-`icon.svg` draws in paper with a lighter terracotta; `favicon.ico` fills the
-disc in paper (with transparent corners) so dark forest ink stays legible on
-dark browser chrome where SVG media queries do not apply.
-
-**Share cards** are what a link unfurls into: the chart beside the
-headline for the site, and beside a region's name for that region. A link to
-someone's map unfurls into their region's card, as a coaster shows a region
-and not a dot: a coordinate moves with every pour, and a scraper's cached
-image does not. Each card is a page (`/share/<card>`) drawn with the site's
-own components, captured to `public/share/<card>.png` by `npm run images`
-after a build. Re-run it when the chart, a token, or the words on a card
-change.
+- **The figure** (`ChartFigure.astro`, the share cards): a line for every
+  hour, every third an index line (the four region boundaries), dashed
+  co-range rings, the Surf band (0h–3h) in terracotta. Nothing else: a new
+  element has to be part of the map (a decorative moon was removed for that).
+- **The mark** (`Monogram.astro` and the icon files): the same chart as a
+  circular dial, legible at 16px. Drawn once in `src/lib/mark.ts` from
+  `markGeometry`; `npm run images` writes the icons, which carry tokens as hex
+  (`tests/unit/mark.test.ts` checks them against `globals.css`). On dark
+  browser chrome, `icon.svg` draws in paper and `favicon.ico` fills its disc
+  in paper.
+- **Share cards** are what a link unfurls into: the site's card by default,
+  and a region's card for `/map?region=<id>`. A person's link uses the site's
+  card: a coordinate moves with every pour and a scraper's cached image does
+  not. Each card is a page (`/share/<card>`) captured to `public/share/` by
+  `npm run images` after a build; re-run it when the chart, a token or a
+  card's words change.
 
 ## Rules
 
-Everything user-facing is a pure function of tokens, schema, content, and
-state — none of which may be authored inside a component.
+Everything user-facing is a function of tokens, schema, content and state,
+none authored inside a component.
 
-1. **No raw values in components.** Colours, sizes, and shadows come from
-   Tailwind tokens. Undefined utilities fail silently: `text-2xs` and
-   `text-3xs` were used 41 times while defined nowhere, and every one of those
-   elements rendered at inherited size.
-2. **No hard-coded copy in components.** Strings live in `src/lib/copy/`
-   so the voice can be revised in one place. The quiz's questions are the one
-   exception, because each sits beside the numbers that score it
-   (`discovery-questions.ts`); the drink and region prose are content
-   (`src/content/`).
-3. **Fonts are tokens too.** `font-body` / `font-serif` / `font-condensed`
-   resolve through `--font-*` variables in `globals.css`. Those variables were
-   missing entirely, so all three Google Fonts downloaded and none applied.
+1. **No raw values in components.** Colours, sizes and shadows are tokens.
+2. **No hard-coded copy in components.** Strings live in `src/lib/copy/`;
+   the quiz questions (beside their scoring) and the prose (`src/content/`)
+   are the exceptions.
+3. **Fonts are tokens too** (`--font-*` in `globals.css`).
 
-Items 1 and 2 are lint errors (`docs/design-system.md`, Strict Enforcement
-Architecture). Item 3 is still a convention.
+1 and 2 are lint errors (`docs/design-system.md`, Strict Enforcement
+Architecture); 3 is a convention.
 
 ## Writing the words
 
-The voice is the one the newest questions already have: *"Cold enough to
-ache."* *"Same bar, different stools."* *"Nobody by that name."* Short, concrete,
-a little dry, said to one person.
+Short, concrete, a little dry, said to one person: *"Cold enough to ache."*
+*"Same bar, different stools."* *"Nobody by that name."*
 
 - **Say the thing.** "Pastis, fennel, absinthe", not "herbaceous botanical
-  aromatics". If a list holds three words for the same sensation, keep the best.
-- **No stacked adjectives, no Title Case pairs.** "Sharp and mineral", not
-  "Sharp Citrus & Mineral".
-- **Don't announce the contrast.** "Not a quiz result, a record" and "a
-  palate isn't static, neither is your map" are a shape, not a sentence.
-  Say what it is.
-- **Sparing with dashes.** A dash is a pause. Three in a paragraph is a tic;
-  a colon or a full stop usually does the job.
-- **Labels are not sentences.** No trailing full stop on a button or an option.
-- **Say "actually" only when something is contrasted with what is merely
-  claimed**, which is the register's whole job. Elsewhere it is filler.
-- **Say what it is, not what they'll feel.** "Rye, sweet vermouth, bitters",
-  not "a warm hug at the end of the night". No *delicious*, *refreshing*,
-  *perfect* or *magical*.
-- **Buttons are sentence case and start with a verb.** "Find your
-  coordinate", "Log this pour", never "Map Your Palate".
-- **Words for people, not for the system.** An error says what to do next
-  ("Couldn't save your coordinate. Try again."), never the name of the field.
+  aromatics".
+- **No stacked adjectives or Title Case pairs.** "Sharp and mineral".
+- **Don't announce the contrast** ("not a quiz result, a record"). Say what
+  it is.
+- **Sparing with dashes**; a colon or full stop usually does it.
+- **Labels are not sentences:** no full stop on a button or option.
+- **"Actually" only against what is merely claimed.**
+- **Say what it is, not what they'll feel.** No *delicious*, *refreshing*,
+  *perfect*, *magical*.
+- **Buttons are sentence case and start with a verb:** "Find your
+  coordinate", "Log this pour".
+- **Words for people, not the system:** an error says what to do next
+  ("Couldn't save your coordinate. Try again."), never a field name.
