@@ -4,7 +4,7 @@ import SiteFooter from '../components/site/SiteFooter.astro';
 import AppBar from '../components/site/AppBar.astro';
 import { MapScreen } from '../components/app/MapScreen';
 import { PalateMap } from '../components/app/PalateMap';
-import { accountFor } from '../lib/atproto/session';
+import { accountFor, type Account } from '../lib/atproto/session';
 import { explore } from '../lib/copy';
 
 interface Props {
@@ -29,6 +29,8 @@ interface Props {
   heading?: boolean;
   /** How much of a phone's first screen the card takes (`MapScreen`'s `rest`). */
   rest?: 'standard' | 'tall';
+  /** Pass when the caller already resolved `accountFor`, so SSR pages read the session once. */
+  account?: Account;
 }
 
 /**
@@ -42,7 +44,7 @@ interface Props {
  * site footer its foot: the map has the top of the screen to itself.
  */
 const { title, description, image, canonical, noindex, currentPath, label, eyebrow, back, heading, rest } = Astro.props;
-const account = await accountFor(Astro.request, Astro.isPrerendered);
+const account = Astro.props.account ?? (await accountFor(Astro.request, Astro.isPrerendered));
 const hasMap = Astro.slots.has('map');
 ---
 

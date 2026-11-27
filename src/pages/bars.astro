@@ -71,7 +71,7 @@ const actorLabel = account.kind === 'member' ? (account.handle ? `@${account.han
 Astro.response.headers.set('Cache-Control', account.kind === 'member' ? 'no-store' : 'public, max-age=60, s-maxage=300');
 ---
 
-<MapPage title={`${site.name} — ${venuesCopy.eyebrow}`} currentPath={barsHref} label={venuesCopy.eyebrow} eyebrow={venuesCopy.eyebrow}>
+<MapPage title={`${site.name} — ${venuesCopy.eyebrow}`} currentPath={barsHref} label={venuesCopy.eyebrow} eyebrow={venuesCopy.eyebrow} account={account}>
   <div class="space-y-12">
     <ScreenHeader title={venuesCopy.title} gloss={venuesCopy.subtitle} />
 

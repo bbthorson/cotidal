@@ -46,7 +46,7 @@ const rowBody = 'mt-0.5 text-meta text-muted-foreground';
 Astro.response.headers.set('Cache-Control', 'no-store');
 ---
 
-<MapPage title={`${site.name} — ${copy.title}`} currentPath={accountHref} label={copy.title} eyebrow={copy.title} heading>
+<MapPage title={`${site.name} — ${copy.title}`} currentPath={accountHref} label={copy.title} eyebrow={copy.title} heading account={account}>
   {
     ground ? (
       <PalateMap slot="map" label={publicMap.plotLabel(name)} ground={ground} ratings={rated} />
