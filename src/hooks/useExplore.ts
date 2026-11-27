@@ -22,6 +22,8 @@ import { useTrack } from '@/hooks/useTrack';
 export interface Venue {
   name: string | null;
   at?: { lat: number; lon: number };
+  /** OpenStreetMap element id (`node/123` or `way/456`) when opened from nearby bars. */
+  osmId?: string;
   /** Preloaded menu lines (from `/v/<handle>`). */
   initialLines?: string[];
 }

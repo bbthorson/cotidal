@@ -16,6 +16,10 @@ export interface PublishVenueInput {
   name: string;
   description?: string;
   website?: string;
+  hours?: string;
+  reservationsUrl?: string;
+  menuStyle?: 'written' | 'bespoke';
+  externalIds?: { osm?: string; fsq?: string };
   menuTitle?: string;
   menuLines?: string;
 }
@@ -65,16 +69,31 @@ export function buildMenuRecord(
  * `VenueRecordSchema`.
  */
 export function buildVenueRecord(
-  input: { name: string; description?: string; website?: string },
+  input: {
+    name: string;
+    description?: string;
+    website?: string;
+    hours?: string;
+    reservationsUrl?: string;
+    menuStyle?: 'written' | 'bespoke';
+    externalIds?: { osm?: string; fsq?: string };
+  },
   currentMenu?: { name: string; uri: string; cid?: string },
   now: Date = new Date()
 ): VenueRecord {
   const iso = now.toISOString();
+  const osm = input.externalIds?.osm?.trim();
+  const fsq = input.externalIds?.fsq?.trim();
+  const externalIds = osm || fsq ? { ...(osm ? { osm } : {}), ...(fsq ? { fsq } : {}) } : undefined;
   return VenueRecordSchema.parse({
     $type: VENUE_COLLECTION,
     name: input.name.trim(),
     ...(input.description?.trim() ? { description: input.description.trim() } : {}),
     ...(input.website?.trim() ? { website: input.website.trim() } : {}),
+    ...(input.hours?.trim() ? { hours: input.hours.trim() } : {}),
+    ...(input.reservationsUrl?.trim() ? { reservationsUrl: input.reservationsUrl.trim() } : {}),
+    ...(input.menuStyle ? { menuStyle: input.menuStyle } : {}),
+    ...(externalIds ? { externalIds } : {}),
     ...(currentMenu ? { currentMenu } : {}),
     createdAt: iso,
   });
@@ -110,7 +129,15 @@ export async function publishVenueAndMenu(
   }
 
   const venueRecord = buildVenueRecord(
-    { name: input.name, description: input.description, website: input.website },
+    {
+      name: input.name,
+      description: input.description,
+      website: input.website,
+      hours: input.hours,
+      reservationsUrl: input.reservationsUrl,
+      menuStyle: input.menuStyle,
+      externalIds: input.externalIds,
+    },
     currentMenu,
     now
   );

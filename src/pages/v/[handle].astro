@@ -87,7 +87,13 @@ const formatDate = (iso: string) => {
             {result.venue.domainVerified && (
               <span class="tag">{copy.domainVerified}</span>
             )}
+            {result.venue.menuStyle === 'bespoke' && (
+              <span class="tag">{copy.bespokeTag}</span>
+            )}
           </div>
+          {result.venue.hours && (
+            <p class="text-meta text-muted-foreground">{result.venue.hours}</p>
+          )}
         </div>
 
         {result.venue.menu ? (
@@ -113,7 +119,9 @@ const formatDate = (iso: string) => {
             ))}
           </section>
         ) : (
-          <p class="text-ui text-muted-foreground">{copy.noMenu}</p>
+          <p class="text-ui text-muted-foreground">
+            {result.venue.menuStyle === 'bespoke' ? copy.bespokeMenu : copy.noMenu}
+          </p>
         )}
       </>
     ) : result.status === 'no-venue' ? (

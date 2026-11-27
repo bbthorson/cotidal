@@ -26,14 +26,32 @@ export const prerender = false;
 const account = await accountFor(Astro.request, false);
 
 let error: string | null = null;
-let values = { name: '', description: '', website: '', menuTitle: '', menuLines: '' };
+const q = Astro.url.searchParams;
+let values = {
+  name: (q.get('name') ?? '').trim().slice(0, 200),
+  description: '',
+  website: (q.get('website') ?? '').trim().slice(0, 500),
+  hours: (q.get('hours') ?? '').trim().slice(0, 500),
+  reservationsUrl: '',
+  menuStyle: 'written' as 'written' | 'bespoke',
+  osmId: (q.get('osm') ?? '').trim().slice(0, 64),
+  fsqId: (q.get('fsq') ?? '').trim().slice(0, 64),
+  menuTitle: '',
+  menuLines: '',
+};
 
 if (Astro.request.method === 'POST' && account.kind === 'member') {
   const form = await Astro.request.formData();
+  const rawStyle = String(form.get('menuStyle') ?? 'written').trim();
   values = {
     name: String(form.get('name') ?? '').trim(),
     description: String(form.get('description') ?? '').trim(),
     website: String(form.get('website') ?? '').trim(),
+    hours: String(form.get('hours') ?? '').trim(),
+    reservationsUrl: String(form.get('reservationsUrl') ?? '').trim(),
+    menuStyle: rawStyle === 'bespoke' ? 'bespoke' : 'written',
+    osmId: String(form.get('osmId') ?? '').trim(),
+    fsqId: String(form.get('fsqId') ?? '').trim(),
     menuTitle: String(form.get('menuTitle') ?? '').trim(),
     menuLines: String(form.get('menuLines') ?? '').trim(),
   };
@@ -44,6 +62,8 @@ if (Astro.request.method === 'POST' && account.kind === 'member') {
     error = copy.needWebsite;
   } else if (!/^https?:\/\//i.test(values.website)) {
     error = copy.invalidWebsite;
+  } else if (values.reservationsUrl && !/^https?:\/\//i.test(values.reservationsUrl)) {
+    error = copy.invalidReservations;
   } else {
     const check = await verifyVenueDomain(values.website, account.did, account.handle);
     if (!check.ok) {
@@ -57,7 +77,23 @@ if (Astro.request.method === 'POST' && account.kind === 'member') {
       const session = await oauthSession(Astro.request);
       if (!session) return Astro.redirect(signIn.href, 303);
       try {
-        await publishVenueAndMenu(session, values);
+        await publishVenueAndMenu(session, {
+          name: values.name,
+          description: values.description || undefined,
+          website: values.website,
+          hours: values.hours || undefined,
+          reservationsUrl: values.reservationsUrl || undefined,
+          menuStyle: values.menuStyle,
+          externalIds:
+            values.osmId || values.fsqId
+              ? {
+                  ...(values.osmId ? { osm: values.osmId } : {}),
+                  ...(values.fsqId ? { fsq: values.fsqId } : {}),
+                }
+              : undefined,
+          menuTitle: values.menuTitle || undefined,
+          menuLines: values.menuStyle === 'bespoke' ? undefined : values.menuLines || undefined,
+        });
         return Astro.redirect(`/v/${encodeURIComponent(account.handle ?? account.did)}`, 303);
       } catch (e) {
         console.error('Could not publish venue:', e);
@@ -125,6 +161,61 @@ Astro.response.headers.set('Cache-Control', account.kind === 'member' ? 'no-stor
             class="field min-h-11"
           />
         </label>
+
+        <label class="flex flex-col gap-1.5">
+          <span class="label-caps">{copy.hoursLabel}</span>
+          <input
+            name="hours"
+            value={values.hours}
+            placeholder={copy.hoursPlaceholder}
+            maxlength={500}
+            class="field min-h-11"
+          />
+        </label>
+
+        <label class="flex flex-col gap-1.5">
+          <span class="label-caps">{copy.reservationsLabel}</span>
+          <input
+            name="reservationsUrl"
+            type="url"
+            value={values.reservationsUrl}
+            placeholder={copy.reservationsPlaceholder}
+            maxlength={500}
+            class="field min-h-11"
+          />
+        </label>
+
+        <label class="flex flex-col gap-1.5">
+          <span class="label-caps">{copy.menuStyleLabel}</span>
+          <select name="menuStyle" class="field min-h-11">
+            <option value="written" selected={values.menuStyle === 'written'}>{copy.menuStyleWritten}</option>
+            <option value="bespoke" selected={values.menuStyle === 'bespoke'}>{copy.menuStyleBespoke}</option>
+          </select>
+        </label>
+
+        <div class="grid gap-4 sm:grid-cols-2">
+          <label class="flex flex-col gap-1.5">
+            <span class="label-caps">{copy.osmIdLabel}</span>
+            <input
+              name="osmId"
+              value={values.osmId}
+              placeholder={copy.osmIdPlaceholder}
+              maxlength={64}
+              class="field min-h-11"
+            />
+          </label>
+
+          <label class="flex flex-col gap-1.5">
+            <span class="label-caps">{copy.fsqIdLabel}</span>
+            <input
+              name="fsqId"
+              value={values.fsqId}
+              placeholder={copy.fsqIdPlaceholder}
+              maxlength={64}
+              class="field min-h-11"
+            />
+          </label>
+        </div>
 
         <label class="flex flex-col gap-1.5">
           <span class="label-caps">{copy.menuTitleLabel}</span>

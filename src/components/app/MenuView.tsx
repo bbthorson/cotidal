@@ -4,7 +4,8 @@ import { addMenuLine, addMenuLines, type MenuItem, type RankedDrink } from '@/li
 import { summarizeCoverage } from '@/lib/drinks/menu-audit';
 import { clashingAversions } from '@/lib/drinks/ingredient-match';
 import { captureMenu, type CaptureMenuResponse } from '@/lib/api-client';
-import { chart, compass, explore, mcp, menu, overlays as overlayCopy } from '@/lib/copy';
+import { chart, compass, explore, mcp, menu, overlays as overlayCopy, venuePage } from '@/lib/copy';
+import { osmPlaceHref } from '@/lib/drinks/osm';
 import { titleOf, type Register } from '@/lib/drinks/register';
 import type { UserProfile } from '@/lib/palate/profile';
 import { rankForTable, type TableMember } from '@/lib/palate/overlays';
@@ -199,6 +200,8 @@ export function MenuView({
     if (chosen) onPick(chosen);
   };
 
+  const placeHref = venue.osmId ? osmPlaceHref(venue.osmId) : null;
+
   return (
     <div className="pb-6 motion-safe:animate-in motion-safe:fade-in">
       <button type="button" onClick={onBack} className="link-caps mb-2 flex min-h-11 items-center text-muted-foreground hover:text-foreground">
@@ -208,6 +211,14 @@ export function MenuView({
         title={venue.name ?? compass.atMenu.homeTitle}
         lede={compass.atMenu.body}
       />
+      {placeHref && (
+        <a
+          href={placeHref}
+          className="link-caps mt-2 inline-block text-secondary hover:underline hover:underline-offset-4"
+        >
+          {venuePage.placePageLabel} &rarr;
+        </a>
+      )}
 
       {!profile ? (
         // Without a coordinate there is nothing to rank against: say what it needs.

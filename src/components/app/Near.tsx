@@ -22,7 +22,13 @@ export function NearList({ nearby, onOpen }: { nearby: Nearby; onOpen: (bar: Osm
         ) : (
           <ol>
             {bars.slice(0, 8).map((b) => (
-              <DrinkRow key={b.id} title={b.name} figure={formatDistance(b.distance)} onSelect={() => onOpen(b)} />
+              <DrinkRow
+                key={b.id}
+                title={b.name}
+                figure={formatDistance(b.distance)}
+                note={b.address?.street ?? b.address?.formatted}
+                onSelect={() => onOpen(b)}
+              />
             ))}
           </ol>
         )
