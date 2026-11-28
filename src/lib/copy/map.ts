@@ -72,6 +72,8 @@ export const compass = {
     rankedAt: (bar: string) => `What to have at ${bar}`,
     rankedHome: 'What to have',
     rankedBody: 'Ranked by your ratings of the drinks around each one, and where your answers put you.',
+    drinkRose: (name: string, rank: number) => `${name} rose to No. ${rank} after your pour.`,
+    reranked: 'Re-ranked after your pour.',
   },
 } as const;
 

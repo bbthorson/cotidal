@@ -381,12 +381,9 @@ not finding; they move to the head of your link or a place under your handle.
 In the list a pour is the Again lane and a rating on rows you have had
 (`Manhattan · 9`).
 
-### Remaining states, in order
+### Remaining state
 
-1. **Just rated at a bar: Done returns to that bar,** re-ranked by the pour,
-   saying which drink rose. The bar stays the where chip until left or a few
-   hours pass. This is the loop's payoff: your menu here changed.
-2. **Nothing pending: the chips and one list,** the tie block when there is
+1. **Nothing pending: the chips and one list,** the tie block when there is
    one, then two lanes: **Again** (your highs) and **New** (the edge of what
    you know; a pour there moves the ground most). **Rate a drink** stays the
    screen's one action.
@@ -442,7 +439,9 @@ guest is offered sign-in for it. Each placed drink is a numbered pin (1 in
 terracotta), every other drink fades to a speck, and the card lists them in
 the same order (`rankMenu`). Nothing placed yet: **No known menu**. **Pick
 this** keeps the pick on the device (`pick`, `device-store.ts`, with its
-timestamp).
+timestamp). The open bar stays persisted on the device (`openBar`,
+`device-store.ts`, `OPEN_BAR_TTL_HOURS`) until explicitly left or a few hours
+pass.
 
 A bar picked from bars near you carries its point through the pick, the draft
 link (`lat`, `lon`) and the form, and the pour records it as `venue.address`
@@ -482,8 +481,10 @@ was off" as axis tags; spirit, glass, garnish and sensory sliders under "More
 detail" for members. Logging replaces it with `Moved.tsx` on the reveal
 ground: **Moved 0.7** or **Held.** (a rating of 4–6), which way, and what
 changed on your menu. The move is drawn on the map: a dashed terracotta trail
-from a ring to your point. **Done** returns to where to next, which already
-shows the pour and has dropped the waiting pick.
+from a ring to your point. **Done** returns to the open bar's ranked menu
+when the pour was rated at that bar (re-ranked by the pour, with a notice
+naming which drink rose, `risenDrink` in `open-bar.ts`), or to where to next
+otherwise, which already shows the pour and has dropped the waiting pick.
 
 ---
 

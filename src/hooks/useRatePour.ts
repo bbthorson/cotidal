@@ -20,6 +20,12 @@ export interface LastPour {
   drinkName: string;
   hedonic: number;
   menuBefore: string[];
+  /** Bar name if logged at a bar (not at home). */
+  bar?: string;
+  /** The open bar's ranked menu before this pour, when logged at that bar. */
+  barMenuBefore?: string[];
+  /** True when logged via "Another", keeping the waiting pick active. */
+  keepPick?: boolean;
 }
 
 export interface SubmitPourOptions {
@@ -43,6 +49,7 @@ export function useRatePour({
   pours,
   start,
   reload,
+  barMenuFor,
 }: {
   request: RateRequest | null;
   isMember: boolean;
@@ -51,6 +58,8 @@ export function useRatePour({
   pours: PourRecord[] | null;
   start: TrackStart | null;
   reload: () => Promise<void>;
+  /** Snapshot of an open bar's ranked menu before logging a pour there. */
+  barMenuFor?: (barName: string) => string[];
 }) {
   const history = useMemo(() => pours ?? [], [pours]);
   const [submitting, setSubmitting] = useState(false);
@@ -83,6 +92,8 @@ export function useRatePour({
     setError(null);
     const from = { x, y };
     const menuBefore = menu.map((d) => d.name);
+    const bar = !entry.isHomePour && entry.venue.trim() ? entry.venue.trim() : undefined;
+    const barMenuBefore = bar && barMenuFor ? barMenuFor(bar) : undefined;
     try {
       if (isMember) {
         const options = toLogOptions(entry);
@@ -110,7 +121,15 @@ export function useRatePour({
       if (draft) setDraft(undefined);
       // Rated: a reload must not offer the same pour again.
       clearRateRequestFromUrl();
-      setLastPour({ from, drinkName: entry.drinkName, hedonic: entry.hedonic, menuBefore });
+      setLastPour({
+        from,
+        drinkName: entry.drinkName,
+        hedonic: entry.hedonic,
+        menuBefore,
+        ...(bar ? { bar } : {}),
+        ...(barMenuBefore && barMenuBefore.length > 0 ? { barMenuBefore } : {}),
+        ...(opts?.keepPick ? { keepPick: true } : {}),
+      });
     } catch (err) {
       console.error(err);
       setError(pour.failed);

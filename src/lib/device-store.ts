@@ -22,6 +22,8 @@ const KEYS = {
   guestState: 'palate_state',
   /** The drink picked on Compass, until it is rated (or set aside). Kept under its first name. */
   pick: 'open_order',
+  /** The bar currently open on the map, kept until left or a few hours pass. */
+  openBar: 'open_bar',
   /** A guest's pours, newest first, so Your map has them after a reload. */
   guestPours: 'guest_pours',
   /** The latest finished quiz's answers, kept after they are written: where your track starts. */
@@ -94,6 +96,19 @@ export interface DrinkPick {
 export const loadPick = () => read<DrinkPick>(KEYS.pick);
 export const savePick = (pick: DrinkPick) => write(KEYS.pick, pick);
 export const clearPick = () => remove(KEYS.pick);
+
+export interface OpenBar {
+  name: string | null;
+  at?: { lat: number; lon: number };
+  osmId?: string;
+  /** Raw menu lines entered for this bar, so reopening restores its ranked menu. */
+  lines: string[];
+  openedAt: string;
+}
+
+export const loadOpenBar = () => read<OpenBar>(KEYS.openBar);
+export const saveOpenBar = (bar: OpenBar) => write(KEYS.openBar, bar);
+export const clearOpenBar = () => remove(KEYS.openBar);
 
 /** As many as a member's first page of pours (`getConnectedPours(50)`). */
 const GUEST_POUR_LIMIT = 50;

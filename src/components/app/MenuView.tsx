@@ -1,6 +1,7 @@
 import { useMemo, useState, type Dispatch, type SetStateAction } from 'react';
 import { addMenuLine, addMenuLines, type MenuItem, type RankedDrink } from '@/lib/drinks/menu-rank';
 import { summarizeCoverage } from '@/lib/drinks/menu-audit';
+import type { RisenDrink } from '@/lib/drinks/open-bar';
 import { chart, compass, explore, menu, overlays as overlayCopy, venuePage } from '@/lib/copy';
 import { osmPlaceHref } from '@/lib/drinks/osm';
 import { titleOf, type Register } from '@/lib/drinks/register';
@@ -12,7 +13,7 @@ import { questionsHref } from '@/lib/site-nav';
 import { MenuEntry } from './MenuEntry';
 import { MenuLines } from './MenuLines';
 import { RankedList } from './RankedList';
-import { Empty, Readout, ScreenHeader, SectionTitle } from './ui';
+import { Empty, Notice, Readout, ScreenHeader, SectionTitle } from './ui';
 
 /**
  * A bar open on the map, in the card: a bar's menu, or one with no bar. Type,
@@ -33,6 +34,7 @@ export function MenuView({
   typedBar,
   setTypedBar,
   ranked,
+  barFeedback,
   reasonFor,
   tableMembers,
   onBack,
@@ -51,6 +53,8 @@ export function MenuView({
   setTypedBar: (name: string) => void;
   /** The menu's placed drinks, ranked: the pins on the map, numbered the same. */
   ranked: RankedDrink[];
+  /** Set when returning to this bar after rating a pour here: names which drink rose. */
+  barFeedback?: { risen: RisenDrink | null } | null;
   reasonFor: (drink: RankedDrink['drink']) => string;
   /** When a friend/table overlay is active, rank this bar's placed drinks for the group. */
   tableMembers?: TableMember[];
@@ -105,6 +109,16 @@ export function MenuView({
         </Empty>
       ) : (
         <>
+          {barFeedback && (
+            <div data-testid="bar-reranked" className="mb-4">
+              <Notice tone="status">
+                {barFeedback.risen
+                  ? compass.atMenu.drinkRose(titleOf(register, barFeedback.risen.name), barFeedback.risen.rank)
+                  : compass.atMenu.reranked}
+              </Notice>
+            </div>
+          )}
+
           {venue.name === null && (
             <label className="mb-4 flex flex-col gap-1.5">
               <span className="label-caps">{compass.atMenu.barLabel}</span>

@@ -72,6 +72,7 @@ function ExploreContent({
     pours: e.pours,
     start: e.start,
     reload: e.reload,
+    barMenuFor: e.barMenuFor,
   });
 
   // How a pour just moved you, while the reveal has the card: the map draws it.
@@ -111,9 +112,13 @@ function ExploreContent({
   useCardScroll(mode.key, cardUp, card, body);
 
   const closeRate = () => {
+    const finished = ratePour.lastPour;
     ratePour.reset();
     e.rate.close();
     e.setUp(false);
+    if (finished?.bar && !finished.keepPick) {
+      e.returnToBar(finished.bar, finished.barMenuBefore, finished.drinkName);
+    }
   };
 
   const pins = e.venue ? e.ranked.map((r, i) => ({ drink: r.drink, rank: i + 1 })) : null;
@@ -163,7 +168,13 @@ function ExploreContent({
           regionOpen={e.region}
           onClose={e.closeDrink}
           onChooseDrink={e.chooseDrink}
-          onRate={(drinkName) => e.rate.open({ drink: drinkName })}
+          onRate={(drinkName) =>
+            e.rate.open(
+              e.barName
+                ? { drink: drinkName, draft: { drink: drinkName, bar: e.barName, ...(e.venue?.at ? { at: e.venue.at } : {}) } }
+                : { drink: drinkName }
+            )
+          }
           onPick={e.pick}
           onQuiz={quiz.openQuiz}
         />
@@ -184,6 +195,7 @@ function ExploreContent({
           typedBar={e.typedBar}
           setTypedBar={e.setTypedBar}
           ranked={e.ranked}
+          barFeedback={e.barFeedback}
           reasonFor={e.reasonFor}
           tableMembers={overlays.tableMembers}
           onBack={() => {
