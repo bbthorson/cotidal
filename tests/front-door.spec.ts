@@ -1,8 +1,8 @@
 import { test, expect } from '@playwright/test';
 import { appPath } from './app-path';
 import { COORDINATE_COOKIE } from '../src/lib/device-presence';
-import { coldState, hero } from '../src/lib/copy';
-import { frontDoorHref } from '../src/lib/site-nav';
+import { coldState, compass, footer, hero, reveal as revealCopy } from '../src/lib/copy';
+import { frontDoorHref, questionsForVenue, questionsHref } from '../src/lib/site-nav';
 import { signedOutPath } from '../src/lib/atproto/paths';
 
 /**
@@ -49,4 +49,55 @@ test('Front door: there is one address; /map is gone, and anything asked of the 
     expect(await (await request.get(path)).text(), path).toContain('astro-island');
   }
   expect(await (await request.get('/')).text()).not.toContain('astro-island');
+});
+
+/**
+ * Wherever a page's own action is something else, its foot asks a reader with
+ * no coordinate to find theirs, decided on the server (`readerHasTaste`).
+ */
+test('Find yours: at the foot of a page for someone with no coordinate, and not for someone with one', async ({ page }) => {
+  const footOf = async (path: string) => {
+    const html = await (await page.request.get(path, { headers: { accept: 'text/html' } })).text();
+    return html.slice(html.lastIndexOf('<footer'), html.lastIndexOf('</footer>'));
+  };
+  for (const path of ['/bars', '/mcp']) {
+    const foot = await footOf(path);
+    expect(foot, path).toContain('data-testid="find-yours"');
+    expect(foot, path).toContain(`href="${questionsHref}"`);
+    expect(foot, path).toContain(footer.findYoursCta);
+  }
+  // Pages whose own action is the questions, or no place for them, do not ask again; a prerendered page cannot know.
+  for (const path of ['/', '/sign-in', '/drinks/negroni/', '/nowhere', '/p/deep.test']) {
+    expect(await footOf(path), path).not.toContain('data-testid="find-yours"');
+  }
+  // A page that answers per reader says so to any cache between.
+  expect((await page.request.get('/bars')).headers()['vary']).toMatch(/cookie/i);
+
+  await page.context().addCookies([mark]);
+  expect(await footOf('/bars')).not.toContain('data-testid="find-yours"');
+});
+
+test('Find yours: from a bar, the questions finish on its menu, ranked', async ({ page }) => {
+  // The app reads the bar's published menu from the browser (`/api/venue`), so it can be stood in for.
+  await page.route('**/api/venue?handle=*', (route) =>
+    route.fulfill({
+      json: {
+        status: 'ok',
+        venue: { name: 'The Tidewater', menu: { sections: [{ items: [{ name: 'Negroni', description: null }, { name: 'Daiquiri', description: null }] }] } },
+      },
+    })
+  );
+  await page.goto(questionsForVenue('tidewater.example'));
+
+  const reveal = page.getByText('Your coordinate lands in');
+  for (let i = 0; i < 10 && !(await reveal.isVisible()); i++) {
+    const heading = await page.getByRole('heading', { level: 1 }).textContent();
+    await page.getByRole('group', { name: 'Answer options' }).getByRole('button').first().click();
+    await expect(page.getByRole('heading', { level: 1 })).not.toHaveText(heading ?? '');
+  }
+  await page.getByRole('button', { name: revealCopy.continue }).click();
+
+  await expect(page.getByRole('heading', { name: 'The Tidewater', exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: compass.atMenu.rankedAt('The Tidewater') })).toBeVisible();
+  await expect(page.getByText('Negroni').first()).toBeVisible();
 });

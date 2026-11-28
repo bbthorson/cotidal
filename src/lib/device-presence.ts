@@ -19,6 +19,17 @@ export const coordinateCookie = (present: boolean): string =>
     ? `${COORDINATE_COOKIE}=1; Path=/; Max-Age=${MAX_AGE}; SameSite=Lax`
     : `${COORDINATE_COOKIE}=; Path=/; Max-Age=0; SameSite=Lax`;
 
+/**
+ * Whether the reader has a taste to draw: a member (the session says so) or a
+ * device that holds a coordinate. Decides the front door against the app
+ * (`src/pages/index.astro`) and whether a page asks for a coordinate
+ * (`MapPage`, a bar's page). A prerendered page (`unknown`) cannot know.
+ */
+export function readerHasTaste(account: { kind: 'member' | 'guest' | 'unknown' }, cookieHeader: string | null): boolean | null {
+  if (account.kind === 'unknown') return null;
+  return account.kind === 'member' || hasDeviceCoordinate(cookieHeader);
+}
+
 /** Whether a request's `Cookie` header says this device holds a coordinate. */
 export function hasDeviceCoordinate(cookieHeader: string | null): boolean {
   if (!cookieHeader) return false;

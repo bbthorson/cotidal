@@ -6,16 +6,25 @@ import { PalateMap, type Pin } from '../../components/app/PalateMap';
 import { readPublicVenue } from '../../lib/atproto/venue-read';
 import { formatCoordinate } from '../../lib/map/coordinates';
 import { explore, site, venuePage as copy } from '../../lib/copy';
+import { accountFor } from '../../lib/atproto/session';
+import { readerHasTaste } from '../../lib/device-presence';
+import { questionsForVenue } from '../../lib/site-nav';
 
 /**
  * `/v/<handle>` — a bar's live AT Protocol venue & menu page: the map with
  * the bar's menu on it as numbered pins, as `/` draws a bar, and the menu
  * in the card. Server-rendered directly from the venue's own PDS
  * (`app.cotidal.venue` + `app.cotidal.menu`), shipping zero client JavaScript.
+ *
+ * Under the menu, a reader with no coordinate is asked to find theirs: the
+ * questions, finishing on this menu ranked (`questionsForVenue`). The page asks,
+ * so the footer does not.
  */
 export const prerender = false;
 
 const handle = Astro.params.handle ?? '';
+const account = await accountFor(Astro.request, false);
+const findYours = readerHasTaste(account, Astro.request.headers.get('cookie')) === false;
 const result = await readPublicVenue(handle);
 
 if (result.status === 'invalid' || result.status === 'not-found') {
@@ -50,6 +59,8 @@ const formatDate = (iso: string) => {
   currentPath={`/v/${encodeURIComponent(handle)}`}
   label={result.status === 'ok' ? result.venue.name : copy.eyebrow}
   eyebrow={result.status === 'ok' || result.status === 'no-venue' ? (result.actor.handle ? `@${result.actor.handle}` : copy.eyebrow) : copy.eyebrow}
+  account={account}
+  asksForCoordinate={result.status === 'ok' && !!result.venue.menu}
 >
   {pins.length > 0 ? <PalateMap slot="map" label={explore.chartLabel} pins={pins} /> : <PalateMap slot="map" label={explore.chartLabel} tide />}
   <div class="space-y-10">
@@ -117,6 +128,18 @@ const formatDate = (iso: string) => {
                 </ul>
               </div>
             ))}
+
+            {findYours && (
+              <p class="text-meta text-muted-foreground" data-testid="find-yours">
+                {copy.findYoursLead}{' '}
+                <a
+                  href={questionsForVenue(result.actor.handle ?? result.actor.did)}
+                  class="link-caps whitespace-nowrap text-secondary hover:underline hover:underline-offset-4"
+                >
+                  {copy.findYoursCta} &rarr;
+                </a>
+              </p>
+            )}
           </section>
         ) : (
           <p class="text-ui text-muted-foreground">

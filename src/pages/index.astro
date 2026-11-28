@@ -2,7 +2,7 @@
 import FrontDoor from '../components/site/FrontDoor.astro';
 import AppScreen from '../components/site/AppScreen.astro';
 import { accountFor } from '../lib/atproto/session';
-import { hasDeviceCoordinate } from '../lib/device-presence';
+import { readerHasTaste } from '../lib/device-presence';
 import { readMapView, viewHref } from '../lib/map/map-url';
 import { publicMapPath } from '../lib/atproto/paths';
 import { FRONT_DOOR_PARAM } from '../lib/site-nav';
@@ -27,7 +27,7 @@ const view = readMapView(params);
 if (view.palate) return Astro.rewrite(viewHref(publicMapPath(view.palate), { drink: view.drink, with: view.with }));
 
 const account = await accountFor(Astro.request, false);
-const hasTaste = account.kind === 'member' || hasDeviceCoordinate(Astro.request.headers.get('cookie'));
+const hasTaste = readerHasTaste(account, Astro.request.headers.get('cookie'));
 const frontDoor = params.has(FRONT_DOOR_PARAM) || (!hasTaste && params.size === 0);
 ---
 

@@ -220,4 +220,7 @@ export const apiErrors = {
 export const footer = {
   note: 'Built on the AT Protocol.',
   drinkResponsibly: 'Please drink responsibly.',
+  /** At the foot of a page, for a reader with no coordinate yet (`MapPage`), on pages whose own action is something else. */
+  findYoursLead: 'Your taste isn’t on the map yet.',
+  findYoursCta: 'Find your coordinate',
 } as const;

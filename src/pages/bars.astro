@@ -105,6 +105,8 @@ if (Astro.request.method === 'POST' && account.kind === 'member') {
 
 const actorLabel = account.kind === 'member' ? (account.handle ? `@${account.handle}` : account.did) : '';
 Astro.response.headers.set('Cache-Control', account.kind === 'member' ? 'no-store' : 'public, max-age=60, s-maxage=300');
+// Who is reading (the session) and whether they have a taste (the presence cookie) change the page.
+Astro.response.headers.set('Vary', 'Cookie');
 ---
 
 <MapPage title={`${site.name} — ${venuesCopy.eyebrow}`} currentPath={barsHref} label={venuesCopy.eyebrow} eyebrow={venuesCopy.eyebrow} account={account}>

@@ -227,6 +227,14 @@ card holds; it does not lay itself out.
   assistant asking for access, not found) are cards like any other. Settings
   draws your point and your code over your map (`MapCode`), which prints as a
   coaster.
+- **Asking for a coordinate.** A reader with no taste (`readerHasTaste`:
+  no session, no presence cookie) is asked to find theirs at the foot of the
+  card, a quiet line above the footer's links, never a second button. Not on
+  a page whose own action is the questions (the front door, someone's map),
+  on `/sign-in`, or on a prerendered page, which cannot know (`MapPage`'s
+  `asksForCoordinate`). A bar's page asks under its menu instead, and the
+  questions finish on that menu, ranked (`questionsForVenue`). A page that
+  answers per reader and is cached publicly sends `Vary: Cookie`.
 - Between pages the map holds still (`view-transition-name: map`). The card
   comes first in reading order; CSS draws the map above it.
 

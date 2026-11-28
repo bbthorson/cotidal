@@ -1,15 +1,17 @@
 ---
 import { nav, footer } from '../../lib/copy';
-import { destinations, isCurrent, isVisibleDestination } from '../../lib/site-nav';
+import { destinations, isCurrent, isVisibleDestination, questionsHref } from '../../lib/site-nav';
 import type { Account } from '../../lib/atproto/session';
 
 interface Props {
   currentPath?: string;
   compact?: boolean;
   account?: Account;
+  /** Ask a reader with no coordinate to find theirs, above the links (`MapPage` decides). */
+  findYours?: boolean;
 }
 
-const { currentPath = '/', compact = false, account = { kind: 'unknown' } } = Astro.props;
+const { currentPath = '/', compact = false, account = { kind: 'unknown' }, findYours = false } = Astro.props;
 
 // The reading pages; the app and the account live in the header (site-nav.ts).
 const links = [
@@ -21,6 +23,12 @@ const links = [
 ---
 
 <footer class:list={['border-t border-foreground text-center', compact ? 'pt-3' : 'pt-8']}>
+  {findYours && (
+    <p class="mb-3 text-meta text-muted-foreground" data-testid="find-yours">
+      {footer.findYoursLead}{' '}
+      <a href={questionsHref} class="link-caps whitespace-nowrap text-secondary hover:underline hover:underline-offset-4">{footer.findYoursCta} &rarr;</a>
+    </p>
+  )}
   <nav
     aria-label={nav.footer}
     class="flex flex-wrap items-center justify-center gap-x-5 gap-y-1 label-caps"
