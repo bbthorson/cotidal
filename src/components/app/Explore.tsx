@@ -9,6 +9,7 @@ import type { RegionEntryData } from '@/lib/map/region-entry';
 import type { Drink } from '@/lib/drinks/data';
 import type { RateRequest } from '@/lib/pours/pour-draft';
 import { useExplore, type Venue } from '@/hooks/useExplore';
+import { useHomeLists } from '@/hooks/useHomeLists';
 import { useOverlays } from '@/hooks/useOverlays';
 import { useQuizOverlay } from '@/hooks/useQuizOverlay';
 import { useCardScroll } from '@/hooks/useCardScroll';
@@ -77,15 +78,7 @@ function ExploreContent({
     myLabel: member?.handle ? `@${member.handle}` : compareCopy.you,
   });
 
-  // When a drink-type scope filter is active, draw the top 8 of that type from the full scored pool.
-  const { menu: baseMenu, scored, reasonFor } = e;
-  const displayMenu = useMemo(() => {
-    if (!overlays.drinkType) return baseMenu;
-    return scored
-      .filter((d) => d.type === overlays.drinkType)
-      .slice(0, 8)
-      .map((d) => ({ ...d, reason: reasonFor(d) }));
-  }, [overlays.drinkType, baseMenu, scored, reasonFor]);
+  const home = useHomeLists(e, overlays);
 
   const mode: CardMode = quiz.open
     ? { kind: 'quiz', key: 'quiz' }
@@ -218,31 +211,7 @@ function ExploreContent({
       break;
     case 'home':
       content = (
-        <HomePanel
-          member={member}
-          isMember={e.isMember}
-          signInEnabled={isEnabled}
-          onSignIn={openSignIn}
-          register={e.register}
-          name={e.name}
-          selected={e.selected}
-          searching={e.searching}
-          menu={displayMenu}
-          reasonFor={e.reasonFor}
-          overlays={overlays}
-          barHits={e.barHits}
-          nearby={e.nearby}
-          pours={e.pours}
-          history={e.history}
-          track={e.track}
-          startLabel={e.startLabel}
-          stats={e.stats}
-          pickVersion={e.pickVersion}
-          onOpenRate={e.rate.open}
-          onChooseDrink={e.chooseDrink}
-          onHoverDrink={e.setHover}
-          onOpenBar={e.openBar}
-        />
+        <HomePanel e={e} overlays={overlays} home={home} member={member} signInEnabled={isEnabled} onSignIn={openSignIn} />
       );
       break;
   }
@@ -278,7 +247,7 @@ function ExploreContent({
           emptyBar={!!e.venue && e.ranked.length === 0}
           selected={moved ? (matchDrink(moved.drinkName)?.name ?? null) : e.selected}
           region={e.region}
-          named={quiz.open || reveal || e.venue ? undefined : e.searchFocus ? e.searchShown.map((d) => d.name) : (overlays.comparedNames ?? (e.region ? e.regionShown.map((d) => d.name) : e.cold ? undefined : displayMenu.map((d) => d.name)))}
+          named={quiz.open || reveal || e.venue ? undefined : e.searchFocus ? e.searchShown.map((d) => d.name) : (overlays.comparedNames ?? (e.region ? e.regionShown.map((d) => d.name) : e.cold ? undefined : home.menu.map((d) => d.name)))}
           hover={e.hover}
           onSelect={e.chooseDrink}
           name={e.name}

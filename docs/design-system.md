@@ -1,5 +1,5 @@
 ---
-summary: The design spec — every token, component pattern, navigation rule and screen (the map, its card, rating, a bar's menu, settings) — and how lint and tests enforce it.
+summary: The design spec — every token, component pattern, navigation rule and screen (the map, its card, the return as designed, rating, a bar's menu, settings) — and how lint and tests enforce it.
 read_when: Building or changing anything a person sees; check the token tables before styling and the screen sections before changing a card.
 ---
 
@@ -341,6 +341,97 @@ and the box searches its menu.
 1.2 km, as a list. Nothing is asked until **Show bars near me** (unless the
 browser already allows it). The point leaves rounded to about 100 m, only to
 OpenStreetMap, and Cotidal keeps none; the list says so.
+
+## The return (designed, not built)
+
+The loop is find, pick, rate. Finding has many ways in (your highs, the edge
+of what you know, a bar's menu, a name someone said, a friend, a chat), and
+today where to next stacks them as sections the person must choose between.
+This replaces that with one rule: **lead with what closes the loop, then what
+continues it, then a fresh start.** All three are states of the card; the map
+stays, and draws what the card holds.
+
+**Finding is one list, narrowed.** Your menu, a bar, a companion and a lens
+are not kinds of page but filters on one ranked list, which the map draws:
+
+- **Where** (what is available): anywhere, or a bar. Its picker lists your
+  bars and bars near you first, so walking in is two taps; those stop being
+  sections of their own. Later, at home.
+- **For whom** (how it is ranked): you, or you and companions (`with=`, the
+  table).
+- **Lenses** as now (`OverlayBar`: Uncharted, drink types).
+
+One chip row holds all three, the bar included (today it is a chip in the
+search box while companions are in the overlay bar). Chips cross, never
+exclude: this bar for you and Sam is one view. No tabs and no stepper: they
+force one source at a time, add a step to the common case (the top row is
+the answer), and cost the phone's height.
+
+**Comparing appears only when the ranking can't decide.** When two or more
+drinks share the top `HEIGHT_BAND`, the list opens with them as one block
+(About even for you), each saying how it differs from the others: which way
+(crisper, richer), known or new, what is in it, the pour behind it. Never a
+score. One drink clearly ahead: no block, and the top row is the pick. Open:
+how often the top band ties (count `rankMenu` over sample menus and people
+before building), and whether direction alone is enough to choose by (we hold
+no price or strength).
+
+**Your pours leaves where to next.** The ledger and the track are reflection,
+not finding; they move to the head of your link or a place under your handle.
+In the list a pour is the Again lane and a rating on rows you have had
+(`Manhattan · 9`).
+
+### Three states, in order
+
+1. **A pick is waiting: the card leads with its rating.** The drink, the bar,
+   how long ago, and the nine cells inline in the strip, not behind **Rate
+   it**: one tap logs it. What was off and More detail come after, optional;
+   only they open the full form and scroll the card up, so on a phone the map
+   stays in view through the common path. **Another** logs it and keeps the
+   pick for the next round (a reorder is strong evidence for one tap). **Didn't
+   have it** clears it with no rating. After about 12 hours it asks in the past
+   tense (last night) and offers **Set it aside**: asked once, never expired
+   silently, since a rating from memory is weaker.
+2. **Just rated at a bar: Done returns to that bar,** re-ranked by the pour,
+   saying which drink rose. The bar stays the where chip until left or a few
+   hours pass. This is the loop's payoff: your menu here changed.
+3. **Nothing pending: the chips and one list,** the tie block when there is
+   one, then two lanes: **Again** (your highs) and **New** (the edge of what
+   you know; a pour there moves the ground most). **Rate a drink** stays the
+   screen's one action.
+
+Risks to watch: most returns may be at a bar before ordering, in which case
+offer the last bar if recent (Still at …?) rather than ask for location; if
+the share of picks rated falls, the inline cells shrink to a strip above the
+chips; a re-ranked list can look jumpy, which naming the drink that rose
+answers.
+
+### Idea: place it yourself
+
+After rating, the person could drag the drink to where they think it lands on
+the map. Two uses: **for the person**, where they put a drink against where
+we placed it says how they read the axes (their crisp may be our rich-ish),
+which the terrain could correct for; **for everyone**, many placements of one
+drink are a crowd check on `placeStyle` and the hand placements (2.9 points
+RMS), and a placement for drinks we have never placed.
+
+Pressure points before building:
+
+- **Anchoring.** Asked with the ring drawn, people copy it. Ask before the
+  ring shows, which means the drink's mark is hidden for that step.
+- **Homework.** It is a second task after a rating; optional, occasional (a
+  drink they have never placed, one where the placement is least settled),
+  never every pour.
+- **The map doesn't pan and a tap scrolls to the top** on `/`; a drag on a
+  phone competes with the card's scroll, so it needs its own state with the
+  card lowered.
+- **A record holds what its author said.** A placement is that, so it fits,
+  but it needs a lexicon field (integer tenths, like every coordinate) before
+  any code; pooling placements is the app view's job, and moving a drink by
+  the crowd would move every terrain built on it, so it informs placement and
+  never edits it silently.
+- **What it measures is perception, not taste,** so it calibrates the axes,
+  never the hedonic model.
 
 ## Settings (`/settings`, `settings.astro`)
 
