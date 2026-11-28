@@ -52,9 +52,9 @@ test('Return to bar: after rating a pick at a bar, Done returns to that bar re-r
 
   // Leaving the bar clears it so a reload returns to where to next.
   await page.getByRole('button', { name: explore.leave('Attaboy') }).click();
-  await expect(card(page).getByRole('heading', { name: compass.menuTitle })).toBeVisible();
+  await expect(card(page).getByRole('heading', { name: compass.newTitle })).toBeVisible();
   await page.reload();
-  await expect(card(page).getByRole('heading', { name: compass.menuTitle })).toBeVisible();
+  await expect(card(page).getByRole('heading', { name: compass.newTitle })).toBeVisible();
 });
 
 test('Return to bar: an open bar older than a few hours expires on return', async ({ page }) => {
@@ -70,7 +70,7 @@ test('Return to bar: an open bar older than a few hours expires on return', asyn
     { p: profile, bar: { name: 'Attaboy', lines: ['Negroni'], openedAt: expiredAt } }
   );
   await page.goto(appPath);
-  await expect(card(page).getByRole('heading', { name: compass.menuTitle })).toBeVisible();
+  await expect(card(page).getByRole('heading', { name: compass.newTitle })).toBeVisible();
   const stored = await page.evaluate(() => localStorage.getItem('open_bar'));
   expect(stored).toBeNull();
 });

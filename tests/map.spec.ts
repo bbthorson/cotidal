@@ -67,7 +67,7 @@ test('Map: the server draws the map whole, so it is there before any script runs
 test('Map: with no coordinate the card asks one thing, and the search still finds drinks', async ({ page }) => {
   await page.goto(appPath);
   await expect(card(page).getByText(coldState.title)).toBeVisible();
-  await expect(card(page).getByRole('heading', { name: compass.menuTitle })).toHaveCount(0);
+  await expect(card(page).getByRole('heading', { name: compass.newTitle })).toHaveCount(0);
   await page.getByRole('searchbox', { name: compass.searchLabel }).fill('negroni');
   await expect(page.locator('[data-result]').first()).toContainText('Negroni');
   await page.keyboard.press('Escape');
@@ -80,7 +80,7 @@ test('Map: with no coordinate the card asks one thing, and the search still find
 test('Map: your menu says what put each drink there, and a drink opens in the card', async ({ page }) => {
   await page.addInitScript(seed, profile);
   await page.goto(appPath);
-  await expect(card(page).getByRole('heading', { name: compass.menuTitle })).toBeVisible();
+  await expect(card(page).getByRole('heading', { name: compass.newTitle })).toBeVisible();
   // With nothing rated, it is where your answers put you; never a score, never a distance.
   expect(await card(page).getByText(chart.reason([]), { exact: true }).count()).toBeGreaterThan(1);
   await expect(page.getByLabel(/ away$/)).toHaveCount(0);
@@ -92,7 +92,7 @@ test('Map: your menu says what put each drink there, and a drink opens in the ca
   await expect(card(page).getByRole('heading', { name: 'Negroni', level: 1 })).toBeVisible();
   await expect(theMap(page).getByRole('button', { name: 'Negroni', exact: true })).toHaveAttribute('aria-pressed', 'true');
   await card(page).getByRole('button', { name: new RegExp(explore.backToStart) }).click();
-  await expect(card(page).getByRole('heading', { name: compass.menuTitle })).toBeVisible();
+  await expect(card(page).getByRole('heading', { name: compass.newTitle })).toBeVisible();
 });
 
 test('Map: rating happens in the card, and a guest’s pour is kept on the device', async ({ page }) => {
@@ -119,10 +119,15 @@ test('Map: rating happens in the card, and a guest’s pour is kept on the devic
 
   await expect(page).toHaveURL(/\/(\?q=)?$/);
   await expect(rating(page)).toHaveCount(0);
-  await expect(page.locator('ol').filter({ hasText: '7 of 9' })).toContainText('Negroni');
-  // On the map, with your rating beside it.
+  // Rated drink appears in Again with its rating ("Negroni · 7"), and on the map.
+  await expect(card(page).getByRole('heading', { name: compass.againTitle })).toBeVisible();
+  await expect(card(page).getByText(explore.ratedMark('Negroni', 7))).toBeVisible();
   await expect(theMap(page).getByRole('button', { name: explore.ratedMark('Negroni', 7) })).toHaveCount(1);
+  // Opening Your pours shows the ledger, and it persists across reloads.
+  await page.getByTestId('open-your-pours').click();
+  await expect(page.locator('ol').filter({ hasText: '7 of 9' })).toContainText('Negroni');
   await page.reload();
+  await page.getByTestId('open-your-pours').click();
   await expect(page.locator('ol').filter({ hasText: '7 of 9' })).toContainText('Negroni');
 });
 
@@ -143,6 +148,7 @@ test('Map: your pours, your track, and what each pour did to it', async ({ page 
   }
 
   await expect(page.getByText(taste.label)).toBeVisible();
+  await page.getByTestId('open-your-pours').click();
   await expect(page.getByRole('figure', { name: mapPage.trackLabel(2) })).toBeVisible();
   const log = page.locator('ol').filter({ hasText: mapPage.startedCentre });
   await expect(log.getByRole('listitem').first()).toContainText(mapPage.held);
@@ -161,7 +167,7 @@ test('Map: the card sits beside the map on a wide screen, under it on a phone', 
   await page.addInitScript((p) => localStorage.setItem('user_profile', JSON.stringify(p)), profile);
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.goto(appPath);
-  await expect(card(page).getByRole('heading', { name: compass.menuTitle })).toBeVisible();
+  await expect(card(page).getByRole('heading', { name: compass.newTitle })).toBeVisible();
   const [c, m] = [(await card(page).boundingBox())!, (await theMap(page).boundingBox())!];
   expect(c.x + c.width).toBeLessThan(m.x);
   // The visible reading pages are in the header beside the search, since the map has no footer.

@@ -113,6 +113,7 @@ export function useExplore(
   const [items, setItems] = useState<MenuItem[]>([]);
   const [typedBar, setTypedBar] = useState('');
   const [barFeedback, setBarFeedback] = useState<{ risen: RisenDrink | null } | null>(null);
+  const [poursOpen, setPoursOpen] = useState(false);
   const [up, setUp] = useState(false);
   // Bumped when a pick is kept, so the waiting strip reads the device again.
   const [pickVersion, setPickVersion] = useState(0);
@@ -146,6 +147,7 @@ export function useExplore(
       setItems(next.initialLines?.length ? addMenuLines([], next.initialLines.join('\n'), register) : []);
       setTypedBar('');
       setBarFeedback(null);
+      setPoursOpen(false);
       setSelected(null);
       setQueryState('');
       setUp(false);
@@ -177,6 +179,7 @@ export function useExplore(
   const chooseDrink = (drinkName: string) => {
     const next = selected === drinkName ? null : drinkName;
     setSelected(next);
+    setPoursOpen(false);
     setQueryState('');
     setUp(false);
     syncMapUrl(next, region);
@@ -187,10 +190,17 @@ export function useExplore(
   };
   const openRegion = (id: QuadrantId | null) => {
     setRegion(id);
+    setPoursOpen(false);
     setSelected(null);
     setQueryState('');
     syncMapUrl(null, id);
   };
+  const openPours = () => {
+    setPoursOpen(true);
+    setSelected(null);
+    setUp(false);
+  };
+  const closePours = () => setPoursOpen(false);
 
   /** Snapshot the open bar's ranked menu before a pour is logged there. */
   const barMenuFor = useCallback(
@@ -437,6 +447,9 @@ export function useExplore(
     rate,
 
     // You
+    poursOpen,
+    openPours,
+    closePours,
     track,
     startLabel: fromQuiz ? mapPage.started : mapPage.startedCentre,
     stats,

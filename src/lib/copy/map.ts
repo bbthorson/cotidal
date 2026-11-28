@@ -13,6 +13,10 @@ export const compass = {
   lookUp: 'or look up a drink',
   menuTitle: 'Your menu',
   menuNote: 'And what put it there',
+  againTitle: 'Again',
+  againNote: 'Your highs',
+  newTitle: 'New',
+  newNote: 'Untried, ranked for you',
   findYours: 'Find your coordinate',
   searchLabel: 'Search drinks and bars',
   placeholder: 'Negroni, mezcal, Attaboy…',
@@ -439,6 +443,7 @@ export const publicMap = {
 /** Unified map overlays (`Lens × Scope`): With someone, Table, Uncharted, Type filter, and Bar footprint. */
 export const overlays = {
   barLabel: 'Map overlays',
+  whereButton: 'At a bar',
   withButton: 'With someone',
   addAnother: 'Add to table',
   exploreButton: 'Uncharted',

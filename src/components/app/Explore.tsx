@@ -1,5 +1,5 @@
 import { useMemo, useRef, type ReactNode } from 'react';
-import { chart, compare as compareCopy, explore, taste } from '@/lib/copy';
+import { chart, compare as compareCopy, explore, mapPage, taste } from '@/lib/copy';
 import { quadrantFor, type QuadrantId } from '@/lib/map/coordinates';
 import { matchDrink } from '@/lib/drinks/search';
 import type { Register } from '@/lib/drinks/register';
@@ -20,11 +20,14 @@ import { DrinkPanel } from './DrinkPanel';
 import { HomePanel } from './HomePanel';
 import { MapScreen } from './MapScreen';
 import { MenuView } from './MenuView';
+import { OverlayBar } from './OverlayBar';
 import { PalateMap } from './PalateMap';
 import { QuizCard } from './QuizCard';
 import { RatePanel, type PourMove } from './RatePanel';
 import { RegionPanel } from './RegionPanel';
 import { SearchBox } from './SearchBox';
+import { WaitingPick } from './WaitingPick';
+import { YourPours } from './YourPours';
 
 type CardMode =
   | { kind: 'quiz'; key: 'quiz' }
@@ -32,6 +35,7 @@ type CardMode =
   | { kind: 'drink'; key: string; drink: Drink }
   | { kind: 'venue'; key: string; venue: Venue }
   | { kind: 'region'; key: string; regionId: QuadrantId }
+  | { kind: 'pours'; key: 'pours' }
   | { kind: 'cold'; key: 'home' }
   | { kind: 'home'; key: 'home' };
 
@@ -104,9 +108,11 @@ function ExploreContent({
           ? { kind: 'venue', key: `bar:${e.venue.name ?? ''}`, venue: e.venue }
           : e.region
             ? { kind: 'region', key: `region:${e.region}`, regionId: e.region }
-            : e.cold
-              ? { kind: 'cold', key: 'home' }
-              : { kind: 'home', key: 'home' };
+            : e.poursOpen && !e.cold
+              ? { kind: 'pours', key: 'pours' }
+              : e.cold
+                ? { kind: 'cold', key: 'home' }
+                : { kind: 'home', key: 'home' };
 
   const cardUp = !moved && (e.up || mode.kind === 'rate');
   useCardScroll(mode.key, cardUp, card, body);
@@ -196,6 +202,8 @@ function ExploreContent({
           setTypedBar={e.setTypedBar}
           ranked={e.ranked}
           barFeedback={e.barFeedback}
+          ratings={ratings}
+          drinkType={overlays.drinkType}
           reasonFor={e.reasonFor}
           tableMembers={overlays.tableMembers}
           onBack={() => {
@@ -219,6 +227,31 @@ function ExploreContent({
         />
       );
       break;
+    case 'pours':
+      content = (
+        <div className="pb-6 pt-2">
+          <button
+            type="button"
+            onClick={e.closePours}
+            className="link-caps mb-2 flex min-h-11 items-center text-muted-foreground hover:text-foreground"
+          >
+            &larr; {explore.backToStart}
+          </button>
+          <YourPours
+            member={member}
+            isMember={e.isMember}
+            signInEnabled={isEnabled}
+            onSignIn={openSignIn}
+            register={e.register}
+            pours={e.pours}
+            history={e.history}
+            track={e.track}
+            startLabel={e.startLabel}
+            stats={e.stats}
+          />
+        </div>
+      );
+      break;
     case 'cold':
       content = (
         <ColdState
@@ -232,17 +265,7 @@ function ExploreContent({
       );
       break;
     case 'home':
-      content = (
-        <HomePanel
-          e={e}
-          overlays={overlays}
-          home={home}
-          ratePour={ratePour}
-          member={member}
-          signInEnabled={isEnabled}
-          onSignIn={openSignIn}
-        />
-      );
+      content = <HomePanel e={e} overlays={overlays} home={home} member={member} />;
       break;
   }
 
@@ -298,6 +321,22 @@ function ExploreContent({
       {mode.kind !== 'quiz' && mode.kind !== 'rate' && !reveal && (
         <div className="pt-3">
           <SearchBox e={e} />
+          {mode.kind === 'home' && (
+            <>
+              <button type="button" onClick={() => e.rate.open()} className="btn btn-primary mt-3 hidden w-full lg:flex">
+                {mapPage.rateDrink}
+              </button>
+              <WaitingPick
+                displayName={e.name}
+                version={e.pickVersion}
+                submitting={ratePour.submitting}
+                error={ratePour.error}
+                onQuickRate={(entry, opts) => void ratePour.submit(entry, opts)}
+                onOpenDetail={(draft, openDetail) => e.rate.open({ drink: draft.drink, draft, openDetail })}
+              />
+            </>
+          )}
+          {(mode.kind === 'home' || mode.kind === 'venue') && <OverlayBar overlays={overlays} e={e} />}
         </div>
       )}
       {content}

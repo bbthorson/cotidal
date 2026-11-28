@@ -44,9 +44,11 @@ test('Draft link: the card opens on it, will not log without a rating, and logs 
   await expect(page).toHaveURL(/\/(\?q=)?$/);
   await expect(page.getByTestId('pour-draft-note')).toHaveCount(0);
   await expect(page.getByLabel(pour.noteLabel)).toHaveCount(0);
-  // In the ledger, once; the bar is also among your bars now.
-  await expect(page.locator('ol').filter({ hasText: '6 of 9' }).filter({ hasText: 'Dante' })).toHaveCount(1);
+  // The bar is among your bars in the Where picker, and the pour is in Your pours once.
+  await page.getByTestId('overlay-where-btn').click();
   await expect(page.getByRole('heading', { name: compass.yourBars })).toBeVisible();
+  await page.getByTestId('open-your-pours').click();
+  await expect(page.locator('ol').filter({ hasText: '6 of 9' }).filter({ hasText: 'Dante' })).toHaveCount(1);
 });
 
 test('Draft link: closing it logs nothing and clears the address, other queries stay', async ({ page }) => {

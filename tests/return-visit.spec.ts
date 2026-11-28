@@ -43,9 +43,10 @@ test('Rate: a guest logs a pour, sees the coordinate move, then the ledger', asy
   await page.getByRole('button', { name: moved.back }).click();
   await expect(sheet).toHaveCount(0);
 
-  // Back to where to next: your taste in words, and the pour in the ledger.
+  // Back to where to next: your taste in words, then Your pours opens the ledger.
   await expect(page).toHaveURL(/\/(\?q=)?$/);
   await expect(page.getByText(taste.label)).toBeVisible();
+  await page.getByTestId('open-your-pours').click();
   await expect(page.getByRole('heading', { name: mapPage.ledgerTitle, exact: true })).toBeVisible();
   const ledger = page.locator('ol').filter({ hasText: 'Too sweet' });
   await expect(ledger).toContainText(pour.home);

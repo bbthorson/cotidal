@@ -6,7 +6,7 @@ import { chart, compass, explore, menu, overlays as overlayCopy, venuePage } fro
 import { osmPlaceHref } from '@/lib/drinks/osm';
 import { titleOf, type Register } from '@/lib/drinks/register';
 import type { UserProfile } from '@/lib/palate/profile';
-import { rankForTable, type TableMember } from '@/lib/palate/overlays';
+import { filterDrinksByType, rankForTable, type DrinkType, type TableMember } from '@/lib/palate/overlays';
 import type { Venue } from '@/hooks/useExplore';
 import { useMenuCapture } from '@/hooks/useMenuCapture';
 import { questionsHref } from '@/lib/site-nav';
@@ -35,6 +35,8 @@ export function MenuView({
   setTypedBar,
   ranked,
   barFeedback,
+  ratings,
+  drinkType,
   reasonFor,
   tableMembers,
   onBack,
@@ -55,6 +57,10 @@ export function MenuView({
   ranked: RankedDrink[];
   /** Set when returning to this bar after rating a pour here: names which drink rose. */
   barFeedback?: { risen: RisenDrink | null } | null;
+  /** Latest 1–9 rating per drink name, shown beside rated rows ("Manhattan · 9"). */
+  ratings?: ReadonlyMap<string, number>;
+  /** Optional drink type chip active in the overlay row. */
+  drinkType?: DrinkType | null;
   reasonFor: (drink: RankedDrink['drink']) => string;
   /** When a friend/table overlay is active, rank this bar's placed drinks for the group. */
   tableMembers?: TableMember[];
@@ -67,12 +73,9 @@ export function MenuView({
   const bar = (venue.name ?? typedBar).trim() || null;
   const isGroup = !!tableMembers && tableMembers.length >= 2;
   const displayRanked = useMemo(() => {
-    if (!isGroup || !tableMembers) return ranked.map((r) => r.drink);
-    return rankForTable(
-      tableMembers,
-      ranked.map((r) => r.drink)
-    );
-  }, [isGroup, tableMembers, ranked]);
+    const base = !isGroup || !tableMembers ? ranked.map((r) => r.drink) : rankForTable(tableMembers, ranked.map((r) => r.drink));
+    return filterDrinksByType(base, drinkType ?? null);
+  }, [isGroup, tableMembers, ranked, drinkType]);
   const footprint = useMemo(() => summarizeCoverage(items), [items]);
   const chosen = choice ?? displayRanked[0]?.name;
 
@@ -170,7 +173,7 @@ export function MenuView({
               </SectionTitle>
               <p className="mt-2 text-meta text-muted-foreground">{compass.atMenu.rankedBody}</p>
               <RankedList
-                drinks={displayRanked.map((drink) => ({ name: drink.name, note: reasonFor(drink) }))}
+                drinks={displayRanked.map((drink) => ({ name: drink.name, note: reasonFor(drink), rating: ratings?.get(drink.name) }))}
                 name={(n) => titleOf(register, n)}
                 selected={chosen}
                 onChoose={setChoice}

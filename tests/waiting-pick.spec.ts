@@ -35,8 +35,10 @@ test('Waiting pick: one tap logs the pour, shows Moved with the map in view on a
 
   await page.getByRole('button', { name: moved.back }).click();
 
-  // Back on where to next: the pick is gone, and the pour is in Your pours.
+  // Back on where to next: the pick is gone, Negroni · 8 is in Again, and Your pours holds the pour.
   await expect(page.getByTestId('waiting-pick')).toHaveCount(0);
+  await expect(page.getByRole('region', { name: explore.cardLabel }).getByText(explore.ratedMark('Negroni', 8))).toBeVisible();
+  await page.getByTestId('open-your-pours').click();
   const yours = page.locator('#yours');
   await expect(yours).toContainText('Negroni');
   await expect(yours).toContainText('Attaboy');

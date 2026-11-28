@@ -40,7 +40,7 @@ test('Questionnaire: someone who already has a coordinate goes straight on to th
   );
   await page.goto('/?quiz=1');
   await expect(page).toHaveURL(/\/(\?q=)?$/);
-  await expect(page.getByRole('heading', { name: compass.menuTitle })).toBeVisible();
+  await expect(page.getByRole('heading', { name: compass.newTitle })).toBeVisible();
   // From a drink's page the same link goes on to that drink on the map.
   await page.goto('/?drink=negroni&quiz=1');
   await expect(page).toHaveURL(/\/\?drink=negroni$/);
@@ -99,7 +99,7 @@ test('Questionnaire: finishing the questions reveals a region before the menu', 
 
   // After the reveal, the map: your terrain, your menu, and a search over drinks and bars in the header.
   await expect(page.locator(`[role="group"][aria-label="${explore.mapLabel}"]`)).toBeVisible();
-  await expect(page.getByRole('heading', { name: compass.menuTitle })).toBeVisible();
+  await expect(page.getByRole('heading', { name: compass.newTitle })).toBeVisible();
   await expect(page.getByRole('searchbox', { name: compass.searchLabel })).toBeVisible();
 });
 
@@ -111,7 +111,7 @@ test('Menu: one ranked list, with no occasion switch', async ({ page }) => {
   );
   await page.reload();
 
-  await expect(page.getByRole('heading', { name: compass.menuTitle })).toBeVisible();
+  await expect(page.getByRole('heading', { name: compass.newTitle })).toBeVisible();
   // The occasion tabs are gone; the menu ranks on your terrain, with taste only sorting drinks that stand level.
   await expect(page.getByRole('group', { name: 'Occasion' })).toHaveCount(0);
   for (const label of ['Usual', 'Night out', 'Impress', 'Holiday']) {

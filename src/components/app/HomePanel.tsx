@@ -1,39 +1,30 @@
 import type { ReactNode } from 'react';
 import { compare as compareCopy, compass, explore, mapPage, overlays as overlayCopy, publicMap } from '@/lib/copy';
+import { publicMapPath } from '@/lib/atproto/paths';
 import { TOP } from '@/lib/palate/overlap';
 import type { Explore } from '@/hooks/useExplore';
 import type { HomeList, HomeLists } from '@/hooks/useHomeLists';
 import type { OverlaysState } from '@/hooks/useOverlays';
-import type { RatePourState } from '@/hooks/useRatePour';
 import { Comparison } from './Comparison';
-import { DrinkRow } from './DrinkRow';
-import { NearList } from './Near';
-import { OverlayBar } from './OverlayBar';
 import { RankedList } from './RankedList';
-import { WaitingPick } from './WaitingPick';
-import { YourPours } from './YourPours';
 import { Readout, SectionTitle } from './ui';
 
 /**
- * Where to next: Rate a drink, a waiting pick, the overlay strip, the ranked
- * lists it chooses (`useHomeLists`), your bars, bars near you, and your pours.
+ * Where to next: Rate a drink, the ranked lists chosen by the chip row
+ * (`useHomeLists`: Again & New, the table's picks, or Uncharted), and a quiet
+ * link to Your pours (at the head of a member's own link, or in the card for a
+ * guest). Your bars and Bars near you live in the Where chip picker.
  */
 export function HomePanel({
   e,
   overlays,
   home,
-  ratePour,
   member,
-  signInEnabled,
-  onSignIn,
 }: {
   e: Explore;
   overlays: OverlaysState;
   home: HomeLists;
-  ratePour: RatePourState;
   member: { did: string; handle: string | null } | null;
-  signInEnabled: boolean;
-  onSignIn: () => void;
 }) {
   const openRate = () => e.rate.open();
   const haveMenu = (
@@ -61,20 +52,6 @@ export function HomePanel({
       <button type="button" onClick={openRate} className="rate-float btn btn-primary fixed bottom-safe-b right-4 z-30 px-5 shadow-mcm lg:hidden">
         {mapPage.rateDrink}
       </button>
-      <button type="button" onClick={openRate} className="btn btn-primary mt-4 hidden w-full lg:flex">
-        {mapPage.rateDrink}
-      </button>
-      <div>
-        <WaitingPick
-          displayName={e.name}
-          version={e.pickVersion}
-          submitting={ratePour.submitting}
-          error={ratePour.error}
-          onQuickRate={(entry, opts) => void ratePour.submit(entry, opts)}
-          onOpenDetail={(draft, openDetail) => e.rate.open({ drink: draft.drink, draft, openDetail })}
-        />
-      </div>
-      <OverlayBar overlays={overlays} />
 
       {overlays.lens === 'with' && overlays.comparison && overlays.companions[0] && (
         <section className="mt-4" data-testid="overlay-with-comparison">
@@ -112,37 +89,34 @@ export function HomePanel({
           ))}
         </div>
       ) : (
-        <section className="mt-2">
-          {list(home.lists[0])}
+        <div className="mt-4 space-y-6">
+          {home.lists.map((l) => (
+            <section key={l.title}>{list(l)}</section>
+          ))}
           {haveMenu}
-        </section>
+        </div>
       )}
 
-      {e.barHits.length > 0 && !e.searching && (
-        <section className="mt-6">
-          <SectionTitle>{compass.yourBars}</SectionTitle>
-          <ol>
-            {e.barHits.map((b) => (
-              <DrinkRow key={b.name} title={b.name} figure={compass.barPours(b.pours)} onSelect={() => e.openBar({ name: b.name })} />
-            ))}
-          </ol>
-        </section>
-      )}
-
-      <NearList nearby={e.nearby} onOpen={(b) => e.openBar({ name: b.name, at: { lat: b.lat, lon: b.lon }, osmId: b.id })} />
-
-      <YourPours
-        member={member}
-        isMember={e.isMember}
-        signInEnabled={signInEnabled}
-        onSignIn={onSignIn}
-        register={e.register}
-        pours={e.pours}
-        history={e.history}
-        track={e.track}
-        startLabel={e.startLabel}
-        stats={e.stats}
-      />
+      <div className="mt-6 border-t border-border pt-2">
+        {member ? (
+          <a
+            href={`${publicMapPath(member.handle ?? member.did)}#yours`}
+            data-testid="open-your-pours"
+            className="link-caps flex min-h-11 items-center text-muted-foreground hover:text-foreground"
+          >
+            {explore.yoursTitle} &rarr;
+          </a>
+        ) : (
+          <button
+            type="button"
+            onClick={e.openPours}
+            data-testid="open-your-pours"
+            className="link-caps flex min-h-11 items-center text-muted-foreground hover:text-foreground"
+          >
+            {explore.yoursTitle} &rarr;
+          </button>
+        )}
+      </div>
     </div>
   );
 }
