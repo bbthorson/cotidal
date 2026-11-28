@@ -36,6 +36,8 @@ interface PourFormProps {
   recentVenues?: string[];
   /** Signed in: offer cross-posting and the optional detail fields. */
   isMember: boolean;
+  /** Open the More detail disclosure immediately (when opened via "More detail" on a waiting pick). */
+  openDetail?: boolean;
   submitting: boolean;
   error: string | null;
   onSubmit: (entry: PourEntry) => void;
@@ -56,6 +58,7 @@ export function PourForm({
   onVenueChange,
   recentVenues = [],
   isMember,
+  openDetail = false,
   submitting,
   error,
   onSubmit,
@@ -279,7 +282,7 @@ export function PourForm({
       </div>
 
       {isMember && (
-        <details className="group border-y border-border">
+        <details open={openDetail || undefined} className="group border-y border-border">
           <summary className="summary-plain link-caps flex cursor-pointer justify-between font-semibold text-foreground">
             {pour.moreDetail}
             <span aria-hidden="true" className="text-foreground transition-transform group-open:rotate-45">

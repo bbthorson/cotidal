@@ -78,6 +78,7 @@ test('Start over: two steps at the foot of the map\'s card, and Keep it changes 
   await page.evaluate((p) => localStorage.setItem('user_profile', JSON.stringify(p)), profile);
   await page.goto(appPath);
 
+  await page.getByTestId('open-your-pours').click();
   await page.getByRole('button', { name: account.startOver }).click();
   await expect(page.getByText(account.startOverBody)).toBeVisible();
   await page.getByRole('button', { name: account.startOverCancel }).click();

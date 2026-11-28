@@ -15,6 +15,7 @@ import { pour } from '@/lib/copy';
 export interface PourEntry {
   drinkName: string;
   hedonic: number;
+  wouldOrderAgain?: boolean;
   isHomePour: boolean;
   venue: string;
   deviations: Deviation[];
@@ -99,6 +100,7 @@ export function toLogOptions(entry: PourEntry): LogDrinkOptions {
   return {
     drinkName: entry.drinkName,
     rating: hedonicToRating(entry.hedonic),
+    ...(entry.wouldOrderAgain !== undefined ? { wouldOrderAgain: entry.wouldOrderAgain } : {}),
     isHomePour: entry.isHomePour,
     location: entry.isHomePour ? 'Home Pour' : entry.venue,
     venue: entry.isHomePour ? undefined : { name: entry.venue },
@@ -138,7 +140,10 @@ export function guestPourRecord(
     venue: entry.isHomePour
       ? undefined
       : { entity: { name: entry.venue }, ...(at ? { address: geoLocation(at.lat, at.lon, entry.venue) ?? undefined } : {}) },
-    rating: { hedonic: entry.hedonic },
+    rating: {
+      hedonic: entry.hedonic,
+      ...(entry.wouldOrderAgain !== undefined ? { wouldOrderAgain: entry.wouldOrderAgain } : {}),
+    },
     deviations: entry.deviations.length > 0 ? entry.deviations : undefined,
     cata: entry.cata && entry.cata.length > 0 ? entry.cata : undefined,
     note: entry.note || undefined,

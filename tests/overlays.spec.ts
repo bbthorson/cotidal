@@ -93,3 +93,50 @@ test('Overlays: Opening a bar menu shows its region footprint summary', async ({
   await expect(page.getByTestId('bar-footprint')).toContainText('The Deep');
   await expect(page.getByTestId('bar-footprint')).toContainText('The Surf');
 });
+
+test('Overlays: Where and With chips cross on an open bar, and rated drinks show in Again and in the bar menu', async ({ page }) => {
+  const pour = {
+    $type: 'app.cotidal.pour',
+    drink: { name: 'Manhattan', slug: 'manhattan' },
+    venue: { entity: { name: 'Attaboy' } },
+    rating: { hedonic: 9 },
+    isHomePour: false,
+    createdAt: new Date().toISOString(),
+  };
+  await page.addInitScript(
+    ({ p, pours }) => {
+      if (!sessionStorage.getItem('seeded')) {
+        localStorage.setItem('user_profile', JSON.stringify(p));
+        localStorage.setItem('guest_pours', JSON.stringify(pours));
+        sessionStorage.setItem('seeded', '1');
+      }
+    },
+    { p: profile, pours: [pour] }
+  );
+  await page.goto(appPath);
+
+  // Again and New lanes split the home list, and Manhattan shows its rating ("Manhattan · 9").
+  await expect(page.getByRole('heading', { name: 'Again', exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'New', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: /Manhattan · 9/ }).first()).toBeVisible();
+
+  // Open Attaboy from the Where chip picker (Your bars first).
+  await page.getByTestId('overlay-where-btn').click();
+  await page.getByTestId('where-picker').getByRole('button', { name: /Attaboy/ }).click();
+  await expect(page.getByTestId('where-chip-active')).toContainText('Attaboy');
+
+  // Add drinks to Attaboy's menu; rated Manhattan shows "Manhattan · 9".
+  const input = page.getByLabel('A drink on their menu');
+  await input.fill('Manhattan');
+  await page.getByRole('button', { name: 'Add', exact: true }).click();
+  await input.fill('Daiquiri');
+  await page.getByRole('button', { name: 'Add', exact: true }).click();
+  await expect(page.getByRole('button', { name: /Manhattan · 9/ }).first()).toBeVisible();
+
+  // Add a companion in the same chip row: chips cross and rank Attaboy's menu for both.
+  await page.getByTestId('overlay-with-btn').click();
+  await page.getByRole('button', { name: copy.sampleSurf }).click();
+  await expect(page.getByTestId('where-chip-active')).toContainText('Attaboy');
+  await expect(page.getByTestId('companion-chip-surf.test')).toBeVisible();
+  await expect(page.getByText(copy.groupMenuNote(2))).toBeVisible();
+});

@@ -13,6 +13,10 @@ export const compass = {
   lookUp: 'or look up a drink',
   menuTitle: 'Your menu',
   menuNote: 'And what put it there',
+  againTitle: 'Again',
+  againNote: 'Your highs',
+  newTitle: 'New',
+  newNote: 'Untried, ranked for you',
   findYours: 'Find your coordinate',
   searchLabel: 'Search drinks and bars',
   placeholder: 'Negroni, mezcal, Attaboy…',
@@ -72,6 +76,8 @@ export const compass = {
     rankedAt: (bar: string) => `What to have at ${bar}`,
     rankedHome: 'What to have',
     rankedBody: 'Ranked by your ratings of the drinks around each one, and where your answers put you.',
+    drinkRose: (name: string, rank: number) => `${name} rose to No. ${rank} after your pour.`,
+    reranked: 'Re-ranked after your pour.',
   },
 } as const;
 
@@ -163,13 +169,21 @@ export const coldState = {
 } as const;
 
 /**
- * A drink picked on Compass, kept on the device until it is rated: the strip
- * on Compass and Your map that says so.
+ * A drink picked on the map, kept on the device until it is rated: the strip
+ * at the head of the card with inline rating cells.
  */
 export const waitingPick = {
   atHome: 'At home',
-  waiting: 'Waiting to be rated',
-  rate: 'Rate it',
+  waiting: 'How is it?',
+  pastWaiting: 'How was it?',
+  justPicked: 'just picked',
+  pickedMinutes: (mins: number) => `picked ${mins} min ago`,
+  pickedHours: (hours: number) => (hours === 1 ? 'picked 1 hr ago' : `picked ${hours} hr ago`),
+  lastNight: 'last night',
+  pickedDays: (days: number) => `${days} days ago`,
+  another: 'Another',
+  didntHave: 'Didn’t have it',
+  whatWasOff: 'What was off',
   dismiss: 'Set it aside',
 } as const;
 
@@ -429,6 +443,7 @@ export const publicMap = {
 /** Unified map overlays (`Lens × Scope`): With someone, Table, Uncharted, Type filter, and Bar footprint. */
 export const overlays = {
   barLabel: 'Map overlays',
+  whereButton: 'At a bar',
   withButton: 'With someone',
   addAnother: 'Add to table',
   exploreButton: 'Uncharted',

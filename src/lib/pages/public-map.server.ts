@@ -1,6 +1,7 @@
 import type { Drink } from '../drinks/data';
-import { compare as compareCopy, publicMap, site, taste as taste_ } from '../copy';
+import { compare as compareCopy, mapPage, publicMap, site, taste as taste_ } from '../copy';
 import { readPublicPalate, type PublicPalateResult } from '../atproto/public-read';
+import { getLatestElicitation, getPours } from '../atproto/publish';
 import { publicMapPath } from '../atproto/paths';
 import { oauthSession } from '../atproto/session';
 import { readFollowedPalates, type FollowedOverlap } from '../atproto/follows-overlap';
@@ -8,6 +9,8 @@ import type { MapPoint } from '../palate/overlap';
 import { compareWith } from '../palate/compare';
 import { leanings, sampleTerrain } from '../palate/terrain';
 import { evidenceFor, menuOf, ratingsOf, terrainOf } from '../palate/taste-reading';
+import { CENTRE_START, distanceRun, quizStart, replayTrack } from '../palate/track';
+import { logTotals } from '../pours/pour-history';
 import { loadRegister } from '../drinks/register.server';
 import { titleOf } from '../drinks/register';
 import { readMapView } from '../map/map-url';
@@ -52,10 +55,14 @@ export async function loadPublicMapPage(actorParam: string, url: URL, request: R
   const subjectWhose = isSelf ? compareCopy.yours : compareCopy.theirs(subjectWho);
 
   const terrain = groundOf(result);
-  const follows: FollowedOverlap[] =
+  const [follows, selfPours, selfQuiz] =
     isSelf && session && subject && terrain
-      ? await readFollowedPalates(session.did, { terrain, aversions: subject.aversions }, { budgetMs: 2500 })
-      : [];
+      ? await Promise.all([
+          readFollowedPalates(session.did, { terrain, aversions: subject.aversions }, { budgetMs: 2500 }),
+          getPours(session, 50).catch(() => []),
+          getLatestElicitation(session).catch(() => null),
+        ])
+      : [[], [], null] as [FollowedOverlap[], Awaited<ReturnType<typeof getPours>>, Awaited<ReturnType<typeof getLatestElicitation>>];
   const register = subject ? await loadRegister() : {};
 
   const taste = result.status === 'ok' ? (result.taste ?? null) : null;
@@ -127,6 +134,29 @@ export async function loadPublicMapPage(actorParam: string, url: URL, request: R
   const canonical = result.status === 'ok' ? publicMapPath(result.actor.handle ?? result.actor.did) : undefined;
   const subjectHandle = result.status === 'ok' ? result.actor.handle : null;
 
+  const selfStart = selfQuiz && subject ? quizStart(selfQuiz, subject.aversions) : null;
+  const selfTrack =
+    isSelf && subject
+      ? replayTrack(selfStart ?? CENTRE_START, selfPours, { x: subject.x, y: subject.y }, 'record')
+      : null;
+  const selfTotals = isSelf ? logTotals(selfPours) : null;
+  const selfStats =
+    !selfTotals || selfTotals.pours === 0
+      ? []
+      : [
+          { label: mapPage.stats.pours, value: String(selfTotals.pours) },
+          { label: mapPage.stats.bars, value: String(selfTotals.bars) },
+          ...(selfTrack && selfTrack.length > 1 ? [{ label: mapPage.stats.moved, value: String(distanceRun(selfTrack)) }] : []),
+          ...(selfTotals.first
+            ? [
+                {
+                  label: mapPage.stats.since,
+                  value: new Date(selfTotals.first.createdAt).toLocaleDateString('en', { month: 'short', year: 'numeric' }),
+                },
+              ]
+            : []),
+        ];
+
   return {
     result,
     viewDrink,
@@ -143,6 +173,10 @@ export async function loadPublicMapPage(actorParam: string, url: URL, request: R
     otherWho,
     subjectWhose,
     follows,
+    register,
+    selfPours,
+    selfTrack,
+    selfStats,
     ground,
     lean,
     rated,

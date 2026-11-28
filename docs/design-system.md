@@ -311,14 +311,26 @@ server places labels for `NOMINAL_SIDE` and `/` re-places them once
 measured. Screen geometry is CSS (`.map-screen-*`), so nothing moves when the
 script arrives. `MapScreen` is `live` on `/`, `static` elsewhere.
 
-**The card** opens with the search. It holds one of:
+**The card** opens with the search, followed by a waiting pick (when one is
+pending) and one composable chip row (`OverlayBar.tsx`: **Where** — the open
+bar chip with `×` or an **At a bar** picker listing your bars, bars near you,
+and **Have a menu?**; **For whom** — companions / table; **Lenses** —
+Uncharted and drink types). Chips cross: an open bar with a companion ranks
+that bar's menu for both (`rankForTable` in `MenuView`), and a drink-type
+chip narrows it too. It holds one of:
 
-- **Where to next:** **Rate a drink**, a waiting pick, **Your menu**
-  (`useMenu`: eight drinks, each with what put it there, "Near your Manhattan
-  (9)", the first in terracotta), **Have a menu?**, **Your bars**, **Bars near
-  you** (`Near.tsx`), and **Your pours** (figures, `TrackFigure`,
-  `PourLedger`; Compare for a member, what signing in keeps and Start over for
-  a guest). The cold state before a position.
+- **Where to next:** **Rate a drink**, the ranked lists chosen by the chip
+  row (`useHomeLists`: **Again** — your highs, drinks rated `7+` — and
+  **New** — untried drinks ranked for you; or the table's picks; or
+  Uncharted), **Have a menu?**, and a quiet **Your pours** link at the foot.
+  In every ranked list (`RankedList`), a drink you have rated shows your
+  latest rating (`Manhattan · 9`). The cold state before a position.
+- **Your pours (`YourPours.tsx`):** reflection rather than finding, so it
+  leaves where to next. For a member it sits at the head of their own link
+  (`/p/<handle>#yours`, reached from where to next or their handle via
+  Settings); for a guest whose pours live only on the device, the **Your
+  pours** link at the foot of where to next opens it in the card (figures,
+  `TrackFigure`, `PourLedger`, what signing in keeps, and Start over).
 - **A drink:** region and coordinate, what put it there, your last pour,
   Also here, **Rate this**, **Pick this** (at an open bar), its entry. Ringed
   on the map.
@@ -333,39 +345,17 @@ No 0–100 score, no distance in a row.
 any name typed), the whole library: what is ranked for you first, then
 drinks your menu leaves out (one you avoid, or rated low), which a search
 still finds (`searchLibrary`). While it finds drinks the map draws them,
-named, in place of the staples; finding none leaves the map as it was. With a bar open its name is a chip in the box (× leaves it)
-and the box searches its menu.
+named, in place of the staples; finding none leaves the map as it was. With a
+bar open the box searches its menu (the bar's chip sits in `OverlayBar`).
 
 **Bars near you** come from OpenStreetMap's Overpass API
 (`src/lib/drinks/osm.ts`): bars, pubs, beer gardens and clubs within about
-1.2 km, as a list. Nothing is asked until **Show bars near me** (unless the
-browser already allows it). The point leaves rounded to about 100 m, only to
-OpenStreetMap, and Cotidal keeps none; the list says so.
+1.2 km, listed inside the **At a bar** picker in `OverlayBar`. Nothing is
+asked until **Show bars near me** (unless the browser already allows it). The
+point leaves rounded to about 100 m, only to OpenStreetMap, and Cotidal keeps
+none; the list says so.
 
 ## The return (designed, not built)
-
-The loop is find, pick, rate. Finding has many ways in (your highs, the edge
-of what you know, a bar's menu, a name someone said, a friend, a chat), and
-today where to next stacks them as sections the person must choose between.
-This replaces that with one rule: **lead with what closes the loop, then what
-continues it, then a fresh start.** All three are states of the card; the map
-stays, and draws what the card holds.
-
-**Finding is one list, narrowed.** Your menu, a bar, a companion and a lens
-are not kinds of page but filters on one ranked list, which the map draws:
-
-- **Where** (what is available): anywhere, or a bar. Its picker lists your
-  bars and bars near you first, so walking in is two taps; those stop being
-  sections of their own. Later, at home.
-- **For whom** (how it is ranked): you, or you and companions (`with=`, the
-  table).
-- **Lenses** as now (`OverlayBar`: Uncharted, drink types).
-
-One chip row holds all three, the bar included (today it is a chip in the
-search box while companions are in the overlay bar). Chips cross, never
-exclude: this bar for you and Sam is one view. No tabs and no stepper: they
-force one source at a time, add a step to the common case (the top row is
-the answer), and cost the phone's height.
 
 **Comparing appears only when the ranking can't decide.** When two or more
 drinks share the top `HEIGHT_BAND`, the list opens with them as one block
@@ -375,30 +365,6 @@ score. One drink clearly ahead: no block, and the top row is the pick. Open:
 how often the top band ties (count `rankMenu` over sample menus and people
 before building), and whether direction alone is enough to choose by (we hold
 no price or strength).
-
-**Your pours leaves where to next.** The ledger and the track are reflection,
-not finding; they move to the head of your link or a place under your handle.
-In the list a pour is the Again lane and a rating on rows you have had
-(`Manhattan · 9`).
-
-### Three states, in order
-
-1. **A pick is waiting: the card leads with its rating.** The drink, the bar,
-   how long ago, and the nine cells inline in the strip, not behind **Rate
-   it**: one tap logs it. What was off and More detail come after, optional;
-   only they open the full form and scroll the card up, so on a phone the map
-   stays in view through the common path. **Another** logs it and keeps the
-   pick for the next round (a reorder is strong evidence for one tap). **Didn't
-   have it** clears it with no rating. After about 12 hours it asks in the past
-   tense (last night) and offers **Set it aside**: asked once, never expired
-   silently, since a rating from memory is weaker.
-2. **Just rated at a bar: Done returns to that bar,** re-ranked by the pour,
-   saying which drink rose. The bar stays the where chip until left or a few
-   hours pass. This is the loop's payoff: your menu here changed.
-3. **Nothing pending: the chips and one list,** the tie block when there is
-   one, then two lanes: **Again** (your highs) and **New** (the edge of what
-   you know; a pour there moves the ground most). **Rate a drink** stays the
-   screen's one action.
 
 Risks to watch: most returns may be at a bar before ordering, in which case
 offer the last bar if recent (Still at …?) rather than ask for location; if
@@ -450,8 +416,10 @@ also **Scan a menu photo** (`/api/menu/capture`, `docs/generation.md`); a
 guest is offered sign-in for it. Each placed drink is a numbered pin (1 in
 terracotta), every other drink fades to a speck, and the card lists them in
 the same order (`rankMenu`). Nothing placed yet: **No known menu**. **Pick
-this** keeps the pick on the device (`pick`, `device-store.ts`); the waiting
-strip offers **Rate it** (a draft, no rating) or **Set it aside**.
+this** keeps the pick on the device (`pick`, `device-store.ts`, with its
+timestamp). The open bar stays persisted on the device (`openBar`,
+`device-store.ts`, `OPEN_BAR_TTL_HOURS`) until explicitly left or a few hours
+pass.
 
 A bar picked from bars near you carries its point through the pick, the draft
 link (`lat`, `lon`) and the form, and the pour records it as `venue.address`
@@ -462,6 +430,17 @@ still at that bar.
 bartender takes the order.
 
 ## Rating a pour (in the card)
+
+**A waiting pick (`WaitingPick.tsx`)** leads the card with its rating: the
+drink, the bar, how long ago (`pick-age.ts`), and the nine hedonic cells
+inline in the strip. One tap logs the pour through `useRatePour` and shows
+`Moved` directly without scrolling the card up, so on a phone the map stays
+in view. **Another** logs a reorder (`wouldOrderAgain: true`) and keeps the
+pick waiting for the next round; **Didn't have it** clears it with no rating.
+**What was off** and **More detail** are optional and open the full
+`RatePanel` (which scrolls the card up). After about 12 hours it asks in the
+past tense (last night) and offers **Set it aside** instead of **Another**
+and **Didn't have it**.
 
 `RatePanel.tsx`, where you found the drink; the whole card on a phone;
 **Close** returns it. A missing answer (drink, bar or "At home", rating) is
@@ -480,8 +459,10 @@ was off" as axis tags; spirit, glass, garnish and sensory sliders under "More
 detail" for members. Logging replaces it with `Moved.tsx` on the reveal
 ground: **Moved 0.7** or **Held.** (a rating of 4–6), which way, and what
 changed on your menu. The move is drawn on the map: a dashed terracotta trail
-from a ring to your point. **Done** returns to where to next, which already
-shows the pour and has dropped the waiting pick.
+from a ring to your point. **Done** returns to the open bar's ranked menu
+when the pour was rated at that bar (re-ranked by the pour, with a notice
+naming which drink rose, `risenDrink` in `open-bar.ts`), or to where to next
+otherwise, which already shows the pour and has dropped the waiting pick.
 
 ---
 

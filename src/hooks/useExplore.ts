@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { drinkDatabase, type Drink } from '@/lib/drinks/data';
-import { savePick } from '@/lib/device-store';
+import { clearOpenBar, loadOpenBar, loadPick, saveOpenBar, savePick } from '@/lib/device-store';
 import { chart, compass, mapPage } from '@/lib/copy';
 import { titleOf, type Register } from '@/lib/drinks/register';
 import { userFromProfile } from '@/lib/palate/profile';
 import { barsFromPours, foldName, lastPourByDrink, logTotals } from '@/lib/pours/pour-history';
 import { drinksAtSameSpot, namesMatching, searchLibrary, unlistedBar } from '@/lib/drinks/search';
 import { addMenuLines, rankMenu, type MenuItem } from '@/lib/drinks/menu-rank';
+import { isOpenBarFresh, risenDrink, type RisenDrink } from '@/lib/drinks/open-bar';
 import { readMapView, readMenuHandoff, VIEW_PARAMS } from '@/lib/map/map-url';
 import type { Side } from '@/lib/palate/compare';
 import { quadrantIdFor, type QuadrantId } from '@/lib/map/coordinates';
@@ -111,6 +112,8 @@ export function useExplore(
   const [venue, setVenue] = useState<Venue | null>(null);
   const [items, setItems] = useState<MenuItem[]>([]);
   const [typedBar, setTypedBar] = useState('');
+  const [barFeedback, setBarFeedback] = useState<{ risen: RisenDrink | null } | null>(null);
+  const [poursOpen, setPoursOpen] = useState(false);
   const [up, setUp] = useState(false);
   // Bumped when a pick is kept, so the waiting strip reads the device again.
   const [pickVersion, setPickVersion] = useState(0);
@@ -123,11 +126,28 @@ export function useExplore(
     [venue, profile, items, history, barName, terrainStart]
   );
 
+  // Persist the open bar on the device so it survives picks and reloads for a few hours.
+  useEffect(() => {
+    if (!venue) return;
+    const resolvedName = (venue.name ?? typedBar).trim() || null;
+    const lines = items.map((i) => (i.description ? `${i.label} — ${i.description}` : i.label));
+    if (!resolvedName && lines.length === 0) return;
+    saveOpenBar({
+      name: resolvedName,
+      ...(venue.at ? { at: venue.at } : {}),
+      ...(venue.osmId ? { osmId: venue.osmId } : {}),
+      lines,
+      openedAt: new Date().toISOString(),
+    });
+  }, [venue, typedBar, items]);
+
   const openBar = useCallback(
     (next: Venue) => {
       setVenue(next);
       setItems(next.initialLines?.length ? addMenuLines([], next.initialLines.join('\n'), register) : []);
       setTypedBar('');
+      setBarFeedback(null);
+      setPoursOpen(false);
       setSelected(null);
       setQueryState('');
       setUp(false);
@@ -150,13 +170,16 @@ export function useExplore(
   }, []);
 
   const leaveBar = () => {
+    clearOpenBar();
     setVenue(null);
     setItems([]);
+    setBarFeedback(null);
     setSelected(null);
   };
   const chooseDrink = (drinkName: string) => {
     const next = selected === drinkName ? null : drinkName;
     setSelected(next);
+    setPoursOpen(false);
     setQueryState('');
     setUp(false);
     syncMapUrl(next, region);
@@ -167,10 +190,66 @@ export function useExplore(
   };
   const openRegion = (id: QuadrantId | null) => {
     setRegion(id);
+    setPoursOpen(false);
     setSelected(null);
     setQueryState('');
     syncMapUrl(null, id);
   };
+  const openPours = () => {
+    setPoursOpen(true);
+    setSelected(null);
+    setUp(false);
+  };
+  const closePours = () => setPoursOpen(false);
+
+  /** Snapshot the open bar's ranked menu before a pour is logged there. */
+  const barMenuFor = useCallback(
+    (targetBar: string): string[] => {
+      const folded = targetBar.trim().toLowerCase();
+      if (!folded || !profile) return [];
+      if (venue && barName?.toLowerCase() === folded) return ranked.map((r) => r.drink.name);
+      const saved = loadOpenBar();
+      if (!saved || !isOpenBarFresh(saved.openedAt)) return [];
+      if (saved.name?.trim().toLowerCase() !== folded) return [];
+      const savedItems = saved.lines.length > 0 ? addMenuLines([], saved.lines.join('\n'), register) : [];
+      return rankMenu(savedItems, profile, history, saved.name, terrainStart ?? undefined).map((r) => r.drink.name);
+    },
+    [venue, barName, ranked, profile, register, history, terrainStart]
+  );
+
+  /** After rating a pour at a bar, return to that bar's re-ranked menu and name which drink rose. */
+  const returnToBar = useCallback(
+    (targetBar: string, before: readonly string[] | undefined, ratedDrink: string): boolean => {
+      const folded = targetBar.trim().toLowerCase();
+      if (!folded) return false;
+      const openMatches = !!venue && barName?.toLowerCase() === folded;
+      const saved = loadOpenBar();
+      const savedMatches = !!saved && isOpenBarFresh(saved.openedAt) && saved.name?.trim().toLowerCase() === folded;
+      if (!openMatches && !savedMatches) return false;
+
+      let nextItems = items;
+      if (!openMatches && saved) {
+        nextItems = saved.lines.length > 0 ? addMenuLines([], saved.lines.join('\n'), register) : [];
+        setVenue({
+          name: saved.name,
+          ...(saved.at ? { at: saved.at } : {}),
+          ...(saved.osmId ? { osmId: saved.osmId } : {}),
+        });
+        setItems(nextItems);
+        setTypedBar('');
+      }
+      setSelected(null);
+      setUp(false);
+
+      const after = profile
+        ? rankMenu(nextItems, profile, history, targetBar, terrainStart ?? undefined).map((r) => r.drink.name)
+        : [];
+      const risen = before && before.length > 0 ? risenDrink(before, after, ratedDrink) : null;
+      setBarFeedback({ risen });
+      return true;
+    },
+    [venue, barName, items, register, profile, history, terrainStart]
+  );
 
   useEffect(() => {
     const onPopState = () => {
@@ -183,7 +262,7 @@ export function useExplore(
     return () => window.removeEventListener('popstate', onPopState);
   }, []);
 
-  // Arrivals: ?drink=<slug> (not on ?draft= or ?rate= links), ?menu=1, ?venue=<handle>.
+  // Arrivals: ?drink=<slug> (not on ?draft= or ?rate= links), ?menu=1, ?venue=<handle>, or a fresh open bar.
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     // The map's address (`map-url.ts`): `drink=` is the view's, except on a rating link, where it is the pour's.
@@ -202,28 +281,44 @@ export function useExplore(
       return;
     }
     const handle = params.get('venue')?.trim();
-    if (!handle) return;
-    let cancelled = false;
-    fetch(`/api/venue?handle=${encodeURIComponent(handle)}`)
-      .then((r) => (r.ok ? r.json() : null))
-      .then(
-        (
-          data: {
-            status?: string;
-            venue?: { name: string; menu?: { sections: { items: { name: string; description: string | null }[] }[] } | null };
-          } | null
-        ) => {
-          if (cancelled || !data || data.status !== 'ok' || !data.venue) return;
-          const initialLines = (data.venue.menu?.sections ?? []).flatMap((s) =>
-            s.items.map((item) => (item.description ? `${item.name} — ${item.description}` : item.name))
-          );
-          openBar({ name: data.venue.name, initialLines });
-        }
-      )
-      .catch(() => {});
-    return () => {
-      cancelled = true;
-    };
+    if (handle) {
+      let cancelled = false;
+      fetch(`/api/venue?handle=${encodeURIComponent(handle)}`)
+        .then((r) => (r.ok ? r.json() : null))
+        .then(
+          (
+            data: {
+              status?: string;
+              venue?: { name: string; menu?: { sections: { items: { name: string; description: string | null }[] }[] } | null };
+            } | null
+          ) => {
+            if (cancelled || !data || data.status !== 'ok' || !data.venue) return;
+            const initialLines = (data.venue.menu?.sections ?? []).flatMap((s) =>
+              s.items.map((item) => (item.description ? `${item.name} — ${item.description}` : item.name))
+            );
+            openBar({ name: data.venue.name, initialLines });
+          }
+        )
+        .catch(() => {});
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    // Restore a recent open bar unless it expired or a waiting pick leads the card.
+    const saved = loadOpenBar();
+    if (saved) {
+      if (!isOpenBarFresh(saved.openedAt)) {
+        clearOpenBar();
+      } else if (!loadPick()) {
+        openBar({
+          name: saved.name,
+          ...(saved.at ? { at: saved.at } : {}),
+          ...(saved.osmId ? { osmId: saved.osmId } : {}),
+          ...(saved.lines.length > 0 ? { initialLines: saved.lines } : {}),
+        });
+      }
+    }
   }, [openBar]);
 
   // A rating request (a tap on Rate this, a pick, ?rate=, a chat's draft) opens the card on it.
@@ -244,6 +339,7 @@ export function useExplore(
     setPickVersion((v) => v + 1);
     setVenue(null);
     setItems([]);
+    setBarFeedback(null);
     setSelected(null);
     setUp(false);
   };
@@ -341,6 +437,9 @@ export function useExplore(
     items,
     setItems,
     ranked,
+    barFeedback,
+    barMenuFor,
+    returnToBar,
     openBar,
     leaveBar,
     pick,
@@ -348,6 +447,9 @@ export function useExplore(
     rate,
 
     // You
+    poursOpen,
+    openPours,
+    closePours,
     track,
     startLabel: fromQuiz ? mapPage.started : mapPage.startedCentre,
     stats,

@@ -67,18 +67,18 @@ test('A menu with a bar: pinned on the map, ranked in the card, picked — then 
   await ranked.getByRole('button', { name: /Negroni/ }).click();
   await page.getByRole('button', { name: chart.pickThis }).click();
 
-  // Back to where to next: the pick waits, and rating it opens the card on a draft with no rating in it.
+  // Back to where to next: the pick waits with inline cells; What was off opens the full draft with no rating.
   await expect(page.getByText(waitingPick.waiting)).toBeVisible();
   await expect(theMap(page).getByRole('button')).not.toHaveCount(2);
-  await page.getByRole('button', { name: new RegExp(waitingPick.rate) }).click();
+  await page.getByTestId('waiting-pick').getByRole('button', { name: waitingPick.whatWasOff }).click();
   await expect(rating(page).getByLabel(pour.drinkLabel)).toHaveValue('Negroni');
   await expect(rating(page).getByLabel(pour.barLabel)).toHaveValue('Attaboy');
   await expect(rating(page).getByText(pour.tapRating, { exact: true })).toBeVisible();
   await rating(page).getByRole('button', { name: ratePage.close }).click();
   await expect(rating(page)).toHaveCount(0);
 
-  await page.getByRole('button', { name: waitingPick.dismiss }).click();
-  await expect(page.getByText(waitingPick.waiting)).toHaveCount(0);
+  await page.getByTestId('waiting-pick').getByRole('button', { name: waitingPick.didntHave }).click();
+  await expect(page.getByTestId('waiting-pick')).toHaveCount(0);
 });
 
 test('A menu with no bar named is a pick at home', async ({ page }) => {
@@ -100,18 +100,18 @@ test('A drink found in the header can be picked, too', async ({ page }) => {
   await expect(page.getByText(waitingPick.waiting)).toBeVisible();
 });
 
-test('A bar typed in the header opens as a filter on the map, its name in the search box', async ({ page }) => {
+test('A bar typed in the header opens as a filter on the map, its name in the overlay chip row', async ({ page }) => {
   await page.addInitScript((p) => localStorage.setItem('user_profile', JSON.stringify(p)), profile);
   await page.goto(appPath);
   await search(page).fill('Attaboy');
   await page.getByRole('button', { name: new RegExp(compass.pickAt('Attaboy')) }).click();
   await expect(page).toHaveURL(/\/(\?q=)?$/);
-  await expect(card(page).getByRole('heading', { name: 'Attaboy' })).toBeVisible();
-  await expect(page.locator('#map-search').getByText('Attaboy')).toBeVisible();
+  await expect(card(page).getByRole('heading', { name: 'Attaboy', exact: true })).toBeVisible();
+  await expect(page.getByTestId('where-chip-active')).toContainText('Attaboy');
   await expect(search(page)).toHaveAttribute('placeholder', explore.searchThisMenu);
-  // Leaving the bar puts the whole map back.
+  // Leaving the bar via the chip puts the whole map back.
   await page.getByRole('button', { name: explore.leave('Attaboy') }).click();
-  await expect(card(page).getByRole('heading', { name: compass.menuTitle })).toBeVisible();
+  await expect(card(page).getByRole('heading', { name: compass.newTitle })).toBeVisible();
 });
 
 test('A bar never seen is offered by the name typed, and what is in a drink is not', async ({ page }) => {
@@ -176,6 +176,7 @@ test('Bars near you: nothing is sent until asked', async ({ page }) => {
   await page.route('https://overpass-api.de/**', (r) => ((asked = true), r.abort()));
   await page.addInitScript((p) => localStorage.setItem('user_profile', JSON.stringify(p)), profile);
   await page.goto(appPath);
+  await page.getByTestId('overlay-where-btn').click();
   await expect(page.getByRole('button', { name: compass.showNear })).toBeVisible();
   await expect(page.getByText(compass.nearNote)).toBeVisible();
   expect(asked).toBe(false);
@@ -189,6 +190,7 @@ test('Bars near you: a device that cannot find itself is not told location is of
       fail?.({ code: 3, PERMISSION_DENIED: 1, POSITION_UNAVAILABLE: 2, TIMEOUT: 3, message: 'Timeout' } as GeolocationPositionError);
   }, profile);
   await page.goto(appPath);
+  await page.getByTestId('overlay-where-btn').click();
   await page.getByRole('button', { name: compass.showNear }).click();
   await expect(page.getByText(compass.unlocated)).toBeVisible();
   await expect(page.getByText(compass.denied)).toHaveCount(0);
@@ -203,6 +205,7 @@ test('Bars near you: Overpass giving up reads as no answer, not as no bars', asy
   );
   await page.addInitScript((p) => localStorage.setItem('user_profile', JSON.stringify(p)), profile);
   await page.goto(appPath);
+  await page.getByTestId('overlay-where-btn').click();
   await expect(page.getByText(compass.failed)).toBeVisible();
   await expect(page.getByText(compass.noneNear)).toHaveCount(0);
   await context.close();
@@ -218,8 +221,9 @@ test('Bars near you, then a pick there, then a pour that says where the bar is',
   });
   await page.addInitScript(seedOnce, profile);
 
-  // Location already allowed: the list fills on its own, and the point went out rounded.
+  // Location already allowed: opening the Where picker lists nearby bars, and the point went out rounded.
   await page.goto(appPath);
+  await page.getByTestId('overlay-where-btn').click();
   const near = card(page).getByRole('region', { name: explore.barsNear });
   await expect(near.getByRole('button', { name: /Attaboy/ })).toBeVisible();
   expect(sent).toContain('40.722,-73.988');
@@ -234,14 +238,10 @@ test('Bars near you, then a pick there, then a pour that says where the bar is',
   await add.press('Enter');
   await page.getByRole('button', { name: chart.pickThis }).click();
 
-  // The pick waits, and rating it opens the draft.
-  await expect(page.getByText(waitingPick.waiting)).toBeVisible();
-  await page.getByRole('button', { name: new RegExp(waitingPick.rate) }).click();
-
-  // Rated at the bar the list named: the pour records where it is.
-  await expect(rating(page).getByRole('heading', { name: ratePage.heading })).toBeVisible();
-  await page.getByRole('radio', { name: /^7:/ }).click();
-  await page.getByRole('button', { name: pour.submit }).click();
+  // The pick waits with inline cells: one tap logs it at the bar with where it is.
+  const strip = page.getByTestId('waiting-pick');
+  await expect(strip).toBeVisible();
+  await strip.getByRole('radio', { name: /^7:/ }).click();
   await expect(page.getByRole('heading', { name: /^Moved \d/ })).toBeVisible();
 
   const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('guest_pours') ?? '[]'));

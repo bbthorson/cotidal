@@ -58,22 +58,6 @@ function Box({ e }: { e: Explore }) {
         }}
         className="flex min-h-11 items-center gap-1 border border-foreground bg-card pl-2 focus-within:ring-2 focus-within:ring-ring"
       >
-        {e.venue && (
-          <span className="flex min-w-0 max-w-48 shrink-0 items-center gap-1 bg-secondary py-1 pl-2 pr-1 text-meta font-bold text-secondary-foreground">
-            <span className="truncate">{e.venue.name ?? compass.atMenu.homeTitle}</span>
-            <button
-              type="button"
-              aria-label={explore.leave(e.venue.name ?? compass.atMenu.homeTitle)}
-              onClick={() => {
-                e.leaveBar();
-                e.setQuery('');
-              }}
-              className="flex h-7 w-7 items-center justify-center font-condensed text-ui"
-            >
-              &times;
-            </button>
-          </span>
-        )}
         <label className="flex min-w-0 flex-1">
           <span className="sr-only">{compass.searchLabel}</span>
           <input
