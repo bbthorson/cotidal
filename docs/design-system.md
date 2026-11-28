@@ -381,21 +381,12 @@ not finding; they move to the head of your link or a place under your handle.
 In the list a pour is the Again lane and a rating on rows you have had
 (`Manhattan · 9`).
 
-### Three states, in order
+### Remaining states, in order
 
-1. **A pick is waiting: the card leads with its rating.** The drink, the bar,
-   how long ago, and the nine cells inline in the strip, not behind **Rate
-   it**: one tap logs it. What was off and More detail come after, optional;
-   only they open the full form and scroll the card up, so on a phone the map
-   stays in view through the common path. **Another** logs it and keeps the
-   pick for the next round (a reorder is strong evidence for one tap). **Didn't
-   have it** clears it with no rating. After about 12 hours it asks in the past
-   tense (last night) and offers **Set it aside**: asked once, never expired
-   silently, since a rating from memory is weaker.
-2. **Just rated at a bar: Done returns to that bar,** re-ranked by the pour,
+1. **Just rated at a bar: Done returns to that bar,** re-ranked by the pour,
    saying which drink rose. The bar stays the where chip until left or a few
    hours pass. This is the loop's payoff: your menu here changed.
-3. **Nothing pending: the chips and one list,** the tie block when there is
+2. **Nothing pending: the chips and one list,** the tie block when there is
    one, then two lanes: **Again** (your highs) and **New** (the edge of what
    you know; a pour there moves the ground most). **Rate a drink** stays the
    screen's one action.
@@ -450,8 +441,8 @@ also **Scan a menu photo** (`/api/menu/capture`, `docs/generation.md`); a
 guest is offered sign-in for it. Each placed drink is a numbered pin (1 in
 terracotta), every other drink fades to a speck, and the card lists them in
 the same order (`rankMenu`). Nothing placed yet: **No known menu**. **Pick
-this** keeps the pick on the device (`pick`, `device-store.ts`); the waiting
-strip offers **Rate it** (a draft, no rating) or **Set it aside**.
+this** keeps the pick on the device (`pick`, `device-store.ts`, with its
+timestamp).
 
 A bar picked from bars near you carries its point through the pick, the draft
 link (`lat`, `lon`) and the form, and the pour records it as `venue.address`
@@ -462,6 +453,17 @@ still at that bar.
 bartender takes the order.
 
 ## Rating a pour (in the card)
+
+**A waiting pick (`WaitingPick.tsx`)** leads the card with its rating: the
+drink, the bar, how long ago (`pick-age.ts`), and the nine hedonic cells
+inline in the strip. One tap logs the pour through `useRatePour` and shows
+`Moved` directly without scrolling the card up, so on a phone the map stays
+in view. **Another** logs a reorder (`wouldOrderAgain: true`) and keeps the
+pick waiting for the next round; **Didn't have it** clears it with no rating.
+**What was off** and **More detail** are optional and open the full
+`RatePanel` (which scrolls the card up). After about 12 hours it asks in the
+past tense (last night) and offers **Set it aside** instead of **Another**
+and **Didn't have it**.
 
 `RatePanel.tsx`, where you found the drink; the whole card on a phone;
 **Close** returns it. A missing answer (drink, bar or "At home", rating) is

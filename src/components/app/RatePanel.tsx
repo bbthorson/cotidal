@@ -1,12 +1,9 @@
-import { useEffect } from 'react';
-import type { PourRecord } from '@/lib/atproto/records';
 import type { UserProfile } from '@/lib/palate/profile';
-import type { TrackStart } from '@/lib/palate/track';
 import { coldState, moved, pour, ratePage } from '@/lib/copy';
 import { titleOf, type Register } from '@/lib/drinks/register';
 import { neutralProfile } from '@/lib/palate/guest-palate';
 import type { RateRequest } from '@/lib/pours/pour-draft';
-import { useRatePour } from '@/hooks/useRatePour';
+import type { RatePourState } from '@/hooks/useRatePour';
 import { useAtprotoContext } from './AtprotoProvider';
 import { ColdState } from './ColdState';
 import { Moved } from './Moved';
@@ -16,12 +13,10 @@ import { ScreenHeader } from './ui';
 /**
  * Rating one pour, in the map's card: the form, then the screen that shows
  * what the pour moved. It opens on a drink when one was handed over ("Rate
- * this" on a drink, a waiting pick, a chat assistant's draft, `?rate=`) and on
- * the drink closest to you when not. Done returns the card to where it was,
- * which already holds the new pour.
- *
- * The card holds it, not a dialog: rating happens where you found the drink.
- * Logging the pour, and what it moved, is `useRatePour`.
+ * this" on a drink, a waiting pick's "What was off" / "More detail", a chat
+ * assistant's draft, `?rate=`) and on the drink closest to you when not.
+ * Inline one-tap rating on `WaitingPick` logs through the same `useRatePour`
+ * state and lands directly on `Moved`.
  */
 /** How a pour just moved you: drawn on the map while the reveal is in the card. */
 export interface PourMove {
@@ -32,45 +27,20 @@ export interface PourMove {
 
 export function RatePanel({
   request,
+  ratePour: r,
   onClose,
   register,
-  member,
-  profile,
+  isMember,
   setProfile,
-  pours,
-  start,
-  reload,
-  onReveal,
 }: {
   request: RateRequest;
+  ratePour: RatePourState;
   onClose: () => void;
   register: Register;
-  member: { handle: string | null } | null;
-  /** The screen's own coordinate and pours: a pour updates them in place. */
-  profile: UserProfile | null;
+  isMember: boolean;
   setProfile: (profile: UserProfile) => void;
-  pours: PourRecord[] | null;
-  start: TrackStart | null;
-  reload: () => Promise<void>;
-  /**
-   * Told when the form gives way to the reveal, and how the pour moved you,
-   * so the card takes the reveal ground and the map draws the move.
-   */
-  onReveal: (move: PourMove | null) => void;
 }) {
   const { openSignIn } = useAtprotoContext();
-  const isMember = !!member;
-  const r = useRatePour({ request, isMember, profile, setProfile, pours, start, reload });
-
-  // The screen scrolls to the map when the reveal takes the card (`Explore`), so the move shows.
-  const move = r.reveal && r.lastPour ? { from: r.lastPour.from, to: r.to, drinkName: r.lastPour.drinkName } : null;
-  const moveKey = move ? `${move.from.x},${move.from.y},${move.to.x},${move.to.y},${move.drinkName}` : '';
-  useEffect(() => {
-    onReveal(move);
-    // `move` is derived from the key.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [moveKey, onReveal]);
-  useEffect(() => () => onReveal(null), [onReveal]);
 
   if (r.cold) {
     return (
@@ -114,6 +84,7 @@ export function RatePanel({
         onVenueChange={r.setVenue}
         recentVenues={r.recentVenues}
         isMember={isMember}
+        openDetail={request.openDetail}
         submitting={r.submitting}
         error={r.error}
         onSubmit={r.submit}

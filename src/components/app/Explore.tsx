@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useMemo, useRef, type ReactNode } from 'react';
 import { chart, compare as compareCopy, explore, taste } from '@/lib/copy';
 import { quadrantFor, type QuadrantId } from '@/lib/map/coordinates';
 import { matchDrink } from '@/lib/drinks/search';
@@ -12,6 +12,7 @@ import { useExplore, type Venue } from '@/hooks/useExplore';
 import { useHomeLists } from '@/hooks/useHomeLists';
 import { useOverlays } from '@/hooks/useOverlays';
 import { useQuizOverlay } from '@/hooks/useQuizOverlay';
+import { useRatePour } from '@/hooks/useRatePour';
 import { useCardScroll } from '@/hooks/useCardScroll';
 import { AtprotoProvider, useAtprotoContext } from './AtprotoProvider';
 import { ColdState } from './ColdState';
@@ -63,10 +64,22 @@ function ExploreContent({
   const body = useRef<HTMLDivElement>(null);
   const card = useRef<HTMLElement>(null);
 
-  // How a pour just moved you, while the reveal has the card: the map draws it (`RatePanel`).
-  const [moved, setMoved] = useState<PourMove | null>(null);
+  const ratePour = useRatePour({
+    request: e.rate.request,
+    isMember: e.isMember,
+    profile: e.profile,
+    setProfile: e.setProfile,
+    pours: e.pours,
+    start: e.start,
+    reload: e.reload,
+  });
+
+  // How a pour just moved you, while the reveal has the card: the map draws it.
+  const moved: PourMove | null =
+    ratePour.reveal && ratePour.lastPour
+      ? { from: ratePour.lastPour.from, to: ratePour.to, drinkName: ratePour.lastPour.drinkName }
+      : null;
   const reveal = !!moved;
-  const onReveal = useCallback((m: PourMove | null) => setMoved(m), []);
 
   const quiz = useQuizOverlay(e.profile, e.forgetProfile);
   const ratings = useMemo(() => new Map([...e.lastPour].map(([n, p]) => [n, p.rating.hedonic])), [e.lastPour]);
@@ -82,8 +95,8 @@ function ExploreContent({
 
   const mode: CardMode = quiz.open
     ? { kind: 'quiz', key: 'quiz' }
-    : e.rate.request
-      ? { kind: 'rate', key: moved ? 'moved' : 'rate', request: e.rate.request }
+    : ratePour.lastPour || e.rate.request
+      ? { kind: 'rate', key: moved ? 'moved' : 'rate', request: e.rate.request ?? {} }
       : e.selectedDrink
         ? { kind: 'drink', key: `drink:${e.selected}`, drink: e.selectedDrink }
         : e.venue
@@ -98,6 +111,7 @@ function ExploreContent({
   useCardScroll(mode.key, cardUp, card, body);
 
   const closeRate = () => {
+    ratePour.reset();
     e.rate.close();
     e.setUp(false);
   };
@@ -124,15 +138,11 @@ function ExploreContent({
       content = (
         <RatePanel
           request={mode.request}
+          ratePour={ratePour}
           onClose={closeRate}
           register={register}
-          member={member}
-          profile={e.profile}
+          isMember={e.isMember}
           setProfile={e.setProfile}
-          pours={e.pours}
-          start={e.start}
-          reload={e.reload}
-          onReveal={onReveal}
         />
       );
       break;
@@ -211,7 +221,15 @@ function ExploreContent({
       break;
     case 'home':
       content = (
-        <HomePanel e={e} overlays={overlays} home={home} member={member} signInEnabled={isEnabled} onSignIn={openSignIn} />
+        <HomePanel
+          e={e}
+          overlays={overlays}
+          home={home}
+          ratePour={ratePour}
+          member={member}
+          signInEnabled={isEnabled}
+          onSignIn={openSignIn}
+        />
       );
       break;
   }

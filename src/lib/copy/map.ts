@@ -163,13 +163,21 @@ export const coldState = {
 } as const;
 
 /**
- * A drink picked on Compass, kept on the device until it is rated: the strip
- * on Compass and Your map that says so.
+ * A drink picked on the map, kept on the device until it is rated: the strip
+ * at the head of the card with inline rating cells.
  */
 export const waitingPick = {
   atHome: 'At home',
-  waiting: 'Waiting to be rated',
-  rate: 'Rate it',
+  waiting: 'How is it?',
+  pastWaiting: 'How was it?',
+  justPicked: 'just picked',
+  pickedMinutes: (mins: number) => `picked ${mins} min ago`,
+  pickedHours: (hours: number) => (hours === 1 ? 'picked 1 hr ago' : `picked ${hours} hr ago`),
+  lastNight: 'last night',
+  pickedDays: (days: number) => `${days} days ago`,
+  another: 'Another',
+  didntHave: 'Didn’t have it',
+  whatWasOff: 'What was off',
   dismiss: 'Set it aside',
 } as const;
 

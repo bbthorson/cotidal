@@ -4,6 +4,7 @@ import { TOP } from '@/lib/palate/overlap';
 import type { Explore } from '@/hooks/useExplore';
 import type { HomeList, HomeLists } from '@/hooks/useHomeLists';
 import type { OverlaysState } from '@/hooks/useOverlays';
+import type { RatePourState } from '@/hooks/useRatePour';
 import { Comparison } from './Comparison';
 import { DrinkRow } from './DrinkRow';
 import { NearList } from './Near';
@@ -21,6 +22,7 @@ export function HomePanel({
   e,
   overlays,
   home,
+  ratePour,
   member,
   signInEnabled,
   onSignIn,
@@ -28,6 +30,7 @@ export function HomePanel({
   e: Explore;
   overlays: OverlaysState;
   home: HomeLists;
+  ratePour: RatePourState;
   member: { did: string; handle: string | null } | null;
   signInEnabled: boolean;
   onSignIn: () => void;
@@ -62,7 +65,14 @@ export function HomePanel({
         {mapPage.rateDrink}
       </button>
       <div>
-        <WaitingPick displayName={e.name} version={e.pickVersion} onRate={(draft) => e.rate.open({ drink: draft.drink, draft })} />
+        <WaitingPick
+          displayName={e.name}
+          version={e.pickVersion}
+          submitting={ratePour.submitting}
+          error={ratePour.error}
+          onQuickRate={(entry, opts) => void ratePour.submit(entry, opts)}
+          onOpenDetail={(draft, openDetail) => e.rate.open({ drink: draft.drink, draft, openDetail })}
+        />
       </div>
       <OverlayBar overlays={overlays} />
 

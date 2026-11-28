@@ -117,6 +117,8 @@ export function draftPath(draft: PourDraft): string {
 export interface RateRequest {
   drink?: string;
   draft?: PourDraft;
+  /** Open the member's More detail disclosure immediately (in-memory only, never in URL). */
+  openDetail?: boolean;
 }
 
 /** The rating the URL asks for, or `null` when it asks for none. */
