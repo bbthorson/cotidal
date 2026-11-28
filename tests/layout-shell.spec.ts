@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { appPath } from './app-path';
 
 /**
  * One kind of page (docs/design-system.md): every page a person visits is the
@@ -7,7 +8,7 @@ import { test, expect } from '@playwright/test';
  * every route, and footers were pasted per page and missing from three; then
  * there were two templates with the bar in two places. These hold it to one.
  */
-const routes = ['/', '/drinks/20th-century', '/map?region=deep', '/bars', '/mcp', '/sign-in', '/map'];
+const routes = ['/', '/drinks/20th-century', '/?region=deep', '/bars', '/mcp', '/sign-in', appPath];
 
 test('Layout: every page is the map and its card, with the app bar in the same place', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
@@ -28,7 +29,7 @@ test('Layout: every page is the map and its card, with the app bar in the same p
 
 test('Layout: one main landmark on every route, and one site footer on every route but the app screens', async ({ page }) => {
   // The map is the app and has no footer: the app bar carries the reading pages.
-  const appScreens = ['/map', '/map?region=deep'];
+  const appScreens = [appPath, '/?region=deep'];
   for (const route of routes) {
     await page.goto(route);
     await expect(page.locator('main'), route).toHaveCount(1);

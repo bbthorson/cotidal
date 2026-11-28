@@ -20,10 +20,19 @@ import { viewHref } from './map/map-url';
  *
  * There is no Drinks or Regions item: every drink is on the map, and opens
  * in its card with its whole entry; a region is a filter on the map
- * (`/map?region=<id>`). A drink's own page (`drinkPagePath`) is for search
+ * (`/?region=<id>`). A drink's own page (`drinkPagePath`) is for search
  * and for a link sent to someone, not for browsing.
  */
-export const mapHref = '/map';
+/** The app: the map and its card, at the one address (`src/pages/index.astro`). */
+export const mapHref = '/';
+/**
+ * `/` is the front door for someone with nothing on the map, and the app for
+ * everyone else; `?about=1` asks for the front door outright, so How it works
+ * reaches it from inside the app too.
+ */
+export const FRONT_DOOR_PARAM = 'about';
+export const frontDoorHref = `/?${FRONT_DOOR_PARAM}=1`;
+export const howItWorksHref = `${frontDoorHref}#how-it-works`;
 export const barsHref = '/bars';
 /** A drink on your map: the map's address (`map-url.ts`). */
 export const drinkMapHref = (slug: string) => viewHref(mapHref, { drink: slug });
@@ -33,7 +42,7 @@ export const drinkPagePath = (slug: string) => `/drinks/${slug}`;
 export const destinations = [
   { href: mapHref, label: nav.map, match: mapHref, app: true, header: true, menu: false, footer: false, memberOnly: false },
   // How it works is the front door's card, pulled up: an anchor there, never a page of its own, and never "current".
-  { href: '/#how-it-works', label: nav.howItWorks, match: '#how-it-works', app: false, header: false, menu: true, footer: true, memberOnly: false },
+  { href: howItWorksHref, label: nav.howItWorks, match: '#how-it-works', app: false, header: false, menu: true, footer: true, memberOnly: false },
   { href: barsHref, label: nav.bars, match: barsHref, app: false, header: false, menu: false, footer: true, memberOnly: false },
 ] as const;
 
@@ -50,20 +59,25 @@ export const signIn = { href: '/sign-in', label: nav.signIn } as const;
  * back to the landing page's form; the island reads `?signin=1`. Everywhere
  * else the static form is the target, so it keeps working without JavaScript.
  */
-const sheetPaths = [mapHref];
+const sheetPaths: string[] = [mapHref];
 
 export const signInHref = (currentPath: string) =>
-  sheetPaths.some((p) => currentPath.startsWith(p)) ? `${currentPath}?signin=1` : signIn.href;
+  sheetPaths.includes(currentPath) ? `${currentPath}?signin=1` : signIn.href;
 
 /** The questions that place a coordinate: a state of the map's card (`startOverPath` clears the old one first). */
 export const questionsHref = `${mapHref}?${QUIZ_PARAM}=1`;
 /** The questions, from a drink: they finish (or, with a coordinate already, go straight) on that drink on the map. */
 export const questionsForDrink = (slug: string) => `${viewHref(mapHref, { drink: slug })}&${QUIZ_PARAM}=1`;
 
+/** The questions, from a bar's page: they finish on its published menu in the card (`?venue=`). */
+export const questionsForVenue = (handle: string) => `${mapHref}?venue=${encodeURIComponent(handle)}&${QUIZ_PARAM}=1`;
+
 /** Where a member manages their account, and where a page that cannot know sends everyone. */
 export const accountHref = '/settings';
 
-export const isCurrent = (currentPath: string, match: string) => currentPath.startsWith(match);
+/** `/` is current only on itself: every path starts with it. */
+export const isCurrent = (currentPath: string, match: string) =>
+  match === mapHref ? currentPath === mapHref : currentPath.startsWith(match);
 
 /**
  * The account control says what the server knows (`accountFor`). A member

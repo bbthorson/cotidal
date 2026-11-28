@@ -10,10 +10,10 @@ import { ELICITATION_COLLECTION, PALATE_COLLECTION, POUR_COLLECTION } from './vo
  * stand in for anyone. Their pages say they are made up and are kept out of
  * search.
  *
- *   /map?palate=deep.test                    one hill, in the Deep
- *   /map?palate=both.test                    two liked parts of the map
- *   /map?palate=deep.test&with=surf.test     two who part ways
- *   /map?palate=surf.test&drink=negroni      a drink they avoid
+ *   /?palate=deep.test                    one hill, in the Deep
+ *   /?palate=both.test                    two liked parts of the map
+ *   /?palate=deep.test&with=surf.test     two who part ways
+ *   /?palate=surf.test&drink=negroni      a drink they avoid
  *   /p/quiet.test                            someone with no palate
  */
 

@@ -22,7 +22,7 @@ instructions instead (`AssistantSteps`); Settings links to it.
 | `get_drink` | One drink's place, flags and build; with a handle, what put it there for them and what in it they avoid |
 | `search_drinks` | A named drink → the name the map knows |
 | `get_bar_menu` | A claimed bar's venue and menu by handle or DID; with a drinker's handle (or at `/mcp/me`), ranked for them |
-| `draft_pour` | A `/map` link with a pour filled in, for the person to confirm |
+| `draft_pour` | A `/` link with a pour filled in, for the person to confirm |
 
 Every tool but `draft_pour` reads public records as `/p/<handle>` does and
 answers with the same functions (`src/lib/mcp/tools.ts` over
@@ -45,13 +45,13 @@ from what the menu lists (`placeDirectional`, with `confidence` and
 for it, as "Adventure Negroni", or built on its defining ingredients). Inside
 a band of `HEIGHT_BAND` a drink on the map goes before an estimate. Only an
 item with nothing to place it by is `unplaced`. A `mapUrl`
-(`/map?menu=1&bar=…&item=…`) opens the menu as pins. The description asks
+(`/?menu=1&bar=…&item=…`) opens the menu as pins. The description asks
 for one item per spirit choice ("tequila or mezcal"), so the tool ranks the
 variants instead of the assistant guessing.
 
 ## Drafting a pour
 
-`draft_pour` writes nothing. It returns `/map?draft=1&…`
+`draft_pour` writes nothing. It returns `/?draft=1&…`
 (`src/lib/pours/pour-draft.ts`), which opens rating in the map's card filled
 in; the person taps a rating and logs it through `logPour`.
 

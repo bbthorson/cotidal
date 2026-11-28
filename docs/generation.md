@@ -90,7 +90,7 @@ return before the limiter, so a wrong read there is never caught by tests.
 
 ## Rules
 
-1. **No generated text on `/` or a drink's page**; generation lives on `/map`.
+1. **No generated text on the front door or a drink's page**; generation lives in the app.
 2. **Every model call has a deterministic fallback**, written to be read.
 3. **Model ids live in one constant.**
 4. **Meter before you call**, with a limiter that can say no.

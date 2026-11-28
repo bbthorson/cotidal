@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 import { Notice } from './ui';
 
 /**
- * Quiet, composable overlay strip (`Lens × Scope`) under `SearchBox` on `/map`.
+ * Quiet, composable overlay strip (`Lens × Scope`) under `SearchBox` on `/`.
  * At rest: compact chips for `With someone`, `Uncharted`, and drink types.
  * Active overlays appear as dismissible chips; tapping `With someone` expands
  * a single inline handle input (supporting 1-on-1 `with` or 2–5 person `table`).

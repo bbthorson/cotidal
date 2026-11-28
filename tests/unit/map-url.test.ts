@@ -35,17 +35,17 @@ describe('reading an address', () => {
 
 describe('writing an address', () => {
   test('the same view is always the same link: drink first, by slug', () => {
-    expect(viewHref('/map', { palate: 'Alice.bsky.social', drink: negroni })).toBe('/map?drink=negroni&palate=alice.bsky.social');
-    expect(viewHref('/map', { drink: 'negroni' })).toBe('/map?drink=negroni');
-    expect(viewHref('/map', { with: '@Bob.bsky.social', palate: 'alice.bsky.social' })).toBe('/map?palate=alice.bsky.social&with=bob.bsky.social');
+    expect(viewHref('/', { palate: 'Alice.bsky.social', drink: negroni })).toBe('/?drink=negroni&palate=alice.bsky.social');
+    expect(viewHref('/', { drink: 'negroni' })).toBe('/?drink=negroni');
+    expect(viewHref('/', { with: '@Bob.bsky.social', palate: 'alice.bsky.social' })).toBe('/?palate=alice.bsky.social&with=bob.bsky.social');
     expect(read('palate=alice.bsky.social&with=@Bob.bsky.social').with).toBe('bob.bsky.social');
     expect(read('with=not a handle').with).toBeNull();
-    expect(viewHref('/map', {})).toBe('/map');
+    expect(viewHref('/', {})).toBe('/');
   });
 
   test('what is written reads back as the same view', () => {
     for (const d of drinkDatabase) {
-      const href = viewHref('/map', { drink: d, palate: 'bbthorson.bsky.social' });
+      const href = viewHref('/', { drink: d, palate: 'bbthorson.bsky.social' });
       const view = read(new URL(href, 'https://x.example').search.slice(1));
       expect(view.drink?.name, d.name).toBe(d.name);
       expect(view.palate).toBe('bbthorson.bsky.social');
@@ -53,6 +53,6 @@ describe('writing an address', () => {
   });
 
   test('a palate that does not check is left out rather than written', () => {
-    expect(viewHref('/map', { palate: 'not a handle' })).toBe('/map');
+    expect(viewHref('/', { palate: 'not a handle' })).toBe('/');
   });
 });

@@ -166,9 +166,9 @@ phone Menu is a `<details>` opening the same `<nav>` via `peer-open`).
    the map has the top of the screen: mark · the page's name · Menu on a
    phone; from `lg`, the account control and a row of tabs. Islands receive
    it as a slot rendered on the server.
-2. **Destinations:** the map (`/map`) in the bar; How it works
-   (`/#how-it-works`) and For Bars (`/bars`) in the footer (`footer: true`).
-   No Drinks or Regions items. `/map` has no footer.
+2. **Destinations:** the map (`/`) in the bar; How it works
+   (`/?about=1#how-it-works`) and For Bars (`/bars`) in the footer (`footer: true`).
+   No Drinks or Regions items. `/` has no footer.
 3. **The account control** says what the server knows (`accountFor`, read
    once in `AppShell`): `@handle` → `/settings` for a member (on a phone,
    Menu's last row, **Settings →**); **Sign in** for a guest; **Account** on
@@ -181,7 +181,7 @@ phone Menu is a `<details>` opening the same `<nav>` via `peer-open`).
 6. **Focus mode:** `data-focus-mode` (the questions, the reveal) hides the
    bar and footer below `lg`, in CSS.
 7. **The search is the first thing in the map's card**, not the bar: it is
-   content. `SearchBox.tsx` is a plain GET form to `/map?q=` until the island
+   content. `SearchBox.tsx` is a plain GET form to `/?q=` until the island
    is up. It steps aside while rating and on the reveal.
 8. **One action per app screen.** The map's is **Rate a drink**: floating at
    the foot on a phone (hidden while the keyboard is up), in the card's head
@@ -205,7 +205,7 @@ phone Menu is a `<details>` opening the same `<nav>` via `peer-open`).
 ## One kind of page
 
 Every page is the map and its card (`MapScreen.tsx`): `MapPage.astro` with no
-script, or `/map`'s island. A new page says what the map draws and what the
+script, or `/`'s island. A new page says what the map draws and what the
 card holds; it does not lay itself out.
 
 - **The map** is a `PalateMap`: a drink marked, a region washed, someone's
@@ -221,12 +221,20 @@ card holds; it does not lay itself out.
   and the two reveals.
 - **Every page scrolls the same:** on a phone the map stays at the top and
   the card scrolls up over it, its app bar sticking; from `lg` the card is a
-  panel that scrolls on its own. On `/map`, a tap on a place on the map
+  panel that scrolls on its own. On `/`, a tap on a place on the map
   scrolls back to the top; rating scrolls the card up.
 - Forms and records (Settings, For bars, a claim form, Chat assistants, an
   assistant asking for access, not found) are cards like any other. Settings
   draws your point and your code over your map (`MapCode`), which prints as a
   coaster.
+- **Asking for a coordinate.** A reader with no taste (`readerHasTaste`:
+  no session, no presence cookie) is asked to find theirs at the foot of the
+  card, a quiet line above the footer's links, never a second button. Not on
+  a page whose own action is the questions (the front door, someone's map),
+  on `/sign-in`, or on a prerendered page, which cannot know (`MapPage`'s
+  `asksForCoordinate`). A bar's page asks under its menu instead, and the
+  questions finish on that menu, ranked (`questionsForVenue`). A page that
+  answers per reader and is cached publicly sends `Vary: Cookie`.
 - Between pages the map holds still (`view-transition-name: map`). The card
   comes first in reading order; CSS draws the map above it.
 
@@ -244,7 +252,7 @@ standard deviation each way).
   prediction sits near 9 for anything close, so it is never a forecast.
   Direction words are the axes': richer or crisper, sweeter or more savory.
 
-## The first-visit flow (`/map?quiz=1`)
+## The first-visit flow (`/?quiz=1`)
 
 Questions → reveal → the map, all in the card. The map draws the ground the
 answers so far make (`buildTerrain` with no pours), faint while unsure, with
@@ -252,7 +260,7 @@ the dashed shoal over it; at the reveal the point settles on that hill, on
 the reveal ground. On a phone the app bar steps aside (`data-focus-mode`) and
 the card gets room (`rest="quiz"`) so a question and every plate fit one
 screen, an iPhone SE's included (`tests/quiz-flow.spec.ts`). From a drink's
-page (`/map?drink=<slug>&quiz=1`) they finish on that drink. Anyone with a
+page (`/?drink=<slug>&quiz=1`) they finish on that drink. Anyone with a
 coordinate goes straight on unless starting over (`&startover=1`, which
 clears the device first). Skipping lands on the map's cold state.
 
@@ -280,7 +288,7 @@ unless it already has a coordinate; a guest's pours stay on the device.
 Signing out forgets the device's copy (`forgetDevice`) but keeps remembered
 accounts (`atproto-cf-auth:recent-accounts`).
 
-## The map (`/map`, `Explore.tsx`)
+## The map (`/`, `Explore.tsx`)
 
 **The map** (`PalateMap.tsx`, `map-draw.ts`): the plane framed on a ruled
 ground running to the window's edges; the four regions in italic, as names
@@ -299,9 +307,9 @@ drawn. On a phone the map is full width and the card rests below it; from
 terrain's shading is three alpha masks (`groundMasks` in `map-draw.ts`, PNGs
 from `png.ts`) filled with token colours. Marks and labels are HTML over the
 plane in percentages (`planePercent`) on a paper halo (`.halo-card`); the
-server places labels for `NOMINAL_SIDE` and `/map` re-places them once
+server places labels for `NOMINAL_SIDE` and `/` re-places them once
 measured. Screen geometry is CSS (`.map-screen-*`), so nothing moves when the
-script arrives. `MapScreen` is `live` on `/map`, `static` elsewhere.
+script arrives. `MapScreen` is `live` on `/`, `static` elsewhere.
 
 **The card** opens with the search. It holds one of:
 
@@ -344,7 +352,7 @@ posts, no script.
 ## A bar's menu (`MenuView.tsx`, `menu-rank.ts`)
 
 A bar opened from search, your bars, bars near you, or **Have a menu?**
-(`/map?menu=1`) fills the card: a back link, the bar's name (or an optional
+(`/?menu=1`) fills the card: a back link, the bar's name (or an optional
 bar-name field), and the menu input. Typed lines that name a drink
 (`matchDrink`) are placed; others are kept and marked unplaced. A member can
 also **Scan a menu photo** (`/api/menu/capture`, `docs/generation.md`); a

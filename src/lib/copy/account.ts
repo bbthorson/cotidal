@@ -210,6 +210,9 @@ export const venuePage = {
   reservationsLabel: 'Reservations',
   domainVerified: 'Domain matched',
   rankForMe: 'Rank this menu for you',
+  /** Under a bar's menu, for a reader with no coordinate yet: the questions, finishing on this menu. */
+  findYoursLead: 'A few questions, and this menu is ranked for your taste.',
+  findYoursCta: 'Find your coordinate',
   captureOnMap: 'Open on the map & paste menu',
   claimBar: 'Claim this bar',
   claimBody:

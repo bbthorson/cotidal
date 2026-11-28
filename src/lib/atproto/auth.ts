@@ -28,7 +28,7 @@ export const SESSION_KV_BINDING = 'ATPROTO_SESSIONS';
 /**
  * The Durable Object that serialises each member's session restores across
  * isolates, declared in `wrangler.toml` and exported by `src/worker.ts`.
- * `/map` restores twice at once (palate and pours); without this, two isolates
+ * `/` restores twice at once (palate and pours); without this, two isolates
  * can both refresh the same one-use token and the loser signs the member out.
  * Off Workers it is absent, and the package locks within the process instead.
  */
@@ -108,7 +108,7 @@ export async function getAuth(): Promise<AtprotoAuth | null> {
   return (auth = createAtprotoAuth({
     appName: 'Cotidal',
     basePath: AUTH_BASE_PATH,
-    redirectTo: '/map',
+    redirectTo: '/',
     scope: 'atproto transition:generic',
     metadata: {
       logo_uri: 'https://cotidal.app/apple-touch-icon.png',

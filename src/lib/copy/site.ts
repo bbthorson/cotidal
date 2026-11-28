@@ -71,7 +71,7 @@ export const principles = [
 ] as const;
 
 /**
- * How it works, the front door's card pulled up (`/#how-it-works`): how answers and ratings place and move a coordinate, said
+ * How it works, the front door's card pulled up (`/?about=1#how-it-works`): how answers and ratings place and move a coordinate, said
  * as the code does it today (docs/brand.md, Claims). Every number here is a
  * constant in belief-state.ts or palate-state.ts, and
  * tests/unit/how-it-works.test.ts holds the two equal. Never the code's words:
@@ -220,4 +220,7 @@ export const apiErrors = {
 export const footer = {
   note: 'Built on the AT Protocol.',
   drinkResponsibly: 'Please drink responsibly.',
+  /** At the foot of a page, for a reader with no coordinate yet (`MapPage`), on pages whose own action is something else. */
+  findYoursLead: 'Your taste isn’t on the map yet.',
+  findYoursCta: 'Find your coordinate',
 } as const;

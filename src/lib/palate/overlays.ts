@@ -5,7 +5,7 @@ import { avoids, nearestHilltop } from './taste-reading';
 import { drinkHeight, type Height, type Terrain } from './terrain';
 
 /**
- * Pure domain math for `/map`'s unified overlays (`Lens × Scope`):
+ * Pure domain math for `/`'s unified overlays (`Lens × Scope`):
  * - `intersectGrounds` / `rankForTable` / `widestContrastPair` (Table lens, shared with `/mcp`)
  * - `exploreFrontier` (Uncharted lens, using GP uncertainty `sd`)
  * - `filterDrinksByType` (Drink-type scope filter)
@@ -57,7 +57,7 @@ export function intersectGrounds(grounds: readonly SampledGround[]): SampledGrou
  * Minimax group ranking: respects every person's aversions, leaves out
  * anything someone at the table rated low (`<= DISLIKED_AT`), and orders by
  * highest worst-case rating across the group (tie-broken by group mean).
- * Shared by `/map`'s Table overlay and `/mcp`'s `recommend_for_group`.
+ * Shared by `/`'s Table overlay and `/mcp`'s `recommend_for_group`.
  */
 export function rankForTable(
   people: readonly TableMember[],

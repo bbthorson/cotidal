@@ -45,6 +45,8 @@ Astro.response.headers.set(
   'Cache-Control',
   account.kind === 'member' ? 'no-store' : 'public, max-age=300, s-maxage=900'
 );
+// Who is reading (the session) and whether they have a taste (the presence cookie) change the page.
+Astro.response.headers.set('Vary', 'Cookie');
 ---
 
 <MapPage

@@ -7,7 +7,7 @@ import { DISLIKED_AT } from '../../src/lib/palate/scoring';
 import { buildTerrain, drinkHeight, KIN_ACROSS } from '../../src/lib/palate/terrain';
 
 /**
- * How it works (the front door's card, `/#how-it-works`) explains, in public, how answers and ratings move a
+ * How it works (the front door's card, `/?about=1#how-it-works`) explains, in public, how answers and ratings move a
  * coordinate. A page like that is only worth having if it is true, so its
  * numbers are held to the code's here: change a constant and this fails
  * until the copy says the new thing.

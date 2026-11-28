@@ -6,6 +6,7 @@ import { MapScreen } from '../components/app/MapScreen';
 import { PalateMap } from '../components/app/PalateMap';
 import { accountFor, type Account } from '../lib/atproto/session';
 import { explore } from '../lib/copy';
+import { readerHasTaste } from '../lib/device-presence';
 
 interface Props {
   title?: string;
@@ -31,20 +32,29 @@ interface Props {
   rest?: 'standard' | 'tall';
   /** Pass when the caller already resolved `accountFor`, so SSR pages read the session once. */
   account?: Account;
+  /**
+   * The page already asks a reader with no coordinate to find theirs (the
+   * front door, someone's map, a bar's menu) or is no place to (sign-in), so
+   * the footer does not ask again.
+   */
+  asksForCoordinate?: boolean;
 }
 
 /**
  * Every page that is not an app screen: the map and a card, with no script
- * (docs/design-system.md, One kind of page). The same `MapScreen` that `/map`
+ * (docs/design-system.md, One kind of page). The same `MapScreen` that `/`
  * draws, rendered on the server with no directive.
  *
  * Slots: `map` (a `PalateMap`; without one, the map with the tide turning
  * on it, which may carry a `caption` about what it shows), and the card's body. The
  * app bar (`AppBar`) is the card's top, carrying the page's name, and the
- * site footer its foot: the map has the top of the screen to itself.
+ * site footer its foot: the map has the top of the screen to itself. A
+ * reader with no coordinate is asked to find theirs at the foot, decided on
+ * the server (`readerHasTaste`), so a prerendered page never asks.
  */
-const { title, description, image, canonical, noindex, currentPath, label, eyebrow, back, heading, rest } = Astro.props;
+const { title, description, image, canonical, noindex, currentPath, label, eyebrow, back, heading, rest, asksForCoordinate = false } = Astro.props;
 const account = Astro.props.account ?? (await accountFor(Astro.request, Astro.isPrerendered));
+const findYours = !asksForCoordinate && readerHasTaste(account, Astro.isPrerendered ? null : Astro.request.headers.get('cookie')) === false;
 const hasMap = Astro.slots.has('map');
 ---
 
@@ -54,7 +64,7 @@ const hasMap = Astro.slots.has('map');
     {hasMap ? <Fragment slot="map"><slot name="map" /></Fragment> : <PalateMap slot="map" label={explore.chartLabel} tide />}
     <div class="pt-4"><slot /></div>
     <div class="pt-12">
-      <SiteFooter currentPath={currentPath} compact account={account} />
+      <SiteFooter currentPath={currentPath} compact account={account} findYours={findYours} />
     </div>
   </MapScreen>
 </AppShell>

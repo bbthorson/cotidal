@@ -105,13 +105,13 @@ describe('filterDrinksByType & summarizeCoverage', () => {
 
 describe('map-url overlay params', () => {
   test('round-trips table, lens, and type params cleanly', () => {
-    const href = viewHref('/map', {
+    const href = viewHref('/', {
       with: 'surf.test',
       table: ['deep.test', 'both.test', 'not a handle'],
       lens: 'explore',
       type: 'Wine',
     });
-    expect(href).toBe('/map?with=surf.test&table=deep.test%2Cboth.test&lens=explore&type=wine');
+    expect(href).toBe('/?with=surf.test&table=deep.test%2Cboth.test&lens=explore&type=wine');
     const parsed = readMapView(new URL(href, 'https://cotidal.app').searchParams);
     expect(parsed.with).toBe('surf.test');
     expect(parsed.table).toEqual(['deep.test', 'both.test']);

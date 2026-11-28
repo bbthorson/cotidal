@@ -1,19 +1,18 @@
 ---
-import AppShell from '../layouts/AppShell.astro';
-import AppBar from '../components/site/AppBar.astro';
-import Explore from '../components/app/Explore';
-import { site, explore, nav } from '../lib/copy';
-import { loadRegister } from '../lib/drinks/register.server';
-import { signInEnabled } from '../lib/atproto/auth';
-import { accountFor } from '../lib/atproto/session';
-import { mapHref } from '../lib/site-nav';
-import { readMapView, viewHref } from '../lib/map/map-url';
-import { publicMapPath } from '../lib/atproto/paths';
-import { loadDrinkEntry } from '../lib/drinks/drink-entry.server';
-import { loadRegionEntry } from '../lib/map/region-entry.server';
-import { quadrants, share } from '../lib/copy';
-import { shareImagePath } from '../lib/share';
-import { regionPath } from '../lib/map/coordinates';
+import AppShell from '../../layouts/AppShell.astro';
+import AppBar from './AppBar.astro';
+import Explore from '../app/Explore';
+import { site, explore, nav } from '../../lib/copy';
+import { loadRegister } from '../../lib/drinks/register.server';
+import { signInEnabled } from '../../lib/atproto/auth';
+import type { Account } from '../../lib/atproto/session';
+import { mapHref } from '../../lib/site-nav';
+import { readMapView } from '../../lib/map/map-url';
+import { loadDrinkEntry } from '../../lib/drinks/drink-entry.server';
+import { loadRegionEntry } from '../../lib/map/region-entry.server';
+import { quadrants, share } from '../../lib/copy';
+import { shareImagePath } from '../../lib/share';
+import { regionPath } from '../../lib/map/coordinates';
 
 /**
  * The app, on one screen: your map fixed in place, the search in the header,
@@ -25,16 +24,15 @@ import { regionPath } from '../lib/map/coordinates';
  * `client:load` (not `client:only`) so the shell server-renders and the page
  * has painted content before hydration finishes.
  */
-export const prerender = false;
+interface Props {
+  account: Account;
+}
 
-// Someone else's palate (`?palate=`, map-url.ts) is their public map, read-only and drawn on the
-// server: the same page `/p/<handle>` is, at this address, with the drink it is about.
+const { account } = Astro.props;
 const view = readMapView(Astro.url.searchParams);
-if (view.palate) return Astro.rewrite(viewHref(publicMapPath(view.palate), { drink: view.drink, with: view.with }));
 
 const register = await loadRegister();
 const authEnabled = await signInEnabled();
-const account = await accountFor(Astro.request, false);
 const member = account.kind === 'member' ? { did: account.did, handle: account.handle } : null;
 const initialQuery = Astro.url.searchParams.get('q') ?? '';
 // The drink the address opens, written up: drawn with the page, so its card is whole before the script arrives.

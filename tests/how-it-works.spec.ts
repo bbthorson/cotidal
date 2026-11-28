@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import { hero, howItWorks, nav } from '../src/lib/copy';
 
 /**
- * How it works is the front door's card, pulled up (`/#how-it-works`): the
+ * How it works is the front door's card, pulled up (`/?about=1#how-it-works`): the
  * public account of how answers and ratings move a coordinate, never a page
  * of its own. A page like that is only worth having if it is true, so its
  * numbers are held to the code's in tests/unit/how-it-works.test.ts.
@@ -13,7 +13,7 @@ test('How it works: in full on the front door, with no script and none of the co
   page.on('response', (res) => {
     if (res.request().resourceType() === 'script' && res.url().includes('/_astro/')) scripts.push(res.url());
   });
-  await page.goto('/#how-it-works', { waitUntil: 'networkidle' });
+  await page.goto('/?about=1#how-it-works', { waitUntil: 'networkidle' });
 
   const account = page.getByTestId('how-it-works');
   await expect(account.getByRole('heading', { level: 2, name: hero.howTitle })).toBeVisible();
@@ -33,7 +33,7 @@ test('How it works: in full on the front door, with no script and none of the co
 test('How it works: reached from the footer and the menu, by its anchor; there is no page of its own', async ({ request }) => {
   const html = await (await request.get('/')).text();
   const footer = html.slice(html.lastIndexOf('<footer'), html.lastIndexOf('</footer>'));
-  expect(footer).toContain('href="/#how-it-works"');
+  expect(footer).toContain('href="/?about=1#how-it-works"');
   expect(html).toContain(`>${nav.howItWorks}<`);
   expect((await request.get('/how-it-works')).status()).toBe(404);
 });

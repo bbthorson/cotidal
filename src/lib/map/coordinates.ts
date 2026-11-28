@@ -36,10 +36,10 @@ export function quadrantFor(x: number, y: number): Quadrant {
 export const QUADRANT_ORDER: readonly QuadrantId[] = quadrants.map((q) => q.id);
 
 /**
- * A region is a filter on the map: `/map?region=<id>` washes it, names its
+ * A region is a filter on the map: `/?region=<id>` washes it, names its
  * drinks, and puts the region in the card (`map-url.ts`, `VIEW_PARAMS.region`).
  */
-export const regionPath = (id: QuadrantId) => `/map?region=${id}`;
+export const regionPath = (id: QuadrantId) => `/?region=${id}`;
 
 const MINUS = '−';
 

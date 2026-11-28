@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { appPath } from './app-path';
 import { explore, overlays as copy } from '../src/lib/copy';
 
 const profile = {
@@ -18,7 +19,7 @@ const seedOnce = (p: typeof profile) => {
 
 test('Overlays: With someone draws comparison & against contours, and adding a second switches to Table mode', async ({ page }) => {
   await page.addInitScript(seedOnce, profile);
-  await page.goto('/map');
+  await page.goto(appPath);
 
   const bar = page.getByTestId('overlay-bar');
   await expect(bar).toBeVisible();
@@ -44,11 +45,11 @@ test('Overlays: With someone draws comparison & against contours, and adding a s
 
 test('Overlays: comparing with someone draws the comparison\'s drinks and the table\'s picks, not the staples', async ({ page }) => {
   await page.addInitScript(seedOnce, profile);
-  await page.goto('/map');
+  await page.goto(appPath);
   const drawn = (name: string) => page.getByRole('group', { name: explore.mapLabel }).getByRole('button', { name, exact: true });
   await expect(drawn('Mojito')).toHaveCount(1);
 
-  await page.goto('/map?with=surf.test');
+  await page.goto('/?with=surf.test');
   const picks = page.getByTestId('overlay-table-picks');
   await expect(picks).toBeVisible();
   // Where the two part, each way.
@@ -67,7 +68,7 @@ test('Overlays: comparing with someone draws the comparison\'s drinks and the ta
 
 test('Overlays: Uncharted lens and Wine type filter compose cleanly', async ({ page }) => {
   await page.addInitScript(seedOnce, profile);
-  await page.goto('/map');
+  await page.goto(appPath);
 
   await page.getByTestId('overlay-explore-btn').click();
   await expect(page).toHaveURL(/lens=explore/);
@@ -80,7 +81,7 @@ test('Overlays: Uncharted lens and Wine type filter compose cleanly', async ({ p
 
 test('Overlays: Opening a bar menu shows its region footprint summary', async ({ page }) => {
   await page.addInitScript(seedOnce, profile);
-  await page.goto('/map?menu=1');
+  await page.goto('/?menu=1');
 
   const input = page.getByLabel('A drink on their menu');
   await input.fill('Negroni');

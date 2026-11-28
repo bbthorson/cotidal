@@ -6,7 +6,7 @@ import { QUIZ_PARAM, START_OVER_PARAM } from '@/lib/atproto/paths';
 import { takeParam } from '@/lib/utils';
 
 /**
- * The questions, as an overlay state of `/map`'s card (`?quiz=1` or `?startover=1`):
+ * The questions, as an overlay state of `/`'s card (`?quiz=1` or `?startover=1`):
  * holds the live shoal/ground as answers come in, the settled reveal point,
  * and auto-closes if a stored coordinate arrives before the user answers.
  */

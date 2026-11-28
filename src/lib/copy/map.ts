@@ -76,7 +76,7 @@ export const compass = {
 } as const;
 
 /**
- * /map, the one app screen: your terrain on the map, one search in the header
+ * `/`, the one app screen: your terrain on the map, one search in the header
  * over drinks and bars, and one card for everything else (`Explore.tsx`).
  */
 export const explore = {
@@ -109,7 +109,7 @@ export const explore = {
   legend: { liked: 'Liked (7+)', poured: 'Other pours', ground: 'Your high ground', pinned: 'On this menu' },
 } as const;
 
-/** /map, Your map: you — where you are, how sure, the way you came, and what moved you. */
+/** `/`, Your map: you — where you are, how sure, the way you came, and what moved you. */
 export const mapPage = {
   title: 'Your map',
   heading: 'Your map',
@@ -319,7 +319,7 @@ export const drinks = {
 } as const;
 
 /**
- * A region on the map (`/map?region=<id>`). The prose of each region lives in `src/content/regions/`;
+ * A region on the map (`/?region=<id>`). The prose of each region lives in `src/content/regions/`;
  * these are the parts that are the same for all four, and they describe what
  * the product does rather than what a region means.
  */

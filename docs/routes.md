@@ -12,7 +12,18 @@ and why.
 
 `/` is the map with a sample palate gaining ratings, and a card that asks one
 thing: find your coordinate. Pulled up, it says how it works
-(`/#how-it-works`) and links to sign-in. The map is its one large move.
+(`/?about=1#how-it-works`) and links to sign-in. The map is its one large move.
+
+**It is the front door only for a stranger.** The front door and the app
+were one page in two states, so they share one address. Whether there is a
+taste to draw decides: a member has one (the session says so), and so does a
+guest whose device holds a coordinate (a presence-only cookie,
+`src/lib/device-presence.ts`, since the coordinate itself never leaves the
+device). Anyone else, arriving with no parameter, gets the front door; any
+parameter (`?quiz=1`, `?drink=`, `?q=`) is a question for the app. The server
+decides, so nothing flashes and a stranger's page stays script-free.
+`?about=1` (`frontDoorHref`) asks for the front door outright, which is how
+How it works reaches it from inside the app.
 
 Signing in buys the account (any phone), the public map and chat assistants,
 not logging or the menu: everything works signed out, on the device, so it
@@ -26,9 +37,9 @@ one earns promotion.
 
 | Screen | For | Reached from |
 |---|---|---|
-| **The map** (`/map`) | Everything: your terrain, every drink, and the card (search, your menu, a bar's menu, a drink, your pours) | Header, Menu, the front door |
+| **The map** (`/`) | Everything: your terrain, every drink, and the card (search, your menu, a bar's menu, a drink, your pours) | Header, Menu, the front door |
 | **Rating** (in the card) | One pour, rated | Rate this, a waiting pick, a chat's draft link |
-| **The questions** (in the card, `/map?quiz=1`) | Placing the coordinate | The front door, a drink's page, Start over |
+| **The questions** (in the card, `/?quiz=1`) | Placing the coordinate | The front door, a drink's page, Start over |
 | **Your link** (`/p/<handle>`) | What a friend sees; comparing | Settings, the card, a link someone sent |
 | **Settings** | The account: sign out, your link, assistants, start over | Your handle |
 | **A drink's page** (`/drinks/<slug>`) | SEO/AEO and a link to send; not in the navigation | Search, links |
@@ -47,7 +58,7 @@ who just arrived. Reach it from inside, or from a link someone was sent.
 ## The reading path
 
 A region is a way to narrow the drinks, so it is a filter on the map
-(`/map?region=<id>`), not a page, and the map is the list of drinks, so there
+(`/?region=<id>`), not a page, and the map is the list of drinks, so there
 is no `/drinks`. A region's card has four parts from four places: what it is
 (`src/content/regions/<id>.md`), what it says about you (one template in
 `copy/`, describing what the product does and nothing more), its drinks (from
@@ -55,7 +66,7 @@ the map) and what they share (counted from their ingredient lists).
 
 ## The return visit
 
-**Drink → log → the map changes.** That loop is why `/map` is the one screen
+**Drink → log → the map changes.** That loop is why `/` is the one screen
 and rating lives in its card.
 
 ## The supply side

@@ -35,7 +35,7 @@ export type ActiveLens = 'self' | 'with' | 'table' | 'explore';
 const MAX_COMPANIONS = 5;
 
 /**
- * Unified overlay state (`Lens × Scope`) for `/map`:
+ * Unified overlay state (`Lens × Scope`) for `/`:
  * - **Lens:** `self` | `with` (1 companion) | `table` (2–5 companions) | `explore` (uncharted frontier)
  * - **Scope:** `drinkType` (`Cocktail` | `Wine` | `Beer` | `Spirit` | `null`), composing with bar menus and regions
  *

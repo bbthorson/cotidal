@@ -4,13 +4,13 @@ import { coldState, compass, explore, moved, pour, ratePage } from '../src/lib/c
 
 /**
  * A pour drafted in a chat (`draft_pour` on /mcp) and confirmed in the form at
- * the map's card, which opens on it at /map. The draft is a link and nothing else: these tests hold what it may
+ * the map's card, which opens on it at /. The draft is a link and nothing else: these tests hold what it may
  * carry, and that the form will not log it until the rating is tapped.
  */
 
 test('Draft link: the card opens on it, will not log without a rating, and logs once', async ({ page }) => {
   const path = draftPath({ drink: 'Negroni', bar: 'Dante', deviations: ['too-bitter'], note: 'Big orange peel' });
-  expect(new URL(path, 'http://x').pathname).toBe('/map');
+  expect(new URL(path, 'http://x').pathname).toBe('/');
   await page.goto(path);
   const sheet = page.getByRole('region', { name: ratePage.title });
   await sheet.getByRole('button', { name: coldState.guestCta }).click();
@@ -41,7 +41,7 @@ test('Draft link: the card opens on it, will not log without a rating, and logs 
   expect(new URL(page.url()).search).toBe('');
   await page.getByRole('button', { name: moved.back }).click();
   await expect(sheet).toHaveCount(0);
-  await expect(page).toHaveURL(/\/map$/);
+  await expect(page).toHaveURL(/\/(\?q=)?$/);
   await expect(page.getByTestId('pour-draft-note')).toHaveCount(0);
   await expect(page.getByLabel(pour.noteLabel)).toHaveCount(0);
   // In the ledger, once; the bar is also among your bars now.

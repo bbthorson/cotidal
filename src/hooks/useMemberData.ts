@@ -3,7 +3,7 @@ import type { ElicitationRecord } from '@/lib/atproto/elicitation-record';
 import type { PourRecord } from '@/lib/atproto/records';
 import type { UserProfile } from '@/lib/palate/profile';
 import { flushPendingElicitation, getConnectedPours, getMemberSnapshot, logDrinkFeedback, publishPalate } from '@/lib/api-client';
-import { clearGuestPours, clearProfile, loadGuestPours, loadLastQuiz, loadProfile, saveProfile } from '@/lib/device-store';
+import { clearGuestPours, clearProfile, loadGuestPours, loadLastQuiz, loadProfile, saveProfile, syncCoordinateMark } from '@/lib/device-store';
 import { pourRecordToLogOptions } from '@/lib/pours/pour-entry';
 import { quizStart, type TrackStart } from '@/lib/palate/track';
 
@@ -30,6 +30,7 @@ export function useMemberData(member: boolean) {
   useLayoutEffect(() => {
     const local = loadProfile();
     if (local) setProfileState(local);
+    syncCoordinateMark();
   }, []);
 
   useEffect(() => {

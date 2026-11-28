@@ -1,7 +1,7 @@
 import { useEffect, useRef, type RefObject } from 'react';
 
 /**
- * Scroll management when `/map`'s card switches modes:
+ * Scroll management when `/`'s card switches modes:
  * - On desktop (`lg`+), the card body scrolls independently to its top.
  * - On phones, rating pulls the card up (`cardUp`), while map-focused modes
  *   scroll back to the top of the page so the map shows.

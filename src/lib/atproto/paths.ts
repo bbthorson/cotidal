@@ -19,17 +19,17 @@ export function publicMapPath(actor: string): string {
  * clear this device's copy of the coordinate (AtprotoProvider).
  */
 export const SIGNED_OUT_PARAM = 'signed_out';
-export const signedOutPath = `/map?${SIGNED_OUT_PARAM}=1`;
+export const signedOutPath = `/?${SIGNED_OUT_PARAM}=1`;
 
 /**
  * The questions are a state of the map's card, never a page: `?quiz=1` on
- * `/map` opens them, handled once on arrival. `?startover=1` with it clears
+ * `/` opens them, handled once on arrival. `?startover=1` with it clears
  * this device's coordinate first (from Settings, or the foot of Your map for
  * a guest).
  */
 export const QUIZ_PARAM = 'quiz';
 export const START_OVER_PARAM = 'startover';
-export const startOverPath = `/map?${QUIZ_PARAM}=1&${START_OVER_PARAM}=1`;
+export const startOverPath = `/?${QUIZ_PARAM}=1&${START_OVER_PARAM}=1`;
 
 /**
  * Rating a pour is a sheet over an app page, not a page of its own. A URL asks
@@ -39,4 +39,4 @@ export const startOverPath = `/map?${QUIZ_PARAM}=1&${START_OVER_PARAM}=1`;
  * is kept.
  */
 export const RATE_PARAM = 'rate';
-export const RATE_LANDING_PATH = '/map';
+export const RATE_LANDING_PATH = '/';
